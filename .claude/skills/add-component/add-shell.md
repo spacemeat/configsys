@@ -2,9 +2,9 @@
 
 configsys treats every shell uniformly: small snippets under `~/.config/<shell>/conf.d/` plus a
 per-shell LOADER that runs them (the `via: glue` driver, `configsys/drivers/glue.py`). bash/zsh/fish/
-elvish are wired (elvish via a GESTALT/inline loader — see Part A class 5); nushell (`nu`) is punted
-(dir only). Adding a shell `<sh>` means teaching the glue driver about it, then porting the glue
-content into its language.
+elvish/nushell are all wired (elvish AND nushell via a GESTALT/inline loader — see Part A class 5).
+Adding a shell `<sh>` means teaching the glue driver about it, then porting the glue content into its
+language.
 Read this when the user adds a shell (elvish, xonsh, oil/osh, tcsh, …) — it's a component (route it
 across the OS matrix like any other, per SKILL.md) PLUS the glue wiring below.
 
@@ -29,9 +29,9 @@ whole `~/.config/<sh>` dir.** A whole-dir `dst` (`$XDG_CONFIG_HOME/<sh>`) swallo
 `conf.d/` into the config capture — the fish split-brain (glue baked into the .cfs, "unmanaged"
 nags, source-column lies). The dotfiles driver deploys a config spec as ONE whole-thing symlink and
 `exclude:` only affects capture/.gitignore, NOT deployment — so targeting the rc file is the only fix.
-Precedent: `fish→config.fish`, `nushell→config.nu`, `zsh→~/.zshrc`. **bash and elvish have NO
-`<sh>-dotfiles`** — bash's config is purely glue (`~/.bash_aliases`), and elvish's rc.elv IS the glue
-gestalt block (glue-owned, regenerated — see class 5; capturing it would freeze the block).
+Precedent: `fish→config.fish`, `zsh→~/.zshrc`. **bash, elvish, and nushell have NO `<sh>-dotfiles`** —
+bash's config is purely glue (`~/.bash_aliases`), and elvish's rc.elv / nushell's config.nu ARE the
+glue gestalt block (glue-owned, regenerated — see class 5; capturing it would freeze the block).
 
 ## Part A — register the shell in the glue driver (`configsys/drivers/glue.py`)
 
@@ -56,13 +56,14 @@ Then pick the shell's **loader class** — how it comes to run its conf.d. Five 
    own source line — `_ensure_shell_loader` returns False and skips it; don't fight that.
 3. **Convention ride** (bash only): bash has no native conf.d, so it rides `~/.bash_aliases` →
    the shipped `bash_aliases` loader. A new shell won't reuse this; it's bash-specific.
-4. **Punt** (like `nu` today): dir only, no auto-source, no rc block. Snippets deploy but aren't
-   sourced until you implement (1), (2) or (5). Acceptable as an explicit first cut — but say so; glue
-   is inert until the loader lands. (nushell is punted because it can't `source` a glob/dynamic path at
-   parse time — it'd need the gestalt approach (5), inlining explicit content into `config.nu`.)
-5. **Gestalt / inline** (like `elvish`): for a shell whose `eval`/`source` ISOLATES namespaces, so
-   sourcing conf.d in a loop DISCARDS each file's function/variable definitions (they never reach the
-   interactive shell). Add `'<sh>'` to **`_INLINE_SHELLS`** and `_SHELL_RC['<sh>']` (its rc file); the
+4. **Punt**: dir only, no auto-source, no rc block. Snippets deploy but aren't sourced until you
+   implement (1), (2) or (5). Acceptable as an explicit first cut — but say so; glue is inert until the
+   loader lands. (No shell ships this way today; nushell used to, before it became gestalt (5).)
+5. **Gestalt / inline** (like `elvish` and `nushell`): for a shell that can't dynamically source a dir
+   of snippets into the interactive scope — either its `eval`/`source` ISOLATES namespaces so a source
+   loop DISCARDS each file's defs (elvish), or it parses the whole program up front so `source` needs a
+   parse-time-CONSTANT path and a conf.d loop is impossible (nushell). Add `'<sh>'` to
+   **`_INLINE_SHELLS`** and `_SHELL_RC['<sh>']` (its rc file); the
    loader's marker block then **inlines the concatenated conf.d snippet contents** directly (so defs run
    in the interactive namespace), regenerated on every (de)activation via `_inline_block`. Trade-off:
    one erroring snippet aborts the rest of the block, so **every snippet must SELF-GUARD** (no bare
@@ -95,11 +96,11 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
      always exists → `<sh>-dotfiles` reads "unmanaged" until the user captures it ONCE (then glue
      defers to the managed symlink — `_ensure_shell_loader` skips a symlinked rc). Capture-the-rc works
      here because the block is STATIC (unchanged as snippets come and go). `zsh→~/.zshrc`.
-   - **gestalt/inline** (elvish): the block is DYNAMIC (regenerated from the snippet set), so the rc
-     **must be glue-owned and can NOT be captured** — a captured symlink freezes the block. So a
+   - **gestalt/inline** (elvish, nushell): the block is DYNAMIC (regenerated from the snippet set), so
+     the rc **must be glue-owned and can NOT be captured** — a captured symlink freezes the block. So a
      gestalt shell gets **NO `<sh>-dotfiles`** (like bash). Real user config, if any, lives in the rc
-     OUTSIDE the marker block (glue preserves it), but isn't configsys-synced.
-   - **punted** (nu): no rc write yet → `config.nu`, clean like fish (until it becomes gestalt).
+     OUTSIDE the marker block (glue appends its block, preserving the rest), but isn't configsys-synced.
+     `elvish→rc.elv`, `nushell→config.nu`.
    If the shell is glue-ONLY for realistic use (no meaningful rc), have NO `<sh>-dotfiles` at all, like
    bash/elvish — don't add a companion that can only ever nag "unmanaged."
 3. **Port the glue snippets** into the shell's language. A `glue: <name>` snippet lights up on `<sh>`
@@ -113,14 +114,25 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
    - Snippets you don't port simply don't attach on `<sh>` (a glue component with no `<sh>` variant
      yields no spec for that shell — a clean no-op, not an error).
    - **Gestalt shells (class 5) — persistence + self-guard idioms.** Since snippets are inlined and
-     one throw aborts the rest: (a) a conditional definition must NOT be a bare `fn`/`var` inside an
-     `if`/`for` (that's block-local and won't persist) — use the shell's inject-into-the-interactive-
-     namespace form (elvish: `edit:add-var name~ {…}`); (b) helpers the substrate shares (a `configsys`
-     wrapper, a location helper) are TOP-LEVEL `fn`s in `00-configsys.<ext>` (inlined first, so later
-     snippets can call them); (c) PATH/env mutations (`set paths`/`set-env`) persist even inside an
-     `if`; (d) wrap any command that can fail (a tool's `init <sh>` on an old version) in the shell's
-     swallow-error form (elvish: `?()`) so it can't abort the block. Skip a snippet whose tool has no
-     `<sh>` target (`atuin`/`fzf`/`pyenv` emit no elvish) or that sources a *bash* env script.
+     one throw aborts the rest: (a) a conditional definition must NOT be a bare `fn`/`def`/`alias`/`var`
+     inside an `if`/`for` (that's block-local and won't persist) — use the shell's inject-into-the-
+     interactive-namespace form (elvish: `edit:add-var name~ {…}`; **nushell: there is none** — a `def`
+     is parse-time-scoped, so define it UNCONDITIONALLY at top level and self-guard INSIDE the body:
+     `def --wrapped X [...r] { if (which --all X | where type == external | is-not-empty) { ^X ...$r }
+     else { ^fallback ...$r } }`); (b) helpers the substrate shares (a `configsys` wrapper, a location
+     helper) are TOP-LEVEL defs in `00-configsys.<ext>` (inlined first, so later snippets can call
+     them); (c) PATH/env mutations persist even inside an `if` (elvish `set paths`/`set-env`; nushell
+     top-level `$env.PATH = ($env.PATH | prepend … | uniq)` — but a top-level `let` does NOT reach the
+     REPL, so cache a load-time value in `$env.__cs_*` if a def must read it later); (d) wrap any
+     command that can fail (a tool's `init <sh>` on an old version) in the shell's swallow-error form
+     (elvish: `?()`; nushell: `do --ignore-errors { … }`) so it can't abort the block. Skip a snippet
+     whose tool has no `<sh>` target or that sources a *bash* env script.
+   - **Nushell's harder cases.** Because nushell has NO runtime `source`/eval of a string, an init-eval
+     tool (`zoxide`/`atuin`/`starship`/`direnv`, which emit shell code to be eval'd at startup) can't be
+     inlined the way elvish does (`eval (zoxide init elvish | slurp)`). These need a pre-generate step
+     (run `<tool> init nu | save <file>` at activation, then a static `source <file>`) — a driver hook,
+     not a plain static snippet. Punt those for `nu` until that hook exists; the PATH/alias/env shapes
+     port cleanly without it.
 4. **If the shell installs off-PATH (a tarball), add a PATH glue** so `which <sh>` finds it — the
    `_installed_shells()` detection is `shutil.which`, and a shell that isn't detected gets NO glue at
    all (chicken-and-egg). Add `<sh>-glue` (`glue: <sh>`) with bash/zsh/fish variants that prepend

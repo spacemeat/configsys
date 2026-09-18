@@ -150,6 +150,43 @@ def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     assert g.get_version(loader) is None
 
 
+def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
+    # nushell can't dynamically source a dir (it parses the whole program first, so `source` needs a
+    # parse-time-constant path — no conf.d loop possible), so like elvish it uses the GESTALT loader:
+    # config.nu's marker block INLINES the concatenated conf.d snippets, regenerated on (de)activation.
+    p = paths_for(tmp_path, shells='nu')
+    (p.glue_dir / 'shell' / 'nu').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'nu' / '00-configsys.nu').write_text('def cf [...a] { configsys ...$a }\n')
+    (p.glue_dir / 'shell' / 'nu' / 'fd.nu').write_text('def --wrapped fd [...r] { ^fdfind ...$r }\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    config_nu = p.home / '.config' / 'nushell' / 'config.nu'
+
+    # activate the substrate first, then fd -> the block inlines BOTH, in sorted order
+    assert g.install(_glue_unit(comp='configsys-glue', glue='00-configsys')).ok
+    assert g.install(_glue_unit(comp='fd-glue', glue='fd')).ok
+    block = config_nu.read_text()
+    assert '# >>> configsys glue >>>' in block
+    assert 'def cf [...a] { configsys ...$a }' in block               # inlined, not sourced
+    assert 'def --wrapped fd [...r] { ^fdfind ...$r }' in block
+    assert 'source ' not in block                                    # nu can't source-loop a dir
+    assert block.index('# >> 00-configsys.nu') < block.index('# >> fd.nu')   # 00- first
+    link = p.home / '.config' / 'nushell' / 'conf.d' / 'fd.nu'
+    assert link.is_symlink()
+
+    # deactivating fd regenerates the block WITHOUT fd, keeps the substrate
+    assert g.uninstall(_glue_unit(comp='fd-glue', glue='fd')).ok
+    block2 = config_nu.read_text()
+    assert 'fd [...r]' not in block2 and 'def cf [...a]' in block2
+
+    # removing the loader-all substrate drops the whole block
+    loader = _loader_unit('all')
+    assert g.get_version(loader) == 'linked'
+    assert g.uninstall(loader).ok
+    assert '# >>> configsys glue >>>' not in config_nu.read_text()
+    assert g.get_version(loader) is None
+
+
 def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     # the shell-glue substrate: `loader: all` wires conf.d loading for EVERY installed shell.
     p = paths_for(tmp_path, shells='bash,zsh,fish')

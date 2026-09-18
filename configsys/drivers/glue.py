@@ -12,7 +12,8 @@ A `via: glue` binding is one of:
                        each INSTALLED shell that ships a variant. Snippets deploy through the
                        machine-local store MIRROR (never linking the repo).
   * `loader: <shell>`— hook one shell up to source its conf.d (zsh needs an rc marker-block; fish
-                       auto-sources natively; bash rides `~/.bash_aliases`; nu is punted).
+                       auto-sources natively; bash rides `~/.bash_aliases`; elvish/nushell inline the
+                       snippets into the rc — they can't dynamically source a dir).
 
 User-space only (no sudo); no version — glue is "active" or not.
 
@@ -50,18 +51,22 @@ _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 
 # loaders (`loader: <shell>`): hook a shell up to run its ~/.config/<shell>/conf.d/* snippets.
 # fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
-# zsh needs one configsys-owned, marker-delimited rc block that SOURCES the dir; elvish is INLINE
-# (see below); nu is punted (dir only). The markers make the block idempotent + cleanly removable.
+# zsh needs one configsys-owned, marker-delimited rc block that SOURCES the dir; elvish and nushell
+# are INLINE (see below). The markers make the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
-_SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv'}
+_SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv',
+             'nu': '~/.config/nushell/config.nu'}
 
-# GESTALT (inline) shells: elvish's `eval` ISOLATES namespaces — sourcing conf.d/*.elv in a loop
-# discards each file's `fn`/`var` definitions, so aliases (and the `configsys` helper) never reach
-# the interactive shell. For these shells the rc marker block INLINES the concatenated conf.d snippet
-# contents directly (so definitions land in the interactive namespace), regenerated on every
-# (de)activation. It's also faster — one block, not N sourced files.
-_INLINE_SHELLS = ('elvish',)
+# GESTALT (inline) shells: neither elvish nor nushell can dynamically source a dir of snippets into
+# the interactive scope. Elvish's per-file `eval` ISOLATES namespaces (a sourced file's `fn`/`var`
+# defs never reach the interactive shell). Nushell parses the WHOLE program before running, so
+# `source` is a parse-time keyword whose path must be a compile-time constant — you can't loop-source
+# conf.d at all. For both, the rc marker block INLINES the concatenated conf.d snippet contents
+# directly (so definitions land in the interactive scope), regenerated on every (de)activation. It's
+# also faster — one block, not N sourced files. (Consequence: an inline-rc shell's rc is glue-owned
+# and cannot be a dotfiles capture — capturing freezes the block — so these shells have no -dotfiles.)
+_INLINE_SHELLS = ('elvish', 'nu')
 
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
@@ -275,8 +280,8 @@ class Glue(Driver):
         return self._expand(_SHELL_CONFD[shell])
 
     def _ensure_confd(self, shell):
-        '''Ensure ~/.config/<shell>/conf.d/ exists (so fish/nu auto-source find it, and links have a
-        home). Returns the dir.'''
+        '''Ensure ~/.config/<shell>/conf.d/ exists (so fish auto-source finds it, the inline shells'
+        snippets have a home to be read from, and links have a home). Returns the dir.'''
         d = self._confd(shell)
         d.mkdir(parents=True, exist_ok=True)
         return d
@@ -316,9 +321,9 @@ class Glue(Driver):
     def _ensure_shell_loader(self, shell, rc=None):
         '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; bash also gets its
         ~/.bash_aliases link (see _link_bash_aliases); zsh inserts/refreshes ONE configsys-owned
-        marker block that SOURCES the dir; elvish (a gestalt/inline shell) inserts/refreshes a marker
-        block that INLINES the concatenated conf.d snippets (_inline_block); fish (native auto-source)
-        and nu (punted) get the dir only. Returns True if a hookup is in place for this shell.'''
+        marker block that SOURCES the dir; elvish and nushell (gestalt/inline shells) insert/refresh a
+        marker block that INLINES the concatenated conf.d snippets (_inline_block); fish (native
+        auto-source) gets the dir only. Returns True if a hookup is in place for this shell.'''
         self._ensure_confd(shell)
         if shell == 'bash':                                # bash rides ~/.bash_aliases
             self._link_bash_aliases(rc)
@@ -402,7 +407,8 @@ class Glue(Driver):
 
     def _loader_ok(self, shell):
         '''True if `shell`'s loader is fully hooked: dir present, plus bash's ~/.bash_aliases link /
-        zsh's rc block where those apply (fish/nu need only the dir).'''
+        the rc block for the rc-driven shells (zsh/elvish/nushell) where those apply (fish needs only
+        the dir).'''
         if not self._confd(shell).is_dir():
             return False
         if shell == 'bash':

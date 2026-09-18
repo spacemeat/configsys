@@ -8098,16 +8098,6 @@
    }
   },
   "nushell": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -8128,18 +8118,6 @@
      "name": "nushell"
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -22019,16 +21997,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -22055,18 +22023,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -35235,16 +35191,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -35271,18 +35217,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -48342,16 +48276,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -48378,18 +48302,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -61053,16 +60965,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -61089,18 +60991,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -73811,16 +73701,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -73847,18 +73727,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -85019,16 +84887,6 @@
     },
     "name": "nushell"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -85042,18 +84900,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -97276,16 +97122,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -97312,18 +97148,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -110570,16 +110394,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -110606,18 +110420,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -124216,16 +124018,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -124252,18 +124044,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {
@@ -137428,16 +137208,6 @@
     },
     "name": "curl"
    },
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
-   },
    "glue\\nushell-glue": {
     "driver": "glue",
     "fields": {
@@ -137464,18 +137234,6 @@
      }
     },
     "name": "nushell"
-   }
-  },
-  "nushell-dotfiles": {
-   "dotfiles\\nushell-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
-      "src": "config.nu"
-     }
-    },
-    "name": "nushell-dotfiles"
    }
   },
   "nushell-glue": {

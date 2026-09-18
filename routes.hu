@@ -643,7 +643,12 @@
                 uninstall-cmd: 'rm -f "$HOME/.config/fish/functions/bass.fish" "$HOME/.config/fish/functions/__bass.py"' } ] }
         // nushell isn't in Debian/Ubuntu/Fedora base repos; native where it is (Arch, Homebrew),
         // else the upstream glibc release tarball (ships `nu` + its plugins).
-        nushell: { attrs: [ CLI FOSS permissive ] suggests: [ nushell-dotfiles  nushell-glue ] 
+        // No nushell-dotfiles: nushell is a GESTALT/inline glue shell (like elvish) — its config.nu
+        // carries the dynamically-regenerated glue block, so it must be glue-owned and can't be a
+        // dotfile capture (capturing freezes the block). Nushell can't dynamically source a dir of
+        // snippets: it parses the whole program up front, so `source` needs a parse-time-constant
+        // path — no conf.d loop is possible. So the block INLINES the snippets. (See the glue driver.)
+        nushell: { attrs: [ CLI FOSS permissive ] suggests: [ nushell-glue ]
             description: "A shell whose pipelines carry structured data, not just text (`nu`)."
             install: [
                 { via: native  when: "arch" }
@@ -2388,9 +2393,11 @@
         //            into conf.d/pre-configsys-aliases.sh so the user's own aliases keep running;
         //   * zsh  — one configsys-owned, marker-delimited block in ~/.zshrc sourcing conf.d/*.zsh
         //            (skipped if ~/.zshrc is a configsys-managed symlink — the capture owns it then);
-        //   * fish — native conf.d auto-source, so just ensure the dir; nu is punted (dir only).
+        //   * fish — native conf.d auto-source, so just ensure the dir;
+        //   * elvish/nushell — a marker block that INLINES the concatenated conf.d snippets (neither
+        //            can dynamically source a dir), regenerated on every (de)activation.
         // (This replaces the old per-shell bash-dotfiles / zsh-glue / fish-glue loader components.)
-        shell-glue: { attrs: [ CLI FOSS permissive ] description: "Shell glue substrate — wires ~/.config/<shell>/conf.d/ loading for every installed shell (bash/zsh/fish)."
+        shell-glue: { attrs: [ CLI FOSS permissive ] description: "Shell glue substrate — wires ~/.config/<shell>/conf.d/ loading for every installed shell (bash/zsh/fish/elvish/nushell)."
             install: [ { via: glue  loader: all } ] }
 
         // --- editors / IDEs ---
@@ -3508,8 +3515,7 @@
         mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }
         nim-glue: { description: "nim shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nim } ] }
         node-glue: { description: "node shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: node } ] }
-        // nushell config = config.nu (the rc), NOT the whole ~/.config/nushell dir — conf.d/ is glue's.
-        nushell-dotfiles: { description: "nushell config (config.nu), linked into place." install: [ { via: dotfiles  config: { src: config.nu  dst: $XDG_CONFIG_HOME/nushell/config.nu } } ] }
+        // No nushell-dotfiles: config.nu is the glue-owned gestalt block (see the nushell component).
         nushell-glue: { description: "nushell shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nushell } ] }
         octave-dotfiles: { description: "octave config, linked into place." install: [ { via: dotfiles  config: { src: octaverc  dst: ~/.octaverc } } ] }
         odin-glue: { description: "odin shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: odin } ] }
