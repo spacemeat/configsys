@@ -73,3 +73,21 @@ def test_installs_before_removes():
     out = expand_plan(plan, UNITS)
     ops = [op for op, _k, _rc in out]
     assert ops.index('install') < ops.index('remove')
+
+
+def test_swap_remove_runs_before_its_paired_install():
+    # method switch: install tarball\\foo, remove the old apt\\foo of the SAME component. The swap-
+    # remove must precede the install (colliding binary paths), while an UNRELATED remove stays last.
+    units = {
+        'tarball\\foo': u('tarball\\foo'),
+        'apt\\foo': u('apt\\foo'),
+        'apt\\bar': u('apt\\bar'),
+    }
+    plan = [
+        ('install', 'tarball\\foo', units['tarball\\foo']),
+        ('remove', 'apt\\foo', units['apt\\foo']),     # the superseded old method
+        ('remove', 'apt\\bar', units['apt\\bar']),     # an ordinary, unrelated remove
+    ]
+    keys = [k for _op, k, _rc in expand_plan(plan, units)]
+    assert keys.index('apt\\foo') < keys.index('tarball\\foo')   # swap-remove first
+    assert keys.index('tarball\\foo') < keys.index('apt\\bar')   # ordinary remove last

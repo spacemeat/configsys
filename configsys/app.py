@@ -656,6 +656,11 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
             from . import flooradvise
             for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
                 base_plan.append(('upgrade', pkey, prc))
+        if op in ('install', 'upgrade', 'set-version'):
+            # method-switch swap: if a target is currently installed via ANOTHER method (a pin
+            # change, a route/OS shift), remove that old install first so we don't double up.
+            from .installState import plan_with_swaps
+            base_plan, units = plan_with_swaps(ctx, base_plan, units)
         plan = expand_plan(base_plan, units)
 
     maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
@@ -1755,7 +1760,23 @@ def _pin_set(ctx, name, value):
           f'(local, in {_layer_label(ctx.paths.user_config_file, ctx.paths)})')
     if note:
         print(f'  note: {note}')
+    _swap_headsup(ctx, name, value)
     return 0
+
+
+def _swap_headsup(ctx, name, value):
+    '''If `name` is currently installed via a method OTHER than the just-pinned `value`, say so — the
+    next install/upgrade queues a remove-then-reinstall (method-switch swap), no surprise at execute.'''
+    try:
+        ctx.invalidate()                 # re-read config so the new pin drives resolution
+        from .installState import superseded_installs
+        units, roots = ctx.routes.resolve_with_roots([name])
+        for key in roots:
+            for old_rc, ver in superseded_installs(ctx, units[key]):
+                print(f'  note: {name} is still installed via {old_rc.via} ({ver}); '
+                      f'`configsys install {name}` will remove that and reinstall via {value}.')
+    except Exception:                    # noqa: BLE001 — a heads-up must never fail the pin
+        pass
 
 
 def _pin_unset(ctx, name):

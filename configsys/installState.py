@@ -282,3 +282,64 @@ def detect_coexisting(ctx, states):
     # independent -> run concurrently, like the inspect + detection passes.
     _parallel_map(_one, list(states.values()))
     return states
+
+
+_SWAP_INSTALLISH = ('install', 'upgrade', 'set-version')
+
+
+def superseded_installs(ctx, target_rc):
+    '''ResolvedComponents for `target_rc`'s component that are CURRENTLY installed via a DIFFERENT
+    method than target_rc's — the OLD installs a method-switch supersedes. Returns [(rc, version), …],
+    empty when there's nothing to swap (the common case). Best-effort probes of the component's other
+    candidate bindings (the same walk `detect_coexisting` does, targeted at ONE component).'''
+    from .adapt import to_resolved_component
+    from .resolve import candidate_bindings, unit_for_binding, via_representatives
+    r = ctx.routes
+    comp = r.components.get(target_rc.comp)
+    if comp is None or not comp.bindings:
+        return []
+    cx = r.cascade.context(r.block, r.version, r.cpu)
+    try:
+        reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+    except Exception:                               # noqa: BLE001 — a routing hiccup means no swap
+        return []
+    out = []
+    for b in reps:
+        if b.via == target_rc.via:
+            continue                                # the method we're keeping
+        unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
+        if unit is None:
+            continue
+        rc = to_resolved_component(unit)
+        if rc.key == target_rc.key:
+            continue
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
+            continue
+        try:
+            ver = drv.get_version(rc)
+        except Exception:                           # noqa: BLE001 — a flaky probe just finds nothing
+            ver = None
+        if ver is not None:
+            out.append((rc, ver))
+    return out
+
+
+def plan_with_swaps(ctx, base_plan, units):
+    '''Inject a `remove` of any OLD-method install superseded by an install/upgrade target in
+    `base_plan` — the method-switch swap. Remove-before-install ordering is `expand_plan`'s job (it
+    promotes a remove whose component also has an install to run first). Returns (plan, units) with
+    the old units merged in. A no-op unless a target is also installed via another method.'''
+    plan = list(base_plan)
+    units = dict(units)
+    seen = {k for _op, k, _rc in base_plan}
+    for op, _key, rc in base_plan:
+        if op not in _SWAP_INSTALLISH or rc is None:
+            continue
+        for old_rc, _ver in superseded_installs(ctx, rc):
+            if old_rc.key in seen:
+                continue
+            seen.add(old_rc.key)
+            units[old_rc.key] = old_rc
+            plan.append(('remove', old_rc.key, old_rc))
+    return plan, units

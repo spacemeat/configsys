@@ -619,6 +619,10 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     if not raw:
         return False, 'nothing staged', []
     units = {k: st.component for k, st in ms.states.items()}
+    # method-switch swap: a staged install whose component is also installed via another method
+    # gets that old install removed first (remove-before-reinstall). Mirrors the CLI plan path.
+    from ..installState import plan_with_swaps
+    raw, units = plan_with_swaps(ctx, raw, units)
     plan = expand_plan(raw, units, ms.states)
 
     with suspended(stdscr):
@@ -1502,6 +1506,32 @@ def _apply_method_pin(ctx, name, via, already_pinned):
     hint = (f'pinned {name} → {via} (local); '
             f'run `configsys pin promote {name}` to make it portable via your primary plugin.')
     return True, f'pinned {name} → {via}', hint
+
+
+def _offer_method_swap(stdscr, pal, ms, ctx):
+    '''After a method pin change, if the pinned component is STILL installed via another method, pop a
+    modal offering to queue that old install's removal (a remove-before-reinstall swap). On "yes",
+    stage an install of the new-method unit — the swap-remove itself is folded in at execute
+    (plan_with_swaps). Returns a footer note, or None when there's nothing to swap.'''
+    name = _row_component(ms.cur())
+    if not name:
+        return None
+    tgt = next((k for k, st in ms.states.items()
+                if st.component.comp == name and st.also_present), None)
+    if tgt is None:
+        return None                                  # not doubled up — nothing to switch away from
+    st = ms.states[tgt]
+    olds = ', '.join(f'{via} {ver}' for via, _pkg, ver in st.also_present)
+    new_via = st.component.via
+    idx = _popup_choose(
+        stdscr, pal, f'{name} is still installed via {olds}',
+        [(f'queue removal + reinstall via {new_via}', ''),
+         ('keep both (do nothing)', '')],
+        start=0, shortcuts={'y': 0, 'n': 1})
+    if idx != 0:
+        return None
+    ms.staged[tgt] = 'install'                        # execute folds in the swap-remove of the old method
+    return f'queued {name}: remove {olds} → reinstall via {new_via} (run with execute)'
 
 
 def _pick_method(stdscr, pal, ms, ctx):
@@ -5939,6 +5969,9 @@ def run(ctx):
                         # so reuse every cached state and re-probe just the new ones (dirty empty).
                         # (a provider-pin can shift the closure, but _reload re-resolves regardless.)
                         ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                        _swap = _offer_method_swap(stdscr, pal, ms, ctx)
+                        if _swap:
+                            note = _swap
                     except Exception as e:  # noqa: BLE001 - surface, don't crash
                         note = f'reload failed: {e}'
             elif act in _COMP_OPS:

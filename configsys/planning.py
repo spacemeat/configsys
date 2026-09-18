@@ -66,8 +66,19 @@ def expand_plan(plan, units, states=None):
     installs = sorted((k for k, op in ops.items() if op in _INSTALLISH),
                       key=lambda k: idx.get(k, 0))
     locks = [k for k, op in ops.items() if op in ('lock', 'unlock')]
-    removes = sorted((k for k, op in ops.items() if op == 'remove'),
+
+    # A swap-remove: a `remove` whose COMPONENT also has an install/upgrade in this plan (a
+    # different unit/method) — the OLD method being superseded by a method switch. It must run
+    # BEFORE the paired install (the two methods may share a binary path, so removing after would
+    # clobber the fresh install), overriding the "removes last" rule for that unit.
+    install_comps = {units[k].comp for k in installs if units.get(k) is not None}
+    all_removes = [k for k, op in ops.items() if op == 'remove']
+    swaps = sorted((k for k in all_removes
+                    if units.get(k) is not None and units[k].comp in install_comps),
+                   key=lambda k: -idx.get(k, 0))
+    swap_set = set(swaps)
+    removes = sorted((k for k in all_removes if k not in swap_set),
                      key=lambda k: -idx.get(k, 0))
 
-    ordered_keys = installs + locks + removes
+    ordered_keys = swaps + installs + locks + removes
     return [(ops[k], k, units.get(k)) for k in ordered_keys]
