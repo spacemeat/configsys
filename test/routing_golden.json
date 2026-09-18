@@ -2567,8 +2567,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -2593,8 +2593,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -2929,8 +2929,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -2955,8 +2955,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -8039,8 +8039,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -8072,8 +8072,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -16058,8 +16058,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -16077,8 +16077,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -16487,8 +16487,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -16506,8 +16506,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -21897,8 +21897,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -21936,8 +21936,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -29347,8 +29347,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -29366,8 +29366,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -29759,8 +29759,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -29778,8 +29778,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -35050,8 +35050,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -35089,8 +35089,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -42384,8 +42384,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -42403,8 +42403,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -42796,8 +42796,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -42815,8 +42815,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -48094,8 +48094,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -48133,8 +48133,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -55360,8 +55360,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -55379,8 +55379,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -55742,8 +55742,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -55761,8 +55761,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -60742,8 +60742,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -60781,8 +60781,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -68055,8 +68055,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -68074,8 +68074,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -68437,8 +68437,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -68456,8 +68456,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -73437,8 +73437,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -73476,8 +73476,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -80106,8 +80106,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -80125,8 +80125,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -80420,8 +80420,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -80439,8 +80439,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -84582,8 +84582,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -84608,8 +84608,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -90930,8 +90930,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -90949,8 +90949,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -91359,8 +91359,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -91378,8 +91378,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -96776,8 +96776,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -96815,8 +96815,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -104290,8 +104290,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -104322,8 +104322,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -104778,8 +104778,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -104797,8 +104797,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -110007,8 +110007,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -110046,8 +110046,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -117744,8 +117744,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -117763,8 +117763,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -118173,8 +118173,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -118192,8 +118192,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -123590,8 +123590,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -123629,8 +123629,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -131064,8 +131064,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -131083,8 +131083,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/elvish",
-      "src": "elvish"
+      "dst": "$XDG_CONFIG_HOME/elvish/rc.elv",
+      "src": "rc.elv"
      }
     },
     "name": "elvish-dotfiles"
@@ -131464,8 +131464,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -131483,8 +131483,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/fish",
-      "src": "fish"
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
      }
     },
     "name": "fish-dotfiles"
@@ -136739,8 +136739,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"
@@ -136778,8 +136778,8 @@
     "driver": "dotfiles",
     "fields": {
      "config": {
-      "dst": "$XDG_CONFIG_HOME/nushell",
-      "src": "nushell"
+      "dst": "$XDG_CONFIG_HOME/nushell/config.nu",
+      "src": "config.nu"
      }
     },
     "name": "nushell-dotfiles"

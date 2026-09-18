@@ -4456,11 +4456,14 @@ class _ContentRootLabelMixin:
         '''Short label for a content root: <plugin> / <local> / <repo>, else the dir name — so
         SOURCE says WHERE the content lives, not just an ambiguous "dotfiles/".'''
         p, rp = self.ctx.paths, Path(root)
-        if p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir):
+        # both the dotfiles roots (config captures) and the glue roots (shell snippets) map to the
+        # same labels — GlueScreen resolves against glue/, DotfilesScreen against dotfiles/.
+        if ((p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir))
+                or (getattr(p, 'primary_glue_dir', None) is not None and rp == Path(p.primary_glue_dir))):
             return '<plugin>'
-        if rp == p.user_dotfiles_dir:
+        if rp == p.user_dotfiles_dir or rp == getattr(p, 'user_glue_dir', None):
             return '<local>'
-        if rp == p.dotfiles_dir:
+        if rp == p.dotfiles_dir or rp == getattr(p, 'glue_dir', None):
             return '<repo>'
         return rp.name
 

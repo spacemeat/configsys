@@ -654,8 +654,9 @@
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"   // static Go build -> also runs on musl/EL/openSUSE
                   version: { github: elves/elvish  strip-v: true  asset: "elvish-*-linux-amd64.tar.gz" } }
             ] }
-        elvish-dotfiles: { description: "Elvish config, linked into place."
-            install: [ { via: dotfiles  config: { src: elvish  dst: $XDG_CONFIG_HOME/elvish } } ] }
+        // Elvish config = rc.elv (the rc), NOT the whole ~/.config/elvish dir — conf.d/ is glue's.
+        elvish-dotfiles: { description: "Elvish config (rc.elv), linked into place."
+            install: [ { via: dotfiles  config: { src: rc.elv  dst: $XDG_CONFIG_HOME/elvish/rc.elv } } ] }
 
         // zellij: Rust terminal workspace/multiplexer. Native on Arch/Fedora + brew; the upstream
         // musl static tarball covers Debian/Ubuntu/openSUSE/EL/Alpine (one binary, runs everywhere);
@@ -3443,7 +3444,9 @@
         dotnet-glue: { description: "dotnet shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: dotnet } ] }
         emacs-dotfiles: { description: "emacs config, linked into place." install: [ { via: dotfiles  config: { src: emacs.d  dst: ~/.emacs.d } } ] }
         fastfetch-dotfiles: { description: "fastfetch config, linked into place." install: [ { via: dotfiles  config: { src: fastfetch  dst: $XDG_CONFIG_HOME/fastfetch } } ] }
-        fish-dotfiles: { description: "fish config, linked into place." install: [ { via: dotfiles  config: { src: fish  dst: $XDG_CONFIG_HOME/fish } } ] }
+        // fish config = config.fish (the rc), NOT the whole ~/.config/fish dir — its conf.d/ is owned
+        // by the glue driver, and managing the whole dir would fight glue + falsely read "unmanaged".
+        fish-dotfiles: { description: "fish config (config.fish), linked into place." install: [ { via: dotfiles  config: { src: config.fish  dst: $XDG_CONFIG_HOME/fish/config.fish } } ] }
         fossil-glue: { description: "fossil shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: fossil } ] }
         fvwm2-dotfiles: { description: "fvwm2 config, linked into place." install: [ { via: dotfiles  config: { src: fvwm  dst: ~/.fvwm } } ] }
         fzf-glue: { description: "fzf shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: fzf } ] }
@@ -3486,7 +3489,8 @@
         mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }
         nim-glue: { description: "nim shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nim } ] }
         node-glue: { description: "node shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: node } ] }
-        nushell-dotfiles: { description: "nushell config, linked into place." install: [ { via: dotfiles  config: { src: nushell  dst: $XDG_CONFIG_HOME/nushell } } ] }
+        // nushell config = config.nu (the rc), NOT the whole ~/.config/nushell dir — conf.d/ is glue's.
+        nushell-dotfiles: { description: "nushell config (config.nu), linked into place." install: [ { via: dotfiles  config: { src: config.nu  dst: $XDG_CONFIG_HOME/nushell/config.nu } } ] }
         nushell-glue: { description: "nushell shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: nushell } ] }
         octave-dotfiles: { description: "octave config, linked into place." install: [ { via: dotfiles  config: { src: octaverc  dst: ~/.octaverc } } ] }
         odin-glue: { description: "odin shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: odin } ] }
