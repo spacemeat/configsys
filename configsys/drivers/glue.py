@@ -48,15 +48,20 @@ _SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
                 'elvish': '~/.config/elvish/conf.d'}
 _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 
-# loaders (`loader: <shell>`): hook a shell up to source its ~/.config/<shell>/conf.d/*.
+# loaders (`loader: <shell>`): hook a shell up to run its ~/.config/<shell>/conf.d/* snippets.
 # fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
-# zsh needs one configsys-owned, marker-delimited rc block; nu is punted (dir only). The markers make
-# the block idempotent + cleanly removable.
+# zsh needs one configsys-owned, marker-delimited rc block that SOURCES the dir; elvish is INLINE
+# (see below); nu is punted (dir only). The markers make the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
-# Elvish has no native conf.d auto-source, so (like zsh) shell-glue writes ONE marker block into
-# its rc file (~/.config/elvish/rc.elv) that sources ~/.config/elvish/conf.d/*.elv.
 _SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv'}
+
+# GESTALT (inline) shells: elvish's `eval` ISOLATES namespaces — sourcing conf.d/*.elv in a loop
+# discards each file's `fn`/`var` definitions, so aliases (and the `configsys` helper) never reach
+# the interactive shell. For these shells the rc marker block INLINES the concatenated conf.d snippet
+# contents directly (so definitions land in the interactive namespace), regenerated on every
+# (de)activation. It's also faster — one block, not N sourced files.
+_INLINE_SHELLS = ('elvish',)
 
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
@@ -70,9 +75,6 @@ _RC_SOURCE = {
             'unset _f'),
     # Elvish: [nomatch-ok] (attached to the * wildcard) so an empty conf.d doesn't error; the list
     # brackets make the glob a single iterable; `eval (slurp < $f)` sources each file.
-    'elvish': ('for _f [{confd}/*[nomatch-ok].elv] {{\n'
-               '  eval (slurp < $_f)\n'
-               '}}'),
 }
 
 
@@ -280,8 +282,29 @@ class Glue(Driver):
         return d
 
     def _rc_block(self, shell):
+        if shell in _INLINE_SHELLS:
+            return self._inline_block(shell)
         confd = self._confd(shell)
         body = _RC_SOURCE[shell].format(confd=shlex.quote(str(confd)))
+        return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
+
+    def _inline_block(self, shell):
+        '''The GESTALT rc block for an inline shell (elvish): the concatenated contents of its active
+        conf.d snippets, wrapped in the markers — so `fn`/`var` definitions run in the interactive
+        namespace (elvish's per-file `eval` would discard them). A SNAPSHOT of conf.d, so it is
+        regenerated whenever a snippet is (de)activated (install/uninstall call _ensure_shell_loader).
+        conf.d entries are symlinks into the store; read_text follows them to the real content.'''
+        ext = _SHELL_EXT[shell]
+        confd = self._confd(shell)
+        parts = []
+        if confd.is_dir():
+            for f in sorted(confd.iterdir()):              # 00- first -> substrate defines helpers early
+                if f.name.endswith(f'.{ext}'):
+                    try:
+                        parts.append(f'# >> {f.name}\n{f.read_text().rstrip(chr(10))}')
+                    except OSError:
+                        pass
+        body = '\n\n'.join(parts)
         return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
 
     def _rc_has_block(self, rc_path):
@@ -293,8 +316,9 @@ class Glue(Driver):
     def _ensure_shell_loader(self, shell, rc=None):
         '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; bash also gets its
         ~/.bash_aliases link (see _link_bash_aliases); zsh inserts/refreshes ONE configsys-owned
-        marker block in its rc file; fish (native auto-source) and nu (punted) get the dir only.
-        Returns True if a hookup is in place for this shell.'''
+        marker block that SOURCES the dir; elvish (a gestalt/inline shell) inserts/refreshes a marker
+        block that INLINES the concatenated conf.d snippets (_inline_block); fish (native auto-source)
+        and nu (punted) get the dir only. Returns True if a hookup is in place for this shell.'''
         self._ensure_confd(shell)
         if shell == 'bash':                                # bash rides ~/.bash_aliases
             self._link_bash_aliases(rc)
@@ -549,7 +573,12 @@ class Glue(Driver):
         for _name, _src, dst in specs:
             t = shlex.quote(str(self._expand(dst)))
             lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')  # only our own symlink
-        return self.runner.run('\n'.join(lines), capture=False)
+        res = self.runner.run('\n'.join(lines), capture=False)
+        # inline (gestalt) shells snapshot conf.d into the rc block — regenerate it after removing
+        # this snippet's file(s) so its content doesn't linger in the block.
+        for shell in {self._shell_of(n) for n, _s, _d in specs} & set(_INLINE_SHELLS):
+            self._ensure_shell_loader(shell)
+        return res
 
     def location(self, rc):
         loaders = self._loader_shells(rc)

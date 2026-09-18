@@ -112,31 +112,40 @@ def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
     assert g.get_version(rc) is None
 
 
-def test_elvish_loader_writes_rc_marker_block_and_snippet_activates(tmp_path):
-    # elvish is onboarded as a glue shell: no native conf.d auto-source, so shell-glue writes ONE
-    # marker block into ~/.config/elvish/rc.elv sourcing conf.d/*.elv (empty-glob-safe), and a
-    # snippet deploys to <store>/elvish/conf.d/<name>.elv and links into ~/.config/elvish/conf.d/.
+def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
+    # elvish's per-file `eval` isolates namespaces, so shell-glue uses the GESTALT loader: the rc.elv
+    # marker block INLINES the concatenated conf.d snippet contents (so `fn`/`var` land in the
+    # interactive namespace), regenerated on (de)activation. Snippets still deploy to conf.d as links.
     p = paths_for(tmp_path, shells='elvish')
     (p.glue_dir / 'shell' / 'elvish').mkdir(parents=True)
-    (p.glue_dir / 'shell' / 'elvish' / '00-configsys.elv').write_text('# elvish glue\n')
+    (p.glue_dir / 'shell' / 'elvish' / '00-configsys.elv').write_text('fn cf {|@a| put configsys }\n')
+    (p.glue_dir / 'shell' / 'elvish' / 'bat.elv').write_text('fn bat {|@a| batcat $@a }\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
-
-    loader = _loader_unit('all')                                     # loader: all -> every installed shell (elvish)
-    assert g.install(loader).ok
     rc_elv = p.home / '.config' / 'elvish' / 'rc.elv'
-    assert '# >>> configsys glue >>>' in rc_elv.read_text()
-    assert '[nomatch-ok]' in rc_elv.read_text()                      # empty-glob-safe source line
+
+    # activate the substrate snippet first, then bat -> the rc block inlines BOTH, in sorted order
+    assert g.install(_glue_unit(comp='configsys-glue', glue='00-configsys')).ok
+    assert g.install(_glue_unit(comp='bat-glue', glue='bat')).ok
+    block = rc_elv.read_text()
+    assert '# >>> configsys glue >>>' in block
+    assert 'fn cf {|@a| put configsys }' in block                    # inlined, not sourced
+    assert 'fn bat {|@a| batcat $@a }' in block
+    assert '[nomatch-ok]' not in block and 'eval (slurp' not in block  # NOT the old source-loop
+    assert block.index('# >> 00-configsys.elv') < block.index('# >> bat.elv')   # 00- first
+    # links still deploy to conf.d
+    link = p.home / '.config' / 'elvish' / 'conf.d' / 'bat.elv'
+    assert link.is_symlink()
+
+    # deactivating bat regenerates the block WITHOUT bat, keeps the substrate
+    assert g.uninstall(_glue_unit(comp='bat-glue', glue='bat')).ok
+    block2 = rc_elv.read_text()
+    assert 'fn bat {|@a| batcat $@a }' not in block2 and 'fn cf {|@a| put configsys }' in block2
+
+    # the loader-all substrate removal drops the whole block
+    loader = _loader_unit('all')
     assert g.get_version(loader) == 'linked'
-
-    snip = _glue_unit(comp='configsys-glue', glue='00-configsys')    # a snippet on elvish
-    assert g.install(snip).ok
-    link = p.home / '.config' / 'elvish' / 'conf.d' / '00-configsys.elv'
-    store = p.user_glue_dir / 'elvish' / 'conf.d' / '00-configsys.elv'
-    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
-    assert g.get_version(snip) == 'linked'
-
-    assert g.uninstall(loader).ok                                    # drop the rc block, leave conf.d + content
+    assert g.uninstall(loader).ok
     assert '# >>> configsys glue >>>' not in rc_elv.read_text()
     assert g.get_version(loader) is None
 
