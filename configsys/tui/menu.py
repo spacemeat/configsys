@@ -976,9 +976,9 @@ _HELP = {
                              'loader is wired (bash rides ~/.bash_aliases, zsh an ~/.zshrc block, fish '
                              'sources conf.d natively).'),
             ('activate (a / A)', "a enables the current snippet for ITS shell (the group it's under); A "
-                                 "enables every inactive snippet in the cursor's shell group. Activating "
-                                 "also refreshes a stale copy from source and wires the loader. x "
-                                 "deactivates this shell's link."),
+                                 "(re)activates the WHOLE shell group — enabling inactive snippets AND "
+                                 "refreshing active-but-drifted ones from source. Activating also wires "
+                                 "the loader. x deactivates this shell's link."),
         ],
     },
     'dotfiles': {
@@ -5356,17 +5356,22 @@ def run(ctx):
                         gs.dirty.add(row[0].key)
                         gs.reload()
                         note = f'deactivated {row[0].comp} ({row[5]})'
-                    elif gact == 'activate-group' and row:  # activate every inactive snippet in THIS shell's group
+                    elif gact == 'activate-group' and row:  # (re)activate EVERY snippet in THIS shell's group
                         shell = row[5]
-                        pend = {r[0].key: r[0] for r in gs.rows
-                                if r[5] == shell and r[3] not in ('linked', 'loader-on')}
+                        # re-install the whole group, not just the inactive rows: glue install is
+                        # idempotent and drift-refreshes, so this also picks up an active-but-stale
+                        # store copy after the shipped snippet changed (the gestalt/inline case).
+                        grp = {r[0].key: r[0] for r in gs.rows if r[5] == shell}
+                        n_inactive = sum(1 for r in gs.rows
+                                         if r[5] == shell and r[3] not in ('linked', 'loader-on'))
                         with suspended(stdscr):
-                            for rc in pend.values():
+                            for rc in grp.values():
                                 gs.gd.install(rc, only_shells=[shell])   # scope to THIS shell, not the component's others
-                        gs.dirty.update(pend)
+                        gs.dirty.update(grp)
                         gs.reload()
-                        note = (f'activated {len(pend)} snippet(s) in the {shell} group'
-                                if pend else f'nothing inactive in the {shell} group')
+                        note = (f'(re)activated {len(grp)} snippet(s) in the {shell} group'
+                                f' ({n_inactive} newly active)' if grp
+                                else f'no snippets in the {shell} group')
                 except Exception as e:  # noqa: BLE001 — surface, don't crash
                     note = f'error: {e}'
                 continue
