@@ -2987,12 +2987,30 @@
     },
     "name": "shell-glue"
    },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "pacman\\fish": {
     "driver": "pacman",
     "fields": {
      "name": "fish"
     },
     "name": "fish"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -16566,6 +16584,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -16589,6 +16614,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -29883,6 +29919,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -29906,6 +29949,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -42965,6 +43019,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -42988,6 +43049,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -55956,6 +56028,13 @@
    }
   },
   "fish": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fish": {
     "driver": "dnf",
     "fields": {
@@ -55979,6 +56058,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -68696,6 +68786,13 @@
    }
   },
   "fish": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fish": {
     "driver": "dnf",
     "fields": {
@@ -68719,6 +68816,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -80724,6 +80832,13 @@
    }
   },
   "fish": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "brew\\fish": {
     "driver": "brew",
     "fields": {
@@ -80747,6 +80862,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -91708,6 +91834,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -91731,6 +91864,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -105172,6 +105316,13 @@
    }
   },
   "fish": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fish": {
     "driver": "dnf",
     "fields": {
@@ -105195,6 +105346,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -118612,6 +118774,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -118635,6 +118804,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {
@@ -131948,6 +132128,13 @@
    }
   },
   "fish": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fish": {
     "driver": "apt",
     "fields": {
@@ -131971,6 +132158,17 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
    }
   },
   "fish-dotfiles": {

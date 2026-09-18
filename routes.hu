@@ -629,7 +629,7 @@
                           { via: tarball  installDir: "$CONFIGSYS_APP_DIR/gum"
                             version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
         zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, shell-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
-        fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, shell-glue ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
+        fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, shell-glue, bass ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  when: "not amzn"  } ] }
         // bass: a fish plugin (two files into ~/.config/fish/functions/) that runs bash utilities and
         // sources bash env scripts from fish, importing the resulting env. The bridge for fish glue
         // whose tool only ships a BASH env script (sdkman/vulkan-sdk/gnustep) — those snippets call it
