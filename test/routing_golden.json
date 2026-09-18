@@ -2573,6 +2573,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -2598,6 +2605,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -16064,6 +16087,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -16082,6 +16112,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -29353,6 +29399,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -29371,6 +29424,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -42390,6 +42459,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -42408,6 +42484,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -55366,6 +55458,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -55384,6 +55483,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -68061,6 +68176,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -68079,6 +68201,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -80112,6 +80250,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -80130,6 +80275,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -90936,6 +91097,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -90954,6 +91122,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -104296,6 +104480,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -104327,6 +104518,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -117750,6 +117957,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -117768,6 +117982,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
@@ -131070,6 +131300,13 @@
     },
     "name": "elvish-dotfiles"
    },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -131088,6 +131325,22 @@
      }
     },
     "name": "elvish-dotfiles"
+   }
+  },
+  "elvish-glue": {
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "emacs": {
