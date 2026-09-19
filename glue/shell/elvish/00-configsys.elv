@@ -3,6 +3,7 @@
 # INSIDE the function instead. Falls back to the clone launcher at $E:HOME/<src>/configsys/configsys.sh
 # (override with $E:CONFIGSYS_LAUNCHER; <src> defaults to `src`, or $E:CONFIGSYS_SRC_DIR).
 use path
+use str
 fn configsys {|@a|
   if (has-external configsys) {
     (external configsys) $@a
@@ -18,13 +19,24 @@ fn configsys {|@a|
     }
   }
 }
-# cs-loc <name>: the managed install location of a component (or "" if none/native). Wraps
-# `configsys location` (exits 0 with empty output when unmanaged), empty-safe. Used by the
-# tarball/appImage glue snippets to find their off-PATH binaries.
+# Fetch EVERY managed install location in ONE call and cache it. A `configsys location <x>` per
+# snippet is ~250ms (a whole Python startup); dozens would add seconds to elvish startup. `--all`
+# prints `<comp>\t<path>` for the whole requested set in one process; cs-loc then reads this map —
+# instant. `?()` swallows a failing configsys so a hiccup leaves the cache empty, not a broken block.
+var cs-locs = [&]
+fn -cs-load-locs {
+  for _line [(configsys location --all 2>/dev/null)] {
+    var parts = [(str:split "\t" $_line)]
+    if (== (count $parts) 2) { set cs-locs[$parts[0]] = $parts[1] }
+  }
+}
+nop ?(-cs-load-locs)
+
+# cs-loc <name>: the managed install location of a component (or "" if none/native). An instant
+# lookup into the cs-locs cache above. Used by the tarball/appImage glue snippets to find their
+# off-PATH binaries.
 fn cs-loc {|name|
-  var loc = ''
-  for _l [(configsys location $name 2>/dev/null)] { set loc = $_l }
-  put $loc
+  if (has-key $cs-locs $name) { put $cs-locs[$name] } else { put '' }
 }
 
 fn cf {|@a| configsys $@a }
