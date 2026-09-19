@@ -1485,6 +1485,8 @@ def cmd_picks(ctx, args):
 
     if sub in ('add', 'rm'):
         n, label = actions.set_included(ctx, args.component, machines, sub == 'add')
+        if n:
+            invalidate_location_cache(ctx)           # the requested set changed -> recompute glue locs
         verb = 'picked' if sub == 'add' else 'unpicked'
         print(f'configsys: {args.component} {verb} on {", ".join(machines)}  (in {label})' if n
               else f'configsys: no change — {args.component} already '
@@ -1658,12 +1660,11 @@ def cmd_location(ctx, args):
     return 0
 
 
-def _location_all(ctx):
-    '''Bulk `location`: print `<comp>\\t<abspath>` for every REQUESTED component whose driver manages a
-    location (tarball/appImage/source/…). Native/PATH components (no managed location) are omitted. One
-    process for the whole set — the shell glue substrate calls this ONCE at startup and caches it, so a
-    `location <x>` subprocess (~250ms) per snippet becomes a single call + instant lookups. Uses the
-    TARGET location (no per-component get_installed scope probe), so it stays subprocess-free and fast.'''
+def _location_lines(ctx):
+    '''`<comp>\\t<abspath>` for every REQUESTED component whose driver manages a location
+    (tarball/appImage/source/…); native/PATH components (no managed location) are omitted. Uses the
+    TARGET location (no per-component get_installed probe), so it's subprocess-free and fast — a
+    tarball tool's dir is the same whether or not it's installed (the glue snippet path-guards).'''
     from .resolve import ResolveError
     r = ctx.routes
     try:
@@ -1671,12 +1672,12 @@ def _location_all(ctx):
     except Exception:                                    # noqa: BLE001 — no picks / bad config -> nothing
         names = []
     if not names:
-        return 0
+        return []
     try:
         units = r.resolve_names(names)
     except ResolveError:
         units, _errs = r.resolve_resilient(names)        # one bad entry shouldn't blank the whole list
-    seen = set()
+    seen, lines = set(), []
     for rc in units.values():
         if rc.comp in seen:
             continue
@@ -1689,8 +1690,41 @@ def _location_all(ctx):
             loc = None
         if loc:
             s = str(loc)
-            print(f'{rc.comp}\t{ctx.paths.expand(s) if s.startswith(("~", "/")) else s}')
+            lines.append(f'{rc.comp}\t{ctx.paths.expand(s) if s.startswith(("~", "/")) else s}')
             seen.add(rc.comp)
+    return lines
+
+
+def write_location_cache(ctx, lines=None):
+    '''Write the `<comp>\\t<path>` lines to the glue-locations cache the shell glue reads (so a normal
+    shell startup is a file read, not a `configsys location --all` subprocess). Best-effort.'''
+    if lines is None:
+        lines = _location_lines(ctx)
+    try:
+        p = ctx.paths.glue_locations_file
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(('\n'.join(lines) + '\n') if lines else '', encoding='utf-8')
+    except Exception:                                    # noqa: BLE001 — a cache write must never fail an op
+        pass
+
+
+def invalidate_location_cache(ctx):
+    '''Drop the glue-locations cache after an edit that can change WHERE a component installs (a pin
+    switching methods, a pick added/removed) — the next shell startup recomputes it fresh.'''
+    try:
+        ctx.paths.glue_locations_file.unlink()
+    except (FileNotFoundError, OSError):
+        pass
+
+
+def _location_all(ctx):
+    '''Bulk `location`: print every managed location for the requested set in ONE process, and refresh
+    the cache file the shell glue reads. The glue calls this once on a cold/stale cache; thereafter it
+    reads the file directly (~1ms) instead of paying a ~250ms Python startup every shell launch.'''
+    lines = _location_lines(ctx)
+    write_location_cache(ctx, lines)
+    for line in lines:
+        print(line)
     return 0
 
 
@@ -1797,6 +1831,7 @@ def _pin_set(ctx, name, value):
     pins = plugins.read_pins(ctx.paths.user_config_file)
     pins[name] = value
     plugins.set_pins(ctx.paths.user_config_file, pins)
+    invalidate_location_cache(ctx)                    # a method switch can change where `name` installs
     print(f'configsys: pinned {name} -> {value} '
           f'(local, in {_layer_label(ctx.paths.user_config_file, ctx.paths)})')
     if note:
@@ -1831,6 +1866,7 @@ def _pin_unset(ctx, name):
         return 0
     del pins[name]
     plugins.set_pins(ctx.paths.user_config_file, pins)
+    invalidate_location_cache(ctx)                    # method reverts -> location may change back
     print(f'configsys: unpinned {name}')
     return 0
 

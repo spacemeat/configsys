@@ -509,6 +509,22 @@ def test_location_all_bulk_lists_only_managed(tmp_path, capsys):
     assert 'btop' not in lines                                                     # native -> omitted
 
 
+def test_location_all_writes_cache_and_pin_invalidates(tmp_path):
+    # `location --all` writes the glue-locations cache the shell glue reads; a pin edit (which can
+    # change WHERE a component installs) drops the cache so the next shell recomputes it.
+    from configsys.app import Context, build_parser
+    real = ['--home', str(tmp_path), '--os', 'pop']   # NOT --pretend: pin must actually write+invalidate
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text('{ machine: box  picks: { box: [ vulkan-sdk ] } }\n', encoding='utf-8')
+    assert main(real + ['location', '--all']) == 0
+    cache = Context(build_parser().parse_args(real + ['inspect'])).paths.glue_locations_file
+    assert cache.exists() and 'vulkan-sdk\t' in cache.read_text()      # cache written
+    # a pin invalidates it (nushell has native+tarball+cargo, so `cargo` is a valid binding-pin)
+    assert main(real + ['pin', 'set', 'nushell', 'cargo']) == 0
+    assert not cache.exists()                                          # dropped -> next shell recomputes
+
+
 def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
     # a marker at the SYSTEM scope base -> location reports the system path, not the user default
     sysbase = tmp_path / 'opt'

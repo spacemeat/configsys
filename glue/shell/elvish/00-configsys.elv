@@ -19,13 +19,27 @@ fn configsys {|@a|
     }
   }
 }
-# Fetch EVERY managed install location in ONE call and cache it. A `configsys location <x>` per
-# snippet is ~250ms (a whole Python startup); dozens would add seconds to elvish startup. `--all`
-# prints `<comp>\t<path>` for the whole requested set in one process; cs-loc then reads this map —
-# instant. `?()` swallows a failing configsys so a hiccup leaves the cache empty, not a broken block.
+# The managed install locations, cached. A `configsys location <x>` per snippet is ~250ms (a whole
+# Python startup); even one `--all` call per launch is ~250ms. So configsys writes a `<comp>\t<path>`
+# cache file (glue-locations.tsv, refreshed by `location --all`, invalidated on a pin/pick edit); a
+# normal launch reads it (~1ms, freshness via `find -mmin -60`). Only on a cold/stale cache do we spawn
+# `configsys location --all` (which rewrites it). cs-loc then reads this map. `?()` swallows a failing
+# configsys so a hiccup leaves the cache empty, not a broken block.
+fn -cs-state-dir {
+  if (has-env CONFIGSYS_STATE_DIR) { put $E:CONFIGSYS_STATE_DIR
+  } elif (has-env XDG_CONFIG_HOME) { put $E:XDG_CONFIG_HOME/configsys
+  } else { put $E:HOME/.config/configsys }
+}
 var cs-locs = [&]
 fn -cs-load-locs {
-  for _line [(configsys location --all 2>/dev/null)] {
+  var cache = (-cs-state-dir)/glue-locations.tsv
+  var raw = ''
+  if (and (path:is-regular $cache) (not-eq (find $cache -mmin -60 2>/dev/null | slurp) '')) {
+    set raw = (slurp < $cache)
+  } else {
+    set raw = (configsys location --all 2>/dev/null | slurp)
+  }
+  for _line [(str:split "\n" $raw)] {
     var parts = [(str:split "\t" $_line)]
     if (== (count $parts) 2) { set cs-locs[$parts[0]] = $parts[1] }
   }
