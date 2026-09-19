@@ -187,6 +187,29 @@ def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
     assert g.get_version(loader) is None
 
 
+def test_nushell_gestalt_cs_eval_inlines_generated_output(tmp_path):
+    # a `#!cs-eval <cmd>` snippet is a GENERATOR: the inline loader runs the command and inlines its
+    # STDOUT (an init-eval tool's shell code), not the directive — the bridge for zoxide/atuin on
+    # nushell, which has no runtime eval. A failing command (tool absent/too old) inlines NOTHING and
+    # never breaks the block.
+    p = paths_for(tmp_path, shells='nu')
+    (p.glue_dir / 'shell' / 'nu').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'nu' / 'zoxide.nu').write_text(
+        "# zoxide init\n#!cs-eval echo 'def z [] { 42 }'\n")
+    (p.glue_dir / 'shell' / 'nu' / 'nope.nu').write_text("# absent tool\n#!cs-eval false\n")
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    config_nu = p.home / '.config' / 'nushell' / 'config.nu'
+
+    assert g.install(_glue_unit(comp='zoxide-glue', glue='zoxide')).ok
+    assert g.install(_glue_unit(comp='nope-glue', glue='nope')).ok
+    block = config_nu.read_text()
+    assert 'def z [] { 42 }' in block                     # the command's OUTPUT is inlined
+    assert '#!cs-eval' not in block                       # the directive line itself is not inlined
+    assert '(generated: echo' in block                    # header notes it was generated (names the cmd)
+    assert 'nope.nu' not in block                         # the failing command inlined nothing
+
+
 def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     # the shell-glue substrate: `loader: all` wires conf.d loading for EVERY installed shell.
     p = paths_for(tmp_path, shells='bash,zsh,fish')

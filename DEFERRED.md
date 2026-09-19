@@ -221,17 +221,19 @@ large one-time golden diff (301 components × a new context) and is a gate-polic
 
 ## Nushell glue — parked snippets (2026-09-18)
 
-The nushell gestalt glue ships the PATH/alias/env shapes (57 snippets). Two classes are parked
-because nushell has **no runtime `source`/eval of a string** (it parses the whole program up front):
+The nushell gestalt glue ships the PATH/alias/env shapes plus the init-eval bridge. What remains
+parked is bounded by nushell having **no runtime `source`/eval of a string**:
 
-- **init-eval tools** (emit shell code to eval at startup): zoxide, atuin, fzf, pyenv, opam, luarocks.
-  Fix = a driver **pre-generate hook**: run `<tool> init nu | save <conf.d>/<tool>-init.nu` at glue
-  activation, then a static `source` of that file in the block. Most already speak nu
-  (`zoxide init nushell`, `atuin init nu`, `starship init nu`); opam/luarocks/pyenv need a
-  `<tool> env`-to-nu shim.
-- **bash-env-script sources** (source a bash script and import its env): sdkman, vulkan-sdk, gnustep,
-  miniforge, gcloud. Fix = a nu **bash-env bridge** (`^bash -lc "source X; export -p"` parsed into
-  `$env`), the nushell analogue of fish's `bass`.
+- **init-eval tools that speak nu — DONE** via the `#!cs-eval <cmd>` generator directive: the inline
+  loader runs `<cmd>` at (de)activation and inlines its stdout (self-guards to nothing if the tool is
+  absent/too old). Shipped: zoxide (`zoxide init nushell`), atuin (`atuin init nu`). Add more the same
+  way (starship: `starship init nu`) — one directive line, no code.
+- **init-eval tools with NO nu init — still parked**: fzf, pyenv, opam, luarocks (their `init`/`env`
+  emits bash/zsh only). Fix = either upstream nu support (then a one-line `#!cs-eval`) or the bridge
+  below.
+- **bash-env-script sources — still parked**: sdkman, vulkan-sdk, gnustep, miniforge, gcloud. Fix = a
+  nu **bash-env bridge** (`^bash -lc "source X; export -p"` parsed into `$env`), the nushell analogue
+  of fish's `bass`. Once it exists, the four env-source tools + the parked init-eval ones ride it.
 
 Personal (user-owned, never shipped): citybanner, ps1, geg. Shell-on-PATH-for-other-shells
 (N/A for nu itself): elvish, nushell.

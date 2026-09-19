@@ -68,6 +68,12 @@ _SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv',
 # and cannot be a dotfiles capture — capturing freezes the block — so these shells have no -dotfiles.)
 _INLINE_SHELLS = ('elvish', 'nu')
 
+# A `#!cs-eval <cmd>` line makes a snippet a GENERATOR: the inline loader runs <cmd> at (de)activation
+# and inlines its stdout (an init-eval tool's shell code) instead of the snippet text — the bridge for
+# tools like zoxide/atuin on nushell, which has no runtime source/eval. Self-guards: a failing command
+# inlines nothing.
+_EVAL_DIRECTIVE = re.compile(r'^#!\s*cs-eval\s+(.+?)\s*$')
+
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
 # TUI and the CLI status so they never diverge.
@@ -294,23 +300,53 @@ class Glue(Driver):
         return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
 
     def _inline_block(self, shell):
-        '''The GESTALT rc block for an inline shell (elvish): the concatenated contents of its active
-        conf.d snippets, wrapped in the markers — so `fn`/`var` definitions run in the interactive
-        namespace (elvish's per-file `eval` would discard them). A SNAPSHOT of conf.d, so it is
-        regenerated whenever a snippet is (de)activated (install/uninstall call _ensure_shell_loader).
-        conf.d entries are symlinks into the store; read_text follows them to the real content.'''
+        '''The GESTALT rc block for an inline shell (elvish/nushell): the concatenated contents of its
+        active conf.d snippets, wrapped in the markers — so definitions run in the interactive namespace
+        (elvish's per-file `eval` would discard them; nushell can't source a dir at all). A SNAPSHOT of
+        conf.d, regenerated whenever a snippet is (de)activated (install/uninstall call
+        _ensure_shell_loader). conf.d entries are symlinks into the store; read_text follows them.
+        A snippet carrying a `#!cs-eval <cmd>` directive is a GENERATOR: its command's stdout is inlined
+        instead of its text (the init-eval bridge — see _eval_directive).'''
         ext = _SHELL_EXT[shell]
         confd = self._confd(shell)
         parts = []
         if confd.is_dir():
             for f in sorted(confd.iterdir()):              # 00- first -> substrate defines helpers early
-                if f.name.endswith(f'.{ext}'):
-                    try:
-                        parts.append(f'# >> {f.name}\n{f.read_text().rstrip(chr(10))}')
-                    except OSError:
-                        pass
+                if not f.name.endswith(f'.{ext}'):
+                    continue
+                try:
+                    content = f.read_text()
+                except OSError:
+                    continue
+                cmd = self._eval_directive(content)
+                if cmd is not None:                        # a generator snippet: inline the cmd's stdout
+                    out = self._run_eval(cmd)
+                    if out.strip():
+                        parts.append(f'# >> {f.name} (generated: {cmd})\n{out.rstrip(chr(10))}')
+                    # a tool that's absent / too old to emit a nu init -> nothing inlined (self-guard)
+                else:
+                    parts.append(f'# >> {f.name}\n{content.rstrip(chr(10))}')
         body = '\n\n'.join(parts)
         return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
+
+    def _eval_directive(self, content):
+        '''The `<cmd>` of a `#!cs-eval <cmd>` line anywhere in a snippet (a GENERATOR snippet), else
+        None. Used for init-eval tools (zoxide/atuin) on a shell with no runtime `source`/eval: the
+        driver runs the command at (de)activation and inlines its stdout into the gestalt block.'''
+        for line in content.splitlines():
+            m = _EVAL_DIRECTIVE.match(line.strip())
+            if m:
+                return m.group(1).strip()
+        return None
+
+    def _run_eval(self, cmd):
+        '''Run a generator snippet's command, returning its stdout ('' on ANY failure — a tool that's
+        absent or too old to emit a nu/elvish init must never break the block).'''
+        try:
+            r = self.runner.run(cmd, capture=True)
+        except Exception:                                  # noqa: BLE001 — a flaky init must not brick glue
+            return ''
+        return (r.stdout or '') if (r is not None and r.ok) else ''
 
     def _rc_has_block(self, rc_path):
         try:
