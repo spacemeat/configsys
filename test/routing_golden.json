@@ -3537,7 +3537,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -6153,7 +6156,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -13658,7 +13664,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -14063,7 +14072,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -14123,7 +14135,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -14484,7 +14499,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -16027,7 +16045,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -17284,7 +17305,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -17870,7 +17894,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -18677,7 +18704,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -19875,7 +19905,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -19958,7 +19991,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -22499,7 +22535,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -24722,7 +24761,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -25912,7 +25954,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -27039,7 +27084,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -27427,7 +27475,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -27487,7 +27538,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -27848,7 +27902,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -29357,7 +29414,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -30597,7 +30657,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -31183,7 +31246,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -31973,7 +32039,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -33137,7 +33206,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -33220,7 +33292,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -35693,7 +35768,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -37831,7 +37909,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -39004,7 +39085,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -40114,7 +40198,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -40502,7 +40589,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -40562,7 +40652,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -40923,7 +41016,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -42435,7 +42531,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -43689,7 +43788,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -44275,7 +44377,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -45065,7 +45170,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -46222,7 +46330,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -46305,7 +46416,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -48778,7 +48892,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -50937,7 +51054,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -52110,7 +52230,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -52210,7 +52333,10 @@
    "cargo\\wl-screenrec": {
     "driver": "cargo",
     "fields": {
-     "name": "wl-screenrec"
+     "name": "wl-screenrec",
+     "version": {
+      "crates": "wl-screenrec"
+     }
     },
     "name": "wl-screenrec"
    },
@@ -53670,7 +53796,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -53730,7 +53859,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -54091,7 +54223,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -55443,7 +55578,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -56405,7 +56543,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -56991,7 +57132,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -57847,7 +57991,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -58997,7 +59144,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -59087,7 +59237,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -61449,7 +61602,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -63605,7 +63761,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -64851,7 +65010,10 @@
    "cargo\\wl-screenrec": {
     "driver": "cargo",
     "fields": {
-     "name": "wl-screenrec"
+     "name": "wl-screenrec",
+     "version": {
+      "crates": "wl-screenrec"
+     }
     },
     "name": "wl-screenrec"
    },
@@ -66380,7 +66542,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -66440,7 +66605,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -66801,7 +66969,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -68179,7 +68350,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -69141,7 +69315,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -69727,7 +69904,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -70583,7 +70763,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -71733,7 +71916,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -71823,7 +72009,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -74185,7 +74374,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -76341,7 +76533,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -77587,7 +77782,10 @@
    "cargo\\wl-screenrec": {
     "driver": "cargo",
     "fields": {
-     "name": "wl-screenrec"
+     "name": "wl-screenrec",
+     "version": {
+      "crates": "wl-screenrec"
+     }
     },
     "name": "wl-screenrec"
    },
@@ -78431,7 +78629,10 @@
    "cargo\\alacritty": {
     "driver": "cargo",
     "fields": {
-     "name": "alacritty"
+     "name": "alacritty",
+     "version": {
+      "crates": "alacritty"
+     }
     },
     "name": "alacritty"
    },
@@ -79067,7 +79268,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -81128,7 +81332,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -82152,7 +82359,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -83164,7 +83374,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -88764,7 +88977,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -89169,7 +89385,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -89229,7 +89448,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -89590,7 +89812,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -91145,7 +91370,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -92416,7 +92644,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -93002,7 +93233,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -93809,7 +94043,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -95000,7 +95237,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -95083,7 +95323,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -97624,7 +97867,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -99867,7 +100113,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -101057,7 +101306,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -101894,7 +102146,10 @@
    "cargo\\alacritty": {
     "driver": "cargo",
     "fields": {
-     "name": "alacritty"
+     "name": "alacritty",
+     "version": {
+      "crates": "alacritty"
+     }
     },
     "name": "alacritty"
    },
@@ -102232,7 +102487,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -102672,7 +102930,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -102746,7 +103007,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -103113,7 +103377,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -104537,7 +104804,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -105643,7 +105913,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -106208,7 +106481,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -107024,7 +107300,10 @@
    "cargo\\hyperfine": {
     "driver": "cargo",
     "fields": {
-     "name": "hyperfine"
+     "name": "hyperfine",
+     "version": {
+      "crates": "hyperfine"
+     }
     },
     "name": "hyperfine"
    },
@@ -107134,7 +107413,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -108270,7 +108552,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -108360,7 +108645,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -110885,7 +111173,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -113160,7 +113451,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -114378,7 +114672,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -114467,7 +114764,10 @@
    "cargo\\wl-screenrec": {
     "driver": "cargo",
     "fields": {
-     "name": "wl-screenrec"
+     "name": "wl-screenrec",
+     "version": {
+      "crates": "wl-screenrec"
+     }
     },
     "name": "wl-screenrec"
    },
@@ -115669,7 +115969,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -116074,7 +116377,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -116134,7 +116440,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -116495,7 +116804,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -118041,7 +118353,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -119312,7 +119627,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -119898,7 +120216,10 @@
    "cargo\\gping": {
     "driver": "cargo",
     "fields": {
-     "name": "gping"
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
     },
     "name": "gping"
    },
@@ -120705,7 +121026,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -121896,7 +122220,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -121979,7 +122306,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -124520,7 +124850,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -126764,7 +127097,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -127954,7 +128290,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -129081,7 +129420,10 @@
    "cargo\\atuin": {
     "driver": "cargo",
     "fields": {
-     "name": "atuin"
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
     },
     "name": "atuin"
    },
@@ -129469,7 +129811,10 @@
    "cargo\\bluetui": {
     "driver": "cargo",
     "fields": {
-     "name": "bluetui"
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
     },
     "name": "bluetui"
    },
@@ -129529,7 +129874,10 @@
    "cargo\\bottom": {
     "driver": "cargo",
     "fields": {
-     "name": "bottom"
+     "name": "bottom",
+     "version": {
+      "crates": "bottom"
+     }
     },
     "name": "bottom"
    },
@@ -129890,7 +130238,10 @@
    "cargo\\caligula": {
     "driver": "cargo",
     "fields": {
-     "name": "caligula"
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
     },
     "name": "caligula"
    },
@@ -131402,7 +131753,10 @@
    "cargo\\dysk": {
     "driver": "cargo",
     "fields": {
-     "name": "dysk"
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
     },
     "name": "dysk"
    },
@@ -132644,7 +132998,10 @@
    "cargo\\ghgrab": {
     "driver": "cargo",
     "fields": {
-     "name": "ghgrab"
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
     },
     "name": "ghgrab"
    },
@@ -133997,7 +134354,10 @@
    "cargo\\impala": {
     "driver": "cargo",
     "fields": {
-     "name": "impala"
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
     },
     "name": "impala"
    },
@@ -135154,7 +135514,10 @@
    "cargo\\lazyrsync": {
     "driver": "cargo",
     "fields": {
-     "name": "lazyrsync"
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
     },
     "name": "lazyrsync"
    },
@@ -135237,7 +135600,10 @@
    "cargo\\leaf": {
     "driver": "cargo",
     "fields": {
-     "name": "leaf-markdown-viewer"
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
     },
     "name": "leaf-markdown-viewer"
    },
@@ -137710,7 +138076,10 @@
    "cargo\\pastel": {
     "driver": "cargo",
     "fields": {
-     "name": "pastel"
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
     },
     "name": "pastel"
    },
@@ -139869,7 +140238,10 @@
    "cargo\\television": {
     "driver": "cargo",
     "fields": {
-     "name": "television"
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
     },
     "name": "television"
    },
@@ -141042,7 +141414,10 @@
    "cargo\\wiremix": {
     "driver": "cargo",
     "fields": {
-     "name": "wiremix"
+     "name": "wiremix",
+     "version": {
+      "crates": "wiremix"
+     }
     },
     "name": "wiremix"
    },
@@ -141142,7 +141517,10 @@
    "cargo\\wl-screenrec": {
     "driver": "cargo",
     "fields": {
-     "name": "wl-screenrec"
+     "name": "wl-screenrec",
+     "version": {
+      "crates": "wl-screenrec"
+     }
     },
     "name": "wl-screenrec"
    },

@@ -269,7 +269,7 @@
                 { via: pipx     name: uv }                         // universal (prebuilt wheels)
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/uv"  requires: glibc  standing: never-auto
                   version: { github: astral-sh/uv  strip-v: true  asset: "uv-x86_64-unknown-linux-gnu.tar.gz" } }
-                { via: cargo    name: uv  standing: never-auto }   // `cargo install uv`; never-auto so it's offered/pinnable but doesn't tie with pipx
+                { via: cargo    name: uv  standing: never-auto  version: { crates: uv } }   // `cargo install uv`; never-auto so it's offered/pinnable but doesn't tie with pipx
             ]
         }
         python-build-deps: { attrs: [ lib FOSS ] description: "System libraries pyenv needs to compile CPython (ssl/zlib/ffi/…)."
@@ -286,7 +286,7 @@
         ripgrep: { suggests: ripgrep-glue  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } }
-                              { via: cargo  name: ripgrep } ] }   // prebuilt musl binary (rg in a versioned subdir); `cargo install ripgrep` as a pinnable alt
+                              { via: cargo  name: ripgrep  version: { crates: ripgrep } } ] }   // prebuilt musl binary (rg in a versioned subdir); `cargo install ripgrep` as a pinnable alt
         fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-glue  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
                               { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
@@ -296,7 +296,7 @@
         television: { attrs: [ CLI TUI FOSS permissive ] suggests: television-dotfiles
                       description: "Television (`tv`) — a very fast, portable, hackable fuzzy finder TUI (Rust)."
                       install: [ { via: native  when: "arch or fedora_atomic" }
-                                 { via: cargo  name: television } ] }
+                                 { via: cargo  name: television  version: { crates: television } } ] }
         television-dotfiles: { description: "Television config + cable channels, linked into place." install: [ { via: dotfiles  config: { src: television  dst: $XDG_CONFIG_HOME/television } } ] }
         xclip:   { attrs: [ CLI FOSS copyleft ] description: "xclip — command-line access to the X clipboard." suggests: xclip-glue
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe } ] }
@@ -320,19 +320,19 @@
                              // and a pinnable path to a CURRENT zoxide on an old-distro apt — Ubuntu/Pop
                              // 22.04 ships 0.4.3, whose PROMPT_COMMAND hook returns 0 unconditionally
                              // (clobbers $? for a status-in-prompt); modern zoxide preserves $?.
-                             { via: cargo   name: zoxide } ] }   // native (incl. brew) is the default; pin `zoxide cargo` for a newer build
+                             { via: cargo   name: zoxide  version: { crates: zoxide } } ] }   // native (incl. brew) is the default; pin `zoxide cargo` for a newer build (crates: -> a "latest" from crates.io)
         zoxide-glue: { description: "zoxide shell init (adds the `z`/`zi` commands), linked into place." install: [ { via: glue  requires: shell-glue  glue: zoxide } ] }
         fd: { attrs: [ CLI FOSS permissive ] suggests: fd-glue  description: "fd — a fast, friendly `find` alternative (`fd`; Debian/Ubuntu install it as `fdfind`)."
               install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { apt: fd-find  dnf: fd-find  default: fd } }
                          { via: native  when: "rhel"  requires: epel  name: fd-find }
-                         { via: cargo   name: fd-find } ] }   // cargo crate is `fd-find` (pinnable anywhere native isn't preferred); the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
+                         { via: cargo   name: fd-find  version: { crates: fd-find } } ] }   // cargo crate is `fd-find` (pinnable anywhere native isn't preferred); the Debian/Ubuntu pkg installs `fdfind` -> the glue aliases it to `fd`
         fd-glue: { description: "fd alias (fdfind->fd on Debian/Ubuntu), linked into place." install: [ { via: glue  requires: shell-glue  glue: fd } ] }
         pastel: { attrs: [ CLI FOSS permissive ] description: "pastel — generate, analyze, convert and manipulate colors from the command line."
                   install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
-                             { via: cargo   name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
+                             { via: cargo   name: pastel  version: { crates: pastel } } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
         dysk: { attrs: [ CLI FOSS permissive ] description: "dysk — a `df` alternative: mounted filesystems + usage in a clear table (formerly `lfs`)."
                 install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic" }
-                           { via: cargo   name: dysk } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
+                           { via: cargo   name: dysk  version: { crates: dysk } } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
         stow: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Stow — a symlink farm manager for keeping dotfiles/packages tidy (`stow`)."
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL-only; Alpine: community repo
@@ -343,7 +343,7 @@
                             { via: native  when: "(ubuntu >= 24.04) or (debian >= 13)"  repo-component: universe }   // only newer Debian/Ubuntu carry eza
                             { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/eza"  requires: glibc
                               version: { github: eza-community/eza  strip-v: true  asset: "eza_$ARCH-unknown-linux-gnu.tar.gz" } }   // EUPL; older Debian/Ubuntu + EL/amzn -> tarball
-                            { via: cargo  name: eza } ] }   // cargo as the universal build / pinnable alt
+                            { via: cargo  name: eza  version: { crates: eza } } ] }   // cargo as the universal build / pinnable alt
         eza-dotfiles: { description: "eza theme/config, linked into place." install: [ { via: dotfiles  config: { src: eza  dst: $XDG_CONFIG_HOME/eza } } ] }
         figlet: { attrs: [ CLI FOSS permissive ] description: "FIGlet — render text as large ASCII-art banners (`figlet`)."
                   install: [ { via: native  when: "not (rhel or amzn)" }
@@ -387,7 +387,7 @@
         bat: { attrs: [ CLI FOSS permissive ] suggests: bat-glue  description: "bat — a `cat` clone with syntax highlighting and git integration (Debian/Ubuntu install it as `batcat`)."
                install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                           { via: native  when: "rhel"  requires: epel }
-                          { via: cargo   name: bat } ] }
+                          { via: cargo   name: bat  version: { crates: bat } } ] }
         bat-glue: { description: "bat alias (batcat->bat on Debian/Ubuntu), linked into place." install: [ { via: glue  requires: shell-glue  glue: bat } ] }
         // lm-sensors: hardware health (temps/voltages/fans). Package name drifts three ways; the binary
         // is always `sensors` (+ `sensors-detect`). In EL/Fedora base (no EPEL needed).
@@ -450,7 +450,7 @@
             description: "Cross-platform system monitor (`btm`) — CPU/mem/net/process/disk in a TUI."
             install: [
                 { via: native  when: "not (redhat or debian)" }
-                { via: cargo  name: bottom }   // builds `btm`; covers Debian/Ubuntu + Fedora/EL
+                { via: cargo  name: bottom  version: { crates: bottom } }   // builds `btm`; covers Debian/Ubuntu + Fedora/EL
             ]
         }
 
@@ -484,7 +484,7 @@
         hyperfine: { attrs: [ CLI FOSS permissive ] description: "hyperfine — a command-line benchmarking tool with statistics and warmup (`hyperfine`)."
             install: [ { via: native  when: "(debian or fedora or arch or alpine) and not amzn"  repo-component: universe }
                        { via: native  when: "fedora_atomic" }        // brew formula `hyperfine`
-                       { via: cargo   name: hyperfine  requires: cargo } ] }
+                       { via: cargo   name: hyperfine  requires: cargo  version: { crates: hyperfine } } ] }
         mbw: { attrs: [ CLI FOSS permissive ] description: "mbw — a simple memory-bandwidth (memcpy) benchmark."
             install: [ { via: native  when: "debian" }
                        { via: native  when: "fedora_atomic" }        // brew formula `mbw`
@@ -657,7 +657,7 @@
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
                 { via: tarball  when: "alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"   // musl build for Alpine (the gnu one needs glibc)
                   version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-musl.tar.gz" } }
-                { via: cargo  name: nu }                            // `cargo install nu` (the crate is `nu`)
+                { via: cargo  name: nu  version: { crates: nu } }                            // `cargo install nu` (the crate is `nu`)
             ]
         }
         // elvish: an expressive language + interactive shell (Go, static binary). Native in
@@ -692,7 +692,7 @@
                 { via: native  when: "fedora_atomic" }               // brew formula `zellij`
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zellij"   // musl static -> covers everything else, incl. Alpine
                   version: { github: zellij-org/zellij  strip-v: true  asset: "zellij-x86_64-unknown-linux-musl.tar.gz" } }
-                { via: cargo  name: zellij  standing: never-auto }
+                { via: cargo  name: zellij  standing: never-auto  version: { crates: zellij } }
             ] }
         zellij-dotfiles: { description: "Zellij config, linked into place."
             install: [ { via: dotfiles  config: { src: zellij  dst: $XDG_CONFIG_HOME/zellij } } ] }
@@ -705,7 +705,7 @@
             install: [
                 { via: native  when: "arch or fedora" }
                 { via: native  when: "fedora_atomic" }               // brew formula `atuin`
-                { via: cargo   name: atuin }                          // build-from-crate; covers the rest
+                { via: cargo   name: atuin  version: { crates: atuin } }                          // build-from-crate; covers the rest
             ] }
         atuin-glue: { description: "atuin shell init (Up-arrow / Ctrl-R history search), linked into place."
             install: [ { via: glue  requires: shell-glue  glue: atuin } ] }
@@ -724,13 +724,13 @@
         // the crate is `leaf-markdown-viewer` (the binary is `leaf`), so cargo covers every OS.
         leaf: { attrs: [ CLI TUI FOSS permissive ]
             description: "leaf — a terminal Markdown previewer with a GUI-like experience (`leaf`)."
-            install: [ { via: cargo  name: leaf-markdown-viewer } ] }
+            install: [ { via: cargo  name: leaf-markdown-viewer  version: { crates: leaf-markdown-viewer } } ] }
 
         // ghgrab: a TUI to browse & cherry-pick files/release-assets from GitHub/GitLab/Codeberg/
         // Gitea/Forgejo without cloning (Rust). Not in distro repos -> cargo everywhere (crate `ghgrab`).
         ghgrab: { attrs: [ CLI TUI FOSS permissive ]
             description: "ghgrab — download individual files, folders or release assets from git forges without cloning (`ghgrab`)."
-            install: [ { via: cargo  name: ghgrab } ] }
+            install: [ { via: cargo  name: ghgrab  version: { crates: ghgrab } } ] }
 
         // lazyrsync: a friendly TUI for rsync — reusable profiles, dry-run diffs, live progress (Rust).
         // Drives the real rsync (hard requires it). AUR on Arch, brew on atomic, cargo elsewhere.
@@ -739,7 +739,7 @@
             install: [
                 { via: aur     when: "arch"  name: lazyrsync }
                 { via: native  when: "fedora_atomic" }               // brew formula `lazyrsync`
-                { via: cargo   name: lazyrsync }                      // build-from-crate; covers the rest
+                { via: cargo   name: lazyrsync  version: { crates: lazyrsync } }                      // build-from-crate; covers the rest
             ] }
 
         // kew: an immersive terminal music player (C). Native on Debian/Arch/openSUSE + brew; NOT in
@@ -785,7 +785,7 @@
         alacritty: { attrs: [ GUI app FOSS permissive ] suggests: alacritty-dotfiles  description: "Alacritty — a fast, GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }
-                { via: cargo   name: alacritty } ]
+                { via: cargo   name: alacritty  version: { crates: alacritty } } ]
         }
         alacritty-dotfiles: { description: "alacritty config, linked into place." install: [ { via: dotfiles  config: { src: alacritty  dst: $XDG_CONFIG_HOME/alacritty } } ] }
         // wezterm: GPU terminal + multiplexer. Official native on Arch + openSUSE; everywhere else
@@ -825,7 +825,7 @@
                            // (Ubuntu/Pop < 24.04 = 4.4, Debian < 13 = 5.1) rather than attempt a build that
                            // fails on missing symbols. openSUSE Leap's ffmpeg dev libs come from Packman (not
                            // modeled) -> decline there too; Tumbleweed/Arch are covered natively/AUR above.
-                           { via: cargo  when: "not ((ubuntu < 24.04) or (debian < 13))"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ] } ] }   // FFmpeg>=6 API floor is real; the dev-lib requires: naturally decline cargo where the headers can't be had (e.g. atomic)
+                           { via: cargo  when: "not ((ubuntu < 24.04) or (debian < 13))"  name: wl-screenrec  requires: [ cargo, ffmpeg-dev, libdrm-dev, pkg-config ]  version: { crates: wl-screenrec } } ] }   // FFmpeg>=6 API floor is real; the dev-lib requires: naturally decline cargo where the headers can't be had (e.g. atomic)
         // yazi: Rust TUI file manager. Native on Arch + Homebrew; upstream ships a real .deb, so on
         // Debian/Ubuntu (not in-repo) install that via the OS package tool — clean and on PATH.
         // Elsewhere (Fedora is COPR-only; openSUSE/Alpine/EL absent) the release zip lands under
@@ -1561,7 +1561,7 @@
         // it, so cargo builds it there.
         gping:   { attrs: [ CLI TUI FOSS permissive ] description: "Ping, but with a live graph (`gping`)."
                    install: [ { via: native  when: "arch or alpine or fedora_atomic or (ubuntu >= 23.10) or (debian >= 13)" }
-                              { via: cargo  name: gping } ] }
+                              { via: cargo  name: gping  version: { crates: gping } } ] }
         vnstat:  { attrs: [ CLI daemon FOSS copyleft ] description: "vnStat — a network traffic logger and stats tool." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }
         bmon:    { attrs: [ TUI FOSS permissive ] description: "bmon — a bandwidth monitor and rate estimator (per-interface)." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "debian or fedora or arch or opensuse or alpine or amzn" } ] }
         wavemon: { attrs: [ TUI FOSS copyleft ] description: "wavemon — an ncurses monitor for wireless network devices." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe } ] }   // Ubuntu universe; not in EPEL/Amazon/atomic
@@ -1569,15 +1569,15 @@
         // for wiremix); cargo builds them everywhere else.
         impala:  { attrs: [ TUI FOSS copyleft ] description: "impala — a TUI to manage Wi‑Fi networks (uses the `iwd` daemon)."
                    install: [ { via: native  when: "arch or alpine or opensuse" }
-                              { via: cargo   name: impala } ] }
+                              { via: cargo   name: impala  version: { crates: impala } } ] }
         bluetui: { attrs: [ TUI app FOSS permissive ] description: "bluetui — a TUI to manage Bluetooth devices (uses BlueZ)."
                    install: [ { via: native  when: "arch or opensuse" }
-                              { via: cargo   name: bluetui } ] }   // native on arch/opensuse/alpine(impala only); cargo covers the rest and is pinnable anywhere
+                              { via: cargo   name: bluetui  version: { crates: bluetui } } ] }   // native on arch/opensuse/alpine(impala only); cargo covers the rest and is pinnable anywhere
         wiremix: { attrs: [ TUI app FOSS permissive ] description: "wiremix — a TUI audio mixer for PipeWire."
                    install: [ { via: native  when: "fedora or arch or opensuse" }
                               // cargo builds libspa-sys from source -> needs the PipeWire dev headers + pkg-config
                               // (absent on immutable atomic, so decline there rather than source-build on it)
-                              { via: cargo   name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ] } ] }   // pipewire-dev requires: naturally declines cargo where the headers are absent (e.g. atomic)   // Debian/Alpine don't carry it in-repo -> cargo there
+                              { via: cargo   name: wiremix  requires: [ cargo, pipewire-dev, pkg-config ]  version: { crates: wiremix } } ] }   // pipewire-dev requires: naturally declines cargo where the headers are absent (e.g. atomic)   // Debian/Alpine don't carry it in-repo -> cargo there
         // dnspeep: watch the DNS queries your machine makes. Not distro-packaged nor on crates.io —
         // upstream's glibc release tarball is a single `dnspeep` binary (dnspeep-glue PATHs it);
         // declines on musl Alpine. Runs as root (libpcap).
@@ -2590,7 +2590,7 @@
                                { via: go-install  name: "github.com/ayn2op/discordo"  requires: [ { go: ">=1.26" } ] } ] }   // no releases (rolling master); AUR on arch, `go install` elsewhere (a modern Go toolchain floor advises the go tarball)
         caligula: { attrs: [ TUI FOSS copyleft ] description: "Caligula — a user-friendly TUI disk imager / ISO burner."
                     install: [ { via: native  when: "arch or fedora_atomic" }
-                               { via: cargo   name: caligula } ] }   // pacman / brew where packaged; cargo everywhere else (and pinnable anywhere)
+                               { via: cargo   name: caligula  version: { crates: caligula } } ] }   // pacman / brew where packaged; cargo everywhere else (and pinnable anywhere)
         // balenaEtcher (Electron GUI imager). No distro repo pkg, no Flathub, and 2.x dropped the
         // AppImage — so it's the upstream .deb/.rpm (native-pkg-file) + AUR only. Declines on
         // Alpine (musl/Electron) and atomic.
@@ -2694,7 +2694,7 @@
                 { via: native  when: "(redhat or arch or opensuse or fedora_atomic) and not amzn" }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
                   version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } }
-                { via: cargo  name: just } ]                        // `cargo install just` as a pinnable alt
+                { via: cargo  name: just  version: { crates: just } } ]                        // `cargo install just` as a pinnable alt
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
         bazelisk: { attrs: [ CLI FOSS permissive ] suggests: bazelisk-glue  description: "Bazelisk — a launcher that manages Bazel versions."
@@ -2756,7 +2756,7 @@
         // --- reverse-engineering / analysis ---
         radare2:   { attrs: [ CLI FOSS GNU copyleft ] description: "radare2 — a portable reverse-engineering framework & low-level debugger (`r2`)." install: [ { via: native  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // packaged on every family (+ brew on atomic); a modern stand-in for the old SoftICE workflow
         ghidra:    { attrs: [ GUI app FOSS permissive ] description: "Ghidra — the NSA's open-source software reverse-engineering (SRE) suite." install: [ { via: flatpak  hub: flathub  app: org.ghidra_sre.Ghidra }  { via: native  when: "arch" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ghidra"  requires: [ unzip, jdk-21 ]  version: { github: NationalSecurityAgency/ghidra  tag-re: "Ghidra_([0-9.]+)_build"  asset: "ghidra_*_PUBLIC_*.zip" } } ] }   // flatpak bundles a JRE (default); the release zip needs a JDK 21 -> requires it
-        grex:      { attrs: [ CLI FOSS permissive ] description: "grex — generate a regular expression from user-provided examples (`grex`)." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grex"  version: { github: pemistahl/grex  strip-v: true  asset: "grex-*-$ARCH-unknown-linux-musl.tar.gz" } }  { via: native  when: "fedora_atomic" }  { via: cargo  name: grex } ] }   // musl tarball runs everywhere (incl. Alpine); brew on atomic; cargo as a pinnable build
+        grex:      { attrs: [ CLI FOSS permissive ] description: "grex — generate a regular expression from user-provided examples (`grex`)." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grex"  version: { github: pemistahl/grex  strip-v: true  asset: "grex-*-$ARCH-unknown-linux-musl.tar.gz" } }  { via: native  when: "fedora_atomic" }  { via: cargo  name: grex  version: { crates: grex } } ] }   // musl tarball runs everywhere (incl. Alpine); brew on atomic; cargo as a pinnable build
         faker:     { attrs: [ CLI lib FOSS permissive ] description: "Faker — generate fake data (names, addresses, …) from the CLI (`faker`) or as a Python library." install: [ { via: pipx  name: Faker } ] }   // the `faker` console script ships with the PyPI package -> pipx everywhere
         obsidian:  { attrs: [ GUI app proprietary electron ] description: "Obsidian — a local-first Markdown knowledge base / note-taking app (free, proprietary)." install: [ { via: flatpak  hub: flathub  app: md.obsidian.Obsidian }  { via: aur  when: "arch"  name: obsidian-bin } ] }   // flatpak is the universal + atomic path; works fully offline (sync is a paid add-on)
         scratch:   { attrs: [ GUI app FOSS permissive electron ] description: "Scratch — MIT's block-based visual programming environment for learners (the official offline desktop editor)." install: [ { via: flatpak  hub: flathub  app: edu.mit.Scratch } ] }   // the only Linux desktop build (Flathub; note it lags the web editor)
