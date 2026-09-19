@@ -218,3 +218,20 @@ doesn't cover fedora_atomic, so these are resolve-verified, not golden-locked �
 ### Suggested follow-up: add `('fedora_atomic', '41')` to the golden matrix (`test/test_golden.py`
 `CONTEXTS`) so brew resolution is regression-locked like the other OSes. Deferred here because it's a
 large one-time golden diff (301 components × a new context) and is a gate-policy call for you.
+
+## Nushell glue — parked snippets (2026-09-18)
+
+The nushell gestalt glue ships the PATH/alias/env shapes (57 snippets). Two classes are parked
+because nushell has **no runtime `source`/eval of a string** (it parses the whole program up front):
+
+- **init-eval tools** (emit shell code to eval at startup): zoxide, atuin, fzf, pyenv, opam, luarocks.
+  Fix = a driver **pre-generate hook**: run `<tool> init nu | save <conf.d>/<tool>-init.nu` at glue
+  activation, then a static `source` of that file in the block. Most already speak nu
+  (`zoxide init nushell`, `atuin init nu`, `starship init nu`); opam/luarocks/pyenv need a
+  `<tool> env`-to-nu shim.
+- **bash-env-script sources** (source a bash script and import its env): sdkman, vulkan-sdk, gnustep,
+  miniforge, gcloud. Fix = a nu **bash-env bridge** (`^bash -lc "source X; export -p"` parsed into
+  `$env`), the nushell analogue of fish's `bass`.
+
+Personal (user-owned, never shipped): citybanner, ps1, geg. Shell-on-PATH-for-other-shells
+(N/A for nu itself): elvish, nushell.

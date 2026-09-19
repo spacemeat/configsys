@@ -495,6 +495,20 @@ def test_location_unknown_component_errors(tmp_path, capsys):
     assert main(base_args(tmp_path) + ['location', 'nope-xyz-tool']) == 1
 
 
+def test_location_all_bulk_lists_only_managed(tmp_path, capsys):
+    # --all prints `<comp>\t<path>` for every REQUESTED component that manages a location; native
+    # components (no managed dir) are omitted. One call the shell glue caches instead of N subprocesses.
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text('{ machine: box  picks: { box: [ vulkan-sdk  btop ] } }\n', encoding='utf-8')
+    rc = main(base_args(tmp_path) + ['location', '--all'])
+    out = capsys.readouterr().out
+    lines = {l.split('\t')[0]: l.split('\t')[1] for l in out.splitlines() if '\t' in l}
+    assert rc == 0
+    assert 'vulkan-sdk' in lines and lines['vulkan-sdk'].endswith('/sdks/vulkan')  # managed -> listed
+    assert 'btop' not in lines                                                     # native -> omitted
+
+
 def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
     # a marker at the SYSTEM scope base -> location reports the system path, not the user default
     sysbase = tmp_path / 'opt'

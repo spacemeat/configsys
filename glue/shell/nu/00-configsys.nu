@@ -18,15 +18,31 @@ def --wrapped configsys [...args] {
   }
 }
 
-# cs-loc <name>: the managed install location of a component ("" if none / a native install). Wraps
-# `configsys location` (which exits 0 with empty output when unmanaged) via `complete`, which captures
-# stdout/stderr/exit_code — so the "installed on the system PATH" advisory (stderr) doesn't leak to the
-# terminal at startup. `do --ignore-errors` swallows a hard failure so a snippet can't abort the block.
-# Used by the tarball/appImage snippets to find their off-PATH binaries.
-def cs-loc [name: string] {
-  let r = (do --ignore-errors { configsys location $name | complete })
-  if (($r != null) and ($r.exit_code == 0)) { ($r.stdout | str trim) } else { "" }
-}
+# Fetch EVERY managed install location in ONE call and cache it. A `configsys location <x>` per snippet
+# is ~250ms (a whole Python startup); dozens of them would add seconds to every nu launch. `--all`
+# prints `<comp>\t<path>` for the whole requested set in one process; cs-loc then reads this record —
+# instant. `complete` captures streams (the per-component stderr advisories don't leak); the fallbacks
+# keep a missing/blank/failed configsys from breaking config.nu.
+$env.__cs_locs = (do --ignore-errors { configsys location --all | complete }
+  | if (($in != null) and ($in.exit_code == 0)) {
+      ($in.stdout | lines | where {|l| $l != ""}
+        | split column (char tab) name path
+        | reduce --fold {} {|row, acc| $acc | upsert $row.name ($row.path | default "" | str trim) })
+    } else { {} })
+
+# cs-loc <name>: the managed install location of a component ("" if none / a native install). An
+# instant lookup into the $env.__cs_locs cache above. Used by the tarball/appImage snippets to find
+# their off-PATH binaries.
+def cs-loc [name: string] { ($env.__cs_locs? | default {} | get --optional $name | default "") }
 
 # cf: shorthand for configsys.
 def --wrapped cf [...args] { configsys ...$args }
+
+# cs-prepend / cs-append <dir>: add a dir to the FRONT / BACK of PATH when it exists, deduped. `--env`
+# so the mutation reaches the caller (config.nu's top scope -> the REPL). The PATH glue snippets use
+# these instead of repeating the `$env.PATH = ($env.PATH | … | uniq)` dance.
+def --env cs-prepend [d: string] { if (($d != "") and ($d | path exists)) { $env.PATH = ($env.PATH | prepend $d | uniq) } }
+def --env cs-append  [d: string] { if (($d != "") and ($d | path exists)) { $env.PATH = ($env.PATH | append  $d | uniq) } }
+
+# cs-glob1 <pattern>: the first existing path matching a glob (dirs and files), or "". Empty-safe.
+def cs-glob1 [pattern: string] { (glob $pattern | get 0? | default "") }

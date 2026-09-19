@@ -1613,6 +1613,11 @@ def cmd_location(ctx, args):
     manages no location (a native/PATH install) is a valid empty answer -> exit 0, empty stdout.'''
     from .resolve import ResolveError
     r = ctx.routes
+    if getattr(args, 'all', False):
+        return _location_all(ctx)
+    if not args.name:
+        print('configsys: location needs a component name (or --all)', file=sys.stderr)
+        return 1
     try:
         units = r.resolve_names([args.name])
     except ResolveError as e:
@@ -1650,6 +1655,42 @@ def cmd_location(ctx, args):
         print(f'configsys: {args.name} ({own[0].driver}) has no managed install location '
               f'(installed on the system PATH)', file=sys.stderr)
         return 0
+    return 0
+
+
+def _location_all(ctx):
+    '''Bulk `location`: print `<comp>\\t<abspath>` for every REQUESTED component whose driver manages a
+    location (tarball/appImage/source/…). Native/PATH components (no managed location) are omitted. One
+    process for the whole set — the shell glue substrate calls this ONCE at startup and caches it, so a
+    `location <x>` subprocess (~250ms) per snippet becomes a single call + instant lookups. Uses the
+    TARGET location (no per-component get_installed scope probe), so it stays subprocess-free and fast.'''
+    from .resolve import ResolveError
+    r = ctx.routes
+    try:
+        names = list(ctx.config.requested())
+    except Exception:                                    # noqa: BLE001 — no picks / bad config -> nothing
+        names = []
+    if not names:
+        return 0
+    try:
+        units = r.resolve_names(names)
+    except ResolveError:
+        units, _errs = r.resolve_resilient(names)        # one bad entry shouldn't blank the whole list
+    seen = set()
+    for rc in units.values():
+        if rc.comp in seen:
+            continue
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
+            continue
+        try:
+            loc = drv.location(rc)
+        except Exception:                                # noqa: BLE001 — a driver hiccup skips one, not all
+            loc = None
+        if loc:
+            s = str(loc)
+            print(f'{rc.comp}\t{ctx.paths.expand(s) if s.startswith(("~", "/")) else s}')
+            seen.add(rc.comp)
     return 0
 
 
@@ -2811,7 +2852,10 @@ def build_parser():
 
     lo = sub.add_parser('location', help="print a component's absolute install location "
                                          '(honoring scope + pin), for shell snippets')
-    lo.add_argument('name', help='component name')
+    lo.add_argument('name', nargs='?', help='component name')
+    lo.add_argument('--all', action='store_true', dest='all',
+                    help='bulk: print `<comp>\\t<path>` for every requested component that manages a '
+                         'location (one process for the whole set — the shell glue caches it)')
 
     ve = sub.add_parser('versions', help='show the version each install method would install for a '
                                          'component (native vs tarball/source/…), with the tip lag')
