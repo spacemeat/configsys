@@ -135,9 +135,16 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
      is just `#!cs-eval zoxide init nushell`. It SELF-GUARDS: a tool that's absent or too old to emit a
      nu init exits non-zero and nothing is inlined. Only works when the tool has a real nu init
      (`zoxide init nushell`, `atuin init nu`, `starship init nu`); a tool whose `init`/`env` emits only
-     bash (`fzf`/`pyenv`/`opam`/`luarocks`) stays parked until it gains nu support or a nu bash-env
-     bridge (fish-`bass` analogue) lands. The directive is generic to any inline shell, but elvish
-     doesn't need it (it evals inline). Skip a snippet that only sources a *bash* env script.
+     bash uses the bash-env bridge instead (next bullet). The directive is generic to any inline shell,
+     but elvish doesn't need it (it evals inline).
+   - **Bash-env bridge (nushell's `bass`).** A tool that ships only a bash env-setup script
+     (`sdkman`/`vulkan-sdk`/`gnustep`/`miniforge`) or whose init emits bash (`pyenv`/`opam`/`luarocks`)
+     is handled by the `cs-bash-env <bash-command>` substrate helper: it runs the bash command, then
+     imports the env CHANGES (PATH → deduped list, other vars) into `$env`. So `glue/shell/nu/sdkman.nu`
+     is one line: `cs-bash-env 'export SDKMAN_DIR=...; source ...sdkman-init.sh'`. Caveat: a bash
+     FUNCTION the script defines (`sdk`/`conda`/`pyenv`) does NOT cross to nu — only the PATH/env does
+     (installed toolchains stay usable; drive install/switch from bash). Self-guards (a failed bash run
+     imports nothing). NOT for keybinding integrations (`fzf`'s Ctrl-R) — those aren't env, stay parked.
 4. **If the shell installs off-PATH (a tarball), add a PATH glue** so `which <sh>` finds it — the
    `_installed_shells()` detection is `shutil.which`, and a shell that isn't detected gets NO glue at
    all (chicken-and-egg). Add `<sh>-glue` (`glue: <sh>`) with bash/zsh/fish variants that prepend

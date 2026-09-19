@@ -46,3 +46,29 @@ def --env cs-append  [d: string] { if (($d != "") and ($d | path exists)) { $env
 
 # cs-glob1 <pattern>: the first existing path matching a glob (dirs and files), or "". Empty-safe.
 def cs-glob1 [pattern: string] { (glob $pattern | get 0? | default "") }
+
+# cs-bash-env <bash-command>: nushell's `bass` — run a bash command (typically sourcing an env-setup
+# script, or eval-ing a tool's init) and import the environment CHANGES it produces into $env. PATH
+# becomes a deduped list; shell-internal vars and values that didn't change are skipped. For tools
+# that ship only a bash env script (sdkman/vulkan-sdk/gnustep/miniforge) or whose init emits bash
+# (pyenv/opam/luarocks). Caveat: the bash FUNCTIONS such a script defines (sdk/conda/pyenv) don't
+# cross to nu — but the PATH/env it sets do, so installed toolchains are usable. `--env` so the import
+# persists; self-guards (a failed bash run imports nothing). Values are single-line (env-setup scripts
+# don't export multiline values); a value keeping its own `=` survives (parse is non-greedy on name).
+def --env cs-bash-env [cmd: string] {
+  let r = (^bash -c $'{ ($cmd) ; } >/dev/null 2>&1; env' | complete)
+  if $r.exit_code != 0 { return }
+  let ignore = ["_" "SHLVL" "PWD" "OLDPWD" "SHELL" "PS1" "PS2" "BASHOPTS"
+                "BASH_EXECUTION_STRING" "BASH_VERSION" "BASH_VERSINFO" "BASHPID"]
+  for kv in ($r.stdout | lines | where {|x| ($x | str contains "=")}) {
+    let m = ($kv | parse "{name}={value}")
+    if ($m | is-empty) { continue }
+    let p = ($m | first)
+    if (($p.name in $ignore) or ($p.name == "")) { continue }
+    if $p.name == "PATH" {
+      $env.PATH = ($p.value | split row (char esep) | where {|x| $x != ""} | uniq)
+    } else if (($env | get --optional $p.name) != $p.value) {
+      load-env { ($p.name): $p.value }
+    }
+  }
+}

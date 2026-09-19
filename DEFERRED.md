@@ -228,12 +228,15 @@ parked is bounded by nushell having **no runtime `source`/eval of a string**:
   loader runs `<cmd>` at (de)activation and inlines its stdout (self-guards to nothing if the tool is
   absent/too old). Shipped: zoxide (`zoxide init nushell`), atuin (`atuin init nu`). Add more the same
   way (starship: `starship init nu`) — one directive line, no code.
-- **init-eval tools with NO nu init — still parked**: fzf, pyenv, opam, luarocks (their `init`/`env`
-  emits bash/zsh only). Fix = either upstream nu support (then a one-line `#!cs-eval`) or the bridge
-  below.
-- **bash-env-script sources — still parked**: sdkman, vulkan-sdk, gnustep, miniforge, gcloud. Fix = a
-  nu **bash-env bridge** (`^bash -lc "source X; export -p"` parsed into `$env`), the nushell analogue
-  of fish's `bass`. Once it exists, the four env-source tools + the parked init-eval ones ride it.
+- **bash-env / bash-init tools — DONE** via the `cs-bash-env` bridge (nushell's `bass`, in
+  `glue/shell/nu/00-configsys.nu`): runs a bash command (source a setup script, or eval a tool's init)
+  and imports the env CHANGES into `$env` (PATH → deduped list). Shipped: sdkman, vulkan-sdk, gnustep,
+  miniforge, pyenv, opam, luarocks. Caveat: a bash FUNCTION the script defines (`sdk`/`conda`/`pyenv`)
+  doesn't cross to nu — but the PATH/env it sets does, so installed toolchains are usable; use the tool
+  from bash for install/switch, or nu-native integration for activation.
+- **fzf — still parked**: its shell integration is READLINE key-bindings (Ctrl-R/Ctrl-T/Alt-C), not
+  env — those can't cross to nu via env import. Needs nu-native keybindings (`$env.config` hooks) or a
+  `fzf --nu`-style command. Separate from the bridge.
 
 Personal (user-owned, never shipped): citybanner, ps1, geg. Shell-on-PATH-for-other-shells
 (N/A for nu itself): elvish, nushell.
