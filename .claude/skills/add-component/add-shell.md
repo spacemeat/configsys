@@ -144,7 +144,13 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
      is one line: `cs-bash-env 'export SDKMAN_DIR=...; source ...sdkman-init.sh'`. Caveat: a bash
      FUNCTION the script defines (`sdk`/`conda`/`pyenv`) does NOT cross to nu — only the PATH/env does
      (installed toolchains stay usable; drive install/switch from bash). Self-guards (a failed bash run
-     imports nothing). NOT for keybinding integrations (`fzf`'s Ctrl-R) — those aren't env, stay parked.
+     imports nothing).
+   - **Line-editor keybindings (`fzf`).** A tool whose integration is interactive KEYBINDINGS
+     (fzf's Ctrl-R/Ctrl-T/Alt-C) is neither env nor eval-able — bash/zsh/fish install them via
+     readline/zle/`bind`, which nushell (Reedline) doesn't share, and fzf has no nu target. Author them
+     as NATIVE nu keybindings: append records to `$env.config.keybindings` (APPEND — `($env.config.keybindings? | default []) | append [...]` — never overwrite the user's), each an
+     `event: { send: executehostcommand cmd: '<nu that runs the tool and calls commandline edit>' }`.
+     `glue/shell/nu/fzf.nu` is the worked example. This is hand-authored, not generated.
 4. **If the shell installs off-PATH (a tarball), add a PATH glue** so `which <sh>` finds it — the
    `_installed_shells()` detection is `shutil.which`, and a shell that isn't detected gets NO glue at
    all (chicken-and-egg). Add `<sh>-glue` (`glue: <sh>`) with bash/zsh/fish variants that prepend

@@ -234,9 +234,13 @@ parked is bounded by nushell having **no runtime `source`/eval of a string**:
   miniforge, pyenv, opam, luarocks. Caveat: a bash FUNCTION the script defines (`sdk`/`conda`/`pyenv`)
   doesn't cross to nu — but the PATH/env it sets does, so installed toolchains are usable; use the tool
   from bash for install/switch, or nu-native integration for activation.
-- **fzf — still parked**: its shell integration is READLINE key-bindings (Ctrl-R/Ctrl-T/Alt-C), not
-  env — those can't cross to nu via env import. Needs nu-native keybindings (`$env.config` hooks) or a
-  `fzf --nu`-style command. Separate from the bridge.
+- **fzf — DONE** via nu-NATIVE Reedline keybindings (fzf has no nushell target, and its bindings are
+  line-editor widgets, not env, so neither the bridge nor `#!cs-eval` applies). `glue/shell/nu/fzf.nu`
+  resolves the fzf binary (native or managed tarball) as `fzf` and appends Ctrl-R (history) / Ctrl-T
+  (insert file paths) / Alt-C (cd) to `$env.config.keybindings` — each an `executehostcommand` that
+  runs fzf and edits the line via `commandline edit`. Ctrl-T/Alt-C honour $FZF_CTRL_T_COMMAND /
+  $FZF_ALT_C_COMMAND, else `find`.
 
-Personal (user-owned, never shipped): citybanner, ps1, geg. Shell-on-PATH-for-other-shells
-(N/A for nu itself): elvish, nushell.
+That closes the nushell glue: everything from the elvish set now has a nu path. Only Personal
+(user-owned, never shipped) remains: citybanner, ps1, geg. Shell-on-PATH-for-other-shells (N/A for nu
+itself): elvish, nushell.
