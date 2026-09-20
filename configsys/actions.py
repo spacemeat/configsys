@@ -287,6 +287,11 @@ CONFIG_SETTINGS = {
                                     'system (/opt, needs sudo).', 'configsys(1)'),
     'driver-preference': ('list',   'Order ties between equally-valid install methods break in.',
                           'configsys(1)'),
+    'disabled-drivers':  ('list',   'Install methods (via names) to turn OFF on this machine — their '
+                                    'bindings stop matching, like a false when:, so a soft suggests is '
+                                    'skipped (a hard requires errors). Use it to opt a mechanism out: '
+                                    'dotfiles / glue to manage your own shell config, or e.g. snap.',
+                          'configsys(1)'),
     'auto-tighten':      ('bool',   'Auto-pick a floor-satisfying install method instead of only '
                                     'advising.', 'configsys(1)'),
     'adopt-installed':   ('bool',   'Prefer an already-installed method/provider over the default '
@@ -334,6 +339,7 @@ CONFIG_SETTINGS = {
 SETTING_NATURE = {
     'scope':             'machine',
     'driver-preference': 'uniform',
+    'disabled-drivers':  'machine',           # "on THIS box I manage my own dotfiles/glue" (local; `m` to travel)
     'auto-tighten':      'uniform',
     'adopt-installed':   'uniform',
     'refresh-before-execute': 'uniform',      # a behavior preference (override per-machine with `m`)

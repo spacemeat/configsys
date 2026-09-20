@@ -70,6 +70,15 @@ def test_set_driver_preference_list(tmp_path):
     assert ctx.config.driver_preference() == ['native', 'source']
 
 
+def test_set_disabled_drivers_opts_out_dotfiles_and_glue(tmp_path):
+    # the config option for making dotfiles/glue management optional — a list of vias to turn off.
+    ctx, user = _ctx(tmp_path)
+    assert ctx.config.disabled_drivers() == []
+    actions.set_config_setting(ctx, 'disabled-drivers', ['dotfiles', 'glue'])
+    assert set(ctx.config.disabled_drivers()) == {'dotfiles', 'glue'}
+    assert 'disabled-drivers' in user.read_text()
+
+
 def test_set_auto_tighten_bool_is_bare(tmp_path):
     ctx, user = _ctx(tmp_path)
     assert ctx.config.auto_tighten() is False
@@ -89,7 +98,7 @@ def test_clear_setting(tmp_path):
 def test_config_settings_view_has_desc_and_man(tmp_path):
     ctx, _user = _ctx(tmp_path)
     s = actions.config_settings(ctx)
-    assert set(s) == {'scope', 'driver-preference', 'auto-tighten', 'adopt-installed',
+    assert set(s) == {'scope', 'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed',
                       'refresh-before-execute', 'install-overlay', 'reboot-advice', 'splash', 'effects',
                       'orphans-ignore', 'machine',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
