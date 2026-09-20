@@ -26,10 +26,10 @@ COLOR_MAP = {
     'installed': (90, 200, 120), 'outdated': (230, 190, 70), 'partial': (90, 190, 205),
     'missing': (150, 150, 150), 'locked': (110, 165, 255), 'unsupported': (110, 110, 110),
     'untrusted': (220, 140, 60), 'error': (235, 95, 95),
-    # orphan install-axis overlay (TUI::Profiles): one hue per orphan kind — excluded is the loud
-    # adopt-or-remove one, the rest recede.
-    'orphan_excluded': (235, 140, 90), 'orphan_lurking': (150, 180, 220),
-    'orphan_forgotten': (168, 160, 132), 'orphan_foreign': (194, 140, 214),
+    # orphan install-axis overlay (TUI::Profiles): the colour for an installed-but-untracked component
+    # (⊙) and a staged-for-uninstall one (⮾). (The old per-kind excluded/forgotten/foreign hues went
+    # with user-profile authoring — the matrix model only distinguishes tracked from untracked here.)
+    'orphan_lurking': (150, 180, 220),
     'op_install': (90, 200, 120), 'op_upgrade': (230, 190, 70), 'op_remove': (235, 95, 95),
     'op_lock': (110, 165, 255), 'op_unlock': (120, 210, 210),
     'sel_bg': (58, 34, 88),
@@ -52,8 +52,7 @@ BASIC_MAP = {
     'installed': 'bright-green', 'outdated': 'bright-yellow', 'partial': 'bright-cyan',
     'missing': 'bright-black', 'locked': 'blue', 'unsupported': 'bright-black',
     'untrusted': 'yellow', 'error': 'bright-red',
-    'orphan_excluded': 'bright-yellow', 'orphan_lurking': 'cyan',
-    'orphan_forgotten': 'bright-black', 'orphan_foreign': 'magenta',
+    'orphan_lurking': 'cyan',
     'op_install': 'bright-green', 'op_upgrade': 'bright-yellow', 'op_remove': 'bright-red',
     'op_lock': 'blue', 'op_unlock': 'cyan',
     'sel_bg': 'magenta',                                 # the selection-bar background in 8/16-color
@@ -169,8 +168,7 @@ ROLE_DEFAULTS = {
     'installed': _r('installed'), 'outdated': _r('outdated'), 'partial': _r('partial'),
     'missing': _r('missing'), 'locked': _r('locked'), 'unsupported': _r('unsupported'),
     'untrusted': _r('untrusted'), 'error': _r('error'),
-    'orphan_excluded': _r('orphan_excluded'), 'orphan_lurking': _r('orphan_lurking'),
-    'orphan_forgotten': _r('orphan_forgotten'), 'orphan_foreign': _r('orphan_foreign'),
+    'orphan_lurking': _r('orphan_lurking'),
     'op_install': _r('op_install', bold=True), 'op_upgrade': _r('op_upgrade', bold=True),
     'op_remove': _r('op_remove', bold=True), 'op_lock': _r('op_lock', bold=True),
     'op_unlock': _r('op_unlock', bold=True), 'op_mixed': _r('accent', bold=True),
@@ -196,8 +194,8 @@ PAGE_ROLES = {
                    'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'menu_new', 'info',
-                  'info_dim', 'dependents', 'method_dim', 'orphan_excluded', 'orphan_lurking',
-                  'orphan_forgotten', 'orphan_foreign', 'status_line', 'footer', 'selection'],
+                  'info_dim', 'dependents', 'method_dim', 'orphan_lurking',
+                  'status_line', 'footer', 'selection'],
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'untrusted', 'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta',
                   'info', 'info_dim', 'status_line', 'footer', 'selection'],

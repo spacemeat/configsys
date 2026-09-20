@@ -4021,6 +4021,20 @@ def _sample_components_state():
     return pm
 
 
+def _sample_profiles_state(ctx):
+    '''The Profiles sample: the real ProfileScreen (its profile tree + `+include` links + component
+    catalog come from the actual config, which is never empty) with the install overlay ON and a
+    deterministic install-state, so the overlay colours — installed (a tracked row) and orphan_lurking
+    (an installed-but-untracked ⊙ row) — always show, regardless of the machine's real install state.
+    A synthetic empty overlay is injected so overlay() never spawns the real (slow, threaded) scan.'''
+    ps = ProfileScreen(ctx)
+    ps.show_install = 1
+    ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
+    ps._async_overlay = None
+    ps.install_state = lambda _name: 'all'           # everything "installed": picked -> green, else ⊙ orphan_lurking
+    return ps
+
+
 def _sample_glue_state(ctx):
     '''A stable synthetic Glue sample: snippets across two shells covering active / changed / available
     + loader on/off, so every glue role is colourable regardless of the user's real glue. The draw
@@ -4044,13 +4058,17 @@ def _sample_dotfiles_state(ctx):
     colourable regardless of the user's real captures.'''
     import types
     ds = DotfilesScreen(ctx)
+    # The cursor row is painted with the SELECTION colour (it overlays that row's status colour), so
+    # every status needs at least one row OFF the cursor. Managed appears twice — one at the cursor
+    # (shows the selection colour) and one below (shows its own green).
     ds.rows = [                                                   # (rc(.comp), name, target, raw-state, source, capturable)
         (types.SimpleNamespace(comp='neovim-dotfiles'), 'neovim', '~/.config/nvim',       'linked',    '<plugin>/neovim.cfs', False),
         (types.SimpleNamespace(comp='git-dotfiles'),    'git',    '~/.gitconfig',         'unmanaged', 'gitconfig',           True),
         (types.SimpleNamespace(comp='bat-dotfiles'),    'bat',    '~/.config/bat/config', 'empty',     'bat.cfs',             False),
+        (types.SimpleNamespace(comp='helix-dotfiles'),  'helix',  '~/.config/helix',      'linked',    '<plugin>/helix.cfs',  False),
     ]
-    ds.display = [('row', 0), ('row', 1), ('row', 2)]
-    ds.cur = ds.top = ds.hscroll = 0
+    ds.display = [('row', 0), ('row', 1), ('row', 2), ('row', 3)]
+    ds.cur = ds.top = ds.hscroll = 0                             # cursor on row 0 (managed) -> its green shows on row 3
     return ds
 
 
@@ -4085,7 +4103,7 @@ class ThemeScreen:
                 return _sample_components_state()           # a STABLE synthetic tree, not the user's
                                                             # real (possibly empty/partial) install set
             if page == 'profiles':
-                return ProfileScreen(ctx)
+                return _sample_profiles_state(ctx)
             if page == 'plugins':
                 pl = PluginScreen(ctx)                           # inject a diff so the diff roles show
                 pl.diff_files = [{'path': 'routes.hu', 'lines': [

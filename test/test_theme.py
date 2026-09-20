@@ -286,3 +286,23 @@ def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states():
     ds = menu._sample_dotfiles_state(ctx)
     assert {r[3] for r in ds.rows} == {'linked', 'unmanaged', 'empty'}        # managed / unmanaged / no-config
     assert all(hasattr(r[0], 'comp') for r in ds.rows)                        # _df_cells reads rc.comp
+
+
+def test_profiles_page_has_one_orphan_role_after_user_profiles_retired():
+    # Only orphan_lurking is actually rendered on the Profiles page (⊙ installed-untracked / ⮾
+    # staged-uninstall); excluded/forgotten/foreign were user-profile leftovers and are pruned.
+    from configsys.tui.theme import PAGE_ROLES, COLOR_MAP, ROLE_DEFAULTS
+    assert [r for r in PAGE_ROLES['profiles'] if 'orphan' in r] == ['orphan_lurking']
+    for dead in ('orphan_excluded', 'orphan_forgotten', 'orphan_foreign'):
+        assert dead not in COLOR_MAP and dead not in ROLE_DEFAULTS   # fully removed, not just unlisted
+
+
+def test_theme_profiles_sample_forces_overlay_without_a_scan():
+    from configsys.app import Context, build_parser
+    from configsys.tui import menu
+    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    ps = menu._sample_profiles_state(ctx)
+    assert ps.show_install == 1                               # overlay on -> install-state colours show
+    assert ps.overlay() == (frozenset(), {}, frozenset())     # injected empty -> no real orphan scan
+    assert ps.install_state('anything') == 'all'              # everything "installed" -> installed / orphan_lurking
+    assert len(ps.visible_pnodes()) > 0                       # a real (never-empty) profile tree
