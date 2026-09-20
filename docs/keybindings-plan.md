@@ -1,5 +1,7 @@
 # Configurable keybindings — plan
 
+> **Status: HISTORICAL — FEATURE COMPLETE. `keys:` is summarized in docs/config-format.md (settings table); `configsys keys` prints the effective legend.**
+
 **Goal.** Let the user rebind TUI keys from a humon file in their primary config (no TUI editor).
 Share generic navigation (`h/j/k/l`, `g/G`, arrows, `PgUp/PgDn`, `Tab` to switch panes, …) across every
 screen, plus per-page action keys. The key legend/footer must reflect the active bindings.

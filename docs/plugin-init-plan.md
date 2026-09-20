@@ -1,5 +1,7 @@
 # `configsys plugin init` — assemble a personal plugin from local bits (plan)
 
+> **Status: HISTORICAL — SHIPPED (`configsys plugin init`).**
+
 Status: **SHIPPED** — `configsys plugin init` (create/merge, git-init, bless-primary) is in the
 tree, alongside `bless`/`unbless`/`set-source`. Kept for the design rationale below.
 

@@ -1,5 +1,7 @@
 # Shell-writes switch — installers must not scribble in your rc files
 
+> **Status: HISTORICAL — BUILT (configsys/shellguard.py; `installer-shell-writes` setting).**
+
 Status: **BUILT (2026-08-18).** The rc-writes guard + staged-glue review loop ships in
 `configsys/shellguard.py` (snapshot/revert/capture/stage/activate/discard), wired into BOTH op
 paths (`app._dispatch_op`, `tui/menu.execute_plan`) via `shellguard.arm()`/`finish()`, with the

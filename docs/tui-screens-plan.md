@@ -1,5 +1,7 @@
 # TUI screens plan
 
+> **Status: HISTORICAL — largely BUILT; pre-dates the Glue (key 4) and Theme (key 7) screens. Live reference: README §The TUI.**
+
 Status: **Decisions locked 2026-08-03** — ready to build in the order at the bottom. One item parked:
 making install directories editable (C1) — read-only for v1, revisit later.
 

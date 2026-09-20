@@ -1,9 +1,11 @@
 # Theme redesign — shared color map + per-page role styles
 
+> **Status: HISTORICAL — SHIPPED. Live reference: docs/theming.md (the Theme screen is nav key 7; pages cycle with F1–F7).**
+
 Reworks the `theme:` model to two tiers: a shared **color map** (`colors:` — name → #rrggbb) and
 **per-page role styles** (`pages.<page>.<role>` → `{ fg, bg, effects }`, fg/bg referencing a map
 name or a literal), each page owning a **background gradient**. Drives a standalone Theme screen
-(nav key 6) with two editable lists (map + focused page's roles) beside one live sample page.
+(nav key 7) with two editable lists (map + focused page's roles) beside one live sample page.
 
 (Earlier iterations of this doc described a "named palette of full styles + per-page role→name
 bindings". That collapsed into the current map+role-styles model — the map holds *colors*, roles

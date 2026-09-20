@@ -3,7 +3,7 @@
 The whole TUI palette is yours. A `theme:` section in your config
 (`~/.config/configsys/configsys.hu`) — or a theme **plugin** — sets the colors and the per-page
 background gradients. Everything has a built-in default; you override only what you care about,
-and you can do it **live** on the Theme screen (nav key `6`).
+and you can do it **live** on the Theme screen (nav key `7`).
 
 The model is two tiers:
 
@@ -20,7 +20,7 @@ theme: {
         green:   "#5ac878"
     }
     pages: {
-        components: {                            // per-page roles (list 2; a-e cycles pages)
+        components: {                            // per-page roles (list 2; F1-F7 cycle pages)
             component: { fg: ink }               // fg references a map color…
             driver:    { fg: ink_dim }
             selection: { fg: "#ffffff"  bg: accent  bold: true }   // …or bg does; literals work too
@@ -39,7 +39,7 @@ Retinting one map color re-tints every role that references it — that's the po
 `theme:` is purely **cosmetic**, so — deliberately — **any layer can contribute it**, deep-merged
 per map-color and per page-role across the full stack:
 
-> **repo < plugins < primary < discovered < your top config**
+> **repo < plugins < primary < your top config**
 
 Later wins, so *your* config always has the last word. A theme-only plugin (just a `theme:` block)
 applies whether you declare it directly or your **primary** plugin links it. Because the merge is
@@ -68,7 +68,8 @@ from `pages`. The built-in names:
 
 ## `pages:` — per-screen role styles + gradient
 
-Each page is one screen: `components`, `profiles`, `plugins`, `dotfiles`, `config`. Under a page,
+Each page is one screen: `components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`,
+`theme`. Under a page,
 every key is a **role** except the reserved **`gradient`**. A role's value is a style:
 
 - **`fg` / `bg`** — a **color-map name** (`ink`, `accent`, …) or a literal (`"#rrggbb"`). Omit `bg`
@@ -112,7 +113,7 @@ background is left default; foreground colors still apply, cube-approximated. Th
 shows the **detected color mode** (`direct 24-bit` / `24-bit` / `256-color (approx)` / `8-color`)
 so you can tell what your terminal gave us.
 
-## The Theme screen (key 6)
+## The Theme screen (key 7)
 
 - **Top-left — the color map**: name → swatch + hex, laid out in **two columns** when the panel is
   wide enough. `↵` set a color, `n` add, `x`/`r` remove an override. `h`/`l` move between columns.
@@ -121,8 +122,9 @@ so you can tell what your terminal gave us.
   endpoints** (`gradient from` / `gradient to`) as single-color rows — edit them like any role
   (a map name or `#hex`), no bg/effects. `↵` set fg, `B` set bg, `o`/`u`/`v` toggle
   bold/underline/reverse, `r` reset the role on this page.
-- **`Tab`** toggles focus between the two lists (`h`/`l` also cross the boundary); **`a`–`e`** cycle
-  which page you're editing; **`p`** toggles the focused page's gradient on/off.
+- **`Tab`** toggles focus between the two lists (`h`/`l` also cross the boundary); **`F1`–`F7`**
+  select which page you're editing (the `theme.page-1..page-7` keybindings — rebindable via
+  `keys:`); **`p`** toggles the focused page's gradient on/off.
 - **Right — the sample page**: a mock of that *actual* screen (its layout + its own roles) in the
   page's colors + gradient, so cycling shows a faithful, distinct preview. Edits repaint live.
 - **Editing already persists** — every color/role/gradient edit writes as a *diff* to your primary

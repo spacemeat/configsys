@@ -13,11 +13,11 @@ Every system we care about either comes with a version of python3, or that must 
 
 The application should be python3, and so python3 and humon must be the first to synchronize; this can be done via bash, since we need these components for the rest of the app. The app should be an interactive TUI, and slick looking on a 24-bit RGB terminal. It should be menu-driven, with single-key actions and menu navigation via VIM-like controls.
 
-On start, the user config file (~/.config/configsys/configsys.hu; a legacy ~/configsys.hu is migrated there) should be present. If it is not, one must be generated from a template config from the repo. If it contains a top-level node called 'configs' with a single value or list, those values are the profiles that concern this installation. For each profile that matches another top-level node (example: dev) the app will search the system to find all the installed components already on the system and evaluate their versions. From that known state, an interactive menu will let user:
+On start, the user config file (~/.config/configsys/configsys.hu; a legacy ~/configsys.hu is migrated there) should be present. If it is not, one must be generated from a template config from the repo. What a machine installs is its **picks**: the top config's `picks:` section is a component × machine matrix (`{ <machine>: [ components ] }`) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (repo/plugin-defined; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on the CLI). The old `configs:` and user-authored `profiles:` are RETIRED (both emit `check` warnings). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ `--machine`) edit the matrix; `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
 
 - view the install state of each component
 - interactively mark installed components for an operation (upgrade, remove, etc)
-- quickly mark all components for an operation (select all in profile)
+- quickly mark all components for an operation (select all)
 
 In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
 the full spec). Its three sections:
@@ -65,11 +65,14 @@ precedence — set in `~/.config/configsys/configsys.hu`'s `pins:` section (the 
 redefining a component). The result is `{unit_key: ResolvedComponent}` (`driver\comp`), which
 the drivers consume unchanged.
 
-The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: `configs:`/`scope:`
-(machine settings), `profiles:` (shadowed per name), `components:` (route overrides — bindings
+The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: machine
+settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/… — the registry is
+`actions.CONFIG_SETTINGS` + `layers._KNOWN_TOP_KEYS`, each with a `SETTING_NATURE` of uniform→primary
+or machine→local), `components:` (route overrides — bindings
 merge ADDITIVELY across layers by `(via, when)` identity: a higher layer adds an install method,
 overrides a matching binding, `drop:`s one, or `{}` removes the whole component; to merely pick an
-existing method, use a `pins:` entry), and `pins:`. `configsys where <component>` explains
+existing method, use a `pins:` entry), and the cosmetic `theme:`/`keys:` (merged from every
+layer). `configsys where <component>` explains
 a component's source layer + resolution; `configsys check` lints the whole merged config.
 
 **Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may
@@ -77,8 +80,8 @@ a component's source layer + resolution; `configsys check` lints the whole merge
 lowest-first — repo (routes.hu + config.hu) < the top user file, with includes sitting below
 the file that includes them — merging by section and, for components/profiles, by name.
 Includes are DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but
-`configs:`/`scope:`/`pins:` (machine settings) and `os:`/`drivers:` (code-adjacent) are ignored
-(a `check` warning). Cycles/missing files
+`picks:`/`scope:`/`pins:` (machine settings) and `os:`/`drivers:` (code-adjacent) are ignored
+(a `check` warning). Layer precedence is repo < plugins < primary < user. Cycles/missing files
 error clearly; provenance (`Component.source`, `Config.profile_source`) flows through so
 `where`/`check` attribute to the right file. This is the shared substrate the plugin model
 will reuse — a plugin is just another source in the stack.
@@ -106,13 +109,16 @@ get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, l
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
 (the OS package managers apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree; tarball,
 native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS package tool — a
-distinct opt-in method from repo `native`, since it doesn't ride `apt upgrade`],
-flatpak, appImage, dotfiles, font, script [declared install/version/uninstall commands],
-`source` [declarative build-from-a-git-checkout-or-archive]; the language toolchains and their
-module installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, gcc,
-gcc-toolset, clang; and the post-install primitives service [systemd] and group [usermod]) —
-except `via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure
-aggregator, no driver of its own). More drivers can be added as needed.
+distinct `standing: never-auto` method from repo `native`, since it doesn't ride `apt upgrade`],
+flatpak, snap, appImage, font, script [declared install/version/uninstall commands],
+`source` [declarative build-from-a-git-checkout-or-archive]; the config drivers dotfiles [an
+app's own config: `.cfs` marker dir + manifest in the user's content store, linked into place]
+and glue [per-shell `conf.d` enablement snippets, shipped not captured, its own `glue/` roots —
+see the Glue/dotfiles segregation memory]; the language toolchains and their
+module/version installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv,
+sdkman, gcc, gcc-toolset, clang; and the post-install primitives service [systemd] and group
+[usermod]) — except `via: native` (resolves to the OS's package-manager driver) and `via: parts`
+(a pure aggregator, no driver of its own). More drivers can be added as needed.
 
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
 resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built
@@ -123,5 +129,5 @@ The bash bootstrap must be minimal; ensure an adequate python3 version is instal
 
 ## Some considerations
 
-User should have control of what goes into profiles and which profiles they wish to use. Components that overlap in profiles shoudln't be doubled up; if there are driver conflicts between components, user should be notified to fix the conflict before other things can proceed. In general, take a posture of 'no surprises'; user should know what's installed, what's going to be when they do an operation, and what's not. However, user does not need all details about package dependencies in apt, for example.
+User should have control of what each machine picks; profiles are a browse aid, not the install set. Components that are wanted from several directions (picks, requires, suggests) shouldn't be doubled up; if there are driver conflicts between components, user should be notified to fix the conflict before other things can proceed. In general, take a posture of 'no surprises'; user should know what's installed, what's going to be when they do an operation, and what's not. However, user does not need all details about package dependencies in apt, for example.
 

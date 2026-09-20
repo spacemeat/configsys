@@ -1,6 +1,8 @@
 # Versioned requirements & per-method version visibility (design)
 
-Status: **design / exploration.** Captures the model, the data/caching story, and a staged plan
+> **Status: HISTORICAL — SHIPPED (min-version `requires:`, `version-floors:`, per-method `configsys versions`). Live reference: docs/config-format.md (Choosing among methods / Versions).**
+
+Status: **SHIPPED** (originally design / exploration). Captures the model, the data/caching story, and a staged plan
 for two linked capabilities that share one substrate:
 
 1. **User-facing version visibility** — see, per install method (native/tarball/source/flatpak/…),

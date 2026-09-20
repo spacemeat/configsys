@@ -60,7 +60,7 @@ Each synced plugin's `data:` files become `plugin`‑role layers in the stack. P
 lowest → highest:
 
 ```
-repo (routes.hu + config.hu)  <  plugins (declaration order)  <  user config
+repo (routes.hu + config.hu)  <  plugins (declaration order)  <  primary  <  user config
 ```
 
 Plugins sit **above the repo but below your machine config** — so your
@@ -90,9 +90,9 @@ plugins: [
   code excluded). `plugin add/update --pin` fills it in from the just-synced content.
 - private repos: use an ssh source (`git@host:owner/repo.git`), a credential-bearing URL, or a
   configured git credential helper; `CONFIGSYS_GIT_TOKEN` is a CI convenience for github:/gitlab:.
-- `plugins:` is a machine SETTING (like `configs:`/`pins:`) — repo/user only, not settable by
-  includes. The blessed **primary** plugin is the exception among plugins:
-  it may set machine settings (`configs:`/`scope:`/`pins:`/…) and carry transitive `plugins:`.
+- `plugins:` is a machine SETTING (like `picks:`/`machine:`/`pins:`) — repo/user only, not
+  settable by includes. The blessed **primary** plugin is the exception among plugins:
+  it may set machine settings (`picks:`/`scope:`/`pins:`/…) and carry transitive `plugins:`.
 - One section escapes the machine-setting gate entirely: `theme:` is purely cosmetic, so **any**
   plugin — declared directly or linked transitively by a primary — may contribute it, merged per
   key across the whole stack (see docs/theming.md). A theme-only plugin therefore works no matter
@@ -100,9 +100,12 @@ plugins: [
 
 ### CLI (the nice experience)
 
-- `configsys plugin add github:x/y[@ref]` — append to `plugins:` (+ optional immediate sync).
-- `configsys plugin sync` — clone/fetch every declared plugin to its pinned ref; prune
-  undeclared ones; report what changed; prompt for trust on new/changed **code** plugins.
+- `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` — append to `plugins:`
+  and sync it (`--ref` pins a tag/commit/branch; `--pin` also locks the content hash; `--local`
+  writes to this machine's top config instead of riding the primary; `--replace` swaps an
+  already-declared plugin of the same name to this source).
+- `configsys plugin sync` — clone/fetch every declared plugin to its pinned ref; report what
+  changed; new/changed **code** plugins stay inert until trusted.
 - `configsys plugin list` — installed plugins: name, version, ref, data‑only|code, trust
   status, what they provide.
 - `configsys plugin update [name] [--ref R | --latest] [--pin]` — move a pin forward and re‑sync
@@ -113,11 +116,13 @@ plugins: [
   `configsys plugin update --latest` bumps them all; locally‑authored plugins are skipped, and a
   per‑plugin ok/FAIL summary is printed (exit 1 if any failed).
 - `configsys plugin remove name` — drop from `plugins:` and delete the dir.
-- `configsys plugin trust|untrust name` — approve / revoke a code plugin's current content (§6).
+- `configsys plugin trust [name | --all]` / `untrust name` — approve / revoke a code plugin's
+  current content (§6); omit the name (or `--all`) to trust every currently-untrusted one.
 - `configsys plugin bless <source>` / `unbless` — designate (or clear) your **primary** personal
   plugin: it may set machine settings and carry its own (transitive) plugins.
 - `configsys plugin init [name]` — assemble a primary plugin from your local bits (captured
-  dotfiles + your `profiles:`/`components:` + your other plugins as transitive), or merge them
+  dotfiles + your `components:` overrides + your other plugins as transitive; picks move with
+  `configsys picks to-primary`), or merge them
   into an existing primary. Authored in place, `git init`ed, and **sync‑exempt** (source == its
   own dir → `local`) until you push it.
 - `configsys plugin set-source <name> <source>` — repoint a plugin (e.g. local path →

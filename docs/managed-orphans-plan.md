@@ -1,5 +1,7 @@
 # Managed orphans — finding installed things that aren't in your active profiles
 
+> **Status: HISTORICAL — complete. Its "active profiles" framing predates the picks model: adopting an orphan now means picking it (`configsys orphans --adopt`).**
+
 **Goal.** Surface software on the machine that configsys **could manage** (a known component, or an
 install via a package manager cf drives) but that **isn't in any active profile** — so the user can
 adopt it into a profile, remove it, or dismiss it. Explicitly out of scope: arbitrary files outside

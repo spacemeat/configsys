@@ -1,5 +1,7 @@
 # Glue / dotfiles separation
 
+> **Status: HISTORICAL — Phases 1–2 SHIPPED (the `via: glue` driver, segregated `glue/` roots, the Glue TUI screen); Phase 3 (orphan homes) pending. Live reference: docs/config-format.md §glue.**
+
 Split the conflated `via: dotfiles` mechanism into two first-class, separately-modeled concerns:
 
 - **glue** — shell-integration *enablement* germane to a component's install: PATH, aliases, env,

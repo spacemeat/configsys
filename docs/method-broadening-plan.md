@@ -1,5 +1,7 @@
 # Offer every working method — a `when:`-is-validity audit
 
+> **Status: HISTORICAL — Phase 1 DONE; Phase 2 (registry-existence sweep for missing universal methods) pending.**
+
 Status: **PHASE 1 DONE** (commit follows this doc). Phase 2 (add *missing* universal methods per a
 registry-existence sweep) is still pending. Phase-1 result: the 18 gap-gated bindings below were
 broadened to universal validity — golden moved by exactly ONE new resolution (`qtile` now resolves on

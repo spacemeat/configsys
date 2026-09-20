@@ -1,6 +1,8 @@
 # Profiles: the `^derive` primitive + ballot UX — design/plan
 
-Status: DESIGN, not built. 2026-09-05. Captures the profiles-UX exploration (Fable memo +
+> **Status: HISTORICAL — SUPERSEDED. Built, then ripped out (the `^` primitive); replaced by docs/profiles-disposition-plan.md, itself superseded by docs/profiles-matrix-plan.md (the picks matrix).**
+
+Status: SUPERSEDED (built, then removed — see banner). 2026-09-05. Captures the profiles-UX exploration (Fable memo +
 review). May or may not be implemented; this is the settled design so it survives context loss.
 
 Criteria, in priority order (the project north star): **(1) no surprises · (2) clarity in both

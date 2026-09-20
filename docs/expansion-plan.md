@@ -1,5 +1,7 @@
 # Expansion plan — languages, tools, DEs, and `configsys request`
 
+> **Status: HISTORICAL — SHIPPED. Note: a dedicated `sdkman` driver (drivers/sdkman.py) now exists alongside the general `script` driver described below.**
+
 Status: **SHIPPED** — every track below landed (language toolchains + module drivers, editors/
 shells, the DE catalog, and `configsys request`). Kept as the record of what was built and why.
 

@@ -1,5 +1,7 @@
 # Profiles v2 — the disposition model (replaces `^derive`)
 
+> **Status: HISTORICAL — SUPERSEDED by docs/profiles-matrix-plan.md (the picks matrix; profiles are read-only browse lenses). Preserved at tag `profiles-disposition-model`.**
+
 ## Context
 
 The `^derive` run (docs/profiles-derive-plan.md) produced good scaffolding but the `^` primitive itself

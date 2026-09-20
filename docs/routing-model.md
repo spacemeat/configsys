@@ -66,15 +66,19 @@ Legal humon (every dict entry is `key: value`; `when:` is a string expression):
                                    //   skipped silently if not (a package `suggests:` its
                                    //   `<name>-dotfiles`, which may live only in a user's plugin)
     parts:     <cap | [caps]>      // composition (installed together; parent "installed" iff all parts are)
-    opt-in:    <bool>              // if true, this component's `provides:` are NEVER auto-pulled to
-                                   //   satisfy someone else's `requires:` — only used when the
-                                   //   component is explicitly wanted (a profile) or provider-pinned.
-                                   //   For best-effort/caveated providers (e.g. gcompat, a glibc shim)
+    standing:  never-auto | <int>  // preference (§8a). On a component-provider, `never-auto` means its
+                                   //   `provides:` are NEVER auto-pulled to satisfy someone else's
+                                   //   `requires:` — only used when explicitly picked or provider-pinned
+                                   //   (best-effort/caveated providers, e.g. gcompat, a glibc shim)
+    description: "<one line>"      // shown in the TUI infobox / catalog
+    attrs:     [ <tags> ]          // cross-cutting kind tags (CLI/TUI/GUI/FOSS/…; docs/component-attrs.md)
 
     install: [                     // ordered list of bindings (providers)
-                                   //   a dotfile component's binding is `{ via: dotfiles ... }`
-        { via: <driver>  when: "<predicate>"  ...driver details... }
-        ...
+                                   //   a dotfile component's binding is `{ via: dotfiles ... }`;
+                                   //   a shell snippet's is `{ via: glue  glue: <name> }`
+        { via: <driver>  when: "<predicate>"  standing: <never-auto|int>  ...driver details... }
+        ...                        //   driver details include e.g. `name:` (per-driver package name
+                                   //   map), `installed-name:` (apt probe name), `scope:`, `version:`
     ]
 }
 ```
@@ -142,26 +146,28 @@ Two flavors, same kind of atom:
   `compiler >= 18` is not.
 
 ```
-// SHIPPED: routes.hu gives every versioned gcc/clang these standard capabilities, all opt-in
-// (so a plain `requires: cxx` still resolves to the unversioned cpp-toolchain, no ambiguity).
-gcc-15:   { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]  opt-in: true  install: [...] }
-clang-18: { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]           opt-in: true  install: [...] }
+// SHIPPED: routes.hu gives every versioned gcc/clang these standard capabilities, all `standing:
+// never-auto` (so a plain `requires: cxx` still resolves to the unversioned cpp-toolchain, no ambiguity).
+gcc-15:   { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]  standing: never-auto  install: [...] }
+clang-18: { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]           standing: never-auto  install: [...] }
 some-app: { requires: "C++20" }   // pick a versioned compiler by wanting it, or a provider-pin
 ```
 
 The unversioned `cc`/`cxx` (`c-toolchain`/`cpp-toolchain`) are the always-on *system default*
-compiler; the versioned ones layer specific-standard labels on top, opt-in so they never shadow
-the default. `requires: "C++20"` is thus satisfied by any co-wanted / pinned versioned compiler;
-teaching the *default* toolchain which standard it supports per OS-version is the remaining piece.
+compiler; the versioned ones layer specific-standard labels on top, `never-auto` so they never
+shadow the default. `requires: "C++20"` is thus satisfied by any co-wanted / pinned versioned
+compiler; teaching the *default* toolchain which standard it supports per OS-version is the
+remaining piece.
 
 The **C++ standard library is its own capability**, `cxx-stdlib`, separate from the compiler —
 because g++ bundles its library (libstdc++) but clang doesn't (on Linux it uses gcc's libstdc++
 by default, or LLVM's libc++ via `-stdlib=libc++`). So `clang-NN requires: [ c-toolchain,
 cxx-stdlib ]` (the gcc runtime it needs + *a* stdlib), never the g++ compiler; `cxx-stdlib`
-defaults to the `libstdc++` component (non-opt-in) and `libc++` is an opt-in alternate provider you
-select with a provider-pin (`pins: { cxx-stdlib: libc++ }`). Note clang requires the *component*
-`c-toolchain`, not the `cc` capability: clang itself `provides: cc` (opt-in), and requiring the
-capability would let it self-satisfy and never pull gcc — requiring the component sidesteps that.
+defaults to the `libstdc++` component (auto-eligible) and `libc++` is a `never-auto` alternate
+provider you select with a provider-pin (`pins: { cxx-stdlib: libc++ }`). Note clang requires the
+*component* `c-toolchain`, not the `cc` capability: clang itself `provides: cc` (`never-auto`), and
+requiring the capability would let it self-satisfy and never pull gcc — requiring the component
+sidesteps that.
 
 **Environment capabilities.** An OS block can `provides:` capabilities that are baseline
 in that environment, so requiring them is free there and pulls a provider elsewhere:
@@ -191,6 +197,8 @@ parser. The context is ⟨os-lineage, version, cpu⟩.
   **and** the system is on that OS's version scale (see [scales](#6-os-lineage-version-scales-identity))
   **and** the comparison holds.
 - cpu — `cpu: x86_64`, `cpu: [ x86_64, aarch64 ]`.
+- a declared **facet** — any other detected fact about the machine (GPU vendor, a tool's version),
+  categorical or versioned, declared in a `facets:` section; see `docs/facets.md`.
 
 **Operators:** `and`, `or`, `not` (or `!`), parentheses. Precedence `not > and > or`.
 
@@ -411,7 +419,7 @@ component-names: {
 }
 ```
 
-It overlays across the layer stack (repo < plugin < discovered < user), later wins per
+It overlays across the layer stack (repo < plugin < primary < user), later wins per
 `(driver, component)`, and applies during resolution *after* the binding + driver are chosen:
 a string replaces the resolved package name; `{}` drops the unit as a silent no-op (not offered,
 never an error row — exactly like a `{}`-removed component). It is **driver-keyed**, so it
@@ -460,8 +468,10 @@ driver-scoped fields, ignored by non-matching drivers (`repo-component:`, `debco
 **capability-name hygiene** is the `dangling-requires` lint in routecheck (the "nothing provides
 X → warn" path), not a registry.
 
-The larger consolidation now under way — folding the preference cluster into one `standing`,
-version-scoped providers, detection-first resolution — lives in `docs/routing-overhaul-plan.md`.
+The larger consolidation — folding the preference cluster into one `standing`, version-scoped
+providers (`provides: { cap: N }` / `requires: { cap: ">=N" }`), and the detection tier
+(`adopt-installed`: pin > detected-installed > standing default) — has **shipped**; §8a describes
+it as built. `docs/routing-overhaul-plan.md` is the historical plan.
 
 ## 14. Migration (parallel, iterated) — DONE (history)
 

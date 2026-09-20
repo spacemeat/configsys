@@ -1,6 +1,8 @@
 # Dotfiles redesign — two kinds, user-owned links, managed-even-when-empty
 
-Status: **DESIGN AGREED, not built.** Captures the decisions from the design discussion so
+> **Status: HISTORICAL — BUILT (phases 1a/1b/2/3), then evolved by docs/dotfiles-glue-split-plan.md (glue became its own driver). Live reference: docs/config-format.md §dotfiles / §glue.**
+
+Status: **BUILT** (all phases; originally "design agreed"). Captures the decisions from the design discussion so
 implementation can follow without re-litigating. Supersedes the ad-hoc parts of the current
 `drivers/dotfiles.py` model (search-path + symlink-to-whatever-root).
 

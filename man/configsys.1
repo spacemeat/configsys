@@ -49,7 +49,7 @@ no console output during load at all — only the TUI ! page
 .SH COMMANDS
 .TP
 \fBinspect\fR
-show install state of the active profiles
+show install state of this machine's tracked (picked) components
 .TP
 \fBinstall\fR
 Install components. A name is a component; profile:<name> expands to that profile's components. Not skipped when already present: package drivers re-run (a no-op if current) and a via:source component REBUILDS from a pristine checkout, so re-running install picks up a recipe change even at an unchanged version. --no-deps runs the op on only the named component(s), skipping the dependency-install fan-out (rebuild one thing, not its whole dependency tree). --force lets a dotfiles install overwrite an un-adopted on-system file (backed up to .pre-configsys).
@@ -73,14 +73,14 @@ reconcile installed units whose actual scope differs from the declared scope (mo
 pin a component to a specific version
 .TP
 \fBmachine\fR
-view or edit \fBmachines:\fR — named profile-sets that overlay the shared profiles (a composing layer per machine)
+view or edit the machine registry — the columns of \fBpicks:\fR, each machine with its own tracked set
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBshow\fR, \fBadd\fR, \fBrm\fR, \fBuse\fR.
 .RE
 .TP
 \fBdisp\fR
-component dispositions (the v2 triage state): seen / interesting / new; include/exclude live in your profiles
+component triage marks for browsing: seen / interesting / new (the install set is \fBpicks:\fR, not these)
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBget\fR, \fBset\fR.
@@ -103,7 +103,7 @@ print a component's absolute install location (honoring scope + pin), for shell 
 show the version each install method would install for a component (native vs tarball/source/…), with the tip lag
 .TP
 \fBcheck\fR
-lint the merged config (repo + ~/configsys.hu) without installing
+lint the merged config (repo + your config + includes) without installing
 .TP
 \fBpin\fR
 view or change install-method / provider pins (local, or portable via a primary plugin)
@@ -147,7 +147,7 @@ assemble an install-failure report (OS + route + driver output) and file it upst
 ask upstream for a full cross-platform story for a component — shows a coverage matrix; you approve before filing
 .TP
 \fBorphans\fR
-list installed software that no active profile accounts for — adopt, remove, or ignore candidates
+list installed software that none of your picks / profiles account for — adopt, remove, or ignore candidates
 .TP
 \fBdotfiles\fR
 inspect (status) and adopt (capture) your dotfiles
@@ -177,7 +177,7 @@ interactive TUI (default)
 .SH EXAMPLES
 .nf
   configsys                          open the interactive TUI (the default)
-  configsys inspect                  install-state table for the active profiles
+  configsys inspect                  install-state table for this machine's tracked (picked) components
   configsys install rust ripgrep     install components (deps pulled + ordered)
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest

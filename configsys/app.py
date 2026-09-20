@@ -1140,7 +1140,7 @@ def cmd_refresh(ctx, args):
         seen[sk] = discover(spec, ctx.paths, refresh=True)
         print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
-        print('  (no discoverable versions in the active profiles)')
+        print('  (no discoverable versions among your tracked components)')
     elif any(v is None for v in seen.values()):
         print('\nSome version lookups failed (offline or a transient network error). '
               'Kept the last cached value for those; try `configsys refresh` again later.')
@@ -1425,7 +1425,7 @@ def cmd_where(ctx, args):
     lines = where_report(ctx, args.name)
     if lines is None:
         print(f'configsys: unknown component "{args.name}" '
-              f'(not in routes.hu or your ~/configsys.hu)')
+              f'(not in routes.hu or your config)')
         return 1
     print('\n' + '\n'.join(lines))
     return 0
@@ -2735,7 +2735,7 @@ def cmd_show(ctx, args):
 _EPILOG = '''\
 examples:
   configsys                          open the interactive TUI (the default)
-  configsys inspect                  install-state table for the active profiles
+  configsys inspect                  install-state table for this machine's tracked (picked) components
   configsys install rust ripgrep     install components (deps pulled + ordered)
   configsys install profile:dev       install every component in the `dev` profile
   configsys upgrade profile:dev btop  a profile plus an extra, to latest
@@ -2794,7 +2794,7 @@ def build_parser():
                    help='no console output during load at all — only the TUI ! page')
 
     sub = p.add_subparsers(dest='command')
-    sub.add_parser('inspect', help='show install state of the active profiles')
+    sub.add_parser('inspect', help="show install state of this machine's tracked (picked) components")
 
     # install/upgrade carry an extra sentence on rebuild semantics + --no-deps (surfaced in the
     # generated man page, which uses each command's description).
@@ -2834,8 +2834,8 @@ def build_parser():
     sv.add_argument('name')
     sv.add_argument('version')
 
-    mp = sub.add_parser('machine', help='view or edit `machines:` — named profile-sets that overlay '
-                                        'the shared profiles (a composing layer per machine)')
+    mp = sub.add_parser('machine', help='view or edit the machine registry — the columns of `picks:`, '
+                                        'each machine with its own tracked set')
     mpsub = mp.add_subparsers(dest='machine_command')
     mpsub.add_parser('list', help='defined machines + which one this box is (default)')
     mps = mpsub.add_parser('show', help="one machine's tracked components (its picks)")
@@ -2847,8 +2847,8 @@ def build_parser():
     mpu = mpsub.add_parser('use', help="set THIS box's machine (the `machine:` setting); no name clears it")
     mpu.add_argument('name', nargs='?')
 
-    dp = sub.add_parser('disp', help='component dispositions (the v2 triage state): seen / '
-                                     'interesting / new; include/exclude live in your profiles')
+    dp = sub.add_parser('disp', help='component triage marks for browsing: seen / interesting / '
+                                     'new (the install set is `picks:`, not these)')
     dpsub = dp.add_subparsers(dest='disp_command')
     dpl = dpsub.add_parser('list', help='dispositioned components + a NEW count (default); '
                                         '--new lists every NEW (undispositioned) component')
@@ -2894,7 +2894,7 @@ def build_parser():
     ve.add_argument('--refresh', action='store_true',
                     help='bypass the cache and re-query each method now')
 
-    sub.add_parser('check', help='lint the merged config (repo + ~/configsys.hu) without '
+    sub.add_parser('check', help='lint the merged config (repo + your config + includes) without '
                                  'installing')
 
     pn = sub.add_parser('pin', help='view or change install-method / provider pins '
@@ -3025,7 +3025,7 @@ def build_parser():
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
-    orp = sub.add_parser('orphans', help='list installed software that no active profile accounts '
+    orp = sub.add_parser('orphans', help='list installed software that none of your picks / profiles account '
                                          'for — adopt, remove, or ignore candidates')
     orp.add_argument('--driver', help='only this driver (apt, flatpak, …)')
     orp.add_argument('--foreign', action='store_true',
@@ -3049,7 +3049,7 @@ def build_parser():
 
     dfp = sub.add_parser('dotfiles', help='inspect (status) and adopt (capture) your dotfiles')
     dfsub = dfp.add_subparsers(dest='dotfiles_command')
-    dfsub.add_parser('status', help='per-target state of every dotfile in the active profiles: '
+    dfsub.add_parser('status', help='per-target state of every managed dotfile: '
                                     'linked / adopted / unmanaged / template / empty')
     cap = dfsub.add_parser('capture', help='adopt existing on-system dotfiles into your content '
                                            'store (read-only on the system side)')
@@ -3090,7 +3090,7 @@ _GLUE_ORDER = ['loader-on', 'linked', 'drifted', 'template', 'loader-off']   # g
 
 
 def _active_dotfiles(ctx):
-    '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
+    '''(driver, [ResolvedComponent]) — the via:dotfiles units for this machine's picks. Resolution
     only (no install-state query), so it's cheap and side-effect-free.'''
     from . import actions
     return actions.dotfiles_units(ctx)
@@ -3184,7 +3184,7 @@ def _dotfiles_root_label(ctx, root):
 
 
 def cmd_dotfiles_status(ctx, args):
-    '''Show every via:dotfiles target in the active profiles, split into the two state machines:
+    '''Show every via:dotfiles target for this machine's picks, split into the two state machines:
     CONFIG (content you own — a capture→link lifecycle) and GLUE (shipped shell integration — a
     ship→activate toggle: snippets + the per-shell conf.d loaders). Each row: state, target,
     component, and where its MANAGED content lives (or `→` where capture will put it). Content roots

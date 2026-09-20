@@ -1,5 +1,7 @@
 # Facets — detected environment atoms for `when:`
 
+> **Status: CURRENT — facets are live (`facets:` section, predicate.py, `CONFIGSYS_FACET_*` overrides); referenced from docs/config-format.md §The `when:` expression.**
+
 ## The idea
 
 The machine **context** that `when:` gates on is today `⟨OS-lineage, OS-version, cpu⟩`. A **facet**

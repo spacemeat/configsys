@@ -1,5 +1,7 @@
 # Driver resilience plan — isolate, diagnose, and self-heal external stumbles
 
+> **Status: HISTORICAL — ALL PHASES BUILT.**
+
 Status: **ALL PHASES BUILT** (commits dd04d9b, eacaac9, 90dd3a8, a41fe9b, 8b30745, 6d8cdaf,
 269817d). Phase 3 shipped as ROUTE-DERIVED reconciliation, NOT a persisted manifest — honoring
 Q2 (the routes already record what's ours, so no new state file earns its keep yet). Phase 4's

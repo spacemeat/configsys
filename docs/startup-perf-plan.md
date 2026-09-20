@@ -1,6 +1,8 @@
 # Startup performance — investigation + fix plan
 
-Status: INVESTIGATION COMPLETE, fixes NOT built (awaiting go-ahead). 2026-08-12. Numbers profiled on
+> **Status: HISTORICAL — all phases BUILT (apt/flatpak/npm batch prepasses, parallel inspect/detect, time-paced startup bar).**
+
+Status: INVESTIGATION COMPLETE; all fixes since BUILT (see banner). 2026-08-12. Numbers profiled on
 the user's Pop!_OS box; claims below verified against the code, not just profiler output.
 
 ## The verdict: yes, it's genuinely slow, and it's all serial subprocess I/O

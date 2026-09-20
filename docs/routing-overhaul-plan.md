@@ -1,6 +1,8 @@
 # Routing model + TUI overhaul — plan
 
-Status: **decisions locked 2026-08-11.** Planning only — no code yet. Derived from a six-facet
+> **Status: HISTORICAL — SHIPPED: `standing:`, version-scoped providers, and the detection tier (`adopt-installed`) are built. Live reference: docs/routing-model.md §8a.**
+
+Status: **decisions locked 2026-08-11; since BUILT** (see banner). Derived from a six-facet
 parallel audit (control taxonomy, resolution semantics, TUI coverage, install-situation catalogue,
 evolution cruft, forward design). Verdict: **targeted overhaul, not a rewrite.**
 

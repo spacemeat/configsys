@@ -31,37 +31,54 @@ creates a repo-local `.venv`, installs [`humon`](https://pypi.org/project/humon/
 `.hu` config parser), then hands off to the python app. Re-running it is always safe.
 
 On first run it drops a starter config at `~/.config/configsys/configsys.hu` and opens the
-TUI. Edit that file to pick your **profiles**, then inspect and act.
+TUI. Browse the catalog on the **Profiles** screen and **pick** the components this machine
+should have (`t` tracks one; or `configsys picks add <name>`), then inspect and act on the
+**Components** screen.
 
 > Dry run: pass `--pretend` to print the commands configsys *would* run instead of running
 > them.
 
 ## Concepts
 
-- **Component** — a thing you want by name: `neovim`, `btop`, `gcc-15`, `steam`. Resolved
-  through `routes.hu` into one or more concrete **units** (`apt\btop`, `flatpak\firefox`,
-  …). The unit key `driver\comp` is the dedup identity, so components that overlap between
-  profiles install once.
-- **Profile** — a flat list of component names (`user`, `dev`, …), shared in the repo's
-  `config.hu` and git-synced. Your machine's config picks which profiles apply here.
-- **Driver** — the code that installs/queries/removes one *class* of software, behind a
-  uniform op set (install / uninstall / upgrade / set-version / lock / unlock / inspect).
-  Ships ~30: system package managers **apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree**;
-  distribution drivers **flatpak, appImage, tarball, source, dotfiles, font, script**;
-  language-ecosystem installers **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install**;
-  the **gcc / gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd)
-  and **group** (usermod). `via: native` picks the right system manager per OS; `via: parts`
+- **Component** — a thing you want by name: `neovim`, `btop`, `gcc-15`, `steam`. A named
+  capability, resolved through `routes.hu` into one or more concrete **units**.
+- **Binding** / **via** — one way to acquire a component in some context: `{ via: <driver>
+  when: "<expr>"  …details }`. The `via:` names the install method; `when:` says where that
+  method is *valid*.
+- **Driver** — the code behind a `via:`: it installs/queries/removes one *class* of software
+  behind a uniform op set (get_version / get_latest / is_locked / install / uninstall /
+  upgrade / set_version / lock / unlock / location). Ships ~35: system package managers
+  **apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree**; distribution drivers **flatpak,
+  snap, appImage, tarball, native-pkg-file** (an upstream `.deb`/`.rpm` file), **source, font,
+  script**; the config drivers **dotfiles** and **glue**; language-ecosystem installers
+  **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman**; the **gcc /
+  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd) and
+  **group** (usermod). `via: native` picks the right system manager per OS; `via: parts`
   aggregates.
+- **Unit** — a resolved component + driver pair, keyed `driver\comp` (`apt\btop`,
+  `flatpak\firefox`). It is the dedup identity: however many things want a component, its
+  unit installs once.
+- **Pick** — a component you've selected for a machine. The per-machine `picks:` lists in your
+  config ARE the install set: a machine installs exactly what is picked for it.
+- **Profile** — a **read-only browse lens** over the catalog (`user`, `dev`, `networking`, …),
+  defined in the repo's `config.hu` or by a plugin. Browsing a profile never changes your
+  system; you pick from it. (`profile:<name>` still expands on the command line.)
+- **Pin** — a light per-machine reroute (`pins:`): force a component's install method, or which
+  provider satisfies a capability, without redefining anything.
+- **Dotfiles vs glue** — two config drivers. **Dotfiles** (`via: dotfiles`) manage an app's *own*
+  config from your content store; **glue** (`via: glue`) is the small per-shell `conf.d` snippet
+  (PATH, aliases, completions) a tool needs to be usable. See [Dotfiles and glue](#dotfiles-and-glue).
 - **State** — the live system is the source of truth (dpkg/rpm/flatpak/marker files); a
-  small ledger (`~/.config/configsys/state.hu`) stores only lock *intent* and configsys
-  bookkeeping. Version-lock uses native holds where they exist (`apt-mark`, `dnf
-  versionlock`, `flatpak mask`).
+  small ledger plus caches under `~/.config/configsys/` store only lock *intent* and configsys
+  bookkeeping (version caches, last refresh, …). Version-lock uses native holds where they exist
+  (`apt-mark`, `dnf versionlock`, `flatpak mask`).
 
 ## routes.hu — how components resolve
 
 A component is a capability plus a list of context-selected **bindings**. Each binding
 names its **driver** with `via:`, guards itself with an optional `when:` boolean
-expression (over the OS lineage + CPU arch), and carries driver-specific details:
+expression (over the OS lineage + CPU arch + declared facets), and carries driver-specific
+details:
 
 ```hu
 os: {
@@ -92,27 +109,34 @@ Key ideas:
 - **OS blocks cascade** via `using:` (`pop_os! → ubuntu → debian → linux`), detected from
   `/etc/os-release` (`ID=pop` → `pop_os!`). A route written on `debian` applies to the
   whole family.
-- **`when:`** selects among bindings by context — a boolean expression over the OS lineage
-  (`"rhel"`, `"ubuntu < 23.04"`) and CPU arch. The most specific match wins.
+- **`when:`** states where a binding is *valid* — a boolean expression over the OS lineage
+  (`"rhel"`, `"ubuntu < 23.04"`), CPU arch (`cpu: aarch64`), and any declared **facet**
+  (see docs/facets.md). It never expresses preference.
+- **Choosing among valid methods** is a separate, deterministic order: the most specific
+  `when:` wins; then a binding's **`standing:`** rank (an integer; `standing: never-auto`
+  keeps a method listed and pinnable but never the auto-default); then the machine's
+  **`driver-preference`** list. An already-installed method is adopted over the default, and a
+  **pin** beats everything.
 - **`requires:`** pulls in capabilities (another component, or a driver's prerequisites)
-  first, dependency-ordered.
+  first, dependency-ordered; **`suggests:`** does the same softly (skipped if unresolvable).
 - **`via: parts`** is a pure aggregator — a component that is just the union of its parts,
   with no unit of its own.
-- **`scope: user|system`** — install scope. Scope-honoring drivers (appImage/flatpak/
-  tarball/source) default to `user`; set it per-binding or machine-wide via `scope:` in your
-  config. Fixed-scope drivers (apt/dnf/pacman = system, dotfiles/cargo = user) ignore it.
+- **`scope: user|system`** — install scope. Scope-honoring drivers (appImage, flatpak,
+  tarball, source, font, npm, gem, luarocks) default to `user`; set it per-binding or
+  machine-wide via `scope:` in your config. Fixed-scope drivers (apt/dnf/pacman = system,
+  dotfiles/cargo/pipx = user) ignore it.
 
 Run `configsys where <name>` to see a component's bindings and which one resolves here.
 
 Bindings can also **discover** versions (GitHub / URL / static pins, with `$VERSION`/`$ARCH`
 filled in at install time and cached), manage **dotfiles** (symlinked into place from your own
-content store so edits flow back to git — see [Dotfiles](#dotfiles)), and target any of ~30
-drivers.
+content store so edits flow back to git — see [Dotfiles and glue](#dotfiles-and-glue)), and
+target any of the drivers above.
 
 > **Full format reference:** [**docs/config-format.md**](docs/config-format.md) — also
 > installed as the **`configsys.hu(5)`** man page (`configsys manpages install`). It is the
-> single source for layers, profiles (the `+include` / `~remove` / `+self` term algebra), the
-> `when:` expression, version discovery, dotfiles, and the driver list.
+> single source for layers, machine settings, picks, profiles, the `when:` expression, method
+> choice, version discovery, dotfiles/glue, and the driver list.
 
 ## Your config: `~/.config/configsys/configsys.hu`
 
@@ -126,17 +150,20 @@ Your machine's file always wins:
 
 ```hu
 {
-    configs: [ dev ]                 // which profiles apply to THIS machine
+    machine: laptop                  // which picks: column is THIS box (default: this-machine)
+
+    picks: {                         // the install set, one list per machine (the matrix)
+        laptop:  [ btop, neovim, gcc-15, gdb ]
+        desktop: [ btop, neovim, steam, blender ]
+    }
 
     // scope: system                 // default install scope for scope-honoring drivers
 
-    // include: [ ~/src/myproject/configsys.hu ]   // pull in more profiles/components
+    // include: [ ~/src/myproject/configsys.hu ]   // pull in more component definitions
 
     // plugins: [ { source: "github:spacemeat/configsys-void"  ref: v0.1.0 } ]
 
     // pins: { steam: flatpak }       // force a driver (binding-pin) or a provider
-
-    // profiles: { dev: [ btop, neovim, gcc-15, gdb ] }   // define or shadow a profile
 
     // components: { apod: {} }        // amend a route (bindings merge additively), or remove with {}
 }
@@ -144,11 +171,15 @@ Your machine's file always wins:
 
 - Lives under `$XDG_CONFIG_HOME` (defaults to `~/.config/configsys/`). A legacy
   `~/configsys.hu` is migrated automatically on first run.
-- **`include:`** — pull profiles/components from other files (definitions only; paths
+- **`picks:` / `machine:`** — the component × machine matrix. `configsys picks add|rm|list`
+  edits this box's column (or `--machine <name>` another's); `configsys machine list|show|add|
+  rm|use` manages the columns; `picks to-primary` moves your picks into your primary plugin so
+  they travel. The TUI **Profiles** screen is the same matrix, interactively.
+- **`include:`** — pull component definitions from other files (definitions only; paths
   resolve against the including file's dir). Handy for per-project dependency sets.
-- **Machine-level plugins** — to let a source repo or app install add components to *this*
-  box, declare it as a plugin in your top config: `configsys plugin add <source> --local`
-  (a `plugin`-role layer here, not carried to your other machines like a `primary` plugin).
+- **Local plugins** — to let a source repo or app install add components to *this* box only,
+  declare it as a plugin in your top config: `configsys plugin add <source> --local` (a
+  `plugin`-role layer here, not carried to your other machines the way a `primary` plugin is).
 
 ### Your config, as a plugin
 
@@ -170,18 +201,19 @@ your `~/.config/configsys/configsys.hu`:
 When you then run `./configsys.sh plugin sync` all the transitive plugins will be fetched.
 
 **The fast path — `configsys plugin init`.** Rather than hand-building the plugin, get set up
-locally first (capture your dotfiles, define your profiles/components), then let configsys assemble
-the plugin for you:
+locally first (capture your dotfiles, pick your components, amend routes), then let configsys
+assemble the plugin for you:
 
 ```console
 $ ./configsys.sh plugin init            # or: plugin init <name>   (default: configsys-<user>)
 ```
 
 With no primary plugin yet it **creates** one in `~/.config/configsys/plugins/<name>/` from your
-local bits — your captured dotfiles, your `profiles:`/`components:`, and your other declared
-plugins carried along as transitive — `git init`s it, and blesses it primary. (If you already have
-a primary, it **merges** those local bits in instead.) It's a real git repo you author in place;
-when you're ready to share it, push it and repoint the source:
+local bits — your captured dotfiles, your `components:` overrides, and your other declared
+plugins carried along as transitive — `git init`s it, and blesses it primary. (If you already
+have a primary, it **merges** those local bits in instead.) Your picks move separately with
+`configsys picks to-primary`. It's a real git repo you author in place; when you're ready to
+share it, push it and repoint the source:
 
 ```console
 $ cd ~/.config/configsys/plugins/configsys-<user>
@@ -192,30 +224,41 @@ $ ./configsys.sh plugin set-source configsys-<user> github:you/configsys-<user>
 ## Commands
 
 Run as `./configsys.sh <command>` (or `python -m configsys <command>` inside the venv).
-With no command, the **TUI** opens.
-
-Run `configsys <command> -h` for per-command help.
+With no command, the **TUI** opens. Run `configsys <command> -h` for per-command help; the
+full reference is the **`configsys(1)`** man page (`configsys manpages install`).
 
 ```
-configsys                          # interactive TUI (default)
-configsys inspect                  # install-state table for the active profiles
+configsys [tui]                    # interactive TUI (default)
+configsys inspect                  # install-state table for this machine's picks
 configsys install  <name>...       # install (pulls dependencies first, ordered) [--force] [--no-deps]
 configsys remove   <name>...       # uninstall
 configsys upgrade  <name>...       # upgrade to latest [--force] [--no-deps]
 configsys lock|unlock <name>...    # version-lock / unlock
 configsys set-version <name> <ver> # pin to a specific version
 configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (moves the install)
-configsys where <name>             # explain a component: source layer + bindings + resolution
-configsys location <name>          # print a component's absolute install location
+
+configsys picks   <list|add|rm|to-primary>   # this machine's picks — the install set [--machine]
+configsys machine <list|show|add|rm|use>     # the picks matrix columns; `use` sets this box's machine
+configsys profile <list|show>      # browse the shipped profile catalog (read-only lenses)
+configsys disp    <list|get|set>   # component dispositions: seen / interesting / new
+configsys orphans                  # installed software no pick accounts for — adopt/remove/ignore
+
+configsys where <name> [-p]        # explain a component: source layer + bindings + resolution (-p: a profile)
+configsys location <name> [--all]  # print a component's absolute install location
+configsys versions <name>          # the version each install method would give, with tip lag [--min V] [--refresh]
 configsys pin <list|set|unset|promote>   # view/change install-method & provider pins
-configsys show <routes|config>     # print the shipped base file (or --path for its location)
+configsys config <show|get|set|unset|move>   # machine settings (scope, driver-preference, …)
+configsys theme <show|list|set|unset|save|load>   # the TUI theme; save/load shareable theme plugins
+configsys keys                     # the effective TUI keybindings (merged `keys:`)
+configsys show <routes|config> [--path]   # print a shipped base file (or its location)
 configsys check                    # lint the merged config (repo + your file + includes + plugins)
-configsys refresh                  # re-query latest versions from their sources
-configsys dotfiles <status|capture>   # inspect / adopt your dotfiles (see Dotfiles below)
+configsys refresh                  # re-query latest versions + refresh the native package index
+
+configsys dotfiles <status|capture|staged|activate|discard>   # your dotfiles + staged glue (see below)
 configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|init|set-source>   # (see Plugins)
-configsys report  [<name>]         # file an install-failure report (you approve the text first)
-configsys request <name>           # ask upstream for full cross-platform support (coverage matrix)
-configsys manpages <install|check> # install/check the man pages (configsys(1), configsys.hu(5))
+configsys report  [<name>] [--print]      # file an install-failure report (you approve the text first)
+configsys request <name> [--print]        # ask upstream for full cross-platform support (coverage matrix)
+configsys manpages <install|status>       # install/check the man pages (configsys(1), configsys.hu(5))
 ```
 
 `install`/`upgrade` take **`--force`** — for dotfiles, overwrite an un-adopted on-system file
@@ -234,62 +277,102 @@ Any `<name>` may be **`profile:<name>`**, which expands to that profile's compon
 `configsys install profile:dev blender`. The `profile:` prefix disambiguates from a component of
 the same name.
 
-Global flags: `--pretend` (dry-run — prints commands, makes no changes and no network calls),
-`--os <block>`, `--home <dir>`, `--config <file>` (the last three sandbox a run), `-v`/`-vv`
-(stream load detail to stderr), `-q` (quiet).
+**`refresh`** re-queries every discovered version source *and* refreshes the OS package index
+(`apt-get update` etc., via sudo). Staged TUI ops do this automatically once per batch when they
+include a native install/upgrade (the `refresh-before-execute` setting).
 
-Environment: `CONFIGSYS_OS` / `CONFIGSYS_OS_VERSION` (override the detected OS), `CONFIGSYS_HOME`
-/ `CONFIGSYS_CONFIG` (relocate paths),
-`CONFIGSYS_ARCH`, `CONFIGSYS_GITHUB_TOKEN` (private-plugin auth). Full list in
-`configsys -h`.
+Global flags: `--pretend` (dry-run — prints commands, makes no changes and no network calls),
+`--os <block>`, `--home <dir>`, `--config <file>` (the last three sandbox a run), `--machine
+<name>` (curate/plan another machine's picks; execution still acts locally), `--color
+{auto,24bit,256,16,8,none}` / `--nocolor` (cap the TUI color depth), `--effects
+{full,reduced,none}` (TUI motion), `--probe` (print the resolved color/motion mode and exit),
+`--splash-linger`, `-v`/`-vv` (stream load detail to stderr), `-q` (quiet).
+
+Environment: `CONFIGSYS_OS` / `CONFIGSYS_OS_VERSION` (override the detected OS),
+`CONFIGSYS_HOME` / `CONFIGSYS_CONFIG` (relocate the HOME base / the config file),
+`CONFIGSYS_STATE_DIR` (the ledger dir) / `CONFIGSYS_REPO` (the data root holding
+`config.hu`/`routes.hu`), `CONFIGSYS_ARCH`, `CONFIGSYS_USERSCOPE_DIR` / `CONFIGSYS_SYSTEMSCOPE_DIR` /
+`CONFIGSYS_APP_DIR` / `CONFIGSYS_SDK_DIR` / `CONFIGSYS_SRC_DIR` (install layout; win over `dirs:`),
+`CONFIGSYS_COLOR` / `NO_COLOR` / `CONFIGSYS_EFFECTS` (TUI look), `CONFIGSYS_SPLASH`
+(`always`/`linger` to force or hold the splash) / `CONFIGSYS_NO_SPLASH`, `CONFIGSYS_GLUE_SHELLS`
+(override which shells glue treats as installed), `CONFIGSYS_FACET_*` (override a detected facet),
+`CONFIGSYS_GITHUB_TOKEN` / `CONFIGSYS_GIT_TOKEN` / `GITHUB_TOKEN` (private-plugin auth, GitHub rate
+limit).
 
 ```console
 $ ./configsys.sh where steam
 steam
-    - via native   when: pop_os!   name=steam:i386  foreign-arch=i386  <- selected here
-    - via flatpak  when: always    hub=flathub  app=com.valvesoftware.Steam
+  defined in  routes.hu
+  bindings
+    - via native   when: pop_os!   name=steam:i386  foreign-arch=i386  <- default here
+    - via native   when: ubuntu   name=steam-installer  repo-component=multiverse  foreign-arch=i386  (shadowed — pinning via:native resolves a more-specific binding above)
+    - via native   when: debian and not ubuntu   name=steam-installer  repo-component=non-free  foreign-arch=i386
+    - via native   when: arch   name=steam
+    - via native   when: fedora   name=steam  requires=rpmfusion-nonfree
+    - via native   when: opensuse   name=steam
+    - via flatpak   when: always   hub=flathub  app=com.valvesoftware.Steam  (alternative here — pin to use)
+    default: via native  (by most-specific when:)
+
+  on pop_os! (x86_64):
     apt\steam  pkg steam:i386
 ```
 
 ## The TUI
 
-A **profile → component → unit** tree. Profiles are expanded by default and list their
-components; a component that resolves to one unit is a leaf (shown with its **driver**),
-while a composite like `vulkan-dev` or one with dependencies collapses to an aggregated row
-you can expand (`enter`/`→`) to reveal and individually select its units. Driver is its own
-column; versions split into `INSTALLED` and `LATEST` (discovered for download drivers). An
-infoblock above the footer shows the current unit's full versions and its install location
-(`at: ~/vulkan`, the AppImage path, the font dir, dotfile targets, …). Ops can be staged on
-any node — a profile stages all its units, a component its units, a unit just itself — and
-staging is unit-keyed, so a mark shows everywhere that unit appears.
+Seven screens, switched with the number keys in the top chip bar:
 
-A `+include` of another profile shows as a single **link** row: acting on it (`i/u/x/L`) applies
-to that whole profile, and `enter`/`l`/`→` jumps to it (its components live there, shown once).
+1. **Components** — this machine's picks as a component → unit tree, with driver, `INSTALLED`
+   and `LATEST` columns, and an infoblock showing the current unit's versions and install
+   location. Stage ops on any node (`i` install, `u` upgrade, `x` remove, `L` lock, `I`/`U` all),
+   pick a method with `v` (writes a pin), `w` for the full `where` graph, `R` to refresh, then
+   `X` executes the reviewed batch. `M` cycles the view **mode**: `to-do` (needs action) /
+   `tracked` (every pick) / `installed+tracked` (plus installed-but-unpicked).
+2. **Profiles** — the component × machine matrix: browse the catalog by profile (left), see
+   which machines pick each component (right), and toggle picks (`t`/`T`), dispositions
+   (`s`/`i`), machines (`m`/`M`), the install-state overlay (`O`), and kind filters (`f`).
+3. **Plugins** — declared plugins with sync/ABI/trust status; add, sync, update, bless, trust.
+4. **Glue** — shell snippets grouped per installed shell; activate (`a`/`A`) or deactivate (`x`).
+5. **Dotfiles** — each managed config's state; manage/unmanage (`m`/`u`, `M`/`U` all), move
+   between stores (`s`/`S`).
+6. **Config** — every machine setting, its value and where it lives; edit in place, `m` moves it
+   local ↔ primary, `t` opens the theme editor.
+7. **Theme** — live palette/role/gradient editing (see [docs/theming.md](docs/theming.md)).
 
-Keys: `j/k` move, `g/G` top/bottom, `l`/`→` expand (or open a link), `h`/`←` collapse, `enter`
-open, `tab` expand/collapse all, `space` select, `a` all, `i/u/x` install/upgrade/remove, `L`
-lock (toggle), `m` pick install method, `!` view load issues, `c` clear, `X` execute, `q` quit.
+Navigation is VIM-style everywhere (`j/k`, `h/l`, `g/G`, `/` find, `F` filter, `space` select,
+`!` issues, `?` help, `q` quit). Keys are **rebindable** via a `keys:` section; `?` in the TUI and
+`configsys keys` print the effective legend, which is the authoritative list.
 
 Colors, per-element styles, and the background gradient are fully configurable — see
 [**docs/theming.md**](docs/theming.md).
 
-## Dotfiles
+## Dotfiles and glue
 
 configsys treats your dotfiles as **yours** — it ships **no personal config templates** and will
-not overwrite anything it didn't create. A `via: dotfiles` component only declares *where* a config
-lives (its `src`→`dst` mapping); the **content** comes from your own store, resolved by a
-search-path (first hit wins):
+not overwrite anything it didn't create. Two drivers share the work:
 
-```
-~/.config/configsys/dotfiles/<src>      (machine-local — where capture lands with no plugin)
-<primary-plugin>/dotfiles/<src>         (portable — travels in your primary plugin)
-<defining layer>/dotfiles/<src>         (a template, only if some layer ships one)
-```
+- **Dotfiles** (`via: dotfiles`) — an application's *own* config (`~/.config/htop/htoprc`, …). A
+  component only declares *where* a config lives (its `src`→`dst` mapping); the **content**
+  comes from your own store, resolved by a search-path (first hit wins):
 
-Two commands:
+  ```
+  ~/.config/configsys/dotfiles/<component>.cfs/<src>   (machine-local — where capture lands with no plugin)
+  <primary-plugin>/dotfiles/<component>.cfs/<src>      (portable — travels in your primary plugin)
+  <defining layer>/dotfiles/<component>.cfs/<src>      (a template, only if some layer ships one)
+  ```
+
+  The `<component>.cfs/` **marker dir** (with a `manifest.hu` recording the src→dst layout and
+  any exclude globs) is what makes a config *managed* — even when it holds no files yet.
+- **Glue** (`via: glue`) — the per-shell snippet a tool needs to be usable (PATH, an alias like
+  `fdfind`→`fd`, a `zoxide init`). Glue is *shipped* (repo `glue/shell/<shell>/`), never captured:
+  it materializes into a machine-local store and links into the uniform `~/.config/<shell>/conf.d/`
+  for each **installed** shell (elvish/nushell inline it into the rc). A tool `suggests:` its
+  `<name>-glue` companion, so it attaches only where the shell is present. Opt out per machine with
+  `disabled-drivers: [ glue ]` (or `dotfiles`) to manage your own shell config.
+
+Dotfiles commands:
 
 ```console
-$ ./configsys.sh dotfiles status     # every dotfile in your active profiles + its state
+$ ./configsys.sh dotfiles status     # every dotfile in this machine's picks + its state
 $ ./configsys.sh dotfiles capture    # adopt your existing on-system dotfiles into your store
 ```
 
@@ -303,6 +386,10 @@ $ ./configsys.sh dotfiles capture    # adopt your existing on-system dotfiles in
 - **Install won't clobber.** If a real on-system file exists that you haven't adopted, `install`
   **refuses** (with guidance to `capture`, or `--force` to back it up to `<name>.pre-configsys` and
   replace) — never a silent overwrite.
+- **Installers don't scribble in your rc files.** An installer that appends to `~/.bashrc` /
+  `~/.zshrc` (sdkman, nvm, rustup, …) is reverted and its block **staged** as inactive glue for
+  you to review: `dotfiles staged` lists, `activate` promotes, `discard` drops it (the
+  `installer-shell-writes` setting).
 
 The natural flow: `dotfiles capture` your setup, then [`plugin init`](#your-config-as-a-plugin) to
 package it into a portable personal plugin.
@@ -356,13 +443,14 @@ their package names honest against a real container image as upstream repos roll
 
 ## Design notes
 
-- **No surprises.** Selecting a profile never changes your system; installs are always an
-  explicit, reviewable action, and `check` lints the whole merged config without touching
-  anything.
+- **No surprises.** Browsing a profile or picking a component never changes your system;
+  installs are always an explicit, reviewable action, and `check` lints the whole merged config
+  without touching anything.
 - **Resilient.** A malformed plugin or single component surfaces as an
   error row — it can't brick the tool.
 - **One term, one meaning.** Everything about *how* software is acquired is a **driver**;
-  everything about *what* you want is a **component**.
+  everything about *what* you want is a **component**; what *this machine* gets is its
+  **picks**.
 
 ## Development
 

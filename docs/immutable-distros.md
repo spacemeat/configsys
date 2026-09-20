@@ -1,5 +1,7 @@
 # Immutable / atomic distro support — design
 
+> **Status: HISTORICAL — SHIPPED (not hardware-validated).**
+
 Status: **SHIPPED** (not hardware-validated). Triggered by the Bazzite request. Bazzite is not
 one distro but the visible tip of a *class* — atomic/image-based systems with a read-only root
 where packages are not installed the traditional way. The `rpm-ostree` and `brew` drivers, the

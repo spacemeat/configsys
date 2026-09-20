@@ -1,5 +1,7 @@
 # Profiles pass — design + rationale (APPLIED)
 
+> **Status: HISTORICAL — APPLIED (the v1 profile pass; profiles are now read-only browse lenses, see docs/profiles-matrix-plan.md).**
+
 **Status: applied to `config.hu`.** This is the reasoning behind the profiles now in `config.hu`;
 that file is the source of truth (§6's block is not maintained here — see `config.hu`). The design
 fills out the ~90 previously-orphaned components (defined in `routes.hu`, in no profile, not pulled

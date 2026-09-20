@@ -1,5 +1,7 @@
 # Profiles v3 — the component × machine matrix
 
+> **Status: CURRENT (v3) — BUILT: phases A/B/C shipped, including the matrix TUI; `configs:`/user `profiles:` retired. Live reference: docs/config-format.md §Picks.**
+
 Supersedes the disposition-model Profiles page (preserved at tag
 `profiles-disposition-model` / branch `profiles-disposition-model-snapshot`). Reuses most of that
 work (layer stack, machines, dispositions, install-probe, drivers, `check`); retires user-profile

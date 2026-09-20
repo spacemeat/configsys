@@ -1,5 +1,7 @@
 # configsys-source — a build-from-source plugin (plan)
 
+> **Status: HISTORICAL — pilot batch DONE (configsys-source plugin); further batches pending.**
+
 Status: **in progress** (pilot batch). Goal: give (most) genuinely-buildable components a
 selectable `via: source` install method, so that (1) a contributor can build any tool from source
 on any OS, and (2) an OS lacking a binary method for a tool can still install it. Discussed and
