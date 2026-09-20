@@ -50,6 +50,9 @@ class Dnf(Driver):
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
+        if hit:
+            return ver
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
         # not-installed -> exit 1 with a "package X is not installed" message

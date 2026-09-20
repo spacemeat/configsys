@@ -51,6 +51,13 @@ class Pacman(Driver):
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one pacman -Q index when batched
+        if hit:
+            if ver is not None:
+                return ver
+            # batched but not a package -> maybe an installed GROUP (groups aren't in the pkg index)
+            g = self.runner.run(f'pacman -Qg {shlex.quote(rc.name)}')
+            return _GROUP if g.ok and g.stdout.strip() else None
         # `pacman -Q btop` -> "btop 1.4.7-1"; nonzero + not-found message if absent
         r = self.runner.run(f'pacman -Q {shlex.quote(rc.name)}')
         if r.ok and r.stdout.strip():

@@ -262,13 +262,30 @@ class Driver:
         identity isn't rc.name (flatpak app id, snap name) override.'''
         return rc.name
 
+    def batch_index(self, rcs):
+        '''Default pre-fetch for a package-manager driver: ONE `installed_index()` enumeration that the
+        read ops answer from, instead of a `get_version` subprocess PER unit — the C1 startup-perf win
+        for every native manager, not just apt/flatpak. Returns `{'installed': {key: version}}`, or
+        None when the driver isn't enumerable (path/build drivers) or the enumeration failed (fall
+        back to per-unit probes). Drivers needing MORE in the batch (apt's held+candidate sets,
+        flatpak's remotes) override with a richer context.'''
+        idx = self.installed_index()
+        return {'installed': idx} if idx is not None else None
+
     def batch_installed_index(self, batch):
         '''Extract a plain `{index_key: version}` installed map from THIS driver's batch context (the
         opaque value its `batch_index` returned) — so the startup inspection's already-paid enumeration
-        can seed the TUI install overlay instead of it re-spawning every lister. None when the driver
-        has no batch (its batch context isn't an installed map). Batched drivers whose context isn't
-        already `{key: version}` override.'''
-        return None
+        can seed the TUI install overlay instead of it re-spawning every lister. Reads the default
+        `{'installed': …}` shape; drivers whose context isn't that override.'''
+        return batch.get('installed') if isinstance(batch, dict) else None
+
+    def _batched_version(self, rc):
+        '''(version_or_None, hit): the installed version from the batch context when this inspect is
+        batched, so a native driver's `get_version` answers from the one enumeration. `hit` is False
+        when there is no batch (the driver then runs its own per-unit probe).'''
+        if isinstance(self._batch, dict) and 'installed' in self._batch:
+            return self._batch['installed'].get(self.index_key(rc)), True
+        return None, False
 
     def explicit_keys(self):
         '''The set of installed_index keys the user EXPLICITLY installed (manual / on-request), as

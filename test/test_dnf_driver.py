@@ -165,3 +165,20 @@ def test_repo_without_a_pubkey_sets_gpgcheck_zero_not_gpgkey_none(monkeypatch):
     d.ensure_prereqs(u)
     body = written['myrepo']
     assert 'gpgcheck=0' in body and 'gpgkey=None' not in body and 'gpgkey=' not in body
+
+
+def test_batch_index_batches_get_version_across_units():
+    # C1: the shared default batch_index runs ONE `rpm -qa`, and get_version answers from it with NO
+    # per-unit subprocess (the non-Debian startup-perf win; dnf/zypper/pacman/brew/snap all inherit it).
+    fr = FakeRunner([("rpm -qa", 0, 'btop 1.4.0\nhtop 3.3.0\n')])
+    d = Dnf(fr)
+    rcs = [pkg('btop'), pkg('htop'), pkg('mc')]
+    batch = d.batch_index(rcs)
+    assert batch == {'installed': {'btop': '1.4.0', 'htop': '3.3.0'}}
+    fr.calls.clear()
+    d._batch = batch
+    assert d.get_version(pkg('btop')) == '1.4.0'
+    assert d.get_version(pkg('htop')) == '3.3.0'
+    assert d.get_version(pkg('mc')) is None          # not in the index -> not installed
+    assert fr.calls == []                            # answered from the batch, zero subprocesses
+    assert d.batch_installed_index(batch) == {'btop': '1.4.0', 'htop': '3.3.0'}

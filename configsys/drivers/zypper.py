@@ -34,7 +34,22 @@ class Zypper(Driver):
 
     # -- read (no root needed) -------------------------------------------
 
+    def installed_index(self):
+        # ONE rpm query lists everything installed -> {name: version}; the read ops batch off it.
+        r = self.runner.run("rpm -qa --qf '%{NAME} %{VERSION}\\n'")
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            name, _, ver = line.partition(' ')
+            if name:
+                idx[name] = ver.strip() or 'installed'
+        return idx
+
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
+        if hit:
+            return ver
         pkg = shlex.quote(rc.name)
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
         if r.ok and r.stdout.strip():
