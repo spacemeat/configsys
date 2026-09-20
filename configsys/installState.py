@@ -231,7 +231,7 @@ def detect_coexisting(ctx, states):
     from .adapt import to_resolved_component
     from .resolve import candidate_bindings, unit_for_binding, via_representatives
     r = ctx.routes
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     enum = {}                                       # driver name -> installed_index() dict or None
     lock = threading.Lock()                         # guards `enum` under the parallel per-state loop
 
@@ -298,7 +298,7 @@ def superseded_installs(ctx, target_rc):
     comp = r.components.get(target_rc.comp)
     if comp is None or not comp.bindings:
         return []
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     try:
         reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
     except Exception:                               # noqa: BLE001 — a routing hiccup means no swap

@@ -507,7 +507,7 @@ class Context:
         if r.level < report.DEBUG:
             return
         from .resolve import select_binding, ResolveError
-        cx = routes.cascade.context(routes.block, routes.version, routes.cpu)
+        cx = routes.context()
         r.event(report.DEBUG, '  winning binding per requested component:')
         for name in sorted(requested):
             comp = routes.components.get(name)
@@ -1310,7 +1310,7 @@ def where_report(ctx, name):
         out.append(f'  pinned      via:{pinned}   (from your config)')
 
     # which binding wins in this machine's context, plus the alternatives available here
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     selected, candidates, reason = None, [], None
     if comp.bindings:
         try:
@@ -1808,9 +1808,9 @@ def _validate_pin(ctx, name, value):
     '''(ok, note). A binding-pin (value is a via) needs `name` to be a component that HAS a
     binding with that via; a note warns if that via isn't available on THIS machine. A provider-
     pin (value is a component) is accepted if the component exists. Otherwise not-ok with why.'''
-    from .drivers import supported_names
+    from .resolve import pin_via_names
     r = ctx.routes
-    if value in ({'native', 'parts'} | supported_names()):          # binding-pin
+    if value in pin_via_names():                                    # binding-pin (via-name-first)
         comp = r.components.get(name)
         if comp is None:
             return False, f'{name!r} is not a known component (a binding-pin needs one)'

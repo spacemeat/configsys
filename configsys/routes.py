@@ -396,6 +396,14 @@ class Resolver:
         '''The OS lineage leaf-first (e.g. rhel -> redhat -> linux), for display/tests.'''
         return self.cascade.lineage(self.block)
 
+    def context(self):
+        '''This machine's predicate context — block + version + cpu + the DISABLED vias. Every caller
+        that evaluates `when:` / lists candidate bindings must use this (not a hand-built
+        `cascade.context(block, version, cpu)`), or a `disabled-drivers:` via leaks back in — e.g.
+        detection would soft-pin a disabled driver, producing a phantom "no binding … pinned to …"
+        error row for a component that resolved fine.'''
+        return self.cascade.context(self.block, self.version, self.cpu, self.disabled)
+
     def _resolve(self, names):
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
@@ -440,7 +448,7 @@ class Resolver:
         comp = self.components.get(name)
         if comp is None or not comp.bindings:
             return []
-        ctx = self.cascade.context(self.block, self.version, self.cpu, self.disabled)
+        ctx = self.context()
         valid = candidate_bindings(comp, self.cascade, ctx)      # `when:`-true here (ignore pin filter)
         valid_vias = {b.via for b in valid}
         if include_unavailable:

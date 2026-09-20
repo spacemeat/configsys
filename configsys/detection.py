@@ -71,7 +71,7 @@ def detect_pins(ctx, units, progress=None):
     tracks the whole (subprocess-bound) detection phase, not just its fast head.'''
     from .installState import _parallel_map
     r = ctx.routes
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     user_pins = ctx.config.pins()
     cache = {}
     pins = {}

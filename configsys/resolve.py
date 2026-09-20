@@ -34,6 +34,16 @@ def _as_list(v):
     return v if isinstance(v, list) else [v]
 
 
+def pin_via_names():
+    '''The set of `pins:` values that name an install METHOD (a via/driver) rather than a provider
+    component — `native`, `parts`, and every registered driver. A flat-`pins:` value in this set is
+    a BINDING-pin (component -> via); anything else that is a known component is a PROVIDER-pin. Used
+    identically by resolve, app._validate_pin and routecheck so all three classify a pin the same
+    way — critical when a name is BOTH a via and a component (pyenv, flatpak, clang, cabal, …).'''
+    from .drivers import supported_names
+    return {'native', 'parts'} | supported_names()
+
+
 def cap_names(raw):
     '''Capability NAMES from a requires/provides/suggests value that may mix bare names with
     versioned `{ cap: constraint }` maps. Names only — the resolver closes on these UNCHANGED
@@ -412,6 +422,7 @@ class _State:
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
         self.optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
+        self.via_names = pin_via_names()           # for binding-vs-provider pin classification
         self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
 
     def _provider_index(self):
@@ -514,11 +525,13 @@ class _State:
     def _satisfy(self, cap, constraint, root, requiring):
         pin = self.pins.get(cap)
         # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
-        # (cap -> provider component). Here we satisfy a CAPABILITY, so only a pin naming a real
-        # provider COMPONENT is a provider-pin; a via-valued pin is a binding-pin for the component
-        # `cap` (honored in _matching when it resolves) — treating it as a provider-pin would throw a
-        # bogus "cap pinned to 'native', which cannot provide it here".
-        if pin is not None and pin not in self.components:
+        # (cap -> provider component). Here we satisfy a CAPABILITY, so only a PROVIDER-pin applies.
+        # A pin whose value names a via/driver is a BINDING-pin — even when that name is ALSO a
+        # component (pyenv, flatpak, clang, …); classifying it via-first (matching app._validate_pin
+        # and routecheck) is what stops `pins: {python3.13: pyenv}` from being misread as a provider-
+        # pin and throwing a bogus "python3.13 pinned to pyenv, which cannot provide it here". The
+        # binding-pin is honored later in _matching when the component `cap` itself resolves.
+        if pin is not None and (pin in self.via_names or pin not in self.components):
             pin = None
         if constraint:
             return self._satisfy_constrained(cap, constraint, root, requiring, pin)

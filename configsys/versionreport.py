@@ -146,7 +146,7 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
     comp = r.components.get(name)
     if comp is None:
         raise ResolveError(f'unknown component "{name}"')
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     # enumerate ALL when:-valid methods (pins=None) — the whole point is to see the alternatives
     # you could pin to; the pin/default are marked per method below.
     cands = candidate_bindings(comp, r.cascade, cx, None)

@@ -53,7 +53,7 @@ def build_reverse_index(ctx):
     applied, and every same-`via:` alternative, so both `p7zip-full` and `7zip` map to one
     component). This is what tells a `known` key (maps to a real component) from a `foreign` one.'''
     r = ctx.routes
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     native_mgr = _native_manager(ctx)
     index = {}
     for name, comp in r.components.items():

@@ -57,3 +57,23 @@ def test_config_reads_disabled_drivers_machine_setting():
     # unset -> empty
     c2 = Config([layers.Layer('config.hu', 'repo', layers.materialize_string('{ }'))])
     assert list(c2.disabled_drivers()) == []
+
+
+def test_disabled_via_absent_from_the_shared_detection_context(tmp_path):
+    # regression: detection (and reportgen/orphans/versionreport/installState) built its predicate
+    # context WITHOUT `disabled`, so a disabled via that happened to be installed got listed as a
+    # candidate and emitted as a detect-pin — which the second, disabled-honoring resolve pass then
+    # filtered out, producing a phantom "no binding … pinned to …" error. Resolver.context() now
+    # carries `disabled`, and detection._installed_via lists candidates through it, so a disabled
+    # via is never a candidate to detect/pin in the first place.
+    from configsys.resolve import candidate_bindings
+    routes = ('{ ' + OS + '  components: { x: { install: [ { via: native } '
+              '{ via: flatpak  hub: flathub  app: org.x.X } ] } } }')
+    p = tmp_path / 'routes.hu'
+    p.write_text(routes)
+    r = Resolver(str(p), 'debian', '12', disabled={'flatpak'})
+    assert 'flatpak' in r.context().disabled
+    assert {c['via'] for c in r.candidates('x')} == {'native'}       # disabled via never offered
+    # detection lists candidate bindings through exactly this context — flatpak must not appear
+    vias = {b.via for b in candidate_bindings(r.components['x'], r.cascade, r.context())}
+    assert vias == {'native'}
