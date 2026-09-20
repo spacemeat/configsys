@@ -14,7 +14,7 @@ box is deferred — there is no testbed yet (like macOS/brew).
 
 import shlex
 
-from ..driver import Driver
+from ._native import NativePkgManager
 
 
 def _version_from_info(stdout):
@@ -27,10 +27,11 @@ def _version_from_info(stdout):
     return None
 
 
-class Zypper(Driver):
+class Zypper(NativePkgManager):
     name = 'zypper'
-    privileged = True
-    default_scope = 'system'   # zypper packages are system-wide (fixed)
+    INSTALL = 'zypper --non-interactive install {pkgs}'
+    REMOVE = 'zypper --non-interactive remove {pkgs}'
+    UPGRADE = 'zypper --non-interactive update {pkgs}'
 
     # -- read (no root needed) -------------------------------------------
 
@@ -79,20 +80,7 @@ class Zypper(Driver):
 
     # -- mutate (under sudo, non-interactive) ----------------------------
 
-    def install(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'zypper --non-interactive install {pkg}',
-                               sudo=True, capture=False)
-
-    def uninstall(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'zypper --non-interactive remove {pkg}',
-                               sudo=True, capture=False)
-
-    def upgrade(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'zypper --non-interactive update {pkg}',
-                               sudo=True, capture=False)
+    # install/uninstall/upgrade come from the NativePkgManager templates above.
 
     def set_version(self, rc, version):
         # zypper honors `name=version`; --oldpackage permits a downgrade to that exact edition.

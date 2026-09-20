@@ -12,8 +12,8 @@ the classic breakage. Query ops (-Q/-Si) need no root; mutations run under sudo.
 import re
 import shlex
 
-from ..driver import Driver
 from ..runner import Result
+from ._native import NativePkgManager
 
 _VER_RE = re.compile(r'^Version\s*:\s*(.+)$', re.MULTILINE)
 
@@ -23,10 +23,11 @@ _VER_RE = re.compile(r'^Version\s*:\s*(.+)$', re.MULTILINE)
 _GROUP = '(group)'
 
 
-class Pacman(Driver):
+class Pacman(NativePkgManager):
     name = 'pacman'
-    privileged = True
-    default_scope = 'system'   # pacman packages are system-wide (fixed)
+    INSTALL = 'pacman -S --noconfirm {pkgs}'
+    UPGRADE = 'pacman -S --noconfirm {pkgs}'      # -S already installs-or-upgrades to the current rev
+    # REMOVE is custom (group-aware) — see uninstall below.
 
     # -- read -------------------------------------------------------------
 
@@ -82,22 +83,14 @@ class Pacman(Driver):
 
     # -- mutate -----------------------------------------------------------
 
-    def install(self, rc):
-        return self.runner.run(f'pacman -S --noconfirm {shlex.quote(rc.name)}',
-                               sudo=True, capture=False)
-
+    # install/upgrade come from the NativePkgManager templates (pacman -S installs-or-upgrades);
+    # remove is custom because `pacman -R` can't take a GROUP name:
     def uninstall(self, rc):
-        # `pacman -R` doesn't accept a group name — if this is a group, expand to its installed
-        # members (`pacman -Qgq xfce4`); otherwise remove the package directly.
+        # if this is a group, expand to its installed members (`pacman -Qgq xfce4`); else remove direct
         n = shlex.quote(rc.name)
         cmd = (f'if pacman -Qq {n} >/dev/null 2>&1; then pacman -R --noconfirm {n}; '
                f'else pacman -R --noconfirm $(pacman -Qgq {n}); fi')
         return self.runner.run(cmd, sudo=True, capture=False)
-
-    def upgrade(self, rc):
-        # installs the current repo version; whole-system upgrades are `pacman -Syu`
-        return self.runner.run(f'pacman -S --noconfirm {shlex.quote(rc.name)}',
-                               sudo=True, capture=False)
 
     def set_version(self, rc, version):
         # the repos carry only the current version; pinning an arbitrary one needs the

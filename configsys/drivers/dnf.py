@@ -8,9 +8,9 @@ stream their output (capture=False) so the user sees progress and sudo can promp
 
 import shlex
 
-from ..driver import Driver
 from ..failures import classify
 from ..runner import Result
+from ._native import NativePkgManager
 
 # `dnf versionlock` lives in a plugin that isn't installed by default; lock/unlock
 # ensure it first. This dnf4-named package also wires up the dnf5 subcommand.
@@ -23,10 +23,11 @@ def _as_list(v):
     return v if isinstance(v, list) else [v]
 
 
-class Dnf(Driver):
+class Dnf(NativePkgManager):
     name = 'dnf'
-    privileged = True
-    default_scope = 'system'   # dnf packages are system-wide (fixed)
+    INSTALL = 'dnf install -y {pkgs}'
+    REMOVE = 'dnf remove -y {pkgs}'
+    UPGRADE = 'dnf upgrade -y {pkgs}'
 
     # -- read -------------------------------------------------------------
 
@@ -145,24 +146,8 @@ class Dnf(Driver):
 
     # -- mutate -----------------------------------------------------------
 
-    def install(self, rc):
-        pre = self.ensure_prereqs(rc)
-        if pre is not None:                      # a vendor repo failed to verify -> abort cleanly
-            return pre
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'dnf install -y {pkg}', sudo=True, capture=False)
-
-    def uninstall(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'dnf remove -y {pkg}', sudo=True, capture=False)
-
-    def upgrade(self, rc):
-        pre = self.ensure_prereqs(rc)
-        if pre is not None:
-            return pre
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'dnf upgrade -y {pkg}', sudo=True, capture=False)
-
+    # install/uninstall/upgrade come from the NativePkgManager templates (install/upgrade run
+    # ensure_prereqs first — see below). set_version is dnf-specific (install-or-downgrade).
     def set_version(self, rc, version):
         pre = self.ensure_prereqs(rc)
         if pre is not None:

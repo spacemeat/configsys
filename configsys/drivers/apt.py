@@ -7,9 +7,9 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 
 import shlex
 
-from ..driver import Driver
 from ..failures import SIGNATURE, classify, retry_transient
 from ..runner import Result
+from ._native import NativePkgManager
 
 # apt-get update transient-retry (see failures.retry_transient): a momentary stumble — a network
 # blip, or "E: The list of sources could not be read" from a concurrent apt run (unattended-upgrades,
@@ -45,10 +45,12 @@ def _parse_policy(text, want):
     return out
 
 
-class Apt(Driver):
+class Apt(NativePkgManager):
     name = 'apt'
-    privileged = True
-    default_scope = 'system'   # apt packages are system-wide (fixed)
+    ENV = _APT_ENV                         # DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
+    INSTALL = 'apt-get install -y {pkgs}'
+    REMOVE = 'apt-get remove -y {pkgs}'
+    UPGRADE = 'apt-get install --only-upgrade -y {pkgs}'
 
     # -- prerequisites ----------------------------------------------------
 
@@ -358,24 +360,8 @@ class Apt(Driver):
         '''`_pkg_list` joined + quoted, for the apt command line.'''
         return ' '.join(shlex.quote(p) for p in Apt._pkg_list(rc))
 
-    def install(self, rc):
-        pre = self.ensure_prereqs(rc)
-        if pre is not None:                      # a vendor repo failed to verify -> abort cleanly
-            return pre
-        return self.runner.run(f'{_APT_ENV} apt-get install -y {self._pkgs(rc)}',
-                               sudo=True, capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(f'{_APT_ENV} apt-get remove -y {self._pkgs(rc)}',
-                               sudo=True, capture=False)
-
-    def upgrade(self, rc):
-        pre = self.ensure_prereqs(rc)
-        if pre is not None:
-            return pre
-        return self.runner.run(f'{_APT_ENV} apt-get install --only-upgrade -y {self._pkgs(rc)}',
-                               sudo=True, capture=False)
-
+    # install/uninstall/upgrade come from the NativePkgManager templates + ENV + the multi-package
+    # _pkgs override above (install/upgrade run ensure_prereqs first). set_version is apt-specific.
     def set_version(self, rc, version):
         pre = self.ensure_prereqs(rc)
         if pre is not None:

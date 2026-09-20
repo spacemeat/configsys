@@ -12,8 +12,8 @@ into base once Alpine graduated to a first-class OS.
 
 import shlex
 
-from ..driver import Driver
 from ..runner import Result
+from ._native import NativePkgManager
 
 
 def _version_from_apk_list(lines, name):
@@ -29,10 +29,11 @@ def _version_from_apk_list(lines, name):
     return None
 
 
-class Apk(Driver):
+class Apk(NativePkgManager):
     name = 'apk'
-    privileged = True
-    default_scope = 'system'        # apk packages are system-wide (a fixed scope)
+    INSTALL = 'apk add {pkgs}'
+    REMOVE = 'apk del {pkgs}'
+    UPGRADE = 'apk add --upgrade {pkgs}'
 
     # -- read (no root needed) -------------------------------------------
 
@@ -50,17 +51,7 @@ class Apk(Driver):
     def is_locked(self, rc):
         return False                # no native per-package hold on a rolling distro
 
-    # -- mutate (under sudo) ---------------------------------------------
-
-    def install(self, rc):
-        return self.runner.run(f'apk add {shlex.quote(rc.name)}', sudo=True, capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(f'apk del {shlex.quote(rc.name)}', sudo=True, capture=False)
-
-    def upgrade(self, rc):
-        return self.runner.run(f'apk add --upgrade {shlex.quote(rc.name)}',
-                               sudo=True, capture=False)
+    # -- mutate (under sudo) — install/uninstall/upgrade come from NativePkgManager templates ------
 
     def set_version(self, rc, version):
         # apk pins with `<pkg>=<version>` — it must still be resolvable in a repo/cache.
