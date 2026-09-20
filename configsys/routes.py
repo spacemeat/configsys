@@ -230,8 +230,17 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     if layers_out is not None:                       # (path, role) low→high, for `-v` reporting
         layers_out.extend(layer_list)
 
+    # SECURITY: a `facets: { detect: … }` probe runs a shell command on EVERY resolve/startup, with
+    # no install and no user action. Merge facets only from the fully-trusted repo and the user's
+    # blessed `primary` layer — never a plain `plugin` (a synced/transitive data plugin), so an
+    # untrusted plugin can't get shell at startup. A dropped plugin facet is warned, not silent.
+    if warnings_out is not None:
+        for _lyr in layer_list:
+            if _lyr.role == 'plugin' and isinstance(_lyr.data.get('facets'), dict) and _lyr.data['facets']:
+                warnings_out.append(f'{_lyr.path}: `facets:` from a plugin is ignored (only the repo '
+                                    f'or your primary plugin may declare hardware/environment probes)')
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')),
-                        layers.merge_dict_section(layer_list, 'facets', ('repo', 'plugin', 'primary')))
+                        layers.merge_dict_section(layer_list, 'facets', ('repo', 'primary')))
     forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
     from . import routecheck
     components = {}
