@@ -301,6 +301,17 @@ class MenuState:
                 return True
         return False
 
+    def reveal_node(self, node):
+        '''Expand every ancestor of `node` so it becomes a visible row, rebuild, and put the cursor on
+        it. Used by find (`/`) to reach a component collapsed inside a tree.'''
+        p = node.parent
+        while p is not None:
+            if p.expandable:
+                p.expanded = True
+            p = p.parent
+        self._refresh()
+        self._goto(node.id)
+
     def expand(self, want):
         n = self.cur()
         if n and n.expandable and n.expanded != want:
@@ -2172,6 +2183,55 @@ def _find_edit(stdscr, labels, restore, set_cursor, redraw):
         if ch in (curses.KEY_BACKSPACE, 127, 8):
             if not buf:
                 set_cursor(restore)
+                return
+            buf = buf[:-1]
+        elif 32 <= ch <= 126:
+            buf += chr(ch)
+
+
+def _find_edit_tree(stdscr, ms, redraw):
+    '''Live fuzzy-FIND (`/`) for the Components tree that reaches components collapsed INSIDE trees:
+    it searches EVERY component/unit node (not just the visible rows), and expands the containing tree
+    to reveal the best match as you type. Enter keeps it revealed; Esc — or backspace on an empty
+    query — restores the pre-find expansion + cursor. Repeated `/` steps to the next match (the anchor
+    is the current row), like the flat find.'''
+    saved_exp = {n.id: n.expanded for n in ms._all_nodes()}
+    nodes = [n for n in ms._all_nodes() if n.kind in (COMPONENT, UNIT)]
+    labels = [n.label or '' for n in nodes]
+    cur = ms.rows[ms.cursor].id if (ms.rows and ms.cursor < len(ms.rows)) else None
+    anchor = next((i for i, n in enumerate(nodes) if n.id == cur), -1)
+    buf = ''
+
+    def reset_expansion():
+        for n in ms._all_nodes():                          # collapse back to the pre-find state so only
+            if n.id in saved_exp:                          # the CURRENT match's tree ends up open
+                n.expanded = saved_exp[n.id]
+
+    def jump(b):
+        reset_expansion()
+        i = _find_next(labels, b, anchor) if b else None
+        if i is None:
+            ms._refresh(keep_id=cur)                       # empty / no match -> restore the cursor
+        else:
+            ms.reveal_node(nodes[i])                       # expand its tree + move the cursor to it
+
+    while True:
+        jump(buf)
+        redraw()
+        h, w = stdscr.getmaxyx()
+        _put(stdscr, h - 1, 0, _fit(f' /{buf}▏', w).ljust(w), curses.A_REVERSE)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if ch in (13, curses.KEY_ENTER):
+            return                                         # commit — leave the match revealed
+        if ch == 27:                                       # Esc -> restore expansion + cursor
+            reset_expansion()
+            ms._refresh(keep_id=cur)
+            return
+        if ch in (curses.KEY_BACKSPACE, 127, 8):
+            if not buf:
+                reset_expansion()
+                ms._refresh(keep_id=cur)
                 return
             buf = buf[:-1]
         elif 32 <= ch <= 126:
@@ -5925,10 +5985,9 @@ def run(ctx):
             elif act == 'filter':                    # live substring FILTER over the tree (narrows)
                 _filter_edit(stdscr, ms.filter, ms.set_filter,
                              lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
-            elif act == 'find':                      # fuzzy FIND: jump the cursor to the best match
-                _find_edit(stdscr, [n.label for n in ms.rows], ms.cursor,
-                           lambda i: setattr(ms, 'cursor', i),
-                           lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
+            elif act == 'find':                      # fuzzy FIND across the WHOLE tree — reveals a
+                _find_edit_tree(stdscr, ms,           # component collapsed inside a subtree, opening it
+                                lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
             elif act == 'confirm':                   # enter: open/expand the row
                 ms.enter()
             elif act == 'right':

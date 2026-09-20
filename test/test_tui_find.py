@@ -71,3 +71,48 @@ def test_backspace_on_empty_query_cancels():
 
 def test_no_match_holds_at_restore():
     assert _run(_keys('zzz') + [ENTER], restore=2) == 2                   # nothing matches -> stays
+
+
+# -- tree-aware find reaches components collapsed inside subtrees ----------
+
+def _ms_with_nested_dep():
+    from configsys.componentObj import ResolvedComponent
+    from configsys.installState import ComponentState
+    from configsys.tui.menu import MenuState
+
+    def cs(key, reqas):
+        fam, comp = key.split('\\')
+        rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp},
+                               requested_as=set(reqas))
+        return ComponentState(component=rc, supported=True, present=True, installed_version='1',
+                              latest_version='1', locked=False, managed=False, error=None,
+                              lock_source=None)
+    states = {'apt\\neovim': cs('apt\\neovim', ['neovim']),
+              'apt\\ripgrep': cs('apt\\ripgrep', ['neovim'])}   # ripgrep = a dep unit UNDER neovim
+    return MenuState(states, [('user', ['neovim'])])
+
+
+def test_find_reveals_a_component_collapsed_in_a_tree():
+    from configsys.tui.menu import _find_edit_tree
+    ms = _ms_with_nested_dep()
+    for n in ms._all_nodes():                            # collapse everything (user + neovim)
+        if n.expandable:
+            n.expanded = False
+    ms._refresh()
+    assert not any('ripgrep' in (n.label or '') for n in ms.rows)         # hidden two levels deep
+
+    _find_edit_tree(_Scr(_keys('ripgrep') + [ENTER]), ms, lambda: None)
+    assert ms.rows[ms.cursor].label == 'ripgrep'                          # cursor jumped to it
+    assert any('ripgrep' in (n.label or '') for n in ms.rows)             # its tree was opened
+
+
+def test_find_tree_esc_restores_collapsed_state():
+    from configsys.tui.menu import _find_edit_tree
+    ms = _ms_with_nested_dep()
+    for n in ms._all_nodes():
+        if n.expandable:
+            n.expanded = False
+    ms._refresh()
+    before = [n.id for n in ms.rows]
+    _find_edit_tree(_Scr(_keys('ripgrep') + [ESC]), ms, lambda: None)     # find then cancel
+    assert [n.id for n in ms.rows] == before                             # expansion restored (still collapsed)
