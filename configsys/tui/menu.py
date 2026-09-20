@@ -5080,7 +5080,12 @@ def run(ctx):
         curses.cbreak()
         stdscr.keypad(True)
         from .keyspec import Keymap
-        from .screens.plugins import PluginsScreen   # migrated screens (lazy: avoids an import cycle)
+        # migrated screens (lazy import: avoids an import cycle; the new *Screen classes intentionally
+        # shadow the like-named legacy MODEL classes within run(), which now only builds the new screens)
+        from .screens.plugins import PluginsScreen
+        from .screens.glue import GlueScreen
+        from .screens.dotfiles import DotfilesScreen
+        from .screens.config import ConfigScreen
         global _KEYMAP
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
         comp_mode = 'to-do'                       # Components view MODE: to-do | tracked | installed+tracked
@@ -5130,15 +5135,15 @@ def run(ctx):
             elif screen == 'glue':
                 if gs is None:
                     gs = GlueScreen(ctx)
-                _draw_glue(stdscr, pal, gs, ctx, note, screen)
+                gs.draw(stdscr, pal, gs.build_vm(ctx, stdscr.getmaxyx()))
             elif screen == 'dotfiles':
                 if ds is None:
                     ds = DotfilesScreen(ctx)
-                _draw_dotfiles(stdscr, pal, ds, ctx, note, screen)
+                ds.draw(stdscr, pal, ds.build_vm(ctx, stdscr.getmaxyx()))
             elif screen == 'config':
                 if cs is None:
                     cs = ConfigScreen(ctx)
-                _draw_config(stdscr, pal, cs, ctx, note, screen)
+                cs.draw(stdscr, pal, cs.build_vm(ctx, stdscr.getmaxyx()))
             elif screen == 'theme':
                 if ts is None:
                     ts = ThemeScreen(ctx)
@@ -5213,7 +5218,8 @@ def run(ctx):
                 if dest in IMPLEMENTED:
                     # dotfiles/glue mutated on their pages (link/activate) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.
-                    df_dirty = (ds.dirty if ds is not None else set()) | (gs.dirty if gs is not None else set())
+                    df_dirty = ((ds.model.dirty if ds is not None else set())
+                                | (gs.model.dirty if gs is not None else set()))
                     # the !uninstall queue can change from OTHER screens (Profiles `x`) or drain, so
                     # rebuild whenever it differs from what this view last folded — not just on edits.
                     q_changed = (set(ctx.config.uninstall_queue())
@@ -5235,9 +5241,9 @@ def run(ctx):
                             note = f'reload failed: {e}'
                         menu_dirty = False
                         if ds is not None:
-                            ds.dirty = set()
+                            ds.model.dirty = set()
                         if gs is not None:
-                            gs.dirty = set()
+                            gs.model.dirty = set()
                     if dest == 'dotfiles' and ds is not None:  # re-read link state on entry — an
                         ds.reload()                            # install/capture elsewhere may have changed it
                     if dest == 'glue' and gs is not None:      # re-read glue state on entry likewise
@@ -5526,160 +5532,18 @@ def run(ctx):
                                 note = f'edit failed: {e}'
                 continue
 
-            # -- Dotfiles screen --
+            # -- Dotfiles screen — dispatched through the migrated DotfilesScreen.handle --
             if screen == 'dotfiles':
-                row = ds.cur_row()          # (rc, name, target, state, source, capturable)
-                dact = keymap.action_for('dotfiles', ch)
-                try:
-                    if dact == 'down':
-                        ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
-                    elif dact == 'up':
-                        ds.cur = max(0, ds.cur - 1)
-                    elif dact == 'page-down':
-                        ds.cur = min(len(ds.rows) - 1, ds.cur + _page_rows(stdscr))
-                    elif dact == 'page-up':
-                        ds.cur = max(0, ds.cur - _page_rows(stdscr))
-                    elif dact == 'left':                      # horizontal scroll across the columns
-                        ds.hscroll = max(0, ds.hscroll - 4)
-                    elif dact == 'right':
-                        ds.hscroll += 4                       # clamped to the content width in _draw
-                    elif dact == 'top':
-                        ds.cur = 0
-                    elif dact == 'bottom':
-                        ds.cur = max(0, len(ds.rows) - 1)
-                    elif dact in ('manage', 'confirm') and row:   # MANAGE: adopt any on-system file, then
-                        drv = ds.driver_for(row[0])                # link (capture + link are ONE step)
-                        with suspended(stdscr):
-                            drv.capture(row[0], force=False)   # no-op if nothing on-system to adopt
-                            res = drv.install(row[0])          # links; backs up a pre-existing real file
-                        ds.dirty.add(row[0].key)
-                        ds.reload()
-                        note = (f'{row[0].comp}: {res.output.strip()}'
-                                if res is not None and not res.ok else f'managing {row[0].comp}')
-                    elif dact == 'manage-all':              # capture + link every not-yet-managed config
-                        from ..drivers.dotfiles import config_display_state
-                        pend = {r[0].key: r[0] for r in ds.rows
-                                if config_display_state(r[3], r[5]) == 'unmanaged'}
-                        with suspended(stdscr):
-                            for rc in pend.values():
-                                drv = ds.driver_for(rc)
-                                drv.capture(rc, force=False)
-                                drv.install(rc)
-                        ds.dirty.update(pend)
-                        ds.reload()
-                        note = (f'managing {len(pend)} config(s)' if pend else 'nothing to manage')
-                    elif dact == 'unmanage' and row:        # UNMANAGE: unlink (confirms first)
-                        if _popup_choose(stdscr, pal, f'unmanage {row[0].comp}?  (unlinks it; your '
-                                         f'content stays in your store)',
-                                         [('cancel', ''), ('unmanage', '')], 0) == 1:
-                            with suspended(stdscr):
-                                ds.driver_for(row[0]).uninstall(row[0])
-                            ds.dirty.add(row[0].key)
-                            ds.reload()
-                            note = f'unmanaged {row[0].comp}'
-                    elif dact == 'unmanage-all':            # unlink every MANAGED config (confirms first)
-                        from ..drivers.dotfiles import config_display_state
-                        managed = {r[0].key: r[0] for r in ds.rows
-                                   if config_display_state(r[3], r[5]) == 'managed'}
-                        if not managed:
-                            note = 'nothing managed to unmanage'
-                        elif _popup_choose(stdscr, pal, f'unmanage all {len(managed)} managed config(s)?  '
-                                           f'(unlinks each; content stays in your store)',
-                                           [('cancel', ''), ('unmanage all', '')], 0) == 1:
-                            with suspended(stdscr):
-                                for rc in managed.values():
-                                    ds.driver_for(rc).uninstall(rc)
-                            ds.dirty.update(managed)
-                            ds.reload()
-                            note = f'unmanaged {len(managed)} config(s)'
-                    elif dact == 'move-store' and row:      # move this config to the OTHER store
-                        plug = ctx.paths.primary_dotfiles_dir
-                        if plug is None:
-                            note = 'no primary plugin configured — nothing to move between'
-                        else:
-                            to_plugin = not str(row[4]).startswith('<plugin>')   # source col shows where it lives
-                            target = Path(plug) if to_plugin else ctx.paths.user_dotfiles_dir
-                            with suspended(stdscr):
-                                moved = ds.driver_for(row[0]).relocate(row[0], target)
-                            ds.dirty.add(row[0].key)
-                            ds.reload()
-                            where = 'plugin (travels)' if to_plugin else 'local (this box)'
-                            note = (f'moved {row[0].comp} to {where}' if moved
-                                    else f'nothing to move for {row[0].comp}')
-                    elif dact == 'move-store-all':          # chooser: move ALL configs to a store
-                        plug = ctx.paths.primary_dotfiles_dir
-                        if plug is None:
-                            note = 'no primary plugin configured — nothing to move between'
-                        else:
-                            ch = _popup_choose(stdscr, pal, 'move ALL configs to which store?',
-                                               [('primary plugin (travels to your machines)', ''),
-                                                ('local (this box only)', ''), ('cancel', '')], 0)
-                            if ch in (0, 1):
-                                target = Path(plug) if ch == 0 else ctx.paths.user_dotfiles_dir
-                                n = 0
-                                with suspended(stdscr):
-                                    for rc in ds.units:
-                                        if ds.driver_for(rc).relocate(rc, target):
-                                            n += 1
-                                ds.dirty.update(rc.key for rc in ds.units)
-                                ds.reload()
-                                note = f'moved {n} config(s) to {"plugin" if ch == 0 else "local"}'
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'error: {e}'
+                intent = ds.handle(ch, ctx, stdscr, pal)
+                if intent.note is not None:
+                    note = intent.note
                 continue
 
-            # -- Glue screen (ship->activate toggle; no capture — glue is shipped content) --
+            # -- Glue screen — dispatched through the migrated GlueScreen.handle --
             if screen == 'glue':
-                row = gs.cur_row()          # (rc, comp, tgt, state, src, shell)
-                gact = keymap.action_for('glue', ch)
-                try:
-                    if gact == 'down':
-                        gs.cur = min(len(gs.rows) - 1, gs.cur + 1)
-                    elif gact == 'up':
-                        gs.cur = max(0, gs.cur - 1)
-                    elif gact == 'page-down':
-                        gs.cur = min(len(gs.rows) - 1, gs.cur + _page_rows(stdscr))
-                    elif gact == 'page-up':
-                        gs.cur = max(0, gs.cur - _page_rows(stdscr))
-                    elif gact == 'left':                      # horizontal scroll across the columns
-                        gs.hscroll = max(0, gs.hscroll - 4)
-                    elif gact == 'right':
-                        gs.hscroll += 4
-                    elif gact == 'top':
-                        gs.cur = 0
-                    elif gact == 'bottom':
-                        gs.cur = max(0, len(gs.rows) - 1)
-                    elif gact == 'activate' and row:        # activate the current snippet for ITS shell only
-                        with suspended(stdscr):
-                            res = gs.gd.install(row[0], only_shells=[row[5]])
-                        gs.dirty.add(row[0].key)
-                        gs.reload()
-                        note = (f'{row[0].comp}: {res.output.strip()}' if res is not None and not res.ok
-                                else f'activated {row[0].comp} ({row[5]})')
-                    elif gact == 'deactivate' and row:      # deactivate this shell's link (leaves conf.d + content)
-                        with suspended(stdscr):
-                            gs.gd.uninstall(row[0], only_shells=[row[5]])
-                        gs.dirty.add(row[0].key)
-                        gs.reload()
-                        note = f'deactivated {row[0].comp} ({row[5]})'
-                    elif gact == 'activate-group' and row:  # (re)activate EVERY snippet in THIS shell's group
-                        shell = row[5]
-                        # re-install the whole group, not just the inactive rows: glue install is
-                        # idempotent and drift-refreshes, so this also picks up an active-but-stale
-                        # store copy after the shipped snippet changed (the gestalt/inline case).
-                        grp = {r[0].key: r[0] for r in gs.rows if r[5] == shell}
-                        n_inactive = sum(1 for r in gs.rows
-                                         if r[5] == shell and r[3] not in ('linked', 'loader-on'))
-                        with suspended(stdscr):
-                            for rc in grp.values():
-                                gs.gd.install(rc, only_shells=[shell])   # scope to THIS shell, not the component's others
-                        gs.dirty.update(grp)
-                        gs.reload()
-                        note = (f'(re)activated {len(grp)} snippet(s) in the {shell} group'
-                                f' ({n_inactive} newly active)' if grp
-                                else f'no snippets in the {shell} group')
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'error: {e}'
+                intent = gs.handle(ch, ctx, stdscr, pal)
+                if intent.note is not None:
+                    note = intent.note
                 continue
 
             # -- Plugins screen — dispatched through the migrated PluginsScreen.handle --
@@ -5690,131 +5554,14 @@ def run(ctx):
                 menu_dirty = menu_dirty or intent.dirty
                 continue
 
-            # -- Config screen --
+            # -- Config screen — dispatched through the migrated ConfigScreen.handle --
             if screen == 'config':
-                from .. import actions
-                cact = keymap.action_for('config', ch)
-                if cact == 'down':
-                    cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
-                elif cact == 'up':
-                    cs.cur = max(0, cs.cur - 1)
-                elif cact == 'page-down':
-                    cs.cur = min(len(cs.keys) - 1, cs.cur + _page_rows(stdscr))
-                elif cact == 'page-up':
-                    cs.cur = max(0, cs.cur - _page_rows(stdscr))
-                elif cact == 'top':
-                    cs.cur = 0
-                elif cact == 'bottom':
-                    cs.cur = max(0, len(cs.keys) - 1)
-                elif cact == 'theme':
-                    screen = 'theme'
-                elif cact == 'move':                    # move this setting local <-> primary
-                    key = cs.keys[cs.cur]
-                    try:
-                        ok, msg = actions.move_config_setting(ctx, key)
-                        note = msg
-                        if ok:
-                            cs.reload()
-                            menu_dirty = True
-                    except Exception as e:  # noqa: BLE001 — surface, don't crash
-                        note = f'move failed: {e}'
-                elif cact in ('confirm', 'select'):
-                    key = cs.keys[cs.cur]
-                    info = cs.settings[key]
-                    try:
-                        if info['kind'] == 'bool':
-                            actions.set_config_setting(
-                                ctx, key, ['false' if info['value'] else 'true'])
-                            note = f'{key} = {"false" if info["value"] else "true"}'
-                            cs.reload()
-                            menu_dirty = True
-                        elif key == 'scope':                # scope: user (default) / system / unset
-                            cur_idx = {'user': 0, 'system': 1}.get(info['value'], 2)
-                            idx = _popup_choose(stdscr, pal, key,
-                                                [('user', '(default)'), ('system', ''),
-                                                 ('unset', '(→ user)')], cur_idx)
-                            if idx is not None:
-                                actions.set_config_setting(ctx, key, [['user'], ['system'], []][idx])
-                                note = f'{key} set'
-                                cs.reload()
-                                menu_dirty = True
-                        elif key == 'splash':               # off / built-in / a plugin provider
-                            from ..splashes import splash_names, _BUILTIN_SPLASH_NAMES
-                            from .splash import DEFAULT_SPLASH
-                            from .. import plugins as _pl
-                            _decls = _pl.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
-                            prov2plug = _pl.splash_plugins(ctx.paths.plugins_dir, _decls)
-
-                            def _tag(n):                    # show WHICH plugin provides a splash
-                                return ('(built-in)' if n in _BUILTIN_SPLASH_NAMES
-                                        else prov2plug.get(n, '(plugin)'))
-                            opts = ([('off', '(no animation)'), ('random', '(any installed splash)')]
-                                    + [(n, _tag(n)) for n in splash_names()])
-                            names = [o[0] for o in opts]
-                            cur = info['value']
-                            cur = _pl.resolve_splash_value(cur, ctx.paths.plugins_dir, _decls) if isinstance(cur, str) else cur
-                            cur_idx = (0 if isinstance(cur, str) and cur.lower() in ('off', 'false', 'no')
-                                       else names.index(cur) if cur in names
-                                       else names.index(DEFAULT_SPLASH) if cur in (None, 'default')
-                                       and DEFAULT_SPLASH in names else 0)
-                            idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
-                            if idx is not None:
-                                val = names[idx]
-                                # picking the built-in default clears the setting (tracks the default)
-                                actions.set_config_setting(ctx, key, [] if val == DEFAULT_SPLASH else [val])
-                                note = f'{key} = {val}'
-                                cs.reload()
-                        elif key == 'effects':              # motion level: auto (unset) / full / reduced / none
-                            opts = [('auto', '(SSH → reduced, else full)'), ('full', '(gradient + splash)'),
-                                    ('reduced', '(no gradient; calmer splash)'), ('none', '(no gradient/splash)')]
-                            names = [o[0] for o in opts]
-                            cur = info['value']             # 'full' | 'reduced' | 'none' | None (auto)
-                            cur_idx = names.index(cur) if cur in names else 0
-                            idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
-                            if idx is not None:
-                                val = names[idx]
-                                actions.set_config_setting(ctx, key, [] if val == 'auto' else [val])
-                                note = f'{key} = {val}'
-                                cs.reload()
-                        elif info['kind'] == 'scalar':      # any other scalar -> text input
-                            new = _input_box(stdscr, pal, f'{key}  (empty clears)',
-                                             str(info['value'] or ''))
-                            if new is not None:
-                                v = new.strip()
-                                actions.set_config_setting(ctx, key, [v] if v else [])
-                                note = f'{key} {"set" if v else "cleared"}'
-                                cs.reload()
-                        elif key == 'driver-preference':    # ordered list -> reorder editor
-                            from ..resolve import DEFAULT_DRIVER_PREFERENCE
-                            cur = info['value'] or list(DEFAULT_DRIVER_PREFERENCE)
-                            new = _order_list(stdscr, pal,
-                                              'driver-preference — space grab, j/k move', cur,
-                                              label=lambda d: f'{_DRIVER_ABBR.get(d, d) + ":":<5}{d}')
-                            if new is not None:
-                                actions.set_config_setting(ctx, key, new)
-                                note = f'{key} reordered'
-                                cs.reload()
-                                menu_dirty = True
-                        elif info['kind'] == 'dir':         # an install-layout path -> text input
-                            new = _input_box(stdscr, pal, f'{key}  (path; empty = default/env)',
-                                             str(info['value'] or ''))
-                            if new is not None:
-                                v = new.strip()
-                                actions.set_config_setting(ctx, key, [v] if v else [])
-                                note = f'{key} {"set" if v else "cleared"}'
-                                cs.reload()
-                                menu_dirty = True
-                        else:                               # other list settings: input box
-                            new = _input_box(stdscr, pal,
-                                             f'{key}  (space-separated; empty clears)',
-                                             ' '.join(info['value'] or []))
-                            if new is not None:
-                                actions.set_config_setting(ctx, key, new.split())
-                                note = f'{key} set'
-                                cs.reload()
-                                menu_dirty = True
-                    except Exception as e:  # noqa: BLE001 — surface, don't crash
-                        note = f'edit failed: {e}'
+                intent = cs.handle(ch, ctx, stdscr, pal)
+                if intent.note is not None:
+                    note = intent.note
+                menu_dirty = menu_dirty or intent.dirty
+                if intent.goto is not None:
+                    screen = intent.goto
                 continue
 
             # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
