@@ -3446,40 +3446,41 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         if cur:
             comp = ctx.routes.components.get(cur)
             desc = (comp.description if comp else '') or '(no description yet)'
-            for k, line in enumerate(_wrap(desc, diw)[:dih - 4]):
+            # A component with NO install method on THIS OS gets a warn banner on its own row (role
+            # issue_warning), stealing one description row — so the moot-but-informative deps line
+            # below still shows (the user wants both, not either/or).
+            _unavail = not ps.available(cur)
+            _desc_rows = (dih - 5) if _unavail else (dih - 4)
+            for k, line in enumerate(_wrap(desc, diw)[:max(0, _desc_rows)]):
                 _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
+            if _unavail:
+                _oses = ps.available_oses(cur)
+                _wtext = (f'⊘ no install method on {ctx.os_info.block} · available on: {", ".join(_oses)}'
+                          if _oses else f'⊘ no install method on {ctx.os_info.block} (declines on every '
+                          'modeled OS)')
+                _put(stdscr, dit + dih - 5, dil, _fit(_wtext, diw),
+                     pal.style('issue_warning', dit + dih - 5, dil, h, w))
             # What this component PULLS IN — the pieces of a `via: parts` aggregator, else its
             # `requires:` deps — each annotated with the method it resolves to ([*via] = pinned), so
             # you can see the composition without tracking it (and, expanded in the catalog, pin a
-            # piece's driver). Capabilities (non-component requires) show plain.
-            # A component with NO install method on THIS OS: say so + name where it DOES route (the
-            # coverage matrix), instead of the (moot) deps line.
-            if not ps.available(cur):
-                _oses = ps.available_oses(cur)
-                _ntext = (f'⊘ no install method on {ctx.os_info.block} · available on: {", ".join(_oses)}'
-                          if _oses else f'⊘ no install method on {ctx.os_info.block} (declines on every '
-                          'modeled OS)')
-                _nrole = 'issue_warning'
+            # piece's driver). Capabilities (non-component requires) show plain. Always shown, even
+            # when unavailable (the banner above says the whole thing won't route here).
+            _parts_here = ps._parts(cur)
+            if _parts_here:
+                _nlabel, _deps = 'parts', _parts_here
             else:
-                # else: what this component PULLS IN — the pieces of a `via: parts` aggregator, else its
-                # `requires:` deps — each annotated with the method it resolves to ([*via] = pinned).
-                _parts_here = ps._parts(cur)
-                if _parts_here:
-                    _nlabel, _deps = 'parts', _parts_here
-                else:
-                    _nlabel = 'requires'
-                    _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
+                _nlabel = 'requires'
+                _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
 
-                def _annot(d):
-                    if d in ctx.routes.components:
-                        _av, _via, _pin = ps._resolve(d)
-                        return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
-                    return d                          # a capability, not an installable component
-                _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
-                    else f'{_nlabel}: (none)'
-                _nrole = 'dependents'
+            def _annot(d):
+                if d in ctx.routes.components:
+                    _av, _via, _pin = ps._resolve(d)
+                    return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
+                return d                          # a capability, not an installable component
+            _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
+                else f'{_nlabel}: (none)'
             _put(stdscr, dit + dih - 4, dil, _fit(_ntext, diw),
-                 pal.style(_nrole, dit + dih - 4, dil, h, w))
+                 pal.style('dependents', dit + dih - 4, dil, h, w))
             # attribute tags (kind filter, orthogonal to profiles): a tag active in the `A` filter
             # is marked ✓ (included) / ✗ (excluded) so you can see why a component shows or hides.
             atags = getattr(comp, 'attrs', []) if comp else []
@@ -4021,18 +4022,96 @@ def _sample_components_state():
     return pm
 
 
+class _SampleCfg:
+    '''A thin overlay over the real Config for the Profiles sample: a handful of reads
+    (is_new/dispositions/included/picks/uninstall_queue + the machine registry) return deterministic
+    synthetic values so every catalog glyph shows; everything else delegates to the real config.'''
+    def __init__(self, real):
+        self._real = real
+
+    def __getattr__(self, k):                        # everything not overridden below -> real config
+        return getattr(self._real, k)
+
+
+class _SampleCtx:
+    '''A ctx whose `.config` is the sample overlay; routes/os_info/paths/runner delegate to the real
+    ctx. Passed to both the ProfileScreen (ps.ctx) and _draw_profiles so their config reads agree.'''
+    def __init__(self, real, config):
+        self._real = real
+        self.config = config
+
+    def __getattr__(self, k):
+        return getattr(self._real, k)
+
+
 def _sample_profiles_state(ctx):
     '''The Profiles sample: the real ProfileScreen (its profile tree + `+include` links + component
-    catalog come from the actual config, which is never empty) with the install overlay ON and a
-    deterministic install-state, so the overlay colours — installed (a tracked row) and orphan_lurking
-    (an installed-but-untracked ⊙ row) — always show, regardless of the machine's real install state.
-    A synthetic empty overlay is injected so overlay() never spawns the real (slow, threaded) scan.'''
+    catalog come from the actual config, which is never empty) fed a synthetic ctx overlay so the
+    catalog glyphs + infobox all show deterministically — a tracked+pinned row (●, [via]), a NEW row
+    (◆/○), an interesting row (☆/⊙), a seen+partial row (·/◐), a staged-for-uninstall row (⮾), and an
+    unavailable row (⊘) — with the cursor parked on a component that has requires + dependents and is
+    forced unavailable, so the infobox shows the ⊘ warn banner alongside the requires/required-by
+    lines. A synthetic empty overlay is injected so overlay() never spawns the real (threaded) scan.'''
     ps = ProfileScreen(ctx)
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
     ps._async_overlay = None
-    ps.install_state = lambda _name, *a, **k: 'all'  # everything "installed": picked -> green, else ⊙ orphan_lurking
-                                                     # (*a/**k: install_state is also called (name, force=…))
+    ps.focus = 'right'                               # the catalog cursor drives the infobox + selection
+
+    vis = [nm for nm, _d in ps._catalog_rows()]      # the stable visible catalog (config-independent)
+    feat = vis[:6]
+
+    def _f(i):
+        return feat[i] if i < len(feat) else None
+    tracked, newc, interesting, seenc, uninst, unavail = (_f(i) for i in range(6))
+
+    # cursor: a real component with BOTH requires and dependents, forced unavailable so the infobox
+    # exercises the ⊘ banner + the requires/required-by lines together.
+    def _has_req(n):
+        return bool(getattr(ctx.routes.components.get(n), 'requires', None))
+
+    def _has_dep(n):
+        try:
+            return bool(ctx.routes.dependents(n))
+        except Exception:                            # noqa: BLE001
+            return False
+    curc = (next((n for n in vis if _has_req(n) and _has_dep(n)), None)
+            or next((n for n in vis if _has_req(n)), None) or (vis[0] if vis else None))
+    if curc in vis:
+        ps.rcur = vis.index(curc)
+
+    _track = {n for n in (tracked, seenc, uninst) if n}       # tracked on this box (● vs ⊙)
+    _new = {n for n in (newc,) if n}
+    _disp = {}
+    if interesting:
+        _disp[interesting] = 'interesting'
+    if seenc:
+        _disp[seenc] = 'seen'
+    _uq = {n for n in (uninst,) if n}
+    _istate = {}
+    for n, s in ((tracked, 'all'), (interesting, 'all'), (seenc, 'some'), (uninst, 'all'),
+                 (newc, 'none'), (unavail, 'none'), (curc, 'none')):
+        if n and n not in _istate:
+            _istate[n] = s
+    ps.install_state = lambda name, *a, **k: _istate.get(name, 'all')
+
+    # force resolution for the pinned / unavailable rows (prime the _resolve cache)
+    if tracked:
+        _av, _via, _pin = ps._resolve(tracked)
+        ps._res[tracked] = (True, _via or 'apt', True)        # pinned method -> [via]
+    for n in (unavail, curc):
+        if n:
+            ps._res[n] = (False, None, False)                 # no install method here -> ⊘
+
+    cfg = _SampleCfg(ctx.config)
+    cfg.is_new = lambda name: name in _new
+    cfg.dispositions = lambda: dict(_disp)
+    cfg.included = lambda: set(_track)
+    cfg.picks = lambda: {'thisbox': set(_track), 'laptop': {tracked} if tracked else set()}
+    cfg.uninstall_queue = lambda: set(_uq)
+    cfg.machine_names = lambda: ['thisbox', 'laptop']
+    cfg.current_machine = lambda: 'thisbox'
+    ps.ctx = _SampleCtx(ctx, cfg)                    # ps + _draw_profiles now read the overlay
     return ps
 
 
@@ -4236,7 +4315,7 @@ def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
         if page == 'components':
             _draw(sub, pal, state, ctx, '', ts.preview_diags, False, 0, 'components')
         elif page == 'profiles':
-            _draw_profiles(sub, pal, state, ctx, '', 'profiles')
+            _draw_profiles(sub, pal, state, getattr(state, 'ctx', ctx), '', 'profiles')
         elif page == 'plugins':
             _draw_plugins(sub, pal, state, ctx, '', 'plugins')
         elif page == 'glue':

@@ -194,7 +194,7 @@ PAGE_ROLES = {
                    'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'menu_new', 'info',
-                  'info_dim', 'dependents', 'method_dim', 'orphan_lurking',
+                  'info_dim', 'dependents', 'method_dim', 'orphan_lurking', 'issue_warning',
                   'status_line', 'footer', 'selection'],
     'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
                   'missing', 'untrusted', 'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta',
