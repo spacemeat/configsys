@@ -314,3 +314,30 @@ def test_source_key_is_python_scoped_for_pypi():
     from configsys.versions import source_key
     assert source_key({'pypi': 'pywal16'}) == 'pypi:pywal16'
     assert source_key({'pypi': 'pywal16', 'python': '3.10.12'}) == 'pypi:pywal16@py3.10.12'
+
+
+def test_concurrent_discovery_of_distinct_keys_persists_every_record(tmp_path):
+    # B9: inspect discovers versions on ~8 threads; each did a full load-modify-WRITE of versions.hu,
+    # so concurrent writers clobbered each other (last-writer-wins, lost discoveries). Every distinct
+    # key discovered in parallel must survive in the on-disk cache.
+    import threading
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    repos = [f'owner/repo{i}' for i in range(24)]
+    responses = {atom_url(r): atom(r, [f'v{i}.0.0']) for i, r in enumerate(repos)}
+    fetch = fetcher(responses)
+    barrier = threading.Barrier(len(repos))
+
+    def go(spec_repo, i):
+        barrier.wait()                                  # maximize overlap of the read-modify-write
+        versions.discover({'github': spec_repo}, paths, fetch=fetch)
+
+    ts = [threading.Thread(target=go, args=(r, i)) for i, r in enumerate(repos)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    disk = versions.VersionCache.load(paths)
+    for i, r in enumerate(repos):
+        key = versions.source_key({'github': r})
+        assert disk.any(key) is not None, f'lost discovery for {r}'
+        assert disk.any(key)['version'] == f'v{i}.0.0'

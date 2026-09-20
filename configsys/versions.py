@@ -16,11 +16,32 @@ import fnmatch
 import json
 import os
 import re
+import threading
 import time
 import urllib.request
 
 from .errors import ConfigError
 from .troveio import emit_hu, load
+
+# Serialize the cache's load-modify-WRITE (inspect discovers versions on ~8 threads; each was doing a
+# full read-modify-write of versions.hu, so concurrent writers clobbered each other — last-writer-wins,
+# lost discoveries). The network fetch stays UNLOCKED; only the persist merges under the lock.
+_CACHE_LOCK = threading.Lock()
+
+
+def _persist(paths, key, version, url, now):
+    '''Merge one freshly-discovered record into the on-disk cache under the lock: re-load the current
+    file, keep an existing asset url when the new one is None (a version-only source), set the record,
+    and save. So two threads discovering different keys never drop each other's write.'''
+    if paths is None:
+        return
+    with _CACHE_LOCK:
+        disk = VersionCache.load(paths)
+        if url is None:
+            prev = disk.any(key)
+            url = prev.get('url') if prev else None
+        disk.set(key, version, url, now)
+        disk.save(paths)
 
 DEFAULT_TTL = 86400  # 24h
 # Version (tag) discovery uses GitHub's ANONYMOUS web feeds — github.com, NOT api.github.com — so
@@ -354,12 +375,10 @@ def _resolve(spec, paths, refresh, fetch, now, ttl, offline=False):
         return (rec['version'], rec.get('url')) if rec else (None, None)
 
     if version:
-        if url is None:                      # version-only source (github atom, crates, …): keep any
-            prev = cache.any(key)            # asset url already resolved for this key by _resolve_asset
+        _persist(paths, key, version, url, now)  # merge under the lock (keeps a prior asset url)
+        if url is None:                          # return the url too, from whatever the cache holds
+            prev = cache.any(key)
             url = prev.get('url') if prev else None
-        cache.set(key, version, url, now)
-        if paths is not None:
-            cache.save(paths)
         return version, url
     rec = cache.any(key)
     return (rec['version'], rec.get('url')) if rec else (None, None)
@@ -391,9 +410,7 @@ def _resolve_asset(spec, paths, refresh, fetch, now, ttl, offline):
     if url:
         rec = cache.any(key)
         ver = version or (rec['version'] if rec else None) or ''
-        cache.set(key, ver, url, now)        # ver is non-empty (the API returns the tag too)
-        if paths is not None:
-            cache.save(paths)
+        _persist(paths, key, ver, url, now)  # ver is non-empty (the API returns the tag too)
         return url
     rec = cache.any(key)
     return rec.get('url') if rec else None
