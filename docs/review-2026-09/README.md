@@ -40,11 +40,15 @@ finding is against a working baseline — this is polish and hardening, not tria
 - **DONE — C1 (D1's highest-value slice):** shared `batch_index` on the Driver base so
   dnf/zypper/pacman/brew/snap batch their startup probes (the non-Debian startup-perf fix) —
   `eae03ac`.
-- **TODO — the remaining big refactors (approved):** D3 unified `run_plan` (CLI+TUI op loop; delivers
-  B10 TUI set-version/report parity — bounded, no podman needed); D2 TUI view-model seam (the biggest
-  structural change, rewrites much of the 6.3k-line menu.py; delivers C3). Plus D1's
-  `NativePkgManager` command-template dedup (wants podman real-install validation, not available in
-  this env), D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
+- **DONE — D3 unified `run_plan`** (`…`): the CLI and TUI share one op-execution loop
+  (`actions.run_plan`); the TUI gained set-version, advisory handling, verify-after-fail, and
+  all-failures persistence (closes B10). (A TUI key to *trigger* set-version is a small follow-on;
+  the plumbing is ready.)
+- **TODO — D2 TUI view-model seam:** the biggest structural change (rewrites much of the 6.3k-line
+  menu.py: `build_vm`/`draw`/`handle` + a screen router); delivers C3 per-frame perf. Best done as
+  its own focused push.
+- **TODO — the rest:** D1's `NativePkgManager` command-template dedup (podman-validatable — podman
+  works in this env), D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
 
 ## 0. Already fixed this session
 
