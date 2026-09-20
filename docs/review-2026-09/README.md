@@ -18,6 +18,18 @@ finding is against a working baseline — this is polish and hardening, not tria
 
 ---
 
+## Progress (updated as work lands)
+
+- **DONE — critical:** tarball `rm -rf $HOME` (`fcafb84`).
+- **DONE — Tier A security (the #1 theme):** A1 gate command-carrying data as code (`f066814`);
+  A2 facets repo/primary-only (`4e45a8b`); A3 dir_name traversal, A4 git option injection, A6
+  `$VERSION` validation, A8 native-pkg-file mktemp, A9 `_alt` quoting, B7 `_KNOWN_TOP_KEYS`
+  (`7f43966`).
+- **TODO — Tier A remainder:** A5 (transitive `plugins:` scope), A7 (asset `sha256:` checksums),
+  A10 (constrain `pubkey-path`/`source-path` to keyring dirs).
+- **TODO:** Tier B correctness (B1–B6, B8–B10), Tier C perf, Tier E docs sync, Tier D refactors
+  (D1/D2/D3 approved), Tier F ABI cleanups (all approved).
+
 ## 0. Already fixed this session
 
 - **`rm -rf $HOME` in the tarball driver (CRITICAL).** A tarball binding is wiped on every
