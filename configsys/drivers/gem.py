@@ -36,22 +36,42 @@ class Gem(Driver):
 
     # -- read -------------------------------------------------------------
 
+    @staticmethod
+    def _real_version(ver):
+        '''The managed version from a `gem list` version group, or None for a default-only gem. A
+        "default gem" (bundler, rdoc, …) ships INSIDE Ruby (rubygems-integration), not as a chosen
+        `gem install` — it can't be uninstalled or version-managed independently, so it's not a
+        managed install and reads as absent. `gem list` marks a default-only gem as "(default: X)";
+        a real install lists its version FIRST ("(2.6.1, default: 2.2.22)").'''
+        return None if ver.startswith('default:') else ver
+
+    def installed_index(self):
+        '''{gem: version} from ONE `gem list` — the base batch_index enumerates once instead of a
+        `gem list -e` call per gem during inspect. Default-only gems are omitted (they read as
+        absent, exactly as get_version reports them).'''
+        r = self.runner.run('gem list')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            m = _LIST_RE.match(line)
+            if m:
+                ver = self._real_version(m.group(2).strip())
+                if ver is not None:
+                    idx[m.group(1)] = ver
+        return idx
+
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one `gem list` when batched
+        if hit:
+            return ver
         r = self.runner.run(f'gem list -e {shlex.quote(self._gem(rc))}')
         if not r.ok or not r.stdout:
             return None
         for line in r.stdout.splitlines():
             m = _LIST_RE.match(line)
             if m and m.group(1) == self._gem(rc):
-                ver = m.group(2).strip()
-                # A "default gem" (bundler, rdoc, …) ships INSIDE Ruby (rubygems-integration), not as
-                # a chosen `gem install` — it can't be uninstalled or version-managed independently, so
-                # it's not a managed install: report it absent. `gem list` marks a default-only gem as
-                # "(default: X)"; a real install lists its version FIRST ("(2.6.1, default: 2.2.22)"),
-                # and _LIST_RE captures that leading real version — which we DO report.
-                if ver.startswith('default:'):
-                    return None
-                return ver
+                return self._real_version(m.group(2).strip())
         return None
 
     # -- mutate -----------------------------------------------------------

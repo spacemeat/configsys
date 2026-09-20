@@ -25,7 +25,24 @@ class Opam(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        '''{package: version} from ONE `opam list` — the base batch_index enumerates once instead of
+        a call per package during inspect. --safe never mutates / never errors on an uninitialized
+        opam (it just yields empty output -> nothing installed).'''
+        r = self.runner.run('opam list --installed --short --columns=name,version --safe')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            parts = line.split()
+            if len(parts) >= 2:
+                idx[parts[0]] = parts[1]
+        return idx
+
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one `opam list` when batched
+        if hit:
+            return ver
         # --safe never mutates and never errors on an uninitialized opam (which otherwise
         # exits 50 demanding `opam init`): it just yields empty output → not installed.
         r = self.runner.run(

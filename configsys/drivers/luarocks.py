@@ -31,7 +31,23 @@ class LuaRocks(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        '''{rock: version} from ONE `luarocks list --porcelain` — the base batch_index enumerates
+        once instead of a call per rock during inspect.'''
+        r = self.runner.run('luarocks list --porcelain')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            parts = line.split('\t')
+            if len(parts) >= 2 and parts[0]:
+                idx.setdefault(parts[0], parts[1])   # first (newest) entry wins
+        return idx
+
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one porcelain listing when batched
+        if hit:
+            return ver
         r = self.runner.run(f'luarocks list --porcelain {shlex.quote(self._rock(rc))}')
         if not r.ok or not r.stdout:
             return None

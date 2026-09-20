@@ -34,13 +34,43 @@ class GoInstall(Driver):
     def _bin(self, rc):
         return self._path(rc).rsplit('/', 1)[-1]  # installed binary = last path segment
 
+    def index_key(self, rc):
+        # the installed_index is keyed by the binary's embedded install `path`, which is the module
+        # path SANS any @version the route wrote — align the batch lookup to that, not raw rc.name.
+        return self._path(rc)
+
     def _at(self, rc, version=None):
         v = version or self.resolve_version(rc) or 'latest'
         return f'{self._path(rc)}@{v}'
 
     # -- read -------------------------------------------------------------
 
+    def installed_index(self):
+        '''{module-path: version} from ONE `go version -m <GOBIN>` over every installed binary — the
+        base batch_index enumerates once instead of a `go version -m <bin>` call per tool during
+        inspect. Go keeps no registry, so this reads each binary's embedded module info: a block
+        headed by "<bin>: goX.Y" carries `\tpath\t<pkg>` (the install path = the route `name`, the
+        default index_key) and `\tmod\t<module>\t<version>`.'''
+        r = self.runner.run(f'go version -m {_GOBIN}')
+        if not r.ok:
+            return None
+        idx = {}
+        path = None
+        for line in r.stdout.splitlines():
+            if line and line == line.lstrip():
+                path = None                           # a new "<bin>: goX.Y" header — reset the block
+                continue
+            parts = line.split()
+            if len(parts) >= 2 and parts[0] == 'path':
+                path = parts[1]
+            elif len(parts) >= 3 and parts[0] == 'mod' and path is not None:
+                idx[path] = parts[2].lstrip('v')      # key by the install path, matching index_key
+        return idx
+
     def get_version(self, rc):
+        ver, hit = self._batched_version(rc)          # answer from the one `go version -m` when batched
+        if hit:
+            return ver
         r = self.runner.run(f'go version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
         if not r.ok or not r.stdout:
             return None
