@@ -1126,16 +1126,20 @@ def _draw_where(stdscr, pal, lines, top, subject):
     return top
 
 
-_FILL_BG_CACHE = {}          # (id(pal), page, h, w) -> [(y, x, blanks, attr)] — the gradient is a pure
-                             # function of position + page + size, identical every frame; compute once.
+# The constant-band SEGMENT GEOMETRY of the diagonal gradient is a pure function of the gradient
+# length + (h, w) — identical every frame — so cache it and skip the per-cell band() scan that found
+# the boundaries (~a third of a Profiles repaint). NOT the resolved fill attr: the palette recycles
+# its 8-bit color pairs every frame (new_frame), so a cached attr's pair number would map to the wrong
+# colour a frame later (banding/skew). fill() is recomputed per SEGMENT each frame — cheap, and it
+# hits the per-frame pair cache, so it allocates once per distinct band, not once per cell.
+_FILL_BG_SEGS = {}           # (grad_len, h, w) -> [(y, x, width)]
 
 
 def _fill_bg(stdscr, pal, h, w):
-    '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row. The
-    segment layout + fill attr depend only on (page, h, w), so it is computed ONCE per palette/page/
-    size and replayed each frame — the per-cell band() recompute was ~a third of a Profiles repaint.'''
-    key = (id(pal), getattr(pal, 'page_name', None), h, w)
-    segs = _FILL_BG_CACHE.get(key)
+    '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row.'''
+    glen = len(getattr(pal, '_grad_bg', ()) or (None,))   # segment layout depends on the band count
+    key = (glen, h, w)
+    segs = _FILL_BG_SEGS.get(key)
     if segs is None:
         segs = []
         for y in range(h):
@@ -1147,14 +1151,14 @@ def _fill_bg(stdscr, pal, h, w):
                     x2 += 1
                 width = x2 - x - (1 if (y == h - 1 and x2 == w) else 0)   # skip the corner cell
                 if width > 0:
-                    segs.append((y, x, ' ' * width, pal.fill(y, x, h, w)))
+                    segs.append((y, x, width))
                 x = x2
-        if len(_FILL_BG_CACHE) > 48:                      # bound it (a few pages × a few window sizes)
-            _FILL_BG_CACHE.clear()
-        _FILL_BG_CACHE[key] = segs
-    for y, x, blanks, attr in segs:
+        if len(_FILL_BG_SEGS) > 64:                        # bound it (a few band counts × window sizes)
+            _FILL_BG_SEGS.clear()
+        _FILL_BG_SEGS[key] = segs
+    for y, x, width in segs:
         try:
-            stdscr.addstr(y, x, blanks, attr)
+            stdscr.addstr(y, x, ' ' * width, pal.fill(y, x, h, w))   # per-frame attr (correct pair)
         except curses.error:
             pass
 
