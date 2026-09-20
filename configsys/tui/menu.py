@@ -4227,11 +4227,12 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
     ts.reload()
     from .theme import ALL_PAGES
     page = ALL_PAGES[ts.page]
-    body_h, lw = h - 3, max(42, 5 * w // 11)
-    map_h = max(6, body_h * 2 // 5)
+    body_h = h - 3
+    list_h = min(max(9, body_h * 2 // 5), max(1, body_h - 1))  # top band: the two lists side by side; the
+    mw = min(max(30, w // 2), max(1, w - 1))   # sample gets the taller rest below, FULL width (wide pages)
 
-    # -- List 1: the shared color map (name -> #rrggbb), two columns when the panel is wide enough --
-    m_it, m_il, m_ih, m_iw = _panel(stdscr, pal, 1, 0, map_h, lw, 'color map (shared)',
+    # -- List 1: the shared color map (name -> #rrggbb), top-LEFT; two columns when wide enough --
+    m_it, m_il, m_ih, m_iw = _panel(stdscr, pal, 1, 0, list_h, mw, 'color map (shared)',
                                     ts.focus == 'map', h, w)
     ncols = 2 if m_iw >= 60 else 1
     rows_per_col = max(1, -(-len(ts.map_names) // ncols))      # ceil
@@ -4254,11 +4255,11 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
              pal.style('label' if sel else 'component', y, x + 6, h, w, selected=sel))
     _scrollbar_v(stdscr, pal, m_it, m_il + m_iw, m_ih, ts.map_top, m_ih, rows_per_col, h, w)
 
-    # -- List 2: the focused page's role styles, plus the gradient endpoints as single-color rows --
+    # -- List 2: the focused page's role styles (top-RIGHT), plus the gradient endpoints as rows --
     roles = ts.role_list()
     ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
-    r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1 + map_h, 0, body_h - map_h, lw,
-                                    _fit(f'page roles — {page}  (F1-7)', lw - 4), ts.focus == 'roles',
+    r_it, r_il, r_ih, r_iw = _panel(stdscr, pal, 1, mw, list_h, w - mw,
+                                    _fit(f'page roles — {page}  (F1-7)', (w - mw) - 4), ts.focus == 'roles',
                                     h, w)
     ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
     for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
@@ -4283,19 +4284,20 @@ def _draw_theme(stdscr, pal, ts, ctx, note, screen, ms=None, sample=True):
              pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
     _scrollbar_v(stdscr, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
 
-    # -- the sample page (right): a live, compressed instance of the REAL page (no outer frame — the
-    # mini page brings its own nav bar / panels / footer). `sample=False` means THIS render IS a
-    # sample (in the Theme-page preview) — suppress the inner slot so it doesn't recurse. --
-    rx, rw = lw + 1, w - lw - 1
+    # -- the sample page (BOTTOM, full width): a live, compressed instance of the REAL page (no outer
+    # frame — the mini page brings its own nav bar / panels / footer). Full width so wide pages
+    # (Profiles' matrix, the plugins diff) preview without truncation. `sample=False` means THIS render
+    # IS a sample (in the Theme-page preview) — suppress the inner slot so it doesn't recurse. --
+    sy, sh = 1 + list_h, body_h - list_h
     if sample:
-        _sample_page(stdscr, pal, ctx, ts, page, 1, rx, body_h, rw, ms)
+        _sample_page(stdscr, pal, ctx, ts, page, sy, 0, sh, w, ms)
         pal.use_page('theme')
     else:
-        for yy in range(1, 1 + body_h):                    # dim the slot; a hint reads "the sample goes here"
-            _put(stdscr, yy, rx, ' ' * rw, pal.style('unit', yy, rx, h, w))
+        for yy in range(sy, sy + sh):                      # dim the slot; a hint reads "the sample goes here"
+            _put(stdscr, yy, 0, ' ' * w, pal.style('unit', yy, 0, h, w))
         hint = '· live sample ·'
-        _put(stdscr, 1 + body_h // 2, rx + max(0, (rw - len(hint)) // 2), _fit(hint, rw),
-             pal.style('info_dim', 1 + body_h // 2, rx, h, w))
+        _put(stdscr, sy + sh // 2, max(0, (w - len(hint)) // 2), _fit(hint, w),
+             pal.style('info_dim', sy + sh // 2, 0, h, w))
 
     from .. import actions
     status = f' terminal color: {pal.color_mode}   ·   edits → {actions.edit_target(ctx)[1]}'
