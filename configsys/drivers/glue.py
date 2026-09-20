@@ -48,6 +48,8 @@ _SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
                 'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d',
                 'elvish': '~/.config/elvish/conf.d'}
 _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
+# the component that INSTALLS each shell (for the managed-install detection) — identity except nu.
+_SHELL_COMPONENT = {'nu': 'nushell'}
 
 # loaders (`loader: <shell>`): hook a shell up to run its ~/.config/<shell>/conf.d/* snippets.
 # fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
@@ -116,15 +118,59 @@ class Glue(Driver):
 
     def _installed_shells(self):
         '''Which shells to ACTIVATE glue for: those whose binary is on PATH (design: per INSTALLED
-        shell, NOT $SHELL — $SHELL is only the login shell). Overridable via CONFIGSYS_GLUE_SHELLS
-        (comma-separated) for tests / to force a set. Bash is the baseline if nothing is detected,
-        so a user is never left with no glue.'''
+        shell, NOT $SHELL — $SHELL is only the login shell) OR that configsys MANAGES (its binary sits
+        in the managed install dir). The managed check cracks the tarball chicken-and-egg: a shell you
+        just installed through configsys (e.g. nushell to ~/apps) shows in the Glue TUI immediately,
+        without opening a fresh shell to get it on PATH first. Overridable via CONFIGSYS_GLUE_SHELLS
+        (comma-separated) for tests / to force a set. Bash is the baseline if nothing is detected.'''
         env = self._env()
         forced = env.get('CONFIGSYS_GLUE_SHELLS')
         if forced is not None:
             return [s.strip() for s in forced.split(',') if s.strip()]
-        found = [s for s in _GLUE_SHELLS if shutil.which(s, path=env.get('PATH'))]
+        on_path = {s for s in _GLUE_SHELLS if shutil.which(s, path=env.get('PATH'))}
+        managed = self._managed_shells()
+        found = [s for s in _GLUE_SHELLS if s in on_path or s in managed]   # _GLUE_SHELLS order, deduped
         return found or ['bash']
+
+    def _managed_shells(self):
+        '''Glue shells configsys manages: the shell's binary is present in its managed install dir (read
+        from the glue-locations cache — component -> dir). Lets a tarball shell be glue-managed before a
+        fresh shell puts it on PATH. Empty when the cache is cold (falls back to PATH detection).'''
+        locs = self._read_location_cache()
+        out = []
+        for shell in _GLUE_SHELLS:
+            d = locs.get(_SHELL_COMPONENT.get(shell, shell))
+            if d and self._shell_binary_in(shell, self._expand(d)):
+                out.append(shell)
+        return out
+
+    def _read_location_cache(self):
+        '''{component: dir} from the glue-locations.tsv cache (what configsys writes for the shell glue).
+        Empty (best-effort) when absent/unreadable.'''
+        out = {}
+        f = getattr(self.paths, 'glue_locations_file', None) if self.paths is not None else None
+        if f is None:
+            return out
+        try:
+            for line in Path(f).read_text(encoding='utf-8').splitlines():
+                name, sep, path = line.partition('\t')
+                if sep and name and path:
+                    out[name] = path
+        except OSError:
+            pass
+        return out
+
+    @staticmethod
+    def _shell_binary_in(shell, d):
+        '''True if an executable named `shell` lives directly in `d`, a versioned subdir, or a bin/ under
+        it (covers a flat tarball like elvish and a versioned one like nushell's nu-*/nu).'''
+        if not d.is_dir():
+            return False
+        for pat in (shell, f'*/{shell}', f'bin/{shell}', f'*/bin/{shell}'):
+            for m in d.glob(pat):
+                if m.is_file() and os.access(m, os.X_OK):
+                    return True
+        return False
 
     def _glue_variants(self, glue, rc):
         '''(shell, ext, src) for each INSTALLED shell that has a snippet for this glue name. The

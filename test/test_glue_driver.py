@@ -150,6 +150,26 @@ def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     assert g.get_version(loader) is None
 
 
+def test_installed_shells_counts_managed_tarball_shell_off_path(tmp_path):
+    # a shell configsys MANAGES (binary in its install dir, per the glue-locations cache) is detected
+    # even when it's not on the current PATH — so a tarball shell shows in the Glue TUI immediately,
+    # without opening a fresh shell to get it on PATH first.
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo'),
+                   'PATH': str(tmp_path / 'no-such-bin')})     # nothing on PATH; NO GLUE_SHELLS override
+    # a managed nushell tarball: <dir>/nu-<ver>-.../nu (versioned subdir), executable
+    nudir = tmp_path / 'apps' / 'nushell'
+    nubin = nudir / 'nu-0.115.1-x86_64-unknown-linux-gnu' / 'nu'
+    nubin.parent.mkdir(parents=True)
+    nubin.write_text('#!/bin/sh\n')
+    os.chmod(nubin, 0o755)
+    p.glue_locations_file.parent.mkdir(parents=True, exist_ok=True)
+    p.glue_locations_file.write_text(f'nushell\t{nudir}\nelvish\t{tmp_path}/absent\n', encoding='utf-8')
+
+    shells = Glue(Runner(pretend=True), paths=p)._installed_shells()
+    assert 'nu' in shells                    # managed tarball with the binary present -> detected off PATH
+    assert 'elvish' not in shells            # cache lists it but its dir/binary is absent -> not detected
+
+
 def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
     # nushell can't dynamically source a dir (it parses the whole program first, so `source` needs a
     # parse-time-constant path — no conf.d loop possible), so like elvish it uses the GESTALT loader:
