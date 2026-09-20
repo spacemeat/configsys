@@ -259,6 +259,8 @@ class Glue(Driver):
         only executable files). Returns dest (or srcpath if there's nothing to copy / no dest).'''
         if dest is None or not srcpath.exists():
             return srcpath
+        if getattr(self.runner, 'pretend', False):         # --pretend must not touch the store
+            return dest
         if dest.is_symlink():                              # never leave a symlink in the store
             dest.unlink()
         need = not dest.exists()
@@ -406,6 +408,8 @@ class Glue(Driver):
         marker block that SOURCES the dir; elvish and nushell (gestalt/inline shells) insert/refresh a
         marker block that INLINES the concatenated conf.d snippets (_inline_block); fish (native
         auto-source) gets the dir only. Returns True if a hookup is in place for this shell.'''
+        if getattr(self.runner, 'pretend', False):         # --pretend: report hooked, write nothing
+            return True
         self._ensure_confd(shell)
         if shell == 'bash':                                # bash rides ~/.bash_aliases
             self._link_bash_aliases(rc)
@@ -419,8 +423,11 @@ class Glue(Driver):
         block = self._rc_block(shell)
         existing = rc_path.read_text() if rc_path.exists() else ''
         if _RC_BEGIN in existing:                           # replace our block in place (idempotent)
+            # `block` is generated shell content (inlined snippets) — as a re.sub REPLACEMENT string a
+            # `\1`/`\g<>`/backslash in it would be reinterpreted (mangling \t, raising on \1). Pass a
+            # function so the replacement is taken literally.
             new = re.sub(re.escape(_RC_BEGIN) + r'.*?' + re.escape(_RC_END) + r'\n?',
-                         block, existing, flags=re.DOTALL)
+                         lambda _m: block, existing, flags=re.DOTALL)
         else:
             sep = '' if (not existing or existing.endswith('\n')) else '\n'
             new = f'{existing}{sep}{block}'
@@ -471,6 +478,8 @@ class Glue(Driver):
     def _remove_shell_loader(self, shell):
         '''Remove our hookup for a shell: bash's ~/.bash_aliases link, or zsh's rc block. Leaves the
         conf.d dir + any snippet content alone.'''
+        if getattr(self.runner, 'pretend', False):         # --pretend: write nothing
+            return
         if shell == 'bash':
             self._remove_bash_aliases()
             return
@@ -639,8 +648,13 @@ class Glue(Driver):
             except OSError:
                 pass
             s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
+            bak = shlex.quote(str(tgt) + BACKUP_SUFFIX)
             lines.append(f'if [ -e {s} ]; then')
             lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
+            # a conf.d dir can be communal (fish): back up a pre-existing REAL file (not our own
+            # symlink) to <name>.pre-configsys instead of clobbering it. -L skips symlinks (ours or
+            # another tool's link is replaced by ln -sfn); -n never overwrites an existing backup.
+            lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then mv -n {t} {bak}; fi')
             lines.append(f'  ln -sfn {s} {t}')
             lines.append(f'else echo "glue: {rc.comp} not populated ({src} absent)" >&2; fi')
         res = self.runner.run('\n'.join(lines), capture=False)

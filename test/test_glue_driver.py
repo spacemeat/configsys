@@ -358,3 +358,49 @@ def test_spec_states_reports_glue_kind(tmp_path):
     rc = _glue_unit()
     states = g.spec_states(rc)
     assert states and all(row[6] == 'glue' for row in states)        # kind column is always 'glue'
+
+
+# -- B6: safety (pretend no-write, literal rc-block regen, communal conf.d backup) ---------------
+
+def test_pretend_install_touches_no_files(tmp_path):
+    # --pretend must not materialize the store, rewrite rc files, or stamp loaders (only the symlink
+    # step went through the runner before; the FS ops ran for real).
+    p = paths_for(tmp_path)
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')
+    drv = Glue(Runner(pretend=True), p)
+    drv.install(_glue_unit())
+    store = p.glue_store_dir / 'bash' / 'conf.d' / 'btop.sh' if hasattr(p, 'glue_store_dir') else None
+    # nothing was written into the store conf.d mirror
+    mirror = list((p.state_dir).rglob('conf.d/*.sh')) if p.state_dir.exists() else []
+    assert mirror == []
+    assert not (p.home / '.bash_aliases').exists()          # loader link not created under pretend
+
+
+def test_rc_block_with_backslashes_is_written_literally(tmp_path):
+    # regeneration used re.sub with the block as the REPLACEMENT string, so a `\1`/`\t` in an inlined
+    # snippet was reinterpreted (mangled) or raised. It must be written byte-for-byte.
+    import types
+    from configsys.drivers import glue as glue_mod
+    from configsys.drivers.glue import _RC_BEGIN, _RC_END
+    p = paths_for(tmp_path, shells='nu')                     # an inline (gestalt) shell
+    drv = Glue(Runner(pretend=False), p)
+    rc_path = drv._expand(glue_mod._SHELL_RC['nu'])          # the rc file the loader actually rewrites
+    rc_path.parent.mkdir(parents=True, exist_ok=True)
+    rc_path.write_text(f'echo hi\n{_RC_BEGIN}\nold\n{_RC_END}\n')
+    tricky = f'{_RC_BEGIN}\nlet x = "a\\1b\tc"\n{_RC_END}\n'
+    drv._rc_block = types.MethodType(lambda self, shell: tricky, drv)   # force a backslashy block
+    assert drv._ensure_shell_loader('nu') is True
+    assert 'a\\1b\tc' in rc_path.read_text()                 # literal, not a backref/tab expansion
+
+
+def test_install_backs_up_a_real_file_in_a_communal_confd(tmp_path):
+    # H1: a conf.d dir can be communal (fish); a pre-existing REAL file at the target is backed up to
+    # <name>.pre-configsys, not clobbered. Assert the generated shell does the guarded mv.
+    p = paths_for(tmp_path, shells='fish')
+    (p.glue_dir / 'shell' / 'fish').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'fish' / 'btop.fish').write_text('# btop\n')
+    r = Runner(pretend=True)
+    Glue(r, p).install(_glue_unit())
+    joined = '\n'.join(r.calls)
+    assert '.pre-configsys' in joined and 'mv -n' in joined and '! -L' in joined
