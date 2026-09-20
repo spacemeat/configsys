@@ -3973,6 +3973,54 @@ def _draw_config(stdscr, pal, cs, ctx, note, screen):
 
 
 # -- Theme editor (its own screen, key 6) ---------------------------------
+def _sample_components_state():
+    '''A STABLE, synthetic Components tree for the Theme editor's F1 sample — always populated and
+    exercising every themeable element (a two-profile tree, components + a nested unit, each driver /
+    scope / version, and every status: installed / outdated / partial / missing / locked / error /
+    unsupported, plus the op badges), so role colors are visible regardless of the user's real install
+    state (which may be empty when there's nothing to do, or never hit certain statuses).'''
+    from ..componentObj import ResolvedComponent
+    from ..installState import ComponentState
+
+    def st(key, req, *, present, iv, lv, scope='user', locked=False, supported=True, error=None):
+        fam, comp = key.split('\\')
+        rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp}, requested_as=set(req))
+        return ComponentState(component=rc, supported=supported, present=present, installed_version=iv,
+                              latest_version=lv, locked=locked, lock_source=('native' if locked else None),
+                              managed=False, error=error, scope=scope)
+    states = {
+        'apt\\ripgrep':     st('apt\\ripgrep', ['ripgrep'], present=True, iv='14.1.0', lv='14.1.0'),   # installed
+        'cargo\\bottom':    st('cargo\\bottom', ['bottom'], present=True, iv='0.9.6', lv='0.10.2'),     # outdated
+        'appImage\\neovim': st('appImage\\neovim', ['neovim'], present=False, iv=None, lv='0.10.2'),    # missing
+        'tarball\\zig':     st('tarball\\zig', ['zig'], present=True, iv='0.13.0', lv='0.13.0',
+                               scope='system', locked=True),                                            # locked (system scope)
+        'flatpak\\firefox': st('flatpak\\firefox', ['firefox'], present=False, iv=None, lv='130.0'),    # firefox: 1 of 2
+        'apt\\flatpak':     st('apt\\flatpak', ['firefox'], present=True, iv='1.14.10', lv='1.14.10'),  # units present -> partial
+        'apt\\libfoo':      st('apt\\libfoo', ['libfoo'], present=True, iv='2.1', lv='2.1',
+                               error='a post-install step failed'),                                     # error
+        'snap\\ondistro':   st('snap\\ondistro', ['ondistro'], present=False, iv=None, lv=None,
+                               supported=False),                                                        # unsupported here
+    }
+    layouts = [('dev-tools', ['ripgrep', 'bottom', 'neovim', 'zig', 'libfoo']),
+               ('web-browsers', ['firefox', 'ondistro'])]
+    pm = MenuState(states, layouts)
+    pm.descriptions = {
+        'ripgrep': 'ripgrep — recursive regex search (`rg`)', 'bottom': 'System monitor (`btm`)',
+        'neovim': 'Hyperextensible Vim-based editor', 'zig': 'The Zig toolchain',
+        'firefox': 'Mozilla Firefox web browser', 'libfoo': 'An example shared library',
+        'ondistro': 'Not packaged on this OS'}
+    try:
+        pm.toggle_expand_all()             # reveal nested units + leaf rows (op badges, driver/version/scope cols)
+    except Exception:                      # noqa: BLE001
+        pass
+    pm.cursor = pm.top = 0
+    for key, op in (('appImage\\neovim', 'install'), ('cargo\\bottom', 'upgrade'),
+                    ('apt\\ripgrep', 'remove'), ('apt\\flatpak', 'lock')):   # one of each op badge
+        if key in states:
+            pm.staged[key] = op
+    return pm
+
+
 class ThemeScreen:
     '''Two lists over one sample page: the shared color MAP (name -> #rrggbb) and the focused page's
     ROLE styles (fg/bg/effects, fg/bg referencing a map name or a literal). Tab toggles focus; a-e
@@ -4001,25 +4049,8 @@ class ThemeScreen:
     def _build_preview(self, ctx, page, ms):
         try:
             if page == 'components':
-                if ms is None:
-                    return None
-                pm = MenuState(ms.states, ms.layouts, None)     # private copy (shares read-only states)
-                pm.descriptions = getattr(ms, 'descriptions', {}) or {}
-                if not any(n.kind in (COMPONENT, UNIT) for n in pm.rows):
-                    try:
-                        pm.toggle_expand_all()                  # show leaf rows so op badges appear
-                    except Exception:                           # noqa: BLE001
-                        pass
-                pm.cursor = pm.top = 0
-                ops, n = ('install', 'upgrade', 'remove', 'lock'), 0   # stage on the FIRST visible leaves
-                for node in pm.rows:
-                    if n >= len(ops):
-                        break
-                    if node.kind in (COMPONENT, UNIT):
-                        keys = [m.key for m in getattr(node, 'members', []) if getattr(m, 'key', None)]
-                        if keys:
-                            pm.staged[keys[0]] = ops[n]; n += 1
-                return pm
+                return _sample_components_state()           # a STABLE synthetic tree, not the user's
+                                                            # real (possibly empty/partial) install set
             if page == 'profiles':
                 return ProfileScreen(ctx)
             if page == 'plugins':

@@ -257,3 +257,19 @@ def test_full_snapshot_is_complete_and_drift_immune():
     # re-resolving the snapshot reproduces the look (self-contained)
     _c, pages = resolve_theme(snap)
     assert pages['components']['roles']['component']['fg'] == (1, 2, 3)
+
+
+def test_theme_components_sample_is_stable_and_covers_every_role():
+    # The Theme F1 sample uses a SYNTHETIC tree (not the user's real, possibly-empty install set), so
+    # every themeable status/element is always visible to colour. It must build with no ctx/data and
+    # exercise all statuses + op badges + the profile/component/unit tree.
+    from configsys.tui.menu import _sample_components_state, COMPONENT, UNIT, PROFILE
+    pm = _sample_components_state()
+    kinds = {n.kind for n in pm._all_nodes()}
+    assert {PROFILE, COMPONENT, UNIT} <= kinds                       # a real tree, not a flat list
+    statuses = {n.status for n in pm._all_nodes() if n.kind in (COMPONENT, UNIT)}
+    assert {'installed', 'outdated', 'partial', 'missing', 'locked', 'error', 'unsupported'} <= statuses
+    assert {'install', 'upgrade', 'remove', 'lock'} == set(pm.staged.values())   # every op badge
+    drivers = {st.component.driver for st in pm.states.values()}
+    assert {'apt', 'cargo', 'flatpak', 'tarball', 'appImage'} <= drivers          # varied methods
+    assert {'user', 'system'} <= {(st.scope or 'user') for st in pm.states.values()}
