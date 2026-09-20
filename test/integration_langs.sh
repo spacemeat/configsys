@@ -50,6 +50,20 @@ bash configsys.sh install bundler
 gem list -e bundler | grep -qi 'bundler' || fail "bundler not listed by gem after install"
 echo "  $(gem list -e bundler | head -1)"
 
+# --- C2: batched installed_index against the live tools -----------------------------
+say "C2: installed_index() enumerates the real tool output (the batched inspect path)"
+python3 - <<'PY'
+from configsys.runner import Runner
+from configsys.drivers.gem import Gem
+from configsys.drivers.go_install import GoInstall
+r = Runner()
+g = Gem(r).installed_index() or {}
+assert 'bundler' in g and g['bundler'][0].isdigit(), f'gem index missing bundler: {g}'
+gi = GoInstall(r).installed_index() or {}
+assert 'golang.org/x/tools/cmd/goimports' in gi, f'go index missing goimports: {gi}'
+print(f'  installed_index OK: bundler {g["bundler"]} | goimports {gi["golang.org/x/tools/cmd/goimports"]}')
+PY
+
 # --- removal / cleanup --------------------------------------------------------------
 say "remove typescript (npm uninstall, userland) — binary must disappear"
 bash configsys.sh remove typescript
