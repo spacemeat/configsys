@@ -130,29 +130,34 @@ class AltDriver(Driver):
     # -- repo + alternatives ----------------------------------------------
 
     def _repo_lines(self, rc):
+        # SECURITY: this whole script runs as root; every route/plugin field below is quoted so it
+        # can't inject shell. The one deliberate expansion is $CODENAME (resolved in-shell), spliced
+        # as a quoted "$CODENAME" into an otherwise-quoted deb line.
         ppa = rc.fields.get('ppa')
         if ppa:
-            return [f'add-apt-repository -y ppa:{ppa}', 'apt-get update']
+            return [f'add-apt-repository -y {shlex.quote("ppa:" + ppa)}', 'apt-get update']
         src = rc.fields.get('apt-source') or self.default_source
         if isinstance(src, dict) and src.get('key') and src.get('deb'):
             v = self._ver(rc)
             key_path = src.get('key-path', f'/etc/apt/trusted.gpg.d/{self.name}.asc')
             list_path = src.get('list', f'/etc/apt/sources.list.d/{self.name}-{v}.list')
-            deb = src['deb'].replace('$VERSION', v)   # $CODENAME resolved in-shell
+            deb = src['deb'].replace('$VERSION', v)   # $CODENAME resolved in-shell (spliced below)
+            deb_q = '"$CODENAME"'.join(shlex.quote(p) for p in ('deb ' + deb).split('$CODENAME'))
             return [
                 'CODENAME="$(. /etc/os-release; echo "$VERSION_CODENAME")"',
                 f'curl -fsSL {shlex.quote(src["key"])} | tee {shlex.quote(key_path)} >/dev/null',
-                f'echo "deb {deb}" | tee {shlex.quote(list_path)} >/dev/null',
+                f'echo {deb_q} | tee {shlex.quote(list_path)} >/dev/null',
                 'apt-get update',
             ]
         return []
 
     def _alt_install(self, rc):
         v, link = self._ver(rc), self._link(rc)
-        parts = [f'update-alternatives --install /usr/bin/{link} {link} '
-                 f'/usr/bin/{link}-{v} {v}']
+        q = shlex.quote
+        parts = [f'update-alternatives --install {q(f"/usr/bin/{link}")} {q(link)} '
+                 f'{q(f"/usr/bin/{link}-{v}")} {q(v)}']
         for s in self._slaves(rc):
-            parts.append(f'--slave /usr/bin/{s} {s} /usr/bin/{s}-{v}')
+            parts.append(f'--slave {q(f"/usr/bin/{s}")} {q(s)} {q(f"/usr/bin/{s}-{v}")}')
         return ' '.join(parts)
 
     # -- mutate -----------------------------------------------------------

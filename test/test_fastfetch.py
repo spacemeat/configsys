@@ -58,7 +58,10 @@ def test_install_downloads_asset_and_installs_with_the_pkg_tool(monkeypatch):
     d.install(_unit())
     cmd = r.calls[-1]
     assert 'curl -fSL' in cmd and 'fastfetch-linux-amd64.deb' in cmd
-    assert 'apt-get install -y' in cmd and '/tmp/configsys-fastfetch.deb' in cmd   # .deb, not .pkg (apt needs the real ext)
+    # downloaded as pkg.deb inside a private root-owned mktemp dir (.deb ext kept; apt needs it),
+    # never a predictable /tmp path an attacker could pre-symlink
+    assert 'apt-get install -y "$PKG"' in cmd and 'pkg.deb' in cmd and 'mktemp -d' in cmd
+    assert '/tmp/configsys-' not in cmd
     assert cmd.startswith('sudo ')
 
 

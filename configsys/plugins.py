@@ -69,7 +69,13 @@ def _decl(entry, *, allow_primary=False):
     '''Normalize one plugins: entry -> {source, ref?, sha256?, primary?} or None.'''
     if not (isinstance(entry, dict) and entry.get('source')):
         return None
-    d = {'source': entry['source'], 'ref': entry.get('ref')}
+    source, ref = str(entry['source']), entry.get('ref')
+    # SECURITY: a source/ref beginning with `-` is parsed by git as an OPTION
+    # (`--upload-pack=<cmd>`, `-c`, …) → local command execution. Drop such an entry (reachable via
+    # a plugin's transitive `plugins:` list, so it must not be honored).
+    if source.startswith('-') or (ref is not None and str(ref).startswith('-')):
+        return None
+    d = {'source': source, 'ref': ref}
     if entry.get('sha256'):
         d['sha256'] = entry['sha256']               # only when pinned (keeps decls tidy)
     if allow_primary and entry.get('primary') in (True, 'true', 'yes'):
@@ -219,13 +225,25 @@ def _set_push_remote(runner, dest, source, *, only_if_unset=False):
 _SCHEME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9+.\-]*:(?!//)')   # `github:`, `tarball:` — NOT `https://`
 
 
+_SAFE_DIR_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]*$')
+
+
 def dir_name(source):
     '''Plugin directory basename: strip a leading `scheme:` prefix (github:, gitlab:, or a
     plugin transport's scheme — but not a `scheme://` URL), then the last path segment minus
-    any .git. So `github:a/b` -> b, `tarball:pkg/x` -> x, `https://h/r.git` -> r, `/a/b` -> b.'''
+    any .git. So `github:a/b` -> b, `tarball:pkg/x` -> x, `https://h/r.git` -> r, `/a/b` -> b.
+
+    SECURITY: the result names an on-disk dir under plugins_dir and is the trust-store key, so it
+    must be a single safe segment. A source that yields `.`, `..`, an empty string, or anything
+    outside `[A-Za-z0-9._-]` (a path-traversal attempt — reachable via a plugin's transitive
+    `plugins:` list) is replaced with a hashed `plugin-<8hex>` name that can never escape the dir.'''
     tail = _SCHEME_RE.sub('', source, count=1)
     name = tail.rstrip('/').split('/')[-1]
-    return name[:-4] if name.endswith('.git') else name
+    if name.endswith('.git'):
+        name = name[:-4]
+    if not _SAFE_DIR_RE.match(name):
+        return 'plugin-' + hashlib.sha1(source.encode('utf-8', 'replace')).hexdigest()[:8]
+    return name
 
 
 def read_manifest(plugin_dir):
@@ -1180,7 +1198,7 @@ def _git_transport(runner, dest, source, ref):
         _set_push_remote(runner, dest, source, only_if_unset=True)   # keep ssh push url, don't clobber a manual one
         return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
     dest.parent.mkdir(parents=True, exist_ok=True)
-    r = runner.run(f'git clone --quiet {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
+    r = runner.run(f'git clone --quiet -- {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
     if r is not None and not r.ok:
         return 'failed'
     _set_push_remote(runner, dest, source)          # push via ssh keys; fetch stays https
@@ -1203,7 +1221,7 @@ def latest_ref(runner, source):
     url = clone_url(source)
     dq = shlex.quote(url)
     genv = _noninteractive_git_env()
-    tags = runner.run(f'git ls-remote --tags --refs {dq}', capture=True, env=genv)
+    tags = runner.run(f'git ls-remote --tags --refs -- {dq}', capture=True, env=genv)
     if tags is not None and tags.ok and tags.stdout:
         vers = [ref for line in tags.stdout.splitlines()
                 if 'refs/tags/' in line
@@ -1211,7 +1229,7 @@ def latest_ref(runner, source):
                 if _SEMVER_TAG.match(ref)]
         if vers:
             return max(vers, key=_version_key), 'tag'
-    heads = runner.run(f'git ls-remote --heads {dq}', capture=True, env=genv)
+    heads = runner.run(f'git ls-remote --heads -- {dq}', capture=True, env=genv)
     if heads is not None and heads.ok and heads.stdout:
         names = {line.rsplit('refs/heads/', 1)[-1].strip() for line in heads.stdout.splitlines()
                  if 'refs/heads/' in line}
@@ -1260,7 +1278,7 @@ def diff_against_ref(runner, plugins_dir, decl, target_ref):
         return [], 'no upstream ref to compare against'
     genv = _noninteractive_git_env()
     cq, dq, rq = shlex.quote(str(pdir)), shlex.quote(clone_url(decl['source'])), shlex.quote(target_ref)
-    fetched = runner.run(f'git -C {cq} fetch --quiet {dq} {rq}', capture=True, env=genv)
+    fetched = runner.run(f'git -C {cq} fetch --quiet -- {dq} {rq}', capture=True, env=genv)
     if fetched is None or not fetched.ok:
         return [], f'could not fetch {target_ref} (unreachable or private?)'
     d = runner.run(f'git -C {cq} diff HEAD..FETCH_HEAD', capture=True, env=genv)

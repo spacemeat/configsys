@@ -187,3 +187,20 @@ def test_source_component_resolves_and_pulls_git(tmp_path):
                  '  mytool: { install: [ { via: source  repo: r  build: make } ] } } }')
     units = set(Resolver(str(p), 'debian', '12').resolve_names(['mytool']))
     assert 'source\\mytool' in units and 'apt\\git' in units     # driver `requires: git` pulled
+
+
+def test_resolve_version_rejects_shell_metacharacters(tmp_path):
+    # a discovered tag name is network input; a metachar-laden one must read as undiscoverable
+    # (None) rather than reach a build shell. Covered at the Driver chokepoint for every driver.
+    from configsys.componentObj import ResolvedComponent
+    from configsys.drivers.source import Source
+    from configsys.runner import Runner
+    drv = Source(Runner(pretend=True))
+    for bad in ('1.0;reboot', '1.0$(id)', '`whoami`', '1 2'):
+        rc = ResolvedComponent(key='source\\x', driver='source', comp='x',
+                               fields={'version': bad, 'repo': 'https://h/r', 'build': 'make'})
+        assert drv.resolve_version(rc) is None
+    for good in ('1.2.3', 'v2024.2.1.11', '1:2.3+build~rc1'):
+        rc = ResolvedComponent(key='source\\x', driver='source', comp='x',
+                               fields={'version': good, 'repo': 'https://h/r', 'build': 'make'})
+        assert drv.resolve_version(rc) == good

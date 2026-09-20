@@ -734,3 +734,22 @@ def test_plugin_retarget_to_a_bad_source_leaves_the_old_plugin_intact(tmp_path, 
     # the OLD plugin survived: decl unchanged, dir still present with its content
     assert [d['source'] for d in plugins.declared(str(uc))] == [str(good)]
     assert synced.exists() and (synced / 'r.hu').exists()
+
+
+# -- security: dir_name traversal + `-`-leading decl injection (2026-09 review) ------------------
+
+def test_dir_name_neutralizes_path_traversal():
+    from configsys import plugins
+    for bad in ('github:a/..', 'github:a/.', 'github:', 'x//', '/', 'github:a/../../etc'):
+        name = plugins.dir_name(bad)
+        assert name not in ('.', '..', '') and '/' not in name and not name.startswith('.')
+        assert plugins._SAFE_DIR_RE.match(name)          # always a single safe segment
+    assert plugins.dir_name('github:me/tools') == 'tools'         # normal case unchanged
+    assert plugins.dir_name('https://h/r.git') == 'r'
+
+
+def test_decl_drops_option_injecting_source_or_ref():
+    from configsys import plugins
+    assert plugins._decl({'source': '--upload-pack=touch /tmp/x'}) is None
+    assert plugins._decl({'source': 'github:a/b', 'ref': '--upload-pack=x'}) is None
+    assert plugins._decl({'source': 'github:a/b', 'ref': 'v1'}) == {'source': 'github:a/b', 'ref': 'v1'}

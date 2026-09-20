@@ -53,7 +53,9 @@ def test_install_adds_llvm_repo_installs_and_registers_alternative():
     assert cmd.startswith('sudo ')                       # whole script under root
     assert 'CODENAME="$(. /etc/os-release; echo "$VERSION_CODENAME")"' in cmd
     assert 'apt.llvm.org/llvm-snapshot.gpg.key' in cmd
-    assert 'deb http://apt.llvm.org/$CODENAME/ llvm-toolchain-$CODENAME-18 main' in cmd
+    # the deb line is quoted with only "$CODENAME" left to expand in-shell (injection-safe)
+    assert 'apt.llvm.org/' in cmd and 'llvm-toolchain-' in cmd and '-18 main' in cmd
+    assert '"$CODENAME"' in cmd
     assert 'apt-get install -y clang-18' in cmd          # only clang, not clang++
     assert ('update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 18 '
             '--slave /usr/bin/clang++ clang++ /usr/bin/clang++-18') in cmd
@@ -65,7 +67,7 @@ def test_repo_uses_version_specific_list_and_key_paths():
     cmd = r.calls[0]
     assert '/etc/apt/sources.list.d/clang-19.list' in cmd
     assert '/etc/apt/trusted.gpg.d/clang.asc' in cmd
-    assert 'llvm-toolchain-$CODENAME-19 main' in cmd
+    assert 'llvm-toolchain-' in cmd and '-19 main' in cmd
 
 
 def test_uninstall_removes_alternative_then_package():

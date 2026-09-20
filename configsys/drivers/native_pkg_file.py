@@ -116,16 +116,18 @@ class NativePkgFile(Driver):
         if not url:
             return Result(f'(native-pkg-file: no release asset resolved for {rc.comp})', 1)
         fmt = self._format()
-        inst = self._install_cmd(fmt, '$PKG')
+        inst = self._install_cmd(fmt, '"$PKG"')
         if inst is None:
             return Result('(native-pkg-file: no supported native package tool on this system)', 1)
         # the file MUST keep the format's real extension: `apt-get install <file>` recognizes a
         # local package only by a `.deb` suffix (a bare `.pkg` -> "E: Unsupported file … given on
         # commandline"), and dnf/rpm likewise want `.rpm`.
         ext = {'deb': 'deb', 'rpm': 'rpm', 'pacman': 'pkg.tar.zst'}.get(fmt, 'pkg')
-        tmp = shlex.quote(f'/tmp/configsys-{rc.comp}.{ext}')
-        cmd = (f'PKG={tmp}; curl -fSL {shlex.quote(url)} -o $PKG && '
-               f'{inst} && rm -f $PKG')
+        # SECURITY: this runs as ROOT. A predictable /tmp name let a local user pre-symlink it so
+        # root's `curl -o` clobbers an arbitrary file. Download into a private root-owned `mktemp -d`
+        # dir (mode 700, unguessable — portable across GNU/busybox, unlike --suffix), and quote $PKG.
+        cmd = (f'D="$(mktemp -d)" && PKG="$D/pkg.{ext}" && '
+               f'curl -fSL {shlex.quote(url)} -o "$PKG" && {inst} && rm -rf "$D"')
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):

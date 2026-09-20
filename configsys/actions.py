@@ -791,6 +791,10 @@ def plugin_remove(ctx, ident, *, keep_dir=False):
         return False, f'no declared plugin matches {ident!r}'
     plugins.set_declared(cfg_file, [d for d in cur if d is not target])
     pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    # defense in depth: dir_name already guarantees a contained segment, but never rmtree a path
+    # that resolves outside the plugins dir (a symlinked plugins_dir, or a future dir_name change).
+    if pdir.resolve().parent != ctx.paths.plugins_dir.resolve():
+        return False, f'refusing to remove {pdir} — outside the plugins dir'
     if pdir.exists() and not ctx.runner.pretend and not keep_dir:
         shutil.rmtree(pdir)
     ctx.invalidate()

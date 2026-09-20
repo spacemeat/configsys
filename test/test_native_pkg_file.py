@@ -33,13 +33,17 @@ def _rc(comp='fastfetch'):
 def test_deb_downloads_to_dot_deb():
     d = _drv('deb')
     d.install(_rc())
-    assert '/tmp/configsys-fastfetch.deb' in d.runner.cmds[0]
-    assert '.pkg' not in d.runner.cmds[0].replace('.pkg.tar', '')   # no bare `.pkg`
-    assert 'apt-get install -y' in d.runner.cmds[0]
+    cmd = d.runner.cmds[0]
+    # downloaded into a private root-owned mktemp dir (no predictable /tmp name), keeping the .deb ext
+    assert 'mktemp -d' in cmd and 'pkg.deb' in cmd
+    assert '/tmp/configsys-' not in cmd                 # no predictable, symlink-attackable path
+    assert 'apt-get install -y "$PKG"' in cmd
 
 
 def test_rpm_downloads_to_dot_rpm():
     d = _drv('rpm')
     d.install(_rc())
-    assert '/tmp/configsys-fastfetch.rpm' in d.runner.cmds[0]
-    assert 'dnf install -y' in d.runner.cmds[0]
+    cmd = d.runner.cmds[0]
+    assert 'mktemp -d' in cmd and 'pkg.rpm' in cmd
+    assert '/tmp/configsys-' not in cmd
+    assert 'dnf install -y "$PKG"' in cmd

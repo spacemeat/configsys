@@ -268,7 +268,7 @@ _KNOWN_TOP_KEYS = frozenset({
     # machine settings / local state
     'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'dirs',
     'effects', 'splash', 'theme', 'keys', 'adopt-installed', 'auto-tighten', 'driver-preference',
-    'install-overlay', 'refresh-before-execute', 'orphans-ignore',
+    'install-overlay', 'refresh-before-execute', 'orphans-ignore', 'locations', 'reboot-advice',
     'detect-coexisting', 'disabled-drivers', 'installer-shell-writes', 'installer-shell-writes-allow',
     'version-floors', 'last-refresh',
 })

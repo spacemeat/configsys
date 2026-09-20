@@ -31,11 +31,17 @@ change without an ABI bump — subclasses must not rely on them.
 
 
 import platform
+import re
 import shlex
 from pathlib import Path
 
 # Base directory for bare-relative install paths under system scope.
 SYSTEM_PREFIX = Path('/opt')
+
+# A resolved version must look like a version: start alphanumeric, then version punctuation only.
+# Anything else (spaces, shell metacharacters) is refused before it can reach a shell — a tag name
+# is network input, not author text. Covers v-prefixed, dotted, epoch (1:2.3), +build, ~pre forms.
+_SAFE_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+~:-]*$')
 
 
 class Driver:
@@ -103,14 +109,24 @@ class Driver:
 
     def resolve_version(self, rc, *, refresh=False):
         '''The version to install / treat as latest. A `version:` dict is a discovery
-        spec (github / url / static); a string is a literal; otherwise None (undiscoverable).'''
+        spec (github / url / static); a string is a literal; otherwise None (undiscoverable).
+
+        SECURITY: a discovered version is often a git TAG NAME scraped from the network, and drivers
+        splice it into shell commands (`$VERSION` in a source `build:`, download URLs). Tag/branch
+        names may legally contain shell metacharacters, so a hostile/compromised upstream could turn
+        a tag into a command. Reject any version outside a strict version charset here, at the one
+        chokepoint every driver uses — an unsafe version reads as undiscoverable (a clean failure),
+        never as injectable text.'''
         spec = self._disco_spec(rc)
+        version = None
         if isinstance(spec, dict):
             from . import versions
-            return versions.discover(spec, self.paths, refresh=refresh, offline=self._offline())
-        if isinstance(spec, str) and spec:
-            return spec
-        return None
+            version = versions.discover(spec, self.paths, refresh=refresh, offline=self._offline())
+        elif isinstance(spec, str) and spec:
+            version = spec
+        if version is not None and not _SAFE_VERSION_RE.match(version):
+            return None
+        return version
 
     def download_url(self, rc, version):
         '''Preferred download URL: a matched github release asset (authoritative,
