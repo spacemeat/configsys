@@ -194,3 +194,20 @@ def test_collapse_via_expand_false():
     ms.cursor = ms.rows.index(next(n for n in ms.rows if n.id == 'c:user:firefox'))
     ms.expand(False)
     assert not any(n.id.startswith('u:user:firefox') for n in ms.rows)
+
+
+def test_lock_op_not_offered_for_a_rolling_manager():
+    # holds_version=False (pacman/apk) -> the Lock action is not applicable; and a stale ledger lock
+    # is never shown as locked on such a component.
+    from configsys.installState import ComponentState
+    from configsys.tui.menu import OPS
+    rc = ResolvedComponent(key='pacman\\btop', driver='pacman', comp='btop', fields={'name': 'btop'})
+    holdable = ComponentState(component=rc, supported=True, present=True, installed_version='1',
+                              latest_version='1', locked=False, lock_source=None, managed=False,
+                              error=None, holds_version=True)
+    rolling = ComponentState(component=rc, supported=True, present=True, installed_version='1',
+                             latest_version='1', locked=False, lock_source=None, managed=False,
+                             error=None, holds_version=False)
+    lock_ok = OPS['lock'][2]
+    assert lock_ok(holdable) is True                 # a normal (holdable) component offers Lock
+    assert lock_ok(rolling) is False                 # a rolling manager does not

@@ -1,8 +1,10 @@
 '''pacman.py — the Arch driver (Arch, Manjaro, SteamOS).
 
 Native packages via pacman. Arch is a rolling release — there is one version (the
-current repo version), so there's no per-package hold or arbitrary version pin: lock
-intent lives in the ledger, and a real upgrade is system-wide (`pacman -Syu`).
+current repo version), and a real upgrade is system-wide (`pacman -Syu`). There is no
+per-package hold and no arbitrary version pin, so configsys DECLINES lock/set-version
+here (holds_version=False) rather than recording an intent a `pacman -Syu` would ignore —
+holding one package back is an unsupported partial upgrade.
 
 Install uses the current sync db (deliberately no `-y`): keep it fresh with a full
 `pacman -Syu` yourself, the Arch way — a bare `pacman -Sy <pkg>` partial upgrade is
@@ -25,6 +27,7 @@ _GROUP = '(group)'
 
 class Pacman(NativePkgManager):
     name = 'pacman'
+    holds_version = False          # rolling: no hold, and repos carry only the current version
     INSTALL = 'pacman -S --noconfirm {pkgs}'
     UPGRADE = 'pacman -S --noconfirm {pkgs}'      # -S already installs-or-upgrades to the current rev
     # REMOVE is custom (group-aware) — see uninstall below.
@@ -93,12 +96,22 @@ class Pacman(NativePkgManager):
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def set_version(self, rc, version):
-        # the repos carry only the current version; pinning an arbitrary one needs the
-        # Arch Linux Archive or a cached package — out of scope. Install the current.
-        return self.install(rc)
+        # Arch is rolling: the repos carry only the CURRENT version (older ones live in the Arch Linux
+        # Archive / a local cache, not the repos), so there's no version to pin to. Decline honestly
+        # instead of silently installing the current version under the guise of pinning `version`.
+        return Result('', 1, advisory=True, stderr=(
+            f'pacman can\'t pin {rc.comp} to {version}: Arch is rolling — its repos carry only the '
+            f'current version. Use `configsys upgrade {rc.comp}` for the current one, or install an '
+            f'old build from the Arch Linux Archive by hand.'))
 
     def lock(self, rc):
-        return Result('(pacman is rolling; lock intent recorded in ledger)', 0)
+        # A lock can't be honored on Arch: `pacman -Syu` (the supported update path) upgrades every
+        # package together, out of configsys's control, and holding one back is an unsupported partial
+        # upgrade. So decline instead of recording an intent nothing will enforce.
+        return Result('', 1, advisory=True, stderr=(
+            f'pacman won\'t lock {rc.comp}: Arch is rolling — a `pacman -Syu` upgrades everything '
+            f'together, so a per-package hold can\'t be honored (holding one back is an unsupported '
+            f'partial upgrade). Nothing was locked.'))
 
     def unlock(self, rc):
-        return Result('(pacman unlock recorded in ledger)', 0)
+        return Result(f'({rc.comp}: pacman has no lock to release)', 0)

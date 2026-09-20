@@ -30,7 +30,8 @@ OPS = {
     'install': ('I', 'op_install', lambda s: s.supported and not s.present),
     'upgrade': ('U', 'op_upgrade', lambda s: s.supported and s.outdated),
     'remove':  ('X', 'op_remove',  lambda s: s.supported and s.present),
-    'lock':    ('L', 'op_lock',    lambda s: s.supported and s.present and not s.locked),
+    'lock':    ('L', 'op_lock',    lambda s: s.supported and s.present and not s.locked
+                                             and s.holds_version),   # not on rolling managers (pacman/apk)
     'unlock':  ('l', 'op_unlock',  lambda s: s.supported and s.locked),
 }
 

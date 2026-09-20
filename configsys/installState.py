@@ -53,6 +53,7 @@ class ComponentState:
     scope: Optional[str] = None  # 'user' | 'system' | None (unsupported driver)
     untrusted: bool = False      # driver exists but its plugin isn't trusted yet (not just unknown)
     also_present: tuple = ()     # coexisting installs via OTHER methods: ((via, package, version), ...)
+    holds_version: bool = True   # driver can hold/pin a version -> lock/set-version are offered
 
     @property
     def key(self):
@@ -204,8 +205,13 @@ class InstallState:
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
                 managed=managed, error=str(e))
 
-        locked = native_lock or led_lock
-        if native_lock and led_lock:
+        # a driver that can't hold a version (rolling: pacman/apk) never reads as locked — a stale
+        # ledger entry from before this was disallowed is ignored, not shown as a lock we can't keep.
+        holds = getattr(drv, 'holds_version', True)
+        locked = holds and (native_lock or led_lock)
+        if not holds:
+            lock_source = None
+        elif native_lock and led_lock:
             lock_source = 'both'
         elif native_lock:
             lock_source = 'native'
@@ -218,6 +224,7 @@ class InstallState:
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
+            holds_version=holds,
             scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target
 
 

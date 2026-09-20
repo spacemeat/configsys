@@ -58,6 +58,14 @@ class Driver:
     # only the driver that produced it reads it.
     _batch = None
 
+    # Whether a specific version can be HELD or PINNED for this driver's packages — a native hold
+    # (apt-mark/dnf versionlock/zypper addlock/brew pin), or a version configsys itself installs and
+    # then declines to auto-upgrade (tarball/cargo/npm/…, where configsys IS the updater). FALSE for a
+    # rolling manager whose repos carry only the current version AND whose OS updater runs out of band
+    # (pacman -Syu / apk upgrade): there a "lock" can't be honored and set-version can't reach an old
+    # version, so lock/set-version are DECLINED and the UI doesn't offer them — no surprises.
+    holds_version = True
+
     def __init__(self, runner, paths=None):
         self.runner = runner
         self.paths = paths   # for drivers that touch the filesystem (tarball, ...)

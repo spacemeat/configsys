@@ -117,8 +117,8 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
                     res = drv.set_version(rc, version)
                 elif cur_op == 'lock':
                     res = drv.lock(rc)
-                    if res.ok and ledger is not None:
-                        ledger.set_lock(key, True)
+                    if res.ok and ledger is not None and getattr(drv, 'holds_version', True):
+                        ledger.set_lock(key, True)   # never record a hold a rolling manager can't keep
                 elif cur_op == 'unlock':
                     res = drv.unlock(rc)
                     if res.ok and ledger is not None:

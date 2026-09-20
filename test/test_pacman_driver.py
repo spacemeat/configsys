@@ -81,10 +81,17 @@ def test_get_latest_parses_si_version():
     assert Pacman(fr).get_latest(pkg()) == '1.4.7-1'
 
 
-def test_rolling_lock_is_ledger_only():
+def test_rolling_manager_declines_lock_and_version_pin():
+    # Arch is rolling: a `pacman -Syu` upgrades everything together, so a per-package hold can't be
+    # honored and the repos carry only the current version. configsys DECLINES lock/set-version
+    # honestly (advisory, not recorded) rather than pretending — no surprises.
     fam = Pacman(Runner(pretend=True))
-    assert fam.is_locked(pkg()) is False
-    assert fam.lock(pkg()).ok and fam.unlock(pkg()).ok    # ledger no-ops
+    assert fam.holds_version is False and fam.is_locked(pkg()) is False
+    lk = fam.lock(pkg())
+    assert not lk.ok and lk.advisory and 'partial upgrade' in lk.output
+    sv = fam.set_version(pkg(), '1.0.0')
+    assert not sv.ok and sv.advisory and "can't pin" in sv.output
+    assert fam.unlock(pkg()).ok                           # unlock is a benign no-op
 
 
 def test_arch_routes_and_name_translations():

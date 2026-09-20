@@ -1,9 +1,9 @@
 '''apk.py — the Alpine Linux driver.
 
 Installs native Alpine packages via `apk`. Alpine is rolling: its repos carry one current
-version per branch, so — like pacman — there is no native per-package hold. Lock intent is
-tracked by configsys's ledger, and set-version leans on apk's `<pkg>=<version>` constraint
-(which only resolves while that version is still in a configured repo / the local cache).
+version per branch, so — like pacman — there is no native per-package hold and no way to keep
+an old version. configsys therefore DECLINES lock/set-version here (holds_version=False)
+instead of recording an intent an `apk upgrade` would ignore.
 
 Query ops (`apk list`) need no root; mutations run under sudo. This driver started life as a
 code plugin of the same shape as examples/examplos (the reference template) and was folded
@@ -31,6 +31,7 @@ def _version_from_apk_list(lines, name):
 
 class Apk(NativePkgManager):
     name = 'apk'
+    holds_version = False          # rolling: no per-package hold; a branch carries one current version
     INSTALL = 'apk add {pkgs}'
     REMOVE = 'apk del {pkgs}'
     UPGRADE = 'apk add --upgrade {pkgs}'
@@ -54,12 +55,17 @@ class Apk(NativePkgManager):
     # -- mutate (under sudo) — install/uninstall/upgrade come from NativePkgManager templates ------
 
     def set_version(self, rc, version):
-        # apk pins with `<pkg>=<version>` — it must still be resolvable in a repo/cache.
-        spec = f'{rc.name}={version}'
-        return self.runner.run(f'apk add {shlex.quote(spec)}', sudo=True, capture=False)
+        # Alpine is rolling: a branch carries one CURRENT version per package (older builds aren't in
+        # the repos), and there's no hold — so `apk add pkg=<old>` would fail to resolve and even a
+        # resolvable pin wouldn't survive the next `apk upgrade`. Decline honestly.
+        return Result('', 1, advisory=True, stderr=(
+            f'apk can\'t pin {rc.comp} to {version}: Alpine is rolling — apk carries one current '
+            f'version per branch, with no per-package hold. Use `configsys upgrade {rc.comp}`.'))
 
     def lock(self, rc):
-        return Result('apk has no native hold; lock intent is tracked by configsys', 0)
+        return Result('', 1, advisory=True, stderr=(
+            f'apk won\'t lock {rc.comp}: Alpine is rolling — apk has no per-package hold and '
+            f'`apk upgrade` moves everything together, so a hold can\'t be honored. Nothing was locked.'))
 
     def unlock(self, rc):
-        return Result('apk unlock recorded by configsys', 0)
+        return Result(f'({rc.comp}: apk has no lock to release)', 0)
