@@ -297,6 +297,9 @@ CONFIG_SETTINGS = {
     'install-overlay':   ('bool',   'Open TUI::Profiles with the install-state overlay on (installed '
                                     'underlined, orphans coloured). On by default; O toggles it.',
                           'configsys(1)'),
+    'reboot-advice':     ('bool',   'After an op (and as a TUI chip), advise when a reboot is needed / '
+                                    'services want a restart, via each distro\'s native check. On by '
+                                    'default.', 'configsys(1)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
@@ -335,6 +338,7 @@ SETTING_NATURE = {
     'adopt-installed':   'uniform',
     'refresh-before-execute': 'uniform',      # a behavior preference (override per-machine with `m`)
     'install-overlay':   'uniform',           # a UI preference
+    'reboot-advice':     'uniform',           # a behavior preference (override per-machine with `m`)
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config

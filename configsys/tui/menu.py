@@ -1253,6 +1253,12 @@ def _draw(stdscr, pal, ms, ctx, note, diags=(), show_diag=False, diag_top=0, scr
         if rx < w - 4:
             _put(stdscr, 1, rx, _fit(rtext, max(1, w - rx - 1)), pal.style(relem, 1, rx, h, w))
             rend = rx + len(rtext)
+        reb = getattr(ctx, '_reboot_pending', None)   # (reboot, reason) cached at build/execute
+        if reb and reb[0]:
+            btext = '  ⚠ reboot advised'
+            if rend + len(btext) < w - 1:
+                _put(stdscr, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
+                rend += len(btext)
     if diags:                                        # attention badge, right-aligned on the title line
         n = len(diags)
         elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
@@ -4887,6 +4893,9 @@ def run(ctx):
         _seed_uninstall(ms, ctx)                  # surface the persisted !uninstall queue as staged removes
         ms._uninstall_q = set(ctx.config.uninstall_queue())
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
+        from .. import rebootcheck                 # (reboot, reason) cached ONCE — the header chip reads
+        ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in _draw
+                               if ctx.config.reboot_advice() else (False, ''))
         diags = ctx.diagnostics(states)
         note = splash_note or ''
         show_diag = False
@@ -6067,6 +6076,11 @@ def run(ctx):
                         note = f'reload failed: {e}'
                     ms.staged.clear()          # the staged ops just ran; don't leave them badged
                     ms.errors = failed
+                    if ctx.config.reboot_advice():   # an install may have left a reboot pending -> chip + toast
+                        from .. import rebootcheck
+                        ctx._reboot_pending = rebootcheck.reboot_pending(ctx)
+                        if ctx._reboot_pending[0]:
+                            note = (note + '   ' if note else '') + f'⚠ reboot advised — {ctx._reboot_pending[1]}'
                     if ps is not None:
                         ps.invalidate_overlay()   # installs changed disk reality -> re-enumerate on next `O`
                     curses.flushinp()  # ...and any typed during the re-inspect

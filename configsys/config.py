@@ -265,6 +265,13 @@ class Config:
         v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
         return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
 
+    def reboot_advice(self):
+        '''Whether to surface a "reboot advised / services need restart" advisory after an op and as a
+        TUI chip (default ON). Uses each family's native check (no needrestart dep). A machine setting
+        (repo < primary < user); set false to silence.'''
+        v = layers.merge_scalar(self._layers, 'reboot-advice', _MACHINE_ROLES)
+        return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else True
+
     def block_installer_shell_writes(self):
         '''Default ON (block): wrap each component install so an installer can't scribble in your
         shell rc files (~/.bashrc, ~/.zshrc, …). configsys owns shell integration (the glue layer),

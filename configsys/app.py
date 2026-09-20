@@ -739,7 +739,25 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
         ledger.save(ctx.paths)
     if failures:
         _offer_report(ctx, failures, fatal=n_fatal)
+    if op in ('install', 'upgrade', 'set-version') and getattr(ctx, 'config', None) is not None \
+            and ctx.config.reboot_advice():
+        print_reboot_advisory(ctx)     # "reboot advised / N services need restart", per the native check
     return rc_code
+
+
+def print_reboot_advisory(ctx):
+    '''Print the reboot/restart advisory (blank if nothing's needed). Shared by ops and `refresh`.'''
+    from . import rebootcheck
+    adv = rebootcheck.advisory(ctx)
+    if not adv.actionable:
+        return
+    if adv.reboot:
+        print(f'\nconfigsys: ⚠ reboot advised — {adv.reason}.')
+    if adv.services:
+        shown = ', '.join(adv.services[:8]) + ('…' if len(adv.services) > 8 else '')
+        head = 'also, ' if adv.reboot else 'configsys: '
+        print(f'{head}{len(adv.services)} service(s) still using old libraries: {shown}'
+              f'{"" if adv.reboot else " — restart them or reboot"}.')
 
 
 def _installed_despite_failure(drv, rc, op, version):
@@ -1206,6 +1224,8 @@ def cmd_refresh(ctx, args):
             ok = False                                 # nothing refreshed -> don't stamp
     if ok:
         refreshstate.record(ctx.paths)                # stamp only a successful index refresh
+    if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():
+        print_reboot_advisory(ctx)                    # a refresh can reveal a pending reboot too
     return 0
 
 
