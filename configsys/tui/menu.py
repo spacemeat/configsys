@@ -1126,22 +1126,37 @@ def _draw_where(stdscr, pal, lines, top, subject):
     return top
 
 
+_FILL_BG_CACHE = {}          # (id(pal), page, h, w) -> [(y, x, blanks, attr)] — the gradient is a pure
+                             # function of position + page + size, identical every frame; compute once.
+
+
 def _fill_bg(stdscr, pal, h, w):
-    '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row.'''
-    for y in range(h):
-        x = 0
-        while x < w:
-            b = pal.band(y, x, h, w)
-            x2 = x + 1
-            while x2 < w and pal.band(y, x2, h, w) == b:
-                x2 += 1
-            width = x2 - x - (1 if (y == h - 1 and x2 == w) else 0)   # skip the corner cell
-            if width > 0:
-                try:
-                    stdscr.addstr(y, x, ' ' * width, pal.fill(y, x, h, w))
-                except curses.error:
-                    pass
-            x = x2
+    '''Paint the diagonal gradient behind the whole screen, in constant-band segments per row. The
+    segment layout + fill attr depend only on (page, h, w), so it is computed ONCE per palette/page/
+    size and replayed each frame — the per-cell band() recompute was ~a third of a Profiles repaint.'''
+    key = (id(pal), getattr(pal, 'page_name', None), h, w)
+    segs = _FILL_BG_CACHE.get(key)
+    if segs is None:
+        segs = []
+        for y in range(h):
+            x = 0
+            while x < w:
+                b = pal.band(y, x, h, w)
+                x2 = x + 1
+                while x2 < w and pal.band(y, x2, h, w) == b:
+                    x2 += 1
+                width = x2 - x - (1 if (y == h - 1 and x2 == w) else 0)   # skip the corner cell
+                if width > 0:
+                    segs.append((y, x, ' ' * width, pal.fill(y, x, h, w)))
+                x = x2
+        if len(_FILL_BG_CACHE) > 48:                      # bound it (a few pages × a few window sizes)
+            _FILL_BG_CACHE.clear()
+        _FILL_BG_CACHE[key] = segs
+    for y, x, blanks, attr in segs:
+        try:
+            stdscr.addstr(y, x, blanks, attr)
+        except curses.error:
+            pass
 
 
 # -- screen router / nav bar ----------------------------------------------
@@ -2513,6 +2528,9 @@ class ProfileScreen:
         self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
                                                # by default (each has its own page)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
+        self._parts_cache = {}           # component -> its context-valid `via: parts` list; same lifecycle
+                                         # as _res (a `when:`/pin thing, not a membership edit) — the
+                                         # hot per-frame call, ~28ms/frame uncached on a 760-component catalog
         self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
         self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
@@ -2706,6 +2724,12 @@ class ProfileScreen:
         'profile' (a top-level profile), 'include' (a `+other` child — a live include), or 'group'
         (a layer-group header, key starts _GKEY). A root profile's children are its `+includes`.
         `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
+        # cache: the tree changes only with config identity (an edit -> ctx.invalidate) + the browse
+        # toggles (filter / grouping / expand / collapse). Called ~5x per frame, so memoize on that.
+        sig = (id(self.ctx.config), self.pfilter, self.grouped,
+               frozenset(self.expanded), frozenset(self.collapsed_groups))
+        if getattr(self, '_vpn_sig', None) == sig:
+            return self._vpn_cache
         f = self.pfilter.lower()
         # BROWSE LENS: only repo/plugin profiles (system, shipped). Authored user profiles (machine/
         # primary/user) and reserved names (!uninstall, all, @picks) are irrelevant in the matrix model.
@@ -2732,6 +2756,7 @@ class ProfileScreen:
         if not self.grouped:
             for r in roots:
                 walk(r, 0, [], 'profile', None)      # flat view: merged/top read (group None)
+            self._vpn_sig, self._vpn_cache = sig, out
             return out
         buckets = {}
         for r in roots:
@@ -2750,6 +2775,7 @@ class ProfileScreen:
             if not collapsed:
                 for r in grp:                        # members stay at depth 0 (header is a full-width bar)
                     walk(r, 0, [], 'profile', gid)
+        self._vpn_sig, self._vpn_cache = sig, out
         return out
 
     def is_group_header(self, nd):
@@ -2884,8 +2910,12 @@ class ProfileScreen:
         Filtering by `when:` is essential: a component like vulkan-runtime lists DIFFERENT parts per OS,
         so unioning across all bindings would count another distro's packages as missing parts and
         falsely read the aggregate as partially installed (◐).'''
+        cached = self._parts_cache.get(name)
+        if cached is not None:
+            return cached
         comp = self.ctx.routes.components.get(name)
         if comp is None:
+            self._parts_cache[name] = []
             return []
         out = list(getattr(comp, 'parts', []) or [])
         r = self.ctx.routes
@@ -2906,6 +2936,7 @@ class ProfileScreen:
             if p not in seen:
                 seen.add(p)
                 uniq.append(p)
+        self._parts_cache[name] = uniq
         return uniq
 
     def _hard_deps(self, name, _stack=()):
@@ -5436,6 +5467,7 @@ def run(ctx):
                         if changed:
                             ctx.invalidate()               # re-read so the new [via] pin shows
                             ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
+                            ps._parts_cache.pop(name, None)   # its parts may change with the new method too
                             ps.reload()
                             menu_dirty = True
                 elif pfact == 'comp-machines' and ps.focus == 'right':

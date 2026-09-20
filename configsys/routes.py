@@ -402,6 +402,7 @@ class Resolver:
         self.pins = pins or {}
         self.preference = preference or None   # driver-preference order; None = built-in default
         self.disabled = frozenset(disabled or ())   # vias disabled on this machine (`disabled-drivers:`)
+        self._dep_index = None                       # lazy cap -> {dependent components} reverse index
 
     @property
     def cascade_names(self):
@@ -503,16 +504,21 @@ class Resolver:
         if comp is None:
             return []
         caps = set(comp.provides) | {name}          # what `name` can satisfy
-        comps = []
-        for other, c in self.components.items():
-            if other == name:
-                continue
-            edges = set(c.requires) | set(c.suggests) | set(c.parts)   # component-level edges
-            for b in c.bindings:                                      # + every binding's edges
-                edges |= set(cap_names(b.details.get('requires')))
-                edges |= set(cap_names(b.details.get('suggests')))
-                edges |= set(_as_list(b.details.get('parts')))        # a `via: parts` bundle's members
-            if edges & caps:
-                comps.append(other)
+        # reverse index (cap -> {components that depend on it}) built ONCE — components are immutable
+        # after load, so a full rescan per call (this is called per catalog cursor move in the TUI, and
+        # per orphan) was pure waste.
+        if self._dep_index is None:
+            idx = {}
+            for other, c in self.components.items():
+                edges = set(c.requires) | set(c.suggests) | set(c.parts)   # component-level edges
+                for b in c.bindings:                                      # + every binding's edges
+                    edges |= set(cap_names(b.details.get('requires')))
+                    edges |= set(cap_names(b.details.get('suggests')))
+                    edges |= set(_as_list(b.details.get('parts')))        # a `via: parts` bundle's members
+                for cap in edges:
+                    idx.setdefault(cap, set()).add(other)
+            self._dep_index = idx
+        comps = set().union(*(self._dep_index.get(cap, ()) for cap in caps)) if caps else set()
+        comps.discard(name)
         drivers = [d for d, reqs in self.drivers.items() if caps & set(reqs)]
         return [(n, False) for n in sorted(comps)] + [(n, True) for n in sorted(drivers)]

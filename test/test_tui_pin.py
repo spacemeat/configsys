@@ -373,3 +373,22 @@ def test_thumb_scrollbar_math():
     assert _thumb(20, 10, 10, 20) == (10, 10)            # scrolled to the end -> thumb at the bottom
     pos, size = _thumb(20, 5, 10, 20)                    # mid-scroll -> thumb somewhere in between
     assert 0 < pos < 20 - size
+
+
+def test_visible_pnodes_cache_invalidates_on_expand_and_filter(tmp_path):
+    # D2 perf: visible_pnodes is memoized on (config identity, filter, grouping, expand/collapse). The
+    # cache must refresh when any of those UI toggles change, or the tree would go stale.
+    from configsys.tui.menu import ProfileScreen
+    ps = ProfileScreen(_ctx(tmp_path))
+    base = ps.visible_pnodes()
+    assert ps.visible_pnodes() is ps._vpn_cache            # second call hits the cache (same object)
+    # expand the first expandable node -> the tree must grow / change
+    expandable = next((nd for nd in base if nd[3]), None)   # nd[3] = expandable
+    if expandable is not None:
+        ps.expanded.add(expandable[2])                      # nd[2] = key
+        assert ps.visible_pnodes() is not base              # recomputed
+        assert len(ps.visible_pnodes()) > len(base)         # the include children appeared
+    # a filter change also refreshes
+    prev = ps.visible_pnodes()
+    ps.pfilter = 'zzz-no-such-profile'
+    assert ps.visible_pnodes() is not prev

@@ -475,23 +475,31 @@ class Config:
         through a `+other` cross-profile include (it belongs to the other profile there, but its members
         still land in this profile). Both sorted; a profile that fails to expand is skipped, never fatal.
         For the Profiles screen's "in profiles: …" detail.'''
-        direct, indirect = [], []
-        for p in self.profile_names():
-            if p.startswith('!'):                        # reserved (e.g. !uninstall) isn't real membership
-                continue
-            try:
-                own = self.profile_own_components(p)
-            except ConfigError:
-                continue
-            if name in own:
-                direct.append(p)
-                continue
-            try:
-                if name in self.profile_components(p):
-                    indirect.append(p)
-            except ConfigError:
-                pass
-        return direct, indirect
+        # invert to a {component: (direct, indirect)} index ONCE per Config (each profile expanded a
+        # single time), instead of re-expanding every profile on each call — this is hit per catalog
+        # cursor move on the Profiles screen and per orphan. Rebuilt automatically on ctx.invalidate
+        # (a fresh Config instance). Lists stay in profile_names() order (behavior-preserving).
+        if getattr(self, '_pc_index', None) is None:
+            direct_of, indirect_of = {}, {}
+            for p in self.profile_names():
+                if p.startswith('!'):                    # reserved (e.g. !uninstall) isn't real membership
+                    continue
+                try:
+                    own = self.profile_own_components(p)
+                except ConfigError:
+                    continue
+                for c in own:
+                    direct_of.setdefault(c, []).append(p)
+                try:
+                    comps = self.profile_components(p)
+                except ConfigError:
+                    comps = ()
+                for c in comps:
+                    if c not in own:
+                        indirect_of.setdefault(c, []).append(p)
+            self._pc_index = (direct_of, indirect_of)
+        direct_of, indirect_of = self._pc_index
+        return list(direct_of.get(name, [])), list(indirect_of.get(name, []))
 
     def profile_removed(self, profile, ceiling=None):
         '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`
