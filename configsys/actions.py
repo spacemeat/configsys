@@ -11,6 +11,16 @@ from pathlib import Path
 from . import plugins
 
 
+def invalidate_location_cache(ctx):
+    '''Drop the glue-locations cache after an edit that changes WHERE a component installs (a method
+    pin, a pick added/removed) so the next shell startup recomputes it. Lives here (not app.py) and
+    is called from inside the shared writers, so neither the CLI nor the TUI can forget it.'''
+    try:
+        ctx.paths.glue_locations_file.unlink()
+    except (FileNotFoundError, OSError):
+        pass
+
+
 def edit_target(ctx):
     '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
     synced (so edits travel to your other machines), else this machine's top config. NOTE: the
@@ -129,6 +139,7 @@ def set_included(ctx, comp, machines, on):
             plugins.set_picks(tfile, picks)
             labels.add(label)
     if changed:
+        invalidate_location_cache(ctx)               # the install set changed -> recompute glue locs
         ctx.invalidate()
     return changed, ' + '.join(sorted(labels)) if labels else 'picks'
 
@@ -146,6 +157,7 @@ def set_included_clear_machine(ctx, machine):
             plugins.set_picks(tfile, picks)
             changed = True
     if changed:
+        invalidate_location_cache(ctx)
         ctx.invalidate()
     return changed, 'picks'
 

@@ -1520,6 +1520,8 @@ def _apply_method_pin(ctx, name, via, already_pinned):
     pins = plugins.read_pins(ctx.paths.user_config_file)
     pins[name] = via
     plugins.set_pins(ctx.paths.user_config_file, pins)
+    from .. import actions
+    actions.invalidate_location_cache(ctx)           # a method switch can change where `name` installs
     hint = (f'pinned {name} → {via} (local); '
             f'run `configsys pin promote {name}` to make it portable via your primary plugin.')
     return True, f'pinned {name} → {via}', hint
@@ -1645,6 +1647,8 @@ def _apply_provider_pin(ctx, cap, provider, current):
     pins = plugins.read_pins(ctx.paths.user_config_file)
     pins[cap] = provider
     plugins.set_pins(ctx.paths.user_config_file, pins)
+    from .. import actions
+    actions.invalidate_location_cache(ctx)           # a provider switch can change install locations
     hint = (f'set provider {cap} → {provider} (local); '
             f'run `configsys pin promote {cap}` to make it portable via your primary plugin.')
     return True, f'{cap} now provided by {provider}', hint
@@ -3437,10 +3441,10 @@ def _draw_profiles(stdscr, pal, ps, ctx, note, screen):
         body = '[ ' + '  '.join(shown) + ' ]' if shown else '[ ]'
         for k, line in enumerate(_wordwrap(body, diw)[:dih - 1]):
             _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-        if len(_defs) > 1:                                    # note the lower layers that also define it
-            note = '(also in: ' + ', '.join(d['role'] for d in _defs[:-1]) + ')'
-            _put(stdscr, dit + dih - 1, dil, _fit(note, diw),
-                 pal.style('method_dim', dit + dih - 1, dil, h, w))
+        if len(_defs) > 1:                                    # name the lower layers that also define it
+            _layer_note = '(also in: ' + ', '.join(d['role'] for d in _defs[:-1]) + ')'
+            _put(stdscr, dit + dih - 1, dil, _fit(_layer_note, diw),  # own local — must NOT clobber the
+                 pal.style('method_dim', dit + dih - 1, dil, h, w))   # `note` param (the action feedback)
     elif desc_h:
         dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
         if cur:

@@ -36,3 +36,33 @@ def test_path_driver_prefers_location_override():
     plain = ResolvedComponent(key='source\\rg', driver='source', comp='rg',
                               fields={'installDir': '/tmp/rg'})
     assert str(d._src_dir(plain)) == '/tmp/rg'                          # no override -> computed dir
+
+
+def test_prepare_units_stamps_locations_override_for_op_and_location_paths(tmp_path):
+    # regression: install/remove/upgrade/lock and `configsys location` resolve their own units and
+    # historically applied ONLY the scope default, ignoring `locations:` — so a relocated component
+    # installed/reported at the wrong dir. Context.prepare_units (now on every such path) stamps both.
+    from configsys.app import Context, build_parser
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text('{ locations: { bazelisk: /opt/bztest } }')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    units = ctx.routes.resolve_names(['bazelisk'])
+    ctx.prepare_units(units)
+    rc = next(u for u in units.values() if u.comp == 'bazelisk')
+    assert rc.fields.get('location-override') == '/opt/bztest'
+
+
+def test_set_included_invalidates_the_glue_location_cache(tmp_path):
+    # B4: a pick changes the install set (hence glue PATH targets), so set_included must drop the
+    # glue-locations cache — from INSIDE the shared action, so neither the CLI nor the TUI forgets.
+    from configsys.app import Context, build_parser
+    from configsys import actions
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    ctx.ensure_user_config()                          # the real flow always has a config on disk
+    cache = ctx.paths.glue_locations_file
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text('bazelisk\t/x\n')
+    assert cache.exists()
+    n, _ = actions.set_included(ctx, 'bazelisk', [ctx.config.current_machine()], True)
+    assert n == 1 and not cache.exists()

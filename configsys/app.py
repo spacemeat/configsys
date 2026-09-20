@@ -358,6 +358,15 @@ class Context:
                     rc.fields.setdefault('location-override', locs[rc.comp])
         return units
 
+    def prepare_units(self, units):
+        '''Stamp BOTH the scope default and the `locations:` override onto freshly-resolved units —
+        the single preparation every code path must run before handing units to a driver (inspect,
+        install/remove/upgrade/lock, `location`). Calling only one (as the CLI op path historically
+        did) makes a relocated component install/report at the wrong dir. No surprises.'''
+        self.apply_scope_default(units)
+        self.apply_locations(units)
+        return units
+
     def ensure_user_config(self, *, offer_primary=False):
         p = self.paths.user_config_file
         if p.exists():
@@ -430,8 +439,7 @@ class Context:
             r.error(f'{name}: {self.resolve_errors[name]}')
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
         self._report_routing(routes, requested)         # -v overrides, -vv winning binding + why
-        self.apply_scope_default(units)
-        self.apply_locations(units)
+        self.prepare_units(units)
         ledger = Ledger.load(self.paths)
         inspector = InstallState(self.runner, ledger, self.paths,
                                  pending_vias=self.plugin_pending_vias)
@@ -468,8 +476,7 @@ class Context:
         units = {k: rc for k, rc in units.items() if rc.comp in wanted}
         if not units:
             return {}
-        self.apply_scope_default(units)
-        self.apply_locations(units)
+        self.prepare_units(units)
         return InstallState(self.runner, Ledger.load(self.paths), self.paths,
                             pending_vias=self.plugin_pending_vias).inspect(units, reuse=reuse)
 
@@ -639,7 +646,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
     if not roots:
         print(f'configsys: nothing resolved for {names}')
         return 1
-    ctx.apply_scope_default(units)
+    ctx.prepare_units(units)
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]
@@ -1504,9 +1511,7 @@ def cmd_picks(ctx, args):
     machines = getattr(args, 'machines', None) or [cfg.current_machine()]
 
     if sub in ('add', 'rm'):
-        n, label = actions.set_included(ctx, args.component, machines, sub == 'add')
-        if n:
-            invalidate_location_cache(ctx)           # the requested set changed -> recompute glue locs
+        n, label = actions.set_included(ctx, args.component, machines, sub == 'add')  # invalidates glue cache
         verb = 'picked' if sub == 'add' else 'unpicked'
         print(f'configsys: {args.component} {verb} on {", ".join(machines)}  (in {label})' if n
               else f'configsys: no change — {args.component} already '
@@ -1645,6 +1650,7 @@ def cmd_location(ctx, args):
     except ResolveError as e:
         print(f'configsys: {e}', file=sys.stderr)
         return 1
+    ctx.prepare_units(units)                             # honor scope + `locations:` (else wrong dir)
     own = [rc for rc in units.values() if rc.comp == args.name]
     if not own:
         print(f'configsys: {args.name} resolves to nothing here', file=sys.stderr)
@@ -1697,6 +1703,7 @@ def _location_lines(ctx):
         units = r.resolve_names(names)
     except ResolveError:
         units, _errs = r.resolve_resilient(names)        # one bad entry shouldn't blank the whole list
+    ctx.prepare_units(units)                             # honor scope + `locations:` for the glue cache
     seen, lines = set(), []
     for rc in units.values():
         if rc.comp in seen:
@@ -1729,12 +1736,9 @@ def write_location_cache(ctx, lines=None):
 
 
 def invalidate_location_cache(ctx):
-    '''Drop the glue-locations cache after an edit that can change WHERE a component installs (a pin
-    switching methods, a pick added/removed) — the next shell startup recomputes it fresh.'''
-    try:
-        ctx.paths.glue_locations_file.unlink()
-    except (FileNotFoundError, OSError):
-        pass
+    '''Re-export of actions.invalidate_location_cache (kept here for the CLI pin paths + tests).'''
+    from . import actions
+    actions.invalidate_location_cache(ctx)
 
 
 def _location_all(ctx):
