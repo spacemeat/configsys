@@ -25,10 +25,19 @@ finding is against a working baseline — this is polish and hardening, not tria
   A2 facets repo/primary-only (`4e45a8b`); A3 dir_name traversal, A4 git option injection, A6
   `$VERSION` validation, A8 native-pkg-file mktemp, A9 `_alt` quoting, B7 `_KNOWN_TOP_KEYS`
   (`7f43966`).
+- **DONE — Tier B correctness:** B1 pin-namespace collision + B2 disabled-context (`468a6d3`…
+  `b12`), B3 CLI `locations:` + B4 glue-cache invalidation + B5 note-clobber (`468a6d3`), B8
+  driver bugs — apt multi-package lock / flatpak empty hub / dnf keyless repo (`f684a71`), B6 glue
+  safety — literal rc regen / `--pretend` / communal-conf.d backup (`328d25e`), B9 version-cache
+  race (`4553619`). (B10 folds into D3.)
+- **DONE — Tier E docs:** README/config-format/routing-model/theming/plugins/CLAUDE.md synced to
+  the picks model; 24 plan docs stamped; argparse help + man pages regenerated (`acfdecc`).
 - **TODO — Tier A remainder:** A5 (transitive `plugins:` scope), A7 (asset `sha256:` checksums),
   A10 (constrain `pubkey-path`/`source-path` to keyring dirs).
-- **TODO:** Tier B correctness (B1–B6, B8–B10), Tier C perf, Tier E docs sync, Tier D refactors
-  (D1/D2/D3 approved), Tier F ABI cleanups (all approved).
+- **TODO — the big refactors (approved) + folded perf:** D1 `NativePkgManager` base (delivers C1
+  native `batch_index`), D2 TUI view-model seam (delivers C3), D3 unified `run_plan` (delivers
+  B10 parity); D4 `ModuleDriver` base (C2); C4/C5 caching; Tier F ABI cleanups. Each D item is a
+  large, self-contained structural change best done as its own focused unit.
 
 ## 0. Already fixed this session
 
