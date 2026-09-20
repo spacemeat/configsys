@@ -208,7 +208,7 @@ def _pf(entry):
 
 
 def load(path, overrides_path=None, plugin_files=(), validate=True,
-         warnings_out=None, layers_out=None):
+         warnings_out=None, layers_out=None, command_trust=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < the user's config, each with
@@ -231,16 +231,28 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         layers_out.extend(layer_list)
 
     # SECURITY: a `facets: { detect: … }` probe runs a shell command on EVERY resolve/startup, with
-    # no install and no user action. Merge facets only from the fully-trusted repo and the user's
-    # blessed `primary` layer — never a plain `plugin` (a synced/transitive data plugin), so an
-    # untrusted plugin can't get shell at startup. A dropped plugin facet is warned, not silent.
-    if warnings_out is not None:
-        for _lyr in layer_list:
-            if _lyr.role == 'plugin' and isinstance(_lyr.data.get('facets'), dict) and _lyr.data['facets']:
-                warnings_out.append(f'{_lyr.path}: `facets:` from a plugin is ignored (only the repo '
-                                    f'or your primary plugin may declare hardware/environment probes)')
+    # no install and no user action. So facets are command-carrying data (like via:script/source): the
+    # repo's always merge; a plugin's merge ONLY when that plugin is content-TRUSTED (`command_trust`,
+    # from plugins.command_source_trusted). An untrusted plugin's facets are dropped with an
+    # actionable warning — never silent, never blanket-refused (a trusted plugin gets its probes).
+    def _facet_ok(lyr):
+        if lyr.role == 'repo':
+            return True
+        if lyr.role in ('plugin', 'primary'):
+            return command_trust is None or command_trust(lyr.path)
+        return False
+    facets = {}
+    for _lyr in layer_list:
+        _fd = _lyr.data.get('facets')
+        if not (isinstance(_fd, dict) and _fd):
+            continue
+        if _facet_ok(_lyr):
+            facets.update(_fd)                       # later layer wins per facet name
+        elif warnings_out is not None:
+            warnings_out.append(f'{_lyr.path}: `facets:` from an untrusted plugin is ignored — run '
+                                f'`configsys plugin trust <name>` to enable its hardware/env probes')
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')),
-                        layers.merge_dict_section(layer_list, 'facets', ('repo', 'primary')))
+                        facets)
     forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
     from . import routecheck
     components = {}
@@ -367,12 +379,12 @@ class Resolver:
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
                  overrides_path=None, plugin_files=(), preference=None,
-                 disabled=None):
+                 disabled=None, command_trust=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers, self.candidate_only = load(
             routes_path, overrides_path, plugin_files,
-            warnings_out=self.load_warnings, layers_out=self.layers)
+            warnings_out=self.load_warnings, layers_out=self.layers, command_trust=command_trust)
         # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
         # environment; cached, read-only, resilient. No `facets:` declared -> a no-op. A `facets:`
         # value-map in the user config declares facts (e.g. `facets: { cuda: 12 }` on a box without

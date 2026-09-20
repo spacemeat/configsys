@@ -280,6 +280,7 @@ class Context:
     def _resolver(self, block):
         # layer stack: routes.hu < plugin data files < ~/configsys.hu (components overlay + pins).
         # A malformed plugin file is skipped, not fatal.
+        from . import plugins
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
         return Resolver(self.paths.routes_file, block,
                         self.os_info.version, self._cpu(),
@@ -287,7 +288,9 @@ class Context:
                         overrides_path=self.paths.user_config_file,
                         plugin_files=self.plugin_files,
                         preference=self.config.driver_preference(),
-                        disabled=self.config.disabled_drivers())
+                        disabled=self.config.disabled_drivers(),
+                        # facets are command-carrying data: a plugin's merge only if it's trusted
+                        command_trust=lambda p: plugins.command_source_trusted(self.paths, p))
 
     @property
     def routes(self):
