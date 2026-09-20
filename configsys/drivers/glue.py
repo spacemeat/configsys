@@ -79,7 +79,7 @@ _EVAL_DIRECTIVE = re.compile(r'^#!\s*cs-eval\s+(.+?)\s*$')
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
 # TUI and the CLI status so they never diverge.
-GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active',
+GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active', 'drifted': 'changed',
                     'template': 'available', 'loader-off': 'inactive'}
 # how each rc-driven shell sources its conf.d dir (empty-glob-safe).
 _RC_SOURCE = {
@@ -516,6 +516,18 @@ class Glue(Driver):
             return store
         return self._resolve(src, rc)[0]
 
+    def _drifted(self, srcpath, dst):
+        '''True when a snippet's deployed store copy differs from its authoritative source — the repo/
+        plugin shipped a CHANGED snippet since it was activated, so a re-activate is needed to pull it.
+        Only meaningful for an active snippet backed by a store copy distinct from the source.'''
+        store = self._glue_store(dst)
+        if store is None or not store.is_file() or not srcpath.is_file():
+            return False
+        try:
+            return store.read_bytes() != srcpath.read_bytes()
+        except OSError:
+            return False
+
     def get_version(self, rc):
         '''"linked" when every snippet's dst resolves to the managed store copy (or, for a loader
         component, every hooked shell's loader is in place); else None (not active).'''
@@ -546,7 +558,10 @@ class Glue(Driver):
             tgt = self._expand(dst)
             ref = self._deployed(dst, src, rc)
             if ref.exists() and os.path.realpath(str(tgt)) == os.path.realpath(str(ref)):
-                state, src_root, here = 'linked', root, True     # active: dst -> deployed copy
+                # active: dst -> deployed copy. If the shipped source has since CHANGED, flag it as
+                # drifted (active but stale) so the user knows to re-activate and pull the update.
+                state = 'drifted' if self._drifted(srcpath, dst) else 'linked'
+                src_root, here = root, True
             elif tier in ('user', 'template'):
                 state, src_root, here = 'template', root, True   # source shipped but not linked -> available
             else:

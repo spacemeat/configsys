@@ -4477,7 +4477,8 @@ def _draw_plugins(stdscr, pal, pl, ctx, note, screen):
 # are the per-shell glue loaders (zsh-glue/fish-glue).
 _DF_STATE_ELEM = {  # config DISPLAY states (managed/unmanaged/no config) + glue RAW states
     'managed': 'installed', 'unmanaged': 'outdated', 'no config': 'info_dim',
-    'linked': 'installed', 'loader-on': 'installed', 'template': 'info_dim', 'loader-off': 'info_dim'}
+    'linked': 'installed', 'loader-on': 'installed', 'template': 'info_dim', 'loader-off': 'info_dim',
+    'drifted': 'outdated'}                              # active but the shipped snippet changed -> re-activate
 _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
@@ -4659,7 +4660,12 @@ def _draw_glue(stdscr, pal, gs, ctx, note, screen):
             _scrollbar_h(stdscr, pal, it + ih - 1, il, iw, gs.hscroll, iw, virt_w, h, w)
 
     n_active = sum(1 for r in gs.rows if r[3] in ('linked', 'loader-on'))
-    status = f' {len(gs.rows)} glue snippet(s)   {n_active} active   {len(gs.rows) - n_active} inactive'
+    n_changed = sum(1 for r in gs.rows if r[3] == 'drifted')
+    n_inactive = len(gs.rows) - n_active - n_changed
+    status = f' {len(gs.rows)} glue snippet(s)   {n_active} active'
+    if n_changed:
+        status += f'   {n_changed} changed (A to re-activate)'
+    status += f'   {n_inactive} inactive'
     if note:
         status += f'    {note}'
     if _KEYMAP is not None:

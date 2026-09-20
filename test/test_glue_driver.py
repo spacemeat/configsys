@@ -150,6 +150,25 @@ def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     assert g.get_version(loader) is None
 
 
+def test_spec_states_flags_a_changed_source_as_drifted(tmp_path):
+    # after a snippet is active, editing the SHIPPED source marks it 'drifted' (active but stale) — so
+    # the Glue TUI shows it changed and the user knows to re-activate (the store copy holds the OLD
+    # content until then). Re-activating refreshes the store -> back to 'linked'.
+    p = paths_for(tmp_path)
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    auth = p.glue_dir / 'shell' / 'bash' / 'btop.sh'
+    auth.write_text('# v1\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    rc = _glue_unit()
+    assert g.install(rc).ok
+    assert [s[2] for s in g.spec_states(rc)] == ['linked']       # active + fresh
+    auth.write_text('# v2 changed\n')                            # shipped source changes upstream
+    assert [s[2] for s in g.spec_states(rc)] == ['drifted']      # store copy now stale -> flagged
+    assert g.install(rc).ok                                      # re-activate re-materializes the store
+    assert [s[2] for s in g.spec_states(rc)] == ['linked']       # fresh again
+
+
 def test_installed_shells_counts_managed_tarball_shell_off_path(tmp_path):
     # a shell configsys MANAGES (binary in its install dir, per the glue-locations cache) is detected
     # even when it's not on the current PATH — so a tarball shell shows in the Glue TUI immediately,

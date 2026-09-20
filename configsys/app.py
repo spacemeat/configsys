@@ -3093,7 +3093,7 @@ def build_parser():
     return p
 
 
-_GLUE_ORDER = ['loader-on', 'linked', 'template', 'loader-off']   # glue's underlying states, active-first
+_GLUE_ORDER = ['loader-on', 'linked', 'drifted', 'template', 'loader-off']   # glue states, active-first (drifted = active but shipped source changed)
 
 
 def _active_dotfiles(ctx):
