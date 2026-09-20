@@ -34,10 +34,17 @@ finding is against a working baseline — this is polish and hardening, not tria
   the picks model; 24 plan docs stamped; argparse help + man pages regenerated (`acfdecc`).
 - **TODO — Tier A remainder:** A5 (transitive `plugins:` scope), A7 (asset `sha256:` checksums),
   A10 (constrain `pubkey-path`/`source-path` to keyring dirs).
-- **TODO — the big refactors (approved) + folded perf:** D1 `NativePkgManager` base (delivers C1
-  native `batch_index`), D2 TUI view-model seam (delivers C3), D3 unified `run_plan` (delivers
-  B10 parity); D4 `ModuleDriver` base (C2); C4/C5 caching; Tier F ABI cleanups. Each D item is a
-  large, self-contained structural change best done as its own focused unit.
+- **DONE — plugin correctness:** facet-trust fix (a plugin's `facets:` merge when the plugin is
+  content-trusted, not blanket-refused — restored configsys-opencv's `cuda` facet); recipe-vs-code
+  trust labels.
+- **DONE — C1 (D1's highest-value slice):** shared `batch_index` on the Driver base so
+  dnf/zypper/pacman/brew/snap batch their startup probes (the non-Debian startup-perf fix) —
+  `eae03ac`.
+- **TODO — the remaining big refactors (approved):** D3 unified `run_plan` (CLI+TUI op loop; delivers
+  B10 TUI set-version/report parity — bounded, no podman needed); D2 TUI view-model seam (the biggest
+  structural change, rewrites much of the 6.3k-line menu.py; delivers C3). Plus D1's
+  `NativePkgManager` command-template dedup (wants podman real-install validation, not available in
+  this env), D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
 
 ## 0. Already fixed this session
 
