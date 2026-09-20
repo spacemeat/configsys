@@ -44,11 +44,15 @@ finding is against a working baseline — this is polish and hardening, not tria
   (`actions.run_plan`); the TUI gained set-version, advisory handling, verify-after-fail, and
   all-failures persistence (closes B10). (A TUI key to *trigger* set-version is a small follow-on;
   the plumbing is ready.)
+- **DONE — D1 `NativePkgManager` dedup:** the five native drivers (apt/dnf/zypper/pacman/apk) now
+  share one install/uninstall/upgrade skeleton via command templates; byte-identical commands, unit
+  suite green, and the real install→lock→unlock→remove lifecycle PASSES in podman on Fedora (dnf)
+  and Arch (pacman).
 - **TODO — D2 TUI view-model seam:** the biggest structural change (rewrites much of the 6.3k-line
   menu.py: `build_vm`/`draw`/`handle` + a screen router); delivers C3 per-frame perf. Best done as
   its own focused push.
-- **TODO — the rest:** D1's `NativePkgManager` command-template dedup (podman-validatable — podman
-  works in this env), D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
+- **TODO — the rest:** `_alt.py`/native-pkg-file delegating to the native driver (D1 follow-on),
+  D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
 
 ## 0. Already fixed this session
 
