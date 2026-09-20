@@ -304,9 +304,19 @@ def test_theme_profiles_sample_forces_overlay_without_a_scan():
     ps = menu._sample_profiles_state(ctx)
     assert ps.show_install == 1                               # overlay on -> install-state colours show
     assert ps.overlay() == (frozenset(), {}, frozenset())     # injected empty -> no real orphan scan
-    assert ps.install_state('anything') == 'all'              # everything "installed" -> installed / orphan_lurking
     # install_state is ALSO called (name, force=True) / (name, stack, force=True) by the NEW-count path
     # the draw triggers — the override must accept those, or _draw_profiles raises into an empty box.
-    assert ps.install_state('x', force=True) == 'all'
-    assert ps.install_state('x', (), force=True) == 'all'
+    assert ps.install_state('x', force=True) in ('all', 'some', 'none')
+    assert ps.install_state('x', (), force=True) in ('all', 'some', 'none')
     assert len(ps.visible_pnodes()) > 0                       # a real (never-empty) profile tree
+    # a VARIED spread across the whole visible catalog (not the old uniform "everything installed"):
+    # multiple distinct install-states, and NEW / flagged / tracked rows all present so every glyph shows.
+    vis = [nm for nm, _d in ps._catalog_rows()]
+    assert len(vis) >= 12
+    assert len({ps.install_state(n) for n in vis}) >= 3       # a mix of all / some / none
+    assert any(ps.install_state(n) == 'none' for n in vis)    # most rows not installed (early setup)
+    cfg = ps.ctx.config
+    assert any(cfg.is_new(n) for n in vis)                    # ◆ NEW rows
+    assert cfg.dispositions()                                 # ☆ interesting / · seen rows
+    assert cfg.included()                                     # ● tracked rows on this box
+    assert any(m in cfg.picks() for m in ('thisbox', 'laptop'))

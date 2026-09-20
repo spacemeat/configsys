@@ -4047,11 +4047,13 @@ class _SampleCtx:
 def _sample_profiles_state(ctx):
     '''The Profiles sample: the real ProfileScreen (its profile tree + `+include` links + component
     catalog come from the actual config, which is never empty) fed a synthetic ctx overlay so the
-    catalog glyphs + infobox all show deterministically — a tracked+pinned row (●, [via]), a NEW row
-    (◆/○), an interesting row (☆/⊙), a seen+partial row (·/◐), a staged-for-uninstall row (⮾), and an
-    unavailable row (⊘) — with the cursor parked on a component that has requires + dependents and is
-    forced unavailable, so the infobox shows the ⊘ warn banner alongside the requires/required-by
-    lines. A synthetic empty overlay is injected so overlay() never spawns the real (threaded) scan.'''
+    catalog glyphs + infobox all show deterministically. A REPEATING per-row pattern is stamped across
+    the WHOLE visible catalog (dominated by not-installed ○, like a real machine early in setup) so
+    every glyph recurs — tracked+pinned (●, [via]), tracked (●), installed-untracked (⊙), NEW (◆/○),
+    interesting (☆/⊙), seen+partial (·/◐), staged-for-uninstall (⮾), unavailable (⊘) — not just a few
+    rows at the top. The cursor parks on a component with requires + dependents, forced unavailable, so
+    the infobox shows the ⊘ warn banner alongside the requires/required-by lines. A synthetic empty
+    overlay is injected so overlay() never spawns the real (threaded) scan.'''
     ps = ProfileScreen(ctx)
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
@@ -4059,11 +4061,6 @@ def _sample_profiles_state(ctx):
     ps.focus = 'right'                               # the catalog cursor drives the infobox + selection
 
     vis = [nm for nm, _d in ps._catalog_rows()]      # the stable visible catalog (config-independent)
-    feat = vis[:6]
-
-    def _f(i):
-        return feat[i] if i < len(feat) else None
-    tracked, newc, interesting, seenc, uninst, unavail = (_f(i) for i in range(6))
 
     # cursor: a real component with BOTH requires and dependents, forced unavailable so the infobox
     # exercises the ⊘ banner + the requires/required-by lines together.
@@ -4080,34 +4077,37 @@ def _sample_profiles_state(ctx):
     if curc in vis:
         ps.rcur = vis.index(curc)
 
-    _track = {n for n in (tracked, seenc, uninst) if n}       # tracked on this box (● vs ⊙)
-    _new = {n for n in (newc,) if n}
-    _disp = {}
-    if interesting:
-        _disp[interesting] = 'interesting'
-    if seenc:
-        _disp[seenc] = 'seen'
-    _uq = {n for n in (uninst,) if n}
-    _istate = {}
-    for n, s in ((tracked, 'all'), (interesting, 'all'), (seenc, 'some'), (uninst, 'all'),
-                 (newc, 'none'), (unavail, 'none'), (curc, 'none')):
-        if n and n not in _istate:
-            _istate[n] = s
-    ps.install_state = lambda name, *a, **k: _istate.get(name, 'all')
+    # one 'tag' per visible row (cycled); most rows are not-installed, a realistic early-setup spread.
+    PATTERN = ['tracked_pin', 'none', 'new', 'untracked', 'interesting', 'none',
+               'seen_partial', 'tracked', 'none', 'uninstall', 'unavail', 'none']
+    tag = {n: PATTERN[i % len(PATTERN)] for i, n in enumerate(vis)}
+    if curc:
+        tag[curc] = 'unavail'                        # cursor row must be the banner+requires exemplar
+    _ISTATE = {'tracked_pin': 'all', 'tracked': 'all', 'untracked': 'all', 'interesting': 'all',
+               'seen_partial': 'some', 'uninstall': 'all', 'new': 'none', 'none': 'none',
+               'unavail': 'none'}
+    _track = {n for n, t in tag.items() if t in ('tracked_pin', 'tracked')}
+    _new = {n for n, t in tag.items() if t == 'new'}
+    _disp = {n: ('interesting' if t == 'interesting' else 'seen')
+             for n, t in tag.items() if t in ('interesting', 'seen_partial')}
+    _uq = {n for n, t in tag.items() if t == 'uninstall'}
+    _unavail = {n for n, t in tag.items() if t == 'unavail'}
+    ps.install_state = lambda name, *a, **k: _ISTATE.get(tag.get(name), 'none')
 
-    # force resolution for the pinned / unavailable rows (prime the _resolve cache)
-    if tracked:
-        _av, _via, _pin = ps._resolve(tracked)
-        ps._res[tracked] = (True, _via or 'apt', True)        # pinned method -> [via]
-    for n in (unavail, curc):
-        if n:
-            ps._res[n] = (False, None, False)                 # no install method here -> ⊘
+    # prime the _resolve cache: pinned method ([via]) on the pinned-tracked rows, ⊘ on the unavailable.
+    for n, t in tag.items():
+        if t == 'tracked_pin':
+            _av, _via, _pin = ps._resolve(n)
+            ps._res[n] = (True, _via or 'apt', True)
+    for n in _unavail:
+        ps._res[n] = (False, None, False)
 
+    _laptop = {n for n in _track if tag.get(n) == 'tracked'}   # laptop picks a subset -> columns differ
     cfg = _SampleCfg(ctx.config)
     cfg.is_new = lambda name: name in _new
     cfg.dispositions = lambda: dict(_disp)
     cfg.included = lambda: set(_track)
-    cfg.picks = lambda: {'thisbox': set(_track), 'laptop': {tracked} if tracked else set()}
+    cfg.picks = lambda: {'thisbox': set(_track), 'laptop': set(_laptop)}
     cfg.uninstall_queue = lambda: set(_uq)
     cfg.machine_names = lambda: ['thisbox', 'laptop']
     cfg.current_machine = lambda: 'thisbox'
