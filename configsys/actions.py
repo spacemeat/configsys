@@ -21,6 +21,155 @@ def invalidate_location_cache(ctx):
         pass
 
 
+# -- the shared op-execution loop (CLI + TUI run the SAME plan the SAME way) -----------------------
+
+class OpOutcome:
+    '''One executed plan step, for the surfaces to render (the TUI summary, a report).'''
+    def __init__(self, op, key, name, ok, detail='', installed_with_warning=False, advisory=False):
+        self.op = op
+        self.key = key
+        self.name = name
+        self.ok = ok                                 # True also for installed-with-a-warning
+        self.detail = detail
+        self.installed_with_warning = installed_with_warning
+        self.advisory = advisory                     # a "needs your input" outcome, not a bug
+
+
+class RunResult:
+    '''What `run_plan` produced: outcomes (per step, for the TUI), failure records (for `report`),
+    n_fatal (hard failures, excluding installed-with-warnings), an rc_code (for the CLI exit), and
+    whether the batch was interrupted (^C).'''
+    def __init__(self, outcomes, failures, n_fatal, rc_code, interrupted):
+        self.outcomes = outcomes
+        self.failures = failures
+        self.n_fatal = n_fatal
+        self.rc_code = rc_code
+        self.interrupted = interrupted
+
+
+def fail_detail(res):
+    '''A concise failure reason for a driver Result: exit code + the last non-empty output line, plus
+    the failure taxonomy tag when known. The full output is still persisted for `configsys report`.'''
+    if res is None:
+        return 'no result'
+    text = (res.stderr or res.captured or res.stdout or '').strip()
+    last = text.splitlines()[-1].strip() if text else ''
+    base = f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
+    cat, rem = res.classified()
+    if cat:
+        base += f'  [{cat}]' + (f' — {rem}' if rem else '')
+    return base
+
+
+def installed_despite_failure(drv, rc, op, version):
+    '''After a non-zero install/upgrade, is the target unit ACTUALLY present now? apt exits non-zero
+    when a Recommends / sub-package / post-install step fails though the wanted package installed
+    (e.g. sysdig-dkms's kernel module). Returns the installed version, or None. For an upgrade/
+    set-version, "present" isn't enough — it must have reached the target version.'''
+    if op not in ('install', 'upgrade', 'set-version'):
+        return None
+    try:
+        got = drv.get_version(rc)
+    except Exception:                                # noqa: BLE001
+        return None
+    if not got:
+        return None
+    if op == 'install':
+        return got
+    try:
+        target = version or drv.get_latest(rc)
+    except Exception:                                # noqa: BLE001
+        target = None
+    return got if (target and str(got) == str(target)) else None
+
+
+def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
+    '''Execute an ordered `[(op, key, rc)]` plan — the ONE op-execution loop the CLI and TUI share.
+    Per step it dispatches the op (install/remove/upgrade/lock/unlock/set-version), runs the
+    shell-writes guard (snapshot rc files, revert+stage after), records ledger lock state, and
+    classifies the result: an `advisory` result ("needs your input", e.g. dotfiles refusing to
+    clobber) is explained not reported; a hard failure that nonetheless left the package present
+    (apt's failed-Recommends case) is downgraded to installed-with-a-warning. Ctrl-C aborts the whole
+    batch; the once-per-batch sudo keep-alive is released and the ledger saved at the end. Progress
+    prints via `on_line`. Returns a RunResult. Presentation of the reboot advisory and the report
+    offer stays with each surface.'''
+    from . import reportgen, shellguard
+    from .drivers import get_driver
+    outcomes, failures, n_fatal, rc_code, interrupted = [], [], 0, 0, False
+    for cur_op, key, rc in plan:
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None:
+            on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
+            continue
+        on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
+        rc_snap = shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op)
+        res = None
+        try:
+            try:
+                if cur_op == 'install':
+                    res = drv.install(rc)
+                elif cur_op == 'remove':
+                    res = drv.uninstall(rc)
+                elif cur_op == 'upgrade':
+                    res = drv.upgrade(rc)
+                elif cur_op == 'set-version':
+                    res = drv.set_version(rc, version)
+                elif cur_op == 'lock':
+                    res = drv.lock(rc)
+                    if res.ok and ledger is not None:
+                        ledger.set_lock(key, True)
+                elif cur_op == 'unlock':
+                    res = drv.unlock(rc)
+                    if res.ok and ledger is not None:
+                        ledger.set_lock(key, False)
+            finally:
+                # revert + stage even on failure/abort — a half-finished installer may have written
+                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
+                if _guard_msg:
+                    on_line(f'  -> {_guard_msg}')
+        except KeyboardInterrupt:                    # Ctrl-C aborts the WHOLE batch, not just this op
+            on_line(f'\n  ^C — aborted; {key} may be partially applied. Skipping the rest of the batch.')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'interrupted (^C)'))
+            rc_code, interrupted = 130, True
+            break
+        if res is None:                              # unknown op (should not happen for a built plan)
+            on_line(f'  -> unknown op {cur_op}')
+            rc_code = rc_code or 2
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, f'unknown op {cur_op}'))
+            continue
+        if not res.ok and getattr(res, 'advisory', False):
+            on_line('  -> needs your input:')
+            for line in (res.output or 'action required').splitlines():
+                on_line(f'    {line}')
+            rc_code = rc_code or res.returncode or 1
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res), advisory=True))
+        elif not res.ok:
+            got = installed_despite_failure(drv, rc, cur_op, version)
+            rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
+            if got:
+                rec['installed'] = 'true'
+                on_line(f'  -> installed WITH A WARNING (exit {res.returncode}) — a recommended '
+                        'package or post-install step failed; the package itself is present.')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, True, fail_detail(res),
+                                          installed_with_warning=True))
+            else:
+                rc_code = res.returncode or 1
+                n_fatal += 1
+                on_line(f'  -> FAILED (exit {res.returncode})')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res)))
+            for line in (res.output or res.cmd or '').strip().splitlines():
+                on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
+            failures.append(rec)
+        else:
+            on_line('  -> ok')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, True))
+    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
+    if ledger is not None:
+        ledger.save(ctx.paths)
+    return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
+
+
 def edit_target(ctx):
     '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
     synced (so edits travel to your other machines), else this machine's top config. NOTE: the

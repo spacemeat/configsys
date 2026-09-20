@@ -85,7 +85,9 @@ def test_dispatch_op_prints_the_failure_reason_to_the_console(tmp_path, capsys, 
         def install(self, rc):
             return Result.fail('blender-build: optix-root ~/sdks/optix has no include/optix.h')
 
-    monkeypatch.setattr(app, 'get_driver', lambda *a, **k: StubDrv())
+    import configsys.drivers as drivers_mod           # run_plan (in actions) resolves get_driver here
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: StubDrv())
+    monkeypatch.setattr(app, 'get_driver', lambda *a, **k: StubDrv())   # prepare_units' scope check
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     code = app._dispatch_op(ctx, ['git'], 'install')
     out = capsys.readouterr().out

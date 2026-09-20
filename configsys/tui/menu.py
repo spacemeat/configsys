@@ -18,7 +18,6 @@ import time
 from pathlib import Path
 
 from .. import reportgen
-from .. import shellguard
 from ..drivers import get_driver, scope_meta
 from ..errors import ConfigError, ConfigsysError
 from ..osversion import clean_version
@@ -497,91 +496,35 @@ class MenuState:
 
 
 # -- execution ------------------------------------------------------------
-
-class OpOutcome:
-    def __init__(self, op, key, name, ok, detail=''):
-        self.op = op
-        self.key = key
-        self.name = name
-        self.ok = ok
-        self.detail = detail
+# The op-execution loop + its helpers live in actions.run_plan now (shared by the CLI and TUI);
+# re-exported here for the TUI callers + tests that referenced them.
+from ..actions import OpOutcome, fail_detail as _fail_detail   # noqa: E402
 
 
-def _fail_detail(res):
-    '''A concise failure reason for a driver Result: exit code plus the last non-empty line of
-    its output (stderr, else the tee'd tail of streamed output, else stdout) — so the TUI shows
-    WHY, not a bare "exit 1". The full output is still persisted for `configsys report`.'''
-    if res is None:
-        return 'no result'
-    text = (res.stderr or res.captured or res.stdout or '').strip()
-    last = text.splitlines()[-1].strip() if text else ''
-    base = f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
-    cat, rem = res.classified()                          # failure taxonomy (advisory) — see failures.py
-    if cat:
-        base += f'  [{cat}]' + (f' — {rem}' if rem else '')
-    return base
-
-
-def execute_plan(ctx, plan, ledger):
+def execute_plan(ctx, plan, ledger, version=None):
+    '''Run the plan through the SAME shared loop the CLI uses (actions.run_plan) — so the TUI gets
+    set-version, the advisory "needs your input" outcome, verify-after-fail (installed-with-a-warning),
+    and EVERY failure persisted for `configsys report`, not just the last one. Returns the OpOutcomes
+    the summary/footer render.'''
     from ..app import maybe_refresh_before_plan           # lazy import: app imports this module
+    from .. import actions, reportgen
     maybe_refresh_before_plan(ctx, plan)
-    outcomes = []
-    last_failure = None
-    for op, key, rc in plan:
-        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if drv is None:
-            print(f'skip {key}: driver "{rc.driver}" not yet supported')
-            outcomes.append(OpOutcome(op, key, rc.name, False, 'unsupported driver'))
-            continue
-
-        print(f'\n>>> {op} {key} (pkg: {rc.name})')
-        # shell-writes guard: snapshot rc files before an installer op, revert + stage after (same
-        # as the CLI path). Defensive re: a ctx without .config (test stubs) — arm() returns None.
-        rc_snap = shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, op)
-        try:
-            try:
-                if op == 'install':
-                    res = drv.install(rc)
-                elif op == 'upgrade':
-                    res = drv.upgrade(rc)
-                elif op == 'remove':
-                    res = drv.uninstall(rc)
-                elif op == 'lock':
-                    res = drv.lock(rc)
-                    if res.ok:
-                        ledger.set_lock(key, True)
-                elif op == 'unlock':
-                    res = drv.unlock(rc)
-                    if res.ok:
-                        ledger.set_lock(key, False)
-                else:
-                    res = None
-            finally:
-                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
-                if _guard_msg:
-                    print(f'  -> {_guard_msg}')
-        except KeyboardInterrupt:          # Ctrl-C aborts the whole batch, back to the menu
-            print(f'\n^C — aborted; {key} may be partially applied. Skipping the rest.')
-            outcomes.append(OpOutcome(op, key, rc.name, False, 'interrupted (^C)'))
-            break
-
-        ok = bool(res and res.ok)
-        detail = '' if ok else _fail_detail(res)
-        if not ok and res is not None:
-            last_failure = reportgen.failure_from_result(key, rc.driver, op, res)
-        outcomes.append(OpOutcome(op, key, rc.name, ok, detail))
-
-    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
-    ledger.save(ctx.paths)
-    if last_failure is not None:           # persist for a post-quit `configsys report <c>`
-        reportgen.save_failure(ctx.paths, last_failure)
-    return outcomes
+    result = actions.run_plan(ctx, plan, ledger=ledger, version=version)
+    if result.failures:                                  # persist ALL of them (was: only the last)
+        reportgen.save_failures(ctx.paths, result.failures)
+    return result.outcomes
 
 
 def _summary_note(outcomes):
     n_ok = sum(1 for o in outcomes if o.ok)
-    n_bad = len(outcomes) - n_ok
-    return f'{n_ok} ok' if n_bad == 0 else f'{n_ok} ok, {n_bad} failed'
+    n_adv = sum(1 for o in outcomes if getattr(o, 'advisory', False))
+    n_bad = len(outcomes) - n_ok - n_adv
+    parts = [f'{n_ok} ok']
+    if n_bad:
+        parts.append(f'{n_bad} failed')
+    if n_adv:
+        parts.append(f'{n_adv} need input')
+    return ', '.join(parts)
 
 
 def _with_uninstall_node(ctx, states, layouts, transitive):
@@ -660,10 +603,18 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         except Exception:                           # noqa: BLE001 — draining must never fail the run
             pass
         n_ok = sum(1 for o in outcomes if o.ok)
-        failed = [o for o in outcomes if not o.ok]
-        print(f'\nSummary: {n_ok} ok, {len(failed)} failed')
+        warned = [o for o in outcomes if getattr(o, 'installed_with_warning', False)]
+        advisories = [o for o in outcomes if getattr(o, 'advisory', False)]
+        failed = [o for o in outcomes if not o.ok and not getattr(o, 'advisory', False)]
+        print(f'\nSummary: {n_ok} ok, {len(failed)} failed'
+              + (f', {len(advisories)} need input' if advisories else '')
+              + (f', {len(warned)} with warnings' if warned else ''))
         for o in failed:
             print(f'  FAILED  {o.op:8} {o.key}  (pkg: {o.name})  {o.detail}')
+        for o in advisories:
+            print(f'  NEEDS INPUT  {o.op:8} {o.key}  {o.detail}')
+        if failed or warned:                          # all failures are persisted now -> report works
+            print('\n`configsys report` files the details of the above.')
         input('\nPress Enter to return...')
         return True, _summary_note(outcomes), outcomes
 

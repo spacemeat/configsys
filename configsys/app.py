@@ -674,85 +674,14 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
         plan = expand_plan(base_plan, units)
 
     maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
-    rc_code = 0
-    failures = []            # every problem record (some fatal, some installed-with-a-warning)
-    n_fatal = 0
-    for cur_op, key, rc in plan:
-        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if drv is None:
-            print(f'skip {key}: driver "{rc.driver}" not yet supported')
-            continue
-        print(f'{cur_op} {key} (pkg: {rc.name}) ...')
-        # shell-writes guard: snapshot the rc files before an installer runs so we can revert any
-        # scribble it makes. Only for installer ops, only when armed (default on).
-        rc_snap = shellguard.arm(ctx.paths, ctx.config, rc.comp, cur_op)
-        try:
-            try:
-                if cur_op == 'install':
-                    res = drv.install(rc)
-                elif cur_op == 'remove':
-                    res = drv.uninstall(rc)
-                elif cur_op == 'upgrade':
-                    res = drv.upgrade(rc)
-                elif cur_op == 'set-version':
-                    res = drv.set_version(rc, version)
-                elif cur_op == 'lock':
-                    res = drv.lock(rc)
-                    if res.ok and ledger is not None:
-                        ledger.set_lock(key, True)
-                elif cur_op == 'unlock':
-                    res = drv.unlock(rc)
-                    if res.ok and ledger is not None:
-                        ledger.set_lock(key, False)
-                else:
-                    print(f'unknown op {cur_op}')
-                    return 2
-            finally:
-                # revert + stage even on failure/abort — a half-finished installer may have written
-                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
-                if _guard_msg:
-                    print(f'  -> {_guard_msg}')
-        except KeyboardInterrupt:          # Ctrl-C aborts the WHOLE batch, not just this op
-            print(f'\n  ^C — aborted; {key} may be partially applied. '
-                  f'Skipping the rest of the batch.')
-            rc_code = 130
-            break
-        if not res.ok and getattr(res, 'advisory', False):
-            # an expected, user-actionable outcome (e.g. dotfiles won't clobber un-adopted config)
-            # — explain it, don't treat it as a bug to report.
-            print('  -> needs your input:')
-            for line in (res.output or 'action required').splitlines():
-                print(f'    {line}')
-            rc_code = rc_code or res.returncode or 1
-        elif not res.ok:
-            # verify-after-fail: apt (& friends) exit non-zero when a Recommends / sub-package /
-            # post-install step fails (e.g. sysdig-dkms's kernel module) even though the package you
-            # asked for installed fine. If the unit is actually present now, downgrade the red FAILED
-            # to an installed-with-a-warning (recorded for `report`, but not a failure / non-zero exit).
-            got = _installed_despite_failure(drv, rc, cur_op, version)
-            rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
-            if got:
-                rec['installed'] = 'true'
-                print(f'  -> installed WITH A WARNING (exit {res.returncode}) — a recommended '
-                      'package or post-install step failed; the package itself is present.')
-            else:
-                rc_code = res.returncode or 1
-                n_fatal += 1
-                print(f'  -> FAILED (exit {res.returncode})')
-            for line in (res.output or res.cmd or '').strip().splitlines():
-                print(f'     {line}')                 # show WHY here, not only in last-failure.hu
-            failures.append(rec)
-        else:
-            print('  -> ok')
-    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
-    if ledger is not None:
-        ledger.save(ctx.paths)
-    if failures:
-        _offer_report(ctx, failures, fatal=n_fatal)
+    from . import actions
+    result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # the shared op loop
+    if result.failures:
+        _offer_report(ctx, result.failures, fatal=result.n_fatal)
     if op in ('install', 'upgrade', 'set-version') and getattr(ctx, 'config', None) is not None \
             and ctx.config.reboot_advice():
         print_reboot_advisory(ctx)     # "reboot advised / N services need restart", per the native check
-    return rc_code
+    return result.rc_code
 
 
 def print_reboot_advisory(ctx):
@@ -771,25 +700,9 @@ def print_reboot_advisory(ctx):
 
 
 def _installed_despite_failure(drv, rc, op, version):
-    '''After a non-zero install/upgrade, is the target unit ACTUALLY present now? apt exits non-zero
-    when a Recommends / sub-package / post-install step fails even though the wanted package
-    installed (e.g. sysdig-dkms's kernel module). Returns the installed version, or None. For an
-    upgrade/set-version "present" isn't enough — it must have reached the target version.'''
-    if op not in ('install', 'upgrade', 'set-version'):
-        return None
-    try:
-        got = drv.get_version(rc)
-    except Exception:                                     # noqa: BLE001
-        return None
-    if not got:
-        return None
-    if op == 'install':
-        return got
-    try:
-        target = version or drv.get_latest(rc)
-    except Exception:                                     # noqa: BLE001
-        target = None
-    return got if (target and str(got) == str(target)) else None
+    '''Re-export of actions.installed_despite_failure (the op loop moved there); kept for tests.'''
+    from . import actions
+    return actions.installed_despite_failure(drv, rc, op, version)
 
 
 def _offer_report(ctx, failures, fatal=None):
