@@ -4031,7 +4031,8 @@ def _sample_profiles_state(ctx):
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
     ps._async_overlay = None
-    ps.install_state = lambda _name: 'all'           # everything "installed": picked -> green, else ⊙ orphan_lurking
+    ps.install_state = lambda _name, *a, **k: 'all'  # everything "installed": picked -> green, else ⊙ orphan_lurking
+                                                     # (*a/**k: install_state is also called (name, force=…))
     return ps
 
 
