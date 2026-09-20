@@ -2527,7 +2527,7 @@
         // manual pin — bump it from developer.android.com/studio. Fat IDE config deferred.
         android-studio: { attrs: [ GUI app FOSS permissive tele-optin ] description: "Android Studio — the official Android IDE."
             suggests: android-studio-glue
-            install: [ { via: tarball  version: { static: 2024.2.1.11 }  standing: 1  requires: glibc   // Google's official tarball stays the default (glibc-linked JVM/launchers). No plain version endpoint for a `latest-check:` (the studio page is JS) — bump from developer.android.com/studio.
+            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/android-studio"  version: { static: 2024.2.1.11 }  standing: 1  requires: glibc   // Google's official tarball stays the default (glibc-linked JVM/launchers). No plain version endpoint for a `latest-check:` (the studio page is JS) — bump from developer.android.com/studio.
                          url: "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz" }
                        { via: flatpak  hub: flathub  app: com.google.AndroidStudio } ]   // community Flathub build offered as an alternative
         }

@@ -228,3 +228,48 @@ def test_upgrade_is_atomic_no_uninstall_first(tmp_path):
     # the ONLY removal of the live dir is the swap's `rm -rf {d} && mv` — never a standalone
     # uninstall of {d} before the new version is staged
     assert f'rm -rf {shlex.quote(str(d))}; fi' not in joined  # (uninstall's guarded rm) not run
+
+
+# -- safety guard: never rm -rf a shared base when installDir is missing/dangerous ---------------
+
+def _no_installdir_unit(comp='android-studio'):
+    # the pre-fix android-studio shape: a tarball binding with NO installDir/locations
+    return ResolvedComponent(key=f'tarball\\{comp}', driver='tarball', comp=comp,
+                             fields={'url': 'https://x/y-1.tar.gz', 'version': {'static': '1'}})
+
+
+def test_install_refuses_missing_installdir_scope_base(tmp_path):
+    # scoped_dir('') resolves to the scope base ($HOME); the swap would `rm -rf $HOME`. Refuse it,
+    # emit NO shell command, and return a failed Result naming the fix.
+    p = Paths(env={'HOME': str(tmp_path)})
+    assert p.scope_base('user') == tmp_path                      # empty installDir -> the home dir
+    r = Runner(pretend=True)
+    res = Tarball(r, paths=p).install(_no_installdir_unit())
+    assert not res.ok and 'installDir' in res.output
+    assert r.calls == []                                         # nothing ran — no rm -rf whatsoever
+
+
+def test_uninstall_refuses_missing_installdir_scope_base(tmp_path):
+    p = Paths(env={'HOME': str(tmp_path)})
+    r = Runner(pretend=True)
+    res = Tarball(r, paths=p).uninstall(_no_installdir_unit())
+    assert not res.ok and 'installDir' in res.output
+    assert r.calls == []
+
+
+def test_install_refuses_installdir_of_a_shared_system_dir(tmp_path):
+    # even an explicit installDir pointing at a shared base (/opt, /usr, ...) is refused
+    p = Paths(env={'HOME': str(tmp_path)})
+    r = Runner(pretend=True)
+    res = Tarball(r, paths=p).install(tb_unit('/opt', comp='x'))
+    assert not res.ok and r.calls == []
+
+
+def test_install_allows_dedicated_subdir(tmp_path):
+    # the normal case (a dedicated installDir under the base) is unaffected by the guard
+    p = Paths(env={'HOME': str(tmp_path)})
+    d = tmp_path / 'apps' / 'android-studio'
+    r = Runner(pretend=True)
+    res = Tarball(r, paths=p).install(tb_unit(d, comp='android-studio'))
+    assert res.ok and len(r.calls) == 1                          # the guard doesn't block a real subdir
+    assert f'mv {d}.configsys-stage {d}' in r.calls[0]           # swaps the stage into the dedicated dir

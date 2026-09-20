@@ -213,6 +213,11 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
                 if not b.details.get('uninstall-cmd'):
                     add('script-no-uninstall', 'via:script has no uninstall-cmd — configsys '
                         'cannot cleanly remove it (install still allowed)', comp, 'warning')
+            if b.via == 'tarball' and not b.details.get('installDir') and not b.details.get('locations'):
+                # a tarball install dir is rm -rf'd on every (re)install; a missing installDir
+                # resolves to the bare scope base ($HOME / /opt) -> catastrophic. Require a dedicated one.
+                add('tarball-no-installdir', 'via:tarball needs an installDir (it is rm -rf\'d on '
+                    '(re)install; a missing one resolves to the scope base — $HOME/opt)', comp)
             for cap in cap_names(b.details.get('requires')):   # cap_names: tolerates versioned {cap: floor} entries
                 if cap not in providable:
                     add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')

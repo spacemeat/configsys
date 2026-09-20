@@ -8,11 +8,20 @@ version. There is no native version lock — lock intent lives in the ledger.
 '''
 
 import shlex
+from pathlib import Path
 
 from ..driver import Driver
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
+
+# Never rm -rf one of these: a tarball install dir is wiped on every (re)install, so it MUST be a
+# dedicated subdir, never a shared base. Guards the empty/missing-`installDir:` case, where
+# scoped_dir('') resolves to the bare scope base ($HOME for user, /opt for system) and the swap would
+# `rm -rf $HOME`. A `locations:` override to one of these is refused for the same reason.
+_SHARED_SYSTEM_DIRS = frozenset(
+    Path(p) for p in ('/', '/opt', '/usr', '/usr/local', '/bin', '/sbin', '/lib', '/etc', '/var',
+                      '/home', '/root', '/tmp', '/srv', '/boot', '/dev', '/proc', '/sys'))
 
 
 class Tarball(Driver):
@@ -27,6 +36,22 @@ class Tarball(Driver):
         # bare-relative installDir (e.g. `vulkan`) -> HOME (user) or /opt (system); a config
         # `locations:` override (absolute) points straight at the install dir, scope-bypassing.
         return self.location_override(rc) or self.scoped_dir(rc.fields.get('installDir', ''), rc)
+
+    def _safe_install_dir(self, rc):
+        '''`_install_dir`, but refuse (return (None, reason)) any dir that install/uninstall must
+        never `rm -rf` — the bare scope base or a shared system dir. A tarball binding with no
+        `installDir:` resolves to the scope base ($HOME / /opt), so without this guard `install`
+        would wipe the home directory. Read-only callers keep using `_install_dir`.'''
+        d = self._install_dir(rc)
+        dp = Path(str(d))
+        bases = set()
+        if self.paths is not None:
+            bases = {Path(str(self.paths.home)), Path(str(self.paths.scope_base('user'))),
+                     Path(str(self.paths.scope_base('system')))}
+        if dp in _SHARED_SYSTEM_DIRS or dp in bases or dp == dp.parent:
+            return None, (f'{rc.comp}: refusing to (un)install into {dp} — a tarball binding needs a '
+                          f'dedicated `installDir:` (the dir is rm -rf\'d on every (re)install)')
+        return d, None
 
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
@@ -67,7 +92,9 @@ class Tarball(Driver):
             else:
                 reason = f'{rc.comp}: could not build a download URL (version unresolved?)'
             return Result.fail(reason)
-        d = self._install_dir(rc)
+        d, unsafe = self._safe_install_dir(rc)
+        if unsafe:
+            return Result.fail(unsafe)
 
         # Build into a SIBLING staging dir, then atomically swap into place (rm old && mv stage) —
         # so a failed download/extract (or a failed upgrade) leaves the EXISTING install untouched
@@ -114,7 +141,9 @@ class Tarball(Driver):
         return self.install(rc)
 
     def uninstall(self, rc):
-        d = self._install_dir(rc)
+        d, unsafe = self._safe_install_dir(rc)
+        if unsafe:
+            return Result.fail(unsafe)
         marker = self._marker(rc)
         # only remove the dir when we actually manage it (our marker is present)
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '

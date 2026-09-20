@@ -164,6 +164,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -13462,6 +13463,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -26891,6 +26893,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -40014,6 +40017,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -53234,6 +53238,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -65989,6 +65994,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -78776,6 +78782,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -88820,6 +88827,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -102311,6 +102319,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -115837,6 +115846,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
@@ -129297,6 +129307,7 @@
    "tarball\\android-studio": {
     "driver": "tarball",
     "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/android-studio",
      "name": "android-studio",
      "url": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/$VERSION/android-studio-$VERSION-linux.tar.gz",
      "version": {
