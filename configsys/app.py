@@ -2451,12 +2451,16 @@ def cmd_plugin(ctx, args):
                 if r.get('local'):
                     state += '  [local — unpushed; push, then `configsys plugin set-source`]'
                 cs = r['code_state']
+                # word it by what actually needs trust: a code: module, command-carrying recipes
+                # (via:script/source/glue), or both.
+                what = ('code + recipes' if r.get('has_code') and r.get('has_recipes')
+                        else 'code' if r.get('has_code') else 'recipes')
                 if cs == 'trusted':
-                    state += '  [code trusted]'
+                    state += f'  [{what} trusted]'
                 elif cs == 'untrusted':
-                    state += f'  [ships code — untrusted; run: configsys plugin trust {r["name"]}]'
+                    state += f'  [ships {what} — untrusted; run: configsys plugin trust {r["name"]}]'
                 elif cs == 'changed':
-                    state += (f'  [code changed since trust — re-approve: '
+                    state += (f'  [{what} changed since trust — re-approve: '
                               f'configsys plugin trust {r["name"]}]')
             ref = f' @{r["ref"]}' if r['ref'] else ''
             tags = ('  [primary]' if r['primary'] else

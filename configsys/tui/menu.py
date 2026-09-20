@@ -4618,7 +4618,9 @@ def _plugin_cells(row, node, remote):
     return [f'{_plugin_tree_prefix(node)}{"★" if row["primary"] else ""}{row["name"]}',
             row['source'], row['ref'] or '—', rref,
             'ok' if row['abi_ok'] else f'≠{row["requires_abi"]}',
-            row['code_state'] if row['has_code'] else '—',
+            # the trust column: a code: module OR command-carrying recipes both need trust (code_state
+            # already reflects either); '—' only when there is nothing to trust.
+            row['code_state'] if (row['has_code'] or row.get('has_recipes')) else '—',
             ','.join(row['provides']) if isinstance(row['provides'], dict) and row['provides'] else '—']
 
 
