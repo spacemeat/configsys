@@ -48,11 +48,17 @@ finding is against a working baseline — this is polish and hardening, not tria
   share one install/uninstall/upgrade skeleton via command templates; byte-identical commands, unit
   suite green, and the real install→lock→unlock→remove lifecycle PASSES in podman on Fedora (dnf)
   and Arch (pacman).
-- **TODO — D2 TUI view-model seam:** the biggest structural change (rewrites much of the 6.3k-line
-  menu.py: `build_vm`/`draw`/`handle` + a screen router); delivers C3 per-frame perf. Best done as
-  its own focused push.
+- **DONE — pacman/Arch correctness:** rolling native managers (pacman/apk) no longer fake
+  version-locks/pins (`holds_version=False`) — they decline honestly, record nothing, and the UI
+  doesn't offer them (`d5b29d0`).
+- **DONE — D2 perf (C3):** memoized the Profiles per-frame hot paths (gradient background, `_parts`,
+  `visible_pnodes`, and the `dependents`/`profiles_containing` reverse indexes) → **27.9 → 8.6
+  ms/frame, 3.2×** on the real catalog; the gradient cache speeds every screen (`d0cf422`).
+- **TODO — D2 structural (optional):** the full MVVM rewrite (draw fns as pure VM emitters +
+  `{id: Screen}` router). The *perf* payoff is delivered; this is architectural cleanliness for
+  testability — an incremental, screen-by-screen follow-on, not required for the C3 win.
 - **TODO — the rest:** `_alt.py`/native-pkg-file delegating to the native driver (D1 follow-on),
-  D4 `ModuleDriver`/C2, C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
+  D4 `ModuleDriver`/C2 (podman-validatable), C4/C5 caching, A5/A7/A10 hardening, Tier F ABI cleanups.
 
 ## 0. Already fixed this session
 
