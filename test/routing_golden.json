@@ -7719,6 +7719,39 @@
     "name": "ncurses"
    }
   },
+  "needrestart": {
+   "aur\\needrestart": {
+    "driver": "aur",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -21652,6 +21685,15 @@
     "name": "libncurses-dev"
    }
   },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -34885,6 +34927,15 @@
     "name": "libncurses-dev"
    }
   },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -48009,6 +48060,15 @@
     "name": "libncurses-dev"
    }
   },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -60735,6 +60795,15 @@
      "name": "ncurses-devel"
     },
     "name": "ncurses-devel"
+   }
+  },
+  "needrestart": {
+   "dnf\\needrestart": {
+    "driver": "dnf",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
    }
   },
   "neovim": {
@@ -73507,6 +73576,15 @@
      "name": "ncurses-devel"
     },
     "name": "ncurses-devel"
+   }
+  },
+  "needrestart": {
+   "dnf\\needrestart": {
+    "driver": "dnf",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
    }
   },
   "neovim": {
@@ -96984,6 +97062,15 @@
     "name": "libncurses-dev"
    }
   },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -110279,6 +110366,22 @@
      "name": "ncurses-devel"
     },
     "name": "ncurses-devel"
+   }
+  },
+  "needrestart": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\needrestart": {
+    "driver": "dnf",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
    }
   },
   "neovim": {
@@ -123967,6 +124070,15 @@
     "name": "libncurses-dev"
    }
   },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
+   }
+  },
   "neovim": {
    "appImage\\neovim": {
     "driver": "appImage",
@@ -137191,6 +137303,15 @@
      "name": "libncurses-dev"
     },
     "name": "libncurses-dev"
+   }
+  },
+  "needrestart": {
+   "apt\\needrestart": {
+    "driver": "apt",
+    "fields": {
+     "name": "needrestart"
+    },
+    "name": "needrestart"
    }
   },
   "neovim": {

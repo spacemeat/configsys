@@ -34,7 +34,7 @@ profiles: {
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
     terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp  atuin  zellij  tuxedo  leaf  tree-sitter-cli ]
-    system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk ]
+    system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk  needrestart ]
     native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay ]
     packagers: [ flatpak  snapd ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]

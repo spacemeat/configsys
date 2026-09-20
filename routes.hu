@@ -397,6 +397,14 @@
         // Alpine splits it out as its own `lsblk` package (over busybox's limited applet).
         lsblk: { attrs: [ CLI FOSS copyleft ] description: "lsblk — list block devices as a tree (part of util-linux)."
                  install: [ { via: native  name: { apk: lsblk  default: util-linux } } ] }
+        // needrestart: a Perl tool wired into apt/dnf; native only. In Debian/Ubuntu (main; Ubuntu
+        // ships it by default) + Fedora, EL via EPEL, Arch via AUR. Not in openSUSE (its native check
+        // is `zypper ps`) or Alpine (OpenRC); those + atomic decline.
+        needrestart: { attrs: [ CLI FOSS GNU copyleft ]
+            description: "needrestart — after an upgrade, reports (and can restart) services still running outdated libraries, and flags an outdated kernel."
+            install: [ { via: native  when: "debian or fedora" }
+                       { via: native  when: "rhel"  requires: epel }
+                       { via: aur     when: "arch" } ] }
         // chafa: render images/animations in the terminal (ANSI/sixel/kitty). EL via EPEL.
         chafa: { attrs: [ CLI FOSS copyleft ] description: "chafa — display images (and gifs) in the terminal as ANSI/sixel/kitty graphics."
                  install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  repo-component: universe } ] }
