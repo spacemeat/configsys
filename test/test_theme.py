@@ -273,3 +273,16 @@ def test_theme_components_sample_is_stable_and_covers_every_role():
     drivers = {st.component.driver for st in pm.states.values()}
     assert {'apt', 'cargo', 'flatpak', 'tarball', 'appImage'} <= drivers          # varied methods
     assert {'user', 'system'} <= {(st.scope or 'user') for st in pm.states.values()}
+
+
+def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states():
+    from configsys.app import Context, build_parser
+    from configsys.tui import menu
+    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    gs = menu._sample_glue_state(ctx)
+    assert {r[3] for r in gs.rows} == {'linked', 'drifted', 'template'}       # active / changed / available
+    assert set(gs.loader.values()) == {'loader-on', 'loader-off'}             # wired + not
+    assert any(e[0] == 'hdr' for e in gs.display) and gs.rows                 # shell section headers + rows
+    ds = menu._sample_dotfiles_state(ctx)
+    assert {r[3] for r in ds.rows} == {'linked', 'unmanaged', 'empty'}        # managed / unmanaged / no-config
+    assert all(hasattr(r[0], 'comp') for r in ds.rows)                        # _df_cells reads rc.comp

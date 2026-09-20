@@ -4021,6 +4021,39 @@ def _sample_components_state():
     return pm
 
 
+def _sample_glue_state(ctx):
+    '''A stable synthetic Glue sample: snippets across two shells covering active / changed / available
+    + loader on/off, so every glue role is colourable regardless of the user's real glue. The draw
+    reads only the row tuple's comp/state/target/source/shell, so a placeholder rc (None) is fine.'''
+    gs = GlueScreen(ctx)
+    gs.rows = [
+        (None, 'fd-glue',     '~/.config/bash/conf.d/fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
+        (None, 'zoxide-glue', '~/.config/bash/conf.d/zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
+        (None, 'yazi-glue',   '~/.config/bash/conf.d/yazi.sh',   'template', '<repo>/shell/bash/yazi.sh',   'bash'),
+        (None, 'bat-glue',    '~/.config/fish/conf.d/bat.fish',  'linked',   '<repo>/shell/fish/bat.fish',  'fish'),
+    ]
+    gs.loader = {'bash': 'loader-on', 'fish': 'loader-off'}       # one wired, one not
+    gs.display = [('hdr', 'bash', 'loader-on'), ('row', 0), ('row', 1), ('row', 2),
+                  ('hdr', 'fish', 'loader-off'), ('row', 3)]
+    gs.cur = gs.top = gs.hscroll = 0
+    return gs
+
+
+def _sample_dotfiles_state(ctx):
+    '''A stable synthetic Dotfiles sample covering managed / unmanaged(!) / no-config, so every role is
+    colourable regardless of the user's real captures.'''
+    import types
+    ds = DotfilesScreen(ctx)
+    ds.rows = [                                                   # (rc(.comp), name, target, raw-state, source, capturable)
+        (types.SimpleNamespace(comp='neovim-dotfiles'), 'neovim', '~/.config/nvim',       'linked',    '<plugin>/neovim.cfs', False),
+        (types.SimpleNamespace(comp='git-dotfiles'),    'git',    '~/.gitconfig',         'unmanaged', 'gitconfig',           True),
+        (types.SimpleNamespace(comp='bat-dotfiles'),    'bat',    '~/.config/bat/config', 'empty',     'bat.cfs',             False),
+    ]
+    ds.display = [('row', 0), ('row', 1), ('row', 2)]
+    ds.cur = ds.top = ds.hscroll = 0
+    return ds
+
+
 class ThemeScreen:
     '''Two lists over one sample page: the shared color MAP (name -> #rrggbb) and the focused page's
     ROLE styles (fg/bg/effects, fg/bg referencing a map name or a literal). Tab toggles focus; a-e
@@ -4062,9 +4095,9 @@ class ThemeScreen:
                 pl.dfile, pl.diff_note = 0, None
                 return pl
             if page == 'glue':
-                return GlueScreen(ctx)
+                return _sample_glue_state(ctx)
             if page == 'dotfiles':
-                return DotfilesScreen(ctx)
+                return _sample_dotfiles_state(ctx)
             if page == 'config':
                 return ConfigScreen(ctx)
             if page == 'theme':                                  # the editor previewing itself
