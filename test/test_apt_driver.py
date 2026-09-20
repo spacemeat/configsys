@@ -417,3 +417,29 @@ def test_ppa_is_added_before_install():
     Apt(r).install(rc)
     assert r.calls[0] == 'sudo add-apt-repository -y ppa:deadsnakes/ppa'
     assert r.calls[-1].endswith('apt-get install -y python3.12 python3.12-venv')
+
+
+def test_multi_package_binding_locks_pins_and_checks_the_whole_set():
+    # B8: a `packages: [a,b,c]` binding installs the set; lock/unlock/set_version/is_locked must act
+    # on ALL of them, not just rc.name (which for such a binding is the component, not a package).
+    from configsys.drivers.apt import Apt
+    from configsys.runner import Runner
+    u = ResolvedComponent(key='apt\\py', driver='apt', comp='python3.12',
+                          fields={'name': 'python3.12',
+                                  'packages': ['python3.12', 'python3.12-venv', 'python3.12-dev']})
+    r = Runner(pretend=True)
+    d = Apt(r)
+    d.lock(u)
+    assert r.calls[-1].endswith('apt-mark hold python3.12 python3.12-venv python3.12-dev')
+    d.unlock(u)
+    assert r.calls[-1].endswith('apt-mark unhold python3.12 python3.12-venv python3.12-dev')
+    d.set_version(u, '3.12.4-1')
+    assert ('python3.12=3.12.4-1' in r.calls[-1] and 'python3.12-venv=3.12.4-1' in r.calls[-1]
+            and 'python3.12-dev=3.12.4-1' in r.calls[-1])
+
+    class _Held:                                     # only two of three held -> NOT fully locked
+        def __init__(s, held): s.held = held
+    d._batch = {'held': {'python3.12', 'python3.12-venv'}}
+    assert d.is_locked(u) is False
+    d._batch = {'held': {'python3.12', 'python3.12-venv', 'python3.12-dev'}}
+    assert d.is_locked(u) is True

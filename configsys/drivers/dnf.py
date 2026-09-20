@@ -107,8 +107,13 @@ class Dnf(Driver):
         repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
         if repo_id and repo_url:
             name = f.get('repo-name', repo_id)
-            content = (f'[{repo_id}]\nname={name}\nbaseurl={repo_url}\n'
-                       f'enabled=1\ngpgcheck=1\ngpgkey={key}\n')
+            # a newline in any value would inject extra INI keys (e.g. gpgcheck=0) — reject it.
+            if any('\n' in str(v) for v in (repo_id, name, repo_url, key or '')):
+                return Result.fail(f'{repo_id}: a repo field contains a newline')
+            # with a key, verify against it; WITHOUT one, gpgcheck=0 (can't verify) — never the
+            # literal `gpgkey=None` that made gpgcheck=1 fail every install from this repo.
+            gpg = f'gpgcheck=1\ngpgkey={key}\n' if key else 'gpgcheck=0\n'
+            content = f'[{repo_id}]\nname={name}\nbaseurl={repo_url}\nenabled=1\n{gpg}'
             return self._commit_repo(content, repo_id)
 
     def _commit_repo(self, content, repo_id):

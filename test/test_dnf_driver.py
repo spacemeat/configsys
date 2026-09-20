@@ -149,3 +149,19 @@ def test_is_locked_reads_dnf5_list_format():
 def test_is_locked_false_when_plugin_absent():
     fr = FakeRunner([('dnf versionlock list', 1, 'Missing command.')])
     assert Dnf(fr).is_locked(pkg()) is False
+
+
+def test_repo_without_a_pubkey_sets_gpgcheck_zero_not_gpgkey_none(monkeypatch):
+    # B8: a repo binding with no pubkey-url must write gpgcheck=0, never the literal `gpgkey=None`
+    # (which made gpgcheck=1 fail every install from that repo).
+    from configsys.drivers.dnf import Dnf
+    from configsys.runner import Runner
+    from configsys.componentObj import ResolvedComponent
+    written = {}
+    d = Dnf(Runner(pretend=True))
+    monkeypatch.setattr(d, '_commit_repo', lambda content, repo_id: written.setdefault(repo_id, content))
+    u = ResolvedComponent(key='dnf\\myrepo', driver='dnf', comp='myrepo',
+                          fields={'repo-id': 'myrepo', 'repo-url': 'https://h/repo'})
+    d.ensure_prereqs(u)
+    body = written['myrepo']
+    assert 'gpgcheck=0' in body and 'gpgkey=None' not in body and 'gpgkey=' not in body

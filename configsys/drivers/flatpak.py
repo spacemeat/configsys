@@ -180,9 +180,13 @@ class Flatpak(Driver):
 
     def install(self, rc):
         self.ensure_remote(rc)
-        hub = shlex.quote(rc.fields.get('hub', ''))
+        # name the remote only when the binding declares one; a bare `hub: ''` would otherwise become
+        # a literal '' positional and flatpak errors ("Nothing matches"). Without a hub, flatpak
+        # resolves the app-id against the configured remotes.
+        hub = rc.fields.get('hub')
+        remote = f'{shlex.quote(hub)} ' if hub else ''
         app = shlex.quote(self._appid(rc))
-        return self.runner.run(f'flatpak install {self._flag(rc)} -y {hub} {app}',
+        return self.runner.run(f'flatpak install {self._flag(rc)} -y {remote}{app}',
                                sudo=self.sudo(rc), capture=False)
 
     def uninstall(self, rc):

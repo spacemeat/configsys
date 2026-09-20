@@ -334,24 +334,29 @@ class Apt(Driver):
         return None
 
     def is_locked(self, rc):
+        want = set(self._pkg_list(rc))            # a multi-package binding is locked iff ALL are held
         if self._batch is not None:               # batched: membership in the one showhold list
-            return rc.name in self._batch['held']
+            return bool(want) and want <= set(self._batch['held'])
         r = self.runner.run('apt-mark showhold')
-        return bool(r.ok and rc.name in r.stdout.split())
+        return bool(r.ok and want and want <= set(r.stdout.split()))
 
     # -- mutate -----------------------------------------------------------
 
     @staticmethod
-    def _pkgs(rc):
-        '''The package argument(s) for apt. A `packages: [a, b, ...]` binding installs the whole set
-        (the house convention for a native component that needs several apt packages — e.g. a
-        python3.12 interpreter + -venv + -dev, or GL + GLU dev); otherwise `rc.name` (which may itself
-        be a whitespace-separated set). Each token is quoted. `installed-name:` still governs
-        detection, so state-probing has a single package to look at.'''
+    def _pkg_list(rc):
+        '''The apt package NAMES a binding installs. A `packages: [a, b, ...]` binding installs the
+        whole set (the house convention for a native component that needs several apt packages — e.g.
+        a python3.12 interpreter + -venv + -dev, or GL + GLU dev); otherwise `rc.name` (which may
+        itself be a whitespace-separated set). `installed-name:` still governs DETECTION (one package
+        to probe), but every package-name op (install/remove/lock/pin) acts on the whole set.'''
         pkgs = rc.fields.get('packages')
-        names = ([str(p) for p in pkgs] if isinstance(pkgs, list) else
-                 [str(pkgs)] if pkgs else rc.name.split())
-        return ' '.join(shlex.quote(p) for p in names)
+        return ([str(p) for p in pkgs] if isinstance(pkgs, list) else
+                [str(pkgs)] if pkgs else rc.name.split())
+
+    @staticmethod
+    def _pkgs(rc):
+        '''`_pkg_list` joined + quoted, for the apt command line.'''
+        return ' '.join(shlex.quote(p) for p in Apt._pkg_list(rc))
 
     def install(self, rc):
         pre = self.ensure_prereqs(rc)
@@ -375,16 +380,14 @@ class Apt(Driver):
         pre = self.ensure_prereqs(rc)
         if pre is not None:
             return pre
-        pkg = shlex.quote(rc.name)
         ver = shlex.quote(version)
+        specs = ' '.join(f'{shlex.quote(p)}={ver}' for p in self._pkg_list(rc))   # pin the whole set
         return self.runner.run(
-            f'{_APT_ENV} apt-get install -y --allow-downgrades {pkg}={ver}',
+            f'{_APT_ENV} apt-get install -y --allow-downgrades {specs}',
             sudo=True, capture=False)
 
     def lock(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'apt-mark hold {pkg}', sudo=True)
+        return self.runner.run(f'apt-mark hold {self._pkgs(rc)}', sudo=True)      # hold the whole set
 
     def unlock(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'apt-mark unhold {pkg}', sudo=True)
+        return self.runner.run(f'apt-mark unhold {self._pkgs(rc)}', sudo=True)

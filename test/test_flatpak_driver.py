@@ -218,3 +218,15 @@ def test_batch_index_collapses_probes_and_read_ops_use_it():
     assert d.get_latest(fp('org.blender.Blender')) == '5.2'
     assert d.get_latest(fp('org.gimp.GIMP')) == '3.2'
     assert d.get_version(fp('org.gimp.GIMP')) is None              # not installed -> absent from list
+
+
+def test_install_without_a_hub_omits_the_remote_token():
+    # B8: a binding with no `hub:` must not pass a literal '' positional (flatpak "Nothing matches").
+    from configsys.drivers.flatpak import Flatpak
+    from configsys.runner import Runner
+    from configsys.componentObj import ResolvedComponent
+    u = ResolvedComponent(key='flatpak\\x', driver='flatpak', comp='x', fields={'name': 'org.x.X'})
+    r = Runner(pretend=True)
+    Flatpak(r).install(u)
+    cmd = r.calls[-1]
+    assert "''" not in cmd and 'org.x.X' in cmd and cmd.rstrip().endswith('org.x.X')
