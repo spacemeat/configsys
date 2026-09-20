@@ -44,12 +44,6 @@ class LuaRocks(Driver):
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -68,12 +62,6 @@ class LuaRocks(Driver):
         return self.runner.run(
             f'luarocks install {self._local_flag(rc)}{shlex.quote(self._rock(rc))} '
             f'{shlex.quote(version)}', sudo=self.sudo(rc), capture=False)
-
-    def lock(self, rc):
-        return Result('(luarocks lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(luarocks unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.luarocks' if self._scope(rc) != 'system' else None

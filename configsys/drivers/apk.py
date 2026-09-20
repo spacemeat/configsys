@@ -49,9 +49,6 @@ class Apk(NativePkgManager):
         r = self.runner.run(f'apk list {shlex.quote(rc.name)}')
         return _version_from_apk_list(r.stdout.splitlines(), rc.name) if r.ok else None
 
-    def is_locked(self, rc):
-        return False                # no native per-package hold on a rolling distro
-
     # -- mutate (under sudo) — install/uninstall/upgrade come from NativePkgManager templates ------
 
     def set_version(self, rc, version):

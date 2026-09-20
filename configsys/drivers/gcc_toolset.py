@@ -52,9 +52,6 @@ class GccToolset(Driver):
     def get_latest(self, rc):
         return None  # the component is itself a pinned major version
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):

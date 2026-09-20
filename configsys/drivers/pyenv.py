@@ -44,9 +44,6 @@ class Pyenv(Driver):
         r = self.runner.run(f'{self._pyenv()} latest --known {shlex.quote(self._line(rc))}')
         return r.stdout.strip() if (r.ok and r.stdout.strip()) else None
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -65,12 +62,6 @@ class Pyenv(Driver):
 
     def set_version(self, rc, version):
         return self.runner.run(f'{self._pyenv()} install -s {shlex.quote(version)}', capture=False)
-
-    def lock(self, rc):
-        return Result('(pyenv lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(pyenv unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return f'~/.pyenv/versions/{self._line(rc)}.*'

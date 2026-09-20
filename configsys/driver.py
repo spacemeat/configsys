@@ -318,12 +318,17 @@ class Driver:
         return None
 
     def get_latest(self, rc):
-        '''Latest/candidate available version string, or None if unknown.'''
-        raise NotImplementedError('get_latest')
+        '''Latest/candidate available version string, or None if unknown. Default: the discovered
+        version (`version:` github/url/static spec) — what most download/build/language-module drivers
+        report as "latest". Package-manager drivers override with a repo-candidate query; a driver with
+        no version notion (dotfiles/glue/service/group/…) overrides to return None or its state.'''
+        return self.resolve_version(rc)
 
     def is_locked(self, rc):
-        '''True if the component is version-locked by the native mechanism.'''
-        raise NotImplementedError('is_locked')
+        '''True if the component is version-locked. Default: False — most drivers have no NATIVE hold
+        (the ledger carries the intent, honored by the op loop). apt/dnf/zypper/brew/snap override
+        with a real check; a rolling manager that can't hold (pacman/apk) also returns False.'''
+        return False
 
     # -- mutate -----------------------------------------------------------
 
@@ -363,10 +368,14 @@ class Driver:
         raise NotImplementedError('set_version')
 
     def lock(self, rc):
-        raise NotImplementedError('lock')
+        '''Record a version hold. Default: a no-op Result — the ACTUAL hold is the ledger entry the op
+        loop (actions.run_plan) writes when this returns ok. A driver with a NATIVE hold
+        (apt-mark/versionlock/addlock/brew pin/snap --hold) overrides to do it for real; a rolling
+        manager that can't hold (pacman/apk, holds_version=False) overrides to decline.'''
+        return Result(f'({self.name} lock recorded in ledger)', 0)
 
     def unlock(self, rc):
-        raise NotImplementedError('unlock')
+        return Result(f'({self.name} unlock recorded in ledger)', 0)
 
     # -- presentation -----------------------------------------------------
 

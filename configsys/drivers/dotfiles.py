@@ -549,9 +549,6 @@ class DotFiles(Driver):
     def get_latest(self, rc):
         return None  # dotfiles track the repo; no version notion
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def _force(self):
@@ -664,8 +661,3 @@ class DotFiles(Driver):
         targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
-    def lock(self, rc):
-        return Result('(dotfiles lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(dotfiles unlock recorded in ledger)', 0)

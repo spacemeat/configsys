@@ -51,12 +51,6 @@ class GoInstall(Driver):
                 return parts[2].lstrip('v')
         return None
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def _go_install(self, spec):
@@ -75,12 +69,6 @@ class GoInstall(Driver):
 
     def set_version(self, rc, version):
         return self._go_install(self._at(rc, version))
-
-    def lock(self, rc):
-        return Result('(go-install lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(go-install unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return _GOBIN

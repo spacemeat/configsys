@@ -68,12 +68,6 @@ class Tarball(Driver):
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/apps (user) or /opt (system)
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False  # no native lock; the ledger carries lock intent
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -153,8 +147,3 @@ class Tarball(Driver):
     def location(self, rc):
         return self.display_path(self._install_dir(rc))
 
-    def lock(self, rc):
-        return Result('(tarball lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(tarball unlock recorded in ledger)', 0)

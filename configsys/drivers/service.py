@@ -36,9 +36,6 @@ class Service(Driver):
     def get_latest(self, rc):
         return 'enabled'   # the target state
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -58,12 +55,6 @@ class Service(Driver):
 
     def set_version(self, rc, version):
         return self.install(rc)
-
-    def lock(self, rc):
-        return Result('(service lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(service unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return f'systemd unit: {self._unit(rc)}'

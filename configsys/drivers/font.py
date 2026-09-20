@@ -54,12 +54,6 @@ class Font(Driver):
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/.local/share/fonts (user) or /usr/local (system)
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -106,8 +100,3 @@ class Font(Driver):
     def location(self, rc):
         return self.display_path(self._font_dir(rc))
 
-    def lock(self, rc):
-        return Result('(font lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(font unlock recorded in ledger)', 0)

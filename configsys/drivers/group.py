@@ -37,9 +37,6 @@ class Group(Driver):
     def get_latest(self, rc):
         return 'member'
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -57,12 +54,6 @@ class Group(Driver):
 
     def set_version(self, rc, version):
         return self.install(rc)
-
-    def lock(self, rc):
-        return Result('(group lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(group unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return f'group: {self._group(rc)}'

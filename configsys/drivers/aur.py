@@ -38,13 +38,6 @@ class Aur(Driver):
         parts = r.stdout.split()
         return parts[1] if len(parts) >= 2 else None
 
-    def get_latest(self, rc):
-        # a `version: { aur: <pkgname> }` route discovers the latest from the AUR RPC
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -71,12 +64,6 @@ class Aur(Driver):
 
     def set_version(self, rc, version):
         return self.install(rc)   # AUR serves the current PKGBUILD only
-
-    def lock(self, rc):
-        return Result('(aur lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(aur unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return None   # installed into the system via pacman, no single path

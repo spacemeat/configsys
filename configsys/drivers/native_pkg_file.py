@@ -87,10 +87,6 @@ class NativePkgFile(Driver):
         line = r.stdout.strip().splitlines()[0].strip()
         return line.split()[-1] if fmt == 'pacman' else line
 
-    def get_latest(self, rc):
-        # not in a repo — "latest" is the upstream release the package file comes from
-        return self.resolve_version(rc)
-
     def is_locked(self, rc):
         # only apt/dpkg offers a hold we can honor; other formats aren't lockable here
         if self._format() == 'deb':

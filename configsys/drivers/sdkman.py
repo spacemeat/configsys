@@ -54,9 +54,6 @@ class Sdkman(Driver):
     def get_latest(self, rc):
         return None                        # SDKMAN has no clean per-candidate "latest" query
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):

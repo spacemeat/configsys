@@ -160,9 +160,6 @@ class Pipx(Driver):
         tail = f' — pin `python: {pin}`' if pin else ''
         return f'python {py} caps this at {scoped}; {absolute} needs {need_txt}{tail}'
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     @staticmethod
@@ -221,12 +218,6 @@ class Pipx(Driver):
         return self.runner.run(
             f'{_PIPX} install {self._backend()}--force {self._py_flag(rc)}{shlex.quote(spec)}',
             capture=False)
-
-    def lock(self, rc):
-        return Result('(pipx lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(pipx unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.local/bin'

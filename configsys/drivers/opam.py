@@ -35,12 +35,6 @@ class Opam(Driver):
         v = r.stdout.strip().splitlines()
         return v[0].strip() if v and v[0].strip() else None
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -60,12 +54,6 @@ class Opam(Driver):
         # opam pins a version with the `pkg.version` form
         spec = f'{self._pkg(rc)}.{version}'
         return self.runner.run(f'opam install -y {shlex.quote(spec)}', capture=False)
-
-    def lock(self, rc):
-        return Result('(opam lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(opam unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.opam'

@@ -56,9 +56,6 @@ class RpmOstree(Driver):
     def get_latest(self, rc):
         return None   # no per-package "latest" on ostree — it comes with the image
 
-    def is_locked(self, rc):
-        return False  # layered packages are image-pinned; no per-package lock
-
     # -- mutate -----------------------------------------------------------
 
     def _layer(self, verb, rc):

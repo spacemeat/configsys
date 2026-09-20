@@ -54,12 +54,6 @@ class Cabal(Driver):
         m = re.search(rf'/{re.escape(self._pkg(rc))}-([0-9][0-9.]*)-', tgt)
         return m.group(1) if m else 'installed'           # present; version unknown (non-store binary)
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def _ensure_index(self):
@@ -87,12 +81,6 @@ class Cabal(Driver):
         spec = f'{self._pkg(rc)}-{version}'
         return self._cabal(
             f'install {shlex.quote(spec)} --overwrite-policy=always', capture=False)
-
-    def lock(self, rc):
-        return Result('(cabal lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(cabal unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return _CABAL_BIN

@@ -111,12 +111,6 @@ class Npm(Driver):
         # reads as "missing" (mirrors the path-based scope-honoring drivers).
         return self._installed_across_scopes(rc)
 
-    def get_latest(self, rc):
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -139,12 +133,6 @@ class Npm(Driver):
         return self.runner.run(
             f'npm install -g {self._prefix_flag(rc)}{shlex.quote(spec)}',
             sudo=self.sudo(rc), capture=False)
-
-    def lock(self, rc):
-        return Result('(npm lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(npm unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.local/bin' if self._scope(rc) != 'system' else None

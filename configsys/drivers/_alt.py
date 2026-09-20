@@ -124,9 +124,6 @@ class AltDriver(Driver):
                     return m.group(0)
         return None
 
-    def is_locked(self, rc):
-        return False  # configsys doesn't manage the active selection
-
     # -- repo + alternatives ----------------------------------------------
 
     def _repo_lines(self, rc):

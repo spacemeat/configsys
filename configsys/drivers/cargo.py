@@ -54,14 +54,6 @@ class Cargo(Driver):
                 out[m.group(1)] = m.group(2)
         return out
 
-    def get_latest(self, rc):
-        # a `version: { crates: <name> }` route discovers the latest from crates.io
-        # (cached); crates without a spec report no "latest".
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -78,12 +70,6 @@ class Cargo(Driver):
         return self._cargo(
             f'install --force --version {shlex.quote(version)} '
             f'{shlex.quote(self._crate(rc))}', capture=False)
-
-    def lock(self, rc):
-        return Result('(cargo lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(cargo unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.cargo/bin'

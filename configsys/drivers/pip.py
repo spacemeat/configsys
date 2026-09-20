@@ -103,14 +103,6 @@ class Pip(Driver):
         idx = self._batch if self._batch is not None else self.installed_index()
         return idx.get(_norm(self._dist(rc))) if idx else None
 
-    def get_latest(self, rc):
-        # a `version: { pypi: <dist> }` route discovers the latest from pypi.org
-        # (cached); dists without a spec report no "latest".
-        return self.resolve_version(rc)
-
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -130,12 +122,6 @@ class Pip(Driver):
         spec = f'{self._dist(rc)}=={version}'
         return self.runner.run(f'{self._pip(rc)} install --user {shlex.quote(spec)}',
                                capture=False)
-
-    def lock(self, rc):
-        return Result('(pip lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(pip unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return '~/.local/bin'

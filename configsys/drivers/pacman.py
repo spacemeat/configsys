@@ -81,9 +81,6 @@ class Pacman(NativePkgManager):
         g = self.runner.run(f'pacman -Sg {shlex.quote(rc.name)}')
         return _GROUP if g.ok and g.stdout.strip() else None
 
-    def is_locked(self, rc):
-        return False   # no native per-package hold on a rolling distro
-
     # -- mutate -----------------------------------------------------------
 
     # install/upgrade come from the NativePkgManager templates (pacman -S installs-or-upgrades);

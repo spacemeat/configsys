@@ -69,9 +69,6 @@ class Script(Driver):
             return self._probe(rc, 'latest-cmd')
         return self.resolve_version(rc)
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
@@ -108,12 +105,6 @@ class Script(Driver):
             return Result(f'⚠ "{rc.comp}" declares no set-version-cmd; version pinning '
                           f'is unsupported for this script.', 1)
         return self.runner.run(cmd.replace('$VERSION', version), capture=False)
-
-    def lock(self, rc):
-        return Result('(script lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(script unlock recorded in ledger)', 0)
 
     def location(self, rc):
         return rc.fields.get('location')

@@ -588,9 +588,6 @@ class Glue(Driver):
     def get_latest(self, rc):
         return None
 
-    def is_locked(self, rc):
-        return False
-
     # -- mutate -----------------------------------------------------------
 
     @staticmethod
@@ -709,8 +706,3 @@ class Glue(Driver):
         targets = [self.display_path(tgt) for _src, tgt in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
-    def lock(self, rc):
-        return Result('(glue lock recorded in ledger)', 0)
-
-    def unlock(self, rc):
-        return Result('(glue unlock recorded in ledger)', 0)
