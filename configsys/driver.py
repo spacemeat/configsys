@@ -35,6 +35,8 @@ import re
 import shlex
 from pathlib import Path
 
+from .runner import Result
+
 # Base directory for bare-relative install paths under system scope.
 SYSTEM_PREFIX = Path('/opt')
 
@@ -106,6 +108,26 @@ class Driver:
         '''--pretend must be side-effect-free, network reads included: version discovery goes
         cache-only (never touches the network) when the runner is pretending.'''
         return bool(getattr(self.runner, 'pretend', False))
+
+    def command_trusted(self, rc):
+        '''Whether this binding's defining layer may run declared shell (via: script/source, a glue
+        #!cs-eval). Core/user always; a plugin only if content-trusted. The command-carrying drivers
+        gate their ops on this so untrusted plugin DATA can't achieve code execution — see
+        plugins.command_source_trusted. No `paths` context (unit tests) = trusted.'''
+        if self.paths is None:
+            return True
+        from . import plugins
+        return plugins.command_source_trusted(self.paths, getattr(rc, 'source', '') or '')
+
+    def untrusted_command_result(self, rc):
+        '''The `Result.fail` a command-carrying driver returns when the binding is from an untrusted
+        plugin — names the plugin and the `plugin trust` remedy.'''
+        from . import plugins
+        name = plugins.plugin_of_source(self.paths, getattr(rc, 'source', '') or '') if self.paths else None
+        remedy = f'configsys plugin trust {name}' if name else 'configsys plugin trust <plugin>'
+        return Result.fail(
+            f'{rc.comp}: refusing to run {self.name} commands from the untrusted plugin '
+            f'{name or "?"!r} — review it, then `{remedy}`', category='untrusted-plugin')
 
     def resolve_version(self, rc, *, refresh=False):
         '''The version to install / treat as latest. A `version:` dict is a discovery

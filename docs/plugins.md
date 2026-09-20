@@ -138,12 +138,21 @@ mis‑installed.
 
 ## 6. Trust model
 
-The dividing line is **does it ship code** (`code:` in the manifest):
+The dividing line is **does it run code** — and some *data* runs code:
 
-- **Data‑only plugins**: sync freely, no prompt. Worst case is bad component definitions,
-  caught by `configsys check`, and installs stay explicit — "just data can't do too much harm."
-- **Code plugins**: **explicit per‑content opt‑in**, via an explicit command (not an inline
-  sync prompt — the CLI stays non‑interactive and scriptable):
+- **Inert data plugins** (components routed only through package managers / downloads — apt, flatpak,
+  tarball, …): sync freely, no prompt. Worst case is bad component definitions, caught by `configsys
+  check`, and installs stay explicit.
+- **Command‑carrying data** — a `via: script` / `via: source` binding, a `via: glue` snippet with a
+  `#!cs-eval` directive, or an apt `source-line:`/`ppa:` — is a **program configsys runs as a shell
+  command**, so it needs the same trust as code. A plugin that ships any of these is treated as a
+  **code plugin for trust purposes**: its recipes are refused (with a "run `configsys plugin trust
+  <name>`" message) until you approve its current content, exactly like a `code:` module. (A
+  `facets: { detect: … }` probe runs shell at *startup*, so it is accepted only from the repo or your
+  blessed **primary** plugin — never a plain synced/transitive plugin.)
+- **Code plugins** (a `code:` module) **and command‑carrying data plugins**: **explicit per‑content
+  opt‑in**, via an explicit command (not an inline sync prompt — the CLI stays non‑interactive and
+  scriptable):
 
   ```
   $ configsys plugin list          # a code plugin shows: ships code — untrusted
@@ -312,8 +321,8 @@ Mirrors how overrides shipped: prove the mechanism on the safe subset, then add 
 1. **Declarative `plugins:` list + `plugin sync`** (not imperative‑as‑source‑of‑truth); rich CLI.
 2. **Piecemeal**: P1 (data + sync) then P2 (code + trust + ABI).
 3. **One coarse ABI integer** (KISS); freeze + document the `Driver` surface (`configsys/plugins.py`).
-4. **Per‑content trust for code** (a `sha256:` hash of the plugin tree, transport‑independent);
-   data‑only plugins sync freely.
+4. **Per‑content trust for code AND command‑carrying data** (a `sha256:` hash of the plugin tree,
+   transport‑independent); only inert data plugins sync freely (see §6).
 
 ## 10. Open / deferred
 

@@ -113,6 +113,8 @@ class Source(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc, version=None):
+        if not self.command_trusted(rc):               # untrusted plugin: refuse to run its build
+            return self.untrusted_command_result(rc)
         steps = self._build_steps(rc)
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
@@ -178,6 +180,8 @@ class Source(Driver):
         return self.install(rc, version=version)
 
     def uninstall(self, rc):
+        if not self.command_trusted(rc):               # untrusted plugin: refuse its uninstall-cmd
+            return self.untrusted_command_result(rc)
         src = self._src_dir(rc)
         srcq = shlex.quote(str(src))
         unc = rc.fields.get('uninstall-cmd')

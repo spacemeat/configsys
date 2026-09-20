@@ -119,18 +119,18 @@ def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys):
         assert main(home + ['plugin', 'add', str(s), '--ref', 'v1']) == 0
     capsys.readouterr()
 
-    # trust --all: both code plugins trusted, the data-only one untouched
+    # trust --all: both code plugins trusted, the inert data-only one untouched
     assert main(home + ['plugin', 'trust', '--all']) == 0
     out = capsys.readouterr().out
-    assert 'codeplug-a' in out and 'codeplug-b' in out and 'dataonly' not in out
-    assert 'trusted 2 code plugin' in out
+    assert 'trusted 2 plugin' in out and 'dataonly' not in out
     trust_file = tmp_path / '.config' / 'configsys' / 'plugin-trust.hu'
     trust = plugins.read_trust(trust_file)
     assert plugins.dir_name(str(a)) in trust and plugins.dir_name(str(b)) in trust
+    assert plugins.dir_name(str(d)) not in trust     # native-only data plugin: nothing to trust
 
     # idempotent: nothing left untrusted
     assert main(home + ['plugin', 'trust', '--all']) == 0
-    assert 'no untrusted code plugins' in capsys.readouterr().out
+    assert 'no untrusted plugins' in capsys.readouterr().out
 
     # a bare `plugin trust` (no name) behaves like --all — here it re-approves a changed plugin
     pdir = tmp_path / '.config' / 'configsys' / 'plugins' / plugins.dir_name(str(a))
@@ -228,3 +228,41 @@ def test_trust_all_action_trusts_every_untrusted_code_plugin(tmp_path):
     # idempotent: a second run finds nothing untrusted
     n2, note2 = actions.plugin_trust_all(ctx)
     assert n2 == 0 and 'no untrusted' in note2
+
+
+def test_command_binding_from_untrusted_data_plugin_is_refused_until_trusted(tmp_path):
+    # A1: a data-only plugin's via:script binding must not run until the plugin is content-trusted.
+    from configsys import plugins
+    from configsys.paths import Paths
+    from configsys.drivers.script import Script
+    from configsys.runner import Runner
+    from configsys.componentObj import ResolvedComponent
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    pdir = paths.plugins_dir / 'evilplug'
+    pdir.mkdir(parents=True)
+    (pdir / 'plugin.hu').write_text('{ name: evilplug  requires-abi: 1  data: [ routes.hu ] }')
+    (pdir / 'routes.hu').write_text(
+        '{ components: { pwn: { install: [ { via: script  install-cmd: "touch /tmp/pwned" } ] } } }')
+    assert plugins.ships_executable_data(pdir)                    # detected as a recipe plugin
+    rc = ResolvedComponent(key='script\\pwn', driver='script', comp='pwn',
+                           fields={'install-cmd': 'touch /tmp/pwned'}, source=str(pdir / 'routes.hu'))
+    drv = Script(Runner(pretend=True), paths=paths)
+
+    res = drv.install(rc)                                          # untrusted -> refused, nothing ran
+    assert not res.ok and 'untrusted' in res.output.lower()
+    assert drv.runner.calls == []
+    assert drv.get_version(rc) is None                            # the probe is gated too
+
+    plugins.set_trust(paths.plugin_trust_file, 'evilplug', plugins.plugin_identity(pdir))
+    drv2 = Script(Runner(pretend=True), paths=paths)
+    drv2.install(rc)                                              # trusted now -> the command is issued
+    assert any('touch /tmp/pwned' in c for c in drv2.runner.calls)
+
+
+def test_core_and_user_bindings_are_never_command_gated(tmp_path):
+    # a via:script binding from the repo / user config (no plugin source) always runs
+    from configsys import plugins
+    from configsys.paths import Paths
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    assert plugins.command_source_trusted(paths, '')                       # unknown -> trusted
+    assert plugins.command_source_trusted(paths, str(tmp_path / 'routes.hu'))   # core/user path -> trusted

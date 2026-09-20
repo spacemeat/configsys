@@ -2402,48 +2402,17 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'trust':
-        # No name (or --all): trust every code plugin that is currently untrusted or changed.
+        # A plugin needs trust if it ships code OR command-carrying recipes (script/source/glue);
+        # both run only once its current content is approved. Thin skin over the shared action layer.
+        from . import actions
         if getattr(args, 'all', False) or not args.name:
-            rows = plugins.status(ctx.paths.plugins_dir, eff,
-                                  trust_file=ctx.paths.plugin_trust_file)
-            pending = [r for r in rows if r['code_state'] in ('untrusted', 'changed')]
-            unsynced = [r for r in rows if r['code_state'] == 'unsynced']
-            if not pending:
-                print('configsys: no untrusted code plugins'
-                      + (' (some ship code but are unsynced — run: configsys plugin sync)'
-                         if unsynced else ''))
-                return 0
-            for r in pending:
-                key = plugins.dir_name(r['source'])
-                plugins.set_trust(ctx.paths.plugin_trust_file, key, r['identity'])
-                short = r['identity'].split(':')[-1][:12]
-                verb = 're-approved' if r['code_state'] == 'changed' else 'trusted'
-                print(f'  {verb:11} {r["name"]} @ {short}')
-            print(f'configsys: trusted {len(pending)} code plugin(s) — their code will run during installs'
-                  + (f'; {len(unsynced)} unsynced (run: configsys plugin sync)' if unsynced else ''))
+            n, note = actions.plugin_trust_all(ctx)
+            print(f'configsys: {note}')
             return 0
-        target = _find_decl(eff, ctx.paths.plugins_dir, args.name)   # incl. transitive plugins
-        if target is None:
-            print(f'configsys: no declared plugin matches {args.name!r}')
-            return 1
-        key = plugins.dir_name(target['source'])         # store key: stable across content
-        pdir = ctx.paths.plugins_dir / key
-        if not pdir.exists():
-            print(f'configsys: {key} is not synced — run: configsys plugin sync')
-            return 1
-        manifest = plugins.read_manifest(pdir)
-        disp = manifest.get('name', key)                  # friendly name for display
-        if not manifest.get('code'):
-            print(f'configsys: {disp} ships no code — nothing to trust')
-            return 0
-        identity = plugins.plugin_identity(pdir)
-        if identity is None:
-            print(f'configsys: could not read {disp}’s contents')
-            return 1
-        plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
-        short = identity.split(':')[-1][:12]
-        print(f'configsys: trusted {disp} @ {short} — its code will run during installs')
-        return 0
+        ok, note = actions.plugin_trust(ctx, args.name)
+        print(f'configsys: {note}')
+        # "nothing to trust" (an inert data plugin) is a benign no-op, not an error (exit 0).
+        return 0 if (ok or 'nothing to trust' in note) else 1
 
     if sub == 'untrust':
         target = _find_decl(eff, ctx.paths.plugins_dir, args.name)

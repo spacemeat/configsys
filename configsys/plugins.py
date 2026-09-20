@@ -391,11 +391,97 @@ def is_trusted(trust_file, name, identity):
     return identity is not None and read_trust(trust_file).get(name) == identity
 
 
-def code_state(manifest, synced, approved, identity):
-    '''Classify a plugin's code-trust state for display/gating:
-    none (no code) | unsynced | trusted | untrusted (never approved) | changed (approved a
-    different identity — the content moved, must re-approve).'''
-    if not manifest.get('code'):
+def plugin_of_source(paths, source):
+    '''The plugin dir name whose tree a binding's `source` file lives under, or None when the
+    source is core (routes.hu/config.hu), the user's own config, or an include of those.'''
+    if not source:
+        return None
+    try:
+        src = os.path.realpath(str(source))
+        root = os.path.realpath(str(paths.plugins_dir))
+    except (OSError, ValueError):
+        return None
+    if not (src == root or src.startswith(root + os.sep)):
+        return None
+    seg = os.path.relpath(src, root).split(os.sep, 1)[0]
+    return seg if seg and seg not in ('.', '..') else None
+
+
+def command_source_trusted(paths, source):
+    '''Whether the layer that DEFINED a binding may run declared shell commands (via: script/source,
+    a glue #!cs-eval, apt source-line). The repo and the user's own config are trusted as the user;
+    a file under a synced plugin runs only if that plugin's CURRENT content is trusted — the same
+    per-content gate as plugin CODE. This is what stops untrusted plugin DATA from being code.'''
+    name = plugin_of_source(paths, source)
+    if name is None:
+        return True                                  # core / user / include — trusted as the user
+    pdir = Path(paths.plugins_dir) / name
+    return is_trusted(paths.plugin_trust_file, name, plugin_identity(pdir))
+
+
+def _spec_bindings(spec):
+    '''The binding dicts declared by one component spec (its `install:` / `bindings:` list).'''
+    if not isinstance(spec, dict):
+        return []
+    seq = spec.get('install')
+    if not isinstance(seq, list):
+        seq = spec.get('bindings') if isinstance(spec.get('bindings'), list) else []
+    return [b for b in seq if isinstance(b, dict)]
+
+
+_EXEC_DATA_CACHE = {}                                 # (path, newest-mtime) -> bool, per process
+
+
+def ships_executable_data(plugin_dir):
+    '''True if the plugin's DATA declares anything configsys runs as shell — a via:script/source
+    binding, an apt source-line/ppa/apt-source, or a glue snippet carrying a `#!cs-eval` directive.
+    Such data is code for trust purposes (command_source_trusted gates it), so `plugin trust` accepts
+    a data-only plugin that ships it. Memoised on the tree's newest mtime (a sync changes it).'''
+    pdir = Path(plugin_dir)
+    if not pdir.is_dir():
+        return False
+    try:
+        newest = max((p.stat().st_mtime_ns for p in pdir.rglob('*') if p.is_file()), default=0)
+    except OSError:
+        newest = 0
+    ckey = (str(pdir), newest)
+    if ckey in _EXEC_DATA_CACHE:
+        return _EXEC_DATA_CACHE[ckey]
+    _EXEC_DATA_CACHE[ckey] = _scan_executable_data(pdir)
+    return _EXEC_DATA_CACHE[ckey]
+
+
+def _scan_executable_data(pdir):
+    for f in sorted(pdir.rglob('*.hu')):
+        try:
+            data = layers.materialize_string(f.read_text(encoding='utf-8'))
+        except Exception:                            # noqa: BLE001 — a malformed file ships nothing
+            continue
+        comps = data.get('components') if isinstance(data, dict) else None
+        for spec in (comps.values() if isinstance(comps, dict) else ()):
+            for b in _spec_bindings(spec):
+                if b.get('via') in ('script', 'source') or any(
+                        k in b for k in ('source-line', 'ppa', 'apt-source')):
+                    return True
+    for f in pdir.rglob('*'):                         # glue snippets with an eval directive
+        if f.is_file() and f.suffix in ('.sh', '.fish', '.elv', '.nu'):
+            try:
+                if '#!cs-eval' in f.read_text(encoding='utf-8', errors='ignore'):
+                    return True
+            except OSError:
+                pass
+    return False
+
+
+def code_state(manifest, synced, approved, identity, *, trustable=None):
+    '''Classify a plugin's trust state for display/gating:
+    none (nothing to trust) | unsynced | trusted | untrusted (never approved) | changed (approved a
+    different identity — the content moved, must re-approve). `trustable` defaults to "ships code";
+    a plugin that ships command-carrying DATA (script/source/glue recipes) is also trustable — pass
+    trustable=True so it too surfaces as untrusted until approved (its recipes are gated on trust).'''
+    if trustable is None:
+        trustable = bool(manifest.get('code'))
+    if not trustable:
         return 'none'
     if not synced or identity is None:
         return 'unsynced'
@@ -415,7 +501,13 @@ def status(plugins_dir, decls, *, trust_file=None):
         pdir = plugins_dir / key
         synced = pdir.exists()
         manifest = read_manifest(pdir) if synced else {}
-        identity = plugin_identity(pdir) if (trust_file is not None and manifest.get('code')) else None
+        has_code = bool(manifest.get('code'))
+        # a plugin needing trust ships code OR command-carrying data (recipes); recipe scan only
+        # when a trust decision is being surfaced (trust_file given) and something is on disk.
+        has_recipes = bool(synced and trust_file is not None and not has_code
+                           and ships_executable_data(pdir))
+        trustable = has_code or has_recipes
+        identity = plugin_identity(pdir) if (trust_file is not None and trustable) else None
         checksum = None
         if synced and d.get('sha256'):
             checksum = 'ok' if checksum_ok(plugins_dir, d) else 'mismatch'
@@ -426,10 +518,10 @@ def status(plugins_dir, decls, *, trust_file=None):
             'synced': synced, 'abi_ok': (not synced) or _abi_ok(manifest),
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
-            'has_code': bool(manifest.get('code')),
+            'has_code': has_code, 'has_recipes': has_recipes,
             'identity': identity,
             'checksum': checksum,
-            'code_state': code_state(manifest, synced, trust.get(key), identity),
+            'code_state': code_state(manifest, synced, trust.get(key), identity, trustable=trustable),
         })
     return rows
 

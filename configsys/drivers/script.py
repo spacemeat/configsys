@@ -46,7 +46,7 @@ class Script(Driver):
         '''Run the named command field and extract a version via `version-re` (group 1), else the
         first output line. None if the field / command output is empty or the command fails.'''
         cmd = self._cmd(rc, cmd_field)
-        if not cmd:
+        if not cmd or not self.command_trusted(rc):    # untrusted plugin: don't run its probe
             return None
         r = self.runner.run(cmd)
         out = (r.stdout or '').strip()
@@ -75,12 +75,16 @@ class Script(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        if not self.command_trusted(rc):
+            return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'install-cmd')
         if not cmd:
             return Result('(script: no install-cmd in route)', 1)
         return self.runner.run(cmd, capture=False)
 
     def uninstall(self, rc):
+        if not self.command_trusted(rc):
+            return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'uninstall-cmd')
         if cmd:
             return self.runner.run(cmd, capture=False)
@@ -89,12 +93,16 @@ class Script(Driver):
                       f'remove it manually.', 0)
 
     def upgrade(self, rc):
+        if not self.command_trusted(rc):
+            return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'upgrade-cmd') or self._cmd(rc, 'install-cmd')
         if not cmd:
             return Result('(script: no upgrade-cmd/install-cmd in route)', 1)
         return self.runner.run(cmd, capture=False)
 
     def set_version(self, rc, version):
+        if not self.command_trusted(rc):
+            return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'set-version-cmd')
         if not cmd:
             return Result(f'⚠ "{rc.comp}" declares no set-version-cmd; version pinning '

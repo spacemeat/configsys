@@ -913,33 +913,41 @@ def plugin_trust(ctx, ident):
         return False, f'{key} is not synced — sync it first'
     manifest = plugins.read_manifest(pdir)
     disp = manifest.get('name', key)
-    if not manifest.get('code'):
-        return False, f'{disp} ships no code — nothing to trust'
+    has_code = bool(manifest.get('code'))
+    has_recipes = plugins.ships_executable_data(pdir)
+    if not has_code and not has_recipes:
+        return False, f'{disp} ships no code or executable recipes — nothing to trust'
     identity = plugins.plugin_identity(pdir)
     if identity is None:
         return False, f'could not read {disp}’s contents'
     plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
     ctx.invalidate()
-    return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — its code will run'
+    what = 'its code' if has_code else 'its recipes'
+    if has_code and has_recipes:
+        what = 'its code + recipes'
+    return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — {what} will run'
 
 
 def plugin_trust_all(ctx):
-    '''Trust EVERY code plugin currently untrusted or changed (the bulk `T` / `plugin trust --all`).
-    Returns (n_trusted, note). Unsynced code plugins are counted in the note but skipped (nothing
-    on disk to hash yet).'''
+    '''Trust EVERY plugin currently untrusted or changed — code OR command-carrying recipes (the bulk
+    `T` / `plugin trust --all`). Returns (n_trusted, note); the note's first line is a summary (what
+    the TUI shows), followed by one `verb name` line per plugin. Unsynced trustable plugins are
+    counted in the note but skipped (nothing on disk to hash yet).'''
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
     rows = plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file)
     pending = [r for r in rows if r['code_state'] in ('untrusted', 'changed')]
     unsynced = [r for r in rows if r['code_state'] == 'unsynced']
-    n = 0
+    n, detail = 0, []
     for r in pending:
         ok, _note = plugin_trust(ctx, r['name'])
-        n += 1 if ok else 0
+        if ok:
+            n += 1
+            detail.append(f'  {"re-approved" if r["code_state"] == "changed" else "trusted":11} {r["name"]}')
     if not pending:
-        return 0, ('no untrusted code plugins'
-                   + (' (some ship code but are unsynced — sync first)' if unsynced else ''))
+        return 0, ('no untrusted plugins'
+                   + (' (some ship code/recipes but are unsynced — sync first)' if unsynced else ''))
     tail = f'; {len(unsynced)} unsynced skipped' if unsynced else ''
-    return n, f'trusted {n} code plugin(s){tail}'
+    return n, '\n'.join([f'trusted {n} plugin(s){tail}'] + detail)
 
 
 def plugin_untrust(ctx, ident):

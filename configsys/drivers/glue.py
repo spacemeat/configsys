@@ -594,6 +594,11 @@ class Glue(Driver):
         shells — the TUI passes it so activating a snippet in one shell group doesn't light up the
         component's OTHER shells (each per-shell row is independently activatable). None = all shells
         (the CLI install path).'''
+        # A glue snippet lands in the user's conf.d and is sourced by every interactive shell (and a
+        # #!cs-eval snippet runs a command at activation) — so it is code. Refuse to materialize an
+        # untrusted plugin's glue; the user must `plugin trust` it first.
+        if not self.command_trusted(rc):
+            return self.untrusted_command_result(rc)
         loaders = self._loader_shells(rc)
         if only_shells is not None:
             loaders = [l for l in loaders if l in only_shells]
