@@ -288,6 +288,23 @@ def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states():
     assert all(hasattr(r[0], 'comp') for r in ds.rows)                        # _df_cells reads rc.comp
 
 
+def test_theme_plugins_sample_is_stable_and_covers_states():
+    from configsys.app import Context, build_parser
+    from configsys.tui import menu
+    from configsys import plugins
+    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    pl = menu._sample_plugins_state(ctx)
+    assert any(r['primary'] for r in pl.rows)                                 # a ★ primary plugin
+    assert {r['code_state'] for r in pl.rows} >= {'trusted', 'changed', 'unsynced', 'none'}
+    assert any(not r['abi_ok'] for r in pl.rows) and any(r['abi_ok'] for r in pl.rows)   # error + ok
+    assert any(not r['synced'] for r in pl.rows)                             # an unsynced row
+    assert any(t['depth'] == 1 for t in pl.tree)                            # a transitive child (tree prefix)
+    # a remote-ref AHEAD of the installed ref -> the amber "update available" state
+    assert any(isinstance(pl.remote.get(plugins.dir_name(r['source'])), str)
+               and pl.remote[plugins.dir_name(r['source'])] != r['ref'] for r in pl.rows)
+    assert pl.diff_files and pl.cur_row() is not None                        # a mocked diff + a selection
+
+
 def test_profiles_page_has_one_orphan_role_after_user_profiles_retired():
     # Only orphan_lurking is actually rendered on the Profiles page (⊙ installed-untracked / ⮾
     # staged-uninstall); excluded/forgotten/foreign were user-profile leftovers and are pruned.

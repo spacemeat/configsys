@@ -4115,6 +4115,54 @@ def _sample_profiles_state(ctx):
     return ps
 
 
+def _sample_plugins_state(ctx):
+    '''A stable synthetic Plugins sample: a small declared tree covering every table state — a primary
+    ★ plugin up-to-date + trusted, a plugin with an update available (amber remote-ref), its transitive
+    child (tree prefix), an ABI-mismatch row (error), an untrusted/changed-code row, and an unsynced
+    row — plus a mocked diff so the diff roles show. Built by hand so the roles are colourable
+    regardless of the machine's real (usually empty) plugin set. No network: the draw reads rows/
+    remote/diff directly and never resolves remote-refs itself.'''
+    from .. import plugins
+    pl = PluginScreen(ctx)
+
+    def _row(primary, name, source, ref, abi_ok, requires_abi, code_state, has_code, provides,
+             synced, checksum='ok'):
+        return {'primary': primary, 'name': name, 'source': source, 'ref': ref, 'abi_ok': abi_ok,
+                'requires_abi': requires_abi, 'code_state': code_state, 'has_code': has_code,
+                'provides': provides, 'synced': synced, 'checksum': checksum}
+
+    pl.rows = [
+        _row(True,  'mytools',      'github:me/configsys-mytools',        'v1.2.0', True, 2,
+             'trusted',  True,  {'driver': ['footool']},  True),
+        _row(False, 'science',      'github:org/configsys-science',       'v0.4.1', True, 2,
+             'trusted',  True,  {'splash': ['nova']},     True),
+        _row(False, 'science-data', 'github:org/configsys-science-data',  'v0.4.1', True, 2,
+             'none',     False, {},                       True),
+        _row(False, 'legacy-pack',  'github:old/configsys-legacy',        'v3.0.0', False, 1,
+             'unsynced', True,  {},                       True),
+        _row(False, 'labkit',       'github:lab/configsys-labkit',        'v2.1.0', True, 2,
+             'changed',  True,  {'driver': ['labdrv']},   True),
+        _row(False, 'fresh',        'github:new/configsys-fresh',         None,     True, 2,
+             'unsynced', False, {},                       False),
+    ]
+    # tree: `science-data` is a transitive child of `science`; the rest are roots.
+    pl.tree = [{'depth': 0, 'last': [True], 'decl': {}} for _ in pl.rows]
+    pl.tree[2] = {'depth': 1, 'last': [False, True], 'decl': {}}
+    # remote-refs: up-to-date (green) except `science`, which has an update (amber), and `fresh` (—).
+    _rem = {'v1.2.0', 'v0.4.1', 'v3.0.0', 'v2.1.0'}                       # match each row's ref
+    pl.remote = {plugins.dir_name(r['source']): r['ref'] for r in pl.rows if r['ref'] in _rem}
+    pl.remote[plugins.dir_name('github:org/configsys-science')] = 'v0.5.0'   # newer -> outdated amber
+    pl.remote[plugins.dir_name('github:new/configsys-fresh')] = None         # unreachable / unsynced
+
+    pl.diff_files = [{'path': 'science.hu', 'lines': [
+        ('hunk', '@@ components @@'), ('meta', ' astropy:'),
+        ('add', '+   pipx: { name: astropy }'), ('del', '-   pip: { name: astropy }'),
+        ('ctx', '    suggests: astropy-dotfiles')]}]
+    pl.dfile, pl.diff_note = 0, None
+    pl.cur = 1                                            # park on `science` (the update-available row)
+    return pl
+
+
 def _sample_glue_state(ctx):
     '''A stable synthetic Glue sample: snippets across two shells covering active / changed / available
     + loader on/off, so every glue role is colourable regardless of the user's real glue. The draw
@@ -4185,13 +4233,7 @@ class ThemeScreen:
             if page == 'profiles':
                 return _sample_profiles_state(ctx)
             if page == 'plugins':
-                pl = PluginScreen(ctx)                           # inject a diff so the diff roles show
-                pl.diff_files = [{'path': 'routes.hu', 'lines': [
-                    ('hunk', '@@ components @@'), ('meta', ' ripgrep:'),
-                    ('add', '+   cargo: { name: ripgrep }'), ('del', '-   apt: { name: ripgrep }'),
-                    ('ctx', '    suggests: ripgrep-dotfiles')]}]
-                pl.dfile, pl.diff_note = 0, None
-                return pl
+                return _sample_plugins_state(ctx)
             if page == 'glue':
                 return _sample_glue_state(ctx)
             if page == 'dotfiles':
