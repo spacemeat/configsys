@@ -55,7 +55,7 @@ def test_plugins_diff_focus_equivalent(ctx, h, w, mode):
 
 def test_plugins_build_vm_is_pure_data(ctx):
     scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
-    vm = scr.build_vm(ctx, (40, 120))
+    vm = scr.build_vm(ctx, (40, 200))
     assert vm.has_rows and vm.cells and len(vm.cells[0]) == len(vm.headers)
     assert vm.diff_has_files and vm.diff_lines            # the sample has a mocked diff
     assert 'plugin(s)' in vm.status and vm.nav
@@ -82,3 +82,14 @@ def test_handle_switch_pane_toggles_focus(ctx):
     tab = next(k for k in range(1, 400) if km.action_for('plugins', k) == 'switch-pane')
     scr.handle(tab, ctx, None, None)
     assert scr.model.focus == 'diff'
+
+
+def test_plugins_note_renders_in_status(ctx):
+    # the router supplies vm.note; draw must render it (a class of bug the note='' equivalence
+    # cases can't catch — the legacy painters append it to the status line).
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    vm = scr.build_vm(ctx, (40, 200))
+    vm.note = 'ZZ_NOTE_MARKER_ZZ'
+    surf = BufferSurface(40, 200)
+    scr.draw(surf, RecordingPalette(), vm)
+    assert 'ZZ_NOTE_MARKER_ZZ' in ' '.join(surf.text_rows())

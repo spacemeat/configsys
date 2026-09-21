@@ -71,7 +71,7 @@ def test_dotfiles_empty_equivalent(ctx, h, w, mode):
 
 def test_dotfiles_build_vm_is_pure_data(ctx):
     scr = DotfilesScreen(ctx, menu._sample_dotfiles_state(ctx))
-    vm = scr.build_vm(ctx, (40, 120))
+    vm = scr.build_vm(ctx, (40, 200))
     assert vm.has_rows and vm.cells and len(vm.cells[0]) == len(vm.headers)
     assert len(vm.elems) == len(vm.cells) == len(vm.display) == 4
     assert vm.elems == ['installed', 'outdated', 'info_dim', 'installed']   # managed/unmanaged/no config/managed
@@ -106,3 +106,14 @@ def test_handle_move_store_all_without_primary_plugin_notes(ctx):
     intent = scr.handle(key, ctx, None, None)
     assert intent.note == 'no primary plugin configured — nothing to move between'
     assert scr.model.dirty == set()
+
+
+def test_dotfiles_note_renders_in_status(ctx):
+    # the router supplies vm.note; draw must render it (a class of bug the note='' equivalence
+    # cases can't catch — the legacy painters append it to the status line).
+    scr = DotfilesScreen(ctx, menu._sample_dotfiles_state(ctx))
+    vm = scr.build_vm(ctx, (40, 200))
+    vm.note = 'ZZ_NOTE_MARKER_ZZ'
+    surf = BufferSurface(40, 200)
+    scr.draw(surf, RecordingPalette(), vm)
+    assert 'ZZ_NOTE_MARKER_ZZ' in ' '.join(surf.text_rows())

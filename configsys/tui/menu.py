@@ -4049,6 +4049,9 @@ def _sample_profiles_state(ctx):
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
     ps._async_overlay = None
+    ps.ensure_probes = lambda *a, **k: None          # sample: no async resolve pre-warm — the draw still
+    # resolves each visible row on demand (same values), so the render is complete AND deterministic
+    # (single-threaded); the background probe thread would otherwise race _res under a loaded test run.
     ps.focus = 'right'                               # the catalog cursor drives the infobox + selection
 
     vis = [nm for nm, _d in ps._catalog_rows()]      # the stable visible catalog (config-independent)
@@ -4103,6 +4106,16 @@ def _sample_profiles_state(ctx):
     cfg.machine_names = lambda: ['thisbox', 'laptop']
     cfg.current_machine = lambda: 'thisbox'
     ps.ctx = _SampleCtx(ctx, cfg)                    # ps + _draw_profiles now read the overlay
+    # Hermetic sample: abort the __init__ warm-cache thread and resolve every visible row NOW, so the
+    # draw only READS _res (no on-demand resolve during paint). Otherwise the background warm thread
+    # (which resolves into shared ctx.routes caches) races the draw under a loaded test run, and a
+    # component's shown via/pin can differ between two renders — a flaky equivalence check.
+    ps._warm_gen = 10 ** 9                            # supersede the in-flight warm sweep -> it stops
+    for _n in vis:
+        try:
+            ps._resolve(_n)                          # fills _res[_n] once (no-op if already primed above)
+        except Exception:                            # noqa: BLE001 — a preview never bricks
+            pass
     return ps
 
 
@@ -5086,6 +5099,9 @@ def run(ctx):
         from .screens.glue import GlueScreen
         from .screens.dotfiles import DotfilesScreen
         from .screens.config import ConfigScreen
+        from .screens.profiles import ProfilesScreen
+        from .screens.theme import ThemeScreen
+        from .screens.components import ComponentsScreen
         global _KEYMAP
         _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
         comp_mode = 'to-do'                       # Components view MODE: to-do | tracked | installed+tracked
@@ -5108,12 +5124,19 @@ def run(ctx):
         show_where = False                        # `w` full-page: the complete where-report for a row
         where_lines, where_top, where_subject = [], 0, ''
         screen = 'components'
-        ps = None                                 # ProfileScreen, built lazily on first visit
-        cs = None                                 # ConfigScreen, built lazily on first visit
-        ts = None                                 # ThemeScreen (sub-screen of Config)
-        pl = None                                 # PluginScreen, built lazily on first visit
-        ds = None                                 # DotfilesScreen, built lazily on first visit
-        gs = None                                 # GlueScreen, built lazily on first visit
+        # The screen router: one Screen per id, built lazily on first visit (components is the default
+        # and holds the live MenuState). The router feeds each screen the frame state it needs
+        # (ms/note/diags/sample_ms) right before build_vm/draw.
+        _reg = {}
+
+        def _screen(sid):
+            s = _reg.get(sid)
+            if s is None:
+                s = _reg[sid] = (ComponentsScreen(ctx, ms) if sid == 'components' else
+                                 {'profiles': ProfilesScreen, 'plugins': PluginsScreen,
+                                  'glue': GlueScreen, 'dotfiles': DotfilesScreen,
+                                  'config': ConfigScreen, 'theme': ThemeScreen}[sid](ctx))
+            return s
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
@@ -5124,38 +5147,24 @@ def run(ctx):
                 where_top = _draw_where(stdscr, pal, where_lines, where_top, where_subject)
             elif show_diag:
                 diag_top = _draw_diagnostics(stdscr, pal, diags, diag_top)
-            elif screen == 'profiles':
-                if ps is None:
-                    ps = ProfileScreen(ctx)
-                _draw_profiles(stdscr, pal, ps, ctx, note, screen)
-            elif screen == 'plugins':
-                if pl is None:
-                    pl = PluginsScreen(ctx)
-                pl.draw(stdscr, pal, pl.build_vm(ctx, stdscr.getmaxyx()))
-            elif screen == 'glue':
-                if gs is None:
-                    gs = GlueScreen(ctx)
-                gs.draw(stdscr, pal, gs.build_vm(ctx, stdscr.getmaxyx()))
-            elif screen == 'dotfiles':
-                if ds is None:
-                    ds = DotfilesScreen(ctx)
-                ds.draw(stdscr, pal, ds.build_vm(ctx, stdscr.getmaxyx()))
-            elif screen == 'config':
-                if cs is None:
-                    cs = ConfigScreen(ctx)
-                cs.draw(stdscr, pal, cs.build_vm(ctx, stdscr.getmaxyx()))
-            elif screen == 'theme':
-                if ts is None:
-                    ts = ThemeScreen(ctx)
-                _draw_theme(stdscr, pal, ts, ctx, note, screen, ms)   # ms feeds the components sample
             else:
-                diag_top = _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen)
+                scr = _screen(screen)
+                if screen == 'components':
+                    scr.model, scr.note, scr.diags = ms, note, diags   # the live tree + frame inputs
+                    scr.draw(stdscr, pal, scr.build_vm(ctx, stdscr.getmaxyx()))
+                else:
+                    if screen == 'theme':
+                        scr.sample_ms = ms         # the live Components state for its bottom sample slot
+                    vm = scr.build_vm(ctx, stdscr.getmaxyx())
+                    vm.note = note                 # the transient status note the router owns
+                    scr.draw(stdscr, pal, vm)
             note = ''
             # While the Profiles install-overlay's background orphan scan is running, poll (timed
             # getch) so its result paints on its own; otherwise block. Restore blocking immediately
             # after so the modal getch loops are unaffected.
-            stdscr.timeout(120 if (screen == 'profiles' and ps is not None
-                                   and (ps.overlay_busy() or ps.probe_busy())) else -1)
+            _pscr = _reg.get('profiles')
+            stdscr.timeout(120 if (screen == 'profiles' and _pscr is not None
+                                   and (_pscr.model.overlay_busy() or _pscr.model.probe_busy())) else -1)
             ch = stdscr.getch()
             stdscr.timeout(-1)
             if ch == -1:                                 # timed out with no key -> just redraw
@@ -5218,8 +5227,9 @@ def run(ctx):
                 if dest in IMPLEMENTED:
                     # dotfiles/glue mutated on their pages (link/activate) -> re-probe those units so
                     # Components doesn't show stale 'managed'/'adopted' after they're now linked.
-                    df_dirty = ((ds.model.dirty if ds is not None else set())
-                                | (gs.model.dirty if gs is not None else set()))
+                    _dscr, _gscr = _reg.get('dotfiles'), _reg.get('glue')
+                    df_dirty = ((_dscr.model.dirty if _dscr is not None else set())
+                                | (_gscr.model.dirty if _gscr is not None else set()))
                     # the !uninstall queue can change from OTHER screens (Profiles `x`) or drain, so
                     # rebuild whenever it differs from what this view last folded — not just on edits.
                     q_changed = (set(ctx.config.uninstall_queue())
@@ -5240,698 +5250,50 @@ def run(ctx):
                         except Exception as e:  # noqa: BLE001 — surface, don't crash
                             note = f'reload failed: {e}'
                         menu_dirty = False
-                        if ds is not None:
-                            ds.model.dirty = set()
-                        if gs is not None:
-                            gs.model.dirty = set()
-                    if dest == 'dotfiles' and ds is not None:  # re-read link state on entry — an
-                        ds.reload()                            # install/capture elsewhere may have changed it
-                    if dest == 'glue' and gs is not None:      # re-read glue state on entry likewise
-                        gs.reload()
+                        if _dscr is not None:
+                            _dscr.model.dirty = set()
+                        if _gscr is not None:
+                            _gscr.model.dirty = set()
+                    if dest == 'dotfiles' and _dscr is not None:  # re-read link state on entry — an
+                        _dscr.reload()                            # install/capture elsewhere may have changed it
+                    if dest == 'glue' and _gscr is not None:      # re-read glue state on entry likewise
+                        _gscr.reload()
                     screen = dest
                 else:
                     note = f'the {dest} screen is not built yet'
                 continue
 
             # -- Profiles screen --
-            if screen == 'profiles':
-                from .. import actions
-                pfact = keymap.action_for('profiles', ch)
-                if pfact == 'down':
-                    if ps.focus == 'left':
-                        ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + 1)
-                    else:                              # column-major grid: down = next item, wraps col
-                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + 1)
-                elif pfact == 'up':
-                    if ps.focus == 'left':
-                        ps.lcur = max(0, ps.lcur - 1)
-                    else:
-                        ps.rcur = max(0, ps.rcur - 1)
-                elif pfact == 'page-down':
-                    if ps.focus == 'left':
-                        ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + _page_rows(stdscr))
-                    else:
-                        ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + _page_rows(stdscr))
-                elif pfact == 'page-up':
-                    if ps.focus == 'left':
-                        ps.lcur = max(0, ps.lcur - _page_rows(stdscr))
-                    else:
-                        ps.rcur = max(0, ps.rcur - _page_rows(stdscr))
-                elif pfact in ('switch-pane', 'switch-pane-back'):
-                    ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
-                elif pfact == 'confirm' and ps.focus == 'left':
-                    _nd = ps.cur_node()
-                    if ps.is_group_header(_nd):        # a group header: fold/unfold it
-                        (ps.collapse_cur if _nd[4] else ps.expand_cur)()
-                    elif _nd and _nd[3]:               # expandable -> drill the tree in place (reveal subs)
-                        (ps.collapse_cur if _nd[4] else ps.expand_cur)()
-                    else:
-                        ps.focus = 'right'             # a leaf profile: open the components pane for it
-                elif pfact == 'right':
-                    if ps.focus == 'left':
-                        if ps.cur_node() and ps.cur_node()[3]:   # expandable -> open the include tree
-                            ps.expand_cur()
-                        else:                          # else scroll the (overflowing) left pane right
-                            ps.lhoff = min(getattr(ps, 'lhmax', 0), getattr(ps, 'lhoff', 0) + 4)
-                    else:
-                        _vc = ps.vcatalog()            # a collapsed parts comp -> drill it open (twisty)
-                        _nm = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
-                        if _nm and ps.is_expandable(_nm) and _nm not in ps.expanded_parts:
-                            ps.expanded_parts.add(_nm)
-                        else:                          # else scroll the matrix table right
-                            ps.rcol_left = min(getattr(ps, 'rhmax', 0), ps.rcol_left + 6)
-                elif pfact == 'left':
-                    if ps.focus == 'left':
-                        if getattr(ps, 'lhoff', 0) > 0:   # scroll back first, then collapse/parent
-                            ps.lhoff = max(0, ps.lhoff - 4)
-                        else:
-                            ps.collapse_cur()
-                    else:
-                        _vc = ps.vcatalog()            # an expanded parts comp -> collapse the twisty
-                        _nm = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
-                        if _nm and _nm in ps.expanded_parts:
-                            ps.expanded_parts.discard(_nm)
-                        elif ps.rcol_left > 0:
-                            ps.rcol_left = max(0, ps.rcol_left - 6)   # scroll the matrix table left
-                        else:
-                            ps.focus = 'left'          # at the left edge -> back to the browse pane
-                elif pfact == 'toggle-install':
-                    ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
-                    # orphans coloured, ignored orphans revealed dimmed). NOTE: don't invalidate the
-                    # overlay cache here — the data is identical on/off (only the rendering differs), so
-                    # toggling stays instant; a reload (any edit) is what recomputes it.
-                    note = ('install overlay off',
-                            'install overlay ON — installed underlined, orphans coloured '
-                            '(ignored dimmed)')[ps.show_install]
-                elif pfact == 'stage-uninstall' and ps.focus == 'right':
-                    _targets = ps.action_targets()         # stage the set (else the cursor) for uninstall
-                    if _targets:                           # (idempotent — like Components `x`; unstage there)
-                        nch = 0
-                        try:
-                            for _c in _targets:
-                                if _c in ctx.config.uninstall_queue():
-                                    continue
-                                changed, _lbl = actions.stage_uninstall(ctx, _c, on=True)
-                                nch += 1 if changed else 0
-                            ps.selected_comps.clear()
-                            ps.reload(); menu_dirty = menu_dirty or nch > 0
-                            note = (f'{nch} staged for uninstall (!uninstall)' if nch
-                                    else 'no change (already staged?)')
-                        except ConfigsysError as e:
-                            note = f'stage-uninstall failed: {e}'
-                elif pfact in ('disp-interesting', 'disp-seen', 'disp-interesting-all', 'disp-seen-all'):
-                    _batch = pfact.endswith('-all')        # S/I: the set / whole profile · s/i: the cursor
-                    _targets = ps.action_targets() if _batch else ps.cursor_targets()
-                    if _targets:                           # cursor: toggle (press again -> NEW); batch: set
-                        _want = 'interesting' if 'interesting' in pfact else 'seen'
-                        _single = len(_targets) == 1 and not _batch
-                        nch = 0
-                        try:
-                            for _c in _targets:
-                                # SEEN must not clobber INTERESTING (the flag is the stronger state);
-                                # skip an interesting component when marking seen.
-                                if _want == 'seen' and ctx.config.disposition(_c) == 'interesting':
-                                    continue
-                                _state = ('new' if (_single and ctx.config.disposition(_c) == _want)
-                                          else _want)
-                                changed, _lbl = actions.set_disposition(ctx, _c, _state)
-                                nch += 1 if changed else 0
-                            if _batch:
-                                ps.selected_comps.clear()
-                            ps.reload(); menu_dirty = menu_dirty or nch > 0
-                            note = (f'{nch} -> {_want.upper()}' if not _single
-                                    else f'{_targets[0]}: '
-                                         f'{"NEW" if ctx.config.disposition(_targets[0]) is None else _want.upper()}')
-                        except ConfigsysError as e:
-                            note = f'disposition failed: {e}'
-                elif pfact in ('track-all', 'track-one'):
-                    # T = the multi-select set / whole selected profile; t = just the highlighted item.
-                    _targets = ps.action_targets() if pfact == 'track-all' else ps.cursor_targets()
-                    if _targets:
-                        tg = sorted(ps.targets())          # the selected target machines (fan-out)
-                        # toggle: if ALL targets are already fully tracked here, UNtrack; else track.
-                        on = not all(ps.target_state(c) == 'all' for c in _targets)
-                        nch = 0
-                        try:
-                            for _c in _targets:
-                                cn, _l = actions.set_included(ctx, _c, tg, on)
-                                nch += cn
-                            if on:                         # tracked implies seen (undispositioned -> seen)
-                                actions.mark_all_seen(ctx, _targets)
-                            if pfact == 'track-all':
-                                ps.selected_comps.clear()
-                            ps.reload(); menu_dirty = menu_dirty or nch > 0
-                            _lbl = _targets[0] if len(_targets) == 1 else f'{len(_targets)} components'
-                            note = (f'{_lbl} {"tracked on" if on else "untracked from"} {", ".join(tg)}'
-                                    if nch else 'no change')
-                        except ConfigsysError as e:
-                            note = f'{pfact} failed: {e}'
-                elif pfact == 'orphan-ignore' and ps.focus == 'right':
-                    _vc = ps.vcatalog()                    # toggle the selected orphan's ignore state
-                    if _vc:
-                        _c = _vc[ps.rcur]
-                        try:
-                            if _c in ctx.config.orphans_ignore():
-                                changed, lbl = actions.unignore_orphan(ctx, _c)
-                                note = f'{_c} un-ignored' if changed else f'{_c}: {lbl}'
-                            else:
-                                changed, lbl = actions.ignore_orphan(ctx, _c)
-                                note = f'{_c} added to orphans-ignore' if changed else f'{_c}: {lbl}'
-                            ps.reload()
-                        except ConfigsysError as e:
-                            note = f'ignore failed: {e}'
-                elif pfact == 'mark-all-seen':         # `E`: acknowledge every NEW component at once
-                    _new = [c for c in ps.catalog if ctx.config.is_new(c) and not ps._is_companion(c)]
-                    if not _new:
-                        note = 'nothing NEW to mark seen'
-                    elif _popup_choose(stdscr, pal, f'mark all {len(_new)} NEW components as seen?',
-                                       [('cancel', ''), ('mark seen', '')], 0) == 1:
-                        nch = actions.mark_all_seen(ctx, _new)
-                        ps.reload()
-                        note = f'{nch} marked seen'
-                elif pfact == 'claim':                 # `C`: track everything already INSTALLED (adopt a box)
-                    _busy(stdscr, pal, 'scanning installed…')   # a full scan; give feedback before the freeze
-                    _claim = ps.installed_scan()       # full catalog: batch indices + per-component get_version
-                    tg = sorted(ps.targets())
-                    if not _claim:
-                        note = 'nothing installed to claim'
-                    elif _popup_choose(stdscr, pal,
-                                       f'track {len(_claim)} installed components on {", ".join(tg)}?',
-                                       [('cancel', ''), ('claim', '')], 0) == 1:
-                        nch = 0
-                        for _cc in _claim:
-                            for _m in tg:
-                                cn, _l = actions.set_included(ctx, _cc, [_m], True)
-                                nch += cn
-                        actions.mark_all_seen(ctx, _claim)   # tracked implies seen
-                        ps.reload(); menu_dirty = True
-                        note = f'claimed {len(_claim)} installed → tracked on {", ".join(tg)}'
-                elif pfact == 'top':
-                    setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
-                elif pfact == 'bottom':
-                    if ps.focus == 'left':
-                        ps.lcur = max(0, len(ps.visible_pnodes()) - 1)
-                    else:
-                        ps.rcur = max(0, len(ps.vcatalog()) - 1)
-                elif pfact == 'filter':                # FILTER the focused pane (live; narrows)
-                    if ps.focus == 'left':
-                        _filter_edit(stdscr, ps.pfilter, ps.set_pfilter,
-                                     lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
-                    else:
-                        _filter_edit(stdscr, ps.cfilter, ps.set_cfilter,
-                                     lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen))
-                elif pfact == 'attr-filter':           # faceted attr filter over the catalog (kind)
-                    res = _attr_filter_modal(stdscr, pal, ps.attr_inc, ps.attr_exc)
-                    if res is not None:
-                        ps.attr_inc, ps.attr_exc = res
-                        ps.rcur, ps.rcol_left = 0, 0   # catalog membership changed -> reset its cursor
-                elif pfact == 'find':                  # fuzzy FIND in the focused pane: jump cursor
-                    rdraw = lambda: _draw_profiles(stdscr, pal, ps, ctx, note, screen)
-                    if ps.focus == 'left':
-                        _find_edit(stdscr, [nd[0] for nd in ps.visible_pnodes()], ps.lcur,
-                                   lambda i: setattr(ps, 'lcur', i), rdraw)
-                    else:
-                        _find_edit(stdscr, list(ps.vcatalog()), ps.rcur,
-                                   lambda i: setattr(ps, 'rcur', i), rdraw)
-                elif pfact == 'select-all':
-                    # `a`: (de)select every component in view — the browsed profile's members when the
-                    # left pane is focused, else the catalog rows currently shown.
-                    if ps.focus == 'left':
-                        prof = ps.cur_curate()
-                        allvis = ps.members(prof, ps.cur_ceiling()) if prof else set()
-                    else:
-                        allvis = set(ps.vcatalog())
-                    if allvis:
-                        if allvis <= ps.selected_comps:
-                            ps.selected_comps -= allvis
-                        else:
-                            ps.selected_comps |= allvis
-                        note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
-                                else 'selection cleared')
-                elif pfact == 'method' and ps.focus == 'right':
-                    vcat = ps.vcatalog()
-                    if vcat:                               # pin the selected component's install method
-                        name = vcat[ps.rcur]
-                        changed, note, deferred = _pick_method_name(stdscr, pal, ctx, name)
-                        if deferred:
-                            pending_notes.append(deferred)
-                        if changed:
-                            ctx.invalidate()               # re-read so the new [via] pin shows
-                            ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
-                            ps._parts_cache.pop(name, None)   # its parts may change with the new method too
-                            ps.reload()
-                            menu_dirty = True
-                elif pfact == 'comp-machines' and ps.focus == 'right':
-                    vcat = ps.vcatalog()                   # toggle THIS component's tracking per machine
-                    if vcat:
-                        _c = vcat[ps.rcur]
-                        mnote = _component_machines_modal(stdscr, pal, ctx, _c)
-                        ps.reload(); menu_dirty = True
-                        note = mnote or f'{_c} machines'
-                elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
-                    cur, mnote = _machines_modal(stdscr, pal, ctx, ps.targets())
-                    _keep = (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
-                             set(ps.selected_comps))
-                    ps = ProfileScreen(ctx)              # rebuild against any machine add/rename/remove
-                    (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
-                     ps.selected_comps) = _keep          # ...but keep the user where they were
-                    ps.target_machines = cur
-                    menu_dirty = True
-                    note = mnote or f'targets: {", ".join(sorted(cur)) or "(none)"}'
-                elif pfact == 'where':                     # full-page provenance for the current profile
-                    _wp = ps.cur_profile()
-                    if _wp:
-                        from ..app import where_profile_report
-                        where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
-                        where_subject, where_top, show_where = _wp, 0, True
-                elif pfact == 'select' and ps.focus == 'right':
-                    vcat = ps.vcatalog()               # `space`: build the multi-select set (A/I/S/X batch)
-                    if vcat:
-                        nm = vcat[ps.rcur]
-                        ps.selected_comps ^= {nm}
-                        note = (f'{len(ps.selected_comps)} selected' if ps.selected_comps
-                                else 'selection cleared')
-                elif pfact == 'confirm' and ps.focus == 'right':
-                    vcat = ps.vcatalog()               # `enter`: drill a parts comp open/closed, else
-                    if vcat:                           #         toggle Included for the cursor on targets
-                        name = vcat[ps.rcur]
-                        if ps.is_expandable(name):     # a `via: parts` aggregator -> reveal/hide its pieces
-                            ps.toggle_expand_part(name)
-                        else:
-                            tg = sorted(ps.targets())
-                            on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
-                            try:
-                                nch, _l = actions.set_included(ctx, name, tg, on)
-                                if on:                            # tracked implies seen
-                                    actions.mark_all_seen(ctx, [name])
-                                ps.reload()
-                                menu_dirty = menu_dirty or nch > 0
-                                note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'
-                                        if nch else 'no change')
-                            except ConfigsysError as e:
-                                note = f'edit failed: {e}'
-                continue
-
-            # -- Dotfiles screen — dispatched through the migrated DotfilesScreen.handle --
-            if screen == 'dotfiles':
-                intent = ds.handle(ch, ctx, stdscr, pal)
-                if intent.note is not None:
-                    note = intent.note
-                continue
-
-            # -- Glue screen — dispatched through the migrated GlueScreen.handle --
-            if screen == 'glue':
-                intent = gs.handle(ch, ctx, stdscr, pal)
-                if intent.note is not None:
-                    note = intent.note
-                continue
-
-            # -- Plugins screen — dispatched through the migrated PluginsScreen.handle --
-            if screen == 'plugins':
-                intent = pl.handle(ch, ctx, stdscr, pal)
-                if intent.note is not None:
-                    note = intent.note
-                menu_dirty = menu_dirty or intent.dirty
-                continue
-
-            # -- Config screen — dispatched through the migrated ConfigScreen.handle --
-            if screen == 'config':
-                intent = cs.handle(ch, ctx, stdscr, pal)
-                if intent.note is not None:
-                    note = intent.note
-                menu_dirty = menu_dirty or intent.dirty
-                if intent.goto is not None:
-                    screen = intent.goto
-                continue
-
-            # -- Theme editor (sub-screen of Config); edits re-instantiate pal for live preview --
-            if screen == 'theme':
-                from .. import actions
-                from .theme import ALL_PAGES
-                try:
-                    page = ALL_PAGES[ts.page]
-                    tact = keymap.action_for('theme', ch)
-                    if tact in ('switch-pane', 'switch-pane-back'):
-                        ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
-                    elif tact in ('left', 'right'):
-                        left = tact == 'left'
-                        if ts.focus == 'map' and ts.map_ncols > 1:            # move between columns
-                            step = ts.map_rows_per_col
-                            ts.map_cur = (max(0, ts.map_cur - step) if left
-                                          else min(len(ts.map_names) - 1, ts.map_cur + step))
-                        else:
-                            ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
-                    elif tact and tact.startswith('page-') and tact[5:].isdigit():
-                        ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F7 select the sample page
-                    elif tact == 'down':
-                        if ts.focus == 'map':
-                            ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
-                        else:
-                            ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + 1)
-                    elif tact == 'up':
-                        if ts.focus == 'map':
-                            ts.map_cur = max(0, ts.map_cur - 1)
-                        else:
-                            ts.role_cur = max(0, ts.role_cur - 1)
-                    elif tact == 'page-down':
-                        if ts.focus == 'map':
-                            ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + _page_rows(stdscr))
-                        else:
-                            ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + _page_rows(stdscr))
-                    elif tact == 'page-up':
-                        if ts.focus == 'map':
-                            ts.map_cur = max(0, ts.map_cur - _page_rows(stdscr))
-                        else:
-                            ts.role_cur = max(0, ts.role_cur - _page_rows(stdscr))
-                    elif tact == 'top':
-                        setattr(ts, 'map_cur' if ts.focus == 'map' else 'role_cur', 0)
-                    elif tact == 'bottom':
-                        if ts.focus == 'map':
-                            ts.map_cur = max(0, len(ts.map_names) - 1)
-                        else:
-                            ts.role_cur = max(0, len(ts.role_list()) - 1)
-
-                    # -- color-map edits --
-                    elif ts.focus == 'map' and tact in ('select', 'confirm'):
-                        from .theme import parse_color
-                        name = ts.cur_color()
-                        cur = _hex(ts.colors.get(name, (235, 235, 235)))
-                        new = _input_box(stdscr, pal, f'color {name}  (now {cur} → #rrggbb)', '')
-                        if new and new.strip():
-                            if parse_color(new.strip()) is None:
-                                note = f'invalid color: {new.strip()}'          # reject, don't store
-                            else:
-                                actions.set_theme_value(ctx, f'colors.{name}', new.strip())
-                                pal = Palette(ctx.config.theme())
-                                note = f'{name} = {new.strip()}'
-                    elif ts.focus == 'map' and tact == 'new':
-                        from .theme import parse_color
-                        nm = _input_box(stdscr, pal, 'new color name', '')
-                        if nm and nm.strip():
-                            nm = nm.strip().replace(' ', '_')
-                            hexv = _input_box(stdscr, pal, f'{nm}  (#rrggbb)', '#cccccc')
-                            if hexv is None or parse_color(hexv.strip()) is None:
-                                note = f'invalid color — {nm} not added'
-                            else:
-                                actions.set_theme_value(ctx, f'colors.{nm}', hexv.strip())
-                                pal = Palette(ctx.config.theme())
-                                ts.reload()
-                                if nm in ts.map_names:
-                                    ts.map_cur = ts.map_names.index(nm)
-                                note = f'added color {nm}'
-                    elif ts.focus == 'map' and tact == 'reset':
-                        name = ts.cur_color()
-                        if ts.color_override(name) is None:
-                            note = f'{name} is a built-in color (nothing to remove)'
-                        else:
-                            actions.set_theme_value(ctx, f'colors.{name}', None)
-                            pal = Palette(ctx.config.theme())
-                            ts.reload()
-                            note = f'{name} reset to default'
-
-                    # -- gradient endpoints (single-color pseudo-roles) --
-                    elif (ts.focus == 'roles' and str(ts.cur_role()).startswith('@grad')
-                          and tact in ('select', 'confirm', 'reset', 'edit-bg',
-                                       'effect-bold', 'effect-underline', 'effect-reverse')):
-                        which = 'from' if ts.cur_role() == '@grad_from' else 'to'
-                        if tact in ('select', 'confirm'):
-                            cur = ts.grad_ref(which)
-                            new = _input_box(stdscr, pal,
-                                             f'{page} · gradient {which}  (now {cur} → map name or #hex)',
-                                             '', complete=ts.map_names)
-                            if new and new.strip():
-                                if not _valid_ref(new, ts.map_names):
-                                    note = f'invalid color/ref: {new.strip()}'
-                                else:
-                                    actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', new.strip())
-                                    pal = Palette(ctx.config.theme())
-                                    note = f'gradient {which} = {new.strip()}'
-                        elif tact == 'reset':
-                            if ts.grad_override(which) is None:
-                                note = f'gradient {which} is default on {page} (nothing to reset)'
-                            else:
-                                actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', None)
-                                pal = Palette(ctx.config.theme())
-                                note = f'gradient {which} reset to default on {page}'
-                        else:                                     # B/o/u/v — endpoints are one color
-                            note = 'gradient endpoints have no bg or effects'
-
-                    # -- per-page role edits --
-                    elif ts.focus == 'roles' and tact in ('select', 'confirm'):
-                        role = ts.cur_role()
-                        cur = _ref_str(ts.role_ref(role).get('fg'))
-                        new = _input_box(stdscr, pal, f'{page} · {role} · fg  (now {cur} → map name or #hex)',
-                                         '', complete=ts.map_names)
-                        if new and new.strip():
-                            if not _valid_ref(new, ts.map_names):
-                                note = f'invalid color/ref: {new.strip()}'
-                            else:
-                                actions.set_theme_value(ctx, f'pages.{page}.{role}.fg', new.strip())
-                                pal = Palette(ctx.config.theme())
-                                note = f'{role} fg = {new.strip()}'
-                    elif ts.focus == 'roles' and tact == 'edit-bg':
-                        role = ts.cur_role()
-                        cur = _ref_str(ts.role_ref(role).get('bg'))
-                        new = _input_box(stdscr, pal, f'{page} · {role} · bg  (now {cur} → name/#hex, empty clears)',
-                                         '', complete=ts.map_names)
-                        if new is not None:
-                            if new.strip() and not _valid_ref(new, ts.map_names):
-                                note = f'invalid color/ref: {new.strip()}'
-                            else:
-                                actions.set_theme_value(ctx, f'pages.{page}.{role}.bg', new.strip() or None)
-                                pal = Palette(ctx.config.theme())
-                                note = f'{role} bg {"set" if new.strip() else "cleared"}'
-                    elif ts.focus == 'roles' and tact in ('effect-bold', 'effect-underline', 'effect-reverse'):
-                        role = ts.cur_role()
-                        attr = {'effect-bold': 'bold', 'effect-underline': 'underline',
-                                'effect-reverse': 'reverse'}[tact]
-                        on = not bool(ts.role_style(role).get(attr))
-                        actions.set_theme_value(ctx, f'pages.{page}.{role}.{attr}', on)
-                        pal = Palette(ctx.config.theme())
-                        note = f'{role} {attr} {"on" if on else "off"}'
-                    elif ts.focus == 'roles' and tact == 'reset':
-                        role = ts.cur_role()
-                        if ts.role_override(role) is None:
-                            note = f'{role} is default on {page} (nothing to reset)'
-                        else:
-                            actions.set_theme_value(ctx, f'pages.{page}.{role}', None)
-                            pal = Palette(ctx.config.theme())
-                            ts.reload()
-                            note = f'{role} reset to default on {page}'
-
-                    elif tact == 'gradient-toggle':               # from/to now live in the role list
-                        on = not ts.page_gradient_enabled(page)
-                        actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
-                        pal = Palette(ctx.config.theme())
-                        note = f'{page} gradient {"on" if on else "off"}'
-                    elif tact == 'copy-page':                     # copy this page's look onto another
-                        others = [p for p in ALL_PAGES if p != page]
-                        di = _popup_choose(stdscr, pal, f'copy {page}’s theme onto…',
-                                           [(p, '') for p in others], 0)
-                        if di is not None:
-                            ok, label = actions.copy_page_theme(ctx, page, others[di])
-                            if ok:
-                                pal = Palette(ctx.config.theme())
-                                note = f'copied {page} → {others[di]}'
-                            else:
-                                note = label
-                    elif tact == 'save':
-                        # Live edits already persist to your primary/local, WYSIWYG. `s` is only for
-                        # deliberate FULL-SNAPSHOT saves: export a shareable pack, or promote the
-                        # complete look into your primary (absolute — overrides theme plugins).
-                        prim = actions.primary_theme_target(ctx)             # primary name, or None
-                        opts = [('export theme pack…', 'export')]
-                        if prim:
-                            opts.append((f'promote full theme → primary ({prim})', 'promote'))
-                        idx = _popup_choose(stdscr, pal, 'save theme',
-                                            [(lbl, '') for lbl, _ in opts], 0)
-                        if idx is not None and opts[idx][1] == 'promote':
-                            ci = _popup_choose(stdscr, pal,
-                                               'promote pins the FULL look into the primary (theme '
-                                               'plugins won\'t show through) — continue?',
-                                               [('promote', ''), ('cancel', '')], 1)
-                            if ci == 0:
-                                ok, label = actions.save_theme_to_primary(ctx)
-                                pal = Palette(ctx.config.theme())
-                                note = f'promoted full theme → {label}' if ok else label
-                            else:
-                                note = 'promote cancelled'
-                        elif idx is not None:                                # export a standalone pack
-                            nm = _input_box(stdscr, pal, 'export theme pack — name', '')
-                            if nm and nm.strip():
-                                nm = nm.strip()
-                                _pdir, existed = actions.save_theme_plugin(ctx, nm)
-                                if existed:
-                                    oi = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
-                                                       [('overwrite', ''), ('cancel', '')], 1)
-                                    if oi == 0:
-                                        actions.save_theme_plugin(ctx, nm, force=True)
-                                        note = f'exported theme pack {nm} (overwritten)'
-                                    else:
-                                        note = 'export cancelled'
-                                else:
-                                    note = f'exported theme pack {nm}'
-                    elif tact == 'load':
-                        names = actions.theme_plugins(ctx)
-                        if names:
-                            idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
-                            if idx is not None:
-                                actions.load_theme(ctx, names[idx])
-                                pal = Palette(ctx.config.theme())
-                                note = f'loaded {names[idx]}'
-                        else:
-                            note = 'no theme plugins saved yet (s to save one)'
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'error: {e}'
-                continue
-
-            # -- Components screen (default) — dispatch through the keymap --
-            act = keymap.action_for('components', ch)
-            if act == 'down':
-                ms.move(1)
-            elif act == 'up':
-                ms.move(-1)
-            elif act == 'page-down':
-                ms.move(_page_rows(stdscr))
-            elif act == 'page-up':
-                ms.move(-_page_rows(stdscr))
-            elif act == 'top':
-                ms.go_top()
-            elif act == 'bottom':
-                ms.go_bottom()
-            elif act == 'where':                     # full-page `where`: the complete graph for this row
-                _wname = _row_component(ms.cur())
-                if _wname:
-                    from ..app import where_report
-                    where_lines = where_report(ctx, _wname) or [f'{_wname}: nothing to show']
-                    where_subject, where_top, show_where = _wname, 0, True
-            elif act == 'filter':                    # live substring FILTER over the tree (narrows)
-                _filter_edit(stdscr, ms.filter, ms.set_filter,
-                             lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
-            elif act == 'find':                      # fuzzy FIND across the WHOLE tree — reveals a
-                _find_edit_tree(stdscr, ms,           # component collapsed inside a subtree, opening it
-                                lambda: _draw(stdscr, pal, ms, ctx, note, diags, False, diag_top, screen))
-            elif act == 'confirm':                   # enter: open/expand the row
-                ms.enter()
-            elif act == 'right':
-                ms.expand_or_jump()
-            elif act == 'left':
-                ms.collapse()
-            elif act == 'lock':
-                if not ms.toggle_lock():
-                    note = 'nothing to lock/unlock here'
-            elif act == 'expand-all':
-                ms.toggle_expand_all()
-            elif act == 'select':
-                ms.toggle_select()
-            elif act == 'select-all':
-                ms.select_all()
-            elif act == 'clear':
-                # also drop the target's components from the persisted !uninstall queue — else the next
-                # reload re-seeds them and the "unstage" doesn't stick. This is how you un-stage a
-                # queued removal (Profiles `x` only ever ADDS; Components clears).
-                _tgt = {ms.states[m.key].component.comp for node in ms._target_nodes()
-                        for m in node.members if m.key in ms.states}
-                ms.unstage()
-                ms.clear_selection()
-                ms.errors.clear()
-                _dropped = _tgt & ctx.config.uninstall_queue()
-                if _dropped:
-                    from .. import actions as _act
-                    for _c in _dropped:
-                        _act.stage_uninstall(ctx, _c, on=False)
-                if _dropped:
-                    try:
-                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
-                        note = f'unstaged {len(_dropped)} from !uninstall'
-                    except Exception as e:  # noqa: BLE001
-                        note = f'reload failed: {e}'
-            elif act == 'method':                          # unified: pick an install method OR a provider
-                changed, note, deferred = _pick_choices(stdscr, pal, ms, ctx)
-                if deferred:
-                    pending_notes.append(deferred)
-                if changed:
-                    ctx.invalidate()                       # re-read config so the new pin applies
-                    try:
-                        # partial requery: a pin change only alters the affected component's units,
-                        # so reuse every cached state and re-probe just the new ones (dirty empty).
-                        # (a provider-pin can shift the closure, but _reload re-resolves regardless.)
-                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
-                        _swap = _offer_method_swap(stdscr, pal, ms, ctx)
-                        if _swap:
-                            note = _swap
-                    except Exception as e:  # noqa: BLE001 - surface, don't crash
-                        note = f'reload failed: {e}'
-            elif act in _COMP_OPS:
-                if not ms.stage(_COMP_OPS[act]):
-                    note = f'{_COMP_OPS[act]} not applicable here'
-            elif act == 'op-install-all':          # I — make current: install missing / upgrade outdated
-                n = ms.stage_all('install')
-                note = (f'staged install/upgrade on {n} component(s) — run with execute'
-                        if n else 'everything tracked is installed and current')
-            elif act == 'op-upgrade-all':          # U — upgrade every outdated unit
-                n = ms.stage_all('upgrade')
-                note = (f'staged {n} upgrade(s) — run with execute'
-                        if n else 'nothing outdated to upgrade')
-            elif act == 'execute':
-                executed, note, outcomes = _confirm_and_execute(stdscr, pal, ms, ctx, ledger)
-                curses.flushinp()  # drop keys typed during ops / the prompt
-                if executed:
-                    failed = {o.key: f'{o.op} failed: {o.detail}'
-                              for o in outcomes if not o.ok}
-                    bad = [o for o in outcomes if not o.ok]
-                    if bad:                       # remember for a post-quit report nudge
-                        pending_report = bad[-1].key.split('\\', 1)[-1]
-                    try:
-                        # partial requery: re-probe only the units the ops touched, reuse the rest
-                        touched = {o.key for o in outcomes}
-                        ms, cfg, ledger, states, diags = _reload(ctx, ms, touched)
-                    except Exception as e:  # noqa: BLE001 - surface, don't crash
-                        note = f'reload failed: {e}'
-                    ms.staged.clear()          # the staged ops just ran; don't leave them badged
-                    ms.errors = failed
-                    if ctx.config.reboot_advice():   # an install may have left a reboot pending -> chip + toast
-                        from .. import rebootcheck
-                        ctx._reboot_pending = rebootcheck.reboot_pending(ctx)
-                        if ctx._reboot_pending[0]:
-                            note = (note + '   ' if note else '') + f'⚠ reboot advised — {ctx._reboot_pending[1]}'
-                    if ps is not None:
-                        ps.invalidate_overlay()   # installs changed disk reality -> re-enumerate on next `O`
-                    curses.flushinp()  # ...and any typed during the re-inspect
-            elif act == 'mode':                # cycle the view: to-do -> tracked -> installed+tracked
-                nxt = COMPONENT_MODES[(COMPONENT_MODES.index(getattr(ms, 'mode', 'to-do')) + 1)
-                                      % len(COMPONENT_MODES)]
-                try:
-                    # a mode switch only re-GROUPS the already-probed states (+ inspects the extras a
-                    # mode needs, reusing the overlay caches) — no pipeline / describe / diagnostics.
-                    states, layouts, transitive = _components_model(
-                        ctx, cfg, dict(ms.states), nxt, caches=ms._overlay_caches)
-                    ms = _rebuild_menu(ms, states, layouts, transitive, nxt)
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'mode switch failed: {e}'
-                else:
-                    note = f'view: {nxt}'
-            elif act == 'refresh':             # refresh version caches + the native package index
-                with suspended(stdscr):
-                    print('Refreshing the package view — re-querying version sources and running the\n'
-                          'package-manager index update. This takes a moment; sudo may prompt below.\n',
-                          flush=True)               # up front so the slow first step doesn't look hung
-                    from .. import app
-                    app.cmd_refresh(ctx, None)     # apt-get update etc.; stamps the refresh time on success
-                    try:
-                        input('\n[Enter] to return')
-                    except EOFError:
-                        pass
-                curses.flushinp()
-                # the stamp is already written, so repaint once NOW — the staleness chip clears
-                # instantly, before the (slower) re-probe of every unit's latest version below.
-                _draw(stdscr, pal, ms, ctx, 'updating latest versions…', diags, False, 0, screen)
-                try:                              # a fresh index changes every unit's "latest" -> re-probe all
-                    ms, cfg, ledger, states, diags = _reload(ctx, ms, set(states))
-                except Exception as e:  # noqa: BLE001 — surface, don't crash
-                    note = f'reload failed: {e}'
-                else:
-                    note = 'refreshed version caches + package index'
+            # -- per-screen input: every screen's handle() returns an Intent the router applies to
+            # the shared loop state; the components handle also gets cfg/ledger and re-probes/rebinds.
+            scr = _screen(screen)
+            if screen == 'components':
+                scr.model = ms
+                intent = scr.handle(ch, ctx, stdscr, pal, cfg, ledger)
+            else:
+                intent = scr.handle(ch, ctx, stdscr, pal)
+            if intent.note is not None:
+                note = intent.note
+            menu_dirty = menu_dirty or intent.dirty
+            if intent.goto is not None:
+                screen = intent.goto
+            if intent.new_pal is not None:
+                pal = intent.new_pal          # Theme live-preview edit rebuilt the palette
+            if intent.open_where is not None:
+                where_lines, where_subject = intent.open_where
+                where_top, show_where = 0, True
+            if intent.pending_notes:
+                pending_notes.extend(intent.pending_notes)
+            if intent.pending_report is not None:
+                pending_report = intent.pending_report
+            if intent.reloaded is not None:
+                ms, cfg, ledger, states, diags = intent.reloaded
+            if intent.remodeled is not None:
+                ms, states, layouts, transitive = intent.remodeled
+            if intent.invalidate_ps_overlay:
+                _psx = _reg.get('profiles')
+                if _psx is not None:
+                    _psx.model.invalidate_overlay()
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
     for msg in pending_notes:         # pin/promote hints held back so they don't interrupt the TUI

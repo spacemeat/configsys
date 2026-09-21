@@ -44,6 +44,7 @@ class GlueVM(ViewModel):
         self.cur = 0               # the model's cursor (row index)
         # chrome
         self.status = ''
+        self.note = ''             # transient action note (host-supplied)
         self.nav = ''
 
 
@@ -147,7 +148,8 @@ class GlueScreen(Screen):
             if has_hbar:
                 _scrollbar_h(surface, pal, it + ih - 1, il, iw, gs.hscroll, iw, vm.virt_w, h, w)
 
-        _put(surface, h - 2, 0, _fit(vm.status, w), pal.style('status_line', h - 2, 0, h, w))
+        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
+             pal.style('status_line', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()
 

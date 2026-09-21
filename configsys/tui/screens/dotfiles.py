@@ -41,6 +41,7 @@ class DotfilesVM(ViewModel):
         self.display = []          # ('hdr', label) | ('row', idx) — the scrolled list
         # chrome
         self.status = ''
+        self.note = ''             # transient action note (host-supplied)
         self.nav = ''
 
 
@@ -142,7 +143,8 @@ class DotfilesScreen(Screen):
             if has_hbar:
                 _scrollbar_h(surface, pal, it + ih - 1, il, iw, ds.hscroll, iw, vm.virt_w, h, w)
 
-        _put(surface, h - 2, 0, _fit(vm.status, w), pal.style('status_line', h - 2, 0, h, w))
+        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
+             pal.style('status_line', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()
 

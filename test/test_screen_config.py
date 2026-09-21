@@ -58,7 +58,7 @@ def test_config_scrolled_equivalent(ctx, h, w, mode):
 
 def test_config_build_vm_is_pure_data(ctx):
     scr = ConfigScreen(ctx, menu.ConfigScreen(ctx))
-    vm = scr.build_vm(ctx, (40, 120))
+    vm = scr.build_vm(ctx, (40, 200))
     n = len(scr.model.keys)
     assert n and len(vm.names) == len(vm.values) == len(vm.states) == len(vm.stores) == n
     assert len(vm.descs) == len(vm.mans) == n
@@ -89,3 +89,14 @@ def test_handle_theme_jumps_to_theme_screen(ctx):
     assert isinstance(intent, Intent)
     assert intent.goto == 'theme'
     assert intent.handled and not intent.dirty and intent.note is None
+
+
+def test_config_note_renders_in_status(ctx):
+    # the router supplies vm.note; draw must render it (a class of bug the note='' equivalence
+    # cases can't catch — the legacy painters append it to the status line).
+    scr = ConfigScreen(ctx, menu.ConfigScreen(ctx))
+    vm = scr.build_vm(ctx, (40, 200))
+    vm.note = 'ZZ_NOTE_MARKER_ZZ'
+    surf = BufferSurface(40, 200)
+    scr.draw(surf, RecordingPalette(), vm)
+    assert 'ZZ_NOTE_MARKER_ZZ' in ' '.join(surf.text_rows())

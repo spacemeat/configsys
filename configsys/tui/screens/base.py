@@ -42,6 +42,14 @@ class Intent:
     note: str = None            # status-line note to show next frame
     dirty: bool = False         # the Components tree must be rebuilt (a pick/route/config edit)
     quit: bool = False          # leave the TUI
+    new_pal: object = None      # a rebuilt Palette to adopt (Theme live-preview edits re-instantiate it)
+    open_where: object = None   # (lines, subject) -> open the full-page `where` overlay
+    pending_notes: object = None  # messages to surface AFTER the TUI exits (deferred install hints)
+    # Components-specific: a pin/execute/refresh re-probes and rebinds the shared inspection state.
+    reloaded: object = None     # (ms, cfg, ledger, states, diags) from a _reload — the router adopts it
+    remodeled: object = None    # (ms, states, layouts, transitive) from a view-MODE switch
+    pending_report: object = None      # a failed op's component key, for the post-quit report nudge
+    invalidate_ps_overlay: bool = False  # an execute changed disk reality -> Profiles must re-enumerate
 
 
 class Screen:

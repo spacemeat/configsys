@@ -44,6 +44,7 @@ class PluginsVM(ViewModel):
         self.diff_maxlen = 0
         # chrome
         self.status = ''
+        self.note = ''             # the transient action note (the host supplies it; '' when none)
         self.nav = ''
         self.focus = 'table'
 
@@ -138,7 +139,7 @@ class PluginsScreen(Screen):
         diff_h = body_h - table_h
         self._draw_table(surface, pal, vm, h, w, top, table_h)
         self._draw_diff(surface, pal, vm, h, w, top + table_h, diff_h)
-        status = vm.status
+        status = vm.status + (f'    {vm.note}' if vm.note else '')
         _put(surface, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()

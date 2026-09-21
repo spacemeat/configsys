@@ -73,7 +73,7 @@ def test_glue_empty_equivalent(ctx, h, w, mode):
 
 def test_glue_build_vm_is_pure_data(ctx):
     scr = GlueScreen(ctx, menu._sample_glue_state(ctx))
-    vm = scr.build_vm(ctx, (40, 120))
+    vm = scr.build_vm(ctx, (40, 200))
     assert vm.has_rows and vm.cells and len(vm.cells[0]) == len(vm.headers)
     assert len(vm.elems) == len(vm.cells) == len(scr.model.rows)
     assert [e[0] for e in vm.display] == ['hdr', 'row', 'row', 'row', 'hdr', 'row']
@@ -109,3 +109,14 @@ def test_handle_right_left_scrolls(ctx):
     scr.handle(left, ctx, None, None)
     scr.handle(left, ctx, None, None)
     assert scr.model.hscroll == 0                          # clamped at 0
+
+
+def test_glue_note_renders_in_status(ctx):
+    # the router supplies vm.note; draw must render it (a class of bug the note='' equivalence
+    # cases can't catch — the legacy painters append it to the status line).
+    scr = GlueScreen(ctx, menu._sample_glue_state(ctx))
+    vm = scr.build_vm(ctx, (40, 200))
+    vm.note = 'ZZ_NOTE_MARKER_ZZ'
+    surf = BufferSurface(40, 200)
+    scr.draw(surf, RecordingPalette(), vm)
+    assert 'ZZ_NOTE_MARKER_ZZ' in ' '.join(surf.text_rows())

@@ -39,6 +39,7 @@ class ConfigVM(ViewModel):
         self.mans = []             # 'man: <ref>' line
         # chrome
         self.status = ''
+        self.note = ''             # transient action note (host-supplied)
         self.nav = ''
 
 
@@ -190,7 +191,8 @@ class ConfigScreen(Screen):
             y += bh
             shown += 1
         _scrollbar_v(surface, pal, it + 1, il + iw, ih - 1, cs.top, max(1, shown), len(cs.keys), h, w)
-        _put(surface, h - 2, 0, _fit(vm.status, w), pal.style('status_line', h - 2, 0, h, w))
+        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
+             pal.style('status_line', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()
 
