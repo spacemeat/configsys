@@ -494,3 +494,127 @@ def render_request(payload, *, home=None, secrets=()):
 
 def request_title(payload):
     return f"[request] full story for {payload['component']}"
+
+
+# -- os-request (suggest a new OS, or report that an OS/version broke) -----
+
+OS_REQUEST_MARKER = '<!-- configsys-os-request v1 -->'
+OS_REQUEST_LABEL = 'os-request'
+
+# The os-release keys worth carrying (all non-sensitive, but they still ride the scrubber).
+_OS_RELEASE_KEYS = ('ID', 'ID_LIKE', 'NAME', 'PRETTY_NAME', 'VERSION_ID', 'VERSION_CODENAME',
+                    'VARIANT_ID', 'BUILD_ID')
+# blocks that are generic Linux roots, not a distro configsys actually models
+_GENERIC_BLOCKS = frozenset({'linux', 'glibc_linux', 'musl_linux'})
+
+
+def _os_release_fields(path='/etc/os-release'):
+    out = {}
+    try:
+        for line in open(path, encoding='utf-8'):
+            if '=' not in line:
+                continue
+            k, v = line.rstrip('\n').split('=', 1)
+            if k in _OS_RELEASE_KEYS:
+                out[k] = v.strip().strip('"')
+    except OSError:
+        pass
+    return out
+
+
+def os_request_payload(ctx):
+    '''Assemble the (unscrubbed) OS-request payload: the detected os-release, how configsys currently
+    maps it (block + native package manager), and platform facts. `modeled` is False when the block is
+    a generic Linux root (or has no native manager) — i.e. the distro isn't specifically supported.
+    Serves both "please add this OS" and "a system update changed/broke things — here's my env".'''
+    oi = ctx.os_info
+    block = oi.block
+    try:
+        native = ctx.routes.cascade.native(block)
+    except Exception:                                     # noqa: BLE001 — never break a report
+        native = None
+    modeled = bool(native) and block not in _GENERIC_BLOCKS
+    return {
+        'os': {
+            'block': block,
+            'id': oi.id,
+            'id_like': list(getattr(oi, 'id_like', []) or []),
+            'version': oi.version or '',
+            'pretty': _os_pretty(),
+            'atomic': osdetect.is_atomic(block),
+        },
+        'native': native,
+        'modeled': modeled,
+        'os_release': _os_release_fields(),
+        'platform': {
+            'kernel': platform.platform(),
+            'arch': platform.machine(),
+            'python': platform.python_version(),
+        },
+        'configsys': {'revision': _git_rev(ctx.paths.repo), 'abi': plugins.ABI_VERSION},
+    }
+
+
+def render_os_request(payload, *, home=None, secrets=()):
+    '''Render the OS-request payload to the scrubbed Markdown issue body.'''
+    def sc(t):
+        return scrub(t, home, secrets)
+
+    o = payload['os']
+    ver = f" {o['version']}" if o['version'] else ''
+    L = []
+    L.append(f"**OS:** `{sc(o['pretty'] or o['id'] or o['block'])}`")
+    L.append('')
+    if payload['modeled']:
+        L.append(f"configsys already models this OS (block `{o['block']}`, native `{payload['native']}`)"
+                 f" — this report is to **fix or extend** it (e.g. a version update changed a package "
+                 f"name, a repo, or broke a route). Say what changed or broke below.")
+    else:
+        L.append("configsys does **not** specifically model this OS yet "
+                 f"(it currently falls back to block `{o['block']}`"
+                 + (f", native `{payload['native']}`" if payload['native'] else ", **no native manager**")
+                 + ") — requesting first-class support. The `os-release` below is what a new OS block "
+                 "needs (lineage + package manager + version scale).")
+    L.append('')
+    L.append('### Detected')
+    L.append('')
+    L.append(f"- **configsys block:** `{o['block']}`{ver}"
+             + (f"  ·  native: `{payload['native']}`" if payload['native'] else "  ·  native: —"))
+    L.append(f"- **ID / ID_LIKE:** `{sc(o['id'] or '?')}` / "
+             + (f"`{sc(' '.join(o['id_like']))}`" if o['id_like'] else '—'))
+    if o['atomic']:
+        L.append("- **atomic / immutable root**")
+    L.append(f"- **kernel:** `{sc(payload['platform']['kernel'])}`  ·  "
+             f"**arch:** `{payload['platform']['arch']}`  ·  "
+             f"**python:** `{payload['platform']['python']}`")
+    L.append(f"- **configsys:** `{payload['configsys']['revision']}` "
+             f"(plugin ABI {payload['configsys']['abi']})")
+    L.append('')
+    rel = payload['os_release']
+    if rel:
+        L.append('### /etc/os-release')
+        L.append('')
+        L.append('```')
+        for k in _OS_RELEASE_KEYS:
+            if k in rel:
+                L.append(f'{k}={sc(rel[k])}')
+        L.append('```')
+        L.append('')
+    L.append('### What works / what broke')
+    L.append('_If this is a new OS: which package manager, and anything distro-specific. If a system '
+             'update broke things: what changed (a renamed package, a moved repo, a route that stopped '
+             'resolving) and any error output._')
+    L.append('')
+    L.append('---')
+    L.append('_Filed with `configsys request-os`. Reviewed and approved by the requester._')
+    L.append('')
+    L.append(OS_REQUEST_MARKER)
+    return '\n'.join(L)
+
+
+def os_request_title(payload):
+    o = payload['os']
+    ver = f" {o['version']}" if o['version'] else ''
+    who = o['id'] or o['block']
+    verb = 'fix/extend' if payload['modeled'] else 'add'
+    return f"[os-request] {verb} {who}{ver}"

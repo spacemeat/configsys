@@ -2395,14 +2395,18 @@ def cmd_plugin(ctx, args):
 _URL_PREFILL_LIMIT = 6000
 
 
-def _send_report(ctx, title, body, label='install-report', save_as='last-report.md'):
-    '''File the (already-approved) report/request. Prefer `gh issue create`; else save the body
-    and print a prefilled new-issue link. Returns 0 on success/handed-off, 1 on failure.'''
+def _file_issue(ctx, title, body, label='install-report', save_as='last-report.md'):
+    '''File the (already-approved) report/request and RETURN (rc, display_lines) — the outcome as a
+    list of ready-to-show lines (an issue URL, a prefilled link, or a saved-body path). No printing and
+    no prompting, so both the CLI (_send_report prints these) and the TUI review overlay (shows them)
+    reuse the exact same send logic + consent contract. Prefers `gh issue create`; else saves the body
+    and offers a prefilled new-issue link.'''
     import shutil
     import subprocess
     import urllib.parse
     from .reportgen import REPORTS_REPO
 
+    lines = []
     if shutil.which('gh'):
         import tempfile
         with tempfile.NamedTemporaryFile('w', suffix='.md', delete=False, encoding='utf-8') as f:
@@ -2413,14 +2417,13 @@ def _send_report(ctx, title, body, label='install-report', save_as='last-report.
                                '--label', label],
                               capture_output=True, text=True)
         if proc.returncode == 0:
-            print(f'configsys: filed — {proc.stdout.strip()}')
-            return 0
-        print(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
+            return 0, [f'configsys: filed — {proc.stdout.strip()}']
+        lines.append(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
         # fall through to the link path so the work isn't lost
 
-    # no gh (or gh failed): save the body and print a prefilled new-issue link. When the body is
-    # short enough to survive a URL, prefill it too so the browser opens fully populated; longer
-    # ones fall back to open-the-link-and-paste (browsers/servers choke past ~8k of URL).
+    # no gh (or gh failed): save the body and offer a prefilled new-issue link. When the body is short
+    # enough to survive a URL, prefill it too so the browser opens fully populated; longer ones fall
+    # back to open-the-link-and-paste (browsers/servers choke past ~8k of URL).
     out = ctx.paths.state_dir / save_as
     try:
         ctx.paths.state_dir.mkdir(parents=True, exist_ok=True)
@@ -2433,17 +2436,25 @@ def _send_report(ctx, title, body, label='install-report', save_as='last-report.
     fields = {'title': title, 'labels': label}
     with_body = f'{base}?' + urllib.parse.urlencode({**fields, 'body': body})
     if len(with_body) <= _URL_PREFILL_LIMIT:
-        print('configsys: no `gh` — open this and the issue is prefilled, ready to submit:\n'
-              f'  {with_body}')
+        lines += ['configsys: no `gh` — open this and the issue is prefilled, ready to submit:',
+                  f'  {with_body}']
         if saved:
-            print(f'({saved})')
+            lines.append(f'({saved})')
     else:
         link = f'{base}?' + urllib.parse.urlencode(fields)
-        print('configsys: install `gh` to file automatically, or open this and paste the body:\n'
-              f'  {link}')
+        lines += ['configsys: install `gh` to file automatically, or open this and paste the body:',
+                  f'  {link}']
         if saved:
-            print(saved)
-    return 0
+            lines.append(saved)
+    return 0, lines
+
+
+def _send_report(ctx, title, body, label='install-report', save_as='last-report.md'):
+    '''CLI path: file the report/request and print the outcome. Returns 0 on success/handed-off.'''
+    rc, lines = _file_issue(ctx, title, body, label, save_as)
+    for ln in lines:
+        print(ln)
+    return rc
 
 
 def cmd_report(ctx, args):
@@ -2529,6 +2540,38 @@ def cmd_request(ctx, args):
             return 0
     return _send_report(ctx, title, body, label=reportgen.REQUEST_LABEL,
                         save_as='last-request.md')
+
+
+def cmd_request_os(ctx, args):
+    '''Suggest THIS OS for inclusion, or report that a system update changed/broke it. Captures the
+    detected os-release + how configsys currently maps it (block + native manager), shows the scrubbed
+    body, and files it only on approval — same no-hidden-telemetry contract as report/request.'''
+    from . import reportgen
+    payload = reportgen.os_request_payload(ctx)
+    secrets = reportgen.secret_values(ctx.env)
+    body = reportgen.render_os_request(payload, home=ctx.paths.home, secrets=secrets)
+    title = reportgen.os_request_title(payload)
+
+    print('\n' + '=' * 72)
+    print(f'{title}\n')
+    print(body)
+    print('=' * 72)
+    if getattr(args, 'print_only', False):
+        return 0
+
+    if not getattr(args, 'yes', False):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
+            return 1
+        try:
+            ans = input(f'\nSend this to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
+        except EOFError:
+            ans = ''
+        if ans not in ('y', 'yes'):
+            print('configsys: not sent.')
+            return 0
+    return _send_report(ctx, title, body, label=reportgen.OS_REQUEST_LABEL,
+                        save_as='last-os-request.md')
 
 
 _MANPAGES = (('configsys.1', 'man1'), ('configsys.hu.5', 'man5'))
@@ -2944,6 +2987,12 @@ def build_parser():
     rq.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
+
+    rqo = sub.add_parser('request-os', help='suggest THIS OS for inclusion, or report that a system '
+                                            'update broke it — captures os-release; you approve before filing')
+    rqo.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rqo.add_argument('--print', dest='print_only', action='store_true',
+                     help='print the OS request and exit; never send')
 
     orp = sub.add_parser('orphans', help='list installed software that none of your picks / profiles account '
                                          'for — adopt, remove, or ignore candidates')
@@ -3479,6 +3528,7 @@ _COMMANDS = {
     'refresh': cmd_refresh,
     'report': cmd_report,
     'request': cmd_request,
+    'request-os': cmd_request_os,
     'manpages': cmd_manpages,
     'show': cmd_show,
     'keys': cmd_keys,

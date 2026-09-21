@@ -161,3 +161,43 @@ def test_render_preflight_failure_shows_reason_not_placeholder():
     assert '**Command**' not in body                       # nothing ran -> no Command block
     assert 'no release asset matched' in body              # the reason IS shown
     assert 'not captured' not in body
+
+
+def test_render_os_request_modeled():
+    # a modeled OS -> "fix or extend" framing (covers the 'a system update broke it' case)
+    payload = {'os': {'block': 'pop_os!', 'id': 'pop', 'id_like': ['ubuntu', 'debian'],
+                      'version': '22.04', 'pretty': 'Pop!_OS 22.04 LTS', 'atomic': False},
+               'native': 'apt', 'modeled': True,
+               'os_release': {'ID': 'pop', 'ID_LIKE': 'ubuntu debian', 'VERSION_ID': '22.04',
+                              'PRETTY_NAME': 'Pop!_OS 22.04 LTS'},
+               'platform': {'kernel': 'Linux-6-x86_64', 'arch': 'x86_64', 'python': '3.10.12'},
+               'configsys': {'revision': 'abc123', 'abi': 1}}
+    body = reportgen.render_os_request(payload, home='/home/x', secrets=[])
+    assert 'already models this OS' in body and 'fix or extend' in body
+    assert 'block `pop_os!`' in body and 'native `apt`' in body
+    assert 'ID=pop' in body and 'PRETTY_NAME=Pop!_OS 22.04 LTS' in body   # os-release block
+    assert 'What works / what broke' in body                              # the free breakage/support field
+    assert reportgen.OS_REQUEST_MARKER in body
+    assert reportgen.os_request_title(payload) == '[os-request] fix/extend pop 22.04'
+
+
+def test_render_os_request_unmodeled():
+    payload = {'os': {'block': 'solus', 'id': 'solus', 'id_like': [], 'version': '',
+                      'pretty': 'Solus', 'atomic': False},
+               'native': None, 'modeled': False, 'os_release': {'ID': 'solus', 'NAME': 'Solus'},
+               'platform': {'kernel': 'Linux', 'arch': 'x86_64', 'python': '3.11'},
+               'configsys': {'revision': 'r', 'abi': 1}}
+    body = reportgen.render_os_request(payload, home=None, secrets=[])
+    assert 'does **not** specifically model' in body and 'no native manager' in body
+    assert 'requesting first-class support' in body
+    assert reportgen.os_request_title(payload) == '[os-request] add solus'
+
+
+def test_render_os_request_scrubs_secrets():
+    payload = {'os': {'block': 'linux', 'id': 'x', 'id_like': [], 'version': '', 'pretty': 'X',
+                      'atomic': False}, 'native': None, 'modeled': False,
+               'os_release': {'ID': 'x', 'BUILD_ID': 'ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ012345'},
+               'platform': {'kernel': 'k', 'arch': 'a', 'python': 'p'},
+               'configsys': {'revision': 'r', 'abi': 1}}
+    body = reportgen.render_os_request(payload, home=None, secrets=[])
+    assert 'ghp_ABCDEF' not in body                       # token shape redacted even in os-release

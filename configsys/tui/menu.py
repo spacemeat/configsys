@@ -1090,10 +1090,108 @@ def _draw_diagnostics(stdscr, pal, diags, top):
     top = max(0, min(top, max(0, len(lines) - body_h)))
     for i, (text, attr) in enumerate(lines[top:top + body_h]):
         _put(stdscr, 2 + i, 0, _fit(text, w), attr)
-    foot = ' j/k scroll · g/G top/bottom · ! or q back '
+    foot = ' j/k scroll · r report a component · f request a component · s suggest this OS · ! or q back '
     _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
     return top
+
+
+def _report_review(stdscr, pal, ctx, title, body, label, save_as):
+    '''Full-text review-and-send overlay for an issue (report / request / os-request). Shows the
+    EXACTLY-what-sends scrubbed body, scrollable, so the user verifies no private info before `s` files
+    it to configsys-issues (the overlay IS the consent — no hidden send). Returns a status note.'''
+    from .. import reportgen
+    from ..app import _file_issue
+    lines = body.split('\n')
+    top, result = 0, None
+    while True:
+        stdscr.erase()
+        h, w = stdscr.getmaxyx()
+        _put(stdscr, 0, 0, _fit(f' review issue — {title} '.ljust(w), w),
+             pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
+        _put(stdscr, 1, 0, _fit('  this is EXACTLY what will be sent — verify no private info', w),
+             pal.get('dim'))
+        bt, bh = 3, max(1, h - 5)
+        shown = result if result is not None else lines
+        top = max(0, min(top, max(0, len(shown) - bh)))
+        for i in range(top, min(len(shown), top + bh)):
+            _put(stdscr, bt + (i - top), 0, _fit(shown[i], w), pal.get('info'))
+        _scrollbar_v(stdscr, pal, bt, w - 1, bh, top, bh, len(shown), h, w)
+        if result is None:
+            foot = f' ↑/↓ scroll · g/G top/bottom · s SEND to {reportgen.REPORTS_REPO} · Esc cancel '
+        else:
+            foot = ' filed — any key to return '
+        _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
+        stdscr.refresh()
+        ch = stdscr.getch()
+        if result is not None:                             # showing the send result -> any key returns
+            filed = any('filed —' in ln for ln in result)
+            if filed:
+                url = next((ln.split('filed —', 1)[-1].strip() for ln in result if 'filed —' in ln), '')
+                return f'issue filed: {url}' if url else 'issue filed'
+            return f'not auto-filed — body saved at {ctx.paths.state_dir / save_as} (open the link shown)'
+        if ch == 27:                                       # Esc
+            return 'issue not sent'
+        elif ch in (ord('s'), ord('S')):
+            _busy(stdscr, pal, f'filing to {reportgen.REPORTS_REPO}…')
+            _rc, result = _file_issue(ctx, title, body, label, save_as)
+            top = 0
+        elif ch in (curses.KEY_DOWN, ord('j')):
+            top += 1
+        elif ch in (curses.KEY_UP, ord('k')):
+            top = max(0, top - 1)
+        elif ch in _PGDN_KEYS:
+            top += _page_rows(stdscr)
+        elif ch in _PGUP_KEYS:
+            top = max(0, top - _page_rows(stdscr))
+        elif ch in (ord('g'),):
+            top = 0
+        elif ch in (ord('G'),):
+            top = 10 ** 6
+
+
+def _issue_flow(stdscr, pal, ctx, kind, pending_report=None):
+    '''Assemble a report / request / os-request, then review-and-send it in-TUI. `kind`:
+    'report' (a broken component), 'request' (full support for a component), 'os' (suggest THIS OS /
+    report that an update broke it). Returns a status note, or None if cancelled at the name prompt.'''
+    from .. import reportgen
+    secrets = reportgen.secret_values(ctx.env)
+    home = ctx.paths.home
+    if kind == 'os':
+        payload = reportgen.os_request_payload(ctx)
+        body = reportgen.render_os_request(payload, home=home, secrets=secrets)
+        return _report_review(stdscr, pal, ctx, reportgen.os_request_title(payload), body,
+                              reportgen.OS_REQUEST_LABEL, 'last-os-request.md')
+    if kind == 'request':
+        name = _input_box(stdscr, pal, 'request full support for which component?', '')
+        if not name or not name.strip():
+            return None
+        name = name.strip()                                # an unknown name is OK — a request to ADD it
+        payload = reportgen.request_payload(ctx, name)
+        body = reportgen.render_request(payload, home=home, secrets=secrets)
+        return _report_review(stdscr, pal, ctx, reportgen.request_title(payload), body,
+                              reportgen.REQUEST_LABEL, 'last-request.md')
+    # kind == 'report'
+    name = _input_box(stdscr, pal, 'report which component? (blank = last failure / all failures)',
+                      pending_report or '')
+    if name is None:
+        return None
+    name = name.strip()
+    saved = reportgen.load_failures(ctx.paths)
+    multi = failure = None
+    if name:
+        failure = next((f for f in saved if f.get('component') == name), None)
+    elif len(saved) > 1:
+        multi = saved
+    elif len(saved) == 1:
+        name, failure = saved[0].get('component'), saved[0]
+    else:
+        return 'nothing to report — name a component, or report after a failed install'
+    payload = (reportgen.collect(ctx, failures=multi) if multi
+               else reportgen.collect(ctx, component=name, failure=failure))
+    body = reportgen.render(payload, home=home, secrets=secrets)
+    return _report_review(stdscr, pal, ctx, reportgen.title(payload), body,
+                          'install-report', 'last-report.md')
 
 
 def _draw_where(stdscr, pal, lines, top, subject):
@@ -4198,9 +4296,14 @@ def run(ctx):
                     where_top = 10 ** 6                  # clamped by _draw_where
                 continue
 
-            if show_diag:                               # diagnostics overlay: scroll or exit
+            if show_diag:                               # diagnostics overlay: scroll, file an issue, or exit
                 if oact in ('issues', 'quit') or ch == 27:
                     show_diag = False
+                elif ch in (ord('r'), ord('f'), ord('s')):   # file a report / request / os-request in-TUI
+                    _kind = {'r': 'report', 'f': 'request', 's': 'os'}[chr(ch)]
+                    _n = _issue_flow(stdscr, pal, ctx, _kind, pending_report)
+                    if _n is not None:                  # sent / reviewed (None = cancelled at the prompt)
+                        note, show_diag = _n, False
                 elif oact == 'down':
                     diag_top += 1
                 elif oact == 'up':
@@ -4225,10 +4328,9 @@ def run(ctx):
                                  shortcuts={'y': 0, 'n': 1}) == 0:
                     break
                 continue
-            if gact == 'issues':
-                if diags:
-                    show_diag, diag_top = True, 0
-                continue
+            if gact == 'issues':                        # the `!` page: diagnostics + file an issue
+                show_diag, diag_top = True, 0            # open even with no diags — it's also the
+                continue                                # report / request / suggest-OS hub
             if gact == 'help':
                 _help_modal(stdscr, pal, screen)
                 continue

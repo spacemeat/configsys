@@ -554,3 +554,26 @@ def test_installed_despite_failure_downgrades_present_package():
     assert _installed_despite_failure(drv('1.0', latest='2.0'), rc, 'upgrade', None) is None  # still old
     # non-install ops never downgrade
     assert _installed_despite_failure(drv('1.0'), rc, 'remove', None) is None
+
+
+def test_request_os_print_files_nothing(tmp_path, capsys):
+    rc = main(base_args(tmp_path) + ['request-os', '--print'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert '[os-request]' in out                          # the title
+    assert 'configsys block:' in out                      # the detected block line
+    assert 'configsys-os-request v1' in out               # the marker
+    assert 'Send this to' not in out                      # --print never prompts/sends
+
+
+def test_file_issue_returns_display_lines(tmp_path, monkeypatch):
+    # force the no-gh path so the test never touches the network / files a real issue (_file_issue
+    # does a local `import shutil` -> patching the shutil module's `which` reaches it)
+    import shutil
+    monkeypatch.setattr(shutil, 'which', lambda _n: None)
+    import configsys.app as app
+    ctx = _ctx(tmp_path)
+    rc, lines = app._file_issue(ctx, '[report] git on pop', 'a short body line')
+    assert rc == 0
+    joined = '\n'.join(lines)
+    assert 'issues/new?' in joined and 'a+short+body+line' in joined      # prefilled URL, body encoded
