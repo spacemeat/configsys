@@ -4,16 +4,16 @@ Renders each TUI screen from a FIXED synthetic state into a BufferSurface, using
 RecordingPalette that returns hashable descriptor tokens instead of curses attrs — so a screen's
 painted grid can be captured and compared with NO curses and NO pseudo-terminal.
 
-The refactor's safety net is legacy-vs-new equivalence: a migrated screen must paint the identical
-grid as the painter it replaces, both rendered here against the same live ctx (the project's proven
-"prove byte-equivalent before the flip" pattern — no brittle committed golden that live routes.hu
-edits would churn). This module holds the shared machinery; the per-screen equivalence assertions
-live in the screen tests, and test_render_headless.py asserts every screen renders headlessly at all.
+This module holds the shared machinery — `RecordingPalette` (a deterministic fake curses palette),
+`build_ctx`, and `capture`/`_render`, which paint any screen from its sample through the REAL
+build_vm/draw. `test_render_headless.py` asserts every screen renders headlessly; the per-screen
+render-regression assertions live in `test_screen_*.py` against HAND-BUILT data (no golden, no oracle,
+nothing reads routes.hu — see docs/d2-mvvm-plan.md). The `Attr` value object below dates from the
+retired legacy-vs-new equivalence phase and is kept because the fake palette still returns it.
 '''
 
 from configsys.app import Context, build_parser
 from configsys.tui.surface import BufferSurface
-import _legacy_render as _oracle
 
 
 class Attr:
@@ -139,32 +139,40 @@ def build_ctx(home):
 
 
 def _render(name, ctx, pal, h, w):
-    '''Paint one screen from its fixed sample state into a BufferSurface, return the surface.'''
+    '''Paint one screen from its fixed sample state into a BufferSurface, via its REAL Screen — the
+    same build_vm/draw the router uses. Used by test_render_headless (every screen renders from a
+    realistic sample without curses).'''
     from configsys.tui import menu
     surf = BufferSurface(h, w)
+    size = (h, w)
     if name == 'components':
-        ms = menu._sample_components_state()
-        _oracle._draw(surf, pal, ms, ctx, '', (), False, 0, 'components')
+        from configsys.tui.screens.components import ComponentsScreen
+        scr = ComponentsScreen(ctx, menu._sample_components_state())
+        scr.note, scr.diags = '', ()
+        scr.draw(surf, pal, scr.build_vm(ctx, size))
     elif name == 'profiles':
+        from configsys.tui.screens.profiles import ProfilesScreen
         ps = menu._sample_profiles_state(ctx)
-        _oracle._draw_profiles(surf, pal, ps, ps.ctx, '', 'profiles')
-    elif name == 'plugins':
-        pl = menu._sample_plugins_state(ctx)
-        _oracle._draw_plugins(surf, pal, pl, ctx, '', 'plugins')
-    elif name == 'glue':
-        gs = menu._sample_glue_state(ctx)
-        _oracle._draw_glue(surf, pal, gs, ctx, '', 'glue')
-    elif name == 'dotfiles':
-        ds = menu._sample_dotfiles_state(ctx)
-        _oracle._draw_dotfiles(surf, pal, ds, ctx, '', 'dotfiles')
-    elif name == 'config':
-        cs = menu.ConfigScreen(ctx)
-        _oracle._draw_config(surf, pal, cs, ctx, '', 'config')
+        scr = ProfilesScreen(ctx, ps)
+        vm = scr.build_vm(ps.ctx, size); vm.note = ''
+        scr.draw(surf, pal, vm)
     elif name == 'theme':
-        ts = menu.ThemeScreen(ctx)
-        _oracle._draw_theme(surf, pal, ts, ctx, '', 'theme', menu._sample_components_state(), True)
+        from configsys.tui.screens.theme import ThemeScreen
+        scr = ThemeScreen(ctx, menu.ThemeScreen(ctx), sample_ms=menu._sample_components_state())
+        vm = scr.build_vm(ctx, size); vm.note = ''
+        scr.draw(surf, pal, vm)
     else:
-        raise ValueError(f'unknown screen {name!r}')
+        models = {'plugins': menu._sample_plugins_state, 'glue': menu._sample_glue_state,
+                  'dotfiles': menu._sample_dotfiles_state,
+                  'config': lambda c: menu.ConfigScreen(c)}
+        if name not in models:
+            raise ValueError(f'unknown screen {name!r}')
+        from configsys.tui.screens import config as _cfg, dotfiles as _df, glue as _gl, plugins as _pg
+        cls = {'plugins': _pg.PluginsScreen, 'glue': _gl.GlueScreen,
+               'dotfiles': _df.DotfilesScreen, 'config': _cfg.ConfigScreen}[name]
+        scr = cls(ctx, models[name](ctx))
+        vm = scr.build_vm(ctx, size); vm.note = ''
+        scr.draw(surf, pal, vm)
     return surf
 
 

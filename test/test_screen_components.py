@@ -1,27 +1,16 @@
-'''Render-equivalence for the migrated Components screen: ComponentsScreen.draw must paint the
-identical grid as the legacy menu._draw (screen == 'components'), across sizes, palette modes, and a
-few tree states. Plus handle() behaviour checks (nav + stage) that don't need curses/stdin.'''
+'''Render-regression for the Components screen (docs/d2-mvvm-plan.md), post-oracle style. The model
+is a MenuState; `_sample_components_state()` is a HAND-BUILT synthetic tree (no routes.hu), so it IS
+the fake data — the draw assertions read stable, sample-defined content. build_vm is a thin pass of
+the frame inputs (note + diagnostics). Plus handle() behaviour.'''
 
 import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
-import _legacy_render as _oracle
-from configsys.tui.screens.components import ComponentsScreen
+from configsys.tui.screens.components import ComponentsScreen, ComponentsVM
 from configsys.tui.surface import BufferSurface
 
-SIZES = [(40, 120), (24, 80), (30, 100)]
-MODES = ['grad', 'flat', 'lowcolor', 'mono']
 DIAGS = [{'level': 'warn', 'tag': 'sample', 'text': 'an example issue'}]
-
-
-def _pal(mode):
-    return {
-        'grad': RecordingPalette(gradient=True, have256=True),
-        'flat': RecordingPalette(gradient=False, have256=True),
-        'lowcolor': RecordingPalette(gradient=False, have256=False),
-        'mono': RecordingPalette(gradient=False, have256=False, mono=True),
-    }[mode]
 
 
 @pytest.fixture(scope='module')
@@ -29,46 +18,52 @@ def ctx(tmp_path_factory):
     return build_ctx(tmp_path_factory.mktemp('comp'))
 
 
-def _both(ctx, h, w, mode, diags, cursor=0):
-    legacy = menu._sample_components_state()
-    fresh = menu._sample_components_state()
-    legacy.cursor = fresh.cursor = min(cursor, len(legacy.rows) - 1)
-    sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    _oracle._draw(sL, _pal(mode), legacy, ctx, '', diags, False, 0, 'components')
-    scr = ComponentsScreen(ctx, fresh)
-    scr.note, scr.diags = '', diags
-    scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
-    return sL.grid(), sN.grid()
+# -- build_vm: the frame inputs pass through to the ViewModel ------------------
+
+def test_build_vm_carries_note_and_diags():
+    scr = ComponentsScreen.__new__(ComponentsScreen)
+    scr.note, scr.diags = 'hello', tuple(DIAGS)
+    vm = scr.build_vm(None, (40, 120))
+    assert isinstance(vm, ComponentsVM)
+    assert vm.note == 'hello' and vm.diags == tuple(DIAGS)
 
 
-@pytest.mark.parametrize('mode', MODES)
-@pytest.mark.parametrize('h,w', SIZES, ids=['roomy', 'tight', 'mid'])
-def test_components_equivalent_no_diags(ctx, h, w, mode):
-    legacy, new = _both(ctx, h, w, mode, diags=())
-    assert new == legacy
+# -- draw: the tree/header/legend paint from the hand-built sample -------------
 
-
-@pytest.mark.parametrize('mode', MODES)
-@pytest.mark.parametrize('h,w', SIZES, ids=['roomy', 'tight', 'mid'])
-def test_components_equivalent_with_diags_badge(ctx, h, w, mode):
-    legacy, new = _both(ctx, h, w, mode, diags=DIAGS)
-    assert new == legacy
-
-
-def test_components_equivalent_cursor_on_nested_unit(ctx):
-    legacy, new = _both(ctx, *SIZES[0], 'grad', diags=(), cursor=4)
-    assert new == legacy
-
-
-def test_components_note_shows_in_status(ctx):
+def _draw(ctx, note='', diags=(), h=40, w=120):
     scr = ComponentsScreen(ctx, menu._sample_components_state())
-    scr.note, scr.diags = 'hello note', ()
-    surf = BufferSurface(40, 120)
-    scr.draw(_pal_surface := surf, RecordingPalette(), scr.build_vm(ctx, (40, 120)))
-    assert 'hello note' in ' '.join(surf.text_rows())
+    scr.note, scr.diags = note, diags
+    surf = BufferSurface(h, w)
+    scr.draw(surf, RecordingPalette(), scr.build_vm(ctx, (h, w)))
+    return surf
 
 
-# -- handle() behaviour ---------------------------------------------------
+def test_draw_header_columns_rows_and_footers(ctx):
+    surf = _draw(ctx)
+    rows = surf.text_rows()
+    joined = '\n'.join(rows)
+    assert rows[1].startswith(' configsys ')                 # the chip on the title line
+    assert 'view: to-do' in rows[1]                          # the MODE indicator
+    for col in ('component', 'driver', 'scope', 'status', 'installed', 'latest'):
+        assert col in rows[2]                                # the column header row
+    assert 'ripgrep' in joined and 'bottom' in joined        # sample components render as tree rows
+    assert 'selected:0' in joined and 'staged:' in joined    # the status line
+    assert 'exec' in rows[-1] and 'issues' in rows[-1]       # the action legend footer
+
+
+def test_draw_shows_note_and_issue_badge(ctx):
+    surf = _draw(ctx, note='ZZ_NOTE_ZZ', diags=tuple(DIAGS))
+    joined = '\n'.join(surf.text_rows())
+    assert 'ZZ_NOTE_ZZ' in joined                            # the transient note on the status line
+    assert 'issue' in surf.text_rows()[1]                    # the ⚠ N issue attention badge
+
+
+def test_draw_no_badge_without_diags(ctx):
+    surf = _draw(ctx, diags=())
+    assert 'issue' not in surf.text_rows()[1]                # no diagnostics -> no badge
+
+
+# -- handle() behaviour -------------------------------------------------------
 
 def test_handle_down_moves_cursor(ctx):
     scr = ComponentsScreen(ctx, menu._sample_components_state())
@@ -80,13 +75,12 @@ def test_handle_down_moves_cursor(ctx):
     assert intent.reloaded is None and intent.remodeled is None
 
 
-def test_handle_lock_note_when_not_applicable(ctx):
+def test_handle_lock_on_profile_row_is_a_noop(ctx):
     scr = ComponentsScreen(ctx, menu._sample_components_state())
-    scr.model.go_top()                            # a profile row -> nothing to lock
+    scr.model.go_top()                                       # a profile row -> nothing lockable
     km = menu._KEYMAP
     lock = next((k for k in range(32, 127) if km.action_for('components', k) == 'lock'), None)
     if lock is None:
         pytest.skip('no lock binding')
     intent = scr.handle(lock, ctx, None, None, None, None)
-    # either it locked something or reported nothing to lock — both are valid, no crash/reload
-    assert intent.reloaded is None
+    assert intent.reloaded is None                            # no reprobe, no crash

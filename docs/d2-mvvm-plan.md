@@ -69,13 +69,15 @@ resolves their helper references; `_KEYMAP`→`menu._KEYMAP` for the live keymap
 absolute). `menu.py` dropped from 6328 → ~4300 lines. The model classes + shared helpers + `_sample_*`
 generators stay in `menu.py` (the new screens compose/import them; the preview uses the samples).
 
-**Going-forward test strategy (chosen): fake-data, not golden, not the oracle.** The legacy-vs-new
-tests were a one-time neutrality proof. The sustainable form (demonstrated in
-`test/test_render_fakedata_demo.py`) pins renders WITHOUT the oracle or golden snapshots:
-`build_vm` is fed a HAND-BUILT model and its ViewModel asserted; `draw` is fed a HAND-BUILT ViewModel
-and a few representative cells asserted. Both take fixed inputs, so nothing drifts with routes.hu. The
-plan: give each screen such a file, then delete `test/_legacy_render.py` + the `*_equivalent` tests.
-The oracle is kept "for now" as the safety net until those land.
+**Going-forward test strategy: fake-data, not golden, not the oracle — DONE.** The legacy-vs-new
+tests were a one-time neutrality proof. Every `test_screen_*.py` is now rewritten to pin renders
+WITHOUT the oracle or golden snapshots: `build_vm` is fed a HAND-BUILT model (or, for
+theme/profiles/components whose models are heavy, the deterministic real/hermetic sample) and its
+ViewModel asserted; `draw` is fed a HAND-BUILT ViewModel and a few representative cells asserted;
+`handle` behaviour kept. Both render-seam inputs are fixed, so nothing drifts with routes.hu (the
+routes-reading screens assert only routes-independent chrome). `test/_legacy_render.py` and the
+`*_equivalent` tests are DELETED; `_render_harness._render` and the Theme preview both render through
+the real screens. menu.py holds only the models + shared helpers + `_sample_*` generators + `run()`.
 
 ## Sequencing (incremental, one screen at a time, each behind the harness) — DONE
 0. Surface + BufferSurface + `Palette.describe` + the equivalence harness with golden grids for ALL

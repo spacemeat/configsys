@@ -1,27 +1,16 @@
-'''Render-equivalence for the migrated Plugins screen (docs/d2-mvvm-plan.md): the new
-PluginsScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_plugins, so the
-MVVM split is provably behavior-neutral. Both render the same _sample_plugins_state into a
-BufferSurface under the same RecordingPalette. Plus a few handle() behaviour checks.'''
+'''Render-regression for the Plugins screen (docs/d2-mvvm-plan.md), in the post-oracle style: the two
+MVVM seams are pinned against HAND-BUILT data — build_vm fed a fake model, draw fed a fake ViewModel —
+so nothing reads routes.hu and nothing drifts. Plus handle() behaviour and an integration check that
+build_vm works on the real sample.'''
+
+from types import SimpleNamespace
 
 import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
-import _legacy_render as _oracle
-from configsys.tui.screens.plugins import PluginsScreen
+from configsys.tui.screens.plugins import PluginsScreen, PluginsVM
 from configsys.tui.surface import BufferSurface
-
-SIZES = [(40, 120), (24, 80), (30, 100)]
-MODES = ['grad', 'flat', 'lowcolor', 'mono']
-
-
-def _pal(mode):
-    return {
-        'grad': RecordingPalette(gradient=True, have256=True),
-        'flat': RecordingPalette(gradient=False, have256=True),
-        'lowcolor': RecordingPalette(gradient=False, have256=False),
-        'mono': RecordingPalette(gradient=False, have256=False, mono=True),
-    }[mode]
 
 
 @pytest.fixture(scope='module')
@@ -29,40 +18,77 @@ def ctx(tmp_path_factory):
     return build_ctx(tmp_path_factory.mktemp('plug'))
 
 
-def _both(ctx, h, w, mode, focus='table'):
-    legacy = menu._sample_plugins_state(ctx)
-    fresh = menu._sample_plugins_state(ctx)
-    legacy.focus = fresh.focus = focus
-    sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    _oracle._draw_plugins(sL, _pal(mode), legacy, ctx, '', 'plugins')
-    scr = PluginsScreen(ctx, fresh)
-    scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
-    return sL.grid(), sN.grid()
+# -- build_vm: what the screen shows for KNOWN data ---------------------------
+
+def _fake_model():
+    '''A stand-in for a PluginScreen — just the attributes build_vm reads (no ctx, no git, no routes).
+    Two rows: a healthy up-to-date primary and one with an available update.'''
+    import configsys.plugins as plugins
+    rows = [
+        {'primary': True, 'name': 'mytools', 'source': 'github:me/x', 'ref': 'v1.0', 'abi_ok': True,
+         'requires_abi': 2, 'code_state': 'trusted', 'has_code': True, 'provides': {'driver': ['foo']},
+         'synced': True, 'checksum': 'ok'},
+        {'primary': False, 'name': 'science', 'source': 'github:org/y', 'ref': 'v0.4', 'abi_ok': True,
+         'requires_abi': 2, 'code_state': 'none', 'has_code': False, 'provides': {}, 'synced': True,
+         'checksum': 'ok'},
+    ]
+    tree = [{'depth': 0, 'last': [True], 'decl': {}}, {'depth': 0, 'last': [True], 'decl': {}}]
+    return SimpleNamespace(
+        rows=rows, tree=tree,
+        remote={plugins.dir_name('github:me/x'): 'v1.0',      # up to date
+                plugins.dir_name('github:org/y'): 'v0.9'},    # newer than ref -> update available
+        cur=0, top=0, hscroll=0, focus='table',
+        diff_files=[], diff_note='', dfile=0, dtop=0, dhscroll=0,
+        cur_row=lambda: rows[0])
 
 
-@pytest.mark.parametrize('mode', MODES)
-@pytest.mark.parametrize('h,w', SIZES, ids=['roomy', 'tight', 'mid'])
-def test_plugins_table_focus_equivalent(ctx, h, w, mode):
-    legacy, new = _both(ctx, h, w, mode, focus='table')
-    assert new == legacy
+def test_build_vm_rows_and_roles():
+    scr = PluginsScreen.__new__(PluginsScreen)      # build_vm only reads the model — no ctx needed
+    scr.model = _fake_model()
+    vm = scr.build_vm(None, (40, 120))
+    assert vm.has_rows
+    assert vm.cells[0][0] == '★mytools'             # primary carries the ★; the name column is first
+    assert vm.cells[1][0] == 'science'
+    remote_col = vm.headers.index('remote-ref')
+    assert vm.elems[0][remote_col] == 'installed'   # up-to-date -> green
+    assert vm.elems[1][remote_col] == 'outdated'    # update available -> amber
+    assert '2 plugin(s)' in vm.status
 
 
-@pytest.mark.parametrize('mode', MODES)
-@pytest.mark.parametrize('h,w', SIZES, ids=['roomy', 'tight', 'mid'])
-def test_plugins_diff_focus_equivalent(ctx, h, w, mode):
-    legacy, new = _both(ctx, h, w, mode, focus='diff')
-    assert new == legacy
+# -- draw: where/how a HAND-BUILT ViewModel paints ----------------------------
+
+def test_draw_places_headers_status_and_note():
+    scr = PluginsScreen.__new__(PluginsScreen)
+    scr.model = SimpleNamespace(focus='table', rows=[], top=0, hscroll=0, cur=0,
+                                dtop=0, dhscroll=0, dfile=0, diff_files=[])
+    vm = PluginsVM()
+    vm.has_rows = False
+    vm.empty_msg = '(no plugins declared — a to add)'
+    vm.diff_has_files = False
+    vm.diff_msg = 'nothing to review'
+    vm.status = ' 0 plugin(s) · focus: table'
+    vm.note = 'synced all'
+    vm.nav = ' tab focus · q '
+
+    surf = BufferSurface(24, 100)
+    scr.draw(surf, RecordingPalette(), vm)
+    joined = '\n'.join(surf.text_rows())
+    assert 'plugins (tree)' in joined                                  # the table panel title
+    assert '(no plugins declared — a to add)' in joined                # empty-state message
+    assert '0 plugin(s) · focus: table    synced all' in joined        # status + appended note
+    assert surf.text_rows()[-1].strip() == 'tab focus · q'             # nav footer last row
 
 
-def test_plugins_build_vm_is_pure_data(ctx):
+def test_build_vm_on_the_real_sample(ctx):
+    # integration: build_vm runs end-to-end on the shipped sample (exercises plugins.dir_name etc.)
     scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
     vm = scr.build_vm(ctx, (40, 200))
     assert vm.has_rows and vm.cells and len(vm.cells[0]) == len(vm.headers)
-    assert vm.diff_has_files and vm.diff_lines            # the sample has a mocked diff
+    assert vm.diff_has_files and vm.diff_lines            # the sample carries a mocked diff
     assert 'plugin(s)' in vm.status and vm.nav
 
 
-# -- handle() behaviour ---------------------------------------------------
+# -- handle() behaviour -------------------------------------------------------
 
 def test_handle_nav_moves_cursor_and_invalidates_diff(ctx):
     scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
@@ -83,14 +109,3 @@ def test_handle_switch_pane_toggles_focus(ctx):
     tab = next(k for k in range(1, 400) if km.action_for('plugins', k) == 'switch-pane')
     scr.handle(tab, ctx, None, None)
     assert scr.model.focus == 'diff'
-
-
-def test_plugins_note_renders_in_status(ctx):
-    # the router supplies vm.note; draw must render it (a class of bug the note='' equivalence
-    # cases can't catch — the legacy painters append it to the status line).
-    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
-    vm = scr.build_vm(ctx, (40, 200))
-    vm.note = 'ZZ_NOTE_MARKER_ZZ'
-    surf = BufferSurface(40, 200)
-    scr.draw(surf, RecordingPalette(), vm)
-    assert 'ZZ_NOTE_MARKER_ZZ' in ' '.join(surf.text_rows())
