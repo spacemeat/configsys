@@ -6,14 +6,6 @@ refactor stays provably neutral. Address these in their own commits afterward.
 
 ## Open
 
-- **Profiles `ps._res` goes stale after a components-side method pin.** When you pin a component's
-  install method from the Components screen (`method` action), the Profiles screen's resolved-method
-  cache (`ProfileScreen._res`) is not invalidated, so a later visit to Profiles can show the
-  pre-pin `[via]`. Profiles invalidates its own cache when IT changes a pin, but not when Components
-  does. Surfaced by the run()-dispatch map. Low impact (cosmetic until the next Profiles reload).
-  Fix: have the components `method` path (or `ctx.invalidate()`) also drop `ps._res`, or key
-  `_res` on a resolution generation that `ctx.invalidate()` bumps.
-
 - **ProfileScreen._warm_cache resolves into shared ctx.routes caches from a daemon thread.** Each
   ProfileScreen spawns a background sweep that calls `_resolve` (which reads/writes ctx-level
   detection caches) for the whole catalog. With a single ProfileScreen per session (production) this
@@ -28,5 +20,11 @@ refactor stays provably neutral. Address these in their own commits afterward.
   it and the theme screen too — the equivalence harness renders with `note=''` so it did not catch
   this. Fixed in-refactor (each VM carries a `note` slot the router fills; each draw appends it).
 
-## Resolved during the refactor
+## Resolved
 - The note-display drop above (fixed as part of the migration, not deferred).
+- **Profiles `ps._res` staleness after a components-side (or config/plugin) pin — FIXED.**
+  `ProfileScreen._resolve` now drops `_res` whenever `id(ctx.routes)` differs from when the cache was
+  built. A pin/route/plugin edit calls `ctx.invalidate()` (fresh Resolver → new id) so the stale
+  `[via]` is dropped even when the edit came from another screen; a membership/profile edit does NOT
+  invalidate, so the cache survives (the perf win is kept). test_screen_profiles.py
+  `test_res_cache_drops_when_ctx_routes_rebuilt` pins it.

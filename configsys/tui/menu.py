@@ -3100,6 +3100,13 @@ class ProfileScreen:
         '''(available, resolved_via, pinned) for a component — cached. The resolved via is the
         method it installs with now (the pin, else the preference-picked default); `pinned` is set
         when a binding-pin chose it. One candidates() call feeds both the grey-out and the method.'''
+        # Drop the cache when ctx.routes was rebuilt (a pin / route / plugin edit calls ctx.invalidate,
+        # which swaps in a fresh Resolver) — even one made from ANOTHER screen. A membership/profile
+        # edit does NOT invalidate, so its `id` is unchanged and the cache survives (the perf win).
+        rid = id(self.ctx.routes)
+        if rid != getattr(self, '_res_rid', None):
+            self._res.clear()
+            self._res_rid = rid
         if name not in self._res:
             try:
                 cands = self.ctx.routes.candidates(name)

@@ -79,3 +79,16 @@ def test_handle_select_toggles_and_notes(ctx):
     assert name in scr.model.selected_comps and intent.note == '1 selected'
     intent = scr.handle(sel, ctx, None, None)
     assert not scr.model.selected_comps and intent.note == 'selection cleared'
+
+
+def test_res_cache_drops_when_ctx_routes_rebuilt(ctx):
+    # docs/d2-mvvm-findings.md: a components-side method pin calls ctx.invalidate() (new ctx.routes),
+    # and Profiles' resolved-method cache must drop so it doesn't show a stale [via]. Keyed on
+    # id(ctx.routes): a pin/route/plugin edit rebuilds it (clears _res); a membership edit does not.
+    ps = menu._sample_profiles_state(ctx)
+    name = ps.catalog[0]
+    ps._resolve(name)
+    assert name in ps._res
+    ctx.invalidate()                       # simulate a pin/route edit from anywhere -> routes rebuilt
+    ps._resolve(ps.catalog[1])             # the next resolve sees the new routes id and clears stale
+    assert name not in ps._res
