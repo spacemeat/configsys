@@ -53,7 +53,23 @@ the way to a shipped SDK — a CLI already exists — but the flexibility has va
   flip" pattern). Phase 0 itself ships test_render_headless.py (every screen renders headlessly,
   deterministically, across palette modes) + test_surface.py.
 
-## Sequencing (incremental, one screen at a time, each behind the harness)
+## STATUS: core rewrite COMPLETE
+All seven screens (plugins, glue, dotfiles, config, theme, profiles, components) are migrated to
+`build_vm`/`draw`/`handle` and live in `configsys/tui/screens/`. `run()` is now a lazy `{id: Screen}`
+router with one uniform draw and one uniform handle + `Intent`-apply — ~640 lines of per-screen draw
++ dispatch removed from it. Every screen renders headlessly (BufferSurface) and is pinned to its
+legacy painter cell-for-cell across sizes × palette modes × states (≈230 equivalence tests). Full
+suite green.
+
+**Remaining (optional cleanup, deliberately deferred):** the legacy `_draw_*` painters + model
+classes still live in `menu.py`, now used ONLY as (a) the Theme live-preview sub-page renderer
+(`_sample_real_page`) and (b) the equivalence-test oracle. Removing them to fully thin `menu.py`
+requires repointing the Theme preview to the new screens (incl. a `sample=False` recursion guard for
+theme-previewing-theme) and deciding the ongoing render-regression strategy (keep the legacy oracle,
+move it to a `test/` module, or convert to golden snapshots — goldens are brittle for the
+routes-reading profiles/config/theme samples). Worth doing as a focused follow-up.
+
+## Sequencing (incremental, one screen at a time, each behind the harness) — DONE
 0. Surface + BufferSurface + `Palette.describe` + the equivalence harness with golden grids for ALL
    screens captured from current code. Commit.
 1. Router + Screen protocol + ViewModel base; wire `run()` to the router with every screen still
