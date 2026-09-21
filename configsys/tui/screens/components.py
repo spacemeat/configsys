@@ -26,6 +26,21 @@ from .base import Intent, Screen, ViewModel
 _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
 
 
+def _lock_verb(ms):
+    '''"unlock" when pressing the lock key would UNLOCK the current target (any of its present units
+    is locked, or a lock is staged); "lock" otherwise. So the footer legend reads `L unlock` while a
+    locked component (e.g. a held jdk) is focused — the toggle's other direction stops being invisible
+    — and `L lock` the rest of the time (width-neutral).'''
+    for node in ms._target_nodes():
+        for m in node.members:
+            if not (m.supported and m.present):
+                continue
+            staged = ms.staged.get(m.key)
+            if staged == 'lock' or (m.locked and staged != 'unlock'):
+                return 'unlock'
+    return 'lock'
+
+
 class ComponentsVM(ViewModel):
     '''Frame inputs the Components painter reads beyond the model: the status note + the diagnostics
     list (for the header attention badge). The tree/infoblock content is read from the model in draw
@@ -180,12 +195,13 @@ class ComponentsScreen(Screen):
                    f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
                    f"{g('filter')} filter · {g('expand-all')} expand-all ")
             act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
-                   f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} lock · "
+                   f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
                    f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
                    f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
         else:
             nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-            act = ' space sel · a all · i/I inst · u/U upg · x rm · L lock · v via · w where · c clear · X exec · R refresh · ! issues · q quit '
+            act = (' space sel · a all · i/I inst · u/U upg · x rm · L ' + _lock_verb(ms) +
+                   ' · v via · w where · c clear · X exec · R refresh · ! issues · q quit ')
         _put(surface, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
         _put(surface, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -231,7 +247,7 @@ class ComponentsScreen(Screen):
             ms.expand_or_jump()
         elif act == 'left':
             ms.collapse()
-        elif act == 'lock':
+        elif act == 'lock':                                # L — toggles BOTH ways (lock <-> unlock)
             if not ms.toggle_lock():
                 intent.note = 'nothing to lock/unlock here'
         elif act == 'expand-all':

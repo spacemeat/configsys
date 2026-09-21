@@ -84,3 +84,28 @@ def test_handle_lock_on_profile_row_is_a_noop(ctx):
         pytest.skip('no lock binding')
     intent = scr.handle(lock, ctx, None, None, None, None)
     assert intent.reloaded is None                            # no reprobe, no crash
+
+
+def test_footer_lock_verb_flips_to_unlock_when_target_locked(ctx):
+    # the toggle key is one key both ways; the footer names the direction it will go, so a locked
+    # (or lock-staged) row shows `L unlock` instead of the invisible-other-half `L lock`.
+    from configsys.tui.screens.components import _lock_verb
+    scr = ComponentsScreen(ctx, menu._sample_components_state())
+    ms = scr.model
+    ms.clear_all_staged()                                    # deterministic: nothing staged anywhere
+    ms.selected.clear()
+    for i in range(len(ms.rows)):                            # park on a truly-unlocked lockable row
+        ms.cursor = i
+        if _lock_verb(ms) == 'lock' and ms.toggle_lock():    # verb was "lock" -> this stages a lock
+            break
+    else:
+        pytest.skip('sample has no lockable unlocked row')
+    assert 'L unlock' in _rows(scr, ctx)[-1]                 # a lock is staged -> the toggle now UNLOCKS
+    ms.clear_all_staged()
+    assert 'L lock' in _rows(scr, ctx)[-1]                   # cleared -> back to "lock" on the same row
+
+
+def _rows(scr, ctx):
+    surf = BufferSurface(40, 120)
+    scr.draw(surf, RecordingPalette(), scr.build_vm(ctx, (40, 120)))
+    return surf.text_rows()

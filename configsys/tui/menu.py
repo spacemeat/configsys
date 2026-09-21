@@ -439,11 +439,12 @@ class MenuState:
         return n
 
     def toggle_lock(self):
-        '''Toggle version-lock intent on the target units (present + supported). Unlocking removes
-        a staged (requested) lock as well as staging an unlock for an actually-locked unit; locking
-        removes a staged unlock as well as staging a lock for an unlocked unit. So one key flips
-        both a pending request and a settled lock. `c` (clear) drops the staged op -> back to the
-        current on-disk lock state.'''
+        '''Toggle version-lock intent on the target units (present + supported) — the selection, or
+        the current row when nothing is selected. Unlocking removes a staged (requested) lock as well
+        as staging an unlock for an actually-locked unit; locking removes a staged unlock as well as
+        staging a lock for an unlocked unit. So one key flips both a pending request and a settled
+        lock (a locked unit -> unlock). `c` (clear) drops the staged op -> back to the current on-disk
+        lock state.'''
         acted = False
         for node in self._target_nodes():
             for m in node.members:
