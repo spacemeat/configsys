@@ -693,7 +693,7 @@
         // zellij: Rust terminal workspace/multiplexer. Native on Arch/Fedora + brew; the upstream
         // musl static tarball covers Debian/Ubuntu/openSUSE/EL/Alpine (one binary, runs everywhere);
         // cargo is a pinnable build-from-crate alternate. (native on more distros -> broaden after a name-sweep.)
-        zellij: { attrs: [ CLI TUI FOSS permissive ] suggests: zellij-dotfiles
+        zellij: { attrs: [ CLI TUI FOSS permissive ] suggests: [ zellij-dotfiles, zellij-glue ]
             description: "Zellij — a terminal workspace & multiplexer with batteries included."
             install: [
                 { via: native  when: "arch" }                        // Fedora is COPR-only -> tarball covers it
@@ -704,6 +704,11 @@
             ] }
         zellij-dotfiles: { description: "Zellij config, linked into place."
             install: [ { via: dotfiles  config: { src: zellij  dst: $XDG_CONFIG_HOME/zellij } } ] }
+        // zellij-glue aliases the tarball binary ($CONFIGSYS_APP_DIR/zellij/zellij) onto PATH — the
+        // tarball is the resolved method on Debian/Ubuntu/Pop/openSUSE/EL, where nothing else puts it
+        // there. No-op where zellij is native (arch/brew) and already on PATH.
+        zellij-glue: { description: "zellij PATH alias (tarball binary), linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: zellij } ] }
 
         // atuin: magical shell history (Rust). Native on Arch/Fedora + brew; cargo is the reliable
         // universal fallback everywhere else (openSUSE/EL/Alpine/Debian-older). Shell integration
@@ -719,14 +724,22 @@
             install: [ { via: glue  requires: shell-glue  glue: atuin } ] }
 
         // tuxedo: a fast todo.txt TUI (Rust). NOT on crates.io (so no `cargo install`); brew on
-        // atomic, and the upstream x86_64 gnu release tarball everywhere else (glibc -> declines on Alpine).
-        tuxedo: { attrs: [ CLI TUI FOSS permissive ]
+        // atomic. Upstream ships ONLY a gnu tarball (no musl), and the current build needs glibc >= 2.39
+        // — so the tarball is gated to the OS versions that ship it (rolling distros + Ubuntu 24.04 /
+        // Debian 13 / Fedora 40+); on older glibc (Pop/Ubuntu 22.04, Debian <=12, EL, openSUSE Leap) it
+        // has no working method and DECLINES honestly rather than install a binary that won't run.
+        tuxedo: { attrs: [ CLI TUI FOSS permissive ] suggests: tuxedo-glue
             description: "tuxedo — a fast, keyboard-driven terminal UI for todo.txt (`tuxedo`)."
             install: [
                 { via: native  when: "fedora_atomic" }               // brew formula `tuxedo`
-                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/tuxedo"  requires: glibc
+                { via: tarball  when: "arch or (fedora >= 40) or opensuse_tumbleweed or (ubuntu >= 24.04) or (debian >= 13)"
+                  installDir: "$CONFIGSYS_APP_DIR/tuxedo"  requires: glibc   // gnu build; glibc >= 2.39 (see note above)
                   version: { github: webstonehq/tuxedo  strip-v: true  asset: "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz" } }
             ] }
+        // tuxedo-glue aliases the tarball binary (nested tuxedo-<ver>-<triple>/tuxedo) onto PATH; no-op
+        // where tuxedo is native (brew) and already on PATH.
+        tuxedo-glue: { description: "tuxedo PATH alias (tarball binary), linked into place."
+            install: [ { via: glue  requires: shell-glue  glue: tuxedo } ] }
 
         // leaf: a terminal Markdown previewer with a GUI-like experience (Rust). Not in distro repos;
         // the crate is `leaf-markdown-viewer` (the binary is `leaf`), so cargo covers every OS.

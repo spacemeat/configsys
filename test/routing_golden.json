@@ -11394,6 +11394,20 @@
    }
   },
   "tuxedo": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
+   },
    "pacman\\curl": {
     "driver": "pacman",
     "fields": {
@@ -11413,6 +11427,22 @@
      }
     },
     "name": "tuxedo"
+   }
+  },
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -13094,6 +13124,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "pacman\\zellij": {
     "driver": "pacman",
     "fields": {
@@ -13112,6 +13156,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -25047,26 +25107,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "apt\\curl": {
-    "driver": "apt",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -26545,6 +26599,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -26569,6 +26637,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -38205,26 +38289,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "apt\\curl": {
-    "driver": "apt",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -39669,6 +39747,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -39693,6 +39785,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -51360,26 +51468,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "apt\\curl": {
-    "driver": "apt",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -52890,6 +52992,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -52914,6 +53030,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -64094,6 +64226,20 @@
     },
     "name": "curl"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
+   },
    "tarball\\tuxedo": {
     "driver": "tarball",
     "fields": {
@@ -64106,6 +64252,22 @@
      }
     },
     "name": "tuxedo"
+   }
+  },
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -65646,6 +65808,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -65670,6 +65846,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -76876,6 +77068,20 @@
     },
     "name": "curl"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
+   },
    "tarball\\tuxedo": {
     "driver": "tarball",
     "fields": {
@@ -76888,6 +77094,22 @@
      }
     },
     "name": "tuxedo"
+   }
+  },
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -78428,6 +78650,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -78452,6 +78688,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -87439,6 +87691,36 @@
      "name": "tuxedo"
     },
     "name": "tuxedo"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
+   }
+  },
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -88487,6 +88769,20 @@
      }
     },
     "name": "zellij-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zellij-dotfiles": {
@@ -88499,6 +88795,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -100450,26 +100762,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "apt\\curl": {
-    "driver": "apt",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -101948,6 +102254,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -101972,6 +102292,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -113821,26 +114157,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "dnf\\curl": {
-    "driver": "dnf",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -115469,6 +115799,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -115493,6 +115837,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -127461,26 +127821,20 @@
     "name": "ttyd"
    }
   },
-  "tuxedo": {
-   "apt\\curl": {
-    "driver": "apt",
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "curl"
+     "loader": "all"
     },
-    "name": "curl"
+    "name": "shell-glue"
    },
-   "tarball\\tuxedo": {
-    "driver": "tarball",
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
     "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
-     "name": "tuxedo",
-     "version": {
-      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "webstonehq/tuxedo",
-      "strip-v": "true"
-     }
+     "glue": "tuxedo"
     },
-    "name": "tuxedo"
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -128959,6 +129313,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -128983,6 +129351,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
@@ -140620,6 +141004,20 @@
     },
     "name": "curl"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
+   },
    "tarball\\tuxedo": {
     "driver": "tarball",
     "fields": {
@@ -140632,6 +141030,22 @@
      }
     },
     "name": "tuxedo"
+   }
+  },
+  "tuxedo-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuxedo-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuxedo"
+    },
+    "name": "tuxedo-glue"
    }
   },
   "typescript": {
@@ -142130,6 +142544,20 @@
     },
     "name": "zellij-dotfiles"
    },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
@@ -142154,6 +142582,22 @@
      }
     },
     "name": "zellij-dotfiles"
+   }
+  },
+  "zellij-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
    }
   },
   "zig": {
