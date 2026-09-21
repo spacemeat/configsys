@@ -450,8 +450,11 @@ class ProfilesScreen(Screen):
     # -- handle -----------------------------------------------------------
 
     def _redraw(self, stdscr, pal, note):
-        '''The modal redraw callback (filter/find edits) — the legacy painter, exactly as before.'''
-        menu._draw_profiles(stdscr, pal, self.model, self.model.ctx, note, 'profiles')
+        '''The modal redraw callback (filter/find edits) — re-render THIS screen so the modal paints
+        over a current frame (no dependency on the legacy painter).'''
+        vm = self.build_vm(self.model.ctx, stdscr.getmaxyx())
+        vm.note = note
+        self.draw(stdscr, pal, vm)
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model, runs the modals, returns an Intent(note, dirty, pending_notes,

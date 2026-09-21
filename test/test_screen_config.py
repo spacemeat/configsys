@@ -1,5 +1,5 @@
 '''Render-equivalence for the migrated Config screen (docs/d2-mvvm-plan.md): the new
-ConfigScreen.build_vm + draw must paint the IDENTICAL grid as the legacy menu._draw_config, so the
+ConfigScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_config, so the
 MVVM split is provably behavior-neutral. Both render a fresh menu.ConfigScreen(ctx) (the settings
 catalog is deterministic for a fixed ctx) into a BufferSurface under the same RecordingPalette. Plus
 a few handle() behaviour checks.'''
@@ -8,6 +8,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.base import Intent
 from configsys.tui.screens.config import ConfigScreen
 from configsys.tui.surface import BufferSurface
@@ -35,7 +36,7 @@ def _both(ctx, h, w, mode, cur=0):
     fresh = menu.ConfigScreen(ctx)
     legacy.cur = fresh.cur = cur
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_config(sL, _pal(mode), legacy, ctx, '', 'config')
+    _oracle._draw_config(sL, _pal(mode), legacy, ctx, '', 'config')
     scr = ConfigScreen(ctx, fresh)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     return sL.grid(), sN.grid()

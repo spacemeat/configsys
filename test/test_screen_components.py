@@ -6,6 +6,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.components import ComponentsScreen
 from configsys.tui.surface import BufferSurface
 
@@ -33,7 +34,7 @@ def _both(ctx, h, w, mode, diags, cursor=0):
     fresh = menu._sample_components_state()
     legacy.cursor = fresh.cursor = min(cursor, len(legacy.rows) - 1)
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw(sL, _pal(mode), legacy, ctx, '', diags, False, 0, 'components')
+    _oracle._draw(sL, _pal(mode), legacy, ctx, '', diags, False, 0, 'components')
     scr = ComponentsScreen(ctx, fresh)
     scr.note, scr.diags = '', diags
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))

@@ -1,5 +1,5 @@
 '''Render-equivalence for the migrated Profiles screen (docs/d2-mvvm-plan.md): the new
-ProfilesScreen.build_vm + draw must paint the IDENTICAL grid as the legacy menu._draw_profiles, so
+ProfilesScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_profiles, so
 the MVVM split is provably behavior-neutral. Both render a fresh _sample_profiles_state (whose .ctx
 is the deterministic sample overlay) into a BufferSurface under the same RecordingPalette, for both
 pane focuses. Plus a few handle() behaviour checks.'''
@@ -8,6 +8,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.profiles import ProfilesScreen
 from configsys.tui.surface import BufferSurface
 
@@ -40,7 +41,7 @@ def _both(ctx, h, w, mode, focus):
     fresh._res = dict(legacy._res)
     fresh._parts_cache = dict(legacy._parts_cache)
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_profiles(sL, _pal(mode), legacy, legacy.ctx, '', 'profiles')
+    _oracle._draw_profiles(sL, _pal(mode), legacy, legacy.ctx, '', 'profiles')
     scr = ProfilesScreen(ctx, fresh)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     return sL.grid(), sN.grid()

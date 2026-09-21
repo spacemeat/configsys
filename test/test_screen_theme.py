@@ -1,5 +1,5 @@
 '''Render-equivalence for the migrated Theme screen (docs/d2-mvvm-plan.md): the new
-ThemeScreen.build_vm + draw must paint the IDENTICAL grid as the legacy menu._draw_theme (the
+ThemeScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_theme (the
 top-level, sample=True render — the self-preview sub-page stays legacy), so the MVVM split is
 provably behavior-neutral. Both render a fresh menu.ThemeScreen model over the same live ctx into a
 BufferSurface under the same RecordingPalette, across sizes × color modes × focus/page states. Plus a
@@ -10,6 +10,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.theme import ThemeScreen
 from configsys.tui.surface import BufferSurface
 
@@ -46,7 +47,7 @@ def _both(ctx, h, w, mode, focus='map', page=0):
     fresh = _model(ctx, focus, page)                      # map_top/role_top/map_ncols
     sample_ms = menu._sample_components_state()
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_theme(sL, _pal(mode), legacy, ctx, '', 'theme', sample_ms, True)
+    _oracle._draw_theme(sL, _pal(mode), legacy, ctx, '', 'theme', sample_ms, True)
     scr = ThemeScreen(ctx, fresh, sample_ms)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     return sL.grid(), sN.grid()

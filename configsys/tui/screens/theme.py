@@ -69,6 +69,8 @@ class ThemeScreen(Screen):
         self.ctx = ctx
         self.model = model if model is not None else _ThemeModel(ctx)
         self.sample_ms = sample_ms          # the session's live Components state (for its sample)
+        self.suppress_sample = False        # True when THIS theme render is itself a sample sub-page
+        # (theme-previewing-theme) -> draw the placeholder slot instead of recursing into the sample.
 
     def reload(self):
         self.model.reload()
@@ -167,8 +169,15 @@ class ThemeScreen(Screen):
         # frame — the mini page brings its own nav bar / panels / footer). The top-level render is
         # always the sample=True path; the self-preview (sample=False) is the legacy painter's. --
         sy, sh = 1 + list_h, body_h - list_h
-        _sample_page(surface, pal, self.ctx, ts, page, sy, 0, sh, w, self.sample_ms)
-        pal.use_page('theme')
+        if self.suppress_sample:                       # self-preview: no inner sample (avoid recursion)
+            for yy in range(sy, sy + sh):
+                _put(surface, yy, 0, ' ' * w, pal.style('unit', yy, 0, h, w))
+            hint = '· live sample ·'
+            _put(surface, sy + sh // 2, max(0, (w - len(hint)) // 2), _fit(hint, w),
+                 pal.style('info_dim', sy + sh // 2, 0, h, w))
+        else:
+            _sample_page(surface, pal, self.ctx, ts, page, sy, 0, sh, w, self.sample_ms)
+            pal.use_page('theme')
 
         status = f' terminal color: {pal.color_mode}   ·   edits → {vm.edit_target}'
         if vm.note:

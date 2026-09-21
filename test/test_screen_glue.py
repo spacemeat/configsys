@@ -1,5 +1,5 @@
 '''Render-equivalence for the migrated Glue screen (docs/d2-mvvm-plan.md): the new
-GlueScreen.build_vm + draw must paint the IDENTICAL grid as the legacy menu._draw_glue, so the MVVM
+GlueScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_glue, so the MVVM
 split is provably behavior-neutral. Both render the same _sample_glue_state into a BufferSurface
 under the same RecordingPalette. Plus a few handle() behaviour checks.'''
 
@@ -7,6 +7,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.glue import GlueScreen
 from configsys.tui.surface import BufferSurface
 
@@ -37,7 +38,7 @@ def _both(ctx, h, w, mode, cur=0, hscroll=0, empty=False):
         if empty:
             gs.rows, gs.display, gs.loader = [], [], {}
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_glue(sL, _pal(mode), legacy, ctx, '', 'glue')
+    _oracle._draw_glue(sL, _pal(mode), legacy, ctx, '', 'glue')
     scr = GlueScreen(ctx, fresh)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     return sL.grid(), sN.grid()

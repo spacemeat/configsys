@@ -1,5 +1,5 @@
 '''Render-equivalence for the migrated Dotfiles screen (docs/d2-mvvm-plan.md): the new
-DotfilesScreen.build_vm + draw must paint the IDENTICAL grid as the legacy menu._draw_dotfiles, so the
+DotfilesScreen.build_vm + draw must paint the IDENTICAL grid as the legacy _oracle._draw_dotfiles, so the
 MVVM split is provably behavior-neutral. Both render the same _sample_dotfiles_state into a
 BufferSurface under the same RecordingPalette. Plus a few handle() behaviour checks.'''
 
@@ -7,6 +7,7 @@ import pytest
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+import _legacy_render as _oracle
 from configsys.tui.screens.dotfiles import DotfilesScreen
 from configsys.tui.surface import BufferSurface
 
@@ -34,7 +35,7 @@ def _both(ctx, h, w, mode, cur=0, hscroll=0):
     legacy.cur = fresh.cur = cur
     legacy.hscroll = fresh.hscroll = hscroll
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_dotfiles(sL, _pal(mode), legacy, ctx, '', 'dotfiles')
+    _oracle._draw_dotfiles(sL, _pal(mode), legacy, ctx, '', 'dotfiles')
     scr = DotfilesScreen(ctx, fresh)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     return sL.grid(), sN.grid()
@@ -63,7 +64,7 @@ def test_dotfiles_empty_equivalent(ctx, h, w, mode):
     legacy.rows, legacy.display = [], []
     fresh.rows, fresh.display = [], []
     sL, sN = BufferSurface(h, w), BufferSurface(h, w)
-    menu._draw_dotfiles(sL, _pal(mode), legacy, ctx, '', 'dotfiles')
+    _oracle._draw_dotfiles(sL, _pal(mode), legacy, ctx, '', 'dotfiles')
     scr = DotfilesScreen(ctx, fresh)
     scr.draw(sN, _pal(mode), scr.build_vm(ctx, (h, w)))
     assert sN.grid() == sL.grid()

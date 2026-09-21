@@ -13,6 +13,7 @@ live in the screen tests, and test_render_headless.py asserts every screen rende
 
 from configsys.app import Context, build_parser
 from configsys.tui.surface import BufferSurface
+import _legacy_render as _oracle
 
 
 class Attr:
@@ -143,25 +144,25 @@ def _render(name, ctx, pal, h, w):
     surf = BufferSurface(h, w)
     if name == 'components':
         ms = menu._sample_components_state()
-        menu._draw(surf, pal, ms, ctx, '', (), False, 0, 'components')
+        _oracle._draw(surf, pal, ms, ctx, '', (), False, 0, 'components')
     elif name == 'profiles':
         ps = menu._sample_profiles_state(ctx)
-        menu._draw_profiles(surf, pal, ps, ps.ctx, '', 'profiles')
+        _oracle._draw_profiles(surf, pal, ps, ps.ctx, '', 'profiles')
     elif name == 'plugins':
         pl = menu._sample_plugins_state(ctx)
-        menu._draw_plugins(surf, pal, pl, ctx, '', 'plugins')
+        _oracle._draw_plugins(surf, pal, pl, ctx, '', 'plugins')
     elif name == 'glue':
         gs = menu._sample_glue_state(ctx)
-        menu._draw_glue(surf, pal, gs, ctx, '', 'glue')
+        _oracle._draw_glue(surf, pal, gs, ctx, '', 'glue')
     elif name == 'dotfiles':
         ds = menu._sample_dotfiles_state(ctx)
-        menu._draw_dotfiles(surf, pal, ds, ctx, '', 'dotfiles')
+        _oracle._draw_dotfiles(surf, pal, ds, ctx, '', 'dotfiles')
     elif name == 'config':
         cs = menu.ConfigScreen(ctx)
-        menu._draw_config(surf, pal, cs, ctx, '', 'config')
+        _oracle._draw_config(surf, pal, cs, ctx, '', 'config')
     elif name == 'theme':
         ts = menu.ThemeScreen(ctx)
-        menu._draw_theme(surf, pal, ts, ctx, '', 'theme', menu._sample_components_state(), True)
+        _oracle._draw_theme(surf, pal, ts, ctx, '', 'theme', menu._sample_components_state(), True)
     else:
         raise ValueError(f'unknown screen {name!r}')
     return surf

@@ -61,13 +61,21 @@ router with one uniform draw and one uniform handle + `Intent`-apply — ~640 li
 legacy painter cell-for-cell across sizes × palette modes × states (≈230 equivalence tests). Full
 suite green.
 
-**Remaining (optional cleanup, deliberately deferred):** the legacy `_draw_*` painters + model
-classes still live in `menu.py`, now used ONLY as (a) the Theme live-preview sub-page renderer
-(`_sample_real_page`) and (b) the equivalence-test oracle. Removing them to fully thin `menu.py`
-requires repointing the Theme preview to the new screens (incl. a `sample=False` recursion guard for
-theme-previewing-theme) and deciding the ongoing render-regression strategy (keep the legacy oracle,
-move it to a `test/` module, or convert to golden snapshots — goldens are brittle for the
-routes-reading profiles/config/theme samples). Worth doing as a focused follow-up.
+**Cleanup DONE (this pass):** the Theme live-preview (`_sample_real_page`) now renders every sub-page
+through the NEW screens (a `suppress_sample` guard on ThemeScreen handles theme-previewing-theme), so
+the app's runtime no longer touches the legacy painters. The 9 legacy `_draw_*` painters moved out of
+`menu.py` into `test/_legacy_render.py` — the frozen equivalence ORACLE (`globals().update(vars(menu))`
+resolves their helper references; `_KEYMAP`→`menu._KEYMAP` for the live keymap; relative imports made
+absolute). `menu.py` dropped from 6328 → ~4300 lines. The model classes + shared helpers + `_sample_*`
+generators stay in `menu.py` (the new screens compose/import them; the preview uses the samples).
+
+**Going-forward test strategy (chosen): fake-data, not golden, not the oracle.** The legacy-vs-new
+tests were a one-time neutrality proof. The sustainable form (demonstrated in
+`test/test_render_fakedata_demo.py`) pins renders WITHOUT the oracle or golden snapshots:
+`build_vm` is fed a HAND-BUILT model and its ViewModel asserted; `draw` is fed a HAND-BUILT ViewModel
+and a few representative cells asserted. Both take fixed inputs, so nothing drifts with routes.hu. The
+plan: give each screen such a file, then delete `test/_legacy_render.py` + the `*_equivalent` tests.
+The oracle is kept "for now" as the safety net until those land.
 
 ## Sequencing (incremental, one screen at a time, each behind the harness) — DONE
 0. Surface + BufferSurface + `Palette.describe` + the equivalence harness with golden grids for ALL
