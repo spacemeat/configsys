@@ -1171,13 +1171,20 @@ def _issue_flow(stdscr, pal, ctx, kind, pending_report=None):
         body = reportgen.render_request(payload, home=home, secrets=secrets)
         return _report_review(stdscr, pal, ctx, reportgen.request_title(payload), body,
                               reportgen.REQUEST_LABEL, 'last-request.md')
-    # kind == 'report'
-    name = _input_box(stdscr, pal, 'report which component? (blank = last failure / all failures)',
-                      pending_report or '')
+    # kind == 'report' — name what a BLANK entry will file so it's an informed default
+    saved = reportgen.load_failures(ctx.paths)
+    captured = [f.get('component') for f in saved if f.get('component')]
+    if not captured:
+        blank = 'blank: nothing captured — name one'
+    elif len(captured) == 1:
+        blank = f'blank = {captured[0]}'
+    else:
+        shown = ', '.join(captured[:3]) + (f' +{len(captured) - 3} more' if len(captured) > 3 else '')
+        blank = f'blank = all {len(captured)}: {shown}'
+    name = _input_box(stdscr, pal, f'report which component?  ({blank})', pending_report or '')
     if name is None:
         return None
     name = name.strip()
-    saved = reportgen.load_failures(ctx.paths)
     multi = failure = None
     if name:
         failure = next((f for f in saved if f.get('component') == name), None)

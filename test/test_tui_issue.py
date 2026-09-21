@@ -88,3 +88,39 @@ def test_issue_flow_report_no_failure_returns_note(ctx, monkeypatch):
 def test_issue_flow_cancel_at_prompt_returns_none(ctx, monkeypatch):
     monkeypatch.setattr(menu, '_input_box', lambda *a, **k: None)   # user Escs the name prompt
     assert menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'request') is None
+
+
+def test_report_prompt_lists_captured_failures(ctx, monkeypatch):
+    # a blank entry files these, so the prompt names them (capped at 3 + "+N more")
+    monkeypatch.setattr('configsys.reportgen.load_failures', lambda _p: [
+        {'component': 'neovim'}, {'component': 'zig'}, {'component': 'foo'}, {'component': 'bar'}])
+    seen = {}
+    def fake_input(stdscr, pal, title, initial='', **k):
+        seen['title'] = title
+        return None                                    # cancel; we only care about the prompt
+    monkeypatch.setattr(menu, '_input_box', fake_input)
+    menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
+    assert 'blank = all 4:' in seen['title']
+    assert 'neovim, zig, foo +1 more' in seen['title']
+
+
+def test_report_prompt_single_failure_names_it(ctx, monkeypatch):
+    monkeypatch.setattr('configsys.reportgen.load_failures', lambda _p: [{'component': 'neovim'}])
+    seen = {}
+    def fake_input(stdscr, pal, title, initial='', **k):
+        seen['title'] = title
+        return None
+    monkeypatch.setattr(menu, '_input_box', fake_input)
+    menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
+    assert 'blank = neovim' in seen['title'] and 'all' not in seen['title']
+
+
+def test_report_prompt_no_failures_says_so(ctx, monkeypatch):
+    monkeypatch.setattr('configsys.reportgen.load_failures', lambda _p: [])
+    seen = {}
+    def fake_input(stdscr, pal, title, initial='', **k):
+        seen['title'] = title
+        return None
+    monkeypatch.setattr(menu, '_input_box', fake_input)
+    menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
+    assert 'nothing captured' in seen['title']
