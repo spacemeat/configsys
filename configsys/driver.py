@@ -330,6 +330,14 @@ class Driver:
         with a real check; a rolling manager that can't hold (pacman/apk) also returns False.'''
         return False
 
+    def outdated_signal(self, rc):
+        '''Optional override of the generic installed-vs-latest version-STRING comparison, for a
+        manager whose real update signal isn't the version string. Return True/False to decide, or
+        None (default) to fall back to comparing the strings. flatpak overrides it: an update there is
+        a new COMMIT, and many carry the SAME advertised version (a rebuild, a runtime bump), so the
+        string compare would wrongly call an updatable app "current".'''
+        return None
+
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):

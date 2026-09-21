@@ -54,6 +54,8 @@ class ComponentState:
     untrusted: bool = False      # driver exists but its plugin isn't trusted yet (not just unknown)
     also_present: tuple = ()     # coexisting installs via OTHER methods: ((via, package, version), ...)
     holds_version: bool = True   # driver can hold/pin a version -> lock/set-version are offered
+    outdated_override: Optional[bool] = None   # a driver's own outdated verdict (flatpak: commit-based),
+                                               # overriding the version-string compare; None -> use it
 
     @property
     def key(self):
@@ -61,7 +63,13 @@ class ComponentState:
 
     @property
     def outdated(self):
-        if not (self.present and self.installed_version and self.latest_version):
+        if not self.present:
+            return False
+        # A driver whose real update signal isn't the version string (flatpak: a same-version rebuild
+        # is a new COMMIT the software store flags) answers authoritatively; trust that over the strings.
+        if self.outdated_override is not None:
+            return self.outdated_override
+        if not (self.installed_version and self.latest_version):
             return False
         # compare across schemes: an apt version `26.5.6-1` and a github tag `v26.5.6` are the SAME
         # upstream version — a raw string `!=` would falsely flag it outdated. Normalize both; only
@@ -198,6 +206,8 @@ class InstallState:
             version, detected_scope = drv.get_installed(rc)   # reality: version + where installed
             latest = drv.get_latest(rc)
             native_lock = drv.is_locked(rc)
+            # let a driver override the version-string outdated compare (flatpak: commit-based)
+            outdated_override = drv.outdated_signal(rc) if version is not None else None
         except Exception as e:  # a driver op blew up; report, don't crash the sweep
             return ComponentState(
                 component=rc, supported=True, present=False,
@@ -224,7 +234,7 @@ class InstallState:
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
-            holds_version=holds,
+            holds_version=holds, outdated_override=outdated_override,
             scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target
 
 

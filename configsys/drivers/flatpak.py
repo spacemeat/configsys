@@ -8,9 +8,11 @@ needed. Route fields: `hub` (remote name, e.g. flathub) and `name` (the app id).
 Version lock uses `flatpak mask` (prevents updates). Adding the hub remote is a
 prerequisite handled before install/upgrade, mirroring apt's repo-component.
 
-Known limitation (deferred): get_latest returns None, so installed flatpaks show as
-"installed" rather than "outdated" — `configsys upgrade <name>` still works and lets
-flatpak resolve the latest itself.
+Outdated detection is COMMIT-based (`outdated_signal` -> `flatpak remote-ls --updates`),
+not a version-string compare: a flatpak update is a new commit and often keeps the same
+advertised Version (a rebuild, a runtime bump), which a string compare would miss. This
+matches what the software store (GNOME Software / Pop!_Shop) reports. `get_latest` still
+returns the remote's advertised version string, for DISPLAY of the "latest" column.
 '''
 
 import shlex
@@ -113,7 +115,12 @@ class Flatpak(Driver):
                             m[cols[0].strip()] = (cols[1].strip() if len(cols) > 1 else '') or None
                     candidate[hub] = m
                     break
-        return {'installed': installed, 'masked': masked, 'candidate': candidate}
+        updates = set()                                # app ids with a pending update, EITHER scope
+        for flag in ('--user', '--system'):            # the authoritative (commit-based) outdated set,
+            r = self.runner.run(f'flatpak remote-ls {flag} --updates --columns=application')  # what the store shows
+            if r.ok:
+                updates.update(x.strip() for x in r.stdout.split() if x.strip())
+        return {'installed': installed, 'masked': masked, 'candidate': candidate, 'updates': updates}
 
     def batch_installed_index(self, batch):
         inst = batch.get('installed') if isinstance(batch, dict) else None
@@ -165,6 +172,24 @@ class Flatpak(Driver):
             if r.ok:
                 return self._parse_field(r.stdout, 'Version') or None
         return None
+
+    def outdated_signal(self, rc):
+        '''Commit-based outdated verdict (NOT a version-string compare). A flatpak update is a new
+        COMMIT; many keep the same advertised Version (a rebuild, a runtime bump), so the generic
+        string compare calls an updatable app "current" while the software store — which compares
+        commits — shows the update. `flatpak remote-ls --updates` is that same pending-update set, so
+        membership = outdated. Returns None only when flatpak couldn't be queried (fall back to strings).'''
+        appid = self._appid(rc)
+        if self._batch is not None:                    # batched: the one --updates set per sweep
+            return appid in self._batch.get('updates', ())
+        seen_ok = False                                # per-unit: ask flatpak directly, both scopes
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak remote-ls {flag} --updates --columns=application')
+            if r.ok:
+                seen_ok = True
+                if appid in r.stdout.split():
+                    return True
+        return False if seen_ok else None
 
     def is_locked(self, rc):
         appid = self._appid(rc)

@@ -205,11 +205,13 @@ def test_batch_index_collapses_probes_and_read_ops_use_it():
     r = FakeRunner([
         ('flatpak list --app', 0, 'org.blender.Blender\t4.3.0\tuser\n'),
         ('flatpak mask', 0, ''),
+        ('--updates', 0, 'org.blender.Blender\n'),                  # blender has a pending (commit) update
         ('flatpak remote-ls', 0, 'org.blender.Blender\t5.2\norg.gimp.GIMP\t3.2\n'),
     ])
     d = Flatpak(r)
     d._batch = d.batch_index([fp('org.blender.Blender'), fp('org.gimp.GIMP')])   # both flathub
-    assert sum('remote-ls' in c for c in r.calls) == 1              # one per shared hub, not per app
+    assert sum('remote-ls' in c and '--updates' not in c for c in r.calls) == 1  # one per shared hub, not per app
+    assert sum('--updates' in c for c in r.calls) == 2             # one pending-update sweep per scope
     assert sum('flatpak list --app' in c for c in r.calls) == 1
     assert sum('remote-info' in c for c in r.calls) == 0           # the per-app path is skipped
     # read ops answer from the batch, no further spawns
@@ -218,6 +220,34 @@ def test_batch_index_collapses_probes_and_read_ops_use_it():
     assert d.get_latest(fp('org.blender.Blender')) == '5.2'
     assert d.get_latest(fp('org.gimp.GIMP')) == '3.2'
     assert d.get_version(fp('org.gimp.GIMP')) is None              # not installed -> absent from list
+    # outdated is commit-based (the --updates set), NOT the version string
+    assert d.outdated_signal(fp('org.blender.Blender')) is True   # in the pending-update set
+    assert d.outdated_signal(fp('org.gimp.GIMP')) is False        # not pending
+
+
+def test_outdated_signal_per_unit_fallback():
+    # no batch context: ask flatpak directly (both scopes); membership in --updates = outdated
+    r = FakeRunner([('--updates', 0, 'org.a.A\n')])
+    d = Flatpak(r)                                                 # d._batch stays None
+    assert d.outdated_signal(fp('org.a.A')) is True               # in the pending-update set
+    assert d.outdated_signal(fp('org.b.B')) is False              # queried OK but absent -> current
+
+
+def test_outdated_signal_none_when_flatpak_unqueryable():
+    # both scope queries fail -> can't tell -> None so the generic version-string compare takes over
+    r = FakeRunner([('--updates', 127, '')])
+    assert Flatpak(r).outdated_signal(fp('org.a.A')) is None
+
+
+def test_componentstate_outdated_override_beats_equal_version_strings():
+    # the whole point: same installed+latest version string, but a commit update pending -> outdated
+    from configsys.installState import ComponentState
+    common = dict(component=fp('org.gimp.GIMP'), supported=True, present=True,
+                  installed_version='3.2.6', latest_version='3.2.6', locked=False,
+                  lock_source=None, managed=True, error=None)
+    assert ComponentState(**common).outdated is False             # strings equal -> generic says current
+    assert ComponentState(**common, outdated_override=True).outdated is True    # driver overrides
+    assert ComponentState(**common, outdated_override=True).status == 'outdated'
 
 
 def test_install_without_a_hub_omits_the_remote_token():
