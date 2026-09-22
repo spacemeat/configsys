@@ -305,6 +305,62 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\pipx": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-pipx"
+    },
+    "name": "python-pipx"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ardour": {
    "pacman\\ardour": {
     "driver": "pacman",
@@ -13643,6 +13699,79 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -27106,6 +27235,62 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ardour": {
    "apt\\ardour": {
     "driver": "apt",
@@ -40245,6 +40430,62 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -53499,6 +53740,62 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ardour": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -66306,6 +66603,62 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -79163,6 +79516,62 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "brew\\pipx": {
+    "driver": "brew",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ardour": {
    "flatpak\\ardour": {
     "driver": "flatpak",
@@ -89259,6 +89668,79 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -102775,6 +103257,69 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\pipx": {
+    "driver": "dnf",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -116335,6 +116880,79 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "apt\\python3-pip": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3-pip"
+    },
+    "name": "python3-pip"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pip\\pipx": {
+    "driver": "pip",
+    "fields": {
+     "name": "pipx",
+     "version": {
+      "pypi": "pipx"
+     }
+    },
+    "name": "pipx"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ardour": {
    "apt\\ardour": {
     "driver": "apt",
@@ -129811,6 +130429,62 @@
      "glue": "antigravity"
     },
     "name": "antigravity-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "apod": {
+   "apt\\pipx": {
+    "driver": "apt",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
+  "apod-glue": {
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",

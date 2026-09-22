@@ -2069,6 +2069,18 @@
         flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
         olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
 
+        // apod (termapod): scrapes NASA's Astronomy Picture of the Day and splats it to the terminal
+        // in 24-bit-colour Unicode blocks. No API key (it scrapes apod.nasa.gov). Its ~/.config/termapod
+        // dir is a per-DAY image cache (image-*.jpg + caption.txt), NOT config — so there is nothing to
+        // manage as dotfiles. apod-glue runs it at interactive shell startup (the old bash.d/apod.sh).
+        apod: {
+            attrs: [ CLI FOSS permissive online ]
+            description: "Astronomy Picture of the Day in the terminal (`termapod`) — NASA's APOD splatted in 24-bit colour."
+            suggests: apod-glue
+            install: [ { via: pipx  name: termapod  version: { pypi: termapod } } ]
+        }
+        apod-glue: { description: "apod: run `termapod` (the Astronomy Picture of the Day) on interactive shell startup." install: [ { via: glue  requires: shell-glue  glue: apod } ] }
+
         // --- citizen-science / a classic game (best-effort — see comments) ---
         // Folding@home — donate CPU/GPU to protein-folding research; runs a local daemon + web control.
         // The .deb lives on F@h's OWN download server, NOT as a GitHub release asset (the fah-client
