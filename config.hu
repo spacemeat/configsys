@@ -35,7 +35,7 @@ profiles: {
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
     terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp  atuin  zellij  tuxedo  leaf  tree-sitter-cli ]
     system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk  needrestart ]
-    native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay ]
+    native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay  software-properties-common ]
     packagers: [ flatpak  snapd ]
     system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
     disk-usage-utils: [ ncdu  duf  dysk ]
@@ -131,6 +131,8 @@ profiles: {
     web-tools: [ cockpit  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  nginx-service  newsboat ]
     web-package-managers: [ bun  pnpm  yarn ]
 
+    graphics-runtime: [ vulkan-runtime  mesa-vulkan-drivers  libvulkan1  vulkan-loader  vulkan-icd-loader  vulkan-radeon  vulkan-intel  vulkan-swrast ]
+
     graphics-dev: [ vulkan-dev  vulkan-sdk  opengl  glfw  sdl  sfml  egl  glew  glm  libdecor ]
     game-dev: [ godot  godots  godl  unityhub ]
     ui-dev: [ flutter  gtk  gtk3  gtkmm  cairo  libinput  pixman  libdecor  libx11  libxcb  libxcb-cursor-dev  libxcb-devel libxcb-xinerama0  libxcb-xinput0  libxext  libxss  libxtst  libxcursor  libxft  libxi  libxinerama  libxkbcommon  libxrandr  libxxf86vm  ncurses  pango  qt  wayland  wayland-protocols  webkit2gtk  wlroots  wxpython  wxwidgets  xcb-util  xcb-util-cursor  xcb-util-cursor-devel ]
@@ -143,7 +145,7 @@ profiles: {
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils  kew ]
 
-    science: [ astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
+    science: [ apod  astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  obs-studio ]
