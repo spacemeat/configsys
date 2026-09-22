@@ -17,6 +17,22 @@ security items). The suite is green (1331) and `check` is 0-error across all bas
 finding is against a working baseline — this is polish and hardening, not triage of a broken tree.
 
 ---
+For posterity, this is the given prompt for this work:
+Let's do a thorough and complete code review. Use Fable 5.1, and as many spawned agents as you need. *Take your time.* I think you know in general what good quality code looks like, but focus on:
+- Code reuse, where it makes sense.
+- Data-driven presentations. Think MVVM-style stacks, which could use real or mock data.
+- Good linting. Many of the comments are for your own future edification, so don't feel the need to erase them, but ensure any comments are up-to-date with the code.
+- Good, human-readable variable names.
+- Don't be bashful about looking for performance enhancements. Examine how often a computation is performed in inner loops, and whether caching or memoizing makes sense. Remember too that this is python, and it is in general slow and mostly single-threaded.
+- Don't be bashful about adding tests. *Do* be bashful about removing tests, unless there is no codepath they cover. Adding tests is great.
+- Look for dead code. We've made lots of changes over the development. There may be straggling bits. Do bear in mind that this is a plugin architecture, so some parts may be called from the outside, especially in plugins.
+- Be judicious about security. We're evaluating script in some places, and doing other things that make the security question vague--the trust model for plugins is great, but what else might slip in? Besides the usual supply chain attacks any user of, say, flatpak might encounter anyway.
+- Feel free to make suggestions about broader refactors. If an overhaul is worthy, I'd like to consider it. We've been iterating a long time.
+- If there's any features missing in your mind, call them out. If there's any imparity between CLI and TUI, call them out. *Most* things CLI can do *should* be elevated to TUI as well, but not necessarily all.
+- I remain the only user (but not for long). If an ABI or major interface ought to change, so be it. Let's tackle that now, before we break anybody.
+- Synchronize all public docs (README.md and anything it links to), man pages, etc. to current functionality. Look for outdated terms or language, and aim to reduce new terms and to be consistent with terms like component, driver and via, dotfiles vs. glue.
+
+---
 
 ## Progress (updated as work lands)
 
