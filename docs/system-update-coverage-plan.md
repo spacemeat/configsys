@@ -87,8 +87,20 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   ids → core, else apps). `UpdateRow.tier` carried through `gather`; CLI `updates` /
   `upgrade --system` preview now sub-group each manager by tier, most-fundamental first. Verified
   live (apt: 4 kernel / 46 core / … ; flatpak: 15 runtimes→core, Chrome→apps). Tests extended.
-- **P2 — TUI:** the System Updates synthetic group + tier subprofiles in Components; select + upgrade
-  + header count.
+- **P2a — TUI (view + bulk apply): DONE.** A synthetic **System Updates** group (sibling to
+  `(other)`) with per-tier subgroups (kernel/core/standard/apps) and a package row each, folded into
+  the Components tree from a BACKGROUND `gather` scan (sysupdates.start_scan/scan_busy/take_dirty — no
+  startup regression; the run loop polls and rebuilds when it lands) + a header **count chip**. Rows
+  are display-only synthetic units (system_update flag) that keep the FULL version (the change is in
+  the Debian revision clean_version strips) and are excluded from staging/selection/lock/plan.
+  **Bulk-action, no per-row staging** (the grilled call): i/u anywhere in the subtree runs the
+  whole-machine bulk upgrade by reusing the P0 `upgrade --system` flow (preview + confirm + reboot
+  advisory) in a suspended terminal, then re-scans; other row actions show a "System Updates apply in
+  bulk" toast. No changes to the shared plan/run_plan path.
+- **P2b — TUI (subset select + coalesced targeted apply): TODO.** Per-tier / per-package selection
+  with a coalesced `Driver.upgrade_many(names)` (one `apt install --only-upgrade <pkgs>` etc.),
+  partitioning synthetic rows out of the normal plan. Deferred (distro managers ship fixes in
+  complete bulks, so all-or-nothing is the safe default).
 - **P3 — remaining managers:** dnf / pacman / zypper / apk / brew / rpm-ostree `upgradable_index()`
   + tier classify.
 - **P4 — release advisory.**
