@@ -129,5 +129,9 @@ The bash bootstrap must be minimal; ensure an adequate python3 version is instal
 
 ## Some considerations
 
+The load-bearing, cross-cutting principles (safety rules, routing invariants like "`when:` is
+validity not preference", the "no surprises" posture, what we deliberately don't model) live in
+`docs/principles.md` — read it before making a decision that touches those axes.
+
 User should have control of what each machine picks; profiles are a browse aid, not the install set. Components that are wanted from several directions (picks, requires, suggests) shouldn't be doubled up; if there are driver conflicts between components, user should be notified to fix the conflict before other things can proceed. In general, take a posture of 'no surprises'; user should know what's installed, what's going to be when they do an operation, and what's not. However, user does not need all details about package dependencies in apt, for example.
 
