@@ -90,6 +90,42 @@ class Snap(Driver):
             return False
         return any(self._snap(rc) in ln and 'held' in ln for ln in r.stdout.splitlines())
 
+    def upgradable_index(self):
+        '''{snap: (installed, candidate)} from `snap refresh --list` — the pending-refresh set.
+        Columns: Name Version Rev Publisher Notes, where Version is the AVAILABLE version; the
+        installed one comes from `snap list`. snapd prints "All snaps up to date." (no rows) when
+        nothing is pending. None on query failure.'''
+        r = self.runner.run('snap refresh --list')
+        if not r.ok:
+            return None
+        installed = self.installed_index() or {}
+        idx = {}
+        for ln in r.stdout.splitlines():
+            s = ln.strip()
+            if not s or s.startswith('Name ') or 'up to date' in s.lower():
+                continue                               # header, blank, or the "nothing pending" line
+            cols = s.split()
+            if cols:
+                name = cols[0]
+                cand = cols[1] if len(cols) > 1 else None
+                idx.setdefault(name, (installed.get(name), cand))
+        return idx
+
+    def held_keys(self):
+        # a held snap carries `held` in `snap list`'s Notes column (last field).
+        r = self.runner.run('snap list')
+        if not r.ok:
+            return None
+        held = set()
+        for ln in r.stdout.splitlines()[1:]:           # skip header
+            cols = ln.split()
+            if cols and 'held' in cols[-1]:
+                held.add(cols[0])
+        return held
+
+    def upgrade_all(self):
+        return self.runner.run('snap refresh', sudo=True, capture=False)
+
     # -- mutate (sudo) ----------------------------------------------------
 
     def install(self, rc):

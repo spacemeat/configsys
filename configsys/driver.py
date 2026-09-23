@@ -317,6 +317,28 @@ class Driver:
         (required/important/standard) unless asked — a user CAN still choose to manage even systemd.'''
         return None
 
+    def upgradable_index(self):
+        '''{package_key: (installed_version, candidate_version)} for everything this manager reports
+        UPGRADABLE right now — the SAME key space as installed_index()/index_key(). Reads the native
+        index (kept fresh by `configsys refresh`); never refreshes on its own. None when the driver
+        has no bulk-manager notion (path/build/language drivers) OR the enumeration failed (fall back
+        to claiming nothing, never a wrong list). This feeds the System Updates lane
+        (upgradable − managed picks), NOT the picks pipeline — see docs/system-update-coverage-plan.md.'''
+        return None
+
+    def update_dedup_key(self, key):
+        '''Map an upgradable_index() key to the identity the managed-picks exclusion compares against
+        (what index_key() produces for a pick). Default: the key itself — apt/snap use the same
+        package/snap name for both. flatpak overrides: its upgradable key is a full ref
+        (app/arch/branch, so multi-branch runtimes stay distinct rows) while a pick is keyed by app id.'''
+        return key
+
+    def held_keys(self):
+        '''The keys this manager has HELD/locked at the manager level (apt-mark hold, flatpak mask,
+        snap --hold), so the System Updates lane can MARK them and never bulk-upgrade them. None when
+        the driver has no such notion or the query failed. Same key space as upgradable_index().'''
+        return None
+
     def get_latest(self, rc):
         '''Latest/candidate available version string, or None if unknown. Default: the discovered
         version (`version:` github/url/static spec) — what most download/build/language-module drivers
@@ -371,6 +393,13 @@ class Driver:
 
     def upgrade(self, rc):
         raise NotImplementedError('upgrade')
+
+    def upgrade_all(self):
+        '''Upgrade EVERYTHING this manager reports upgradable, via its own bulk command (apt upgrade,
+        flatpak update, snap refresh) — the System Updates lane's apply step, NOT tied to any
+        ResolvedComponent. A held/masked package is left held by the manager itself. Returns a runner
+        Result, or None when the driver has no bulk-upgrade concept.'''
+        return None
 
     def set_version(self, rc, version):
         raise NotImplementedError('set_version')

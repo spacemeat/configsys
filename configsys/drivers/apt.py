@@ -267,6 +267,43 @@ class Apt(NativePkgManager):
                 idx.setdefault(name, prio.strip())     # first row wins (matches installed_index)
         return idx
 
+    def upgradable_index(self):
+        '''{package: (installed, candidate)} from `apt list --upgradable` — the System Updates lane's
+        enumeration. Reads the apt cache (kept fresh by `configsys refresh`); the stray "apt does not
+        have a stable CLI" banner goes to stderr, so captured stdout is clean. Bare names, matching
+        installed_index/origin_index. A held package doesn't appear here (apt hides it from
+        upgradable) — held_keys() surfaces those separately.'''
+        r = self.runner.run('apt list --upgradable')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            line = line.strip()
+            if not line or '/' not in line or line.startswith('Listing'):
+                continue
+            # `name/suite,suite2 <candidate> <arch> [upgradable from: <installed>]`
+            name = line.split('/', 1)[0]
+            parts = line.split()
+            cand = parts[1] if len(parts) > 1 else None
+            inst = None
+            if 'upgradable from:' in line:
+                inst = line.split('upgradable from:', 1)[1].strip().rstrip(']').strip() or None
+            idx.setdefault(name, (inst, cand))
+        return idx
+
+    def held_keys(self):
+        r = self.runner.run('apt-mark showhold')
+        if not r.ok:
+            return None
+        return {x.strip() for x in r.stdout.split() if x.strip()}
+
+    def upgrade_all(self):
+        # The modern `apt upgrade` semantics: `--with-new-pkgs` installs newly-needed packages (a new
+        # kernel ABI's linux-image-*) but NEVER removes anything — so it matches `apt list --upgradable`
+        # without the surprise removals a full/dist-upgrade can make. Held packages stay held.
+        return self.runner.run(f'{_APT_ENV} apt-get upgrade --with-new-pkgs -y',
+                               sudo=True, capture=False)
+
     @staticmethod
     def _probe_name(rc):
         '''The package to READ install-state / version from — the binding's `installed-name:` when

@@ -191,6 +191,64 @@ class Flatpak(Driver):
                     return True
         return False if seen_ok else None
 
+    def upgradable_index(self):
+        '''{ref: (installed, candidate)} — the commit-based pending-update set (what the software
+        store shows), across BOTH installations. `flatpak remote-ls --updates` is authoritative;
+        runtimes/extensions show alongside apps here (this is the whole-system lane, not the app
+        catalogue), so no `--app` filter. Keyed by full REF (app/arch/branch), NOT app id, so a
+        runtime installed at two branches (freedesktop 24.08 + 26.08) stays two rows matched to their
+        OWN installed versions instead of collapsing into a bogus cross-branch "downgrade";
+        update_dedup_key maps a ref back to the app id for the managed-picks exclusion. Installed
+        version comes from `flatpak list`. None only when neither scope could be queried.'''
+        installed = {}                                 # normalised ref (id/arch/branch) -> version
+        r = self.runner.run('flatpak list --columns=ref,version')
+        if r.ok:
+            for line in r.stdout.splitlines():
+                cols = line.split('\t') if '\t' in line else line.split()
+                if cols and cols[0].strip():
+                    installed[self._norm_ref(cols[0].strip())] = (
+                        cols[1].strip() if len(cols) > 1 else '') or None
+        idx, seen_ok = {}, False
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak remote-ls {flag} --updates --columns=ref,version')
+            if r.ok:
+                seen_ok = True
+                for line in r.stdout.splitlines():
+                    cols = line.split('\t') if '\t' in line else line.split()
+                    if cols and cols[0].strip():
+                        ref = self._norm_ref(cols[0].strip())
+                        cand = (cols[1].strip() if len(cols) > 1 else '') or None
+                        idx.setdefault(ref, (installed.get(ref), cand))
+        return idx if seen_ok else None
+
+    @staticmethod
+    def _norm_ref(ref):
+        '''Normalise a flatpak ref to `id/arch/branch`. `flatpak list` prints that form directly;
+        `flatpak remote-ls` prefixes the kind (`app/…`, `runtime/…`), so the two never match without
+        this — leaving every remote row with a None installed version.'''
+        parts = ref.split('/')
+        if len(parts) == 4 and parts[0] in ('app', 'runtime'):
+            return '/'.join(parts[1:])
+        return ref
+
+    def update_dedup_key(self, key):
+        # a normalised ref is `<id>/<arch>/<branch>`; a pick is keyed by the app id (index_key).
+        return key.split('/', 1)[0]
+
+    def held_keys(self):
+        masked, seen_ok = set(), False
+        for flag in ('--user', '--system'):
+            r = self.runner.run(f'flatpak mask {flag}')
+            if r.ok:
+                seen_ok = True
+                masked.update(x.strip() for x in r.stdout.split() if x.strip())
+        return masked if seen_ok else None
+
+    def upgrade_all(self):
+        # No scope flag: updates every installation the invoking user can write (the user install
+        # always; the system one if policy allows without auth). Masked apps are skipped by flatpak.
+        return self.runner.run('flatpak update -y', capture=False)
+
     def is_locked(self, rc):
         appid = self._appid(rc)
         if self._batch is not None:                    # batched: membership in the mask set

@@ -786,8 +786,93 @@ def cmd_remove(ctx, args):
 
 
 def cmd_upgrade(ctx, args):
+    if getattr(args, 'system', False):
+        return cmd_upgrade_system(ctx, args)
+    if not args.names:
+        print('configsys: `upgrade` needs component name(s), or `--system` to upgrade the whole system')
+        return 1
     ctx.paths.dotfiles_force = getattr(args, 'force', False)
     return _dispatch_op(ctx, args.names, 'upgrade', no_deps=getattr(args, 'no_deps', False))
+
+
+def _print_updates_groups(groups):
+    '''Shared rendering for `updates` and the `upgrade --system` preview: per-manager sections with a
+    `installed -> candidate` line per package and a [held] marker. Returns the total row count.'''
+    total = sum(len(v) for v in groups.values())
+    for mgr in sorted(groups):
+        rows = groups[mgr]
+        held = sum(1 for r in rows if r.held)
+        tail = f'  ({held} held, left as-is)' if held else ''
+        print(f'{mgr}  ({len(rows)}){tail}:')
+        for r in rows:
+            frm = f'{r.installed} -> ' if r.installed else ''
+            mark = '  [held]' if r.held else ''
+            print(f'  {r.key:40} {frm}{r.candidate or "?"}{mark}')
+        print()
+    return total
+
+
+def cmd_updates(ctx, args):
+    '''List everything the machine's package managers report upgradable OUTSIDE the tracked picks —
+    the System Updates lane. Read-only; `configsys upgrade --system` applies it.'''
+    from . import sysupdates
+    groups = sysupdates.gather(ctx)
+    if not groups:
+        print('configsys: no system updates — every package manager reports up to date.\n'
+              '(Run `configsys refresh` first if the index may be stale.)')
+        return 0
+    print('System updates — packages upgradable outside your picks '
+          '(these are each manager\'s own report, not tracked components):\n')
+    total = _print_updates_groups(groups)
+    print(f'{total} package(s) across {len(groups)} manager(s). '
+          'Apply with `configsys upgrade --system`.')
+    return 0
+
+
+def cmd_upgrade_system(ctx, args):
+    '''Apply the System Updates lane: run each manager's OWN bulk upgrade (apt upgrade / flatpak
+    update / snap refresh) for everything upgradable outside your picks. Previews first, confirms,
+    then ends with the reboot advisory. Held/masked packages are left held by the managers.'''
+    from . import sysupdates
+    # Refresh the native index up front so candidates are current (non-fatal), same as an ops batch.
+    print('Refreshing the package index…', flush=True)
+    ran, ok = refresh_native_index(ctx)
+    if ran and not ok:
+        print('  ⚠ index refresh hit a problem — proceeding on the cached index '
+              '(run `configsys refresh` to diagnose)')
+    groups = sysupdates.gather(ctx)
+    if not groups:
+        print('\nconfigsys: no system updates to apply — everything is up to date.')
+        return 0
+    print()
+    total = _print_updates_groups(groups)
+    print(f'{total} package(s) across {len(groups)} manager(s) will be upgraded via each '
+          "manager's own bulk command.")
+    if not getattr(args, 'yes', False):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('\nconfigsys: re-run with --yes to apply system updates non-interactively.')
+            return 1
+        try:
+            ans = input('\nApply all system updates now? [y/N] ').strip().lower()
+        except EOFError:
+            ans = ''
+        if ans not in ('y', 'yes'):
+            print('Aborted — nothing upgraded.')
+            return 1
+    rc_code = 0
+    for mgr in sorted(groups):
+        drv = get_driver(mgr, ctx.runner, ctx.paths)
+        print(f'\n── upgrading via {mgr} ──')
+        res = drv.upgrade_all() if drv is not None else None
+        if res is None:
+            print(f'  ({mgr} has no bulk-upgrade command — skipped)')
+            continue
+        if not res.ok:
+            print(f'  -> {mgr} upgrade FAILED (exit {res.returncode})')
+            rc_code = rc_code or res.returncode or 1
+    if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():
+        print_reboot_advisory(ctx)
+    return rc_code
 
 
 def cmd_lock(ctx, args):
@@ -2777,7 +2862,8 @@ def build_parser():
         if name in ('install', 'upgrade'):
             desc += _rebuild_note
         sp = sub.add_parser(name, help=help_, description=desc)
-        sp.add_argument('names', nargs='+',
+        # upgrade takes NO names with --system (the whole-machine lane), so it allows zero.
+        sp.add_argument('names', nargs=('*' if name == 'upgrade' else '+'),
                         help='component names, and/or profile:<name> to expand a whole profile')
         if name in ('install', 'upgrade'):
             sp.add_argument('--force', action='store_true',
@@ -2788,6 +2874,13 @@ def build_parser():
                                  'installs. A source component rebuilds unconditionally, so this '
                                  'force-rebuilds just it (e.g. to pick up a recipe change) without '
                                  'rebuilding its already-built deps.')
+        if name == 'upgrade':
+            sp.add_argument('--system', action='store_true',
+                            help='upgrade the WHOLE system — everything each package manager (apt / '
+                                 'flatpak / snap) reports upgradable outside your picks, via the '
+                                 "manager's own bulk upgrade. Within-release only; see `configsys updates`.")
+            sp.add_argument('--yes', action='store_true',
+                            help='with --system: skip the confirmation prompt')
 
     fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
                                           'from the declared scope (moves the install, not config)')
@@ -3042,6 +3135,9 @@ def build_parser():
         msp = mpsub.add_parser(mname, help=mhelp)
         msp.add_argument('--prefix',
                          help='man-dir prefix; pages go under <prefix>/share/man (default: ~/.local)')
+
+    sub.add_parser('updates', help='list packages upgradable OUTSIDE your picks — the whole-system '
+                                   'update lane (apt / flatpak / snap); apply with `upgrade --system`')
 
     sub.add_parser('refresh', help='re-query latest versions from their sources')
     sh = sub.add_parser('show', help='print a shipped base data file (routes/config) or its path')
@@ -3525,6 +3621,7 @@ _COMMANDS = {
     'check': cmd_check,
     'pin': cmd_pin,
     'plugin': cmd_plugin,
+    'updates': cmd_updates,
     'refresh': cmd_refresh,
     'report': cmd_report,
     'request': cmd_request,
