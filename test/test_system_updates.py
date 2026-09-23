@@ -3,6 +3,7 @@ held_keys / upgrade_all, and sysupdates.gather aggregating upgradable − manage
 apt + flatpak + snap. Fake runner returns canned manager output.'''
 
 from configsys import sysupdates
+from configsys.sysupdates import UpdateRow
 from configsys.componentObj import ResolvedComponent
 from configsys.driver import tier_by_name
 from configsys.drivers.apt import Apt
@@ -237,3 +238,52 @@ def test_gather_omits_a_manager_with_nothing_upgradable():
     # flatpak/snap commands fall through to ok+empty -> upgradable_index returns {} (seen_ok) / {} -> omitted
     groups = sysupdates.gather(_Ctx(r))
     assert 'apt' not in groups
+
+
+# -- TUI (P2): the synthetic Components-tree injection ------------------------
+
+def _groups():
+    return {'apt': [UpdateRow('apt', 'linux-image-generic', '7.0', '7.1', False, 'kernel'),
+                    UpdateRow('apt', 'coreutils', '8.32-1', '8.32-2', False, 'core'),
+                    UpdateRow('apt', 'htop', '3.0', '3.2', True, 'apps')],
+            'flatpak': [UpdateRow('flatpak', 'org.gnome.Platform/x86_64/50', 'a', 'b', False, 'core')]}
+
+
+def test_tree_injection_builds_group_and_tiers():
+    states, layouts, transitive = sysupdates.tree_injection(_groups())
+    assert len(states) == 4
+    assert all(k.startswith('sysupd\\') for k in states)          # namespaced, no real-unit collision
+    assert all(sysupdates.is_synthetic(s) for s in states.values())
+    (name, items), = layouts                                      # one 'System Updates' group
+    assert name == sysupdates.SYSTEM_UPDATES_GROUP
+    # tiers present, in kernel/core/standard/apps order, standard omitted (empty)
+    assert items == [('component', 'kernel'), ('component', 'core'), ('component', 'apps')]
+    assert transitive[name] == ['kernel', 'core', 'apps']
+
+
+def test_tree_injection_empty_when_no_updates():
+    assert sysupdates.tree_injection({}) == ({}, [], {})
+
+
+def test_synthetic_rows_render_and_never_stage():
+    from configsys.tui import menu
+    from configsys.tui.screens.components import _cursor_in_sysupd
+    states, layouts, transitive = sysupdates.tree_injection(_groups())
+    ms = menu.MenuState(states, layouts, transitive)
+    for n in ms._all_nodes():                                     # expand everything
+        if n.expandable:
+            n.expanded = True
+    ms._refresh()
+    labels = [n.label for n in ms.rows]
+    assert 'System Updates' in labels and 'kernel' in labels and 'core' in labels
+    # System Updates rows keep the FULL version (the change is in the revision clean_version strips)
+    cu = next(n for n in ms.rows if n.label == 'coreutils')
+    assert cu.installed_str() == '8.32-1' and cu.latest_str() == '8.32-2'
+    # bulk-action: a bulk stage_all must never stage a synthetic row
+    assert ms.stage_all('upgrade') == 0 and not ms.staged
+    # the cursor-in-subtree predicate fires for the group, a tier, and a leaf, not outside it
+    su = next(i for i, n in enumerate(ms.rows) if n.label == 'System Updates')
+    ms.cursor = su
+    assert _cursor_in_sysupd(ms)
+    ms.cursor = next(i for i, n in enumerate(ms.rows) if n.label == 'coreutils')
+    assert _cursor_in_sysupd(ms)

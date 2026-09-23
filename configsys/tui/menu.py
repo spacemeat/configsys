@@ -57,6 +57,11 @@ _REFRESH_WARN_DAYS = 30   # a package index older than this shows in warn-color 
 PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
 
 
+def _is_system_update(state):
+    '''True for a synthetic System Updates row (display-only, bulk-action; never staged/executed).'''
+    return bool(getattr(state.component, 'fields', {}).get('system_update'))
+
+
 class Node:
     def __init__(self, kind, id, label, depth, members, *, driver='',
                  expandable=False, expanded=False, link_target=None):
@@ -105,7 +110,9 @@ class Node:
                 # untrusted: version is UNKNOWN (the tool may well be installed — we just can't
                 # read it without the driver), not '—' which reads as "not installed".
                 return '?' if m.untrusted else '—'
-            v = clean_version(m.installed_version) or '—'   # strip v/epoch/revision so the
+            # System Updates keep the FULL version: the change is usually in the Debian revision
+            # (2.37.2-4ubuntu3.5 -> …3.6) that clean_version strips, which would read as "no change".
+            v = (m.installed_version if _is_system_update(m) else clean_version(m.installed_version)) or '—'
             return f'{v} [L]' if m.locked else v            # INSTALLED and LATEST columns line up
         present = sum(1 for m in self.members if m.present)
         return f'{present}/{len(self.members)}'
@@ -115,7 +122,7 @@ class Node:
             m = self.members[0]
             if not m.supported:
                 return '?' if m.untrusted else ''
-            return clean_version(m.latest_version) or '—'
+            return (m.latest_version if _is_system_update(m) else clean_version(m.latest_version)) or '—'
         return ''
 
     def scope_str(self):
@@ -407,6 +414,8 @@ class MenuState:
         staged_any = False
         for node in self._target_nodes():
             for m in node.members:
+                if m.component.fields.get('system_update'):   # System Updates are bulk-action, not staged
+                    continue
                 # `i` (install) means "make it current": install if absent, else upgrade if
                 # outdated. So one key covers both — a present-but-outdated unit stages an upgrade
                 # instead of doing nothing. Other ops keep their own predicate.
@@ -429,6 +438,8 @@ class MenuState:
         for k, s in self.states.items():
             if getattr(s.component, 'driver', '') in ('glue', 'dotfiles'):   # owned by the Glue/Dotfiles screens
                 continue
+            if s.component.fields.get('system_update'):   # System Updates apply in bulk, never per-row
+                continue
             eff = op
             if op == 'install' and not OPS['install'][2](s) and OPS['upgrade'][2](s):
                 eff = 'upgrade'
@@ -448,8 +459,8 @@ class MenuState:
         acted = False
         for node in self._target_nodes():
             for m in node.members:
-                if not (m.supported and m.present):
-                    continue
+                if not (m.supported and m.present) or m.component.fields.get('system_update'):
+                    continue                                # System Updates can't be version-locked here
                 staged = self.staged.get(m.key)
                 effective_locked = staged == 'lock' or (m.locked and staged != 'unlock')
                 if effective_locked:                       # -> unlock
@@ -1725,6 +1736,11 @@ def _components_model(ctx, cfg, states, mode, caches=None):
     Returns the (possibly extended) states plus the grouped layouts/transitive.'''
     tracked = set(cfg.requested())
     queue = set(cfg.uninstall_queue())
+    # Drop any synthetic System Updates rows from a prior build BEFORE the mode logic runs — they
+    # must never reach install_overlay / _ensure (they aren't real units). They're re-injected fresh
+    # from the cached scan at the end.
+    states = {k: v for k, v in states.items()
+              if not getattr(v.component, 'fields', {}).get('system_update')}
 
     def _ensure(names):                                # inspect any names not already in `states`
         nonlocal states
@@ -1760,6 +1776,17 @@ def _components_model(ctx, cfg, states, mode, caches=None):
 
     scope = {c for c in scope if not _is_companion_comp(ctx.routes, c)}   # -dotfiles/-glue: their own pages
     layouts, transitive = _group_by_owner(cfg, scope)
+    # Fold in the synthetic System Updates group (the whole-machine upgradable set outside picks),
+    # from the cached background scan — a sibling to (other), shown in every mode. Display-only:
+    # these rows can't be individually staged (bulk-action, see the screen handler).
+    groups = getattr(ctx, '_sysupd_groups', None)
+    if groups:
+        from .. import sysupdates
+        su_states, su_layouts, su_transitive = sysupdates.tree_injection(groups)
+        if su_states:
+            states = {**states, **su_states}
+            layouts = layouts + su_layouts
+            transitive = {**transitive, **su_transitive}
     return states, layouts, transitive
 
 
@@ -4256,6 +4283,9 @@ def run(ctx):
         menu_dirty = False                        # a profile/config edit -> rebuild the Components tree
         pending_report = None                     # a component whose op failed this session
         pending_notes = []                         # messages saved for after the TUI exits
+        from .. import sysupdates
+        sysupdates.start_scan(ctx)                # gather the whole-machine update set in the background;
+                                                  # the System Updates group folds in when it lands
         while True:
             pal.new_frame()          # recycle color pairs each frame (color_pair() is 8-bit; a
             # long session or the pair-heavy Theme screen would otherwise exceed 255 pairs and wrap
@@ -4279,11 +4309,18 @@ def run(ctx):
             # getch) so its result paints on its own; otherwise block. Restore blocking immediately
             # after so the modal getch loops are unaffected.
             _pscr = _reg.get('profiles')
-            stdscr.timeout(120 if (screen == 'profiles' and _pscr is not None
-                                   and (_pscr.model.overlay_busy() or _pscr.model.probe_busy())) else -1)
+            _su_busy = screen == 'components' and sysupdates.scan_busy(ctx)
+            stdscr.timeout(120 if (_su_busy or (screen == 'profiles' and _pscr is not None
+                                   and (_pscr.model.overlay_busy() or _pscr.model.probe_busy()))) else -1)
             ch = stdscr.getch()
             stdscr.timeout(-1)
             if ch == -1:                                 # timed out with no key -> just redraw
+                # the background System Updates scan just landed -> rebuild once so its group appears
+                if sysupdates.take_dirty(ctx):
+                    try:
+                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                    except Exception as e:               # noqa: BLE001 — never crash on the fold-in
+                        note = f'system-updates fold failed: {e}'
                 continue
 
             oact = keymap.action_for('components', ch)   # overlays scroll via the same nav actions

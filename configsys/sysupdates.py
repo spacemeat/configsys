@@ -11,11 +11,18 @@ Load-bearing reframe (grilled 2026-09-21): cfs does NOT model base-vs-dep. It as
 (Driver.upgrade_all). Within-release only — never a release jump.
 '''
 
+import threading
+
+from .driver import UPDATE_TIERS
 from .drivers import get_driver
 
 # The cross-distro app managers we aggregate alongside the OS's native pm. P0 proves the pipeline on
 # apt + flatpak + snap; P3 extends upgradable_index/upgrade_all to the rest (dnf/pacman/zypper/…).
 _APP_MANAGERS = ('flatpak', 'snap')
+
+# TUI (P2): the synthetic Components group + its per-tier subgroup labels.
+SYSTEM_UPDATES_GROUP = 'System Updates'
+_TIER_TOKEN = {'kernel': 'kernel', 'core': 'core', 'standard': 'standard', 'apps': 'apps'}
 
 
 class UpdateRow:
@@ -102,3 +109,103 @@ def gather(ctx):
         if rows:
             out[drv.name] = rows
     return out
+
+
+# -- TUI: a background scan + the synthetic Components tree injection (P2) -----
+
+def start_scan(ctx):
+    '''Run gather() on a daemon thread and cache it on ctx._sysupd_groups, so the ~3.5s of manager
+    queries never blocks TUI startup — the System Updates group folds into the Components tree once
+    ready (the run loop polls scan_busy/take_dirty). No-op if a result is already cached or a scan is
+    in flight.'''
+    if getattr(ctx, '_sysupd_groups', None) is not None:
+        return
+    t = getattr(ctx, '_sysupd_thread', None)
+    if t is not None and t.is_alive():
+        return
+    ctx._sysupd_dirty = False
+
+    def run():
+        try:
+            g = gather(ctx)
+        except Exception:                                # noqa: BLE001 — never let the scan brick the TUI
+            g = {}
+        ctx._sysupd_groups = g
+        ctx._sysupd_dirty = True
+
+    ctx._sysupd_thread = threading.Thread(target=run, daemon=True)
+    ctx._sysupd_thread.start()
+
+
+def scan_busy(ctx):
+    '''True while the background gather is running (its result not yet folded).'''
+    t = getattr(ctx, '_sysupd_thread', None)
+    return bool(t is not None and t.is_alive())
+
+
+def take_dirty(ctx):
+    '''True once when a fresh scan result has arrived and not yet been folded (clears the flag).'''
+    if getattr(ctx, '_sysupd_dirty', False):
+        ctx._sysupd_dirty = False
+        return True
+    return False
+
+
+def invalidate(ctx):
+    '''Drop the cached scan so the next start_scan re-gathers — after a system upgrade or refresh.'''
+    ctx._sysupd_groups = None
+    ctx._sysupd_dirty = False
+
+
+def cached_total(ctx):
+    '''The number of upgradable packages in the last scan (0 if none / not yet scanned) — the header
+    count chip.'''
+    groups = getattr(ctx, '_sysupd_groups', None)
+    return sum(len(v) for v in groups.values()) if groups else 0
+
+
+def is_synthetic(state):
+    '''True for a synthetic System Updates row (fabricated for display; never staged/executed).'''
+    return bool(getattr(getattr(state, 'component', None), 'fields', {}).get('system_update'))
+
+
+def _synthetic_state(row):
+    '''One display-only ComponentState wrapping an UpdateRow: present + always-outdated (so it reads
+    as upgradable), a `system_update` flag that keeps it out of staging/execution, and a key that
+    can't collide with a real unit key.'''
+    from .componentObj import ResolvedComponent
+    from .installState import ComponentState
+    token = _TIER_TOKEN.get(row.tier, 'apps')
+    scope = 'user' if row.manager == 'flatpak' else 'system'
+    rc = ResolvedComponent(
+        key=f'sysupd\\{row.manager}\\{row.key}', driver=row.manager, comp=row.key,
+        fields={'name': row.key, 'system_update': True}, requested_as={token})
+    return ComponentState(
+        component=rc, supported=True, present=True,
+        installed_version=row.installed, latest_version=row.candidate,
+        locked=row.held, lock_source=('native' if row.held else None),
+        managed=False, error=None, scope=scope, outdated_override=True)
+
+
+def tree_injection(groups):
+    '''Turn gathered groups into (states, layouts, transitive) for the Components tree: one
+    `System Updates` PROFILE whose items are the non-empty tiers (kernel/core/standard/apps), each a
+    COMPONENT group (its packages the UNIT leaves). Rows are keyed by tier TOKEN via requested_as, so
+    _build_tree groups them without any special-casing. Returns ({}, [], {}) when there's nothing.'''
+    if not groups:
+        return {}, [], {}
+    states, by_tier = {}, {t: [] for t in UPDATE_TIERS}
+    for mgr in sorted(groups):
+        for row in groups[mgr]:
+            st = _synthetic_state(row)
+            states[st.component.key] = st
+            by_tier[row.tier if row.tier in by_tier else 'apps'].append(st)
+    items, transitive_names = [], []
+    for tier in UPDATE_TIERS:
+        if by_tier[tier]:
+            token = _TIER_TOKEN[tier]
+            items.append(('component', token))
+            transitive_names.append(token)
+    if not items:
+        return {}, [], {}
+    return states, [(SYSTEM_UPDATES_GROUP, items)], {SYSTEM_UPDATES_GROUP: transitive_names}

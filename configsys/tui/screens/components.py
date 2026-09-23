@@ -25,6 +25,19 @@ from .base import Intent, Screen, ViewModel
 
 _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
 
+# Actions we intercept when the cursor sits inside the System Updates subtree: i/u (and their -all
+# forms) trigger the whole-machine bulk upgrade; the rest are inapplicable and just explain themselves.
+_SU_BULK_ACTS = {'op-install', 'op-upgrade', 'op-install-all', 'op-upgrade-all'}
+_SU_NA_ACTS = {'op-remove', 'select', 'method', 'where', 'lock'}
+
+
+def _cursor_in_sysupd(ms):
+    '''True when the cursor is on a System Updates node (its group, a tier, or a package row) — every
+    such member carries the `system_update` flag.'''
+    node = ms.cur()
+    return bool(node and node.members
+                and all(m.component.fields.get('system_update') for m in node.members))
+
 
 def _lock_verb(ms):
     '''"unlock" when pressing the lock key would UNLOCK the current target (any of its present units
@@ -103,6 +116,13 @@ class ComponentsScreen(Screen):
             if rend + len(btext) < w - 1:
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
+        from ... import sysupdates
+        su_n = sysupdates.cached_total(ctx)
+        if su_n:
+            stext = f'  ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
+            if rend + len(stext) < w - 1:
+                _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
+                rend += len(stext)
         if diags:
             n = len(diags)
             elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
@@ -207,6 +227,39 @@ class ComponentsScreen(Screen):
         _put(surface, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()
 
+    # -- System Updates: the whole-machine bulk upgrade (P2) ---------------
+
+    def _apply_system_updates(self, ctx, stdscr, pal, cfg, ledger, intent):
+        '''i/u anywhere in the System Updates subtree -> the whole-machine bulk upgrade, reusing the
+        `configsys upgrade --system` flow (preview + confirm + each manager's own bulk command +
+        reboot advisory) in a suspended terminal, then re-scan so the group refreshes.'''
+        import argparse
+        from ... import app, sysupdates
+        with suspended(stdscr):
+            print('System Updates — upgrading everything your package managers report upgradable\n'
+                  'outside your picks. Review the list, then confirm below.\n', flush=True)
+            try:
+                app.cmd_upgrade_system(ctx, argparse.Namespace(yes=False))
+            except Exception as e:                      # noqa: BLE001 — surface, don't crash the TUI
+                print(f'\nsystem upgrade failed: {e}')
+            try:
+                input('\n[Enter] to return')
+            except EOFError:
+                pass
+        curses.flushinp()
+        sysupdates.invalidate(ctx)                       # what's upgradable changed -> re-gather
+        sysupdates.start_scan(ctx)
+        self.model.invalidate_overlay()
+        try:
+            new = _reload(ctx, self.model, set())
+            self.model = new[0]
+            intent.reloaded = new
+            intent.note = 'system updates applied — rescanning'
+        except Exception as e:                           # noqa: BLE001
+            intent.note = f'reload failed: {e}'
+        intent.invalidate_ps_overlay = True
+        return intent
+
     # -- handle (reproduces the components fall-through dispatch) ----------
 
     def handle(self, ch, ctx, stdscr, pal, cfg, ledger):
@@ -217,6 +270,12 @@ class ComponentsScreen(Screen):
         km = menu._KEYMAP
         act = km.action_for('components', ch) if km is not None else None
         intent = Intent()
+        if _cursor_in_sysupd(ms):                       # System Updates: bulk-action, no per-row staging
+            if act in _SU_BULK_ACTS:
+                return self._apply_system_updates(ctx, stdscr, pal, cfg, ledger, intent)
+            if act in _SU_NA_ACTS:
+                intent.note = 'System Updates apply in bulk — press i/u to update them all'
+                return intent
         if act == 'down':
             ms.move(1)
         elif act == 'up':
