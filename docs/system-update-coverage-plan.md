@@ -91,12 +91,16 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   `(other)`) with per-tier subgroups (kernel/core/standard/apps) and a package row each, folded into
   the Components tree from a BACKGROUND `gather` scan (sysupdates.start_scan/scan_busy/take_dirty — no
   startup regression; the run loop polls and rebuilds when it lands) + a header **count chip**. Rows
-  are display-only synthetic units (system_update flag) that keep the FULL version (the change is in
-  the Debian revision clean_version strips) and are excluded from staging/selection/lock/plan.
-  **Bulk-action, no per-row staging** (the grilled call): i/u anywhere in the subtree runs the
-  whole-machine bulk upgrade by reusing the P0 `upgrade --system` flow (preview + confirm + reboot
-  advisory) in a suspended terminal, then re-scans; other row actions show a "System Updates apply in
-  bulk" toast. No changes to the shared plan/run_plan path.
+  are synthetic units (system_update flag) that keep the FULL version (the change is in the Debian
+  revision clean_version strips) and are kept out of the per-unit plan.
+  **Bulk-action, no per-row staging** (the grilled call): i/u anywhere in the subtree STAGES every
+  System Updates row at once (all-or-nothing; shows the `U` badge like any staged op), then `X`
+  applies — `_confirm_and_execute` partitions the synthetic rows out of the per-unit plan and runs
+  each manager's own bulk `upgrade_all` (preview + one confirm + reboot advisory), never run_plan
+  per-package, then re-scans. Other row actions toast "apply in bulk". **Dedup:** the lane excludes
+  anything cfs knows as a component AND has installed (picks + orphans like curl/htop), handled in the
+  component world instead — System Updates is the genuinely-unmanaged tail (a wget/tor with no recipe
+  still shows; the bulk `apt upgrade` patches the excluded ones anyway).
 - **P2b — TUI (subset select + coalesced targeted apply): TODO.** Per-tier / per-package selection
   with a coalesced `Driver.upgrade_many(names)` (one `apt install --only-upgrade <pkgs>` etc.),
   partitioning synthetic rows out of the normal plan. Deferred (distro managers ship fixes in
