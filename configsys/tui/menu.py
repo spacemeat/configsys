@@ -58,8 +58,10 @@ PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
 
 
 def _is_system_update(state):
-    '''True for a synthetic System Updates row (display-only, bulk-action; never staged/executed).'''
-    return bool(getattr(state.component, 'fields', {}).get('system_update'))
+    '''True for a synthetic System Updates row (bulk-action mark; applied via upgrade_all, never
+    routed per-row through run_plan). None-safe (a missing state reads as not-a-system-update).'''
+    comp = getattr(state, 'component', None)
+    return bool(getattr(comp, 'fields', {}).get('system_update')) if comp is not None else False
 
 
 class Node:
@@ -449,6 +451,18 @@ class MenuState:
                 n += 1
         return n
 
+    def stage_system_updates(self):
+        '''Mark EVERY System Updates row staged (op 'upgrade') — the bulk-action mark: i/u anywhere in
+        that subtree stages them all (all-or-nothing), then execute applies the managers' bulk upgrades
+        (see _confirm_and_execute, which pulls these out of the per-unit plan). Returns count.'''
+        n = 0
+        for k, st in self.states.items():
+            if _is_system_update(st):
+                self.staged[k] = 'upgrade'
+                self.errors.pop(k, None)
+                n += 1
+        return n
+
     def toggle_lock(self):
         '''Toggle version-lock intent on the target units (present + supported) — the selection, or
         the current row when nothing is selected. Unlocking removes a staged (requested) lock as well
@@ -583,9 +597,15 @@ def _seed_uninstall(ms, ctx):
 
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     raw = ms.plan()
-    if not raw:
+    # System Updates rows are a BULK mark, not per-unit ops: pull them out of the per-unit plan and
+    # apply them via each manager's own bulk upgrade (upgrade_all), never through run_plan per-package.
+    su_raw = [s for s in raw if _is_system_update(ms.states.get(s[1]))]
+    raw = [s for s in raw if not _is_system_update(ms.states.get(s[1]))]
+    su_managers = sorted({rc.driver for _op, _k, rc in su_raw})
+    if not raw and not su_managers:
         return False, 'nothing staged', []
-    units = {k: st.component for k, st in ms.states.items()}
+    units = {k: st.component for k, st in ms.states.items()
+             if not _is_system_update(st)}                # synthetic units never reach expand/run_plan
     # method-switch swap: a staged install whose component is also installed via another method
     # gets that old install removed first (remove-before-reinstall). Mirrors the CLI plan path.
     from ..installState import plan_with_swaps
@@ -596,6 +616,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         print('\nAbout to execute:')
         for op, key, rc in plan:
             print(f'  {op:8} {key}  (pkg: {rc.name})')
+        if su_managers:
+            print(f'  {"sys-update":8} System Updates — bulk upgrade via {", ".join(su_managers)} '
+                  f'({len(su_raw)} package(s))')
         try:
             ans = input('\nProceed? [y/N] ').strip().lower()
         except EOFError:
@@ -605,7 +628,14 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             input('Press Enter to return...')
             return False, 'cancelled', []
 
-        outcomes = execute_plan(ctx, plan, ledger)
+        outcomes = execute_plan(ctx, plan, ledger) if plan else []
+        if su_managers:                                   # the whole-machine bulk upgrade(s)
+            from .. import sysupdates
+            from ..actions import OpOutcome
+            for mgr, res in sysupdates.apply_bulk(ctx, su_managers):
+                ok = bool(res is not None and res.ok)
+                outcomes.append(OpOutcome('upgrade', f'system-updates\\{mgr}', mgr, ok,
+                                          '' if ok else 'bulk upgrade failed'))
         # drain the persisted !uninstall queue for components we just successfully removed
         try:
             from .. import actions as _act

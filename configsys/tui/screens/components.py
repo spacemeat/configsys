@@ -227,39 +227,6 @@ class ComponentsScreen(Screen):
         _put(surface, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
         surface.refresh()
 
-    # -- System Updates: the whole-machine bulk upgrade (P2) ---------------
-
-    def _apply_system_updates(self, ctx, stdscr, pal, cfg, ledger, intent):
-        '''i/u anywhere in the System Updates subtree -> the whole-machine bulk upgrade, reusing the
-        `configsys upgrade --system` flow (preview + confirm + each manager's own bulk command +
-        reboot advisory) in a suspended terminal, then re-scan so the group refreshes.'''
-        import argparse
-        from ... import app, sysupdates
-        with suspended(stdscr):
-            print('System Updates — upgrading everything your package managers report upgradable\n'
-                  'outside your picks. Review the list, then confirm below.\n', flush=True)
-            try:
-                app.cmd_upgrade_system(ctx, argparse.Namespace(yes=False))
-            except Exception as e:                      # noqa: BLE001 — surface, don't crash the TUI
-                print(f'\nsystem upgrade failed: {e}')
-            try:
-                input('\n[Enter] to return')
-            except EOFError:
-                pass
-        curses.flushinp()
-        sysupdates.invalidate(ctx)                       # what's upgradable changed -> re-gather
-        sysupdates.start_scan(ctx)
-        self.model.invalidate_overlay()
-        try:
-            new = _reload(ctx, self.model, set())
-            self.model = new[0]
-            intent.reloaded = new
-            intent.note = 'system updates applied — rescanning'
-        except Exception as e:                           # noqa: BLE001
-            intent.note = f'reload failed: {e}'
-        intent.invalidate_ps_overlay = True
-        return intent
-
     # -- handle (reproduces the components fall-through dispatch) ----------
 
     def handle(self, ch, ctx, stdscr, pal, cfg, ledger):
@@ -271,10 +238,13 @@ class ComponentsScreen(Screen):
         act = km.action_for('components', ch) if km is not None else None
         intent = Intent()
         if _cursor_in_sysupd(ms):                       # System Updates: bulk-action, no per-row staging
-            if act in _SU_BULK_ACTS:
-                return self._apply_system_updates(ctx, stdscr, pal, cfg, ledger, intent)
+            if act in _SU_BULK_ACTS:                    # i/u stages them ALL (all-or-nothing); X applies
+                n = ms.stage_system_updates()
+                intent.note = (f'staged {n} system update{"s" if n != 1 else ""} — press X to apply (bulk)'
+                               if n else 'no system updates to apply')
+                return intent
             if act in _SU_NA_ACTS:
-                intent.note = 'System Updates apply in bulk — press i/u to update them all'
+                intent.note = 'System Updates apply in bulk — i/u stages them all, then X applies'
                 return intent
         if act == 'down':
             ms.move(1)

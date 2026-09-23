@@ -65,14 +65,24 @@ def machine_managers(ctx):
 
 
 def managed_keys(ctx):
-    '''{(driver_name, index_key)} for this machine's tracked (picked) components — the set the update
-    lane EXCLUDES, so a managed pick shows in its own pick row, not here. Resolution only (no install
-    inspection), so it's cheap. A native-backed driver's unit (aur / native-pkg-file / clang) is also
-    keyed under the native pm, where its package actually lands.'''
+    '''{(driver_name, index_key)} for everything cfs KNOWS as a component and has installed — the set
+    the update lane EXCLUDES, so anything with a recipe (a pick OR an installed-but-untracked orphan
+    like wget/tor) is handled in the component/orphan world, not double-listed here. System Updates is
+    then the genuinely-unmanaged tail (base/deps/runtimes cfs has no recipe for); the bulk `apt
+    upgrade` still patches the excluded ones anyway. Resolution + one install scan; a native-backed
+    driver's unit (aur / native-pkg-file / clang) is also keyed under the native pm where it lands.'''
     keys = set()
     native = _native_pm(ctx)
+    names = set(ctx.config.requested())                  # picks
     try:
-        units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+        units0, _e = ctx.routes.resolve_resilient(list(names))
+        from . import orphans
+        installed, _orph, _c = orphans.install_overlay(ctx, units0)
+        names |= (installed & set(ctx.routes.components))   # + installed things cfs has a recipe for
+    except Exception:                                    # noqa: BLE001 — fall back to picks-only exclusion
+        pass
+    try:
+        units, _errs = ctx.routes.resolve_resilient(list(names))
         ctx.prepare_units(units)
     except Exception:                                    # noqa: BLE001 — never let this brick `updates`
         return keys
@@ -165,8 +175,25 @@ def cached_total(ctx):
 
 
 def is_synthetic(state):
-    '''True for a synthetic System Updates row (fabricated for display; never staged/executed).'''
+    '''True for a synthetic System Updates row (fabricated for display; staged as a bulk mark, applied
+    via apply_bulk — never routed through run_plan per-row).'''
     return bool(getattr(getattr(state, 'component', None), 'fields', {}).get('system_update'))
+
+
+def apply_bulk(ctx, manager_names):
+    '''Run each named manager's own bulk upgrade (Driver.upgrade_all) — the System Updates apply step
+    the TUI execute path calls after the shared confirm. Refreshes the native index once up front so
+    candidates are current, then invalidates the cache + restarts the scan so the group refreshes.
+    Returns [(manager, Result_or_None)].'''
+    from .app import refresh_native_index                 # lazy: app imports this module
+    refresh_native_index(ctx)                             # non-fatal
+    results = []
+    for mgr in manager_names:
+        drv = get_driver(mgr, ctx.runner, ctx.paths)
+        results.append((mgr, drv.upgrade_all() if drv is not None else None))
+    invalidate(ctx)
+    start_scan(ctx)
+    return results
 
 
 def _synthetic_state(row):

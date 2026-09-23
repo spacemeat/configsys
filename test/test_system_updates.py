@@ -279,8 +279,11 @@ def test_synthetic_rows_render_and_never_stage():
     # System Updates rows keep the FULL version (the change is in the revision clean_version strips)
     cu = next(n for n in ms.rows if n.label == 'coreutils')
     assert cu.installed_str() == '8.32-1' and cu.latest_str() == '8.32-2'
-    # bulk-action: a bulk stage_all must never stage a synthetic row
+    # bulk-action: a NORMAL bulk stage_all must never stage a synthetic row
     assert ms.stage_all('upgrade') == 0 and not ms.staged
+    # ...but the explicit System Updates mark stages every synthetic row at once (all-or-nothing)
+    assert ms.stage_system_updates() == 4
+    assert all(op == 'upgrade' for op in ms.staged.values()) and len(ms.staged) == 4
     # the cursor-in-subtree predicate fires for the group, a tier, and a leaf, not outside it
     su = next(i for i, n in enumerate(ms.rows) if n.label == 'System Updates')
     ms.cursor = su
