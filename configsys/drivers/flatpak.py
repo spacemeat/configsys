@@ -235,6 +235,19 @@ class Flatpak(Driver):
         # a normalised ref is `<id>/<arch>/<branch>`; a pick is keyed by the app id (index_key).
         return key.split('/', 1)[0]
 
+    def classify_index(self, keys):
+        '''The runtime/app split from the tier table: platforms, SDKs, GL drivers, codecs and VAAPI
+        extensions are the shared base layer -> `core`; everything else is an app -> `apps`. flatpak
+        has no kernel/standard notion. Classified by app id, so it needs no extra query.'''
+        return {k: ('core' if self._is_runtime_id(self.update_dedup_key(k)) else 'apps')
+                for k in keys}
+
+    @staticmethod
+    def _is_runtime_id(appid):
+        # every observed runtime/extension id carries `.Platform` (Platform, Platform.GL.*,
+        # Platform.VAAPI.*, Platform.codecs-*) or `.Sdk` (Sdk, Sdk.Extension.*); apps carry neither.
+        return '.Platform' in appid or '.Sdk' in appid
+
     def held_keys(self):
         masked, seen_ok = set(), False
         for flag in ('--user', '--system'):

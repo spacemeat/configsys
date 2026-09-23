@@ -4,6 +4,7 @@ apt + flatpak + snap. Fake runner returns canned manager output.'''
 
 from configsys import sysupdates
 from configsys.componentObj import ResolvedComponent
+from configsys.driver import tier_by_name
 from configsys.drivers.apt import Apt
 from configsys.drivers.flatpak import Flatpak
 from configsys.drivers.snap import Snap
@@ -52,6 +53,34 @@ def test_apt_upgradable_index_none_on_failure():
     assert Apt(FakeRunner([('apt list --upgradable', 1, '')])).upgradable_index() is None
 
 
+def test_tier_by_name_heuristic():
+    assert tier_by_name('linux-image-generic') == 'kernel'
+    assert tier_by_name('linux-headers-6.8') == 'kernel'
+    assert tier_by_name('libc6') == 'core'
+    assert tier_by_name('glibc') == 'core'
+    assert tier_by_name('htop') == 'apps'
+    assert tier_by_name('org.freedesktop.Platform/x86_64/24.08') == 'apps'  # id/arch/branch tolerated
+
+
+APT_PRIORITY = ('linux-image-generic important\n'
+                'libc6 required\n'
+                'bash standard\n'
+                'htop optional\n'
+                'ripgrep extra\n')
+
+
+def test_apt_classify_index_priority_and_kernel():
+    r = FakeRunner([("dpkg-query -W -f='${Package} ${Priority}", 0, APT_PRIORITY)])
+    tiers = Apt(r).classify_index(['linux-image-generic', 'libc6', 'bash', 'htop', 'ripgrep',
+                                   'unheard-of'])
+    assert tiers == {'linux-image-generic': 'kernel',  # kernel by name (beats its 'important' prio)
+                     'libc6': 'core',                  # required
+                     'bash': 'standard',               # standard
+                     'htop': 'apps',                   # optional
+                     'ripgrep': 'apps',                # extra
+                     'unheard-of': 'apps'}             # not in the priority map -> name heuristic
+
+
 def test_apt_held_keys_and_bulk_upgrade_shape():
     r = FakeRunner([('apt-mark showhold', 0, 'vim\nlibc6\n')])
     assert Apt(r).held_keys() == {'vim', 'libc6'}
@@ -80,6 +109,22 @@ def test_flatpak_update_dedup_key_extracts_app_id():
     d = Flatpak(FakeRunner())
     assert d.update_dedup_key('com.google.Chrome/x86_64/stable') == 'com.google.Chrome'
     assert d.update_dedup_key('org.freedesktop.Platform/x86_64/24.08') == 'org.freedesktop.Platform'
+
+
+def test_flatpak_classify_index_runtime_vs_app():
+    keys = ['org.freedesktop.Platform/x86_64/24.08',
+            'org.freedesktop.Platform.GL.nvidia-580/x86_64/1.4',
+            'org.freedesktop.Sdk/x86_64/25.08',
+            'org.gnome.Platform/x86_64/50',
+            'com.google.Chrome/x86_64/stable',
+            'org.gnome.Calculator/x86_64/stable']
+    tiers = Flatpak(FakeRunner()).classify_index(keys)
+    assert tiers == {'org.freedesktop.Platform/x86_64/24.08': 'core',
+                     'org.freedesktop.Platform.GL.nvidia-580/x86_64/1.4': 'core',
+                     'org.freedesktop.Sdk/x86_64/25.08': 'core',
+                     'org.gnome.Platform/x86_64/50': 'core',
+                     'com.google.Chrome/x86_64/stable': 'apps',
+                     'org.gnome.Calculator/x86_64/stable': 'apps'}
 
 
 def test_flatpak_bulk_upgrade_shape():
@@ -148,6 +193,8 @@ class _Ctx:
 def _full_runner():
     return FakeRunner([('apt list --upgradable', 0, APT_UPGRADABLE),
                        ('apt-mark showhold', 0, 'vim\n'),           # vim is held
+                       ("dpkg-query -W -f='${Package} ${Priority}", 0,
+                        'vim important\nhtop optional\n'),          # vim -> core, htop -> apps
                        ('flatpak list', 0, FP_LIST),
                        ('remote-ls --user --updates', 0, FP_UPDATES),
                        ('snap refresh --list', 0, SNAP_REFRESH_LIST),
@@ -162,6 +209,12 @@ def test_gather_groups_all_managers_when_nothing_managed():
     assert {r.key for r in groups['flatpak']} == {
         'com.google.Chrome/x86_64/stable', 'org.freedesktop.Platform/x86_64/24.08'}
     assert {r.key for r in groups['snap']} == {'hello'}
+    # tiers: apt vim(important)->core, htop(optional)->apps; flatpak Platform->core, Chrome->apps
+    tier = {r.key: r.tier for g in groups.values() for r in g}
+    assert tier['vim'] == 'core' and tier['htop'] == 'apps'
+    assert tier['org.freedesktop.Platform/x86_64/24.08'] == 'core'
+    assert tier['com.google.Chrome/x86_64/stable'] == 'apps'
+    assert tier['hello'] == 'apps'                    # snap: name heuristic (no tier notion)
 
 
 def test_gather_excludes_managed_picks_across_managers():

@@ -7,6 +7,7 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 
 import shlex
 
+from ..driver import tier_by_name
 from ..failures import SIGNATURE, classify, retry_transient
 from ..runner import Result
 from ._native import NativePkgManager
@@ -296,6 +297,25 @@ class Apt(NativePkgManager):
         if not r.ok:
             return None
         return {x.strip() for x in r.stdout.split() if x.strip()}
+
+    def classify_index(self, keys):
+        '''Map each upgradable key to an UPDATE_TIER via Debian Priority (required/important -> core,
+        standard -> standard, optional/extra -> apps) with kernel packages split off by name. Reuses
+        origin_index (one dpkg-query); a key not in it, or with no priority, falls back to the name
+        heuristic. See docs/system-update-coverage-plan.md (tier taxonomy).'''
+        prio = self.origin_index() or {}
+        out = {}
+        for k in keys:
+            nt = tier_by_name(k)                    # kernel / core(libc) / apps
+            if nt == 'kernel':
+                out[k] = 'kernel'
+                continue
+            p = prio.get(k)
+            out[k] = ('core' if p in ('required', 'important')
+                      else 'standard' if p == 'standard'
+                      else 'core' if nt == 'core'      # libc without a priority row (rare)
+                      else 'apps')                     # optional / extra / unknown
+        return out
 
     def upgrade_all(self):
         # The modern `apt upgrade` semantics: `--with-new-pkgs` installs newly-needed packages (a new

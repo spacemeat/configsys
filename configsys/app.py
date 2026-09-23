@@ -795,19 +795,30 @@ def cmd_upgrade(ctx, args):
     return _dispatch_op(ctx, args.names, 'upgrade', no_deps=getattr(args, 'no_deps', False))
 
 
+_TIER_LABEL = {'kernel': 'kernel', 'core': 'core (base system)',
+               'standard': 'standard', 'apps': 'apps & tools'}
+
+
 def _print_updates_groups(groups):
-    '''Shared rendering for `updates` and the `upgrade --system` preview: per-manager sections with a
-    `installed -> candidate` line per package and a [held] marker. Returns the total row count.'''
+    '''Shared rendering for `updates` and the `upgrade --system` preview: per-manager sections,
+    sub-grouped by tier (kernel/core/standard/apps — most-fundamental first), a `installed ->
+    candidate` line per package and a [held] marker. Returns the total row count.'''
+    from .driver import UPDATE_TIERS
     total = sum(len(v) for v in groups.values())
     for mgr in sorted(groups):
         rows = groups[mgr]
         held = sum(1 for r in rows if r.held)
         tail = f'  ({held} held, left as-is)' if held else ''
         print(f'{mgr}  ({len(rows)}){tail}:')
-        for r in rows:
-            frm = f'{r.installed} -> ' if r.installed else ''
-            mark = '  [held]' if r.held else ''
-            print(f'  {r.key:40} {frm}{r.candidate or "?"}{mark}')
+        for tier in UPDATE_TIERS:
+            trows = [r for r in rows if r.tier == tier]
+            if not trows:
+                continue
+            print(f'  {_TIER_LABEL[tier]}  ({len(trows)}):')
+            for r in trows:
+                frm = f'{r.installed} -> ' if r.installed else ''
+                mark = '  [held]' if r.held else ''
+                print(f'    {r.key:40} {frm}{r.candidate or "?"}{mark}')
         print()
     return total
 

@@ -45,6 +45,28 @@ SYSTEM_PREFIX = Path('/opt')
 # is network input, not author text. Covers v-prefixed, dotted, epoch (1:2.3), +build, ~pre forms.
 _SAFE_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+~:-]*$')
 
+# Coarse, universal update tiers for the System Updates lane (docs/system-update-coverage-plan.md).
+# A FIXED set so grouping stays consistent across managers; each driver maps its native notion (apt
+# Priority, flatpak runtime/app split) into these via classify_index, degrading to a name heuristic
+# where it has none. Ordered most-fundamental first — how the grouped CLI list reads top to bottom.
+UPDATE_TIERS = ('kernel', 'core', 'standard', 'apps')
+
+# The universal fallback: what a manager with no tier notion can still tell from a package name.
+_KERNEL_NAME_RE = re.compile(r'^(linux-(image|headers|modules|generic|lowlatency|oem)|kernel|vmlinuz)')
+_CORE_NAME_RE = re.compile(r'^(libc[0-9]?($|[.-])|glibc($|[.-])|musl($|[.-]))')
+
+
+def tier_by_name(key):
+    '''The update tier inferable from a package name alone — kernel (linux-image/kernel/…), core
+    (libc/glibc/musl), else apps. The `fallback (any)` column of the tier table: what every manager
+    can classify without a native priority notion.'''
+    base = str(key).split('/', 1)[0]                 # tolerate a flatpak ref (id/arch/branch)
+    if _KERNEL_NAME_RE.match(base):
+        return 'kernel'
+    if _CORE_NAME_RE.match(base):
+        return 'core'
+    return 'apps'
+
 
 class Driver:
     name = None             # subclasses set, e.g. 'apt'
@@ -338,6 +360,15 @@ class Driver:
         snap --hold), so the System Updates lane can MARK them and never bulk-upgrade them. None when
         the driver has no such notion or the query failed. Same key space as upgradable_index().'''
         return None
+
+    def classify_index(self, keys):
+        '''{key: tier} classifying each upgradable `key` into one of UPDATE_TIERS, so the System
+        Updates lane groups the list by how fundamental each package is (kernel/core/standard/apps)
+        instead of showing a wall. Default: the name heuristic (kernel/libc by name, else apps) — a
+        manager with a real priority notion (apt) or a runtime/app split (flatpak) overrides. `keys`
+        is the upgradable set, so a driver whose priority query enumerates only installed packages can
+        still answer for exactly the keys asked.'''
+        return {k: tier_by_name(k) for k in keys}
 
     def get_latest(self, rc):
         '''Latest/candidate available version string, or None if unknown. Default: the discovered

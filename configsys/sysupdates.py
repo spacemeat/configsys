@@ -20,14 +20,15 @@ _APP_MANAGERS = ('flatpak', 'snap')
 
 class UpdateRow:
     '''One upgradable package in the System Updates lane — the manager's own report, not a component.'''
-    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held')
+    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held', 'tier')
 
-    def __init__(self, manager, key, installed, candidate, held):
+    def __init__(self, manager, key, installed, candidate, held, tier='apps'):
         self.manager = manager
         self.key = key
         self.installed = installed
         self.candidate = candidate
         self.held = held
+        self.tier = tier
 
 
 def _native_pm(ctx):
@@ -89,13 +90,15 @@ def gather(ctx):
         if not idx:                                      # None (absent/failed) or {} (up to date)
             continue
         held = drv.held_keys() or set()
+        tiers = drv.classify_index(list(idx))          # {key: UPDATE_TIER}
         rows = []
         for key in sorted(idx):
             dedup = drv.update_dedup_key(key)          # apt/snap: == key; flatpak: the app id
             if (drv.name, dedup) in managed:
                 continue
             inst, cand = idx[key]
-            rows.append(UpdateRow(drv.name, key, inst, cand, dedup in held or key in held))
+            rows.append(UpdateRow(drv.name, key, inst, cand, dedup in held or key in held,
+                                  tiers.get(key, 'apps')))
         if rows:
             out[drv.name] = rows
     return out
