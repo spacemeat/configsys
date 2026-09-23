@@ -80,7 +80,13 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   so multi-branch runtimes stay distinct rows matched to their own installed version; `update_dedup_key`
   maps a ref back to the app id for the managed-picks exclusion. Verified live (171 apt + 16 flatpak
   upgradable, correct exclusion). Tests in test/test_system_updates.py. No TUI yet.
-- **P1 — tiers:** apt Priority + coarse buckets + flatpak runtime/app split; grouped CLI output.
+- **P1 — tiers: DONE.** Fixed `UPDATE_TIERS = (kernel, core, standard, apps)` + `tier_by_name`
+  fallback (kernel/libc by name) in driver.py; `Driver.classify_index(keys)` (base = name heuristic)
+  overridden by apt (Priority required/important→core, standard→standard, optional/extra→apps, with
+  kernel split off by name — reuses origin_index) and flatpak (runtime/app split: `.Platform`/`.Sdk`
+  ids → core, else apps). `UpdateRow.tier` carried through `gather`; CLI `updates` /
+  `upgrade --system` preview now sub-group each manager by tier, most-fundamental first. Verified
+  live (apt: 4 kernel / 46 core / … ; flatpak: 15 runtimes→core, Chrome→apps). Tests extended.
 - **P2 — TUI:** the System Updates synthetic group + tier subprofiles in Components; select + upgrade
   + header count.
 - **P3 — remaining managers:** dnf / pacman / zypper / apk / brew / rpm-ostree `upgradable_index()`
