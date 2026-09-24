@@ -614,11 +614,14 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
     with suspended(stdscr):
         print('\nAbout to execute:')
-        for op, key, rc in plan:
-            print(f'  {op:8} {key}  (pkg: {rc.name})')
+        # System Updates run FIRST: bring the base current before installing new packages against it —
+        # cleaner dependency resolution everywhere, and on Arch it avoids the partial-upgrade footgun
+        # of `pacman -S <new>` on a not-yet-`-Syu`'d system.
         if su_managers:
             print(f'  {"sys-update":8} System Updates — bulk upgrade via {", ".join(su_managers)} '
                   f'({len(su_raw)} package(s))')
+        for op, key, rc in plan:
+            print(f'  {op:8} {key}  (pkg: {rc.name})')
         try:
             ans = input('\nProceed? [y/N] ').strip().lower()
         except EOFError:
@@ -628,14 +631,16 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             input('Press Enter to return...')
             return False, 'cancelled', []
 
-        outcomes = execute_plan(ctx, plan, ledger) if plan else []
-        if su_managers:                                   # the whole-machine bulk upgrade(s)
+        outcomes = []
+        if su_managers:                                   # the whole-machine bulk upgrade(s) — first
             from .. import sysupdates
             from ..actions import OpOutcome
             for mgr, res in sysupdates.apply_bulk(ctx, su_managers):
                 ok = bool(res is not None and res.ok)
                 outcomes.append(OpOutcome('upgrade', f'system-updates\\{mgr}', mgr, ok,
                                           '' if ok else 'bulk upgrade failed'))
+        if plan:                                          # then the per-component ops, against the fresh base
+            outcomes += execute_plan(ctx, plan, ledger)
         # drain the persisted !uninstall queue for components we just successfully removed
         try:
             from .. import actions as _act
