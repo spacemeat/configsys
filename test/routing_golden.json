@@ -3634,6 +3634,15 @@
     "name": "ghidra"
    }
   },
+  "ghostscript": {
+   "pacman\\ghostscript": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "dotfiles\\ghostty-dotfiles": {
     "driver": "dotfiles",
@@ -5123,6 +5132,15 @@
     "name": "jack2"
    }
   },
+  "java": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk21-openjdk"
+    },
+    "name": "jdk21-openjdk"
+   }
+  },
   "jbang": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -6580,6 +6598,15 @@
      "name": "libsodium"
     },
     "name": "libsodium"
+   }
+  },
+  "libssl": {
+   "pacman\\libssl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libssl"
+    },
+    "name": "libssl"
    }
   },
   "libstdc++": {
@@ -8512,6 +8539,15 @@
      ]
     },
     "name": "opengl"
+   }
+  },
+  "openjdk": {
+   "pacman\\jdk": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jdk21-openjdk"
+    },
+    "name": "jdk21-openjdk"
    }
   },
   "openscad": {
@@ -11321,6 +11357,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "pacman\\tor": {
+    "driver": "pacman",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "aur\\tor-browser": {
     "driver": "aur",
@@ -12547,6 +12593,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "pacman\\wget": {
+    "driver": "pacman",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -17568,6 +17623,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -19042,6 +19106,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -20581,6 +20654,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -22605,6 +22687,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -22637,9 +22728,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -25131,6 +25222,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -26106,6 +26207,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -31010,6 +31120,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -32467,6 +32586,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -33972,6 +34100,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -35928,6 +36065,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -35960,9 +36106,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -38369,6 +38515,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -39327,6 +39483,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -44231,6 +44396,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -45688,6 +45862,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -47186,6 +47369,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -49142,6 +49334,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -49174,9 +49375,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -51604,6 +51805,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -52562,6 +52773,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -57085,6 +57305,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "dnf\\ghostscript": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -58610,6 +58839,15 @@
     "name": "jack-audio-connection-kit"
    }
   },
+  "java": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "jbang": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -60087,6 +60325,15 @@
      "name": "libsodium-devel"
     },
     "name": "libsodium-devel"
+   }
+  },
+  "libssl": {
+   "dnf\\libssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
    }
   },
   "libstdc++": {
@@ -61951,6 +62198,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "openscad": {
    "dnf\\openscad": {
     "driver": "dnf",
@@ -61983,9 +62239,9 @@
    "dnf\\openssl": {
     "driver": "dnf",
     "fields": {
-     "name": "openssl-devel"
+     "name": "openssl"
     },
-    "name": "openssl-devel"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -64410,6 +64666,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "dnf\\tor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "dnf\\tor-browser": {
     "driver": "dnf",
@@ -65447,6 +65713,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "dnf\\wget": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -69983,6 +70258,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "dnf\\ghostscript": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -71508,6 +71792,15 @@
     "name": "jack-audio-connection-kit"
    }
   },
+  "java": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "jbang": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -72985,6 +73278,15 @@
      "name": "libsodium-devel"
     },
     "name": "libsodium-devel"
+   }
+  },
+  "libssl": {
+   "dnf\\libssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
    }
   },
   "libstdc++": {
@@ -74849,6 +75151,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "openscad": {
    "dnf\\openscad": {
     "driver": "dnf",
@@ -74881,9 +75192,9 @@
    "dnf\\openssl": {
     "driver": "dnf",
     "fields": {
-     "name": "openssl-devel"
+     "name": "openssl"
     },
-    "name": "openssl-devel"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -77308,6 +77619,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "dnf\\tor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "dnf\\tor-browser": {
     "driver": "dnf",
@@ -78345,6 +78666,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "dnf\\wget": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -82110,6 +82440,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "brew\\ghostscript": {
+    "driver": "brew",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -83190,6 +83529,15 @@
      "name": "jack"
     },
     "name": "jack"
+   }
+  },
+  "java": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk@21"
+    },
+    "name": "openjdk@21"
    }
   },
   "jbang": {
@@ -84436,6 +84784,15 @@
      "name": "libsodium"
     },
     "name": "libsodium"
+   }
+  },
+  "libssl": {
+   "brew\\libssl": {
+    "driver": "brew",
+    "fields": {
+     "name": "libssl"
+    },
+    "name": "libssl"
    }
   },
   "libstdc++": {
@@ -86044,6 +86401,15 @@
      "name": "opencv"
     },
     "name": "opencv"
+   }
+  },
+  "openjdk": {
+   "brew\\jdk": {
+    "driver": "brew",
+    "fields": {
+     "name": "openjdk@21"
+    },
+    "name": "openjdk@21"
    }
   },
   "openscad": {
@@ -87998,6 +88364,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "brew\\tor": {
+    "driver": "brew",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "flatpak\\tor-browser": {
     "driver": "flatpak",
@@ -88746,6 +89122,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "brew\\wget": {
+    "driver": "brew",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -93563,6 +93948,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -95037,6 +95431,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -96569,6 +96972,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -98593,6 +99005,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -98625,9 +99046,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -101139,6 +101560,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -102114,6 +102545,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -106938,6 +107378,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "dnf\\ghostscript": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -108526,6 +108975,15 @@
     "name": "jack-audio-connection-kit"
    }
   },
+  "java": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "jbang": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -109978,6 +110436,15 @@
      "name": "libsodium-devel"
     },
     "name": "libsodium-devel"
+   }
+  },
+  "libssl": {
+   "dnf\\libssl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openssl-devel"
+    },
+    "name": "openssl-devel"
    }
   },
   "libstdc++": {
@@ -111992,6 +112459,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "dnf\\jdk": {
+    "driver": "dnf",
+    "fields": {
+     "name": "java-21-openjdk-devel"
+    },
+    "name": "java-21-openjdk-devel"
+   }
+  },
   "openscad": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -112038,9 +112514,9 @@
    "dnf\\openssl": {
     "driver": "dnf",
     "fields": {
-     "name": "openssl-devel"
+     "name": "openssl"
     },
-    "name": "openssl-devel"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -114590,6 +115066,22 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\tor": {
+    "driver": "dnf",
+    "fields": {
+     "name": "tor"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -115596,6 +116088,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "dnf\\wget": {
+    "driver": "dnf",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -120757,6 +121258,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -122231,6 +122741,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -123763,6 +124282,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -125787,6 +126315,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -125819,9 +126356,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -128334,6 +128871,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -129309,6 +129856,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {
@@ -134218,6 +134774,15 @@
     "name": "org.ghidra_sre.Ghidra"
    }
   },
+  "ghostscript": {
+   "apt\\ghostscript": {
+    "driver": "apt",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
+   }
+  },
   "ghostty": {
    "appImage\\ghostty": {
     "driver": "appImage",
@@ -135649,6 +136214,15 @@
      "name": "jackd2"
     },
     "name": "jackd2"
+   }
+  },
+  "java": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
    }
   },
   "jbang": {
@@ -137147,6 +137721,15 @@
      "name": "libsodium-dev"
     },
     "name": "libsodium-dev"
+   }
+  },
+  "libssl": {
+   "apt\\libssl": {
+    "driver": "apt",
+    "fields": {
+     "name": "libssl-dev"
+    },
+    "name": "libssl-dev"
    }
   },
   "libstdc++": {
@@ -139103,6 +139686,15 @@
     "name": "opengl"
    }
   },
+  "openjdk": {
+   "apt\\jdk": {
+    "driver": "apt",
+    "fields": {
+     "name": "openjdk-21-jdk"
+    },
+    "name": "openjdk-21-jdk"
+   }
+  },
   "openscad": {
    "apt\\openscad": {
     "driver": "apt",
@@ -139135,9 +139727,9 @@
    "apt\\openssl": {
     "driver": "apt",
     "fields": {
-     "name": "libssl-dev"
+     "name": "openssl"
     },
-    "name": "libssl-dev"
+    "name": "openssl"
    }
   },
   "opentofu": {
@@ -141565,6 +142157,16 @@
     "name": "tmux-dotfiles"
    }
   },
+  "tor": {
+   "apt\\tor": {
+    "driver": "apt",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
   "tor-browser": {
    "apt\\tor-browser": {
     "driver": "apt",
@@ -142559,6 +143161,15 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "wget": {
+   "apt\\wget": {
+    "driver": "apt",
+    "fields": {
+     "name": "wget"
+    },
+    "name": "wget"
    }
   },
   "whois": {

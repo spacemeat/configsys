@@ -65,7 +65,7 @@ profiles: {
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
     db-servers: [ postgresql  postgresql-service  mariadb  mariadb-service  redis  redis-service  mongodb  mongodb-service ]
 
-    net-tools: [ iproute2  impala  bluetui  curl  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
+    net-tools: [ iproute2  impala  bluetui  curl  wget  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
         socat  ethtool  whois  netcat  dig  iftop  nethogs  nload  rsync  vnstat  dnspeep  bridge-utils  croc  wormhole  ttyd
         ghgrab  lazyrsync ]
     cloud-tools: [ awscli  gcloud  azure-cli  opentofu  grpcurl ]
@@ -106,7 +106,7 @@ profiles: {
     c-cpp-libs: [ abseil  boost  dbus-dev  swig  protobuf-dev ]
     c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  libgit2  libsecret  nng  opencascade  unixodbc
         // consolidated from the configsys-source plugin into base routes (build deps useful in their own right):
-        ncurses  libevent  openssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
+        ncurses  libevent  libssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
         libaio  libunwind  libdwarf  libiberty  libcurl  libpng  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
         fuse  libusb  libmagic  libidn2  libfuse2  libjpeg  libstdc++  libvirt ]
 

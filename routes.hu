@@ -134,6 +134,9 @@
         unzip:      { attrs: [ CLI FOSS permissive ] description: "Extract ZIP archives." install: [ { via: native } ] }
         zip:        { attrs: [ CLI FOSS permissive ] description: "Create and update ZIP archives." install: [ { via: native } ] }
         curl:       { attrs: [ CLI FOSS permissive ] description: "Transfer data over HTTP(S) and more — the ubiquitous `curl`." install: [ { via: native } ] }
+        wget:       { attrs: [ CLI FOSS GNU copyleft ] description: "Retrieve files over HTTP(S)/FTP — the GNU `wget` non-interactive downloader." install: [ { via: native } ] }
+        openssl:    { attrs: [ CLI FOSS permissive ] description: "OpenSSL — the TLS/crypto toolkit CLI (the `openssl` command; its DEV library is the `libssl` component)." install: [ { via: native } ] }   // package `openssl` is the CLI everywhere (brew's `openssl` -> openssl@3)
+        ghostscript: { attrs: [ CLI FOSS copyleft ] description: "Ghostscript (`gs`) — a PostScript and PDF interpreter/renderer." install: [ { via: native } ] }
         git:        { attrs: [ CLI FOSS copyleft ] suggests: git-dotfiles  description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
         git-lfs:    { attrs: [ CLI FOSS permissive ] requires: git  description: "Git Large File Storage (`git lfs`) — version large files via lightweight pointers." install: [ { via: native } ] }   // `git-lfs` on every family
         // Other version-control systems (git is above). Package name == component name except:
@@ -1132,6 +1135,12 @@
             standing: never-auto  provides: { jdk: 21 }
             install: [ { via: sdkman  name: java  version: "21.0.2-graalce"   // bump the SDKMAN id as releases roll
                          latest-check: { github: graalvm/graalvm-ce-builds  tag-re: "jdk-([0-9][0-9.]*)" } } ] }   // `refresh` flags when a newer GraalVM ships
+        // `java` / `openjdk` — searchable aliases for the default JDK (a parts-union of `jdk`, like
+        // jdk-21). People reach for "java"; this routes it to OpenJDK 21 without a second jdk provider.
+        java:    { attrs: [ toolchain runtime FOSS copyleft ] description: "Java — an alias for the default JDK (OpenJDK 21); see `jdk`/`jdk-NN` for specific versions."
+            install: [ { via: parts  parts: [ jdk ] } ] }
+        openjdk: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK — an alias for the default JDK (OpenJDK 21); see `jdk`/`jdk-NN` for specific versions."
+            install: [ { via: parts  parts: [ jdk ] } ] }
         // SDKMAN — a JVM SDK manager installed by its own shell script (the demonstrator for the
         // `script` driver: lifecycle commands declared as data, incl. a clean uninstall). `sdk`
         // is a shell function, so version-cmd sources the init script in the same shell.
@@ -1508,6 +1517,14 @@
                 { via: aur  when: "arch"  name: microsoft-edge-stable-bin }
                 { via: flatpak  hub: flathub  app: com.microsoft.Edge } ]
         }
+        // Tor — the daemon itself (`tor`); routes traffic through onion circuits. In-repo nearly
+        // everywhere; EL has it in EPEL. (Distinct from tor-browser below, the bundled GUI.)
+        tor: { attrs: [ CLI daemon FOSS permissive ]
+            description: "Tor — the anonymizing overlay-network daemon (`tor`)."
+            install: [
+                { via: native  when: "rhel"  requires: epel }       // EL ships tor in EPEL
+                { via: native  repo-component: universe }            // Debian/Ubuntu(universe)/Fedora/Arch/openSUSE/Alpine/brew
+            ] }
         // Tor Browser via torbrowser-launcher (the official downloader/verifier). Native where
         // packaged (Debian/Ubuntu universe, Fedora, openSUSE), AUR `tor-browser-bin` on Arch, and
         // Flathub everywhere (self-contained — the only method on atomic/musl).
@@ -3371,7 +3388,7 @@
                     install: [ { via: native  name: { apt: libncurses-dev  dnf: ncurses-devel   apk: ncurses-dev   zypper: ncurses-devel } } ] }
         libevent: { attrs: [ lib FOSS permissive ] description: "libevent — asynchronous event-notification library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libevent-dev    dnf: libevent-devel  apk: libevent-dev  zypper: libevent-devel } } ] }
-        openssl:  { attrs: [ lib FOSS permissive ] description: "OpenSSL — TLS and cryptography library (dev headers + libs)."
+        libssl:   { attrs: [ lib FOSS permissive ] description: "libssl — the OpenSSL TLS/crypto DEV library (headers + libs; distinct from the `openssl` CLI)."
                     install: [ { via: native  name: { apt: libssl-dev      dnf: openssl-devel   apk: openssl-dev   zypper: libopenssl-devel } } ] }
         zlib:     { attrs: [ lib FOSS permissive ] description: "zlib — the DEFLATE compression library (dev headers + libs)."
                     install: [ { via: native  name: { apt: zlib1g-dev      dnf: zlib-devel      apk: zlib-dev      zypper: zlib-devel } } ] }
