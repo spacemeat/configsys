@@ -129,7 +129,7 @@ class ComponentsScreen(Screen):
             if su_n:
                 stext = f'  ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
                 if rend + len(stext) < w - 1:
-                    _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
+                    _put(surface, 1, rend, stext, pal.style('issue_warning', 1, rend, h, w))
                     rend += len(stext)
         if diags:
             n = len(diags)
