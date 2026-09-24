@@ -23,6 +23,13 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **No surprises.** The user should always know what is installed, what an operation *will* change
   before it runs (preview first), and what is deliberately left alone. Don't auto-do the clever
   thing silently — surface it and let them choose.
+- **A safety/advisory feature must have uniform coverage, or not ship.** People calibrate on a
+  warning that appears (reboot advisory, update count, "a release is available") and treat its
+  absence as "nothing to report." So a check that works on some machines and silently goes dark on
+  others is *worse* than none — a distro-hopper relies on it, then isn't warned. Build it for every
+  supported machine (rolling distros legitimately reporting "N/A" counts as covered) or not at all;
+  never patch the gap with a cfs-maintained "latest per distro" table (see the base-manifest rule
+  below). This is why the P4 release-upgrade advisory was declined.
 
 ## Routing / capability model
 

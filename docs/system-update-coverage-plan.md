@@ -116,7 +116,17 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   **rpm-ostree deliberately omitted:** on atomic the native pm is brew (+ flatpak), and rpm-ostree is
   image-based (a new deployment, not per-package upgradables) — forcing it into the per-package lane
   would mislead, so it stays out. Parsers unit-tested; live-verified where the manager exists.
-- **P4 — release advisory.**
+- **P4 — release advisory: DECLINED (not building).** A per-OS "a new release is available"
+  advisory (mirroring the reboot advisory) only has a clean, reliable native probe on Ubuntu/Pop
+  (`do-release-upgrade -c` / `pop-upgrade release check`). Fedora / openSUSE-Leap / Alpine-stable / EL
+  have no first-class "is a new release out?" CLI — detection there needs a networked or
+  cfs-maintained "latest release per distro" table, which is exactly the authored-per-(distro×version)
+  data we rejected in the reframe above. Rolling distros (Arch, Tumbleweed) correctly have nothing to
+  detect. So it can't be made UNIFORM, and a partial advisory is worse than none: a distro-hopper
+  calibrates on seeing it and is then silently unwarned where it's absent — a "no surprises"
+  violation. Users get release upgrades from their distro's own tooling (as they must run it
+  interactively anyway). Revisit only if every supported non-rolling distro gains a reliable native
+  probe.
 
 ## Parked / open (defaults, overridable)
 
