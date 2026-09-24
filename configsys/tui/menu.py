@@ -4322,6 +4322,9 @@ def run(ctx):
         sysupdates.start_scan(ctx)                # gather the whole-machine update set in the background;
                                                   # the System Updates group folds in when it lands
         while True:
+            ctx._frame = getattr(ctx, '_frame', 0) + 1   # a monotonic frame tick for animation
+            # (e.g. the System Updates spinner) — advanced by the loop, NOT read from the clock in
+            # draw, so draw stays a pure function of state (the render-determinism contract).
             pal.new_frame()          # recycle color pairs each frame (color_pair() is 8-bit; a
             # long session or the pair-heavy Theme screen would otherwise exceed 255 pairs and wrap
             if show_where:

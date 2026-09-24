@@ -131,8 +131,8 @@ class ComponentsScreen(Screen):
         # separator between chips — only the glyph text carries the element colour.
         _su_gap = 3
         if getattr(ctx, '_sysupd_groups', None) is None:   # scan not done yet -> animated placeholder
-            import time
-            spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[int(time.time() * 10) % 10]
+            # spinner frame from the loop's monotonic tick (NOT the clock) so draw stays deterministic
+            spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[getattr(ctx, '_frame', 0) % 10]
             label = f'{spin} checking system updates…'
             if rend + _su_gap + len(label) < w - 1:
                 _put(surface, 1, rend + _su_gap, label, pal.style('info_dim', 1, rend + _su_gap, h, w))
