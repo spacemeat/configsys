@@ -4339,7 +4339,11 @@ def run(ctx):
             # getch) so its result paints on its own; otherwise block. Restore blocking immediately
             # after so the modal getch loops are unaffected.
             _pscr = _reg.get('profiles')
-            _su_busy = screen == 'components' and sysupdates.scan_busy(ctx)
+            # Poll while the System Updates scan is running OR its result is pending consumption —
+            # so the fold fires on its own even if the scan finishes between two poll ticks (else it
+            # would wait for the next keypress).
+            _su_busy = screen == 'components' and (sysupdates.scan_busy(ctx)
+                                                   or getattr(ctx, '_sysupd_dirty', False))
             stdscr.timeout(120 if (_su_busy or (screen == 'profiles' and _pscr is not None
                                    and (_pscr.model.overlay_busy() or _pscr.model.probe_busy()))) else -1)
             ch = stdscr.getch()
