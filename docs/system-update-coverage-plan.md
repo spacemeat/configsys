@@ -101,6 +101,15 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   anything cfs knows as a component AND has installed (picks + orphans like curl/htop), handled in the
   component world instead — System Updates is the genuinely-unmanaged tail (a wget/tor with no recipe
   still shows; the bulk `apt upgrade` patches the excluded ones anyway).
+- **P2a refinement — dim auto-pulled deps.** A real machine's `apps` tier is ~98% auto-installed
+  DEPENDENCIES (the closure of the desktop/apps/toolchains — e.g. openjdk-*-jre, php8.1-*,
+  dotnet-runtime-*, libvirt-*, gstreamer* — only a couple are user-chosen), and nothing there is
+  system-critical (apt Priority required/important is the `core` tier). So the update lane marks each
+  row user-installed vs auto-dep (the manager's own explicit set — apt-mark showmanual / dnf
+  --userinstalled / pacman -Qe / brew leaves, the same lens the orphan scan uses) and the TUI DIMS the
+  auto-deps in the standard/apps tiers so the handful you actually chose stand out. kernel/core are
+  never dimmed (a libc/kernel bump stays prominent). Everything is still listed and the bulk upgrade
+  still patches it all — this only changes emphasis. `UpdateRow.explicit`; `_su_dim` in the painter.
 - **P2b — TUI (subset select + coalesced targeted apply): TODO.** Per-tier / per-package selection
   with a coalesced `Driver.upgrade_many(names)` (one `apt install --only-upgrade <pkgs>` etc.),
   partitioning synthetic rows out of the normal plan. Deferred (distro managers ship fixes in
