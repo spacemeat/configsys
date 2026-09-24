@@ -50,6 +50,12 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **cfs does not model base-OS vs dependency.** The package manager on the box is the version-correct
   authority; cfs asks it "what's installed / upgradable?" and drives *its* bulk commands. No authored
   per-(distro×version) base manifests — they'd be a staler duplicate and break on rolling distros.
+- **Components and System Updates may overlap harmlessly.** A component is for something the user
+  *wants* to manage (pick, version, pin); System Updates patches the whole machine so the user is
+  never *forced* to manage base packages/deps. A thing can be both — the update lane just de-duplicates
+  the display (hides things cfs already knows as an installed component), and the bulk `apt upgrade`
+  patches them regardless. So "should X be a component?" is answered by "would a user deliberately
+  manage X?", never by whether updates already cover it.
 - **"Data, not script" is not a security boundary.** Route/plugin *data* can still drive shell
   (source builds, scripts), so trust is gated by content-hash + risk tier by driver, not by
   file extension. Never a live-central registry.
