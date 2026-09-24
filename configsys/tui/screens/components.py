@@ -117,20 +117,24 @@ class ComponentsScreen(Screen):
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
         from ... import sysupdates
+        # the 3-space gap is left UNSTYLED (page bg) so a chip's own background doesn't bleed into the
+        # separator between chips — only the glyph text carries the element colour.
+        _su_gap = 3
         if getattr(ctx, '_sysupd_groups', None) is None:   # scan not done yet -> animated placeholder
             import time
             spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[int(time.time() * 10) % 10]
-            stext = f'   {spin} checking system updates…'
-            if rend + len(stext) < w - 1:
-                _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
-                rend += len(stext)
+            label = f'{spin} checking system updates…'
+            if rend + _su_gap + len(label) < w - 1:
+                _put(surface, 1, rend + _su_gap, label, pal.style('info_dim', 1, rend + _su_gap, h, w))
+                rend += _su_gap + len(label)
         else:
             su_n = sysupdates.cached_total(ctx)
             if su_n:
-                stext = f'   ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
-                if rend + len(stext) < w - 1:
-                    _put(surface, 1, rend, stext, pal.style('issue_warning', 1, rend, h, w))
-                    rend += len(stext)
+                label = f'⟳ {su_n} system update{"s" if su_n != 1 else ""}'
+                if rend + _su_gap + len(label) < w - 1:
+                    _put(surface, 1, rend + _su_gap, label,
+                         pal.style('issue_warning', 1, rend + _su_gap, h, w))
+                    rend += _su_gap + len(label)
         if diags:
             n = len(diags)
             elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
