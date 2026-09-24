@@ -78,6 +78,34 @@ class Zypper(NativePkgManager):
                 return True
         return False
 
+    def upgradable_index(self):
+        # `zypper list-updates` prints "S | Repo | Name | Current | Available | Arch"; data rows begin
+        # with a status letter (v). LC_ALL=C keeps the columns/labels stable under any locale.
+        r = self.runner.run('LC_ALL=C zypper --non-interactive -q list-updates')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = [c.strip() for c in line.split('|')]
+            if len(cols) >= 5 and cols[0] in ('v', 'i') and cols[2] and cols[2] != 'Name':
+                idx.setdefault(cols[2], (cols[3] or None, cols[4] or None))
+        return idx
+
+    def held_keys(self):
+        # `zypper locks` — the Name column (index 1) of each lock row (LC_ALL=C for stable columns).
+        r = self.runner.run('LC_ALL=C zypper locks')
+        if not r.ok:
+            return None
+        held = set()
+        for line in r.stdout.splitlines():
+            cols = [c.strip() for c in line.split('|')]
+            if len(cols) >= 2 and cols[1] and cols[1] != 'Name':
+                held.add(cols[1])
+        return held
+
+    def upgrade_all(self):
+        return self.runner.run('zypper --non-interactive update', sudo=True, capture=False)
+
     # -- mutate (under sudo, non-interactive) ----------------------------
 
     # install/uninstall/upgrade come from the NativePkgManager templates above.

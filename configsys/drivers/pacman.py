@@ -81,6 +81,28 @@ class Pacman(NativePkgManager):
         g = self.runner.run(f'pacman -Sg {shlex.quote(rc.name)}')
         return _GROUP if g.ok and g.stdout.strip() else None
 
+    def upgradable_index(self):
+        # `pacman -Qu` -> "name oldver -> newver" per out-of-date package (reads the synced DB).
+        # Exit 1 with no output = nothing to upgrade (not a failure).
+        r = self.runner.run('pacman -Qu')
+        if not r.ok:
+            return {} if r.returncode == 1 else None
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if len(cols) >= 4 and cols[2] == '->':
+                idx.setdefault(cols[0], (cols[1], cols[3]))
+            elif cols:
+                idx.setdefault(cols[0], (None, cols[-1]))
+        return idx
+
+    def upgrade_all(self):
+        # Arch has no safe partial upgrade: `pacman -Syu` (full system upgrade) is the ONLY correct
+        # bulk — a targeted `-S` off a synced DB is a partial upgrade that breaks the system.
+        return self.runner.run('pacman -Syu --noconfirm', sudo=True, capture=False)
+
+    # (no held_keys: pacman has no per-package hold — holds_version=False.)
+
     # -- mutate -----------------------------------------------------------
 
     # install/upgrade come from the NativePkgManager templates (pacman -S installs-or-upgrades);

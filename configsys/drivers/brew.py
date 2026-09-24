@@ -18,6 +18,7 @@ field — the op structure below is already cask-ready.
 '''
 
 import json
+import re
 import shlex
 
 from ..driver import Driver
@@ -89,6 +90,32 @@ class Brew(Driver):
         if not r.ok:
             return False
         return self._formula(rc) in r.stdout.split()
+
+    def upgradable_index(self):
+        # `brew outdated --formula --verbose` -> "<formula> (<installed>[, ...]) [<!=] <candidate>".
+        r = self.runner.run('brew outdated --formula --verbose')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            s = line.strip()
+            if not s:
+                continue
+            m = re.match(r'^(\S+)\s+\(([^)]*)\)\s*[<!=]+\s*(\S+)', s)
+            if m:
+                idx.setdefault(m.group(1), (m.group(2).split(',')[0].strip() or None, m.group(3)))
+            else:
+                idx.setdefault(s.split()[0], (None, None))
+        return idx
+
+    def held_keys(self):
+        r = self.runner.run('brew list --pinned')
+        if not r.ok:
+            return None
+        return {x.strip() for x in r.stdout.split() if x.strip()}
+
+    def upgrade_all(self):
+        return self.runner.run('brew upgrade', capture=False)   # user-owned prefix; never sudo
 
     # -- mutate -----------------------------------------------------------
 

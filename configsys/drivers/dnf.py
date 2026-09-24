@@ -84,6 +84,37 @@ class Dnf(NativePkgManager):
                 return True   # dnf4 format fallback
         return False
 
+    def upgradable_index(self):
+        # `dnf -q check-update` lists "name.arch  version  repo" and EXITS 100 when updates exist
+        # (0 = none) — both are success. Name is arch-stripped; installed comes from rpm.
+        r = self.runner.run('dnf -q check-update')
+        if r.returncode not in (0, 100):
+            return None
+        installed = self.installed_index() or {}
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if len(cols) < 3 or '.' not in cols[0] or cols[0].startswith('Obsoleting'):
+                continue                               # header / blank / obsoletes section
+            name = cols[0].rsplit('.', 1)[0]           # strip .x86_64 / .noarch
+            idx.setdefault(name, (installed.get(name), cols[1]))
+        return idx
+
+    def held_keys(self):
+        # `dnf versionlock list` — dnf5 prints "Package name: <n>"; dnf4 prints name-version globs.
+        r = self.runner.run('dnf versionlock list')
+        if not r.ok:
+            return None
+        held = set()
+        for line in r.stdout.splitlines():
+            s = line.strip()
+            if s.startswith('Package name:'):
+                held.add(s.split(':', 1)[1].strip())
+        return held
+
+    def upgrade_all(self):
+        return self.runner.run('dnf upgrade -y', sudo=True, capture=False)
+
     # -- prerequisites ----------------------------------------------------
 
     def ensure_prereqs(self, rc):

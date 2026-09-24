@@ -7,8 +7,13 @@ from configsys.sysupdates import UpdateRow
 from configsys.componentObj import ResolvedComponent
 from configsys.driver import tier_by_name
 from configsys.drivers.apt import Apt
+from configsys.drivers.apk import Apk
+from configsys.drivers.brew import Brew
+from configsys.drivers.dnf import Dnf
 from configsys.drivers.flatpak import Flatpak
+from configsys.drivers.pacman import Pacman
 from configsys.drivers.snap import Snap
+from configsys.drivers.zypper import Zypper
 from configsys.runner import Result
 
 
@@ -149,6 +154,64 @@ def test_snap_bulk_upgrade_shape():
     r = FakeRunner()
     Snap(r).upgrade_all()
     assert r.calls == ['sudo snap refresh']
+
+
+# -- P3 managers: dnf / pacman / zypper / apk / brew ---------------------------
+
+def test_dnf_upgradable_and_bulk():
+    r = FakeRunner([('dnf -q check-update', 100,
+                     '\nbash.x86_64  5.1.8-6.el9  baseos\nvim-minimal.x86_64  9.0-1.el9  appstream\n'),
+                    ('rpm -qa', 0, 'bash 5.1.7\nvim-minimal 8.2\n')])
+    assert Dnf(r).upgradable_index() == {'bash': ('5.1.7', '5.1.8-6.el9'),
+                                         'vim-minimal': ('8.2', '9.0-1.el9')}
+    # exit code other than 0/100 is a real failure -> None
+    assert Dnf(FakeRunner([('dnf -q check-update', 1, '')])).upgradable_index() is None
+    r2 = FakeRunner()
+    Dnf(r2).upgrade_all()
+    assert r2.calls == ['sudo dnf upgrade -y']
+
+
+def test_pacman_upgradable_and_bulk():
+    r = FakeRunner([('pacman -Qu', 0, 'linux 6.9.1-1 -> 6.9.2-1\nvim 9.1.0-1 -> 9.1.5-1\n')])
+    assert Pacman(r).upgradable_index() == {'linux': ('6.9.1-1', '6.9.2-1'),
+                                            'vim': ('9.1.0-1', '9.1.5-1')}
+    # exit 1 with no output = nothing upgradable, NOT a failure
+    assert Pacman(FakeRunner([('pacman -Qu', 1, '')])).upgradable_index() == {}
+    r2 = FakeRunner()
+    Pacman(r2).upgrade_all()
+    assert r2.calls == ['sudo pacman -Syu --noconfirm']         # full upgrade — the only safe bulk
+
+
+def test_zypper_upgradable_held_and_bulk():
+    r = FakeRunner([('list-updates', 0,
+                     'S | Repository | Name | Current Version | Available Version | Arch\n'
+                     '--+--\nv | repo-oss | curl | 8.0.1-1 | 8.4.0-1 | x86_64\n')])
+    assert Zypper(r).upgradable_index() == {'curl': ('8.0.1-1', '8.4.0-1')}
+    held = FakeRunner([('zypper locks', 0, '# | Name | Type | Repository\n--+--\n1 | curl | package | (any)\n')])
+    assert Zypper(held).held_keys() == {'curl'}
+    r2 = FakeRunner()
+    Zypper(r2).upgrade_all()
+    assert r2.calls == ['sudo zypper --non-interactive update']
+
+
+def test_apk_upgradable_and_bulk():
+    r = FakeRunner([('apk list --upgradable', 0,
+                     'busybox-1.36.1-r5 x86_64 {aports} (GPL) [upgradable from: busybox-1.36.1-r4]\n'
+                     'musl-utils-1.2.4-r2 x86_64 {aports} (MIT) [upgradable from: musl-utils-1.2.4-r1]\n')])
+    assert Apk(r).upgradable_index() == {'busybox': ('1.36.1-r4', '1.36.1-r5'),
+                                         'musl-utils': ('1.2.4-r1', '1.2.4-r2')}   # hyphenated name preserved
+    r2 = FakeRunner()
+    Apk(r2).upgrade_all()
+    assert r2.calls == ['sudo apk upgrade']
+
+
+def test_brew_upgradable_held_and_bulk():
+    r = FakeRunner([('brew outdated', 0, 'wget (1.21.3) < 1.21.4\ngit (2.42.0) < 2.43.0\n')])
+    assert Brew(r).upgradable_index() == {'wget': ('1.21.3', '1.21.4'), 'git': ('2.42.0', '2.43.0')}
+    assert Brew(FakeRunner([('brew list --pinned', 0, 'wget\nnode\n')])).held_keys() == {'wget', 'node'}
+    r2 = FakeRunner()
+    Brew(r2).upgrade_all()
+    assert r2.calls == ['brew upgrade']                          # user-owned prefix; never sudo
 
 
 # -- gather (aggregation + managed-picks exclusion) -----------------------
