@@ -325,6 +325,28 @@ def test_tree_injection_empty_when_no_updates():
     assert sysupdates.tree_injection({}) == ({}, [], {})
 
 
+def test_auto_dep_rows_dim_only_in_standard_and_apps():
+    from configsys.tui import menu
+    from configsys.tui.screens.components import _su_dim
+    groups = {'apt': [UpdateRow('apt', 'myapp', '1', '2', False, 'apps', True),      # user-chosen app
+                      UpdateRow('apt', 'libdep', '1', '2', False, 'apps', False),    # auto dep, apps
+                      UpdateRow('apt', 'coreutils', '1', '2', False, 'core', False), # auto dep, core
+                      UpdateRow('apt', 'libc6', '1', '2', False, 'core', False),     # (2nd core -> group)
+                      UpdateRow('apt', 'stddep', '1', '2', False, 'standard', False),
+                      UpdateRow('apt', 'stdtool', '1', '2', False, 'standard', True)]}  # (2nd standard)
+    states, layouts, transitive = sysupdates.tree_injection(groups)
+    ms = menu.MenuState(states, layouts, transitive)
+    for n in ms._all_nodes():
+        if n.expandable:
+            n.expanded = True
+    ms._refresh()
+    dim = {n.label: _su_dim(n) for n in ms.rows if n.kind == 'unit'}
+    assert dim['myapp'] is False        # user-installed -> prominent
+    assert dim['libdep'] is True        # auto dep in apps -> dimmed
+    assert dim['stddep'] is True        # auto dep in standard -> dimmed
+    assert dim['coreutils'] is False    # core is never dimmed (stays prominent)
+
+
 def test_synthetic_rows_render_and_never_stage():
     from configsys.tui import menu
     from configsys.tui.screens.components import _cursor_in_sysupd

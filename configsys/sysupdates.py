@@ -27,15 +27,16 @@ _TIER_TOKEN = {'kernel': 'kernel', 'core': 'core', 'standard': 'standard', 'apps
 
 class UpdateRow:
     '''One upgradable package in the System Updates lane — the manager's own report, not a component.'''
-    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held', 'tier')
+    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held', 'tier', 'explicit')
 
-    def __init__(self, manager, key, installed, candidate, held, tier='apps'):
+    def __init__(self, manager, key, installed, candidate, held, tier='apps', explicit=True):
         self.manager = manager
         self.key = key
         self.installed = installed
         self.candidate = candidate
         self.held = held
         self.tier = tier
+        self.explicit = explicit         # user-installed (manager's explicit set) vs auto-pulled dep
 
 
 def _native_pm(ctx):
@@ -91,14 +92,18 @@ def gather(ctx):
             continue
         held = drv.held_keys() or set()
         tiers = drv.classify_index(list(idx))          # {key: UPDATE_TIER}
+        explicit = drv.explicit_keys()                 # user-installed set (None = manager has no notion)
         rows = []
         for key in sorted(idx):
             dedup = drv.update_dedup_key(key)          # apt/snap: == key; flatpak: the app id
             if (drv.name, dedup) in managed:
                 continue
             inst, cand = idx[key]
+            # explicit_keys is bare names; None -> the manager draws no auto/manual distinction (treat
+            # all as user-chosen, so nothing is dimmed).
+            is_explicit = True if explicit is None else (dedup in explicit or key in explicit)
             rows.append(UpdateRow(drv.name, key, inst, cand, dedup in held or key in held,
-                                  tiers.get(key, 'apps')))
+                                  tiers.get(key, 'apps'), is_explicit))
         if rows:
             out[drv.name] = rows
     return out
@@ -187,9 +192,12 @@ def _synthetic_state(row):
     from .installState import ComponentState
     token = _TIER_TOKEN.get(row.tier, 'apps')
     scope = 'user' if row.manager == 'flatpak' else 'system'
+    # su_auto flags an auto-pulled dependency (not in the manager's user-installed set) — the painter
+    # dims those in the standard/apps tiers so the handful you actually chose stand out.
     rc = ResolvedComponent(
         key=f'sysupd\\{row.manager}\\{row.key}', driver=row.manager, comp=row.key,
-        fields={'name': row.key, 'system_update': True}, requested_as={token})
+        fields={'name': row.key, 'system_update': True, 'su_auto': not row.explicit,
+                'su_tier': row.tier}, requested_as={token})
     return ComponentState(
         component=rc, supported=True, present=True,
         installed_version=row.installed, latest_version=row.candidate,

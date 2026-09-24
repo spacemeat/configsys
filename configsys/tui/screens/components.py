@@ -39,6 +39,16 @@ def _cursor_in_sysupd(ms):
                 and all(m.component.fields.get('system_update') for m in node.members))
 
 
+def _su_dim(node):
+    '''True for a System Updates package row that is an AUTO-PULLED dependency in the standard/apps
+    tiers — dimmed so the handful you actually chose stand out. kernel/core rows are never dimmed
+    (a libc/kernel bump stays prominent even though it's technically an auto "essential").'''
+    if node.kind != UNIT or not node.members:
+        return False
+    f = node.members[0].component.fields
+    return bool(f.get('su_auto')) and f.get('su_tier') in ('standard', 'apps')
+
+
 def _lock_verb(ms):
     '''"unlock" when pressing the lock key would UNLOCK the current target (any of its present units
     is locked, or a lock is staged); "lock" otherwise. So the footer legend reads `L unlock` while a
@@ -189,9 +199,11 @@ class ComponentsScreen(Screen):
                 _put(surface, y, 0, ' ' * (w - 1), pal.fill(y, 0, h, w, selected=True))
             _put(surface, y, 0, marker_sel, pal.style('select_marker', y, 0, h, w, selected=sel))
             _put(surface, y, 1, bch, pal.style(belem, y, 1, h, w, selected=sel))
+            dim = _su_dim(n)                           # auto-pulled system-update dep -> recede it
             nx, ncw = cols['name']
             _put(surface, y, nx, _fit(name, ncw).ljust(ncw),
-                 pal.style(_KIND_ELEM.get(n.kind, 'unit'), y, nx, h, w, selected=sel))
+                 pal.style('info_dim' if dim else _KIND_ELEM.get(n.kind, 'unit'),
+                           y, nx, h, w, selected=sel))
             rc = _node_component(n)
             rdesc = descriptions.get(rc, '') if rc else ''
             davail = ncw - len(name) - 2
@@ -200,14 +212,15 @@ class ComponentsScreen(Screen):
                      pal.style('row_desc', y, nx + len(name) + 2, h, w, selected=sel))
             col('driver', n.driver, 'driver')
             col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope')
-            col('status', n.status, n.status if n.status in STATUS_COLOR else 'unit')
+            col('status', n.status, 'info_dim' if dim else
+                (n.status if n.status in STATUS_COLOR else 'unit'))
             if err:
                 ix = cols['inst'][0]
                 _put(surface, y, ix, _fit(err, max(1, w - ix - 1)),
                      pal.style('row_error', y, ix, h, w, selected=sel))
             else:
-                col('inst', n.installed_str(), 'version')
-                col('latest', n.latest_str(), 'version', pad=False)
+                col('inst', n.installed_str(), 'info_dim' if dim else 'version')
+                col('latest', n.latest_str(), 'info_dim' if dim else 'version', pad=False)
         _scrollbar_v(surface, pal, list_top, w - 1, list_h, ms.top, list_h, len(ms.rows), h, w)
 
         _put(surface, h - 6, 0, _fit(_identity_line(ms, ctx, descriptions), w),
