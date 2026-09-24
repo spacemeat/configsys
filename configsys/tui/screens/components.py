@@ -117,12 +117,20 @@ class ComponentsScreen(Screen):
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
         from ... import sysupdates
-        su_n = sysupdates.cached_total(ctx)
-        if su_n:
-            stext = f'  ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
+        if getattr(ctx, '_sysupd_groups', None) is None:   # scan not done yet -> animated placeholder
+            import time
+            spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[int(time.time() * 10) % 10]
+            stext = f'  {spin} checking system updates…'
             if rend + len(stext) < w - 1:
                 _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
                 rend += len(stext)
+        else:
+            su_n = sysupdates.cached_total(ctx)
+            if su_n:
+                stext = f'  ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
+                if rend + len(stext) < w - 1:
+                    _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
+                    rend += len(stext)
         if diags:
             n = len(diags)
             elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
