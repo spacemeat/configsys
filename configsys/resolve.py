@@ -602,6 +602,15 @@ class _State:
             pool = [p for p in viable if p not in self.optin] or viable
             if len(pool) == 1:
                 chosen = pool[0]
+            elif self._version_scoped(cap):
+                # Several VERSION-SCOPED providers meet the constraint and the unconstrained default
+                # didn't qualify (e.g. `python3 <3.12` with 3.10 AND 3.11 present, default 3.13 out of
+                # range). Pick the HIGHEST provided version that satisfies it — the newest Python/JDK
+                # meeting the bound is the unsurprising choice, and it's deterministic, so a plain
+                # upper/lower bound needs no provider-pin. (A pin still overrides above.)
+                from .osversion import parse_version
+                chosen = max(pool, key=lambda p: (parse_version(
+                    str(self.components[p].prov_versions.get(cap))) or (), p))
             else:
                 raise ResolveError(f'ambiguous providers for "{cap} {constraint}": {sorted(pool)} '
                                    f'(required by {requiring}) — needs a provider-pin')

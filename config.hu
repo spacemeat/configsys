@@ -90,7 +90,7 @@ profiles: {
     tcl-lang: [ tcl  tk ]
     ocaml-lang: [ ocaml  opam  dune ]
     php-lang: [ php  composer ]
-    python-lang: [ python3.11  python3.12  python3.13  python3.14  cython  pyenv  python-build-deps  uv  jupyterlab  python3-pip  pipx  pytest  python3-dev ]
+    python-lang: [ python3.10  python3.11  python3.12  python3.13  python3.14  cython  pyenv  python-build-deps  uv  jupyterlab  python3-pip  pipx  pytest  python3-dev ]
     ruby-lang: [ ruby  bundler ]
     rust-lang: [ rust  miniforge ]
     scratch-lang: [ scratch ]

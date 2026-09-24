@@ -9543,6 +9543,62 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "glue\\pyenv-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pyenv"
+    },
+    "name": "pyenv-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\python-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "python-build-deps",
+     "packages": [
+      "base-devel",
+      "openssl",
+      "zlib",
+      "xz",
+      "tk"
+     ]
+    },
+    "name": "python-build-deps"
+   },
+   "pyenv\\python3.10": {
+    "driver": "pyenv",
+    "fields": {
+     "name": "python3.10",
+     "version": "3.10"
+    },
+    "name": "python3.10"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
   "python3.11": {
    "glue\\pyenv-glue": {
     "driver": "glue",
@@ -23591,6 +23647,29 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
   "python3.11": {
    "apt\\python3.11": {
     "driver": "apt",
@@ -36935,6 +37014,29 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
   "python3.11": {
    "apt\\python3.11": {
     "driver": "apt",
@@ -50217,6 +50319,29 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
   "python3.11": {
    "apt\\python3.11": {
     "driver": "apt",
@@ -63106,6 +63231,18 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "python3.10": {
+   "dnf\\python3.10": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10"
+     ]
+    },
+    "name": "python3.10"
    }
   },
   "python3.11": {
@@ -76059,6 +76196,18 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "python3.10": {
+   "dnf\\python3.10": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10"
+     ]
+    },
+    "name": "python3.10"
    }
   },
   "python3.11": {
@@ -99922,6 +100071,29 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
   "python3.11": {
    "apt\\python3.11": {
     "driver": "apt",
@@ -113421,6 +113593,18 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "python3.10": {
+   "dnf\\python3.10": {
+    "driver": "dnf",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10"
+     ]
+    },
+    "name": "python3.10"
    }
   },
   "python3.11": {
@@ -127232,6 +127416,29 @@
     "name": "shell-glue"
    }
   },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
+   }
+  },
   "python3.11": {
    "apt\\python3.11": {
     "driver": "apt",
@@ -140567,6 +140774,29 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "python3.10": {
+   "apt\\python3.10": {
+    "driver": "apt",
+    "fields": {
+     "name": "python3.10",
+     "packages": [
+      "python3.10",
+      "python3.10-minimal",
+      "python3.10-venv",
+      "python3.10-dev"
+     ],
+     "ppa": "deadsnakes/ppa"
+    },
+    "name": "python3.10"
+   },
+   "apt\\software-properties-common": {
+    "driver": "apt",
+    "fields": {
+     "name": "software-properties-common"
+    },
+    "name": "software-properties-common"
    }
   },
   "python3.11": {

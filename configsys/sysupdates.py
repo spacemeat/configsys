@@ -92,6 +92,12 @@ def managed_keys(ctx):
             continue
         k = drv.index_key(rc)
         keys.add((rc.driver, k))
+        # a multi-package native binding (apt `packages:` — python3.10 + -minimal + -venv + -dev)
+        # installs several packages the component OWNS; exclude each so none clutter the update lane.
+        pkgs = rc.fields.get('packages')
+        if isinstance(pkgs, list):
+            for p in pkgs:
+                keys.add((rc.driver, str(p)))
         if getattr(drv, 'native_backed', False) and native:
             keys.add((native, k))
     return keys

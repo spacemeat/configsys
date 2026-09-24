@@ -202,6 +202,15 @@
         // distro tools depend on it): select a version by calling `python3.X` or a venv built from it.
         // 3.11 / 3.12 / 3.14 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern
         // default (3.14 is stable but opt-in until the package ecosystem fully catches up to it).
+        python3.10: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Python 3.10 interpreter (+ minimal, venv, dev headers) — configsys's minimum line; the system python on many LTS distros."
+            standing: never-auto  provides: { python3: "3.10" }
+            install: [
+                { via: native  when: "debian"  packages: [ python3.10, python3.10-minimal, python3.10-venv, python3.10-dev ]
+                  ppa: deadsnakes/ppa  requires: software-properties-common }   // deadsnakes carries 3.10 where it isn't the base version (e.g. 24.04); harmless where it is
+                { via: native  when: "fedora or redhat"  packages: [ python3.10 ] }
+                { via: pyenv  version: "3.10" }
+            ]
+        }
         python3.11: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Python 3.11 interpreter (+ venv, dev headers)."
             standing: never-auto  provides: { python3: "3.11" }
             install: [
