@@ -6604,9 +6604,9 @@
    "pacman\\libssl": {
     "driver": "pacman",
     "fields": {
-     "name": "libssl"
+     "name": "openssl"
     },
-    "name": "libssl"
+    "name": "openssl"
    }
   },
   "libstdc++": {
@@ -84939,9 +84939,9 @@
    "brew\\libssl": {
     "driver": "brew",
     "fields": {
-     "name": "libssl"
+     "name": "openssl"
     },
-    "name": "libssl"
+    "name": "openssl"
    }
   },
   "libstdc++": {

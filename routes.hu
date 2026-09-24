@@ -3330,7 +3330,7 @@
         }
         glfw: { attrs: [ lib FOSS permissive ] description: "GLFW — multi-platform OpenGL/Vulkan window & input library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
-                         name: { apt: libglfw3-dev  dnf: glfw-devel  pacman: glfw  apk: glfw-dev  zypper: libglfw-devel  brew: glfw } } ]
+                         name: { apt: libglfw3-dev  dnf: glfw-devel  pacman: glfw  apk: glfw-dev  zypper: glfw-devel  brew: glfw } } ]
         }
         glew: { attrs: [ lib FOSS permissive ] description: "GLEW — the OpenGL Extension Wrangler library (dev)."
             install: [ { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
@@ -3398,7 +3398,7 @@
         libevent: { attrs: [ lib FOSS permissive ] description: "libevent — asynchronous event-notification library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libevent-dev    dnf: libevent-devel  apk: libevent-dev  zypper: libevent-devel } } ] }
         libssl:   { attrs: [ lib FOSS permissive ] description: "libssl — the OpenSSL TLS/crypto DEV library (headers + libs; distinct from the `openssl` CLI)."
-                    install: [ { via: native  name: { apt: libssl-dev      dnf: openssl-devel   apk: openssl-dev   zypper: libopenssl-devel } } ] }
+                    install: [ { via: native  name: { apt: libssl-dev      dnf: openssl-devel   pacman: openssl   apk: openssl-dev   zypper: libopenssl-devel   brew: openssl } } ] }   // Arch/brew ship headers in the main `openssl` package (no -dev split)
         zlib:     { attrs: [ lib FOSS permissive ] description: "zlib — the DEFLATE compression library (dev headers + libs)."
                     install: [ { via: native  name: { apt: zlib1g-dev      dnf: zlib-devel      apk: zlib-dev      zypper: zlib-devel } } ] }
         asio:     { attrs: [ lib FOSS permissive ] description: "Asio — cross-platform C++ async I/O + networking library (header library; dev package)."
