@@ -120,14 +120,14 @@ class ComponentsScreen(Screen):
         if getattr(ctx, '_sysupd_groups', None) is None:   # scan not done yet -> animated placeholder
             import time
             spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[int(time.time() * 10) % 10]
-            stext = f'  {spin} checking system updates…'
+            stext = f'   {spin} checking system updates…'
             if rend + len(stext) < w - 1:
                 _put(surface, 1, rend, stext, pal.style('info_dim', 1, rend, h, w))
                 rend += len(stext)
         else:
             su_n = sysupdates.cached_total(ctx)
             if su_n:
-                stext = f'  ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
+                stext = f'   ⟳ {su_n} system update{"s" if su_n != 1 else ""}'
                 if rend + len(stext) < w - 1:
                     _put(surface, 1, rend, stext, pal.style('issue_warning', 1, rend, h, w))
                     rend += len(stext)

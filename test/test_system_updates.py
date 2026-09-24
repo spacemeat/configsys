@@ -281,16 +281,13 @@ def test_gather_groups_all_managers_when_nothing_managed():
     assert tier['hello'] == 'apps'                    # snap: name heuristic (no tier notion)
 
 
-def test_gather_excludes_managed_picks_across_managers():
-    # a picked apt package (vim) and a picked flatpak app (Chrome) drop out of the update lane —
-    # they show in their own pick rows, not here. Chrome is excluded by app id despite the ref key.
-    units = {
-        'apt\\vim': ResolvedComponent(key='apt\\vim', driver='apt', comp='vim',
-                                      fields={'name': 'vim'}),
-        'flatpak\\chrome': ResolvedComponent(key='flatpak\\chrome', driver='flatpak', comp='chrome',
-                                             fields={'name': 'com.google.Chrome', 'hub': 'flathub'}),
-    }
-    groups = sysupdates.gather(_Ctx(_full_runner(), units=units, requested=['vim', 'chrome']))
+def test_gather_excludes_managed_keys_across_managers(monkeypatch):
+    # anything a component covers drops out of the update lane, keyed by (driver, package_key) — and
+    # a flatpak app is matched by its app id even though the upgradable key is a full ref. (managed_keys
+    # itself is built from the reverse index; here we stub it to test gather's exclusion in isolation.)
+    monkeypatch.setattr(sysupdates, 'managed_keys',
+                        lambda ctx: {('apt', 'vim'), ('flatpak', 'com.google.Chrome')})
+    groups = sysupdates.gather(_Ctx(_full_runner()))
     assert {r.key for r in groups['apt']} == {'htop'}                       # vim excluded
     assert {r.key for r in groups['flatpak']} == {'org.freedesktop.Platform/x86_64/24.08'}  # chrome excluded
     assert {r.key for r in groups['snap']} == {'hello'}

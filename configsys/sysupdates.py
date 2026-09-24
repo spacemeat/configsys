@@ -65,42 +65,19 @@ def machine_managers(ctx):
 
 
 def managed_keys(ctx):
-    '''{(driver_name, index_key)} for everything cfs KNOWS as a component and has installed — the set
-    the update lane EXCLUDES, so anything with a recipe (a pick OR an installed-but-untracked orphan
-    like wget/tor) is handled in the component/orphan world, not double-listed here. System Updates is
-    then the genuinely-unmanaged tail (base/deps/runtimes cfs has no recipe for); the bulk `apt
-    upgrade` still patches the excluded ones anyway. Resolution + one install scan; a native-backed
-    driver's unit (aur / native-pkg-file / clang) is also keyed under the native pm where it lands.'''
-    keys = set()
-    native = _native_pm(ctx)
-    names = set(ctx.config.requested())                  # picks
+    '''{(driver_name, package_key)} for every package ANY component could install here — the set the
+    update lane EXCLUDES, so anything cfs knows as a component is handled in the component/orphan
+    world, not double-listed. Built from orphans.build_reverse_index, so it is METHOD-COMPLETE: it
+    covers every valid binding of every component (a chrome installed as a flatpak is excluded via its
+    flatpak binding even though its DEFAULT route is the vendor .deb), the per-driver `name:` maps,
+    apt `packages:` sets (python3.10 + -minimal + -venv + -dev), and native-backed cross-indexing
+    (clang/aur/native-pkg-file under the native pm). SU only lists upgradable (installed) packages, so
+    covering not-installed component keys too is harmless. Empty on any failure — never bricks the lane.'''
     try:
-        units0, _e = ctx.routes.resolve_resilient(list(names))
         from . import orphans
-        installed, _orph, _c = orphans.install_overlay(ctx, units0)
-        names |= (installed & set(ctx.routes.components))   # + installed things cfs has a recipe for
-    except Exception:                                    # noqa: BLE001 — fall back to picks-only exclusion
-        pass
-    try:
-        units, _errs = ctx.routes.resolve_resilient(list(names))
-        ctx.prepare_units(units)
+        return set(orphans.build_reverse_index(ctx))
     except Exception:                                    # noqa: BLE001 — never let this brick `updates`
-        return keys
-    for rc in units.values():
-        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if drv is None:
-            continue
-        k = drv.index_key(rc)
-        keys.add((rc.driver, k))
-        # a multi-package native binding (apt `packages:` — python3.10 + -minimal + -venv + -dev)
-        # installs several packages the component OWNS; exclude each so none clutter the update lane.
-        pkgs = rc.fields.get('packages')
-        if isinstance(pkgs, list):
-            for p in pkgs:
-                keys.add((rc.driver, str(p)))
-        if getattr(drv, 'native_backed', False) and native:
-            keys.add((native, k))
-    return keys
+        return set()
 
 
 def gather(ctx):
