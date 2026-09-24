@@ -183,11 +183,21 @@ class Driver:
     def download_url(self, rc, version):
         '''Preferred download URL: a matched github release asset (authoritative,
         rename-robust) if the version spec has an `asset` glob, else the route `url`
-        template with $VERSION/$ARCH filled in.'''
+        template with $VERSION/$ARCH filled in.
+
+        Resolves the asset FRESH (refresh, unless --pretend), NOT from the version cache. This is the
+        install/upgrade download path (one component, a deliberate action), and the asset URL is
+        cached with a lifetime INDEPENDENT of the version string — which comes from the anonymous atom
+        feed and refreshes far more often. A stale cached asset URL would otherwise let get_latest
+        report a new version (fresh, via the feed) while the download fetched the OLD release's file
+        (e.g. insomnia: get_latest 13.3.0 but the cached .deb still 13.2.0 -> dpkg "already newest").
+        Forcing a live asset lookup here keeps the downloaded file in lockstep with the claimed
+        version, for every asset-download driver (native-pkg-file/tarball/appImage/font/source).'''
         spec = self._disco_spec(rc)
         if isinstance(spec, dict):
             from . import versions
-            asset = versions.discover_asset_url(spec, self.paths, offline=self._offline())
+            asset = versions.discover_asset_url(spec, self.paths, refresh=not self._offline(),
+                                                offline=self._offline())
             if asset:
                 return asset
             # API-free fallback for a LITERAL github asset name (no glob): the releases/latest/
