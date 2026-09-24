@@ -105,8 +105,17 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   with a coalesced `Driver.upgrade_many(names)` (one `apt install --only-upgrade <pkgs>` etc.),
   partitioning synthetic rows out of the normal plan. Deferred (distro managers ship fixes in
   complete bulks, so all-or-nothing is the safe default).
-- **P3 — remaining managers:** dnf / pacman / zypper / apk / brew / rpm-ostree `upgradable_index()`
-  + tier classify.
+- **P3 — remaining managers: DONE (dnf/pacman/zypper/apk/brew).** `upgradable_index` +
+  `upgrade_all` (+ `held_keys` where the manager has a hold: dnf versionlock, zypper locks, brew
+  pin; pacman/apk are rolling — no hold) on each: `dnf -q check-update` (exit 100 = updates),
+  `pacman -Qu`, `zypper list-updates`, `apk list --upgradable`, `brew outdated --verbose`; bulk =
+  `dnf upgrade -y` / `pacman -Syu` (full — the only safe Arch bulk) / `zypper update` / `apk
+  upgrade` / `brew upgrade` (no sudo). Tiers use the base name-heuristic classify (kernel/libc by
+  name) — only apt has the rich Priority tiers, per plan. machine_managers picks each OS's native pm
+  (verified fedora→dnf, arch→pacman, opensuse→zypper, alpine→apk, atomic→brew) + flatpak/snap.
+  **rpm-ostree deliberately omitted:** on atomic the native pm is brew (+ flatpak), and rpm-ostree is
+  image-based (a new deployment, not per-package upgradables) — forcing it into the per-package lane
+  would mislead, so it stays out. Parsers unit-tested; live-verified where the manager exists.
 - **P4 — release advisory.**
 
 ## Parked / open (defaults, overridable)
