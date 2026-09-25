@@ -474,3 +474,30 @@ def test_new_user_snippet_creates_and_deploys(tmp_path):
     path2, created2 = g.new_user_snippet('mytools', 'bash')           # same name -> no-op
     assert path2 == path and created2 is False and path.read_text() == 'alias x=1\n'
     assert g.new_user_snippet('foo', 'tcsh') == (None, False)         # unknown shell
+
+
+def test_override_forks_shipped_glue_and_reports_drift(tmp_path):
+    # `glue override`'s driver half: fork the DEFINING-layer snippet into the user's layer (shadowing
+    # the repo by search-path precedence), record the forked-from hash, and later report drift when the
+    # shipped source changes. Never clobbers an existing override.
+    p = paths_for(tmp_path, shells='bash')
+    ship = p.glue_dir / 'shell' / 'bash'                             # the repo/defining layer
+    ship.mkdir(parents=True)
+    (ship / 'btop.sh').write_text('alias b=btop\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    rc = ResolvedComponent(key='glue\\btop-glue', driver='glue', comp='btop-glue',
+                           fields={'glue': 'btop'}, source=str(p.glue_dir.parent / 'routes.hu'))
+    forked = g.override(rc)
+    assert forked == [(p.user_glue_dir / 'shell' / 'bash' / 'btop.sh', 'bash')]
+    override = forked[0][0]
+    assert override.read_text() == 'alias b=btop\n' and os.access(override, os.X_OK)
+    assert g.override_drift(rc) == []                                # source unchanged -> no drift
+    # an edit to the override is never clobbered by a re-override
+    override.write_text('alias b="btop --tree"\n')
+    g.override(rc)
+    assert override.read_text() == 'alias b="btop --tree"\n'
+    # the SHIPPED source moving on -> drift surfaces
+    (ship / 'btop.sh').write_text('alias b=btop  # v2\n')
+    drift = g.override_drift(rc)
+    assert len(drift) == 1 and drift[0][0] == 'bash' and drift[0][1] != drift[0][2]

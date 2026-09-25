@@ -23,6 +23,8 @@ conf.d/<name>.<ext>`, and links into `~/.config/<shell>/conf.d/`. The dotfiles d
 tree (config `*.cfs/` captures) and this `glue/` tree never share a directory.
 '''
 
+import hashlib
+import json
 import os
 import re
 import shlex
@@ -303,6 +305,96 @@ class Glue(Driver):
         '''Public wrapper: hook up `shell` and (re)link its user.d namespace into conf.d — so a snippet
         just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.'''
         return self._ensure_shell_loader(shell)
+
+    # -- override a component's shipped glue (docs/glue-customization-plan.md P2) -------------------
+
+    def _glue_names(self, rc):
+        '''The glue name(s) a component ships (`glue:` top-level + nested).'''
+        f, names = rc.fields, []
+        if f.get('glue'):
+            names.append(f['glue'])
+        for v in f.values():
+            if isinstance(v, dict) and v.get('glue'):
+                names.append(v['glue'])
+        return names
+
+    def _shipped_glue_path(self, rc, shell, glue):
+        '''The AUTHORITATIVE shipped snippet in the DEFINING layer (repo/plugin) — the thing an
+        override forks from and the drift check re-hashes. Not a user root, not the deploy mirror.'''
+        ext = _SHELL_EXT.get(shell)
+        if ext is None:
+            return None
+        return self._defining_root(rc) / 'shell' / shell / f'{glue}.{ext}'
+
+    def _overrides_file(self, root):
+        return Path(root) / 'glue-overrides.json'
+
+    def _load_overrides(self, root):
+        '''{"<comp>|<shell>": forked-from-sha256} recorded in `root` (the glue root the override
+        landed in), or {} if none/unreadable.'''
+        try:
+            data = json.loads(self._overrides_file(root).read_text(encoding='utf-8'))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    def _record_override(self, root, comp, shell, digest):
+        d = self._load_overrides(root)
+        d[f'{comp}|{shell}'] = digest
+        try:
+            f = self._overrides_file(root)
+            f.parent.mkdir(parents=True, exist_ok=True)
+            f.write_text(json.dumps(d, sort_keys=True), encoding='utf-8')
+        except OSError:
+            pass
+
+    def override(self, rc, shell=None, local=False):
+        '''Fork this glue component's SHIPPED snippet(s) into the user's layer so they shadow the repo
+        by content-root precedence. For each installed shell that ships a variant (optionally just
+        `shell`): copy <defining-root>/shell/<shell>/<glue>.<ext> to <dest>/… (NEVER clobber an
+        existing override), record the forked-from hash for the drift advisory, and collect the dest
+        path. Deploy is the caller's `install(rc)` (which resolves the override via the search path).
+        Returns [(dest_path, shell)]; empty if no store or no shipped variant.'''
+        dest = self._dest_glue_root(local=local)
+        if dest is None:
+            return []
+        out = []
+        for name, src, _dst in self._specs(rc):
+            sh = name.rsplit('@', 1)[1] if '@' in name else None
+            if sh is None or (shell is not None and sh != shell):
+                continue
+            glue = name.rsplit('@', 1)[0]
+            shipped = self._shipped_glue_path(rc, sh, glue)
+            if shipped is None or not shipped.is_file():
+                continue
+            target = Path(dest) / src
+            if not target.exists():                        # never overwrite an existing override
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(shipped, target)
+                target.chmod(0o755)
+            self._record_override(dest, rc.comp, sh, hashlib.sha256(shipped.read_bytes()).hexdigest())
+            out.append((target, sh))
+        return out
+
+    def override_drift(self, rc):
+        '''[(shell, forked_hash, current_hash)] for this component's recorded overrides whose SHIPPED
+        source has since changed (forked != current) — the drift advisory `check` surfaces. Reads the
+        overrides manifest from every glue root; a source that no longer exists is skipped.'''
+        drift = []
+        for root in self._user_glue_roots():
+            recorded = self._load_overrides(root)
+            for glue in self._glue_names(rc):
+                for shell in _GLUE_SHELLS:
+                    digest = recorded.get(f'{rc.comp}|{shell}')
+                    if digest is None:
+                        continue
+                    shipped = self._shipped_glue_path(rc, shell, glue)
+                    if shipped is None or not shipped.is_file():
+                        continue
+                    cur = hashlib.sha256(shipped.read_bytes()).hexdigest()
+                    if cur != digest:
+                        drift.append((shell, digest, cur))
+        return drift
 
     def _deploy_user_glue(self, shell):
         '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time

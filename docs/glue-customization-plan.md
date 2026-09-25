@@ -139,8 +139,15 @@ recorded fork hash, warns: `glue override <name> (<shell>) shadows a newer shipp
   links it into conf.d (+ refreshes the gestalt block). Default shell = `$SHELL` if a glue shell else
   bash. Prints portable-vs-local + a bless-a-primary nudge. --pretend reports without writing. Tests
   + man page regen. 1523 green.
-- **P2 — `glue override` + drift advisory.** Copy-a-comp's-glue-into-your-layer + the overrides
-  manifest + the `check` pass. Concern #1's wholesale case.
+- **P2 — `glue override` + drift advisory: DONE.** `configsys glue override <comp> [--shell S]
+  [--local]` — resolves the tool name or its `-glue` companion to a glue unit, `Glue.override` forks
+  each shipped snippet from the DEFINING layer into `_dest_glue_root` at its real `shell/<shell>/…`
+  path (shadowing the repo by search-path precedence; never clobbers an existing override), records
+  the forked-from sha256 in a `glue-overrides.json` manifest in that root, then `install(rc)`
+  redeploys (the override wins). `$EDITOR` on the forked files. `check` gained a glue-drift pass:
+  `Glue.override_drift` re-hashes each recorded override's current shipped source and warns
+  (non-blocking) when it moved on. Verified live (override btop → forked+redeployed; mangled hash →
+  drift warning). Tests + man page. 1524 green.
 - **P3 — `plugin init` capture + docs.** Sweep existing user glue into the primary; write the
   user-facing guidance.
 

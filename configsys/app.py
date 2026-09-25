@@ -2105,6 +2105,26 @@ def cmd_check(ctx, args):
                           for c, p in sorted(refreshstate.read_stale_pins(ctx.paths).items())
                           if isinstance(p, (list, tuple)) and len(p) == 2]
 
+    # glue-override drift (docs/glue-customization-plan.md P2): a user override whose SHIPPED source
+    # has since changed. Advisory — the override stays authoritative; nudge to refresh if wanted.
+    glue_drift_warnings = []
+    try:
+        gdrv = get_driver('glue', ctx.runner, ctx.paths)
+        _ov_comps = set()
+        for _root in gdrv._user_glue_roots():
+            _ov_comps.update(k.split('|', 1)[0] for k in gdrv._load_overrides(_root))
+        for _comp in sorted(_ov_comps):
+            _units, _e = ctx.routes.resolve_resilient([_comp])
+            _rc = next((r for r in _units.values() if r.driver == 'glue' and r.comp == _comp), None)
+            if _rc is None:
+                continue
+            for _shell, _old, _new in gdrv.override_drift(_rc):
+                glue_drift_warnings.append(
+                    f"glue override for '{_comp}' ({_shell}) shadows a NEWER shipped version — "
+                    f'`configsys glue override {_comp}` to refresh, or keep yours')
+    except Exception:                                    # noqa: BLE001 — drift lint must never break check
+        pass
+
     # RESOLVE the active set (no disk probe) so `check` surfaces resolve-TIME CONFIG inconsistencies
     # the static lint sees only as latent — a pin that can't satisfy a versioned `requires:` for an
     # ACTIVE consumer (e.g. a `cuda-toolkit` pin blocking `cudnn-9`), or an ambiguity needing a pin.
@@ -2130,7 +2150,7 @@ def cmd_check(ctx, args):
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
             and not stale_pin_warnings and not resolve_errors and not key_warnings
-            and not removal_warnings and not uninstall_conflicts):
+            and not removal_warnings and not uninstall_conflicts and not glue_drift_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
@@ -2166,12 +2186,14 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in uninstall_conflicts:
         print(f'  warn    {msg}')
+    for msg in glue_drift_warnings:
+        print(f'  warn    {msg}')
     n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
              + len(resolve_errors))
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
               + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings)
-              + len(uninstall_conflicts))
+              + len(uninstall_conflicts) + len(glue_drift_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
@@ -3148,6 +3170,12 @@ def build_parser():
     gla.add_argument('--local', action='store_true',
                      help="write to this machine's store even if a primary plugin is set "
                           '(default: the primary, so it travels to your other machines)')
+    glo = glsub.add_parser('override', help="fork a component's SHIPPED glue into your layer and edit "
+                                            'it (yours then shadows the repo; `check` flags drift)')
+    glo.add_argument('comp', help='component (tool or its -glue companion) whose glue to override')
+    glo.add_argument('--shell', help='only this shell (default: every installed shell it ships)')
+    glo.add_argument('--local', action='store_true',
+                     help="write to this machine's store even if a primary plugin is set")
 
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
@@ -3234,10 +3262,72 @@ def _open_in_editor(path):
 
 
 def cmd_glue(ctx, args):
-    if getattr(args, 'glue_command', None) == 'add':
+    cmd = getattr(args, 'glue_command', None)
+    if cmd == 'add':
         return cmd_glue_add(ctx, args)
-    print('usage: configsys glue add <name> [--shell S] [--local]')
+    if cmd == 'override':
+        return cmd_glue_override(ctx, args)
+    print('usage: configsys glue {add <name> | override <comp>} [--shell S] [--local]')
     return 1
+
+
+def _resolve_glue_unit(ctx, name):
+    '''The glue unit (ResolvedComponent, driver=="glue", with snippet specs) for `name` — accepting
+    the tool name (its suggested -glue companion) or the -glue component directly. None if none.'''
+    drv = get_driver('glue', ctx.runner, ctx.paths)
+
+    def glue_units(nm):
+        try:
+            units, _e = ctx.routes.resolve_resilient([nm])
+        except Exception:                                # noqa: BLE001
+            return []
+        return [rc for rc in units.values() if rc.driver == 'glue' and drv._specs(rc)]
+
+    for candidate in (name, f'{name}-glue'):
+        units = glue_units(candidate)
+        if not units:
+            continue
+        # prefer the unit whose comp is exactly the name or <name>-glue; else the first
+        for rc in units:
+            if rc.comp in (name, f'{name}-glue'):
+                return rc
+        return units[0]
+    return None
+
+
+def cmd_glue_override(ctx, args):
+    '''Fork a component's shipped glue into the user's layer (primary if set, else local), open the
+    copies in $EDITOR, and redeploy so they shadow the repo. Records the forked-from hash so `check`
+    can flag when the shipped version later moves on.'''
+    drv = get_driver('glue', ctx.runner, ctx.paths)
+    rc = _resolve_glue_unit(ctx, args.comp)
+    if rc is None:
+        print(f'configsys: no glue found for {args.comp!r} (try the tool name or its -glue component)')
+        return 1
+    portable = (getattr(ctx.paths, 'primary_glue_dir', None) is not None) and not args.local
+    if ctx.runner.pretend:
+        print(f'[pretend] would fork {rc.comp} glue into the '
+              f'{"primary plugin (portable)" if portable else "local store"} and redeploy')
+        return 0
+    forked = drv.override(rc, shell=args.shell, local=args.local)
+    if not forked:
+        print(f'configsys: {rc.comp} ships no glue snippet for '
+              f'{args.shell or "your installed shells"} to override')
+        return 1
+    print(f'forked {rc.comp} glue into the {"primary plugin (portable)" if portable else "local store"}:')
+    for path, shell in forked:
+        print(f'  [{shell}] {path}')
+    for path, _shell in forked:
+        _open_in_editor(path)
+    res = drv.install(rc)                                  # redeploy — the override wins by search path
+    if res is not None and not res.ok:
+        print(f'configsys: redeploy failed: {res.output or res.returncode}')
+        return 1
+    print(f'{rc.comp} now uses your override (edit the files above anytime; '
+          f'`configsys check` flags if the shipped version later changes).')
+    if not portable and not args.local:
+        print('  (saved locally — `configsys plugin bless <source>` sets a primary so it travels.)')
+    return 0
 
 
 def cmd_glue_add(ctx, args):
