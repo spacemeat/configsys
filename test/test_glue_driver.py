@@ -404,3 +404,55 @@ def test_install_backs_up_a_real_file_in_a_communal_confd(tmp_path):
     Glue(r, p).install(_glue_unit())
     joined = '\n'.join(r.calls)
     assert '.pre-configsys' in joined and 'mv -n' in joined and '! -L' in joined
+
+
+# -- user-glue namespace (user.d/) + 99-user home (docs/glue-customization-plan.md P0) --------------
+
+def test_user_glue_scaffolds_home_and_links(tmp_path):
+    # On shell hookup the user.d namespace deploys: a blessed 99-user home is scaffolded (dest = local
+    # store when no primary), and every user.d snippet links into ~/.config/<shell>/conf.d/, pointing
+    # straight at the layer file (edit-in-layer). A user's own snippet added later links on re-hookup.
+    from configsys.drivers.glue import _USER_GLUE_HEADER
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    assert g.install(_loader_unit('all')).ok                       # hooks bash -> deploys user.d
+    home_src = p.user_glue_dir / 'shell' / 'bash' / 'user.d' / '99-user.sh'
+    link = p.home / '.config' / 'bash' / 'conf.d' / '99-user.sh'
+    assert home_src.is_file() and home_src.read_text() == _USER_GLUE_HEADER
+    assert os.access(home_src, os.X_OK)                            # loaders source only a+x files
+    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(home_src)
+    # a user's OWN snippet dropped in the layer links on the next hookup, pointing at the layer file
+    mine = p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'myalias.sh'
+    mine.write_text('alias gs="git status"\n')
+    assert g.install(_loader_unit('all')).ok
+    mlink = p.home / '.config' / 'bash' / 'conf.d' / 'myalias.sh'
+    assert mlink.is_symlink() and os.path.realpath(mlink) == os.path.realpath(mine)
+
+
+def test_user_glue_not_resurrected_after_emptied(tmp_path):
+    # Scaffold gates on the user.d DIR existing (not a snippet), so a user who deletes 99-user keeps
+    # their home empty instead of it reappearing.
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    g.install(_loader_unit('all'))
+    (p.user_glue_dir / 'shell' / 'bash' / 'user.d' / '99-user.sh').unlink()   # user removes their home
+    g.install(_loader_unit('all'))                                            # re-hookup
+    assert not (p.user_glue_dir / 'shell' / 'bash' / 'user.d' / '99-user.sh').exists()
+
+
+def test_user_glue_inlines_into_gestalt_block(tmp_path):
+    # A gestalt/inline shell (elvish) has no conf.d sourcing — the rc block INLINES conf.d. The user.d
+    # 99-user home, linked into conf.d, therefore appears inside the managed block, so the user's
+    # startup runs. (Their free-form space is anything OUTSIDE the block, preserved verbatim.)
+    from configsys.drivers.glue import _RC_BEGIN, _RC_END, _SHELL_RC
+    p = paths_for(tmp_path, shells='elvish')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    assert g.install(_loader_unit('all')).ok
+    rc = g._expand(_SHELL_RC['elvish'])
+    body = rc.read_text()
+    assert _RC_BEGIN in body and _RC_END in body
+    block = body.split(_RC_BEGIN, 1)[1].split(_RC_END, 1)[0]
+    assert '99-user.elv' in block and 'configsys links this' in block         # the home is inlined

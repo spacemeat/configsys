@@ -122,10 +122,16 @@ recorded fork hash, warns: `glue override <name> (<shell>) shadows a newer shipp
 
 ## Phasing
 
-- **P0 — user-glue namespace + `99-user` home.** `user.d/` deploy across content roots + the
-  auto-scaffold. Delivers concern #2 (a real, blessed, untouched space) and #3 (drop it in the
-  primary → it travels) with no new commands yet. Verify on a conf.d shell AND a gestalt shell
-  (inline block picks it up).
+- **P0 — user-glue namespace + `99-user` home: DONE.** `glue._deploy_user_glue(shell)` (called from
+  `_ensure_shell_loader` after `_ensure_confd`, before the per-shell branches) scaffolds the blessed
+  `99-user.<ext>` home on first hookup — gated on the `user.d/` DIR existing, so emptying it doesn't
+  resurrect it — into `_dest_glue_root()` (primary-if-its-glue-dir-exists, else local), then links
+  every `<root>/shell/<shell>/user.d/*.<ext>` (local wins over primary) into `~/.config/<shell>/
+  conf.d/`, **pointing straight at the layer file** (edit-in-layer, portable when the layer is the
+  primary). conf.d shells source them; gestalt shells inline them (the block reads all of conf.d —
+  verified on elvish). Snippets chmod'd a+x (loaders source only executables). Delivers concern #2
+  (a real, blessed, untouched space) and #3 (a `user.d` snippet in the primary travels), no new
+  commands. Tests: user.d scaffold+link, no-resurrect, gestalt inline. 1522 green.
 - **P1 — `glue add`.** The command + destination resolution + `$EDITOR` + deploy. The ergonomic
   front door to P0's namespace.
 - **P2 — `glue override` + drift advisory.** Copy-a-comp's-glue-into-your-layer + the overrides

@@ -48,6 +48,16 @@ _SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
                 'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d',
                 'elvish': '~/.config/elvish/conf.d'}
 _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
+
+# The component-INDEPENDENT user-glue namespace: snippets under `<glue-root>/shell/<shell>/user.d/`
+# that the driver ALWAYS deploys into conf.d — the user's OWN startup, linked from the layer and
+# edited in the layer (portable when the layer is the primary plugin). `99-user` is the auto-scaffolded
+# home; the `99-` prefix loads it AFTER component glue so the user's aliases win. (docs/glue-customization-plan.md P0)
+_USER_GLUE_HEADER = (
+    '# Your own shell startup. configsys links this into conf.d but NEVER edits its contents.\n'
+    '# Add aliases / env / functions below — they load after component glue, so yours win.\n'
+    '# Keep it in your primary plugin (or use `configsys glue add`) to share it across machines.\n')
+
 # the component that INSTALLS each shell (for the managed-install detection) — identity except nu.
 _SHELL_COMPONENT = {'nu': 'nushell'}
 
@@ -236,6 +246,83 @@ class Glue(Driver):
         roots.append((self._defining_root(rc), 'template'))
         return roots
 
+    # -- user-glue namespace (component-independent; docs/glue-customization-plan.md P0) ------------
+
+    def _user_glue_roots(self):
+        '''Glue roots that can hold the user.d namespace, HIGHEST precedence first: the machine-local
+        store, then the primary plugin. (The repo ships no user.d — it is user content.)'''
+        roots = []
+        p = self.paths
+        if p is not None:
+            for attr in ('user_glue_dir', 'primary_glue_dir'):
+                d = getattr(p, attr, None)
+                if d is not None:
+                    roots.append(Path(d))
+        return roots
+
+    def _dest_glue_root(self, local=False):
+        '''Where a NEW user snippet is written: the primary plugin's glue root when one is configured
+        (its glue/ dir exists) and not `local`, so it travels; else the machine-local store. None if
+        neither exists.'''
+        p = self.paths
+        if p is None:
+            return None
+        prim = getattr(p, 'primary_glue_dir', None)
+        if prim is not None and not local:
+            return Path(prim)
+        u = getattr(p, 'user_glue_dir', None)
+        return Path(u) if u is not None else None
+
+    @staticmethod
+    def _user_d(root, shell):
+        return root / 'shell' / shell / 'user.d'
+
+    def _deploy_user_glue(self, shell):
+        '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time
+        (when NO user.d dir exists yet in any root — so emptying it doesn't resurrect it), then link
+        every user.d snippet (local root wins over primary) into ~/.config/<shell>/conf.d/. conf.d
+        shells source these; the inline/gestalt shells inline them (the block reads all of conf.d).
+        Links point straight at the layer file so editing the linked snippet edits the (portable)
+        source — the layers idea. Idempotent; runs on every shell hookup.'''
+        ext = _SHELL_EXT.get(shell)
+        if ext is None:
+            return
+        roots = self._user_glue_roots()
+        if not any(self._user_d(r, shell).is_dir() for r in roots):     # scaffold once
+            dest = self._dest_glue_root()
+            if dest is not None:
+                d = self._user_d(dest, shell)
+                d.mkdir(parents=True, exist_ok=True)
+                home = d / f'99-user.{ext}'
+                if not home.exists():
+                    home.write_text(_USER_GLUE_HEADER)
+                    home.chmod(0o755)
+                if dest not in roots:
+                    roots.append(dest)
+        snippets = {}
+        for r in roots:
+            d = self._user_d(r, shell)
+            if d.is_dir():
+                for f in sorted(d.glob(f'*.{ext}')):
+                    snippets.setdefault(f.name, f)                       # first (local) root wins
+        if not snippets:
+            return
+        confd = self._ensure_confd(shell)
+        for name, srcpath in snippets.items():
+            try:
+                srcpath.chmod(0o755)                                     # loaders source only a+x files
+            except OSError:
+                pass
+            tgt = confd / name
+            try:
+                if tgt.is_symlink():
+                    tgt.unlink()                                         # replace our/foreign link
+                elif tgt.exists():
+                    tgt.rename(tgt.with_name(name + BACKUP_SUFFIX))      # keep a pre-existing real file
+                tgt.symlink_to(srcpath)
+            except OSError:
+                pass
+
     def _resolve(self, src, rc):
         '''(resolved_src_path, tier, root) — the first content root that actually HAS `src` wins
         (a snippet `src` is already a root-relative path, e.g. `shell/bash/x.sh`). If none has it,
@@ -411,6 +498,7 @@ class Glue(Driver):
         if getattr(self.runner, 'pretend', False):         # --pretend: report hooked, write nothing
             return True
         self._ensure_confd(shell)
+        self._deploy_user_glue(shell)                      # scaffold + link the user.d namespace
         if shell == 'bash':                                # bash rides ~/.bash_aliases
             self._link_bash_aliases(rc)
             return True
