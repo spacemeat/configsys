@@ -2231,6 +2231,69 @@ def _git_init_commit(ctx, d, msg):
         print('  note: git commit skipped — set git user.name/email, then commit in the plugin dir')
 
 
+def _sweep_glue_to_primary(ctx, plug, dry_run, force):
+    '''Move the user's LOCAL glue into the primary plugin's glue/ so it travels: the authoring subtree
+    `<store>/shell/**` (your user.d snippets + `glue override` forks) plus the overrides manifest.
+    Skips the deploy mirror (`<store>/<shell>/conf.d/` — a regenerated cache). Returns (moved, skipped
+    rel-paths). Idempotent-ish: an entry already in the primary is skipped unless `force`.'''
+    import json as _json
+    import shutil
+    src_root = getattr(ctx.paths, 'user_glue_dir', None)
+    if src_root is None:
+        return 0, []
+    src_root = Path(src_root)
+    dest_glue = plug / 'glue'
+    moved, skipped = 0, []
+    src_shell = src_root / 'shell'
+    files = sorted(f for f in src_shell.rglob('*') if f.is_file()) if src_shell.is_dir() else []
+    for f in files:
+        rel = f.relative_to(src_root)                    # shell/<shell>/...  (user.d + overrides)
+        dst = dest_glue / rel
+        if dst.exists() and not force:
+            skipped.append(str(rel))
+            continue
+        moved += 1
+        if not dry_run:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(f), str(dst))
+    man = src_root / 'glue-overrides.json'               # merge the drift manifest (local wins on a tie)
+    if man.is_file():
+        moved += 1
+        if not dry_run:
+            dstman = dest_glue / 'glue-overrides.json'
+            merged = {}
+            for m in (dstman, man):
+                try:
+                    merged.update(_json.loads(m.read_text(encoding='utf-8')))
+                except (OSError, ValueError):
+                    pass
+            dstman.parent.mkdir(parents=True, exist_ok=True)
+            dstman.write_text(_json.dumps(merged, sort_keys=True), encoding='utf-8')
+            man.unlink()
+    if not dry_run and src_shell.is_dir():               # tidy now-empty dirs left by the moves
+        for d in sorted((p for p in src_shell.rglob('*') if p.is_dir()), reverse=True):
+            try:
+                d.rmdir()
+            except OSError:
+                pass
+        try:
+            src_shell.rmdir()
+        except OSError:
+            pass
+    return moved, skipped
+
+
+def _redeploy_user_glue(ctx):
+    '''Re-link the user.d namespace for every installed glue shell — after a sweep MOVES the sources
+    into the primary, the conf.d links (which point straight at the layer file) must repoint there.'''
+    try:
+        drv = get_driver('glue', ctx.runner, ctx.paths)
+        for shell in drv._installed_shells():
+            drv.deploy_user_glue(shell)
+    except Exception:                                    # noqa: BLE001 — never fail init on a relink
+        pass
+
+
 def cmd_plugin_init(ctx, args, decls):
     '''Assemble a personal PRIMARY plugin from local bits (captured dotfiles + profiles/components
     + your other plugins as transitive), or merge them into an existing primary.'''
@@ -2255,7 +2318,9 @@ def _plugin_init_create(ctx, args, decls):
 
     print(f'plugin init: create personal primary plugin "{name}"')
     print(f'  at          {plug}')
+    gmoved_est, _gskip = _sweep_glue_to_primary(ctx, plug, dry_run=True, force=args.force)
     print(f'  dotfiles    {len(store_entries)} item(s) moved from {ctx.paths.user_dotfiles_dir}')
+    print(f'  glue        {gmoved_est} user snippet/override(s) moved from {ctx.paths.user_glue_dir}')
     print(f'  config      {", ".join(sections) or "(none)"} copied from configsys.hu')
     print(f'  transitive  {len(decls)} plugin(s) carried into the manifest')
     if args.dry_run:
@@ -2266,6 +2331,10 @@ def _plugin_init_create(ctx, args, decls):
     dfdir = plug / 'dotfiles'
     for entry in store_entries:
         shutil.move(str(entry), str(dfdir / entry.name))
+    gmoved, _ = _sweep_glue_to_primary(ctx, plug, dry_run=False, force=args.force)
+    if gmoved:                                            # repoint user.d links at the new primary
+        ctx.paths.primary_glue_dir = plug / 'glue'
+        _redeploy_user_glue(ctx)
     (plug / '.gitignore').write_text('__pycache__/\n', encoding='utf-8')
     (plug / 'README.md').write_text(
         f'# {name}\n\nA personal [configsys](https://github.com/spacemeat/configsys) plugin '
@@ -2302,26 +2371,34 @@ def _plugin_init_merge(ctx, args, prim):
     skip = [e.name for e in entries if (dfdir / e.name).exists() and not args.force]
     sections = plugins.config_sections_text(ctx.paths.user_config_file, ('profiles', 'components'))
 
+    gmoved_est, _gskip = _sweep_glue_to_primary(ctx, plug, dry_run=True, force=args.force)
+
     print(f'plugin init: merge local bits into primary "{prim}" ({plug})')
     print(f'  dotfiles    {len(move)} to move'
           + (f'; {len(skip)} already present (--force to overwrite): {", ".join(skip)}' if skip else ''))
+    print(f'  glue        {gmoved_est} user snippet/override(s) to move')
     if sections:
         print(f'  config      your {", ".join(sections)} could move into the plugin (not auto-merged)')
     if args.dry_run:
         print('\n(dry run — nothing written)')
         return 0
-    if not move:
-        print('\nno dotfiles to merge.' + ('  (see the config note above.)' if sections else ''))
+    if not move and not gmoved_est:
+        print('\nnothing to merge.' + ('  (see the config note above.)' if sections else ''))
         return 0
-    dfdir.mkdir(parents=True, exist_ok=True)
-    for e in move:
-        dest = dfdir / e.name
-        if dest.is_symlink() or dest.is_file():
-            dest.unlink()
-        elif dest.is_dir():
-            shutil.rmtree(dest)
-        shutil.move(str(e), str(dest))
-    print(f'\nconfigsys: moved {len(move)} dotfile item(s) into "{prim}". Commit + push it to share.')
+    if move:
+        dfdir.mkdir(parents=True, exist_ok=True)
+        for e in move:
+            dest = dfdir / e.name
+            if dest.is_symlink() or dest.is_file():
+                dest.unlink()
+            elif dest.is_dir():
+                shutil.rmtree(dest)
+            shutil.move(str(e), str(dest))
+    gmoved, _ = _sweep_glue_to_primary(ctx, plug, dry_run=False, force=args.force)
+    if gmoved:                                           # primary_glue_dir already set; repoint links
+        _redeploy_user_glue(ctx)
+    print(f'\nconfigsys: moved {len(move)} dotfile + {gmoved} glue item(s) into "{prim}". '
+          'Commit + push it to share.')
     return 0
 
 

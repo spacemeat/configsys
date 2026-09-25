@@ -148,8 +148,14 @@ recorded fork hash, warns: `glue override <name> (<shell>) shadows a newer shipp
   `Glue.override_drift` re-hashes each recorded override's current shipped source and warns
   (non-blocking) when it moved on. Verified live (override btop → forked+redeployed; mangled hash →
   drift warning). Tests + man page. 1524 green.
-- **P3 — `plugin init` capture + docs.** Sweep existing user glue into the primary; write the
-  user-facing guidance.
+- **P3 — `plugin init` capture + docs: DONE.** `plugin init` (both create + merge paths) now sweeps
+  the user's LOCAL glue into the primary's `glue/` — `_sweep_glue_to_primary` moves the authoring
+  subtree `<store>/shell/**` (user.d snippets + `glue override` forks) + merges the
+  `glue-overrides.json` manifest, skips the deploy mirror, tidies emptied dirs, and `_redeploy_user_glue`
+  repoints the user.d links at the new primary location (create sets `primary_glue_dir` first). Shown
+  in the init plan ("glue N ...") + dry-run. User guide at `docs/shell-glue.md` (two lanes, 99-user,
+  add/override, drift, portability). Verified live (add+override local → init → moved into the primary,
+  links repointed, no dangles). 1524 green.
 
 ## Parked / open
 
