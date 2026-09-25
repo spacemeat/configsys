@@ -3138,6 +3138,17 @@ def build_parser():
     disc = dfsub.add_parser('discard', help='delete a staged glue candidate without activating it')
     disc.add_argument('names', nargs='+', help='component(s) whose staged glue to drop')
 
+    glp = sub.add_parser('glue', help='manage your OWN shell-startup snippets (aliases/env/functions) '
+                                      'in the user-glue namespace, portable via your primary plugin')
+    glsub = glp.add_subparsers(dest='glue_command')
+    gla = glsub.add_parser('add', help='create your own startup snippet and open it in $EDITOR '
+                                       '(linked into ~/.config/<shell>/conf.d/, loads after component glue)')
+    gla.add_argument('name', help='snippet name (a .<ext> suffix is optional)')
+    gla.add_argument('--shell', help='which shell (default: your $SHELL, else bash)')
+    gla.add_argument('--local', action='store_true',
+                     help="write to this machine's store even if a primary plugin is set "
+                          '(default: the primary, so it travels to your other machines)')
+
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
     mpsub = mp.add_subparsers(dest='manpages_command')
@@ -3198,6 +3209,68 @@ def cmd_dotfiles(ctx, args):
     if cmd == 'discard':
         return cmd_dotfiles_discard(ctx, args)
     return cmd_dotfiles_status(ctx, args)
+
+
+def _default_glue_shell(ctx):
+    '''The shell `glue add` targets by default: the user's login shell ($SHELL) when it's a known
+    glue shell, else bash.'''
+    from .drivers.glue import _GLUE_SHELLS
+    sh = os.path.basename((ctx.env.get('SHELL') or '').strip())
+    return sh if sh in _GLUE_SHELLS else 'bash'
+
+
+def _open_in_editor(path):
+    '''Open `path` in $VISUAL/$EDITOR on a terminal; otherwise just print where it is.'''
+    import shlex as _shlex
+    import subprocess
+    editor = os.environ.get('VISUAL') or os.environ.get('EDITOR')
+    if editor and sys.stdin.isatty() and sys.stdout.isatty():
+        try:
+            subprocess.run([*_shlex.split(editor), str(path)])
+            return
+        except Exception:                                # noqa: BLE001 — fall back to just naming it
+            print(f'  (could not launch $EDITOR — edit it yourself)')
+    print(f'  edit it: {path}')
+
+
+def cmd_glue(ctx, args):
+    if getattr(args, 'glue_command', None) == 'add':
+        return cmd_glue_add(ctx, args)
+    print('usage: configsys glue add <name> [--shell S] [--local]')
+    return 1
+
+
+def cmd_glue_add(ctx, args):
+    '''Create a user-owned startup snippet in the user-glue namespace (primary plugin if set, else the
+    local store), open it in $EDITOR, and deploy it (linked into conf.d; inlined for gestalt shells).'''
+    from .drivers.glue import _GLUE_SHELLS, _SHELL_CONFD
+    drv = get_driver('glue', ctx.runner, ctx.paths)
+    shell = args.shell or _default_glue_shell(ctx)
+    if shell not in _GLUE_SHELLS:
+        print(f'configsys: unknown shell {shell!r} — known: {", ".join(_GLUE_SHELLS)}')
+        return 1
+    dest = drv._dest_glue_root(local=args.local)
+    if dest is None:
+        print('configsys: no glue store to write to.')
+        return 1
+    portable = (getattr(ctx.paths, 'primary_glue_dir', None) is not None) and not args.local
+    if ctx.runner.pretend:
+        print(f'[pretend] would add {args.name} glue for {shell} under '
+              f'{dest}/shell/{shell}/user.d/ ({"primary — portable" if portable else "local"})')
+        return 0
+    path, created = drv.new_user_snippet(args.name, shell, local=args.local)
+    if path is None:
+        print('configsys: could not create the snippet (bad shell or no store).')
+        return 1
+    print(f'{"created" if created else "opening existing"} {path.name} for {shell} '
+          f'in the {"primary plugin (portable)" if portable else "local store"}')
+    _open_in_editor(path)
+    drv.deploy_user_glue(shell)                            # link into conf.d (+ refresh gestalt block)
+    confd = _SHELL_CONFD.get(shell, '~/.config/<shell>/conf.d')
+    print(f'linked into {confd}/{path.name} — loads on your next {shell} session.')
+    if not portable and not args.local:
+        print('  (saved locally — `configsys plugin bless <source>` sets a primary so your glue travels.)')
+    return 0
 
 
 def cmd_dotfiles_staged(ctx, args):
@@ -3612,6 +3685,7 @@ def cmd_theme(ctx, args):
 _COMMANDS = {
     'inspect': cmd_inspect,
     'dotfiles': cmd_dotfiles,
+    'glue': cmd_glue,
     'profile': cmd_profile,
     'config': cmd_config,
     'theme': cmd_theme,

@@ -132,8 +132,13 @@ recorded fork hash, warns: `glue override <name> (<shell>) shadows a newer shipp
   verified on elvish). Snippets chmod'd a+x (loaders source only executables). Delivers concern #2
   (a real, blessed, untouched space) and #3 (a `user.d` snippet in the primary travels), no new
   commands. Tests: user.d scaffold+link, no-resurrect, gestalt inline. 1522 green.
-- **P1 — `glue add`.** The command + destination resolution + `$EDITOR` + deploy. The ergonomic
-  front door to P0's namespace.
+- **P1 — `glue add`: DONE.** `configsys glue add <name> [--shell S] [--local]` — `Glue.new_user_snippet`
+  creates `user.d/<name>.<ext>` in `_dest_glue_root` (primary-if-set else local; `--local` forces),
+  headered + a+x, trailing-ext-tolerant, no-op on an existing name (preserves content); the CLI opens
+  `$VISUAL`/`$EDITOR` (falls back to printing the path off a terminal), then `Glue.deploy_user_glue`
+  links it into conf.d (+ refreshes the gestalt block). Default shell = `$SHELL` if a glue shell else
+  bash. Prints portable-vs-local + a bless-a-primary nudge. --pretend reports without writing. Tests
+  + man page regen. 1523 green.
 - **P2 — `glue override` + drift advisory.** Copy-a-comp's-glue-into-your-layer + the overrides
   manifest + the `check` pass. Concern #1's wholesale case.
 - **P3 — `plugin init` capture + docs.** Sweep existing user glue into the primary; write the

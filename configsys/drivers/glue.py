@@ -277,6 +277,33 @@ class Glue(Driver):
     def _user_d(root, shell):
         return root / 'shell' / shell / 'user.d'
 
+    def new_user_snippet(self, name, shell, local=False):
+        '''Create (if absent) a user.d snippet `<name>.<ext>` for `shell` in the destination glue root
+        (primary plugin if set + not `local`, else the local store), with a small header + a+x. The
+        front door for `configsys glue add`; the caller opens $EDITOR then deploys via
+        `_ensure_shell_loader(shell)`. Returns (path, created), or (None, False) for an unknown shell /
+        no store. A trailing `.<ext>` in `name` is stripped so `glue add foo` and `foo.sh` agree.'''
+        ext = _SHELL_EXT.get(shell)
+        if ext is None:
+            return None, False
+        dest = self._dest_glue_root(local=local)
+        if dest is None:
+            return None, False
+        stem = name[:-(len(ext) + 1)] if name.endswith(f'.{ext}') else name
+        path = self._user_d(dest, shell) / f'{stem}.{ext}'
+        created = not path.exists()
+        if created:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f'# {stem} — your own {shell} glue. configsys links this into conf.d but\n'
+                            f'# never edits it; loads after component glue, so your definitions win.\n')
+            path.chmod(0o755)
+        return path, created
+
+    def deploy_user_glue(self, shell):
+        '''Public wrapper: hook up `shell` and (re)link its user.d namespace into conf.d — so a snippet
+        just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.'''
+        return self._ensure_shell_loader(shell)
+
     def _deploy_user_glue(self, shell):
         '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time
         (when NO user.d dir exists yet in any root — so emptying it doesn't resurrect it), then link

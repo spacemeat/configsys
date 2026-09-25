@@ -456,3 +456,21 @@ def test_user_glue_inlines_into_gestalt_block(tmp_path):
     assert _RC_BEGIN in body and _RC_END in body
     block = body.split(_RC_BEGIN, 1)[1].split(_RC_END, 1)[0]
     assert '99-user.elv' in block and 'configsys links this' in block         # the home is inlined
+
+
+def test_new_user_snippet_creates_and_deploys(tmp_path):
+    # `glue add`'s driver half: create a user.d snippet (trailing ext stripped, a+x), deploy links it
+    # into conf.d; a second call on the same name is a no-op that preserves content; bad shell -> None.
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    path, created = g.new_user_snippet('mytools.sh', 'bash')          # trailing .sh stripped
+    assert created and path == p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'mytools.sh'
+    assert os.access(path, os.X_OK)
+    g.deploy_user_glue('bash')
+    link = p.home / '.config' / 'bash' / 'conf.d' / 'mytools.sh'
+    assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(path)
+    path.write_text('alias x=1\n')                                    # user edits it
+    path2, created2 = g.new_user_snippet('mytools', 'bash')           # same name -> no-op
+    assert path2 == path and created2 is False and path.read_text() == 'alias x=1\n'
+    assert g.new_user_snippet('foo', 'tcsh') == (None, False)         # unknown shell
