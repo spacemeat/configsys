@@ -9,7 +9,7 @@ from configsys.tui import screen
 
 @pytest.fixture(autouse=True)
 def _all_entries_exist(monkeypatch):
-    monkeypatch.setattr(screen, '_terminfo_exists', lambda name, env: True)
+    monkeypatch.setattr(screen, '_terminfo_exists', lambda name, env, system=True: True)
     monkeypatch.setattr(screen.curses, 'has_extended_color_support', lambda: True, raising=False)
 
 
@@ -38,6 +38,25 @@ def test_already_direct_or_multiplexer_term():
     assert screen.direct_color_term({'TERM': 'tmux-256color', 'COLORTERM': 'truecolor'}) is None
 
 
-def test_missing_direct_entry_keeps_term(monkeypatch):
-    monkeypatch.setattr(screen, '_terminfo_exists', lambda name, env: False)
+def test_missing_direct_entry_and_no_tic_keeps_term(monkeypatch):
+    monkeypatch.setattr(screen, '_terminfo_exists', lambda name, env, system=True: False)
+    monkeypatch.setattr('shutil.which', lambda _: None)
     assert screen.direct_color_term({'TERM': 'xterm-256color', 'COLORTERM': 'truecolor'}) is None
+
+
+def test_missing_direct_entry_is_built_into_cache(monkeypatch, tmp_path):
+    # A fresh Debian/Ubuntu/Pop has only ncurses-base (no *-direct entries, which live in
+    # ncurses-term): build xterm-direct = xterm-256color + the direct overlay with tic, in the cache.
+    import os
+    import shutil
+    monkeypatch.undo()                                # the real _terminfo_exists from here on
+    if not shutil.which('tic') or not screen._terminfo_exists('xterm-256color', {}):
+        pytest.skip('needs tic + an xterm-256color entry')
+    monkeypatch.setattr(screen.curses, 'has_extended_color_support', lambda: True, raising=False)
+    monkeypatch.setattr(screen, '_TERMINFO_DIRS', ())   # hide any system *-direct entries
+    env = {'TERM': 'xterm-256color', 'COLORTERM': 'truecolor', 'XDG_CACHE_HOME': str(tmp_path),
+           'PATH': os.environ.get('PATH', '')}
+    name, tdir = screen.direct_color_setup(env)
+    assert name == 'xterm-direct' and tdir == str(tmp_path / 'configsys' / 'terminfo')
+    assert (tmp_path / 'configsys' / 'terminfo' / 'x' / 'xterm-direct').is_file()
+    assert screen.direct_color_setup(env) == (name, tdir)          # reused, not rebuilt

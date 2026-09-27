@@ -14,8 +14,9 @@ direct_color_term(): which terminfo entry to start curses with. Terminals advert
 via COLORTERM but almost all still say TERM=xterm-256color, and under that entry ncurses can only
 fake truecolor by REDEFINING palette slots (OSC 4 via init_color). Terminals that ignore OSC 4
 (e.g. COSMIC's terminal) then show the stock 256-cube at those slots — every color wrong. So when
-the terminal claims truecolor we initialize against the matching `-direct` entry instead, where a
-color number IS a packed RGB sent as a real 24-bit SGR (the Palette's `direct` path).
+the terminal claims truecolor we initialize against the matching `-direct` entry instead (building
+it with `tic` when the system lacks one), where a color number IS a packed RGB sent as a real
+24-bit SGR (the Palette's `direct` path).
 '''
 
 import curses
@@ -63,10 +64,11 @@ _TERMINFO_DIRS = ('/etc/terminfo', '/lib/terminfo', '/usr/share/terminfo', '/usr
                   '/usr/local/share/terminfo', '/opt/homebrew/share/terminfo')
 
 
-def _terminfo_exists(name, env):
-    dirs = [env.get('TERMINFO'), os.path.expanduser('~/.terminfo')]
-    dirs += (env.get('TERMINFO_DIRS') or '').split(':')
-    dirs += _TERMINFO_DIRS
+def _terminfo_exists(name, env, system=True):
+    dirs = [env.get('TERMINFO')]
+    if system:
+        dirs += [os.path.expanduser('~/.terminfo')] + (env.get('TERMINFO_DIRS') or '').split(':')
+        dirs += _TERMINFO_DIRS
     for d in filter(None, dirs):
         for sub in (name[0], f'{ord(name[0]):x}'):          # Linux layout, then macOS hex layout
             if os.path.isfile(os.path.join(d, sub, name)):
@@ -74,12 +76,55 @@ def _terminfo_exists(name, env):
     return False
 
 
-def direct_color_term(env=None):
-    '''The `-direct` terminfo name to initialize curses with, or None to keep $TERM. Only when the
-    terminal claims truecolor (COLORTERM=truecolor|24bit, or an explicit --color 24bit), the color
-    cap allows it, python's curses can address >256 colors, and a sibling `<base>-direct` entry is
-    installed (xterm-256color -> xterm-direct, foot -> foot-direct). Not under tmux/screen, whose
-    truecolor passthrough is its own configuration.'''
+# The direct-color overlay (ncurses' own `xterm+direct` fragment), layered over the terminal's
+# entry via `use=` when the system lacks a `-direct` entry: those ship in `ncurses-term`, which a
+# fresh Debian/Ubuntu/Pop install does NOT have (only `ncurses-base`). Earlier caps win in terminfo,
+# so these override the base's color caps; everything else (keys, etc.) comes from $TERM.
+_DIRECT_OVERLAY = r'''%(name)s|%(term)s with direct color (built by configsys),
+	RGB, colors#0x1000000, pairs#0x10000, CO#8, initc@, ccc@, setb@, setf@,
+	op=\E[39;49m,
+	setab=\E[%%?%%p1%%{8}%%<%%t4%%p1%%d%%e48:2::%%p1%%{65536}%%/%%d:%%p1%%{256}%%/%%{255}%%&%%d:%%p1%%{255}%%&%%d%%;m,
+	setaf=\E[%%?%%p1%%{8}%%<%%t3%%p1%%d%%e38:2::%%p1%%{65536}%%/%%d:%%p1%%{256}%%/%%{255}%%&%%d:%%p1%%{255}%%&%%d%%;m,
+	use=%(term)s,
+'''
+
+
+def _cache_terminfo_dir(env):
+    base = env.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+    return os.path.join(base, 'configsys', 'terminfo')
+
+
+def _build_direct_entry(name, term, env):
+    '''Compile `name` = $TERM + the direct-color overlay into configsys' cache with `tic` (ncurses-bin,
+    always present where ncurses is). Returns the terminfo dir holding it, or None if it can't be
+    built (no tic, $TERM unknown to tic, unwritable cache). Reused once built.'''
+    import shutil
+    import subprocess
+    out = _cache_terminfo_dir(env)
+    if _terminfo_exists(name, {'TERMINFO': out}, system=False):
+        return out
+    tic = shutil.which('tic')
+    if not tic:
+        return None
+    try:
+        os.makedirs(out, exist_ok=True)
+        src = os.path.join(out, f'{name}.src')
+        with open(src, 'w') as f:
+            f.write(_DIRECT_OVERLAY % {'name': name, 'term': term})
+        r = subprocess.run([tic, '-x', '-o', out, src], capture_output=True, timeout=10,
+                           env={k: v for k, v in env.items() if k != 'TERMINFO'})
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out if r.returncode == 0 and _terminfo_exists(name, {'TERMINFO': out}, system=False) else None
+
+
+def direct_color_setup(env=None):
+    '''(terminfo name, terminfo dir or None) to initialize curses with for direct 24-bit color, or
+    None to keep $TERM. Only when the terminal claims truecolor (COLORTERM=truecolor|24bit, or an
+    explicit --color 24bit), the color cap allows it, and python's curses can address >256 colors.
+    Uses the system's sibling `<base>-direct` entry (xterm-256color -> xterm-direct) when installed,
+    else builds one into the cache (dir returned). Not under tmux/screen, whose truecolor passthrough
+    is its own configuration.'''
     from .theme import env_color_cap
     env = os.environ if env is None else env
     term = env.get('TERM') or ''
@@ -96,22 +141,38 @@ def direct_color_term(env=None):
         return None
     base = term[:-len('-256color')] if term.endswith('-256color') else term
     name = f'{base}-direct'
-    return name if _terminfo_exists(name, env) else None
+    if _terminfo_exists(name, env):
+        return name, None
+    built = _build_direct_entry(name, term, env)
+    return (name, built) if built else None
+
+
+def direct_color_term(env=None):
+    '''Just the terminfo name direct_color_setup() would start curses with (None = keep $TERM).'''
+    setup = direct_color_setup(env)
+    return setup[0] if setup else None
 
 
 @contextmanager
 def direct_color_env():
-    '''Swap TERM to the `-direct` entry for curses initialization only (ncurses reads TERM once, at
-    initscr), restoring it after, so children run from the TUI still see the user's real TERM.'''
-    name = direct_color_term()
-    old = os.environ.get('TERM')
-    if name:
-        os.environ['TERM'] = name
+    '''Swap TERM (and TERMINFO, for a cache-built entry) to the direct-color entry for curses
+    initialization only (ncurses reads them once, at initscr), restoring them after, so children run
+    from the TUI still see the user's real TERM.'''
+    setup = direct_color_setup()
+    saved = {k: os.environ.get(k) for k in ('TERM', 'TERMINFO')}
+    if setup:
+        os.environ['TERM'] = setup[0]
+        if setup[1]:
+            os.environ['TERMINFO'] = setup[1]
     try:
         yield
     finally:
-        if name:
-            os.environ['TERM'] = old
+        if setup:
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
 
 
 @contextmanager
