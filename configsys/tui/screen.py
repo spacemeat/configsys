@@ -14,9 +14,9 @@ direct_color_term(): which terminfo entry to start curses with. Terminals advert
 via COLORTERM but almost all still say TERM=xterm-256color, and under that entry ncurses can only
 fake truecolor by REDEFINING palette slots (OSC 4 via init_color). Terminals that ignore OSC 4
 (e.g. COSMIC's terminal) then show the stock 256-cube at those slots — every color wrong. So when
-the terminal renders truecolor we initialize against the matching `-direct` entry instead (building
-it with `tic` when the system lacks one), where a color number IS a packed RGB sent as a real
-24-bit SGR (the Palette's `direct` path).
+the terminal renders truecolor we initialize against the matching `-direct` entry instead
+(building it — in pure Python, else with `tic` — when the system lacks one), where a color number
+IS a packed RGB sent as a real 24-bit SGR (the Palette's `direct` path).
 '''
 
 import curses
@@ -64,16 +64,18 @@ _TERMINFO_DIRS = ('/etc/terminfo', '/lib/terminfo', '/usr/share/terminfo', '/usr
                   '/usr/local/share/terminfo', '/opt/homebrew/share/terminfo')
 
 
-def _terminfo_exists(name, env, system=True):
+def _terminfo_dirs(env, system=True):
+    '''ncurses' search order: $TERMINFO, ~/.terminfo, $TERMINFO_DIRS, then the system databases.'''
     dirs = [env.get('TERMINFO')]
     if system:
         dirs += [os.path.expanduser('~/.terminfo')] + (env.get('TERMINFO_DIRS') or '').split(':')
         dirs += _TERMINFO_DIRS
-    for d in filter(None, dirs):
-        for sub in (name[0], f'{ord(name[0]):x}'):          # Linux layout, then macOS hex layout
-            if os.path.isfile(os.path.join(d, sub, name)):
-                return True
-    return False
+    return [d for d in dirs if d]
+
+
+def _terminfo_exists(name, env, system=True):
+    from .terminfo import find_compiled
+    return find_compiled(name, _terminfo_dirs(env, system)) is not None
 
 
 # The direct-color overlay (ncurses' own `xterm+direct` fragment), layered over the terminal's
@@ -95,14 +97,23 @@ def _cache_terminfo_dir(env):
 
 
 def _build_direct_entry(name, term, env):
-    '''Compile `name` = $TERM + the direct-color overlay into configsys' cache with `tic` (ncurses-bin,
-    always present where ncurses is). Returns the terminfo dir holding it, or None if it can't be
-    built (no tic, $TERM unknown to tic, unwritable cache). Reused once built.'''
-    import shutil
-    import subprocess
+    '''Build `name` = $TERM + the direct-color overlay into configsys' cache. Returns the terminfo dir
+    holding it, or None if it can't be built. Reused once built. First in pure Python (terminfo.py —
+    byte-identical to tic's output, and needs no ncurses-bin, which minimal containers lack), then
+    with `tic` for a database layout that reader doesn't handle (e.g. a hashed .db).'''
+    from . import terminfo
     out = _cache_terminfo_dir(env)
     if _terminfo_exists(name, {'TERMINFO': out}, system=False):
         return out
+    # the base is searched like ncurses would — including a terminal's private TERMINFO (kitty)
+    if terminfo.build_direct(name, term, _terminfo_dirs(env), out):
+        return out
+    return _tic_direct_entry(name, term, env, out)
+
+
+def _tic_direct_entry(name, term, env, out):
+    import shutil
+    import subprocess
     tic = shutil.which('tic')
     if not tic:
         return None

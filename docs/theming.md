@@ -118,10 +118,11 @@ advertise 24-bit via `COLORTERM=truecolor`. When they do — or another sign say
 pass `--color 24bit` — configsys starts curses against the sibling `-direct` terminfo entry
 (`xterm-direct`, `foot-direct`, …) so colors go out as real 24-bit SGR. Those entries ship in
 `ncurses-term`, which fresh Debian/Ubuntu/Pop installs lack — then configsys builds one (`$TERM` +
-the direct-color caps, via `tic`, honoring a terminal's private `TERMINFO` like kitty's) into
-`~/.cache/configsys/terminfo`. The palette-redefinition fallback (OSC 4) is used only without any
-such signal (or without `tic`, or a Python curses limited to 256 colors, e.g. macOS's system
-Python) — it's fragile: a terminal that ignores OSC 4 (COSMIC's terminal, for one) shows its stock
+the direct-color caps, honoring a terminal's private `TERMINFO` like kitty's) into
+`~/.cache/configsys/terminfo`: in pure Python (`configsys/tui/terminfo.py`, byte-identical to
+`tic`'s output, so minimal containers without ncurses-bin work too), else with `tic`. The
+palette-redefinition fallback (OSC 4) is used only without any such signal (or a Python curses
+limited to 256 colors, e.g. macOS's system Python) — it's fragile: a terminal that ignores OSC 4 (COSMIC's terminal, for one) shows its stock
 256-color cube in those slots, i.e. every color wrong. Inside tmux direct color is used too (tmux
 downconverts RGB for an outer terminal that can't show it); GNU screen keeps $TERM. A `--color` cap
 below 24-bit disables it. `configsys --probe` shows the TERM curses actually used.

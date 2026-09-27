@@ -68,8 +68,10 @@ def test_no_truecolor_signal_keeps_term(env):
     assert screen.direct_color_term(env) is None
 
 
-def test_missing_direct_entry_and_no_tic_keeps_term(monkeypatch):
+def test_unbuildable_direct_entry_keeps_term(monkeypatch):
+    # no -direct entry anywhere, $TERM's own entry unreadable, and no tic -> keep $TERM
     monkeypatch.setattr(screen, '_terminfo_exists', lambda name, env, system=True: False)
+    monkeypatch.setattr('configsys.tui.terminfo.build_direct', lambda *a: False)
     monkeypatch.setattr('shutil.which', lambda _: None)
     assert screen.direct_color_term({'TERM': 'xterm-256color', 'COLORTERM': 'truecolor'}) is None
 
