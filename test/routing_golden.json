@@ -12394,6 +12394,13 @@
     },
     "name": "xcb-util-cursor"
    },
+   "pacman\\xz": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
     "fields": {
@@ -12471,6 +12478,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "pacman\\xz": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "tarball\\vulkan-sdk": {
     "driver": "tarball",
@@ -13062,6 +13076,15 @@
      "repo-component": "universe"
     },
     "name": "xsel"
+   }
+  },
+  "xz": {
+   "pacman\\xz": {
+    "driver": "pacman",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    }
   },
   "yabridge": {
@@ -17023,6 +17046,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "tarball\\flutter": {
     "driver": "tarball",
     "fields": {
@@ -18654,6 +18684,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
@@ -22301,6 +22338,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -26098,6 +26142,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -26148,6 +26199,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -26681,6 +26739,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -27014,6 +27081,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -30563,6 +30637,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "tarball\\flutter": {
     "driver": "tarball",
     "fields": {
@@ -32194,6 +32275,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
@@ -35722,6 +35810,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -39417,6 +39512,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -39467,6 +39569,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -40000,6 +40109,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -40316,6 +40434,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -45514,6 +45639,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -49034,6 +49166,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -52750,6 +52889,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -52800,6 +52946,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -53399,6 +53552,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -53715,6 +53877,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -57081,6 +57250,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "tarball\\flutter": {
     "driver": "tarball",
@@ -61952,6 +62128,13 @@
     },
     "name": "curl"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\nim-glue": {
     "driver": "glue",
     "fields": {
@@ -65714,6 +65897,13 @@
     },
     "name": "xcb-util-cursor-devel"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -65773,6 +65963,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -66360,6 +66557,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
   "yabridge": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -66675,6 +66881,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -70067,6 +70280,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "tarball\\flutter": {
     "driver": "tarball",
@@ -74938,6 +75158,13 @@
     },
     "name": "curl"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\nim-glue": {
     "driver": "glue",
     "fields": {
@@ -78700,6 +78927,13 @@
     },
     "name": "xcb-util-cursor-devel"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -78759,6 +78993,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -79346,6 +79587,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
   "yabridge": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -79661,6 +79911,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -82335,6 +82592,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "brew\\xz": {
+    "driver": "brew",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "tarball\\flutter": {
     "driver": "tarball",
@@ -89233,6 +89497,13 @@
     },
     "name": "curl"
    },
+   "brew\\xz": {
+    "driver": "brew",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -89620,6 +89891,15 @@
      "repo-component": "universe"
     },
     "name": "xsel"
+   }
+  },
+  "xz": {
+   "brew\\xz": {
+    "driver": "brew",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    }
   },
   "yarn": {
@@ -95165,6 +95445,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -98804,6 +99091,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -102621,6 +102915,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -102671,6 +102972,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -103204,6 +103512,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -103537,6 +103854,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -107222,6 +107546,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "tarball\\flutter": {
     "driver": "tarball",
@@ -112318,6 +112649,13 @@
     },
     "name": "curl"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\nim-glue": {
     "driver": "glue",
     "fields": {
@@ -116198,6 +116536,13 @@
     },
     "name": "xcb-util-cursor-devel"
    },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -116257,6 +116602,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -116910,6 +117262,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
   "yabridge": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -117239,6 +117600,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "dnf\\xz": {
+    "driver": "dnf",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -122551,6 +122919,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -126190,6 +126565,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -130008,6 +130390,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -130058,6 +130447,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -130591,6 +130987,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -130924,6 +131329,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -136084,6 +136496,13 @@
     },
     "name": "curl"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -139630,6 +140049,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\nim-glue": {
     "driver": "glue",
@@ -143382,6 +143808,13 @@
     },
     "name": "mesa-vulkan-drivers"
    },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -143432,6 +143865,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -144031,6 +144471,15 @@
     "name": "xsel"
    }
   },
+  "xz": {
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
+   }
+  },
   "yabridge": {
    "apt\\curl": {
     "driver": "apt",
@@ -144335,6 +144784,13 @@
      "name": "curl"
     },
     "name": "curl"
+   },
+   "apt\\xz": {
+    "driver": "apt",
+    "fields": {
+     "name": "xz-utils"
+    },
+    "name": "xz-utils"
    },
    "glue\\shell-glue": {
     "driver": "glue",

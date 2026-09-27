@@ -132,6 +132,7 @@
         flatpak:    { attrs: [ CLI daemon FOSS copyleft ] description: "Flatpak — sandboxed app distribution and runtime." install: [ { via: native } ] }
         fontconfig: { attrs: [ lib FOSS permissive ] description: "fontconfig — font discovery and configuration library." install: [ { via: native } ] }
         unzip:      { attrs: [ CLI FOSS permissive ] description: "Extract ZIP archives." install: [ { via: native } ] }
+        xz:         { attrs: [ CLI FOSS permissive ] description: "XZ/LZMA compression — `tar` needs it to unpack a .tar.xz." install: [ { via: native  name: { apt: xz-utils  default: xz } } ] }   // on every desktop install, but NOT in minimal containers
         zip:        { attrs: [ CLI FOSS permissive ] description: "Create and update ZIP archives." install: [ { via: native } ] }
         curl:       { attrs: [ CLI FOSS permissive ] description: "Transfer data over HTTP(S) and more — the ubiquitous `curl`." install: [ { via: native } ] }
         wget:       { attrs: [ CLI FOSS GNU copyleft ] description: "Retrieve files over HTTP(S)/FTP — the GNU `wget` non-interactive downloader." install: [ { via: native } ] }
@@ -1241,7 +1242,7 @@
         flutter: { attrs: [ CLI SDK toolchain FOSS permissive ] description: "Flutter — Google's cross-platform UI SDK (the `flutter` tool)."
             install: [ { via: snap  when: "ubuntu"  name: flutter  classic: true }
                        { via: aur  when: "arch"  name: flutter }
-                       { via: tarball  when: "not (ubuntu or arch)"  installDir: "$CONFIGSYS_SDK_DIR/flutter"  strip: 1  requires: [ glibc, curl ]
+                       { via: tarball  when: "not (ubuntu or arch)"  installDir: "$CONFIGSYS_SDK_DIR/flutter"  strip: 1  requires: [ glibc, curl, xz ]
                          version: { github: flutter/flutter  tag-re: "([0-9]+[.][0-9]+[.][0-9]+)$" }
                          url: "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_$VERSION-stable.tar.xz" } ] }
         raku: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Raku (Rakudo) — the Raku language, formerly Perl 6."
@@ -1366,7 +1367,7 @@
             // debian/fedora repos, so those pull the official nim-lang.org prebuilt (glibc x64).
             install: [ { via: native  when: "arch or opensuse or alpine" }
                        { via: native  when: "fedora_atomic" }
-                       { via: tarball  when: "debian or (redhat and not amzn)"  installDir: "$CONFIGSYS_APP_DIR/nim"  requires: glibc
+                       { via: tarball  when: "debian or (redhat and not amzn)"  installDir: "$CONFIGSYS_APP_DIR/nim"  requires: [ glibc, xz ]
                          version: { url: "https://nim-lang.org/install_unix.html"  regex: "nim-([0-9]+\.[0-9]+\.[0-9]+)-linux_x64" }
                          url: "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz" } ] }
 
@@ -1424,7 +1425,7 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `zig`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zig"
+                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zig"  requires: xz   // a .tar.xz
                   version: { github: ziglang/zig  strip-v: true }
                   // zig 0.14+ swapped the tarball name to zig-<arch>-linux-<ver> (was zig-linux-<arch>-<ver>)
                   url: "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz" }
@@ -2519,7 +2520,7 @@
         helix: { attrs: [ TUI app FOSS permissive ] suggests: [ helix-dotfiles  helix-glue ]  description: "Post-modern modal editor (`hx`) — batteries included."
             install: [
                 { via: native  when: "(redhat or arch or opensuse or alpine or fedora_atomic) and not amzn" }
-                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: glibc
+                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: [ glibc, xz ]
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
         // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
@@ -3012,7 +3013,7 @@
         // pulls curl. (Old: a [tarball\vulkan-sdk, dotfiles\vulkan-sdk] list bundle.)
         vulkan-sdk: { attrs: [ SDK FOSS permissive ] description: "Vulkan SDK — headers, tools, and validation layers."
             suggests: vulkan-sdk-glue
-            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: "$CONFIGSYS_SDK_DIR/vulkan"  requires: glibc   // glibc-linked SDK
+            install: [ { via: tarball  version: { static: 1.4.350.1 }  installDir: "$CONFIGSYS_SDK_DIR/vulkan"  requires: [ glibc, xz ]   // glibc-linked SDK
                          url: "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz" } ]
         }
         vulkan-sdk-glue: { description: "Vulkan SDK env config, linked into place."

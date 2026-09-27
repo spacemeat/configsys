@@ -2,5 +2,5 @@
 use path
 var loc = (cs-loc zig)
 if (not-eq $loc '') {
-  for d [$loc/zig-linux-*[nomatch-ok]] { if (and (path:is-dir $d) (not (has-value $paths $d))) { set paths = [$d $@paths]; break } }
+  for d [$loc/zig-*linux*[nomatch-ok]] { if (and (path:is-dir $d) (not (has-value $paths $d))) { set paths = [$d $@paths]; break } }
 }
