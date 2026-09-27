@@ -112,14 +112,19 @@ e.g. `xterm-256color` with the `ccc` capability). Otherwise the background is le
 foreground colors still apply, cube-approximated.
 
 **Direct color is preferred.** Most truecolor terminals still say `TERM=xterm-256color` and
-advertise 24-bit via `COLORTERM=truecolor`. When they do (or you pass `--color 24bit`), configsys
-starts curses against the sibling `-direct` terminfo entry (`xterm-direct`, `foot-direct`, …) so
-colors go out as real 24-bit SGR. Those entries ship in `ncurses-term`, which fresh
-Debian/Ubuntu/Pop installs lack — then configsys builds one (`$TERM` + the direct-color caps, via
-`tic`) into `~/.cache/configsys/terminfo`. The palette-redefinition fallback (OSC 4) is used only without
-that signal — it's fragile: a terminal that ignores OSC 4 (COSMIC's terminal, for one) shows its
-stock 256-color cube in those slots, i.e. every color wrong. Not done under tmux/screen, or when a
-`--color` cap below 24-bit is set; `configsys --probe` shows the TERM curses actually used.
+advertise 24-bit via `COLORTERM=truecolor`. When they do — or another sign says so (a TERM like
+`xterm-kitty`/`alacritty`/`foot`/`xterm-ghostty`, which survives SSH where COLORTERM doesn't;
+`TERM_PROGRAM`/`LC_TERMINAL` such as iTerm2/WezTerm; Windows Terminal, Konsole, VTE ≥ 0.52), or you
+pass `--color 24bit` — configsys starts curses against the sibling `-direct` terminfo entry
+(`xterm-direct`, `foot-direct`, …) so colors go out as real 24-bit SGR. Those entries ship in
+`ncurses-term`, which fresh Debian/Ubuntu/Pop installs lack — then configsys builds one (`$TERM` +
+the direct-color caps, via `tic`, honoring a terminal's private `TERMINFO` like kitty's) into
+`~/.cache/configsys/terminfo`. The palette-redefinition fallback (OSC 4) is used only without any
+such signal (or without `tic`, or a Python curses limited to 256 colors, e.g. macOS's system
+Python) — it's fragile: a terminal that ignores OSC 4 (COSMIC's terminal, for one) shows its stock
+256-color cube in those slots, i.e. every color wrong. Inside tmux direct color is used too (tmux
+downconverts RGB for an outer terminal that can't show it); GNU screen keeps $TERM. A `--color` cap
+below 24-bit disables it. `configsys --probe` shows the TERM curses actually used.
 
 The Theme screen shows the **detected color mode** (`direct 24-bit` / `24-bit` /
 `256-color (approx)` / `8-color`) so you can tell what your terminal gave us.

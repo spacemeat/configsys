@@ -14,7 +14,7 @@ direct_color_term(): which terminfo entry to start curses with. Terminals advert
 via COLORTERM but almost all still say TERM=xterm-256color, and under that entry ncurses can only
 fake truecolor by REDEFINING palette slots (OSC 4 via init_color). Terminals that ignore OSC 4
 (e.g. COSMIC's terminal) then show the stock 256-cube at those slots — every color wrong. So when
-the terminal claims truecolor we initialize against the matching `-direct` entry instead (building
+the terminal renders truecolor we initialize against the matching `-direct` entry instead (building
 it with `tic` when the system lacks one), where a color number IS a packed RGB sent as a real
 24-bit SGR (the Palette's `direct` path).
 '''
@@ -111,28 +111,55 @@ def _build_direct_entry(name, term, env):
         src = os.path.join(out, f'{name}.src')
         with open(src, 'w') as f:
             f.write(_DIRECT_OVERLAY % {'name': name, 'term': term})
-        r = subprocess.run([tic, '-x', '-o', out, src], capture_output=True, timeout=10,
-                           env={k: v for k, v in env.items() if k != 'TERMINFO'})
+        # env passes through TERMINFO/TERMINFO_DIRS so `use=$TERM` resolves an entry the terminal
+        # ships privately (kitty: TERMINFO -> its own xterm-kitty)
+        r = subprocess.run([tic, '-x', '-o', out, src], capture_output=True, timeout=10, env=dict(env))
     except (OSError, subprocess.SubprocessError):
         return None
     return out if r.returncode == 0 and _terminfo_exists(name, {'TERMINFO': out}, system=False) else None
 
 
+# TERM values whose terminal always renders 24-bit color. TERM (unlike COLORTERM) is forwarded
+# over SSH, so these carry the signal to a remote configsys too.
+_TRUECOLOR_TERMS = ('xterm-kitty', 'alacritty', 'foot', 'wezterm', 'xterm-ghostty', 'contour',
+                    'rio', 'mintty', 'iterm2')
+# TERM_PROGRAM / LC_TERMINAL (the latter forwarded over SSH by the default `SendEnv LC_*`)
+_TRUECOLOR_PROGRAMS = ('iterm.app', 'iterm2', 'wezterm', 'vscode', 'ghostty', 'hyper', 'tabby')
+
+
+def _truecolor_signal(env):
+    '''Does anything in the environment say this terminal renders 24-bit color? COLORTERM is the
+    convention; the rest cover the cases it's dropped (SSH doesn't forward it, sudo/su scrub it).'''
+    if (env.get('COLORTERM') or '').strip().lower() in ('truecolor', '24bit'):
+        return True
+    term = (env.get('TERM') or '').lower()
+    if term.startswith(_TRUECOLOR_TERMS):
+        return True
+    if any((env.get(k) or '').strip().lower() in _TRUECOLOR_PROGRAMS
+           for k in ('TERM_PROGRAM', 'LC_TERMINAL')):
+        return True
+    if env.get('WT_SESSION') or env.get('KONSOLE_VERSION'):     # Windows Terminal, Konsole
+        return True
+    try:                                        # VTE (GNOME Terminal, Tilix, …): colon SGR since 0.52
+        return int(env.get('VTE_VERSION') or 0) >= 5200
+    except ValueError:
+        return False
+
+
 def direct_color_setup(env=None):
     '''(terminfo name, terminfo dir or None) to initialize curses with for direct 24-bit color, or
-    None to keep $TERM. Only when the terminal claims truecolor (COLORTERM=truecolor|24bit, or an
+    None to keep $TERM. Only when the terminal renders truecolor (see _truecolor_signal, or an
     explicit --color 24bit), the color cap allows it, and python's curses can address >256 colors.
     Uses the system's sibling `<base>-direct` entry (xterm-256color -> xterm-direct) when installed,
-    else builds one into the cache (dir returned). Not under tmux/screen, whose truecolor passthrough
-    is its own configuration.'''
+    else builds one into the cache (dir returned). Inside tmux too — tmux itself downconverts RGB for
+    an outer terminal that can't show it — but not GNU screen, which may not pass RGB at all.'''
     from .theme import env_color_cap
     env = os.environ if env is None else env
     term = env.get('TERM') or ''
     cap = env_color_cap(env)
-    colorterm = (env.get('COLORTERM') or '').strip().lower()
-    if cap not in (None, 'truecolor') or (cap is None and colorterm not in ('truecolor', '24bit')):
+    if cap not in (None, 'truecolor') or (cap is None and not _truecolor_signal(env)):
         return None
-    if not term or 'direct' in term or env.get('TMUX') or term.startswith(('screen', 'tmux')):
+    if not term or 'direct' in term or (term.startswith('screen') and not env.get('TMUX')):
         return None
     try:
         if not curses.has_extended_color_support():
