@@ -12,6 +12,7 @@ import collections
 import fcntl
 import os
 import select
+import shutil
 import signal
 import subprocess
 import sys
@@ -397,6 +398,27 @@ class Runner:
             return True
         return False
 
+    def begin_sudo(self, on_line=None):
+        '''Authenticate sudo UP FRONT for a batch that has root work — the one prompt comes at the
+        start (not at the first privileged op, possibly an hour in, after the user walked away) —
+        and keep it warm until end_sudo(). Not done in --pretend, as root, or without sudo.
+        Returns True iff sudo is warm.'''
+        if self.pretend or self._sudo_warm:
+            return self._sudo_warm
+        try:
+            if os.geteuid() == 0:
+                return False                    # already root: nothing to cache
+        except AttributeError:                  # non-POSIX
+            return False
+        if shutil.which('sudo') is None:
+            return False
+        if on_line is not None and subprocess.run(
+                ['sudo', '-n', '-v'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL).returncode != 0:
+            on_line('This run needs root: authenticating sudo once, up front — it stays cached '
+                    'for the whole run.')
+        return self._ensure_sudo()
+
     def end_sudo(self):
         '''Drop the keepalive + warm flag at the end of a batch, so sudo can lapse to its normal
         timeout afterwards (we don't hold the machine authenticated indefinitely).'''
@@ -416,9 +438,8 @@ class Runner:
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
             cwd=None, env=None, presudo=False) -> Result:
-        # `presudo=True` (source builds whose script calls sudo internally): pre-authenticate sudo +
-        # keep-alive around the teed run, so the build's internal sudo doesn't stall waiting for a
-        # password it can't prompt for cleanly. A top-level `sudo=True` op pre-auths too (below).
+        # `presudo` is accepted but IGNORED (compat for plugins that still pass it): a batch with root
+        # work authenticates up front (begin_sudo) and then keeps every streamed op on the real tty.
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
@@ -432,13 +453,11 @@ class Runner:
         argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
-            # Streamed op on a real terminal: run it through a pty so we mirror the output live AND
-            # keep a bounded tail for failure reports. For a PRIVILEGED op (`sudo=True`) — or a build
-            # whose internal sudo needs the tty (`presudo`) — pre-authenticate sudo ONCE here and keep
-            # the credential warm, so the teed command never prompts mid-stream; that's what lets us
-            # capture sudo-install output cleanly (the teed sudo then behaves like the already-working
-            # non-sudo tee). Any pty hiccup or a failed pre-auth degrades to a plain inherited-stdio
-            # run — reporting must never break an install.
+            # Streamed op on a real terminal: mirror the output live AND keep a bounded tail for
+            # failure reports. A PRIVILEGED op (`sudo=True`), or any op in a batch holding a warm sudo
+            # credential, runs on the REAL tty (output through a pipe) so the batch's one cached
+            # credential applies; otherwise through its own pty. Any hiccup degrades to a plain
+            # inherited-stdio run — reporting must never break an install.
             if not capture and _can_tee():
                 if sudo:
                     # Top-level privileged op: warm the credential ONCE for the batch, then run on the
@@ -452,11 +471,21 @@ class Runner:
                             return Result(full, rc, captured=tail)
                         except Exception:       # noqa: BLE001 — degrade to plain streaming
                             pass
+                elif self._sudo_warm:
+                    # This batch holds a warm sudo credential (it has root work — see begin_sudo), so a
+                    # non-sudo op may still sudo INTERNALLY (a `curl … | sudo bash` installer, a build's
+                    # `sudo make install`, makepkg, a plugin build script). In its own pty that sudo
+                    # would be a new tty and re-prompt (tty_tickets) — per op, mid-run, fatal to an
+                    # unattended install. Keep it on the REAL tty instead, like a top-level sudo op, so
+                    # the batch's one credential covers it. Cost: no pty, so progress bars go plain.
+                    try:
+                        rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
+                        return Result(full, rc, captured=tail)
+                    except Exception:           # noqa: BLE001 — degrade to plain streaming
+                        pass
                 else:
-                    # A non-sudo streamed op, or a build whose script runs sudo INTERNALLY (`presudo`),
-                    # which needs a pty to prompt into — pre-auth (best effort) then tee.
-                    if presudo:
-                        self._ensure_sudo()
+                    # A non-sudo streamed op in a batch with no root work: tee through its own pty
+                    # (live colour/progress; an unexpected internal sudo prompts inside it).
                     try:
                         rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)

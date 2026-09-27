@@ -368,3 +368,37 @@ def test_terminal_released_restores_termios_on_a_fatal_signal(monkeypatch):
     with R.terminal_released(False):
         R._run_term_guards()                              # simulate the fatal signal firing mid-child
     assert ['SAVED'] in restored                          # termios reset to the saved (sane) attrs
+
+
+def test_warm_batch_keeps_nonsudo_ops_on_the_real_tty(monkeypatch):
+    # Unattended installs: in a batch holding a warm sudo credential, a NON-sudo op may still sudo
+    # internally (`curl … | sudo bash`, `sudo make install`, makepkg, a plugin build script). In its
+    # own pty that sudo is a new tty and re-prompts (tty_tickets); on the real tty it reuses the
+    # batch's credential. So once warm, streamed ops take the captured-real-tty path, not the pty.
+    import types
+    from configsys import runner as R
+    order = []
+    monkeypatch.setattr(R, '_can_tee', lambda: True)
+    monkeypatch.setattr(R, '_sudo_preauth', lambda: True)
+    monkeypatch.setattr(R, '_SudoKeepalive', lambda: types.SimpleNamespace(stop=lambda: None))
+    monkeypatch.setattr(R, '_run_captured_tty', lambda *a: (order.append('cap'), (0, 'out'))[1])
+    monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'out'))[1])
+    r = R.Runner()
+    r.run('curl -fsSL https://x/install.sh | sudo bash', capture=False)
+    assert order == ['tee']                          # cold batch: the pty, as before
+    assert r._ensure_sudo()
+    r.run('curl -fsSL https://x/install.sh | sudo bash', capture=False)
+    assert order == ['tee', 'cap']                   # warm batch: the real tty
+    r.end_sudo()
+    r.run('cargo install ripgrep', capture=False)
+    assert order == ['tee', 'cap', 'tee']            # released -> back to the pty
+
+
+def test_begin_sudo_skips_pretend_and_root(monkeypatch):
+    from configsys import runner as R
+    calls = []
+    monkeypatch.setattr(R, '_sudo_preauth', lambda: calls.append('preauth') or True)
+    assert R.Runner(pretend=True).begin_sudo() is False
+    monkeypatch.setattr(R.os, 'geteuid', lambda: 0)
+    assert R.Runner().begin_sudo() is False
+    assert calls == []

@@ -86,3 +86,38 @@ def test_every_failure_is_recorded_not_just_the_last(tmp_path, monkeypatch):
     plan = [('install', 'apt\\a', _unit('a')), ('install', 'apt\\b', _unit('b'))]
     res = _run(tmp_path, monkeypatch, drv, plan)
     assert res.n_fatal == 2 and len(res.failures) == 2 and res.rc_code == 1
+
+
+
+import pytest  # noqa: E402
+
+
+@pytest.mark.parametrize('driver, expect', [
+    ('cargo', False), ('pipx', False), ('tarball', False),       # user-scope, no internal sudo
+    ('apt', True), ('flatpak', False), ('snap', True),            # privileged drivers
+    ('script', True), ('source', True), ('aur', True),            # sudo INSIDE their commands
+])
+def test_may_need_root(driver, expect):
+    from configsys.drivers import get_driver
+    from configsys.runner import Runner
+    drv = get_driver(driver, Runner(pretend=True), None)
+    assert actions._may_need_root(drv, _unit('x', driver)) is expect
+
+
+def test_may_need_root_assumes_yes_for_plugin_drivers():
+    # a code plugin's driver (blender/kicad builds sudo internally) — unknown, so authenticate up front
+    assert actions._may_need_root(StubDrv(), _unit('x', 'blender-build')) is True
+
+
+def test_run_plan_authenticates_once_up_front(tmp_path, monkeypatch):
+    began = []
+    ctx = _ctx(tmp_path)
+    ctx.runner.begin_sudo = lambda on_line=None: began.append('begin')
+    order = []
+    drv = StubDrv()
+    drv.install = lambda rc: (order.append(('install', began[:])), Result('', 0))[1]
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: drv)
+    actions.run_plan(ctx, [('install', 'apt\\a', _unit('a')), ('install', 'apt\\b', _unit('b'))],
+                     on_line=lambda *_a: None)
+    assert began == ['begin']                                     # once, for the whole batch
+    assert order[0] == ('install', ['begin'])                     # BEFORE the first op runs

@@ -83,6 +83,27 @@ def installed_despite_failure(drv, rc, op, version):
     return got if (target and str(got) == str(target)) else None
 
 
+# Built-in drivers that don't run as root themselves but routinely sudo INSIDE their commands: a
+# script's declared install-cmd (`curl … | sudo bash`), a source recipe's `sudo make install`,
+# makepkg (aur). Code-plugin drivers are treated the same (blender/kicad builds sudo internally).
+_INTERNAL_SUDO_DRIVERS = frozenset({'script', 'source', 'aur'})
+
+
+def _may_need_root(drv, rc):
+    '''Could this op need sudo? Its driver is privileged or runs this unit with sudo (system scope),
+    or it's a driver known to sudo inside its commands, or a plugin driver (unknown -> assume yes).
+    Decides whether a batch authenticates up front; a false positive only costs one early prompt.'''
+    if drv is None:
+        return False
+    try:
+        if drv.privileged or drv.sudo(rc):
+            return True
+    except Exception:                                # noqa: BLE001
+        return True
+    return (getattr(drv, 'name', None) in _INTERNAL_SUDO_DRIVERS
+            or not type(drv).__module__.startswith('configsys.'))
+
+
 def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     '''Execute an ordered `[(op, key, rc)]` plan — the ONE op-execution loop the CLI and TUI share.
     Per step it dispatches the op (install/remove/upgrade/lock/unlock/set-version), runs the
@@ -90,12 +111,17 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     classifies the result: an `advisory` result ("needs your input", e.g. dotfiles refusing to
     clobber) is explained not reported; a hard failure that nonetheless left the package present
     (apt's failed-Recommends case) is downgraded to installed-with-a-warning. Ctrl-C aborts the whole
-    batch; the once-per-batch sudo keep-alive is released and the ledger saved at the end. Progress
+    batch. If any op may need root, sudo is authenticated ONCE up front (begin_sudo) and kept warm
+for the whole batch, every streamed op reusing it — so a long run can go unattended after the first
+prompt; the keep-alive is released and the ledger saved at the end. Progress
     prints via `on_line`. Returns a RunResult. Presentation of the reboot advisory and the report
     offer stays with each surface.'''
     from . import reportgen, shellguard
     from .drivers import get_driver
     outcomes, failures, n_fatal, rc_code, interrupted = [], [], 0, 0, False
+    begin = getattr(ctx.runner, 'begin_sudo', None)
+    if begin and any(_may_need_root(get_driver(rc.driver, ctx.runner, ctx.paths), rc) for _, _, rc in plan):
+        begin(on_line)                   # the ONE prompt, up front — then the run can go unattended
     for cur_op, key, rc in plan:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None:

@@ -75,4 +75,8 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **Build the path first, grow structure around it** (maze splash): the head follows a precomputed
   route = progress, so no runtime physics is needed to guarantee a solvable/animatable result.
 - **A pty is a different controlling terminal.** Under sudo `tty_tickets`, capturing through a pty
-  re-prompts every op; pre-auth on the *real* tty once per batch instead (sudo-tty fix).
+  re-prompts every op; pre-auth on the *real* tty once per batch instead (sudo-tty fix). That holds
+  for sudo run *inside* a command too (a `| sudo bash` installer, `sudo make install`, makepkg, a
+  plugin build script): a batch that may need root authenticates **up front** (the one prompt comes
+  before the user walks away) and then keeps **every** streamed op on the real tty, so a long
+  install runs unattended after it.
