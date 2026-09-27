@@ -107,8 +107,7 @@ class NativePkgFile(Driver):
         return None
 
     def install(self, rc):
-        version = self.resolve_version(rc) or ''
-        url = self.download_url(rc, version)
+        version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
             return Result(f'(native-pkg-file: no release asset resolved for {rc.comp})', 1)
         fmt = self._format()

@@ -341,3 +341,45 @@ def test_concurrent_discovery_of_distinct_keys_persists_every_record(tmp_path):
         key = versions.source_key({'github': r})
         assert disk.any(key) is not None, f'lost discovery for {r}'
         assert disk.any(key)['version'] == f'v{i}.0.0'
+
+
+KT = 'JetBrains/kotlin'
+KT_FEED = ['build-2.5.0-dev-8861', 'build-2.5.0-dev-8852', 'build-2.4.21-RC-421', 'build-2.5.0-dev-8846']
+
+
+def test_rc_dash_build_tag_is_prerelease():
+    assert versions._tag_is_prerelease('build-2.4.21-RC-421')
+    assert versions._tag_is_prerelease('v2.4.21-RC')
+    assert not versions._tag_is_prerelease('v2.4.20')
+    assert not versions._tag_is_prerelease('src-1.0')           # `rc` inside a word isn't a marker
+
+
+def test_ci_tag_flooded_feed_falls_back_to_latest_release():
+    # kotlin tags every CI build (build-2.5.0-dev-…, build-2.4.21-RC-421), burying the real v2.4.20
+    # past the feed's ~10 entries. Nothing in the feed is a stable VERSION-like tag -> ask the API
+    # for the latest release, not a CI tag (which read "outdated" forever: unparseable, != latest).
+    latest = versions.GITHUB_LATEST.format(repo=KT)
+    f = fetcher({atom_url(KT): atom(KT, KT_FEED), latest: json.dumps({'tag_name': 'v2.4.20'})})
+    assert versions.discover({'github': KT, 'strip-v': True}, fetch=f) == '2.4.20'
+    assert latest in f.calls
+
+
+def test_version_like_feed_tag_never_calls_the_api():
+    # the common case stays API-free (rate limit): a stable version-like tag is in the feed
+    f = fetcher({atom_url(KT): atom(KT, ['v2.5.0-RC', 'v2.4.20'])})
+    assert versions.discover({'github': KT, 'strip-v': True}, fetch=f) == '2.4.20'
+    assert not any('api.github.com' in u for u in f.calls)
+
+
+def test_unparseable_feed_and_no_api_keeps_old_fallback():
+    # API unreachable (rate-limited/offline): still resolve to something, as before
+    f = fetcher({atom_url(KT): atom(KT, ['tip'])})
+    assert versions.discover({'github': KT}, fetch=f) == 'tip'
+
+
+def test_discover_asset_returns_the_assets_release_version():
+    rel = {'tag_name': 'v2.4.20', 'assets': [
+        {'name': 'kotlin-compiler-2.4.20.zip', 'browser_download_url': 'https://x/kotlin-compiler-2.4.20.zip'}]}
+    f = fetcher({versions.GITHUB_LATEST.format(repo=KT): json.dumps(rel)})
+    spec = {'github': KT, 'strip-v': True, 'asset': 'kotlin-compiler-*.zip'}
+    assert versions.discover_asset(spec, refresh=True, fetch=f) == ('2.4.20', 'https://x/kotlin-compiler-2.4.20.zip')

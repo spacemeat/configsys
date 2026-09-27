@@ -112,7 +112,8 @@ class Source(Driver):
         steps = self._build_steps(rc)
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
-        version = version if version is not None else (self.resolve_version(rc) or '')
+        explicit = version is not None
+        version = version if explicit else (self.resolve_version(rc) or '')
         src = self._src_dir(rc)
         prefix = self._prefix(rc)
         srcq = shlex.quote(str(src))
@@ -133,7 +134,9 @@ class Source(Driver):
                        f'git -C {srcq} clean -xfd -e {shlex.quote(marker_name)}')
             stamp = version or ref
         else:                                       # archive acquisition: download + extract
-            url = self.download_url(rc, version)
+            # the version of the archive actually fetched (an asset glob's release may differ from
+            # the feed-discovered one); an explicit set_version target is kept as given
+            version, url = self.download_target(rc, version if explicit else None)
             if not url:
                 return Result.fail(f'{rc.comp}: source binding has neither a `repo:` to clone nor '
                                    f'a `url:`/`version:` archive to download')

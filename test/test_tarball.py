@@ -273,3 +273,21 @@ def test_install_allows_dedicated_subdir(tmp_path):
     res = Tarball(r, paths=p).install(tb_unit(d, comp='android-studio'))
     assert res.ok and len(r.calls) == 1                          # the guard doesn't block a real subdir
     assert f'mv {d}.configsys-stage {d}' in r.calls[0]           # swaps the stage into the dedicated dir
+
+
+def test_marker_records_the_downloaded_releases_version(tmp_path, monkeypatch):
+    # kotlin: the tag feed said `build-2.4.21-RC-421` but the asset came from the latest RELEASE,
+    # 2.4.20 — the marker must record what was actually fetched, not the feed's claim.
+    from configsys import versions
+    monkeypatch.setattr(versions, 'discover_asset',
+                        lambda spec, paths, **kw: ('2.4.20', 'https://x/kotlin-compiler-2.4.20.zip'))
+    rc = ResolvedComponent(key='tarball\\kotlin', driver='tarball', comp='kotlin',
+                           fields={'installDir': str(tmp_path / 'kotlin'),
+                                   'version': {'github': 'JetBrains/kotlin', 'strip-v': True,
+                                               'asset': 'kotlin-compiler-*.zip'}})
+    r = Runner(pretend=True)
+    t = Tarball(r, paths=None)
+    monkeypatch.setattr(t, 'resolve_version', lambda rc, **kw: 'build-2.4.21-RC-421')
+    monkeypatch.setattr(t, '_offline', lambda: False)
+    t.install(rc)
+    assert 'printf %s 2.4.20' in r.calls[0] and 'kotlin-compiler-2.4.20.zip' in r.calls[0]

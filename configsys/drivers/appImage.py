@@ -63,8 +63,7 @@ class AppImage(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        version = self.resolve_version(rc) or ''
-        url = self.download_url(rc, version)
+        version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
             return Result('(appImage: no url in route)', 1)
         t = self._target(rc)

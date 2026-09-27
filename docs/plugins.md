@@ -225,7 +225,10 @@ not a pile of underscore methods. The contract inventory, from today's `configsy
 **Provided helpers a Driver MAY use (ABI‑stable), promoted to clean public names and clustered
 by co‑usage:**
 - *resolve + fetch an artifact* — `resolve_version(rc, *, refresh=False)`,
-  `download_url(rc, version)`, `arch()`.
+  `download_url(rc, version)`, `download_target(rc, version=None)` (→ `(version, url)`: the URL
+  plus the version of the release it ACTUALLY fetches — record that one, since a github `asset`
+  glob's release can differ from the tag-feed version `resolve_version` reports; additive, same
+  ABI), `arch()`.
 - *install location / privilege / display* — `scoped_dir(raw, rc)`, `sudo(rc)`, `scope(rc)`,
   `display_path(p)`.
 

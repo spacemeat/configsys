@@ -158,7 +158,7 @@ def _tag_transform(tag, spec):
     return tag
 
 
-_PRERELEASE_MARKER = re.compile(r'(?i)(alpha|beta|\brc[0-9.]|preview|nightly|snapshot|canary|-pre\b|\bdev\b)')
+_PRERELEASE_MARKER = re.compile(r'(?i)(alpha|beta|\brc(?:[0-9.]|\b)|preview|nightly|snapshot|canary|-pre\b|\bdev\b)')
 
 
 def _tag_is_prerelease(raw):
@@ -178,20 +178,38 @@ def _tag_is_prerelease(raw):
         return bool(_PRERELEASE_MARKER.search(raw))
 
 
-def _select_github_tag(tags, spec):
+def _select_github_tag(tags, spec, fetch=None):
     '''Pick the version from an atom feed's newest-first tag list. Skip PRERELEASE tags (stable-only,
-    matching the install path's /releases/latest); with `tag-re:`, prefer the newest RAW tag that
-    matches it (a monorepo that interleaves several components' tags). If nothing stable/matching is
-    found, fall back to the newest matching tag (else the newest) so a prerelease-only project still
+    matching the install path's /releases/latest) and tags that don't read as a VERSION once
+    transformed (CI tags like kotlin's `build-2.4.21-RC-421`, rolling ones like `tip`) — they can't
+    be compared, so an install would read outdated forever. With `tag-re:`, only tags matching it
+    count (a monorepo that interleaves several components' tags).
+
+    The feed holds only the ~10 newest tags, so a repo that tags every CI build buries its real
+    releases past it. When nothing in the feed qualifies, ask api.github.com for the latest release
+    (one rate-limited call, only on this path). If that fails too, fall back to the newest stable
+    matching tag, else the newest matching, else the newest — so a prerelease-only project still
     resolves to something.'''
+    from .osversion import parse_loose
     tre = spec.get('tag-re')
 
     def _matches(t):
         return (not tre) or re.search(tre, t)
 
-    chosen = next((t for t in tags if _matches(t) and not _tag_is_prerelease(t)), None)
-    if chosen is None:                             # no stable match -> newest matching, else newest
-        chosen = next((t for t in tags if _matches(t)), None) or (tags[0] if tags else None)
+    stable = [t for t in tags if _matches(t) and not _tag_is_prerelease(t)]
+    for t in stable:
+        v = _tag_transform(t, spec)
+        if parse_loose(v) is not None:
+            return v
+    if fetch is not None and spec.get('github'):
+        try:
+            t = json.loads(fetch(GITHUB_LATEST.format(repo=spec['github']))).get('tag_name')
+        except Exception:
+            t = None
+        if t and _matches(t):
+            return _tag_transform(t, spec)
+    chosen = (stable[0] if stable else None) or next((t for t in tags if _matches(t)), None) \
+        or (tags[0] if tags else None)
     return _tag_transform(chosen, spec) if chosen else None
 
 
@@ -262,9 +280,9 @@ def _discover_live(spec, fetch):
     if 'github' in spec:
         # VERSION only, via the anonymous atom feed (no api.github.com rate limit). The asset url
         # (when an `asset` glob is present) is resolved separately + lazily by _github_asset_url_live
-        # at install time — the feed can't enumerate assets. The newest tag is what we want; for a
-        # monorepo with a `tag-re:`, _select_github_tag filters to the newest matching tag.
-        return _select_github_tag(_github_atom_tags(fetch, spec['github']), spec), None
+        # at install time — the feed can't enumerate assets. The newest stable version-like tag is
+        # what we want (_select_github_tag; it asks the API only when the feed has none).
+        return _select_github_tag(_github_atom_tags(fetch, spec['github']), spec, fetch), None
     if 'crates' in spec:
         data = json.loads(fetch(CRATES_LATEST.format(crate=spec['crates'])))
         c = data.get('crate', {})
@@ -385,35 +403,38 @@ def _resolve(spec, paths, refresh, fetch, now, ttl, offline=False):
 
 
 def _resolve_asset(spec, paths, refresh, fetch, now, ttl, offline):
-    '''-> the github release asset url (glob) via the cache, hitting api.github.com lazily. Only
-    github+asset specs have one; everything else is None. Separate from _resolve so that VERSION
-    discovery (the refresh-heavy path) never touches the API.'''
+    '''-> (release version, github release asset url) via the cache, hitting api.github.com lazily.
+    The version is the release the ASSET came from — which can differ from discover()'s feed-derived
+    version, so an installer must record THIS one. Only github+asset specs have one; everything else
+    is (None, None). Separate from _resolve so that VERSION discovery (the refresh-heavy path) never
+    touches the API.'''
     if 'github' not in spec or not spec.get('asset'):
-        return None
+        return None, None
     key = source_key(spec)
     now = time.time() if now is None else now
     cache = VersionCache.load(paths) if paths is not None else VersionCache()
 
+    def _cached():
+        rec = cache.any(key)
+        return (rec['version'], rec['url']) if rec and rec.get('url') else (None, None)
+
     if not refresh:
         rec = cache.get(key, now, ttl)
         if rec is not None and rec.get('url'):
-            return rec['url']
+            return rec['version'], rec['url']
     if offline:                              # --pretend: cache-or-None, never the network
-        rec = cache.any(key)
-        return rec.get('url') if rec else None
+        return _cached()
 
     try:
         version, url = _github_asset_url_live(spec, fetch)
     except Exception:
-        rec = cache.any(key)
-        return rec.get('url') if rec else None
+        return _cached()
     if url:
         rec = cache.any(key)
         ver = version or (rec['version'] if rec else None) or ''
         _persist(paths, key, ver, url, now)  # ver is non-empty (the API returns the tag too)
-        return url
-    rec = cache.any(key)
-    return rec.get('url') if rec else None
+        return (version or None), url
+    return _cached()
 
 
 def discover(spec, paths=None, *, refresh=False, fetch=http_fetch, now=None,
@@ -431,6 +452,14 @@ def discover_asset_url(spec, paths=None, *, refresh=False, fetch=http_fetch, now
     '''The github release asset download URL, if the spec has a matching `asset` glob; else None.
     Shares the cache with discover(). Resolved via api.github.com — but lazily, at install time,
     for a single component (never the refresh-time fan-out). `offline` skips the network.'''
+    return discover_asset(spec, paths, refresh=refresh, fetch=fetch, now=now, ttl=ttl,
+                          offline=offline)[1]
+
+
+def discover_asset(spec, paths=None, *, refresh=False, fetch=http_fetch, now=None,
+                   ttl=DEFAULT_TTL, offline=False):
+    '''(release version, asset url) — discover_asset_url plus the version of the release the asset
+    was found in (None when unknown).'''
     if not isinstance(spec, dict):
-        return None
+        return None, None
     return _resolve_asset(spec, paths, refresh, fetch, now, ttl, offline)

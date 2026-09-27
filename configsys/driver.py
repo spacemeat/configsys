@@ -18,7 +18,8 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
   Overridable (optional)  : location(rc), scope(rc)
   Helpers a subclass MAY call, in two clusters:
     resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
-                                  download_url(rc, version), arch()
+                                  download_url(rc, version), download_target(rc, version=None),
+                                  arch()
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
                                   display_path(p)
   Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
@@ -180,6 +181,28 @@ class Driver:
             return None
         return version
 
+    def download_target(self, rc, version=None):
+        '''(version, url) to install: download_url's URL plus the version it ACTUALLY fetches — record
+        this one (e.g. in a version marker), not resolve_version's. A github `asset` glob is found in
+        the latest release that carries it (api.github.com), which can differ from the tag-feed
+        version resolve_version reports; recording the feed's then misreports the install (kotlin:
+        a CI tag `build-2.4.21-RC-421` recorded over a downloaded 2.4.20). An explicit `version`
+        (set_version) is kept as given.'''
+        explicit = version is not None
+        version = version if explicit else (self.resolve_version(rc) or '')
+        if getattr(self.download_url, '__func__', None) is not Driver.download_url:
+            return version, self.download_url(rc, version)   # a subclass's own URL logic wins
+        spec = self._disco_spec(rc)
+        if isinstance(spec, dict) and spec.get('github') and spec.get('asset'):
+            from . import versions
+            av, url = versions.discover_asset(spec, self.paths, refresh=not self._offline(),
+                                              offline=self._offline())
+            if url:
+                if av and not explicit and _SAFE_VERSION_RE.match(av):
+                    version = av
+                return version, url
+        return version, self._fallback_url(rc, spec, version)
+
     def download_url(self, rc, version):
         '''Preferred download URL: a matched github release asset (authoritative,
         rename-robust) if the version spec has an `asset` glob, else the route `url`
@@ -200,6 +223,11 @@ class Driver:
                                                 offline=self._offline())
             if asset:
                 return asset
+        return self._fallback_url(rc, spec, version)
+
+    def _fallback_url(self, rc, spec, version):
+        '''The download URL when no asset was matched via the API.'''
+        if isinstance(spec, dict):
             # API-free fallback for a LITERAL github asset name (no glob): the releases/latest/
             # download URL. Robust when api.github.com is unreachable, and lets --pretend show a
             # real URL without a network call.

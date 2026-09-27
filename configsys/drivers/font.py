@@ -57,8 +57,7 @@ class Font(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        version = self.resolve_version(rc) or ''
-        url = self.download_url(rc, version)
+        version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
             return Result('(font: no url in route)', 1)
 

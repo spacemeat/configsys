@@ -71,8 +71,7 @@ class Tarball(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
-        version = self.resolve_version(rc) or ''
-        url = self.download_url(rc, version)
+        version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
             spec = rc.fields.get('version')
             asset = spec.get('asset') if isinstance(spec, dict) else None
