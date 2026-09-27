@@ -45,11 +45,11 @@ if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     fi
 fi
 
-# 3. humon
-if ! "$VPY" -c 'import humon' >/dev/null 2>&1; then
-    echo "configsys: installing humon..." >&2
+# 3. python deps: humon (the .hu format) + packaging (PEP 440 version logic)
+if ! "$VPY" -c 'import humon, packaging' >/dev/null 2>&1; then
+    echo "configsys: installing python dependencies (humon, packaging)..." >&2
     "$VPY" -m pip install -q --upgrade pip || true
-    "$VPY" -m pip install -q humon
+    "$VPY" -m pip install -q humon packaging
 fi
 
 # 4. hand off to the app (pass all args through)

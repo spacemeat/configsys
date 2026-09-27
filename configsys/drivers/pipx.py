@@ -127,7 +127,10 @@ class Pipx(Driver):
     def _suggest_pin(self, requires_python):
         '''The lowest `python3.NN` we ship a component for that satisfies `requires_python`
         (e.g. ">=3.11" -> "python3.11"), so the advisory can name a concrete, installable pin.'''
-        from packaging.specifiers import SpecifierSet, InvalidSpecifier
+        try:
+            from packaging.specifiers import SpecifierSet, InvalidSpecifier
+        except ImportError:
+            return None
         try:
             spec = SpecifierSet(requires_python)
         except (InvalidSpecifier, TypeError):

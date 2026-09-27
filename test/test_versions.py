@@ -383,3 +383,60 @@ def test_discover_asset_returns_the_assets_release_version():
     f = fetcher({versions.GITHUB_LATEST.format(repo=KT): json.dumps(rel)})
     spec = {'github': KT, 'strip-v': True, 'asset': 'kotlin-compiler-*.zip'}
     assert versions.discover_asset(spec, refresh=True, fetch=f) == ('2.4.20', 'https://x/kotlin-compiler-2.4.20.zip')
+
+
+def test_http_fetch_retries_throttling_then_succeeds(monkeypatch):
+    # a several-hundred-op install bursts github.com's atom feeds, which throttle (429); one blip
+    # used to leave a version unresolved (zig: a download of a literal `$VERSION` URL -> 404)
+    import io
+    import urllib.error
+    attempts, slept = [], []
+
+    class Resp(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def urlopen(req, timeout=10):
+        attempts.append(1)
+        if len(attempts) < 3:
+            raise urllib.error.HTTPError(req.full_url, 429, 'Too Many Requests', {}, None)
+        return Resp(b'<feed/>')
+    monkeypatch.setattr(versions.urllib.request, 'urlopen', urlopen)
+    assert versions.http_fetch('https://github.com/x/y/releases.atom', _sleep=slept.append) == '<feed/>'
+    assert len(attempts) == 3 and slept == [1.0, 3.0]
+
+
+def test_http_fetch_does_not_retry_a_real_answer(monkeypatch):
+    import urllib.error
+    attempts = []
+
+    def urlopen(req, timeout=10):
+        attempts.append(1)
+        raise urllib.error.HTTPError(req.full_url, 404, 'Not Found', {}, None)
+    monkeypatch.setattr(versions.urllib.request, 'urlopen', urlopen)
+    import pytest
+    with pytest.raises(urllib.error.HTTPError):
+        versions.http_fetch('https://x/gone', _sleep=lambda s: None)
+    assert len(attempts) == 1
+
+
+def test_feed_versions_resolve_without_packaging(monkeypatch):
+    # a fresh bootstrap venv had only humon: the import failed INSIDE a try whose `except` named the
+    # class it imports, so evaluating that except raised — every github feed version came back None
+    # (kotlin/lazygit/… wrote empty markers and read "not installed"; zig 404'd on a literal $VERSION)
+    import builtins
+    real_import = builtins.__import__
+
+    def no_packaging(name, *a, **k):
+        if name.split('.')[0] == 'packaging':
+            raise ImportError('no packaging here')
+        return real_import(name, *a, **k)
+    monkeypatch.setattr(builtins, '__import__', no_packaging)
+    assert versions._tag_is_prerelease('v2.0.0-rc1') is True
+    assert versions._tag_is_prerelease('0.15.2') is False
+    f = fetcher({atom_url(KT): atom(KT, ['v2.5.0-RC', 'v2.4.20'])})
+    assert versions.discover({'github': KT, 'strip-v': True}, fetch=f) == '2.4.20'
+    assert versions._pypi_latest_for_python({'info': {'version': '9.9'}}, '3.10.12') == '9.9'

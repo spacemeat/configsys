@@ -55,15 +55,39 @@ GITHUB_LATEST = 'https://api.github.com/repos/{repo}/releases/latest'
 GITHUB_RELEASES = 'https://api.github.com/repos/{repo}/releases?per_page=30'
 
 
-def http_fetch(url, timeout=10):
+_RETRY_STATUS = {429, 500, 502, 503, 504}
+_RETRY_DELAYS = (1.0, 3.0)          # seconds before the 2nd and 3rd attempt
+
+
+def http_fetch(url, timeout=10, *, _sleep=time.sleep):
+    '''GET `url` as text. Retries TRANSIENT failures — throttling (429; github.com's atom feeds
+    throttle a burst, as a several-hundred-op install makes), 5xx, and network errors — twice with a
+    short backoff (honoring a small Retry-After), so one blip doesn't leave a version unresolved for
+    the whole run. A 404/403 (a real answer: gone, or the API's hourly limit) is not retried.'''
+    import urllib.error
     headers = {'User-Agent': 'configsys'}
     # A token lifts GitHub's unauthenticated 60/hr rate limit; optional.
     token = os.environ.get('CONFIGSYS_GITHUB_TOKEN') or os.environ.get('GITHUB_TOKEN')
     if token and 'api.github.com' in url:
         headers['Authorization'] = f'Bearer {token}'
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read().decode('utf-8', 'replace')
+    for attempt in range(len(_RETRY_DELAYS) + 1):
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return resp.read().decode('utf-8', 'replace')
+        except urllib.error.HTTPError as e:
+            if e.code not in _RETRY_STATUS or attempt == len(_RETRY_DELAYS):
+                raise
+            delay = _RETRY_DELAYS[attempt]
+            try:
+                delay = min(10.0, max(delay, float(e.headers.get('Retry-After') or 0)))
+            except (TypeError, ValueError):
+                pass
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt == len(_RETRY_DELAYS):
+                raise
+            delay = _RETRY_DELAYS[attempt]
+        _sleep(delay)
 
 
 CRATES_LATEST = 'https://crates.io/api/v1/crates/{crate}'
@@ -169,12 +193,17 @@ def _tag_is_prerelease(raw):
     release) won't actually install — the "perpetually outdated, upgrade is a no-op" trap.'''
     ver = raw.split('@', 1)[-1]                    # drop a monorepo scope (core@…)
     ver = ver[1:] if ver[:1] in 'vV' else ver      # and a leading v
+    # NB the import stays OUTSIDE the try whose `except` names its class: a failed import there made
+    # evaluating `except InvalidVersion` itself raise (UnboundLocalError) — so on a venv without
+    # `packaging` EVERY github feed version resolved to nothing (empty version markers read as
+    # "not installed"; a url template kept a literal $VERSION -> 404).
     try:
         from packaging.version import Version, InvalidVersion
+    except ImportError:                            # packaging missing -> marker heuristic
+        return bool(_PRERELEASE_MARKER.search(raw))
+    try:
         return Version(ver).is_prerelease
     except InvalidVersion:
-        return bool(_PRERELEASE_MARKER.search(raw))
-    except Exception:                              # packaging missing -> marker heuristic
         return bool(_PRERELEASE_MARKER.search(raw))
 
 
@@ -247,10 +276,13 @@ def _pypi_latest_for_python(data, pyver):
     upgrade a venv to — a package can publish a newer release that drops old pythons (pywal16 3.8.15
     needs >=3.11), and reporting THAT as "latest" for a 3.10 venv makes it read outdated when it
     can't move. Falls back to the absolute latest when nothing is judgeable.'''
-    from packaging.version import Version, InvalidVersion
-    from packaging.specifiers import SpecifierSet, InvalidSpecifier
-    m = re.search(r'(\d+)\.(\d+)(?:\.(\d+))?', str(pyver))
     absolute = data.get('info', {}).get('version')
+    try:
+        from packaging.version import Version, InvalidVersion
+        from packaging.specifiers import SpecifierSet, InvalidSpecifier
+    except ImportError:                       # can't judge requires_python -> the absolute latest
+        return absolute
+    m = re.search(r'(\d+)\.(\d+)(?:\.(\d+))?', str(pyver))
     if not m:
         return absolute
     py = f'{m.group(1)}.{m.group(2)}.{m.group(3) or 0}'

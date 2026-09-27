@@ -46,6 +46,17 @@ def _parse_policy(text, want):
     return out
 
 
+
+def _provided_names(provides):
+    '''Package names from a dpkg ${Provides} field: `libfuse2 (= 2.9.9-8.1build1), foo` -> [libfuse2,
+    foo] (version constraints and any `:arch` qualifier dropped).'''
+    out = []
+    for item in provides.split(','):
+        name = item.strip().split(' ', 1)[0].split(':', 1)[0]
+        if name:
+            out.append(name)
+    return out
+
 class Apt(NativePkgManager):
     name = 'apt'
     ENV = _APT_ENV                         # DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
@@ -232,19 +243,27 @@ class Apt(NativePkgManager):
         # package in the `config-files` state (its conffiles under /etc survive), and dpkg-query -W
         # STILL lists it with a version — so without this filter a removed component keeps reporting as
         # installed (stale "installed" underline / version). Keep only genuinely-installed packages.
+        # ${Provides} (last — it has spaces) lets a RENAMED package answer for its old name: Ubuntu
+        # 24.04 / Debian 13's 64-bit-time transition renamed libs (`libfuse2` -> `libfuse2t64`, which
+        # `Provides: libfuse2`); `apt-get install libfuse2` installs the t64 one, and without this the
+        # route's name would read "missing" right after a successful install.
         r = self.runner.run(
-            "dpkg-query -W -f='${db:Status-Status} ${Package} ${Architecture} ${Version}\\n'")
+            "dpkg-query -W -f='${db:Status-Status} ${Package} ${Architecture} ${Version} ${Provides}\\n'")
         if not r.ok:
             return None
-        idx = {}
+        idx, provided = {}, {}
         for line in r.stdout.splitlines():
-            parts = line.split(' ', 3)
+            parts = line.split(' ', 4)
             if len(parts) < 3 or parts[0] != 'installed' or not parts[1]:
                 continue                          # skip config-files (rc), not-installed, half-* states
             name, arch = parts[1], parts[2]
             ver = (parts[3].strip() if len(parts) > 3 else '') or 'installed'
             idx.setdefault(name, ver)             # bare name — first row wins (matches get_version)
             idx.setdefault(f'{name}:{arch}', ver) # arch-qualified — for routes like `steam:i386`
+            for virt in _provided_names(parts[4] if len(parts) > 4 else ''):
+                provided.setdefault(virt, ver)
+        for virt, ver in provided.items():        # a REAL package of that name always wins
+            idx.setdefault(virt, ver)
         return idx
 
     def explicit_keys(self):
@@ -372,7 +391,10 @@ class Apt(NativePkgManager):
                 st, _, ver = ln.strip().partition(' ')
                 if st == 'installed' and ver.strip():
                     return ver.strip()
-        return None
+        # not installed under this name — but an installed package may PROVIDE it (the t64 rename:
+        # `libfuse2` is satisfied by `libfuse2t64`); see installed_index
+        idx = self.installed_index()
+        return idx.get(self._probe_name(rc)) if idx else None
 
     # -- read: available version ------------------------------------------
     # (A tool that ships an upstream .deb rather than living in the apt repos is its own via:

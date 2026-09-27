@@ -291,3 +291,27 @@ def test_marker_records_the_downloaded_releases_version(tmp_path, monkeypatch):
     monkeypatch.setattr(t, '_offline', lambda: False)
     t.install(rc)
     assert 'printf %s 2.4.20' in r.calls[0] and 'kotlin-compiler-2.4.20.zip' in r.calls[0]
+
+
+def test_unresolved_version_fails_clearly_not_a_literal_url(tmp_path, monkeypatch):
+    # zig: the version couldn't be discovered (throttled feed, empty cache) and the install curl'd
+    # `https://ziglang.org/download/$VERSION/...` -> a baffling 404. It must fail saying why.
+    rc = ResolvedComponent(key='tarball\\zig', driver='tarball', comp='zig',
+                           fields={'installDir': str(tmp_path / 'zig'),
+                                   'version': {'github': 'ziglang/zig', 'strip-v': True},
+                                   'url': 'https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz'})
+    r = Runner(pretend=True)
+    t = Tarball(r, paths=None)
+    monkeypatch.setattr(t, 'resolve_version', lambda rc, **kw: None)
+    res = t.install(rc)
+    assert not res.ok and 'version unresolved' in (res.output or res.cmd)
+    assert r.calls == []                                   # nothing downloaded
+
+
+def test_empty_marker_reads_installed_not_missing(tmp_path):
+    # an install whose version went unrecorded wrote an EMPTY marker; the files are there, so it's
+    # installed (version unknown -> reads outdated, an upgrade re-records it), not "missing"
+    d = tmp_path / 'inst'
+    d.mkdir()
+    (d / '.configsys-vulkan-sdk.version').write_text('')
+    assert Tarball(Runner(pretend=True), paths=None).get_version(tb_unit(d)) == 'installed'

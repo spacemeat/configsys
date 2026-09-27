@@ -20,7 +20,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Trevor Schrock" }]
 keywords = ["provisioning", "dotfiles", "package-manager", "bootstrap", "cli", "humon"]
-dependencies = ["humon>=0.1.0"]
+dependencies = ["humon>=0.1.0", "packaging"]
 dynamic = ["version"]
 
 [project.scripts]

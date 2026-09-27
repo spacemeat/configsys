@@ -443,3 +443,29 @@ def test_multi_package_binding_locks_pins_and_checks_the_whole_set():
     assert d.is_locked(u) is False
     d._batch = {'held': {'python3.12', 'python3.12-venv', 'python3.12-dev'}}
     assert d.is_locked(u) is True
+
+
+def test_t64_renamed_package_answers_for_its_old_name():
+    # Ubuntu 24.04 / Debian 13's 64-bit-time transition: `apt-get install libfuse2` installs
+    # `libfuse2t64`, which `Provides: libfuse2`. dpkg-query on `libfuse2` says not-installed, so the
+    # route's name read "missing" right after a successful install. An installed PROVIDER counts;
+    # a real package of the name always wins over a provider.
+    dpkg_out = ('installed libfuse2t64 amd64 2.9.9-8.1build1 libfuse2 (= 2.9.9-8.1build1)\n'
+                'installed mawk amd64 1.3.4 awk\n'
+                'installed gawk amd64 5.2.1 awk\n'
+                'installed awk-real amd64 9 \n'
+                'config-files oldlib amd64 1.0 ghostname\n')
+    apt = Apt(FakeRunner([("dpkg-query -W -f='${db:Status-Status} ${Package}", 0, dpkg_out)]))
+    idx = apt.installed_index()
+    assert idx['libfuse2'] == '2.9.9-8.1build1'        # via libfuse2t64's Provides
+    assert idx['awk'] == '1.3.4'                       # first provider
+    assert 'ghostname' not in idx                      # a removed package provides nothing
+
+
+def test_get_version_falls_back_to_a_provider():
+    apt = Apt(FakeRunner([
+        ("dpkg-query -W -f='${db:Status-Status} ${Version}", 0, 'not-installed \n'),
+        ("dpkg-query -W -f='${db:Status-Status} ${Package}", 0,
+         'installed libfuse2t64 amd64 2.9.9-8.1build1 libfuse2 (= 2.9.9-8.1build1)\n')]))
+    assert apt.get_version(rc('libfuse2')) == '2.9.9-8.1build1'
+    assert apt.get_version(rc('nothere')) is None

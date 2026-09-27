@@ -63,7 +63,9 @@ class Tarball(Driver):
             v = self._marker(rc).read_text(encoding='utf-8').strip()
         except (FileNotFoundError, NotADirectoryError, OSError):
             return None
-        return v or None
+        # the marker EXISTS, so it's installed even if the version went unrecorded (an unresolved
+        # discovery wrote an empty one) — 'installed' like appImage, not "missing"
+        return v or 'installed'
 
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/apps (user) or /opt (system)

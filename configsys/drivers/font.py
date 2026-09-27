@@ -47,7 +47,7 @@ class Font(Driver):
 
     def get_version(self, rc):
         try:
-            return self._marker(rc).read_text(encoding='utf-8').strip() or None
+            return self._marker(rc).read_text(encoding='utf-8').strip() or 'installed'   # present, version unrecorded
         except (FileNotFoundError, NotADirectoryError, OSError):
             return None
 

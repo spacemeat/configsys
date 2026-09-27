@@ -234,7 +234,12 @@ class Driver:
             gh, name = spec.get('github'), spec.get('asset')
             if gh and isinstance(name, str) and '*' not in name:
                 return f'https://github.com/{gh}/releases/latest/download/{name}'
-        return self._apply_placeholders(rc.fields.get('url'), version)
+        url = self._apply_placeholders(rc.fields.get('url'), version)
+        if url and '$VERSION' in url:
+            # the version couldn't be discovered (network/throttling, nothing cached): no URL, so the
+            # driver fails saying so — not a download of a literal `$VERSION` path that 404s
+            return None
+        return url
 
     # -- archive acquisition (shared by tarball [binary] and source [build]) ---
 
