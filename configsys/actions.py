@@ -25,7 +25,8 @@ def invalidate_location_cache(ctx):
 
 class OpOutcome:
     '''One executed plan step, for the surfaces to render (the TUI summary, a report).'''
-    def __init__(self, op, key, name, ok, detail='', installed_with_warning=False, advisory=False):
+    def __init__(self, op, key, name, ok, detail='', installed_with_warning=False, advisory=False,
+                 undetected=False):
         self.op = op
         self.key = key
         self.name = name
@@ -33,6 +34,7 @@ class OpOutcome:
         self.detail = detail
         self.installed_with_warning = installed_with_warning
         self.advisory = advisory                     # a "needs your input" outcome, not a bug
+        self.undetected = undetected                 # ran ok, but configsys can't see it afterwards
 
 
 class RunResult:
@@ -102,6 +104,22 @@ def _may_need_root(drv, rc):
         return True
     return (getattr(drv, 'name', None) in _INTERNAL_SUDO_DRIVERS
             or not type(drv).__module__.startswith('configsys.'))
+
+
+# drivers whose "not present" after a good install is legitimate: config with nothing captured yet
+_NO_POST_CHECK = frozenset({'dotfiles', 'glue'})
+
+
+def detected_after(drv, rc):
+    '''After a successful install/upgrade, can the driver see the unit? True when it reports a version,
+    or when it can't be judged (config drivers, a probe that raises) — only a definite "absent" is
+    False.'''
+    if getattr(drv, 'name', None) in _NO_POST_CHECK:
+        return True
+    try:
+        return drv.get_version(rc) is not None
+    except Exception:                                # noqa: BLE001 — unknowable is not "undetected"
+        return True
 
 
 def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
@@ -187,6 +205,14 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             for line in (res.output or res.cmd or '').strip().splitlines():
                 on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
             failures.append(rec)
+        elif cur_op in ('install', 'upgrade') and not detected_after(drv, rc):
+            # the op succeeded, but the component still reads "not installed" — a DETECTION bug (a
+            # renamed package, a binary off PATH, an empty version marker). Say so NOW, not when the
+            # user later wonders why it's listed missing.
+            on_line(f'  -> ok, but NOT DETECTED afterwards — {rc.comp} will read "not installed" '
+                    f'(a detection bug in its route/driver; `configsys report {rc.comp}`)')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'installed but not detected',
+                                      undetected=True))
         else:
             on_line('  -> ok')
             outcomes.append(OpOutcome(cur_op, key, rc.name, True))

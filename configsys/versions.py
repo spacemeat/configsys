@@ -94,13 +94,14 @@ CRATES_LATEST = 'https://crates.io/api/v1/crates/{crate}'
 PYPI_LATEST = 'https://pypi.org/pypi/{dist}/json'
 AUR_INFO = 'https://aur.archlinux.org/rpc/v5/info?arg[]={pkg}'
 HACKAGE_PREFERRED = 'https://hackage.haskell.org/package/{pkg}/preferred.json'
+GOPROXY_LATEST = 'https://proxy.golang.org/{module}/@latest'
 
 
 # Registered version-discovery sources (P2c): plugins add new `version: { <name>: ... }`
 # backends here. name -> fn(spec, fetch) -> (version, download_url_or_None). Registration
 # happens only from trusted plugin code (via plugins.load_code), so the trust gate is inherent.
 _SOURCES = {}
-_BUILTIN_KINDS = ('crates', 'pypi', 'aur', 'hackage', 'url', 'static')
+_BUILTIN_KINDS = ('crates', 'pypi', 'aur', 'hackage', 'goproxy', 'url', 'static')
 
 
 def register_source(name, fn):
@@ -304,6 +305,32 @@ def _pypi_latest_for_python(data, pyver):
     return best[1] if best else absolute
 
 
+def _goproxy_escape(path):
+    '''The module proxy's case-encoding: an uppercase letter becomes `!` + its lowercase.'''
+    return ''.join(f'!{c.lower()}' if c.isupper() else c for c in path)
+
+
+def _goproxy_latest(pkg, fetch):
+    '''The version `go install <pkg>@latest` resolves to, from the Go module proxy — the SAME source
+    go uses, so it can't disagree with what an install fetches. A route names the PACKAGE path
+    (golang.org/x/tools/cmd/goimports) but the proxy answers for the MODULE (golang.org/x/tools), so
+    try the longest prefix that is one (go's own module lookup). A pseudo-version for an untagged
+    module (discordo: v0.0.0-2026…) matches what `go version -m` reports once installed. Leading `v`
+    dropped, like the installed side.'''
+    import urllib.error
+    parts = pkg.split('@', 1)[0].split('/')
+    for n in range(len(parts), 0, -1):
+        try:
+            data = json.loads(fetch(GOPROXY_LATEST.format(module=_goproxy_escape('/'.join(parts[:n])))))
+        except urllib.error.HTTPError as e:
+            if e.code in (404, 410):                  # not a module at this prefix -> go shorter
+                continue
+            raise
+        v = data.get('Version')
+        return v.lstrip('v') if v else None
+    return None
+
+
 def _discover_live(spec, fetch):
     '''Return (version, download_url). download_url is only set when a github
     `asset` glob matches a release asset (authoritative URL from the API).'''
@@ -334,6 +361,8 @@ def _discover_live(spec, fetch):
         data = json.loads(fetch(HACKAGE_PREFERRED.format(pkg=spec['hackage'])))
         vers = data.get('normal-version') or []
         return (vers[0] if vers else None), None
+    if 'goproxy' in spec:
+        return _goproxy_latest(spec['goproxy'], fetch), None
     if 'url' in spec:
         text = fetch(spec['url'])
         pattern = spec.get('regex') or r'[0-9]+(?:\.[0-9]+)+'

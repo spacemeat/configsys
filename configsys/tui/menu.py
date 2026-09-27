@@ -653,12 +653,17 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         n_ok = sum(1 for o in outcomes if o.ok)
         warned = [o for o in outcomes if getattr(o, 'installed_with_warning', False)]
         advisories = [o for o in outcomes if getattr(o, 'advisory', False)]
+        undetected = [o for o in outcomes if getattr(o, 'undetected', False)]
         failed = [o for o in outcomes if not o.ok and not getattr(o, 'advisory', False)]
         print(f'\nSummary: {n_ok} ok, {len(failed)} failed'
               + (f', {len(advisories)} need input' if advisories else '')
-              + (f', {len(warned)} with warnings' if warned else ''))
+              + (f', {len(warned)} with warnings' if warned else '')
+              + (f', {len(undetected)} not detected after install' if undetected else ''))
         for o in failed:
             print(f'  FAILED  {o.op:8} {o.key}  (pkg: {o.name})  {o.detail}')
+        for o in undetected:
+            print(f'  NOT DETECTED  {o.op:8} {o.key}  (pkg: {o.name})  — ran ok, but reads '
+                  f'"not installed": a detection bug in its route/driver')
         for o in advisories:
             print(f'  NEEDS INPUT  {o.op:8} {o.key}  {o.detail}')
         if failed or warned:                          # all failures are persisted now -> report works

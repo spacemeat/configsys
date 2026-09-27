@@ -440,3 +440,24 @@ def test_feed_versions_resolve_without_packaging(monkeypatch):
     f = fetcher({atom_url(KT): atom(KT, ['v2.5.0-RC', 'v2.4.20'])})
     assert versions.discover({'github': KT, 'strip-v': True}, fetch=f) == '2.4.20'
     assert versions._pypi_latest_for_python({'info': {'version': '9.9'}}, '3.10.12') == '9.9'
+
+
+def test_goproxy_latest_walks_to_the_module_root():
+    # a route names the PACKAGE (golang.org/x/tools/cmd/goimports); the proxy answers for the MODULE
+    import urllib.error
+
+    def fetch(url, timeout=10):
+        if url == versions.GOPROXY_LATEST.format(module='golang.org/x/tools'):
+            return json.dumps({'Version': 'v0.50.0'})
+        raise urllib.error.HTTPError(url, 404, 'not found', {}, None)
+    assert versions.discover({'goproxy': 'golang.org/x/tools/cmd/goimports'}, fetch=fetch) == '0.50.0'
+
+
+def test_goproxy_case_escapes_uppercase():
+    seen = []
+
+    def fetch(url, timeout=10):
+        seen.append(url)
+        return json.dumps({'Version': 'v1.6.0'})
+    assert versions._goproxy_latest('github.com/BurntSushi/toml', fetch) == '1.6.0'
+    assert seen == ['https://proxy.golang.org/github.com/!burnt!sushi/toml/@latest']

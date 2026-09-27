@@ -38,7 +38,12 @@ class Script(Driver):
 
     @staticmethod
     def _cmd(rc, key):
-        return rc.fields.get(key)
+        '''The route's command for `key`, run with ~/.local/bin on PATH: official installers (Claude
+        Code's, uv's, …) put their binary there, but a fresh login only has it on PATH if the dir
+        existed at login — so a bare `claude --version` probe failed and a just-installed tool read
+        "not installed". (A route can still use absolute paths; this just makes the bare name work.)'''
+        cmd = rc.fields.get(key)
+        return f'PATH="$HOME/.local/bin:$PATH"; {cmd}' if cmd else cmd
 
     # -- read -------------------------------------------------------------
 

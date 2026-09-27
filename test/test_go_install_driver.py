@@ -78,3 +78,42 @@ def test_get_latest_none_without_spec_and_no_lock():
 
 def test_location_is_gobin():
     assert GoInstall(Runner(pretend=True)).location(tool()) == '~/go/bin'
+
+
+def test_version_reads_use_the_managed_go(tmp_path, monkeypatch):
+    # with go ONLY from the tarball (~/sdks/go/bin — what a go>=X floor advises), a bare
+    # `go version -m` isn't found: every go-installed tool read "not installed" though it was there
+    sdk = tmp_path / 'sdks/go/bin'
+    sdk.mkdir(parents=True)
+    fake_go = sdk / 'go'
+    fake_go.write_text('#!/bin/sh\n'
+                       'printf "%s: go1.26.1\\n\\tpath\\tgolang.org/x/tools/cmd/goimports\\n'
+                       '\\tmod\\tgolang.org/x/tools\\tv0.50.0\\th1:x\\n" "$3"\n')
+    fake_go.chmod(0o755)
+    monkeypatch.setenv('HOME', str(tmp_path))
+    monkeypatch.delenv('CONFIGSYS_SDK_DIR', raising=False)
+    monkeypatch.setenv('PATH', '/usr/bin:/bin')            # no system go anywhere on it
+    assert GoInstall(Runner()).get_version(tool()) == '0.50.0'
+
+
+def test_latest_comes_from_the_module_proxy(monkeypatch):
+    # go-install had no 'latest' at all (no version: spec on its routes) — now the proxy's @latest,
+    # the same thing `go install …@latest` resolves
+    from configsys import versions
+    monkeypatch.setattr(versions, 'discover', lambda spec, paths, **kw: '0.50.0' if spec == {'goproxy': 'golang.org/x/tools/cmd/goimports'} else None)
+    assert GoInstall(Runner(pretend=True)).get_latest(tool()) == '0.50.0'
+
+
+def test_pseudo_versions_compare_by_commit_time():
+    # discordo is untagged: 0.0.0-<timestamp>-<commit>. The numeric base is always 0.0.0, so without
+    # this every snapshot read current forever.
+    from configsys.installState import ComponentState
+    from configsys.componentObj import ResolvedComponent
+    rc = ResolvedComponent(key='go-install\\discordo', driver='go-install', comp='discordo', fields={})
+
+    def st(inst, latest):
+        return ComponentState(component=rc, supported=True, present=True,
+                              installed_version=inst, latest_version=latest, locked=False,
+                              lock_source=None, managed=True, error=None)
+    assert st('0.0.0-20260819035418-d1f67621141c', '0.0.0-20260926000522-08b41176c060').outdated
+    assert not st('0.0.0-20260926000522-08b41176c060', '0.0.0-20260926000522-08b41176c060').outdated

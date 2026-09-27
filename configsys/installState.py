@@ -6,6 +6,7 @@ with the ledger's lock intent. Unsupported drivers (not yet implemented in M1)
 degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
 '''
 
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -37,6 +38,16 @@ def _parallel_map(fn, items, progress=None):
 from .componentObj import ResolvedComponent
 from .drivers import get_driver
 from .ledger import Ledger
+
+
+# a Go pseudo-version: vX.Y.Z-[pre.0.]yyyymmddhhmmss-<12 hex> (an untagged module's snapshot)
+_PSEUDO = re.compile(r'^v?\d+\.\d+\.\d+-(?:.*\.)?(\d{14})-[0-9a-f]{12}$')
+
+
+def _pseudo_ts(v):
+    '''The 14-digit UTC commit timestamp of a Go pseudo-version, else None.'''
+    m = _PSEUDO.match(str(v or ''))
+    return m.group(1) if m else None
 
 
 @dataclass
@@ -75,6 +86,12 @@ class ComponentState:
         # upstream version — a raw string `!=` would falsely flag it outdated. Normalize both; only
         # a strictly newer upstream version is "outdated". Unparseable -> conservative string diff.
         from .osversion import parse_loose
+        # Go pseudo-versions (an untagged module, e.g. discordo: 0.0.0-20260926000522-08b41176c060)
+        # share the same numeric base, so compare their commit TIMESTAMPS — else every snapshot reads
+        # "current" forever
+        pi, pl = _pseudo_ts(self.installed_version), _pseudo_ts(self.latest_version)
+        if pi and pl:
+            return pi < pl
         li, ll = parse_loose(self.installed_version), parse_loose(self.latest_version)
         if li is not None and ll is not None:
             return li < ll

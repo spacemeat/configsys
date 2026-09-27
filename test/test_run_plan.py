@@ -121,3 +121,28 @@ def test_run_plan_authenticates_once_up_front(tmp_path, monkeypatch):
                      on_line=lambda *_a: None)
     assert began == ['begin']                                     # once, for the whole batch
     assert order[0] == ('install', ['begin'])                     # BEFORE the first op runs
+
+
+def test_install_ok_but_undetected_is_flagged(tmp_path, monkeypatch):
+    # swig (a stale installed-name), claude-code (binary off PATH), go tools (go only from the
+    # tarball): each install ran fine but the component read "not installed" — silently, discovered
+    # later. The loop now checks detection right after, and says so.
+    lines = []
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: StubDrv(version=None))
+    res = actions.run_plan(_ctx(tmp_path), [('install', 'apt\\\\swig', _unit('swig'))],
+                           on_line=lines.append)
+    (o,) = res.outcomes
+    assert o.ok and o.undetected
+    assert any('NOT DETECTED' in ln for ln in lines)
+
+
+def test_detected_install_is_plain_ok(tmp_path, monkeypatch):
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: StubDrv(version='4.2.0'))
+    res = actions.run_plan(_ctx(tmp_path), [('install', 'apt\\\\swig', _unit('swig'))],
+                           on_line=lambda *_a: None)
+    assert res.outcomes[0].ok and not res.outcomes[0].undetected
+
+
+def test_config_drivers_are_not_post_checked():
+    drv = SimpleNamespace(name='dotfiles', get_version=lambda rc: None)
+    assert actions.detected_after(drv, _unit('x', 'dotfiles'))

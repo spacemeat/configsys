@@ -20,6 +20,8 @@ _GOBIN = '~/go/bin'
 # a system `go`. The non-interactive runner shell doesn't source the PATH glue, so a bare `go install`
 # would run an old /usr/bin/go and choke on a modern module's go.mod ("invalid go version '1.25.0'").
 # If no tarball go is installed, the dir simply doesn't exist and PATH falls through to the system go.
+# The READS (`go version -m`) need it too: with go ONLY from the tarball (a go>=X floor's advice), a
+# bare `go` isn't found and every go-installed tool read "not installed".
 _GO_PATH = '${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin'
 
 
@@ -51,7 +53,7 @@ class GoInstall(Driver):
         inspect. Go keeps no registry, so this reads each binary's embedded module info: a block
         headed by "<bin>: goX.Y" carries `\tpath\t<pkg>` (the install path = the route `name`, the
         default index_key) and `\tmod\t<module>\t<version>`.'''
-        r = self.runner.run(f'go version -m {_GOBIN}')
+        r = self.runner.run(f'PATH="{_GO_PATH}:$PATH" go version -m {_GOBIN}')
         if not r.ok:
             return None
         idx = {}
@@ -71,7 +73,7 @@ class GoInstall(Driver):
         ver, hit = self._batched_version(rc)          # answer from the one `go version -m` when batched
         if hit:
             return ver
-        r = self.runner.run(f'go version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
+        r = self.runner.run(f'PATH="{_GO_PATH}:$PATH" go version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
         if not r.ok or not r.stdout:
             return None
         # a `mod\t<module>\t<version>` line carries the module's version
@@ -80,6 +82,14 @@ class GoInstall(Driver):
             if len(parts) >= 3 and parts[0] == 'mod':
                 return parts[2].lstrip('v')
         return None
+
+    def get_latest(self, rc):
+        '''What `go install …@latest` would install: an explicit `version:` spec wins, else the Go
+        module proxy's @latest for this package's module (cached like any discovered version).'''
+        if self._disco_spec(rc):
+            return self.resolve_version(rc)
+        from .. import versions
+        return versions.discover({'goproxy': self._path(rc)}, self.paths, offline=self._offline())
 
     # -- mutate -----------------------------------------------------------
 

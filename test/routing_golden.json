@@ -3590,6 +3590,21 @@
     "name": "github-cli"
    }
   },
+  "ghc-build-deps": {
+   "pacman\\ghc-build-deps": {
+    "driver": "pacman",
+    "fields": {
+     "name": "ghc-build-deps",
+     "packages": [
+      "base-devel",
+      "gmp",
+      "libffi",
+      "ncurses"
+     ]
+    },
+    "name": "ghc-build-deps"
+   }
+  },
   "ghgrab": {
    "cargo\\ghgrab": {
     "driver": "cargo",
@@ -11228,7 +11243,6 @@
    "pacman\\swig": {
     "driver": "pacman",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -17625,6 +17639,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -25078,7 +25109,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -31149,6 +31179,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -38398,7 +38445,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -44452,6 +44498,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -51715,7 +51778,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -57388,6 +57450,24 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "dnf\\ghc-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc-build-deps",
+     "packages": [
+      "gcc",
+      "gcc-c++",
+      "make",
+      "gmp-devel",
+      "libffi-devel",
+      "ncurses-devel",
+      "pkgconf-pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -64592,7 +64672,6 @@
    "dnf\\swig": {
     "driver": "dnf",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -70359,6 +70438,24 @@
     "name": "gh"
    }
   },
+  "ghc-build-deps": {
+   "dnf\\ghc-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc-build-deps",
+     "packages": [
+      "gcc",
+      "gcc-c++",
+      "make",
+      "gmp-devel",
+      "libffi-devel",
+      "ncurses-devel",
+      "pkgconf-pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
+   }
+  },
   "ghgrab": {
    "cargo\\ghgrab": {
     "driver": "cargo",
@@ -77561,7 +77658,6 @@
    "dnf\\swig": {
     "driver": "dnf",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -88373,7 +88469,6 @@
    "brew\\swig": {
     "driver": "brew",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -94054,6 +94149,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -101520,7 +101632,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -107511,6 +107622,24 @@
      }
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "dnf\\ghc-build-deps": {
+    "driver": "dnf",
+    "fields": {
+     "name": "ghc-build-deps",
+     "packages": [
+      "gcc",
+      "gcc-c++",
+      "make",
+      "gmp-devel",
+      "libffi-devel",
+      "ncurses-devel",
+      "pkgconf-pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -115035,7 +115164,6 @@
    "dnf\\swig": {
     "driver": "dnf",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -121407,6 +121535,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -128874,7 +129019,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"
@@ -134950,6 +135094,23 @@
      "repo-component": "universe"
     },
     "name": "gh"
+   }
+  },
+  "ghc-build-deps": {
+   "apt\\ghc-build-deps": {
+    "driver": "apt",
+    "fields": {
+     "installed-name": "libgmp-dev",
+     "name": "ghc-build-deps",
+     "packages": [
+      "build-essential",
+      "libffi-dev",
+      "libgmp-dev",
+      "libncurses-dev",
+      "pkg-config"
+     ]
+    },
+    "name": "ghc-build-deps"
    }
   },
   "ghgrab": {
@@ -142213,7 +142374,6 @@
    "apt\\swig": {
     "driver": "apt",
     "fields": {
-     "installed-name": "swig4.0",
      "name": "swig"
     },
     "name": "swig"

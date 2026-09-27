@@ -1327,6 +1327,16 @@
             install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apt: guile-3.0  dnf: guile30  default: guile } } ] }   // versioned name on debian/fedora
         // Haskell — the GHC compiler. Native (distro ghc) is the default; ghcup is the escape hatch
         // for a MODERN GHC when the distro's is too old to build a recent Hackage package (hlint).
+        // GHC's installer configures against the system C toolchain + GMP/libffi/ncurses headers
+        // (ghcup's documented "system requirements"); without them ghcup's `./configure` fails
+        // (GHCup-00841). Required by the ghcup method below — same shape as python-build-deps.
+        ghc-build-deps: { attrs: [ lib FOSS ] description: "System libraries ghcup needs to install GHC (C toolchain, gmp, libffi, ncurses)."
+            standing: never-auto
+            install: [
+                { via: native  when: "debian"  packages: [ build-essential, libffi-dev, libgmp-dev, libncurses-dev, pkg-config ]  installed-name: libgmp-dev }
+                { via: native  when: "(fedora or redhat) and not amzn"  packages: [ gcc, gcc-c++, make, gmp-devel, libffi-devel, ncurses-devel, pkgconf-pkg-config ] }
+                { via: native  when: "arch"  packages: [ base-devel, gmp, libffi, ncurses ] }
+            ] }
         haskell: { attrs: [ CLI toolchain FOSS permissive ] description: "Haskell toolchain (GHC) — pure functional programming."
             install: [
                 { via: native  when: "not amzn"   repo-component: universe  name: { default: ghc } }
@@ -1336,8 +1346,8 @@
                 // the floor it guarantees. The cabal driver prepends ~/.ghcup/bin so a ghcup toolchain
                 // is used for cabal builds when present. Non-interactive; any rc-write ghcup's
                 // installer makes is caught + staged by the shell-writes guard.
-                { via: script  when: "not amzn"  standing: never-auto  requires: curl
-                  provides: { haskell: ">=9.4" }
+                { via: script  when: "not amzn"  standing: never-auto  requires: [ curl, ghc-build-deps ]
+                  provides: { haskell: ">=9.10" }     // ghcup's RECOMMENDED GHC (9.10.3 as of 2026-09)
                   install-cmd:   'export BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_INSTALL_NO_STACK=1 ; curl --proto "=https" --tlsv1.2 -fsSL https://get-ghcup.haskell.org | sh'
                   version-cmd:   '"$HOME/.ghcup/bin/ghc" --numeric-version 2>/dev/null'
                   // latest = the GHC ghcup RECOMMENDS (what it installs by default — deliberately
@@ -1401,9 +1411,9 @@
                               uninstall-cmd: '"$HOME/.ghcup/bin/ghcup" rm cabal "$("$HOME/.ghcup/bin/cabal" --numeric-version)"'
                               location:      '~/.ghcup/bin/cabal' } ] }
         // hlint's recent releases need a modern GHC to build from Hackage; the distro ghc is often
-        // too old. The `haskell >= 9.4` floor advises pinning haskell -> ghcup (auto under
+        // too old. The `haskell >= 9.8` floor advises pinning haskell -> ghcup (auto under
         // `auto-tighten`), and the cabal driver then builds with the ghcup toolchain.
-        hlint: { attrs: [ CLI FOSS permissive ] description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.4" } { cabal: ">=3.10.2" } ]   // cabal floor: older cabal can't verify Hackage's root keys
+        hlint: { attrs: [ CLI FOSS permissive ] description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.8" } { cabal: ">=3.10.2" } ]   // hlint 3.10 is built for GHC 9.8-9.12 (an older GHC only reaches 3.8, reading outdated forever); older cabal can't verify Hackage's root keys
                  install: [ { via: cabal  name: hlint  version: { hackage: hlint } } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
@@ -2822,7 +2832,7 @@
         valgrind:  { attrs: [ CLI FOSS copyleft ] suggests: valgrind-dotfiles  description: "Valgrind — memory-error and leak detector." install: [ { via: native } ] }
         cppcheck:  { attrs: [ CLI FOSS copyleft ] description: "Cppcheck — static analysis for C/C++." install: [ { via: native } ] }
         doxygen:   { attrs: [ CLI FOSS GNU copyleft ] description: "Doxygen — generate API docs from annotated C/C++/… source." install: [ { via: native } ] }
-        swig:      { attrs: [ CLI FOSS permissive ] description: "SWIG — generate scripting-language bindings for C/C++ (`swig`)." install: [ { via: native  installed-name: swig4.0 } ] }   // apt `swig` is a meta over swig4.0
+        swig:      { attrs: [ CLI FOSS permissive ] description: "SWIG — generate scripting-language bindings for C/C++ (`swig`)." install: [ { via: native } ] }   // apt `swig`: a meta over swig4.0 on older Debian/Ubuntu (installed too, so it answers), the real package on 24.04+ (swig 4.2; no swig4.0)
         source-highlight: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Source-highlight — syntax-highlight source to HTML and other formats."
                             install: [ { via: native  when: "not (rhel or amzn)" }
                                        { via: native  when: "rhel"  requires: epel } ] }   // EL via EPEL

@@ -3,6 +3,8 @@ from configsys.drivers import get_driver, is_supported
 from configsys.drivers.script import Script
 from configsys.runner import Result, Runner
 
+LOCAL_BIN = 'PATH="$HOME/.local/bin:$PATH"; '   # every script command runs with ~/.local/bin on PATH
+
 
 def sc(name='sdkman', **fields):
     fields.setdefault('name', name)
@@ -30,7 +32,7 @@ def test_registered_unprivileged():
 def test_install_runs_declared_command():
     r = Runner(pretend=True)
     Script(r).install(sc(**{'install-cmd': 'curl -s x | bash'}))
-    assert r.calls == ['curl -s x | bash']
+    assert r.calls == [LOCAL_BIN + 'curl -s x | bash']
 
 
 def test_install_missing_command_fails():
@@ -67,7 +69,7 @@ def test_get_latest_from_latest_cmd():
 def test_uninstall_runs_command_when_present():
     r = Runner(pretend=True)
     Script(r).uninstall(sc(**{'uninstall-cmd': 'rm -rf ~/.sdkman'}))
-    assert r.calls == ['rm -rf ~/.sdkman']
+    assert r.calls == [LOCAL_BIN + 'rm -rf ~/.sdkman']
 
 
 def test_uninstall_without_command_warns_but_succeeds():
@@ -82,3 +84,18 @@ def test_set_version_unsupported_without_cmd():
 
 def test_location_from_field():
     assert Script(Runner(pretend=True)).location(sc(location='~/.sdkman')) == '~/.sdkman'
+
+
+
+def test_version_probe_finds_a_tool_in_local_bin(tmp_path, monkeypatch):
+    # claude-code: the official installer puts `claude` in ~/.local/bin, which a fresh login only has
+    # on PATH if the dir existed at login — the bare `claude --version` probe failed and a
+    # just-installed tool read "not installed"
+    (tmp_path / '.local/bin').mkdir(parents=True)
+    tool = tmp_path / '.local/bin/claude'
+    tool.write_text('#!/bin/sh\necho "2.1.9 (Claude Code)"\n')
+    tool.chmod(0o755)
+    monkeypatch.setenv('HOME', str(tmp_path))
+    v = Script(Runner()).get_version(sc(**{'version-cmd': 'claude --version 2>/dev/null',
+                                           'version-re': '([0-9][0-9.]*)'}))
+    assert v == '2.1.9'
