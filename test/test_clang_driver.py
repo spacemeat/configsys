@@ -90,3 +90,41 @@ def test_switching_is_not_configsys_and_no_latest():
     assert fam.is_locked(clang_unit()) is False
     assert fam.get_latest(clang_unit()) is None
     assert fam.location(clang_unit()) == '/usr/bin/clang-18'
+
+
+def _run_repo_lines(tmp_path, madison_out, list_exists):
+    '''Execute the driver's generated repo logic in bash with stub apt-cache/apt-get/curl, against a
+    list file in tmp. Returns (list file exists after, log of stub calls).'''
+    import subprocess
+    stub = tmp_path / 'bin'
+    stub.mkdir()
+    log = tmp_path / 'log'
+    (tmp_path / 'madison').write_text(madison_out)
+    (stub / 'apt-cache').write_text(f'#!/bin/sh\ncat {tmp_path / "madison"}\n')
+    for name in ('apt-get', 'curl'):
+        (stub / name).write_text(f'#!/bin/sh\necho "{name} $*" >> {log}\n')
+    for f in stub.iterdir():
+        f.chmod(0o755)
+    lst = tmp_path / 'clang-20.list'
+    if list_exists:
+        lst.write_text('deb http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main\n')
+    rc = clang_unit('clang-20', {'apt-source': {
+        'key': 'https://apt.llvm.org/llvm-snapshot.gpg.key', 'key-path': str(tmp_path / 'k.asc'),
+        'deb': 'http://apt.llvm.org/$CODENAME/ llvm-toolchain-$CODENAME-20 main', 'list': str(lst)}})
+    script = '\n'.join(['set -e'] + Clang(Runner(pretend=True))._repo_lines(rc))
+    subprocess.run(['bash', '-c', script], check=True, env={'PATH': f'{stub}:/usr/bin:/bin'})
+    return lst.exists(), (log.read_text() if log.exists() else '')
+
+
+def test_distro_carrying_the_package_skips_and_drops_the_vendor_repo(tmp_path):
+    # Ubuntu 24.04 ships clang-20; adding apt.llvm.org then mixes its clang-20 with the distro's
+    # libllvm20 -> "held broken packages" on Pop!_OS. Use the distro's; remove a leftover OUR list.
+    madison = (' clang-20 | 1:20.1.8~++2025 | http://apt.llvm.org/noble llvm-toolchain-noble-20/main amd64 Packages\n'
+               ' clang-20 | 1:20.1.2-0ubuntu1~24.04.3 | http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages\n')
+    exists, log = _run_repo_lines(tmp_path, madison, list_exists=True)
+    assert not exists and 'apt-get update' in log and 'curl' not in log
+
+
+def test_distro_without_the_package_adds_the_vendor_repo(tmp_path):
+    exists, log = _run_repo_lines(tmp_path, '', list_exists=False)
+    assert exists and 'curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key' in log

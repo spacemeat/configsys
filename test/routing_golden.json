@@ -19105,7 +19105,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -32608,7 +32612,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -45907,7 +45915,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -58905,7 +58917,11 @@
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-url": "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "repo-id": "oneAPI",
+     "repo-name": "Intel oneAPI",
+     "repo-url": "https://yum.repos.intel.com/oneapi"
     },
     "name": "intel-basekit"
    }
@@ -71870,7 +71886,11 @@
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-url": "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "repo-id": "oneAPI",
+     "repo-name": "Intel oneAPI",
+     "repo-url": "https://yum.repos.intel.com/oneapi"
     },
     "name": "intel-basekit"
    }
@@ -83633,15 +83653,6 @@
      "name": "rest.insomnia.Insomnia"
     },
     "name": "rest.insomnia.Insomnia"
-   }
-  },
-  "intel-oneapi-basekit": {
-   "brew\\intel-oneapi-basekit": {
-    "driver": "brew",
-    "fields": {
-     "name": "intel-oneapi-basekit"
-    },
-    "name": "intel-oneapi-basekit"
    }
   },
   "ioping": {
@@ -95523,7 +95534,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -109083,7 +109098,11 @@
    "dnf\\intel-oneapi-basekit": {
     "driver": "dnf",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-url": "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "repo-id": "oneAPI",
+     "repo-name": "Intel oneAPI",
+     "repo-url": "https://yum.repos.intel.com/oneapi"
     },
     "name": "intel-basekit"
    }
@@ -122868,7 +122887,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -136364,7 +136387,11 @@
    "apt\\intel-oneapi-basekit": {
     "driver": "apt",
     "fields": {
-     "name": "intel-basekit"
+     "name": "intel-basekit",
+     "pubkey-path": "/usr/share/keyrings/oneapi-archive-keyring.asc",
+     "pubkey-url": "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB",
+     "source-line": "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main",
+     "source-path": "/etc/apt/sources.list.d/oneAPI.list"
     },
     "name": "intel-basekit"
    }
@@ -139316,13 +139343,12 @@
    }
   },
   "newsboat": {
-   "apt\\newsboat": {
+   "apt\\snapd": {
     "driver": "apt",
     "fields": {
-     "name": "newsboat",
-     "repo-component": "universe"
+     "name": "snapd"
     },
-    "name": "newsboat"
+    "name": "snapd"
    },
    "dotfiles\\newsboat-dotfiles": {
     "driver": "dotfiles",
@@ -139333,6 +139359,33 @@
      }
     },
     "name": "newsboat-dotfiles"
+   },
+   "script\\snapd-snap-link": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "location": "/snap",
+     "name": "snapd-snap-link",
+     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "version-cmd": "test -e /snap && echo present",
+     "version-re": "(present)"
+    },
+    "name": "snapd-snap-link"
+   },
+   "service\\snapd-socket": {
+    "driver": "service",
+    "fields": {
+     "name": "snapd-socket",
+     "unit": "snapd.socket"
+    },
+    "name": "snapd-socket"
+   },
+   "snap\\newsboat": {
+    "driver": "snap",
+    "fields": {
+     "name": "newsboat"
+    },
+    "name": "newsboat"
    }
   },
   "newsboat-dotfiles": {

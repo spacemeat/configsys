@@ -673,6 +673,16 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
             base_plan, units = plan_with_swaps(ctx, base_plan, units)
         plan = expand_plan(base_plan, units)
 
+    if op in ('install', 'upgrade', 'set-version'):
+        # no surprises: a version FLOOR the default method can't meet (e.g. hlint's cabal >= 3.10.2 vs
+        # Ubuntu 24.04's 3.8.1) would fail deep in the run — say so, with the fix, BEFORE it starts.
+        # (inspect / the TUI's ! page surface the same advisories.)
+        try:
+            from . import flooradvise
+            for adv in flooradvise.advise(ctx, list(units.values())):
+                print(f'configsys: heads-up — {adv["text"]}', file=sys.stderr)
+        except Exception:                    # noqa: BLE001 — an advisory must never block the op
+            pass
     maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
     from . import actions
     result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # the shared op loop

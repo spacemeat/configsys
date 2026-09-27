@@ -28,6 +28,7 @@ import os
 import re
 import shlex
 import shutil
+from urllib.parse import urlsplit
 
 from ..driver import Driver
 from ..runner import Result
@@ -140,11 +141,23 @@ class AltDriver(Driver):
             list_path = src.get('list', f'/etc/apt/sources.list.d/{self.name}-{v}.list')
             deb = src['deb'].replace('$VERSION', v)   # $CODENAME resolved in-shell (spliced below)
             deb_q = '"$CODENAME"'.join(shlex.quote(p) for p in ('deb ' + deb).split('$CODENAME'))
+            host = urlsplit(deb.split()[0]).netloc if deb.split() else ''
+            pkg = shlex.quote(self._packages(rc)[0])
+            listq = shlex.quote(list_path)
+            # Only add the vendor repo when the DISTRO doesn't already carry the package. Ubuntu 24.04
+            # ships clang-20 in noble-updates, and mixing apt.llvm.org's clang-20 with the distro's own
+            # libllvm20 breaks — on Pop!_OS, which pins its repos above a vendor's, apt gives up with
+            # "held broken packages". So when the distro has it: use the distro's, and drop OUR list
+            # file if an earlier run left it (else apt keeps preferring the vendor's newer build).
             return [
                 'CODENAME="$(. /etc/os-release; echo "$VERSION_CODENAME")"',
-                f'curl -fsSL {shlex.quote(src["key"])} | tee {shlex.quote(key_path)} >/dev/null',
-                f'echo {deb_q} | tee {shlex.quote(list_path)} >/dev/null',
-                'apt-get update',
+                f'if apt-cache madison {pkg} 2>/dev/null | grep -v -F {shlex.quote(host or "//")} | grep -q .; then',
+                f'  if [ -f {listq} ]; then rm -f {listq}; apt-get update; fi',
+                'else',
+                f'  curl -fsSL {shlex.quote(src["key"])} | tee {shlex.quote(key_path)} >/dev/null',
+                f'  echo {deb_q} | tee {listq} >/dev/null',
+                '  apt-get update',
+                'fi',
             ]
         return []
 

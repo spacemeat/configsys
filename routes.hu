@@ -379,7 +379,9 @@
         lolcat:     { attrs: [ CLI FOSS permissive ] description: "lolcat — rainbow-colorize any piped output (`lolcat`)." install: [ { via: native  when: "(debian or fedora or arch) and not amzn"  repo-component: universe }  { via: gem  name: lolcat } ] }   // the original is a Ruby gem -> gem covers openSUSE/Alpine/atomic + is pinnable anywhere
         asciinema:  { attrs: [ CLI FOSS GNU copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  repo-component: universe }  { via: pipx  name: asciinema } ] }   // native everywhere; pipx is the universal fallback + pinnable alt
         jrnl:       { attrs: [ CLI FOSS GNU copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora_atomic" } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
-        newsboat:   { attrs: [ TUI FOSS permissive ] suggests: newsboat-dotfiles  description: "Newsboat — an RSS/Atom feed reader for the terminal." install: [ { via: native  repo-component: universe } ] }   // Rust; packaged on every family (no installable crate)
+        newsboat:   { attrs: [ TUI FOSS permissive ] suggests: newsboat-dotfiles  description: "Newsboat — an RSS/Atom feed reader for the terminal."
+                      install: [ { via: native  when: "not ((ubuntu >= 24.04) and (ubuntu < 25.04))"  repo-component: universe }   // Rust; packaged on every family (no installable crate) — EXCEPT Ubuntu 24.x (dropped from noble; back in 25.04)
+                                 { via: snap  name: newsboat  standing: never-auto } ] }   // the maintainer's snap: never the default where native works; on 24.x it's the ONLY method, so it's used there (pulls in snapd — shown in the plan)
         lynx:  { attrs: [ CLI app FOSS copyleft ] description: "Lynx — the classic text-mode web browser."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                             { via: native  when: "rhel"  requires: epel } ] }   // EL: EPEL
@@ -970,7 +972,7 @@
                 // prepends ~/.cargo/bin for builds, so a floor-pinned rust builds; for INTERACTIVE
                 // use, put ~/.cargo/bin on PATH yourself (configsys ships no personal shell config).
                 { via: script  requires: curl
-                  provides: { cargo: ">=1.80" }
+                  provides: { cargo: ">=1.90" }      // rustup installs the CURRENT stable; keep this at a recent floor
                   version: { url: "https://static.rust-lang.org/dist/channel-rust-stable.toml"
                              regex: '\[pkg\.rust\]\s*\n\s*version = "([0-9]+\.[0-9]+\.[0-9]+)' }
                   install-cmd:   "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path"
@@ -1385,11 +1387,23 @@
         dkjson:   { attrs: [ lib FOSS permissive ] description: "dkjson — a pure-Lua JSON encode/decode library." install: [ { via: luarocks  name: dkjson } ] }
         // cabal (Haskell build tool; needs ghc to build) + a sample executable.
         cabal: { attrs: [ CLI FOSS permissive ] suggests: cabal-glue  description: "Cabal — Haskell's build system and package manager." requires: haskell
-                 install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apk: cabal  default: cabal-install } } ] }
+                 install: [ { via: native  when: "not amzn"   repo-component: universe  name: { apk: cabal  default: cabal-install } }
+                            // ghcup's cabal (its RECOMMENDED release) into ~/.ghcup/bin, which the cabal driver
+                            // prepends. For a distro cabal too old for today's Hackage: cabal-install < 3.10.2
+                            // can't verify Hackage's rotated root keys ("root.json does not have enough
+                            // signatures") — Ubuntu 24.04 ships 3.8.1. A `cabal >= 3.10.2` floor (hlint) advises
+                            // pinning here. MINIMAL bootstrap = ghcup alone (no GHC); never-auto.
+                            { via: script  when: "not amzn"  standing: never-auto  requires: curl
+                              provides: { cabal: ">=3.10.2" }
+                              install-cmd:   'export BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 ; [ -x "$HOME/.ghcup/bin/ghcup" ] || curl --proto "=https" --tlsv1.2 -fsSL https://get-ghcup.haskell.org | sh ; "$HOME/.ghcup/bin/ghcup" install cabal recommended --set'
+                              version-cmd:   '"$HOME/.ghcup/bin/cabal" --numeric-version 2>/dev/null'
+                              latest-cmd:    '"$HOME/.ghcup/bin/ghcup" list -t cabal -r 2>/dev/null | grep -m1 recommended | cut -d" " -f2'
+                              uninstall-cmd: '"$HOME/.ghcup/bin/ghcup" rm cabal "$("$HOME/.ghcup/bin/cabal" --numeric-version)"'
+                              location:      '~/.ghcup/bin/cabal' } ] }
         // hlint's recent releases need a modern GHC to build from Hackage; the distro ghc is often
         // too old. The `haskell >= 9.4` floor advises pinning haskell -> ghcup (auto under
         // `auto-tighten`), and the cabal driver then builds with the ghcup toolchain.
-        hlint: { attrs: [ CLI FOSS permissive ] description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.4" } ]
+        hlint: { attrs: [ CLI FOSS permissive ] description: "HLint — suggests improvements to Haskell code." requires: [ { haskell: ">=9.4" } { cabal: ">=3.10.2" } ]   // cabal floor: older cabal can't verify Hackage's root keys
                  install: [ { via: cabal  name: hlint  version: { hackage: hlint } } ] }
 
         // Zig — native on Arch/Homebrew; elsewhere the upstream tarball. zig's Linux build is
@@ -1657,7 +1671,8 @@
         insomnia: { attrs: [ GUI app FOSS permissive electron account ] description: "Insomnia — an open-source API client and design tool." install: [ { via: flatpak  hub: flathub  app: rest.insomnia.Insomnia }  { via: native-pkg-file  when: "debian or redhat"  version: { github: Kong/insomnia  tag-re: "core@([0-9][0-9.]*)" }  asset: { deb: { x86_64: "Insomnia.Core-*.deb" }  rpm: { x86_64: "Insomnia.Core-*.rpm" } } } ] }   // monorepo: tag-re scopes to core@ tags (ignoring inso@/lib@); prerelease core@ betas are skipped so it doesn't read perpetually-outdated vs the latest STABLE .deb
         bruno:    { attrs: [ GUI app electron FOSS permissive freemium ] description: "Bruno — a fast, git-friendly, offline-first API client." install: [ { via: flatpak  hub: flathub  app: com.usebruno.Bruno }  { via: native-pkg-file  when: "debian or redhat"  version: { github: usebruno/bruno  strip-v: true }  asset: { deb: { x86_64: "bruno_*_amd64_linux.deb" }  rpm: { x86_64: "bruno_*_x86_64_linux.rpm" } } } ] }   // upstream .deb (amd64)/.rpm (x86_64 token differs)
         tree-sitter-cli: { attrs: [ CLI FOSS permissive ] suggests: tree-sitter-cli-glue  description: "tree-sitter CLI — build and test tree-sitter grammars."
-            install: [ { via: cargo  name: tree-sitter-cli  standing: 1  version: { crates: tree-sitter-cli } }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
+            install: [ { via: cargo  name: tree-sitter-cli  standing: 1  version: { crates: tree-sitter-cli }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
+                         requires: { cargo: ">=1.90" } }   // current releases' MSRV (0.27: rustc 1.90); an older distro rust (24.04: 1.75) -> advises rustup, or pin the tarball
                        { via: tarball  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-x64.gz" } } ]   // upstream ships a plain-gzipped single binary
         }
         mononoki-nerd: { attrs: [ font FOSS permissive ] description: "Mononoki Nerd Font — a clean monospace coding font with icons."
@@ -1886,7 +1901,15 @@
                          name: { apt: libdnnl-dev  dnf: onednn-devel  pacman: onednn  zypper: onednn-devel } } ]
         }
         intel-oneapi-basekit: { attrs: [ SDK toolchain proprietary freeware ] description: "Intel oneAPI Base Toolkit — compute compilers and libraries."
-            install: [ { via: native  name: { apt: intel-basekit  dnf: intel-basekit  pacman: intel-oneapi-basekit } } ]
+            install: [ { via: native  when: "arch"  name: intel-oneapi-basekit }      // in [extra]
+                       { via: native  when: "debian"  name: intel-basekit              // Intel's own apt repo (not in any distro's)
+                         pubkey-url: "https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB"
+                         pubkey-path: /usr/share/keyrings/oneapi-archive-keyring.asc   // an ARMORED key -> .asc
+                         source-line: "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.asc] https://apt.repos.intel.com/oneapi all main"
+                         source-path: /etc/apt/sources.list.d/oneAPI.list }
+                       { via: native  when: "redhat"  name: intel-basekit              // Intel's own dnf repo
+                         pubkey-url: "https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB"
+                         repo-id: oneAPI  repo-name: "Intel oneAPI"  repo-url: "https://yum.repos.intel.com/oneapi" } ]
         }
 
         // OpenCV — computer-vision library, split by face: the C++ dev library and the Python
