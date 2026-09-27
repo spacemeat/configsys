@@ -107,11 +107,20 @@ gradient: { from: "#160a22"  to: "#050208" }
 - `gradient: false` (or `gradient: { enabled: false }`) turns that page's background off.
 
 **24-bit only.** The gradient is painted only on a terminal that can render true color — either a
-direct-color terminal (`TERM=*-direct`) or one that allows palette redefinition
-(`init_color`/`can_change_color`, e.g. `xterm-256color` with the `ccc` capability). Otherwise the
-background is left default; foreground colors still apply, cube-approximated. The Theme screen
-shows the **detected color mode** (`direct 24-bit` / `24-bit` / `256-color (approx)` / `8-color`)
-so you can tell what your terminal gave us.
+direct-color terminal or one that allows palette redefinition (`init_color`/`can_change_color`,
+e.g. `xterm-256color` with the `ccc` capability). Otherwise the background is left default;
+foreground colors still apply, cube-approximated.
+
+**Direct color is preferred.** Most truecolor terminals still say `TERM=xterm-256color` and
+advertise 24-bit via `COLORTERM=truecolor`. When they do (or you pass `--color 24bit`), configsys
+starts curses against the sibling `-direct` terminfo entry (`xterm-direct`, `foot-direct`, …) so
+colors go out as real 24-bit SGR. The palette-redefinition fallback (OSC 4) is used only without
+that signal — it's fragile: a terminal that ignores OSC 4 (COSMIC's terminal, for one) shows its
+stock 256-color cube in those slots, i.e. every color wrong. Not done under tmux/screen, or when a
+`--color` cap below 24-bit is set; `configsys --probe` shows the TERM curses actually used.
+
+The Theme screen shows the **detected color mode** (`direct 24-bit` / `24-bit` /
+`256-color (approx)` / `8-color`) so you can tell what your terminal gave us.
 
 ## The Theme screen (key 7)
 

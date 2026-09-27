@@ -536,6 +536,8 @@ class Palette:
         idx = None
         if self.direct:                                    # color number IS the packed 24-bit RGB
             idx = (r << 16) | (g << 8) | b
+            if idx < 8:                                    # 0..7 are still the ANSI slots under
+                idx = 8                                    # -direct terminfo; (0,0,8) ~ true black
         elif self.truecolor and self._next_color < curses.COLORS:
             idx = self._next_color
             try:

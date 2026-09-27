@@ -9,9 +9,17 @@ restores the terminal even on SIGINT. On top of cbreak we turn OFF CR->NL foldin
 clearing the tty's ICRNL), the way vim does, so the Return key (CR / KEY_ENTER) is DISTINCT from
 Ctrl-J (LF, byte 10) — letting Ctrl-J/Ctrl-K serve as page-down/up without shadowing Enter. That
 folding is re-enabled on teardown and momentarily handed back to a suspended child.
+
+direct_color_term(): which terminfo entry to start curses with. Terminals advertise 24-bit color
+via COLORTERM but almost all still say TERM=xterm-256color, and under that entry ncurses can only
+fake truecolor by REDEFINING palette slots (OSC 4 via init_color). Terminals that ignore OSC 4
+(e.g. COSMIC's terminal) then show the stock 256-cube at those slots — every color wrong. So when
+the terminal claims truecolor we initialize against the matching `-direct` entry instead, where a
+color number IS a packed RGB sent as a real 24-bit SGR (the Palette's `direct` path).
 '''
 
 import curses
+import os
 import signal
 import sys
 from contextlib import contextmanager
@@ -51,9 +59,65 @@ def _restore_cr_nl():
             pass
 
 
+_TERMINFO_DIRS = ('/etc/terminfo', '/lib/terminfo', '/usr/share/terminfo', '/usr/lib/terminfo',
+                  '/usr/local/share/terminfo', '/opt/homebrew/share/terminfo')
+
+
+def _terminfo_exists(name, env):
+    dirs = [env.get('TERMINFO'), os.path.expanduser('~/.terminfo')]
+    dirs += (env.get('TERMINFO_DIRS') or '').split(':')
+    dirs += _TERMINFO_DIRS
+    for d in filter(None, dirs):
+        for sub in (name[0], f'{ord(name[0]):x}'):          # Linux layout, then macOS hex layout
+            if os.path.isfile(os.path.join(d, sub, name)):
+                return True
+    return False
+
+
+def direct_color_term(env=None):
+    '''The `-direct` terminfo name to initialize curses with, or None to keep $TERM. Only when the
+    terminal claims truecolor (COLORTERM=truecolor|24bit, or an explicit --color 24bit), the color
+    cap allows it, python's curses can address >256 colors, and a sibling `<base>-direct` entry is
+    installed (xterm-256color -> xterm-direct, foot -> foot-direct). Not under tmux/screen, whose
+    truecolor passthrough is its own configuration.'''
+    from .theme import env_color_cap
+    env = os.environ if env is None else env
+    term = env.get('TERM') or ''
+    cap = env_color_cap(env)
+    colorterm = (env.get('COLORTERM') or '').strip().lower()
+    if cap not in (None, 'truecolor') or (cap is None and colorterm not in ('truecolor', '24bit')):
+        return None
+    if not term or 'direct' in term or env.get('TMUX') or term.startswith(('screen', 'tmux')):
+        return None
+    try:
+        if not curses.has_extended_color_support():
+            return None
+    except AttributeError:
+        return None
+    base = term[:-len('-256color')] if term.endswith('-256color') else term
+    name = f'{base}-direct'
+    return name if _terminfo_exists(name, env) else None
+
+
+@contextmanager
+def direct_color_env():
+    '''Swap TERM to the `-direct` entry for curses initialization only (ncurses reads TERM once, at
+    initscr), restoring it after, so children run from the TUI still see the user's real TERM.'''
+    name = direct_color_term()
+    old = os.environ.get('TERM')
+    if name:
+        os.environ['TERM'] = name
+    try:
+        yield
+    finally:
+        if name:
+            os.environ['TERM'] = old
+
+
 @contextmanager
 def curses_screen():
-    stdscr = curses.initscr()
+    with direct_color_env():
+        stdscr = curses.initscr()
     curses.noecho()
     curses.cbreak()
     stdscr.keypad(True)

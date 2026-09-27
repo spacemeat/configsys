@@ -2929,7 +2929,8 @@ def build_parser():
                         'the run); install/execute still act on the local machine only')
     p.add_argument('--config', help='override the per-machine selector file path')
     p.add_argument('--color', choices=['auto', '24bit', '256', '16', '8', 'none'], default=None,
-                   help='cap the TUI color depth (clamps DOWN only) — for testing degradation or a '
+                   help='cap the TUI color depth (clamps DOWN, except 24bit: forces direct RGB via the '
+                        '-direct terminfo even without COLORTERM) — for testing degradation or a '
                         'plainer look; overrides the theme. 16 uses the hand-tuned bright ANSI set '
                         '(theme.colors-basic), 8 forces the base 8. Also reads CONFIGSYS_COLOR / NO_COLOR')
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
@@ -3896,6 +3897,8 @@ def _probe_color(ctx):
     if sys.stdout.isatty():
         import curses
         from .tui.theme import Palette
+        from .tui.screen import direct_color_env, direct_color_term
+        d['term'] = direct_color_term()               # the -direct entry curses will start with
 
         def _p(_scr):
             pal = Palette(ctx.config.theme())
@@ -3905,12 +3908,15 @@ def _probe_color(ctx):
             except curses.error:
                 d['can'] = False
         try:
-            curses.wrapper(_p)
+            with direct_color_env():
+                curses.wrapper(_p)
         except Exception as e:                        # noqa: BLE001
             d['mode'] = f'(curses error: {e})'
     else:
         d['mode'] = '(not a terminal — capability probe skipped)'
-    why = [x for x in (f"COLORS={d['colors']}" if 'colors' in d else None,
+    why = [x for x in (f"TERM={os.environ.get('TERM')}" + (f" (curses: {d['term']})" if d.get('term') else ''),
+                       f"COLORTERM={os.environ.get('COLORTERM') or '(unset)'}",
+                       f"COLORS={d['colors']}" if 'colors' in d else None,
                        f"can_change={d['can']}" if 'can' in d else None,
                        f'capped={cap}' if cap else None) if x]
     print(f"color:   {d.get('mode')}" + (f"   ({' · '.join(why)})" if why else ''))
