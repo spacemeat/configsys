@@ -10752,6 +10752,58 @@
     "name": "signal-desktop"
    }
   },
+  "signal-cli": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "aur\\slack": {
     "driver": "aur",
@@ -24800,6 +24852,58 @@
     "name": "signal-desktop"
    }
   },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -38200,6 +38304,58 @@
     "name": "signal-desktop"
    }
   },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -51582,6 +51738,58 @@
     "name": "signal-desktop"
    }
   },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -64525,6 +64733,58 @@
      "name": "org.signal.Signal"
     },
     "name": "org.signal.Signal"
+   }
+  },
+  "signal-cli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
    }
   },
   "slack": {
@@ -77574,6 +77834,58 @@
     "name": "org.signal.Signal"
    }
   },
+  "signal-cli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "dnf\\slack": {
     "driver": "dnf",
@@ -88573,6 +88885,58 @@
      "name": "org.signal.Signal"
     },
     "name": "org.signal.Signal"
+   }
+  },
+  "signal-cli": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
    }
   },
   "slack": {
@@ -101647,6 +102011,58 @@
      "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
     },
     "name": "signal-desktop"
+   }
+  },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
    }
   },
   "slack": {
@@ -115229,6 +115645,58 @@
      "name": "org.signal.Signal"
     },
     "name": "org.signal.Signal"
+   }
+  },
+  "signal-cli": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
    }
   },
   "slack": {
@@ -129153,6 +129621,58 @@
     "name": "signal-desktop"
    }
   },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -142563,6 +143083,58 @@
      "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
     },
     "name": "signal-desktop"
+   }
+  },
+  "signal-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
+   },
+   "tarball\\signal-cli": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/signal-cli",
+     "name": "signal-cli",
+     "version": {
+      "asset": "signal-cli-*-Linux-native.tar.gz",
+      "github": "AsamK/signal-cli",
+      "strip-v": "true"
+     }
+    },
+    "name": "signal-cli"
+   }
+  },
+  "signal-cli-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\signal-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "signal-cli"
+    },
+    "name": "signal-cli-glue"
    }
   },
   "slack": {

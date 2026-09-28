@@ -2087,6 +2087,22 @@
                 { via: flatpak  hub: flathub  app: org.signal.Signal }
                 { via: snap  name: signal-desktop  standing: never-auto } ]
         }
+        // signal-cli — Signal from the command line / as a JSON-RPC or D-Bus daemon (for scripts and
+        // bots). Not in any distro's official repos. Default everywhere (Arch included): upstream's
+        // GraalVM NATIVE build — one self-contained binary, no Java. The AUR package (builds the JVM
+        // variant, needs JRE 25) is the Arch alternative. Both bundle libsignal for x86_64 glibc only,
+        // so aarch64 / musl Alpine decline. Glue puts it on PATH. No dotfiles: ~/.local/share/signal-cli
+        // holds the account keys.
+        signal-cli: { attrs: [ CLI daemon FOSS copyleft account online ] suggests: signal-cli-glue
+            description: "signal-cli — send and receive Signal messages from the command line, or run it as a JSON-RPC/D-Bus daemon."
+            install: [
+                { via: aur  when: "arch"  name: signal-cli }
+                { via: tarball  when: "cpu: x86_64 and not alpine"  installDir: "$CONFIGSYS_APP_DIR/signal-cli"  requires: glibc
+                  version: { github: AsamK/signal-cli  strip-v: true  asset: "signal-cli-*-Linux-native.tar.gz" } } ]
+        }
+        signal-cli-glue: { description: "signal-cli on PATH (tarball installs)."
+            install: [ { via: glue  requires: shell-glue  glue: signal-cli } ]
+        }
 
         // --- media & creative apps -------------------------------------------------
         // Flatpak-preferred: the Flathub builds are current and not hobbled by the sandbox for
