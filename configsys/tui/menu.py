@@ -3553,6 +3553,8 @@ def _sample_profiles_state(ctx):
     the infobox shows the ⊘ warn banner alongside the requires/required-by lines. A synthetic empty
     overlay is injected so overlay() never spawns the real (threaded) scan.'''
     ps = ProfileScreen(ctx)
+    ps._warm_gen = 10 ** 9                           # stop __init__'s warm sweep BEFORE priming: an
+    # in-flight resolve finishing after the priming below overwrote a primed [pinned] row (flaky)
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
     ps._async_overlay = None
@@ -3617,12 +3619,16 @@ def _sample_profiles_state(ctx):
     # draw only READS _res (no on-demand resolve during paint). Otherwise the background warm thread
     # (which resolves into shared ctx.routes caches) races the draw under a loaded test run, and a
     # component's shown via/pin can differ between two renders — a flaky equivalence check.
-    ps._warm_gen = 10 ** 9                            # supersede the in-flight warm sweep -> it stops
     for _n in vis:
         try:
             ps._resolve(_n)                          # fills _res[_n] once (no-op if already primed above)
         except Exception:                            # noqa: BLE001 — a preview never bricks
             pass
+    # FREEZE the sample's answers: the draw reads this snapshot, so neither a straggling warm-thread
+    # write nor a ctx.routes rebuild (which clears _res by the Resolver's id — allocator-dependent
+    # under a loaded run) can change a row's via/pin between two renders.
+    _frozen, _live = dict(ps._res), ps._resolve
+    ps._resolve = lambda name: _frozen[name] if name in _frozen else _live(name)
     return ps
 
 
