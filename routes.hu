@@ -2073,7 +2073,7 @@
         }
         // Signal Desktop. Signal's own apt repo is amd64-only (one `xenial` suite serves every
         // release); Arch packages it in [extra]; Flathub everywhere else (Fedora/openSUSE/Alpine/
-        // atomic/aarch64 — community-packaged, not by Signal). The snap is also community-built
+        // atomic/aarch64 — community-packaged, not by Signal), with a community AppImage alongside. The snap is also community-built
         // (Snapcrafters) -> never-auto so it doesn't tie with flatpak. No dotfiles: ~/.config/Signal
         // holds the account keys + encrypted message DB.
         signal:  { attrs: [ GUI app FOSS copyleft electron account online ] description: "Signal Desktop — end-to-end encrypted messaging (`signal-desktop`), linked to your phone's Signal account."
@@ -2085,6 +2085,13 @@
                   source-path: /etc/apt/sources.list.d/signal-desktop.list }
                 { via: native  when: "arch"  name: signal-desktop }   // [extra]
                 { via: flatpak  hub: flathub  app: org.signal.Signal }
+                // community AppImage (karo-solutions — rebuilt from each Signal release within a day,
+                // x86_64 + aarch64); glibc, so not on musl Alpine. Signal itself ships no AppImage.
+                // never-auto: its `not alpine` gate would out-specific the ungated flatpak and take
+                // the default; it's a pinnable alternative (`configsys pin set signal appImage`).
+                { via: appImage  when: "not alpine"  standing: never-auto  name: Signal  scope: user
+                  version: { github: karo-solutions/Signal-Desktop-AppImage  strip-v: true  asset: "Signal-v*-$ARCH.AppImage" }
+                  path: ~/apps/signal.appimage }
                 { via: snap  name: signal-desktop  standing: never-auto } ]
         }
         // signal-cli — Signal from the command line / as a JSON-RPC or D-Bus daemon (for scripts and
