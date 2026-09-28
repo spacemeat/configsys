@@ -2071,6 +2071,22 @@
                 { via: flatpak  hub: flathub  app: com.slack.Slack }
                 { via: snap  name: slack } ]
         }
+        // Signal Desktop. Signal's own apt repo is amd64-only (one `xenial` suite serves every
+        // release); Arch packages it in [extra]; Flathub everywhere else (Fedora/openSUSE/Alpine/
+        // atomic/aarch64 — community-packaged, not by Signal). The snap is also community-built
+        // (Snapcrafters) -> never-auto so it doesn't tie with flatpak. No dotfiles: ~/.config/Signal
+        // holds the account keys + encrypted message DB.
+        signal:  { attrs: [ GUI app FOSS copyleft electron account online ] description: "Signal Desktop — end-to-end encrypted messaging (`signal-desktop`), linked to your phone's Signal account."
+            install: [
+                { via: native  when: "debian and cpu: x86_64"  name: signal-desktop   // Signal's official apt repo
+                  pubkey-url: "https://updates.signal.org/desktop/apt/keys.asc"
+                  pubkey-path: /usr/share/keyrings/signal-desktop-keyring.asc   // an ARMORED key -> .asc
+                  source-line: "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main"
+                  source-path: /etc/apt/sources.list.d/signal-desktop.list }
+                { via: native  when: "arch"  name: signal-desktop }   // [extra]
+                { via: flatpak  hub: flathub  app: org.signal.Signal }
+                { via: snap  name: signal-desktop  standing: never-auto } ]
+        }
 
         // --- media & creative apps -------------------------------------------------
         // Flatpak-preferred: the Flathub builds are current and not hobbled by the sandbox for

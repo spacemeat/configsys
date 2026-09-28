@@ -10743,6 +10743,15 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "pacman\\signal": {
+    "driver": "pacman",
+    "fields": {
+     "name": "signal-desktop"
+    },
+    "name": "signal-desktop"
+   }
+  },
   "slack": {
    "aur\\slack": {
     "driver": "aur",
@@ -24778,6 +24787,19 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -38165,6 +38187,19 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -51534,6 +51569,19 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -64460,6 +64508,23 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "signal": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\signal": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.signal.Signal"
+    },
+    "name": "org.signal.Signal"
    }
   },
   "slack": {
@@ -77492,6 +77557,23 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\signal": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.signal.Signal"
+    },
+    "name": "org.signal.Signal"
+   }
+  },
   "slack": {
    "dnf\\slack": {
     "driver": "dnf",
@@ -88481,6 +88563,16 @@
      "name": "org.shotcut.Shotcut"
     },
     "name": "org.shotcut.Shotcut"
+   }
+  },
+  "signal": {
+   "flatpak\\signal": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.signal.Signal"
+    },
+    "name": "org.signal.Signal"
    }
   },
   "slack": {
@@ -101542,6 +101634,19 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
    }
   },
   "slack": {
@@ -115107,6 +115212,23 @@
      "name": "org.shotcut.Shotcut"
     },
     "name": "org.shotcut.Shotcut"
+   }
+  },
+  "signal": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\signal": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.signal.Signal"
+    },
+    "name": "org.signal.Signal"
    }
   },
   "slack": {
@@ -129018,6 +129140,19 @@
     "name": "shotcut"
    }
   },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
+   }
+  },
   "slack": {
    "apt\\slack": {
     "driver": "apt",
@@ -142415,6 +142550,19 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "signal": {
+   "apt\\signal": {
+    "driver": "apt",
+    "fields": {
+     "name": "signal-desktop",
+     "pubkey-path": "/usr/share/keyrings/signal-desktop-keyring.asc",
+     "pubkey-url": "https://updates.signal.org/desktop/apt/keys.asc",
+     "source-line": "deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.asc] https://updates.signal.org/desktop/apt xenial main",
+     "source-path": "/etc/apt/sources.list.d/signal-desktop.list"
+    },
+    "name": "signal-desktop"
    }
   },
   "slack": {
