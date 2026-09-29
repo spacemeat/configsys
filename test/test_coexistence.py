@@ -116,3 +116,63 @@ def test_plan_with_swaps_noop_when_no_other_method_installed(tmp_path):
     plan, units2 = plan_with_swaps(ctx, [('install', key, target)], dict(units))
     assert plan == [('install', key, target)]            # no swap added
     assert set(units2) == set(units)
+
+
+# -- companion cleanup: a removed method's / component's GLUE goes with it ----------
+
+_COMPANIONS = ('app: { suggests: [ app-glue, app-dotfiles ]  install: ['
+               ' { via: native  suggests: app-native-glue }'
+               ' { via: flatpak  app: org.x.App  suggests: app-flatpak-glue } ] }'
+               ' app-glue: { install: [ { via: glue  glue: app } ] }'
+               ' app-native-glue: { install: [ { via: glue  glue: app-native } ] }'
+               ' app-flatpak-glue: { install: [ { via: glue  glue: app-flatpak } ] }'
+               ' app-dotfiles: { install: [ { via: dotfiles  config: { src: app  dst: ~/.app } } ] }'
+               ' other: { suggests: app-glue  install: [ { via: native } ] }')
+
+
+class _AppFlatpakRunner:
+    def run(self, cmd, **kw):
+        if cmd.startswith('flatpak info'):
+            return Result(cmd, 0, stdout='Version: 1.0\n')
+        return Result(cmd, 1)
+
+
+def _companion_ctx(tmp_path, monkeypatch, picks):
+    import configsys.installState as ist
+    real = ist.get_driver
+
+    def get_driver(name, runner, paths):
+        if name == 'glue':                                # every glue companion reads as installed
+            return types.SimpleNamespace(get_version=lambda rc: 'installed')
+        return real(name, runner, paths)
+    monkeypatch.setattr(ist, 'get_driver', get_driver)
+    r = Resolver(_routes(tmp_path, _COMPANIONS), 'debian', '12')
+    cfg = types.SimpleNamespace(requested=lambda: {p: [] for p in picks})
+    return types.SimpleNamespace(routes=r, runner=_AppFlatpakRunner(), paths=None, config=cfg), r
+
+
+def test_method_switch_removes_the_old_methods_glue(tmp_path, monkeypatch):
+    # installing via native while the flatpak method is installed: the flatpak install AND its own
+    # glue go; the native method's glue and the component's own companions stay.
+    ctx, r = _companion_ctx(tmp_path, monkeypatch, ['app'])
+    units = r.resolve_resilient(['app'])[0]
+    plan, _u = plan_with_swaps(ctx, [('install', 'apt\\app', units['apt\\app'])], dict(units))
+    removes = {k for op, k, _rc in plan if op == 'remove'}
+    assert removes == {'flatpak\\app', 'glue\\app-flatpak-glue'}
+
+
+def test_removing_a_component_removes_its_glue_not_its_dotfiles(tmp_path, monkeypatch):
+    ctx, r = _companion_ctx(tmp_path, monkeypatch, ['app'])
+    units = r.resolve_resilient(['app'])[0]
+    plan, _u = plan_with_swaps(ctx, [('remove', 'apt\\app', units['apt\\app'])], dict(units))
+    removes = {k for op, k, _rc in plan if op == 'remove'}
+    assert {'glue\\app-native-glue', 'glue\\app-glue'} <= removes     # method + component glue
+    assert 'dotfiles\\app-dotfiles' not in removes                    # config links are left alone
+
+
+def test_glue_still_wanted_by_another_pick_is_kept(tmp_path, monkeypatch):
+    ctx, r = _companion_ctx(tmp_path, monkeypatch, ['app', 'other'])  # `other` also suggests app-glue
+    units = r.resolve_resilient(['app'])[0]
+    plan, _u = plan_with_swaps(ctx, [('remove', 'apt\\app', units['apt\\app'])], dict(units))
+    removes = {k for op, k, _rc in plan if op == 'remove'}
+    assert 'glue\\app-glue' not in removes and 'glue\\app-native-glue' in removes

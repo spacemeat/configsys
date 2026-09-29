@@ -376,4 +376,57 @@ def plan_with_swaps(ctx, base_plan, units):
             seen.add(old_rc.key)
             units[old_rc.key] = old_rc
             plan.append(('remove', old_rc.key, old_rc))
+    return plan_companion_cleanup(ctx, plan, units)
+
+
+def plan_companion_cleanup(ctx, plan, units):
+    '''Remove the GLUE companions a removal leaves behind. A method's own glue (a binding-level
+    `suggests:`, e.g. a source build's PATH snippet) must go when that method is switched away from,
+    and a component's glue when the component itself is removed — else a stale snippet keeps putting
+    the old install on PATH. Only glue (dotfiles/config links are left alone), only when installed,
+    and never one still wanted: in the resolution of this machine's picks (minus components being
+    removed outright) or of the plan's own install targets. Returns (plan, units).'''
+    from .resolve import cap_names
+    r = ctx.routes
+    installing = {rc.comp for op, _k, rc in plan if op in _SWAP_INSTALLISH and rc is not None}
+    removing = [(k, rc) for op, k, rc in plan if op == 'remove' and rc is not None]
+    if not removing:
+        return plan, units
+    gone = {rc.comp for _k, rc in removing if rc.comp not in installing}   # removed OUTRIGHT
+    caps = []
+    for _k, rc in removing:
+        comp = r.components.get(rc.comp)
+        if comp is None:
+            continue
+        b = next((b for b in comp.bindings if b.via == (rc.via or None)), None)
+        if b is not None:
+            caps += cap_names(b.details.get('suggests'))      # this METHOD's companions
+        if rc.comp in gone:
+            caps += list(comp.suggests)                        # the component's own companions
+    if not caps:
+        return plan, units
+    try:
+        keep_names = [n for n in ctx.config.requested() if n not in gone] + sorted(installing)
+        keep, _errs = r.resolve_resilient(keep_names)
+    except Exception:                                           # noqa: BLE001 — unsure -> keep all
+        return plan, units
+    plan, units = list(plan), dict(units)
+    seen = {k for _op, k, _rc in plan}
+    for cap in dict.fromkeys(caps):
+        try:
+            cunits, _e = r.resolve_resilient([cap])
+        except Exception:                                       # noqa: BLE001
+            continue
+        for ckey, crc in cunits.items():
+            if crc.driver != 'glue' or crc.comp != cap or ckey in seen or ckey in keep:
+                continue
+            drv = get_driver('glue', ctx.runner, ctx.paths)
+            try:
+                present = drv is not None and drv.get_version(crc) is not None
+            except Exception:                                   # noqa: BLE001
+                present = False
+            if present:
+                seen.add(ckey)
+                units[ckey] = crc
+                plan.append(('remove', ckey, crc))
     return plan, units
