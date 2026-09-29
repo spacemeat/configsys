@@ -903,6 +903,8 @@ def plugin_sync(ctx, decls):
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
     results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls)
     ctx.invalidate()             # new data files / drivers are now on disk — rebuild so they surface
+    invalidate_location_cache(ctx)   # a synced plugin can MOVE installs (e.g. a build `dir:`): the
+    # shell glue must not keep pointing at the old place for the cache's hour
     return results
 
 

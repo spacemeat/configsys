@@ -753,3 +753,17 @@ def test_decl_drops_option_injecting_source_or_ref():
     assert plugins._decl({'source': '--upload-pack=touch /tmp/x'}) is None
     assert plugins._decl({'source': 'github:a/b', 'ref': '--upload-pack=x'}) is None
     assert plugins._decl({'source': 'github:a/b', 'ref': 'v1'}) == {'source': 'github:a/b', 'ref': 'v1'}
+
+
+def test_plugin_sync_drops_the_glue_location_cache(tmp_path, monkeypatch):
+    # a synced plugin can MOVE installs (configsys-blender renaming a build `dir:`); the shell glue
+    # reads locations from this cache, so a sync must drop it or glue points at the old place for ~1h
+    import types
+    from configsys import actions
+    cache = tmp_path / 'glue-locations.tsv'
+    cache.write_text('blender-4.3\t/old/blender-git\n')
+    ctx = types.SimpleNamespace(paths=types.SimpleNamespace(glue_locations_file=cache, plugins_dir=tmp_path),
+                                runner=None, ensure_plugin_code=lambda: None, invalidate=lambda: None)
+    monkeypatch.setattr('configsys.plugins.sync', lambda runner, pdir, decls: [('configsys-blender', 'updated')])
+    assert actions.plugin_sync(ctx, []) == [('configsys-blender', 'updated')]
+    assert not cache.exists()
