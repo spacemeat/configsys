@@ -1022,7 +1022,8 @@ _HELP = {
                                  "stays in your store. u unmanages the current row, U every managed "
                                  "one; both ask to confirm first."),
             ('source', "where the managed content lives: <plugin> travels to your machines (in your "
-                       "primary plugin), <local> is this box only, <repo> is a shipped default."),
+                       "primary plugin), <local> is this box only, <repo> is a shipped default, "
+                       "<name> is shipped by that plugin."),
             ('move store (s / S)', "move a config between stores: s toggles the current one "
                                    "<local>↔<plugin> (and normalizes any legacy layout); S opens a "
                                    "chooser to move ALL configs to the plugin or local."),
@@ -4093,19 +4094,9 @@ _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would ad
 
 class _ContentRootLabelMixin:
     def _root_label(self, root):
-        '''Short label for a content root: <plugin> / <local> / <repo>, else the dir name — so
-        SOURCE says WHERE the content lives, not just an ambiguous "dotfiles/".'''
-        p, rp = self.ctx.paths, Path(root)
-        # both the dotfiles roots (config captures) and the glue roots (shell snippets) map to the
-        # same labels — GlueScreen resolves against glue/, DotfilesScreen against dotfiles/.
-        if ((p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir))
-                or (getattr(p, 'primary_glue_dir', None) is not None and rp == Path(p.primary_glue_dir))):
-            return '<plugin>'
-        if rp == p.user_dotfiles_dir or rp == getattr(p, 'user_glue_dir', None):
-            return '<local>'
-        if rp == p.dotfiles_dir or rp == getattr(p, 'glue_dir', None):
-            return '<repo>'
-        return rp.name
+        '''Short label for a content root: <plugin> / <local> / <repo> / <plugin-name> — so SOURCE
+        says WHERE the content lives (shared with the CLI: Paths.content_root_label).'''
+        return self.ctx.paths.content_root_label(root)
 
 
 class DotfilesScreen(_ContentRootLabelMixin):

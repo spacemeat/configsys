@@ -107,6 +107,20 @@ class Paths:
         self.user_glue_dir = self.state_dir / 'glue'
         self.primary_glue_dir = None
 
+    def content_root_label(self, root):
+        '''A short, stable label for a dotfiles/glue CONTENT ROOT, so a SOURCE column says where the
+        content lives: <plugin> (your primary plugin — travels to your machines), <local> (this box's
+        store), <repo> (configsys's shipped default), else <name> of the layer that ships it — a
+        plugin's `<plugin>/glue` root reads `<configsys-blender>`, not a bare `glue`.'''
+        rp = Path(root)
+        if any(d is not None and rp == Path(d) for d in (self.primary_dotfiles_dir, self.primary_glue_dir)):
+            return '<plugin>'
+        if rp in (self.user_dotfiles_dir, self.user_glue_dir):
+            return '<local>'
+        if rp in (self.dotfiles_dir, self.glue_dir):
+            return '<repo>'
+        return f'<{rp.parent.name or rp.name}>'
+
     def _locate_data_root(self) -> Path:
         '''Where routes.hu / config.hu / dotfiles/ live, resolved in precedence order:
 

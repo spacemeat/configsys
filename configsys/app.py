@@ -3499,16 +3499,8 @@ def cmd_dotfiles_discard(ctx, args):
 
 
 def _dotfiles_root_label(ctx, root):
-    '''A short, stable label for a content root: <plugin> / <local> / <repo>, else <plugin-name>
-    for another layer's dotfiles dir.'''
-    p, rp = ctx.paths, Path(root)
-    if p.primary_dotfiles_dir is not None and rp == Path(p.primary_dotfiles_dir):
-        return '<plugin>'
-    if rp == p.user_dotfiles_dir:
-        return '<local>'
-    if rp == p.dotfiles_dir:
-        return '<repo>'
-    return f'<{rp.parent.name or rp.name}>'
+    '''A short, stable label for a content root (see Paths.content_root_label).'''
+    return ctx.paths.content_root_label(root)
 
 
 def cmd_dotfiles_status(ctx, args):

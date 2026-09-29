@@ -135,3 +135,16 @@ def test_userscope_default_follows_the_sandbox_home():
     # CONFIGSYS_USERSCOPE_DIR default is ~, so a sandboxed home stays contained (no env leak)
     p = Paths(env={'HOME': '/home/alice', 'CONFIGSYS_HOME': '/tmp/sb'})
     assert p.install_dir('$CONFIGSYS_APP_DIR/x', 'user') == Path('/tmp/sb/apps/x')
+
+
+def test_content_root_label(tmp_path):
+    # the SOURCE column of the Glue/Dotfiles screens + `dotfiles status`: a plugin's content root is
+    # named for the plugin (<configsys-blender>), not its bare dir (`glue`)
+    from configsys.paths import Paths
+    p = Paths(env={'HOME': str(tmp_path), 'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
+    p.primary_glue_dir = tmp_path / 'plugins/configsys-user/glue'
+    assert p.content_root_label(p.glue_dir) == '<repo>'
+    assert p.content_root_label(p.dotfiles_dir) == '<repo>'
+    assert p.content_root_label(p.user_glue_dir) == '<local>'
+    assert p.content_root_label(tmp_path / 'plugins/configsys-user/glue') == '<plugin>'
+    assert p.content_root_label(tmp_path / 'plugins/configsys-blender/glue') == '<configsys-blender>'
