@@ -124,7 +124,8 @@ class Node:
             m = self.members[0]
             if not m.supported:
                 return '?' if m.untrusted else ''
-            return (m.latest_version if _is_system_update(m) else clean_version(m.latest_version)) or '—'
+            v = (m.latest_version if _is_system_update(m) else clean_version(m.latest_version)) or '—'
+            return f'{v} [R]' if m.recipe_behind else v     # [R]: a recipe pin behind upstream
         return ''
 
     def scope_str(self):
@@ -876,6 +877,10 @@ def _infoblock(ms, ctx):
         parts.append(f'at: {loc}')                # location now rides the same line as the versions
     if m.also_present:                            # coexisting installs via OTHER (unmanaged) methods
         parts.append('also present: ' + ', '.join(f'{via} {ver}' for via, _pkg, ver in m.also_present))
+    if m.recipe_behind:                           # [R]: upstream moved past what the recipe builds
+        from ..installState import recipe_pin_text
+        parts.append('[R] ' + recipe_pin_text(clean_version(m.latest_version),
+                                              clean_version(m.upstream_version)))
     return ' ' + '   ·   '.join(parts)
 
 
@@ -922,6 +927,10 @@ _HELP = {
                           'I is every tracked component. u/U upgrade outdated only (u the cursor/set, U all)'),
             ('tree', '▾/▸ expand/collapse; a profile groups the components it pulls in'),
             ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
+            ('[R] recipe pin', 'LATEST shows what the method BUILDS — a version its recipe pins (a '
+                               'from-source build). [R]: upstream has released newer. That is NOT an '
+                               'upgrade: u rebuilds the same pin; reaching the new release needs a new '
+                               'recipe (routes, possibly a new toolchain). The detail line names both.'),
         ],
     },
     'profiles': {

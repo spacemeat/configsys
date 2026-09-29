@@ -587,6 +587,9 @@ def cmd_inspect(ctx, args):
               f'{str(s.installed_version or na):20} {s.latest_version or na}{lock}')
         for via, pkg, ver in s.also_present:   # coexisting installs via OTHER (unmanaged) methods
             print(f'{"":30} also present: {via} {ver}  ({pkg}) — `pin {s.component.comp} {via}` to manage')
+        if s.recipe_behind:
+            from .installState import recipe_pin_text
+            print(f'{"":30} [R] {recipe_pin_text(s.latest_version, s.upstream_version)}')
     # non-fatal skips/warnings that would otherwise go unseen (dropped layers, quarantined
     # plugins, unroutable components, ...) — the same set the TUI shows on its `!` page.
     diags = ctx.diagnostics(states)

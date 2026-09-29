@@ -19,7 +19,7 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
   Helpers a subclass MAY call, in two clusters:
     resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
                                   download_url(rc, version), download_target(rc, version=None),
-                                  arch()
+                                  upstream_version(rc), arch()
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
                                   display_path(p)
   Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
@@ -425,6 +425,22 @@ class Driver:
         (the ledger carries the intent, honored by the op loop). apt/dnf/zypper/brew/snap override
         with a real check; a rolling manager that can't hold (pacman/apk) also returns False.'''
         return False
+
+    def upstream_version(self, rc):
+        '''The newest UPSTREAM release, for a method that builds a FIXED version its route pins (a
+        recipe's `ref:` — e.g. configsys-blender's v4.3.2) — declared on the binding as
+        `upstream: { <version spec> }`. Advisory only: it is never "latest" (get_latest stays the
+        pinned version the method would actually build, so the unit doesn't read outdated forever
+        while an upgrade just rebuilds the pin). None when undeclared or undiscoverable.'''
+        spec = rc.fields.get('upstream')
+        if not isinstance(spec, dict):
+            return None
+        from . import versions
+        try:
+            v = versions.discover(spec, self.paths, offline=self._offline())
+        except Exception:                            # noqa: BLE001 — advisory: never break inspect
+            return None
+        return v if v and _SAFE_VERSION_RE.match(v) else None
 
     def outdated_signal(self, rc):
         '''Optional override of the generic installed-vs-latest version-STRING comparison, for a

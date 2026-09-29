@@ -211,3 +211,29 @@ def test_lock_op_not_offered_for_a_rolling_manager():
     lock_ok = OPS['lock'][2]
     assert lock_ok(holdable) is True                 # a normal (holdable) component offers Lock
     assert lock_ok(rolling) is False                 # a rolling manager does not
+
+
+def test_recipe_pin_behind_upstream_is_marked_not_outdated():
+    # configsys-blender builds a recipe-PINNED ref (v4.3.2) while Blender is at 5.2.2. LATEST keeps the
+    # pin (what the method builds) + [R]; the status stays installed (an upgrade can't reach 5.2 —
+    # that needs a new recipe), and the detail line says so in words.
+    from types import SimpleNamespace
+    from configsys.tui import menu
+    rc = ResolvedComponent(key='blender-build\\blender', driver='blender-build', comp='blender',
+                           fields={'name': 'blender', 'upstream': {'github': 'blender/blender'}},
+                           requested_as={'blender'})
+    st = ComponentState(component=rc, supported=True, present=True, installed_version='v4.3.2',
+                        latest_version='v4.3.2', locked=False, lock_source=None, managed=False,
+                        error=None, upstream_version='5.2.2')
+    assert st.recipe_behind and st.status == 'installed'
+    ms = MenuState({rc.key: st}, [('user', ['blender'])])
+    ms.toggle_expand_all()
+    unit = next(n for n in ms.rows if n.kind == UNIT)
+    assert unit.latest_str() == '4.3.2 [R]'
+    ms.cursor = ms.rows.index(unit)
+    ctx = SimpleNamespace(runner=None, paths=None)
+    line = menu._infoblock(ms, ctx)
+    assert '[R] recipe pins 4.3.2; upstream is 5.2.2' in line and 'NEW RECIPE' in line
+    # caught up (or no upstream declared): no marker
+    st.upstream_version = '4.3.2'
+    assert not st.recipe_behind and unit.latest_str() == '4.3.2'

@@ -119,6 +119,12 @@ def source_key(spec):
     # asset pattern is part of the identity (different assets -> different urls)
     if 'github' in spec:
         base = f'github:{spec["github"]}'
+        # tag-re / pick change WHICH version a feed yields, so they're part of the identity too (two
+        # specs over one repo — a monorepo's components, or an upstream `pick: highest` — mustn't
+        # share a cache entry)
+        for k in ('tag-re', 'pick'):
+            if spec.get(k):
+                base += f':{k}={spec[k]}'
         return f'{base}:asset={spec["asset"]}' if spec.get('asset') else base
     if 'pypi' in spec:
         base = f'pypi:{spec["pypi"]}'
@@ -227,6 +233,13 @@ def _select_github_tag(tags, spec, fetch=None):
         return (not tre) or re.search(tre, t)
 
     stable = [t for t in tags if _matches(t) and not _tag_is_prerelease(t)]
+    if spec.get('pick') == 'highest':
+        # a project maintaining several branches (Blender's 5.x + its 4.x LTS lines) tags a point
+        # release on an OLD branch after the newest version — "newest-dated" would then pick 4.5.15
+        # over 5.2.2. `pick: highest` takes the highest version among the feed's stable tags.
+        vs = [v for v in (_tag_transform(t, spec) for t in stable) if parse_loose(v) is not None]
+        if vs:
+            return max(vs, key=parse_loose)
     for t in stable:
         v = _tag_transform(t, spec)
         if parse_loose(v) is not None:

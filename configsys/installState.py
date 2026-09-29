@@ -67,6 +67,8 @@ class ComponentState:
     holds_version: bool = True   # driver can hold/pin a version -> lock/set-version are offered
     outdated_override: Optional[bool] = None   # a driver's own outdated verdict (flatpak: commit-based),
                                                # overriding the version-string compare; None -> use it
+    upstream_version: Optional[str] = None     # newest upstream release of a RECIPE-PINNED method
+                                               # (binding `upstream:`); advisory, never "latest"
 
     @property
     def key(self):
@@ -96,6 +98,16 @@ class ComponentState:
         if li is not None and ll is not None:
             return li < ll
         return self.installed_version != self.latest_version
+
+    @property
+    def recipe_behind(self):
+        '''True when this method builds a recipe-PINNED version and upstream has released a newer
+        one. NOT outdated: an upgrade rebuilds the pin; reaching the new release needs a new recipe.'''
+        if not (self.upstream_version and self.latest_version):
+            return False
+        from .osversion import parse_loose
+        lu, ll = parse_loose(self.upstream_version), parse_loose(self.latest_version)
+        return lu is not None and ll is not None and ll < lu
 
     @property
     def status(self):
@@ -225,6 +237,7 @@ class InstallState:
             native_lock = drv.is_locked(rc)
             # let a driver override the version-string outdated compare (flatpak: commit-based)
             outdated_override = drv.outdated_signal(rc) if version is not None else None
+            upstream = drv.upstream_version(rc) if rc.fields.get('upstream') else None
         except Exception as e:  # a driver op blew up; report, don't crash the sweep
             return ComponentState(
                 component=rc, supported=True, present=False,
@@ -251,8 +264,16 @@ class InstallState:
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
             locked=locked, lock_source=lock_source, managed=managed, error=None,
-            holds_version=holds, outdated_override=outdated_override,
+            holds_version=holds, outdated_override=outdated_override, upstream_version=upstream,
             scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target
+
+
+def recipe_pin_text(pinned, upstream):
+    '''The one wording for a recipe-pinned method behind upstream (TUI detail line, `versions`).'''
+    from .osversion import clean_version
+    pinned, upstream = clean_version(pinned), clean_version(upstream)
+    return (f'recipe pins {pinned}; upstream is {upstream} — a new version needs a NEW RECIPE '
+            f'(routes, possibly a new toolchain), not an upgrade')
 
 
 def detect_coexisting(ctx, states):

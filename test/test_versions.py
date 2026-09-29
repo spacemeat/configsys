@@ -461,3 +461,18 @@ def test_goproxy_case_escapes_uppercase():
         return json.dumps({'Version': 'v1.6.0'})
     assert versions._goproxy_latest('github.com/BurntSushi/toml', fetch) == '1.6.0'
     assert seen == ['https://proxy.golang.org/github.com/!burnt!sushi/toml/@latest']
+
+
+def test_pick_highest_over_interleaved_branches():
+    # Blender's feed interleaves LTS point releases with the newest line; newest-DATED would be 4.5.15
+    BL = 'blender/blender'
+    f = fetcher({atom_url(BL): atom(BL, ['v4.5.15', 'v5.2.2', 'v4.2.24', 'v5.2.1'])})
+    base = {'github': BL, 'strip-v': True}
+    assert versions.discover(base, fetch=f) == '4.5.15'                       # newest-dated (default)
+    assert versions.discover({**base, 'pick': 'highest'}, fetch=f) == '5.2.2'
+
+
+def test_source_key_includes_what_changes_the_answer():
+    a = versions.source_key({'github': 'x/y'})
+    assert a != versions.source_key({'github': 'x/y', 'pick': 'highest'})
+    assert a != versions.source_key({'github': 'x/y', 'tag-re': 'core@(.*)'})
