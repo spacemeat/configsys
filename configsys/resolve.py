@@ -376,14 +376,45 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
                 pins or {}, overrides or {}, preference, candidate_only)
     errors = {}
+    root_keys = {}
     for name in names:
         try:
-            st.add_component(name, root=name)
+            root_keys[name] = st.add_component(name, root=name)
         except ResolveError as e:
             errors[name] = str(e)
     st.drain(errors=errors)
+    if st.failed_keys:
+        _prune_failed(st, root_keys)
     st.propagate_requested()
     return st.units, errors
+
+
+def _prune_failed(st, root_keys):
+    '''A unit whose HARD requirement failed can't be installed — so leave nothing of it installable.
+    The failure can come AFTER the unit was added (a pinned provider that can't meet a version floor:
+    blender-5.2's cuda-toolkit >=12.8 vs a cuda-toolkit -> cuda-toolkit-11 pin), and that half-resolved
+    unit — its requirement silently missing — used to reach the TUI as installable and run a doomed
+    build. Drop the failed units and everything that HARD-depends on them; a parent that merely
+    SUGGESTS one keeps going without it (btop stays when btop-glue can't resolve). Then keep only what
+    the surviving requested roots still reach — units pulled in solely for a dropped one go too.'''
+    gone = set(st.failed_keys)
+    changed = True
+    while changed:                                        # hard dependents of a failed unit fail too
+        changed = False
+        for key in st.units:
+            if key not in gone and st.hard_deps.get(key, set()) & gone:
+                gone.add(key)
+                changed = True
+    live, stack = set(), [k for keys in root_keys.values() for k in keys if k not in gone]
+    while stack:
+        key = stack.pop()
+        if key in live or key in gone or key not in st.units:
+            continue
+        live.add(key)
+        stack.extend(st.units[key].deps)
+    st.units = {k: u for k, u in st.units.items() if k in live}
+    for u in st.units.values():
+        u.deps = u.deps - gone                            # a dropped soft companion isn't a dep
 
 
 def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=None):
@@ -407,6 +438,8 @@ class _State:
         self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
         self.block = ctx.lineage[0]
         self.units = {}
+        self.hard_deps = {}                # unit key -> keys it HARD-requires (not suggests)
+        self.failed_keys = set()           # units whose hard requirement failed (resilient mode)
         # capability -> frozenset of unit keys satisfying it (empty = the environment
         # provides it, no unit needed).
         self.inventory = {cap: frozenset() for cap in cascade.provides(self.block)}
@@ -500,13 +533,17 @@ class _State:
         while self.queue:
             requiring_key, requiring_name, cap, constraint, root, optional = self.queue.pop(0)
             try:
-                self.units[requiring_key].deps |= self._satisfy(cap, constraint, root, requiring_name)
+                got = self._satisfy(cap, constraint, root, requiring_name)
+                self.units[requiring_key].deps |= got
+                if not optional:                 # HARD edges, for pruning a failed unit's dependents
+                    self.hard_deps.setdefault(requiring_key, set()).update(got)
             except ResolveError as e:
                 if optional:
                     continue                     # a `suggests:` unmet here is simply not pulled
                 if errors is None:
                     raise
                 errors.setdefault(root, str(e))
+                self.failed_keys.add(requiring_key)   # this unit can't be installed (see _prune_failed)
 
     def _bindable_viable(self, cap, requiring):
         '''Providers of `cap` that can bind in this context (bootstrap guard: never self-provide).'''

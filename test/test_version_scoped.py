@@ -134,3 +134,18 @@ def test_version_scoped_floor_with_no_matching_version_still_hard_fails(tmp_path
     hard = TK + '\n    want-13: { requires: { tk: ">=13" }  install: [ { via: native } ] }'
     with pytest.raises(ResolveError):
         _resolve(tmp_path, hard, ['want-13'])
+
+
+def test_resilient_drops_a_failed_names_half_resolved_units(tmp_path):
+    # a pin that can't meet a consumer's version floor fails the consumer AFTER its own unit was
+    # added. Resilient resolution must report it AND leave nothing of it installable — the TUI used to
+    # get the half-resolved unit (its requirement silently missing) and run a doomed build
+    # (blender-5.2's cuda-toolkit >=12.8 vs a cuda-toolkit -> cuda-toolkit-11 pin). A healthy name's
+    # units survive.
+    p = tmp_path / 'routes.hu'
+    p.write_text('{ ' + OS + '  components: { ' + TK + '  plain: { install: [ { via: native } ] } } }')
+    r = Resolver(str(p), 'debian', '12', pins={'tk': 'tk-11'})
+    units, errs = r.resolve_resilient(['want-12', 'plain'])
+    assert 'want-12' in errs and 'tk-11' in errs['want-12']
+    assert 'apt\\want-12' not in units                          # no half-resolved consumer left
+    assert 'apt\\plain' in units                                # the healthy name is untouched
