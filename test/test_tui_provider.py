@@ -45,10 +45,10 @@ def _row(name):
 
 def test_providers_and_capability_choices(tmp_path):
     ctx = _ctx(tmp_path)
-    assert menu._providers_of(ctx.routes, 'cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12']
+    assert menu._providers_of(ctx.routes, 'cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12', 'cuda-toolkit-12.8']
     # from the provider's row, its provided capability is the choice
     ch = menu._capability_choices(ctx.routes, 'cuda-toolkit-12')
-    assert ch == [('cuda-toolkit', ['cuda-toolkit-11', 'cuda-toolkit-12'])]
+    assert ch == [('cuda-toolkit', ['cuda-toolkit-11', 'cuda-toolkit-12', 'cuda-toolkit-12.8'])]
     # a component with no multi-provider capability -> nothing to pick
     assert menu._capability_choices(ctx.routes, 'git') == []
 
@@ -116,7 +116,7 @@ def test_capability_choices_surface_the_winning_bindings_requires(tmp_path, monk
     won = types.SimpleNamespace(details={'requires': ['cuda-toolkit']})
     monkeypatch.setattr(resolve, '_select', lambda *a, **k: (won, None, ''))
     caps = dict(menu._capability_choices(ctx.routes, 'git'))   # git has no component-level requires
-    assert caps.get('cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12']
+    assert caps.get('cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12', 'cuda-toolkit-12.8']
 
 
 def test_choices_with_no_axis_is_a_noop(tmp_path):

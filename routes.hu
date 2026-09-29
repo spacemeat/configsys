@@ -1825,6 +1825,30 @@
                   location:      'cuda-toolkit-12-6 (dnf)' }
             ]
         }
+        // CUDA 12.8 — a VERSIONED CUDA-12 point release, side by side with cuda-toolkit-12's 12.6
+        // (NVIDIA's packages install under /usr/local/cuda-12.X and coexist). never-auto: nothing
+        // defaults to it; a consumer's `cuda-toolkit: ">=12.8"` floor selects it. First needed by
+        // Blender 5.x (its release CUDA; 12.6's nvcc rejects gcc-14 as the host compiler — "gcc
+        // versions later than 13 are not supported" — and can't target sm_120).
+        cuda-toolkit-12.8: { attrs: [ SDK toolchain proprietary freeware ] description: "NVIDIA CUDA Toolkit 12.8 (from NVIDIA's CUDA repo; installs beside other 12.x)."
+            standing: never-auto  provides: { cuda-toolkit: 12.8 }
+            install: [
+                { via: script  when: "debian"  requires: cuda-repo
+                  install-cmd:   'sudo apt-get install -y cuda-toolkit-12-8 && sudo ldconfig'
+                  version-cmd:   "dpkg-query -W -f='${Version}' cuda-toolkit-12-8 2>/dev/null"
+                  latest-cmd:    'apt-cache policy cuda-toolkit-12-8 2>/dev/null | grep Candidate'
+                  version-re:    '([0-9][0-9.+-]*)'
+                  uninstall-cmd: 'sudo apt-get remove -y cuda-toolkit-12-8 && sudo ldconfig'
+                  location:      '/usr/local/cuda-12.8' }
+                { via: script  when: "redhat"  requires: cuda-repo
+                  install-cmd:   'sudo dnf install -y cuda-toolkit-12-8 && sudo ldconfig'
+                  version-cmd:   'rpm -q --qf %{VERSION} cuda-toolkit-12-8 2>/dev/null'
+                  latest-cmd:    "dnf -q repoquery --qf '%{version}' cuda-toolkit-12-8 2>/dev/null | tail -1"
+                  version-re:    '([0-9][0-9.+-]*)'
+                  uninstall-cmd: 'sudo dnf remove -y cuda-toolkit-12-8'
+                  location:      '/usr/local/cuda-12.8' }
+            ]
+        }
         // cuda-repo — set up NVIDIA's CUDA network repo (the apt/dnf source cuDNN & CUDA come from).
         // `via: script` because the URL is distro-codename-specific; derived from /etc/os-release
         // (UBUNTU_CODENAME covers ubuntu derivatives). Not needed on Arch (official repos).
