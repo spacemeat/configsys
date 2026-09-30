@@ -1,5 +1,5 @@
 # helix: alias to the tarball-installed binary (versioned subdir / candidate paths). No-ops where native.
-set -l loc (configsys location helix 2>/dev/null)
+set -l loc (cs_loc helix)
 if test -n "$loc"
     set -l bin ""
     for c in $loc/helix-*-x86_64-linux/hx

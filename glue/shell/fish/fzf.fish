@@ -3,7 +3,7 @@
 # isn't on PATH.
 set -l fzf (command -v fzf 2>/dev/null)
 if test -z "$fzf"
-    set -l loc (configsys location fzf 2>/dev/null)
+    set -l loc (cs_loc fzf)
     if test -n "$loc"; and test -x "$loc/fzf"
         set fzf "$loc/fzf"
         alias fzf "$loc/fzf"

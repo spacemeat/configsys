@@ -1,5 +1,5 @@
 # antigravity: alias to the tarball-installed binary (versioned subdir / candidate paths). No-ops where native.
-set -l loc (configsys location antigravity 2>/dev/null)
+set -l loc (cs_loc antigravity)
 if test -n "$loc"
     set -l bin ""
     for c in $loc/antigravity $loc/*/antigravity $loc/*/bin/antigravity

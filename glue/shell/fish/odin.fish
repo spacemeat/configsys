@@ -1,5 +1,5 @@
 # Odin: tarball unpacks under the app dir (root or a versioned subdir; no-op when native).
-set -l loc (configsys location odin 2>/dev/null)
+set -l loc (cs_loc odin)
 if test -n "$loc"
     set -l dir ""
     for d in $loc/odin-linux-*

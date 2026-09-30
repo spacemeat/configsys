@@ -38,3 +38,22 @@ cs_loc() {
     done <<< "$_CS_LOCS"
     return 0
 }
+
+# cs_cached <key> <tool> <cmd…>: <cmd>'s output, CACHED in ~/.cache/configsys/glue-eval/<key> and
+# regenerated only when <tool>'s executable is newer than the cache (so an upgrade refreshes it). For
+# init scripts that cost 100ms+ per startup (`pyenv init -`, `luarocks path --lr-path`, ruby's gem dir):
+# a cache hit is a file-mtime test + a read. The output must not embed values that change without the
+# tool changing (e.g. `luarocks path` bakes in the whole current $PATH — cache --lr-path/--lr-cpath).
+# A failing/empty <cmd> caches nothing and returns 1.
+cs_cached() {
+    local key=$1 tool=$2 bin dir f
+    shift 2
+    bin=$(command -v "$tool" 2>/dev/null) || return 1
+    dir="${XDG_CACHE_HOME:-$HOME/.cache}/configsys/glue-eval"
+    f="$dir/$key"
+    if [ ! -s "$f" ] || [ "$bin" -nt "$f" ]; then
+        { mkdir -p "$dir" && "$@" > "$f.tmp" 2>/dev/null && [ -s "$f.tmp" ] && mv -f "$f.tmp" "$f"; } \
+            || { rm -f "$f.tmp"; return 1; }
+    fi
+    printf '%s\n' "$(<"$f")"
+}

@@ -1,5 +1,5 @@
 # Bun: tarball install dir (zip -> bun-linux-*/ subdir; no-op when native) + global bin.
-set -l loc (configsys location bun 2>/dev/null)
+set -l loc (cs_loc bun)
 if test -n "$loc"
     set -l dir ""
     for d in $loc/bun-linux-*

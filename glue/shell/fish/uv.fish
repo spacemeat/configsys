@@ -1,5 +1,5 @@
 # uv: tarball install dir (never-auto binding; no-op for the pipx/native default) + `uv tool` bin.
-set -l loc (configsys location uv 2>/dev/null)
+set -l loc (cs_loc uv)
 if test -n "$loc"
     set -l dir ""
     for d in $loc/uv-*

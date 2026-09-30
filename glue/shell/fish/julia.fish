@@ -1,5 +1,5 @@
 # julia: add the tarball-installed dir to PATH (unpacks into a versioned subdir). No-op where native.
-set -l loc (configsys location julia 2>/dev/null)
+set -l loc (cs_loc julia)
 if test -n "$loc"
     set -l dir ""
     for d in $loc/julia-*/bin
