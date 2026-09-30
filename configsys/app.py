@@ -404,6 +404,13 @@ class Context:
     def load_pipeline(self, reuse=None, dirty=None, progress=None, detect_progress=None,
                       batch_progress=None):
         r = self.reporter
+        # the detection passes' probe cache: a full load starts FRESH (it must see the machine as it
+        # is); a reload that reuses inspection keeps it, dropping only what its dirty units touched
+        from .probecache import ProbeCache
+        if reuse is None or getattr(self, '_probes', None) is None:
+            self._probes = ProbeCache()
+        else:
+            self._probes.invalidate(dirty)
         self.ensure_user_config(offer_primary=True)
         cfg = self.config
         r.event(report.VERBOSE, f'  config: install set — {_install_scope_label(cfg)}')
@@ -456,10 +463,12 @@ class Context:
             from .installState import detect_coexisting     # "also present (unmanaged)" per component
             detect_coexisting(self, states)
         # warnings stream to the console too (errors already did, inline). These need `states`
-        # (scope drift) so they land here at the end; the ! page / footer still collect them.
-        for d in self.diagnostics(states):
-            if d['level'] == 'warn':
-                r.warn(d['text'])
+        # (scope drift) so they land here at the end; the ! page / footer still collect them. Not on a
+        # TUI reload (reuse=): the TUI computes its own diagnostics, and this pass costs ~1s.
+        if reuse is None:
+            for d in self.diagnostics(states):
+                if d['level'] == 'warn':
+                    r.warn(d['text'])
         r.flush_transient()
         return cfg, requested, units, ledger, states
 

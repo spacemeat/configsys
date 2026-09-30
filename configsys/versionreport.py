@@ -12,6 +12,8 @@ are read live — they must be current right after an install/remove.
 '''
 
 import time
+
+from . import probecache
 from dataclasses import dataclass, field
 
 from .adapt import to_resolved_component
@@ -156,6 +158,7 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
         default_binding = None                    # undecidable/none-here: no default marker
     pin = r.pins.get(name)
 
+    probes = probecache.of(ctx)
     cache = _LatestCache.load(ctx.paths)
     now = time.time() if now is None else now
     methods = []
@@ -176,7 +179,9 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
         methods.append(MethodVersion(
             via=b.via, driver=rc.driver, package=rc.name or comp.name,
             latest=latest,
-            installed=_safe(drv.get_version, rc) if drv is not None else None,
+            # installed: through the context's shared probe cache (the detection passes filled it) —
+            # the floor advisory reports per provider on every TUI diagnostics pass
+            installed=_safe(lambda u, d=drv: probes.version(d, u), rc) if drv is not None else None,
             is_default=(b is default_binding), is_pinned=(pin == b.via),
             note=note))
     cache.save(ctx.paths)

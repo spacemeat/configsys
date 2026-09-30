@@ -366,6 +366,12 @@ class ComponentsScreen(Screen):
                     intent.pending_report = bad[-1].key.split('\\', 1)[-1]
                 try:
                     touched = {o.key for o in outcomes}
+                    # a System Updates bulk upgrade (`system-updates\\<mgr>`) changed EVERY package of
+                    # that manager — requery all its units (and drop its cached installed index), not
+                    # just the synthetic key, or they'd keep their pre-upgrade versions
+                    bulk = {k.partition('\\')[2] for k in touched if k.startswith('system-updates\\')}
+                    if bulk:
+                        touched |= {k for k, st in ms.states.items() if st.component.driver in bulk}
                     new = _reload(ctx, ms, touched)
                     self.model = ms = new[0]
                     intent.reloaded = new

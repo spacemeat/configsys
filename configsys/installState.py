@@ -282,24 +282,12 @@ def detect_coexisting(ctx, states):
     installed" pass. Cheap: package-manager drivers are enumerated ONCE each (batched
     `installed_index`), path/build drivers use their fast per-method get_version; NO get_latest (no
     network — "outdated" is only for the managed method). Mutates and returns `states`.'''
-    import threading
+    from . import probecache
     from .adapt import to_resolved_component
     from .resolve import candidate_bindings, unit_for_binding, via_representatives
     r = ctx.routes
     cx = r.context()
-    enum = {}                                       # driver name -> installed_index() dict or None
-    lock = threading.Lock()                         # guards `enum` under the parallel per-state loop
-
-    def index_of(drv):
-        with lock:
-            if drv.name in enum:
-                return enum[drv.name]
-        try:                                        # enumerate outside the lock (slow subprocess)
-            idx = drv.installed_index()
-        except Exception:                           # noqa: BLE001 - a flaky lister must not brick inspect
-            idx = None
-        with lock:
-            return enum.setdefault(drv.name, idx)
+    probes = probecache.of(ctx)                     # shared with the detection tier; kept across a reload
 
     def _one(st):
         managed = st.component
@@ -324,8 +312,7 @@ def detect_coexisting(ctx, states):
             if drv is None:
                 continue
             try:
-                idx = index_of(drv)
-                ver = idx.get(drv.index_key(rc)) if idx is not None else drv.get_version(rc)
+                ver = probes.version(drv, rc)
             except Exception:                       # noqa: BLE001
                 ver = None
             if ver is not None:

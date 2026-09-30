@@ -16,27 +16,10 @@ golden, which never runs this — it lives in the app pipeline, not the pure Res
 per-method get_version; no `get_latest` (no network).
 '''
 
-import threading
 
 from .adapt import to_resolved_component
 from .drivers import get_driver
 from .resolve import candidate_bindings, unit_for_binding, via_representatives
-
-_cache_lock = threading.Lock()                  # guards the shared installed-index cache under the
-#                                                 parallel method-detection loop (below)
-
-
-def _enum_index(cache, drv):
-    with _cache_lock:
-        if drv.name in cache:
-            return cache[drv.name]
-    try:                                        # enumerate OUTSIDE the lock (a slow subprocess) — a
-        idx = drv.installed_index()             # rare concurrent double-enum is wasteful but harmless
-    except Exception:                           # noqa: BLE001 — a flaky lister must not brick resolve
-        idx = None
-    with _cache_lock:
-        return cache.setdefault(drv.name, idx)
-
 
 def _installed_via(ctx, comp, cx, cache):
     '''The via `comp` is installed under here (any of its candidate methods), else None. Batched.'''
@@ -54,8 +37,7 @@ def _installed_via(ctx, comp, cx, cache):
         if drv is None:
             continue
         try:
-            idx = _enum_index(cache, drv)
-            ver = idx.get(drv.index_key(rc)) if idx is not None else drv.get_version(rc)
+            ver = cache.version(drv, rc)        # the shared probe cache (see probecache.py)
         except Exception:                       # noqa: BLE001
             ver = None
         if ver is not None:
@@ -73,7 +55,8 @@ def detect_pins(ctx, units, progress=None):
     r = ctx.routes
     cx = r.context()
     user_pins = ctx.config.pins()
-    cache = {}
+    from . import probecache
+    cache = probecache.of(ctx)                     # shared with detect_coexisting; kept across a reload
     pins = {}
 
     unit_list = list(units.values())
@@ -91,14 +74,10 @@ def detect_pins(ctx, units, progress=None):
     # and parallel collapses that to the slowest one.
     def _enum(name):
         drv = get_driver(name, ctx.runner, ctx.paths)
-        if drv is None:
-            return name, None
-        try:
-            return name, drv.installed_index()
-        except Exception:                           # noqa: BLE001 — a flaky lister must not brick resolve
-            return name, None
-    for name, idx in _parallel_map(_enum, drivers, progress=relay):
-        cache[name] = idx
+        if drv is not None:
+            cache.installed_index(drv)              # a cache hit on a reload: no subprocess
+        return name
+    _parallel_map(_enum, drivers, progress=relay)
     base[0] = len(drivers)
 
     # Sub-phase 2 — method detection, PARALLEL. Non-package-manager drivers (tarball/appImage/source/
