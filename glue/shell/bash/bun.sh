@@ -1,5 +1,5 @@
 # Bun: tarball install dir (zip -> bun-linux-*/ subdir; no-op when native) + global bin.
-_bn=$(configsys location bun 2>/dev/null)
+_bn=$(cs_loc bun)
 if [ -n "$_bn" ]; then
     _bb=$(ls -d "$_bn"/bun-linux-*/ 2>/dev/null | tail -1)
     [ -n "$_bb" ] && export PATH="$_bb:$PATH"

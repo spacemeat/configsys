@@ -24,6 +24,15 @@ fi
 # by whether its pip WORKS (not whether bin/python exists), rebuilding a half-made one.
 VENV="$here/.venv"
 VPY="$VENV/bin/python"
+# FAST path first — this runs on EVERY `configsys` call (the shell glue calls it at startup): one
+# interpreter start that only LOCATES pip/humon/packaging (find_spec, no imports; ~40ms). Only if
+# that fails do we pay for the real repair below (`-m pip --version` alone is ~0.7s).
+_venv_ok() {
+    "$VPY" -c 'import importlib.util as u, sys; sys.exit(0 if all(u.find_spec(m) for m in ("pip", "humon", "packaging")) else 1)' >/dev/null 2>&1
+}
+if _venv_ok; then
+    exec "$VPY" -m configsys "$@"
+fi
 if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     if ! "$PY" -c 'import ensurepip' >/dev/null 2>&1; then
         pyver="$("$PY" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"

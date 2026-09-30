@@ -501,3 +501,33 @@ def test_override_forks_shipped_glue_and_reports_drift(tmp_path):
     (ship / 'btop.sh').write_text('alias b=btop  # v2\n')
     drift = g.override_drift(rc)
     assert len(drift) == 1 and drift[0][0] == 'bash' and drift[0][1] != drift[0][2]
+
+
+def test_no_startup_snippet_spawns_configsys_per_component():
+    # ~50 snippets each running `configsys location <x>` (a whole configsys process, ~0.8-1.4s)
+    # made bash/zsh startup take ~47s. Snippets use the prelude's cs_loc (the glue-locations cache,
+    # read once); only the prelude may call configsys (`location --all`, on a cold/stale cache).
+    import re
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / 'glue' / 'shell'
+    bad = [str(p.relative_to(root)) for sh in ('bash', 'zsh') for p in sorted((root / sh).iterdir())
+           if not p.name.startswith('00-') and re.search(r'configsys location (?!--all)', p.read_text())]
+    assert not bad, f'snippets spawning configsys at startup: {bad}'
+
+
+def test_cs_loc_reads_the_cache(tmp_path):
+    # the bash/zsh prelude's cs_loc answers from glue-locations.tsv, in-shell (zsh too — it doesn't
+    # word-split, so the lookup must not rely on that)
+    import shutil
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / 'glue' / 'shell'
+    (tmp_path / 'glue-locations.tsv').write_text('bun\t/opt/bun here\nzig\t/apps/zig\n')
+    for sh, f in (('bash', 'bash/00-configsys.sh'), ('zsh', 'zsh/00-configsys.zsh')):
+        if not shutil.which(sh):
+            continue
+        out = subprocess.run([sh, '-c', f'. {root / f}; cs_loc bun; cs_loc zig; cs_loc nope; echo end'],
+                             capture_output=True, text=True,
+                             env={'HOME': str(tmp_path), 'PATH': '/usr/bin:/bin',
+                                  'CONFIGSYS_STATE_DIR': str(tmp_path)}).stdout
+        assert out.splitlines() == ['/opt/bun here', '/apps/zig', 'end'], (sh, out)

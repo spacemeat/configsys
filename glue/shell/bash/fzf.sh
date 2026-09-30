@@ -5,7 +5,7 @@
 # leaving no bindings at all).
 _fzf=$(command -v fzf 2>/dev/null)
 if [ -z "$_fzf" ]; then
-    _fd=$(configsys location fzf 2>/dev/null)
+    _fd=$(cs_loc fzf)
     [ -n "$_fd" ] && _fzf=$(ls -1 "$_fd"/fzf 2>/dev/null | tail -1)
     [ -x "$_fzf" ] && alias fzf="$_fzf"
     unset _fd
