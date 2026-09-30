@@ -1840,6 +1840,20 @@ def _components_model(ctx, cfg, states, mode, caches=None):
     return states, layouts, transitive
 
 
+def _fold_system_updates(ctx, cfg, ms):
+    '''Fold a freshly-landed background System Updates scan into the Components tree -> (ms, states).
+    Only the TREE changes (installed state didn't), so it's rebuilt from the states already held
+    (~15ms) — not _reload, which re-runs the load pipeline + diagnostics (~6s on a full machine) on the
+    UI thread: the freeze right after the splash. An older scan's synthetic rows are dropped first, so
+    a rescan (after a system upgrade) replaces them rather than stacking.'''
+    from .. import sysupdates
+    real = {k: st for k, st in ms.states.items() if not sysupdates.is_synthetic(st)}
+    mode = getattr(ms, 'mode', 'to-do')
+    states, layouts, transitive = _components_model(ctx, cfg, real, mode,
+                                                    caches=getattr(ms, '_overlay_caches', None))
+    return _rebuild_menu(ms, states, layouts, transitive, mode), states
+
+
 def _rebuild_menu(old, states, layouts, transitive, mode):
     '''Rebuild a MenuState for a NEW tree (a mode switch) while preserving cursor / expansion /
     selection / staged ops / errors / descriptions from `old` — WITHOUT re-running the pipeline
@@ -4368,10 +4382,13 @@ def run(ctx):
             ch = stdscr.getch()
             stdscr.timeout(-1)
             if ch == -1:                                 # timed out with no key -> just redraw
-                # the background System Updates scan just landed -> rebuild once so its group appears
+                # the background System Updates scan just landed -> fold its group into the tree.
+                # Only the TREE changes (install state didn't), so rebuild it from the states we have
+                # (_rebuild_menu, ~10ms) — NOT _reload, which re-runs the load pipeline + diagnostics
+                # (~6s on a full machine) on this, the UI thread: the freeze right after the splash.
                 if sysupdates.take_dirty(ctx):
                     try:
-                        ms, cfg, ledger, states, diags = _reload(ctx, ms, set())
+                        ms, states = _fold_system_updates(ctx, cfg, ms)   # drawn next frame
                     except Exception as e:               # noqa: BLE001 — never crash on the fold-in
                         note = f'system-updates fold failed: {e}'
                 continue

@@ -372,3 +372,24 @@ def test_synthetic_rows_render_and_never_stage():
     assert _cursor_in_sysupd(ms)
     ms.cursor = next(i for i, n in enumerate(ms.rows) if n.label == 'coreutils')
     assert _cursor_in_sysupd(ms)
+
+
+def test_fold_rebuilds_the_tree_without_the_pipeline(monkeypatch):
+    # the scan lands on the UI thread: folding it in must NOT re-run the load pipeline + diagnostics
+    # (~6s — the freeze after the splash); only the tree is rebuilt from the states already held.
+    # A rescan replaces the previous scan's synthetic rows rather than stacking them.
+    import types
+    from configsys.tui import menu
+
+    def model(ctx, cfg, states, mode, caches=None):       # _components_model's System Updates fold
+        su_states, su_layouts, su_transitive = sysupdates.tree_injection(ctx._sysupd_groups or {})
+        return {**states, **su_states}, list(su_layouts), dict(su_transitive)
+    monkeypatch.setattr(menu, '_components_model', model)
+    ctx = types.SimpleNamespace(_sysupd_groups=_groups())    # no load_pipeline: calling it would fail
+    ms = menu.MenuState({}, [], {})
+    ms.descriptions = {}
+    ms, states = menu._fold_system_updates(ctx, None, ms)
+    assert sum(sysupdates.is_synthetic(s) for s in states.values()) == 4
+    ctx._sysupd_groups = {'apt': _groups()['apt'][:1]}       # a later, smaller scan
+    ms, states = menu._fold_system_updates(ctx, None, ms)
+    assert sum(sysupdates.is_synthetic(s) for s in states.values()) == 1
