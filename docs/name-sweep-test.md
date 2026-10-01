@@ -113,10 +113,10 @@ core just provides the mode. Two plugins use it:
 - **configsys-proxmox** (`apt` on `debian:12` + the PVE repo). Because it checks against real
   Debian, not Ubuntu, it's a *stricter* apt check — it's what caught `perf` naming Ubuntu's
   `linux-tools-generic` (Debian/Proxmox = `linux-perf`).
-- **configsys-void** (`xbps` on `void-glibc`). Void diverges from the generic/Debian defaults, so
-  the plugin carries a `component-names:` map (§10a of the routing model) for ~10 core components
-  (`docker`, `R`, `openjdk21`, `fish-shell`, …) and drops `nmap` (absent on Void); the sweep is
-  what keeps that map honest as Void rolls, and unions the plugin's own vendor-SDK allowlist.
+- **configsys-void** (`xbps` on `void-glibc`) — now a worked EXAMPLE of an OS plugin: Void itself
+  graduated into core (2026-09), whose own `xbps` sweep (the core gate above, on void-glibc with
+  the nonfree repo enabled) is authoritative. The plugin keeps its `component-names:` map (§10a of
+  the routing model) as the teaching form of the same name facts core carries as `xbps:` entries.
 
 ## Gating & cadence
 

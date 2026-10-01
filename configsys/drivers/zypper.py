@@ -51,7 +51,7 @@ class Zypper(NativePkgManager):
         ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
         if hit:
             return ver
-        pkg = shlex.quote(rc.name)
+        pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
         if r.ok and r.stdout.strip():
             return r.stdout.strip().splitlines()[0]
@@ -61,7 +61,7 @@ class Zypper(NativePkgManager):
         # `zypper info` prints "Version : <candidate>". zypper LOCALIZES its field labels, so
         # force LC_ALL=C — otherwise the "Version" label changes under a non-English locale and
         # the parse silently returns None. (--terse doesn't affect `info`, so it's dropped.)
-        pkg = shlex.quote(rc.name)
+        pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(f'LC_ALL=C zypper --no-refresh info {pkg}')
         return _version_from_info(r.stdout) if r.ok else None
 
@@ -74,7 +74,7 @@ class Zypper(NativePkgManager):
             return False
         for line in r.stdout.splitlines():
             cols = [c.strip() for c in line.split('|')]
-            if len(cols) >= 2 and cols[1] == rc.name:
+            if len(cols) >= 2 and cols[1] == self._probe_name(rc):
                 return True
         return False
 
@@ -117,9 +117,7 @@ class Zypper(NativePkgManager):
                                sudo=True, capture=False)
 
     def lock(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'zypper --non-interactive addlock {pkg}', sudo=True)
+        return self.runner.run(f'zypper --non-interactive addlock {self._pkgs(rc)}', sudo=True)
 
     def unlock(self, rc):
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'zypper --non-interactive removelock {pkg}', sudo=True)
+        return self.runner.run(f'zypper --non-interactive removelock {self._pkgs(rc)}', sudo=True)

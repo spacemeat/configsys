@@ -36,6 +36,7 @@ MANAGERS = [
     ('pacman', 'arch', '20260101'),
     ('zypper', 'opensuse', ''),
     ('apk', 'alpine', '3.20'),
+    ('xbps', 'void', ''),
 ]
 
 
@@ -89,7 +90,7 @@ _CHECK = {
     # metacharacters like gcc-c++, false-flagging an existing package; awk isn't in the image).
     'zypper': 'zypper -n se -x "$p" 2>/dev/null | grep -qF "| package"',
     'apk':    'apk search -x "$p" 2>/dev/null | grep -q "^$p-[0-9]"',
-    'xbps':   'xbps-query -R "$p" >/dev/null 2>&1',          # Void (plugin OS)
+    'xbps':   'xbps-query -R "$p" >/dev/null 2>&1',
 }
 
 # (image, repo-setup) for the core families. Setup output is silenced; the read-loop is appended
@@ -112,6 +113,12 @@ _VERIFIERS = {
         ver=$(cut -d. -f1,2 /etc/alpine-release)
         echo "https://dl-cdn.alpinelinux.org/alpine/v$ver/community" >> /etc/apk/repositories
         apk update >/dev/null 2>&1'''),
+    # Void (glibc; xbps names are libc-agnostic — the musl image carries the same names). The nonfree
+    # repo is enabled because components that live there `requires: void-repo-nonfree`.
+    'xbps': ('ghcr.io/void-linux/void-glibc:latest', r'''
+        xbps-install -Syu xbps >/dev/null 2>&1
+        xbps-install -Sy void-repo-nonfree >/dev/null 2>&1
+        xbps-install -S >/dev/null 2>&1'''),
 }
 
 
@@ -140,10 +147,10 @@ def _run_verifier(image, snippet, names, timeout=1200):
     return missing, proc.returncode
 
 
-# The green gate: all five package families. NOTE openSUSE ships some versioned names
+# The green gate: all six package families. NOTE openSUSE ships some versioned names
 # (python313-pip, ffmpeg-7, ...) that roll with Tumbleweed — the sweep will flag them when they
 # bump; just update the `name:` map (that's the sweep working, not a false alarm).
-_DEFAULT_MANAGERS = ('apt', 'dnf', 'pacman', 'zypper', 'apk')
+_DEFAULT_MANAGERS = ('apt', 'dnf', 'pacman', 'zypper', 'apk', 'xbps')
 
 
 def sweep(only=None):

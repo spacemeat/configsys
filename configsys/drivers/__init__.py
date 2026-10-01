@@ -10,6 +10,7 @@ here so InstallState degrades gracefully instead of crashing.
 
 from .appImage import AppImage
 from .apk import Apk
+from .xbps import Xbps
 from .apt import Apt
 from .aur import Aur
 from .brew import Brew
@@ -48,6 +49,7 @@ _REGISTRY = {
     Dnf.name: Dnf,
     Pacman.name: Pacman,
     Apk.name: Apk,
+    Xbps.name: Xbps,
     Zypper.name: Zypper,
     Aur.name: Aur,
     Brew.name: Brew,
@@ -79,6 +81,10 @@ _REGISTRY = {
     Service.name: Service,
     Group.name: Group,
 }
+
+# The names core ships, snapshotted before any plugin registers — a plugin driver of one of these
+# names SHADOWS the built-in (register_driver replaces it), which `check`/`plugin list` surface.
+BUILTIN_DRIVERS = frozenset(_REGISTRY)
 
 
 def register_driver(cls):

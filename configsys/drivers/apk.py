@@ -45,14 +45,16 @@ class Apk(NativePkgManager):
 
     def get_version(self, rc):
         '''Installed version, or None if the package isn't installed.'''
-        r = self.runner.run(f'apk list --installed {shlex.quote(rc.name)}')
-        return _version_from_apk_list(r.stdout.splitlines(), rc.name) if r.ok else None
+        name = self._probe_name(rc)
+        r = self.runner.run(f'apk list --installed {shlex.quote(name)}')
+        return _version_from_apk_list(r.stdout.splitlines(), name) if r.ok else None
 
     def get_latest(self, rc):
         '''Version available in the configured repos (Alpine carries one current version per
         branch, so the first match is the candidate).'''
-        r = self.runner.run(f'apk list {shlex.quote(rc.name)}')
-        return _version_from_apk_list(r.stdout.splitlines(), rc.name) if r.ok else None
+        name = self._probe_name(rc)
+        r = self.runner.run(f'apk list {shlex.quote(name)}')
+        return _version_from_apk_list(r.stdout.splitlines(), name) if r.ok else None
 
     def upgradable_index(self):
         # `apk list --upgradable` -> "<name>-<newver> <arch> {repo} (lic) [upgradable from: <name>-<old>]".

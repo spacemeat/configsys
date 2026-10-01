@@ -22,7 +22,9 @@ On start, the user config file (~/.config/configsys/configsys.hu; a legacy ~/con
 In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
 the full spec). Its three sections:
 - `os:` — the OS layer: `using` inheritance (pop_os! -> ubuntu -> debian -> linux; fedora/rhel
-  -> redhat -> linux), which package manager each block declares `native:` (apt/dnf/pacman),
+  -> redhat -> linux; void -> glibc_linux, void_musl -> linux — siblings, so a Void-wide gate is
+  `void or void_musl`), which package manager each block declares `native:` (apt/dnf/pacman/
+  zypper/apk/xbps/brew),
   version `scale-root:` markers, and `provides:` (capabilities baseline in that environment).
 - `drivers:` — per-driver config, currently just each driver's inherent
   `requires:` (appImage->libfuse2, flatpak->flatpak, cargo->cargo, pipx->pipx, aur->[base-devel,
@@ -107,7 +109,7 @@ set resiliently (Context.resolve_errors) so one bad entry is an error row, not a
 Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
-(the OS package managers apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree; tarball,
+(the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew, rpm-ostree; tarball,
 native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS package tool — a
 distinct `standing: never-auto` method from repo `native`, since it doesn't ride `apt upgrade`],
 flatpak, snap, appImage, font, script [declared install/version/uninstall commands],
@@ -116,7 +118,7 @@ app's own config: `.cfs` marker dir + manifest in the user's content store, link
 and glue [per-shell `conf.d` enablement snippets, shipped not captured, its own `glue/` roots —
 see the Glue/dotfiles segregation memory]; the language toolchains and their
 module/version installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv,
-sdkman, gcc, gcc-toolset, clang; and the post-install primitives service [systemd] and group
+sdkman, gcc, gcc-toolset, clang; and the post-install primitives service [systemd or runit] and group
 [usermod]) — except `via: native` (resolves to the OS's package-manager driver) and `via: parts`
 (a pure aggregator, no driver of its own). More drivers can be added as needed.
 

@@ -1108,7 +1108,7 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
 # `pacman -Sy` leaves a partial-sync state that breaks the next single-package install, so the only
 # safe refresh there is a full `-Syu` (cmd_refresh does that interactively, not the auto path).
 _NATIVE_REFRESH = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
-                   'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update',
+                   'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update', 'xbps': 'xbps-install -S',
                    'brew': 'brew update'}
 
 
@@ -1126,7 +1126,7 @@ def refresh_native_index(ctx):
     return True, res.ok
 
 
-_NATIVE_PMS = {'apt', 'dnf', 'zypper', 'apk', 'brew'}   # index benefits from a pre-batch refresh (not pacman)
+_NATIVE_PMS = {'apt', 'dnf', 'zypper', 'apk', 'xbps', 'brew'}   # index benefits from a pre-batch refresh (not pacman)
 
 
 def maybe_refresh_before_plan(ctx, plan):
@@ -1213,7 +1213,7 @@ def cmd_refresh(ctx, args):
     from . import refreshstate
     pm = ctx.routes.cascade.native(ctx.os_info.block)
     native = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
-              'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update',
+              'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update', 'xbps': 'xbps-install -S',
               'brew': 'brew update'}.get(pm)
     ok = True
     if native:
@@ -2110,6 +2110,8 @@ def cmd_check(ctx, args):
     conflict_warnings = [_fmt_conflict(*c) for c in
                          _plugins.declared_conflicts(ctx.paths.plugins_dir, _decls)]
     conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
+    conflict_warnings += [_plugins.fmt_shadow(*s) for s in
+                          _plugins.shadowed_builtins(ctx.paths.plugins_dir, _decls)]
     conflict_warnings += [f"plugin {_plugins.dir_name(d['source'])}: content does not match "
                           f"declared sha256 — quarantined"
                           for d in _decls
@@ -2600,6 +2602,8 @@ def cmd_plugin(ctx, args):
             print(f'  {"":22} {state}')
         for kind, name, dirs in plugins.declared_conflicts(ctx.paths.plugins_dir, eff):
             print(f'  {_fmt_conflict(kind, name, dirs)}')
+        for drv, key in plugins.shadowed_builtins(ctx.paths.plugins_dir, eff):
+            print(f'  {plugins.fmt_shadow(drv, key)}')
         return 0
 
     print(f'configsys: unknown plugin subcommand {sub!r}')
@@ -2939,7 +2943,7 @@ def build_parser():
     p = argparse.ArgumentParser(
         prog='configsys',
         description='Provision OS-native software from a profile: one config, one tool, across '
-                    'apt/dnf/pacman/zypper/apk/brew, plus flatpak, tarballs, language toolchains, '
+                    'apt/dnf/pacman/zypper/apk/xbps/brew, plus flatpak, tarballs, language toolchains, '
                     'and more. With no command, the interactive TUI opens.',
         epilog=_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)

@@ -44,7 +44,7 @@ def test_service_enable_and_disable_commands():
     svc.uninstall(rc)
     assert r.calls[0].startswith('sudo ')
     assert 'systemctl enable --now docker' in r.calls[0]
-    assert 'no systemd here' in r.calls[0]                       # graceful degrade branch
+    assert 'no systemd or runit here' in r.calls[0]              # graceful degrade branch
     assert 'systemctl disable --now docker' in r.calls[1]
 
 
@@ -58,7 +58,7 @@ def test_service_get_version_reflects_is_enabled():
     rc = _rc('service', 'docker-service', unit='docker')
     assert Service(Fake(0)).get_version(rc) == 'enabled'
     assert Service(Fake(1)).get_version(rc) is None
-    assert Service(Runner(pretend=True)).location(rc) == 'systemd unit: docker'
+    assert Service(Runner(pretend=True)).location(rc) == 'systemd unit: docker / runit: /etc/sv/docker'
 
 
 # -- group ---------------------------------------------------------------

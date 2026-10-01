@@ -319,8 +319,10 @@ it; retrofitting versioning after plugins exist is the expensive path.
     (btop, ripgrep, …) install on ExamplOS. `test/test_example_plugin.py` exercises it
     add→trust→resolve. It's deliberately FICTIONAL so it can't rot against a real distro's package
     renames; real OS plugins live in their own repos (**configsys-void**, **configsys-proxmox**,
-    …). Alpine (`apk`) and openSUSE (`zypper`) began as plugins of exactly this shape and have
-    since graduated into base configsys.
+    …). Alpine (`apk`), openSUSE (`zypper`) and Void (`xbps`) began as plugins of exactly this
+    shape and have since graduated into base configsys (configsys-void stays as a worked example;
+    loading it alongside core makes its `xbps` driver shadow the built-in, which `check` and
+    `plugin list` report).
 
 Mirrors how overrides shipped: prove the mechanism on the safe subset, then add the escalation.
 

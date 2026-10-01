@@ -75,3 +75,15 @@ def test_conflicts_surface_in_list_and_check(tmp_path, capsys):
     main(home + ['check'])
     cout = capsys.readouterr().out
     assert "warn    conflict: component 'mytool' claimed by plugins a, b" in cout
+
+
+def test_plugin_driver_shadowing_a_builtin_is_surfaced(tmp_path):
+    # an OS graduated into core (Void's xbps) while its old plugin still ships the driver: the
+    # plugin's copy would silently replace core's — surfaced from the manifest alone (pre-trust too)
+    pd = tmp_path / 'plugins'
+    _mk(pd, 'configsys-void', '{ name: void  requires-abi: 1  provides: { drivers: [ xbps ] }  code: driver.py }',
+        {'driver.py': ''})
+    _mk(pd, 'own', '{ name: own  requires-abi: 1  provides: { drivers: [ demopm ] } }', {})
+    decls = [{'source': 'github:x/configsys-void'}, {'source': 'github:x/own'}]
+    assert plugins.shadowed_builtins(pd, decls) == [('xbps', 'configsys-void')]   # demopm is new, not a shadow
+    assert "replaces the built-in 'xbps' driver" in plugins.fmt_shadow('xbps', 'configsys-void')

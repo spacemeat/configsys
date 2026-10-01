@@ -2,8 +2,8 @@
 
 One tool to bring a fresh OS install up to *your* setup — the same packages, the same
 versions, the same dotfiles — whether the machine runs Debian/Ubuntu/Pop!\_OS/Mint,
-Fedora/RHEL/Rocky/Alma, Arch/Manjaro/EndeavourOS/CachyOS, openSUSE, Alpine, or an immutable
-spin like Bazzite/Fedora Atomic — with still more (Void, Proxmox, …) available as plugins.
+Fedora/RHEL/Rocky/Alma, Arch/Manjaro/EndeavourOS/CachyOS, openSUSE, Alpine, Void (glibc or musl),
+or an immutable spin like Bazzite/Fedora Atomic — with still more (Proxmox, …) available as plugins.
 
 You describe **what** you want in a git-synced config; configsys works out **how** to get
 it on *this* machine (apt vs dnf vs pacman, a Flatpak, an AppImage, a tarball, a Cargo
@@ -19,6 +19,9 @@ $ ./configsys.sh inspect    # or run any subcommand non-interactively
 ## Quick start
 
 configsys needs only **python3 ≥ 3.10** on the system; it sets up everything else itself.
+(`humon` compiles from source, so a minimal install also needs a C compiler and the Python
+headers — e.g. `xbps-install python3 python3-devel gcc` on Void, `apk add python3 python3-dev
+build-base` on Alpine. `configsys.sh` names the right packages if the build fails.)
 
 ```console
 $ git clone <your-fork> ~/src/configsys
@@ -48,11 +51,11 @@ should have (`t` tracks one; or `configsys picks add <name>`), then inspect and 
 - **Driver** — the code behind a `via:`: it installs/queries/removes one *class* of software
   behind a uniform op set (get_version / get_latest / is_locked / install / uninstall /
   upgrade / set_version / lock / unlock / location). Ships ~35: system package managers
-  **apt, dnf, pacman, aur, zypper, apk, brew, rpm-ostree**; distribution drivers **flatpak,
+  **apt, dnf, pacman, aur, zypper, apk, xbps, brew, rpm-ostree**; distribution drivers **flatpak,
   snap, appImage, tarball, native-pkg-file** (an upstream `.deb`/`.rpm` file), **source, font,
   script**; the config drivers **dotfiles** and **glue**; language-ecosystem installers
   **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman**; the **gcc /
-  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd) and
+  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd or runit) and
   **group** (usermod). `via: native` picks the right system manager per OS; `via: parts`
   aggregates.
 - **Unit** — a resolved component + driver pair, keyed `driver\comp` (`apt\btop`,
@@ -161,7 +164,7 @@ Your machine's file always wins:
 
     // include: [ ~/src/myproject/configsys.hu ]   // pull in more component definitions
 
-    // plugins: [ { source: "github:spacemeat/configsys-void"  ref: v0.1.0 } ]
+    // plugins: [ { source: "github:spacemeat/configsys-proxmox"  ref: v0.1.0 } ]
 
     // pins: { steam: flatpak }       // force a driver (binding-pin) or a provider
 
@@ -400,7 +403,7 @@ Plugins are git repos that add routing data (and new drivers) to the layer stack
 Declare them in your config and sync:
 
 ```console
-$ ./configsys.sh plugin add "github:spacemeat/configsys-void" --ref v0.1.0
+$ ./configsys.sh plugin add "github:spacemeat/configsys-proxmox" --ref v0.1.0
 $ ./configsys.sh plugin list      # declared plugins + their sync/ABI status
 $ ./configsys.sh plugin sync      # clone/fetch all declared plugins to their pinned refs
 ```
@@ -433,7 +436,7 @@ Real, published plugins — each its own repo, `plugin add github:spacemeat/<nam
 
 | Plugin | Adds | Kind |
 | --- | --- | --- |
-| [configsys-void](https://github.com/spacemeat/configsys-void) | Void Linux as a first-class OS — an `xbps` driver + a verified per-distro name map | code (trust-gated) |
+| [configsys-void](https://github.com/spacemeat/configsys-void) | A worked example of a real OS plugin (Void Linux: an `xbps` driver + a name map). Void is now in core, so you don't need it to run Void — and loading it makes its `xbps` driver shadow core's (`check` warns) | code (trust-gated) |
 | [configsys-proxmox](https://github.com/spacemeat/configsys-proxmox) | Proxmox VE (a Debian derivative) with `/etc/pve` detection + a `proxmox-admin` profile | data-only |
 | [configsys-blender](https://github.com/spacemeat/configsys-blender) | Blender built from source (editor + `bpy`), GPU backends — a `blender-build` driver overriding base `blender` | code (trust-gated) |
 | [configsys-kicad](https://github.com/spacemeat/configsys-kicad) | KiCad built from source (scripting + SPICE + 3D) — a `kicad-build` driver | code (trust-gated) |

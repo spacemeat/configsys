@@ -27,10 +27,32 @@ class NativePkgManager(Driver):
     UPGRADE = None
 
     @staticmethod
-    def _pkgs(rc):
-        '''The package argument(s) for the command line. Default: the single resolved name, quoted.
-        A driver that installs a SET per binding (apt's `packages:`) overrides this.'''
-        return shlex.quote(rc.name)
+    def _pkg_list(rc):
+        '''The package NAMES a binding installs. A `packages: [a, b, ...]` binding installs the whole
+        set (the house convention for a native component that needs several packages — a python3.12
+        interpreter + venv + dev, GL + GLU dev, a library's build deps); otherwise `rc.name` (which
+        may itself be a whitespace-separated set). Every package-name op (install/remove/upgrade/
+        lock) acts on the whole set; DETECTION reads one package — see `_probe_name`.'''
+        pkgs = rc.fields.get('packages')
+        return ([str(p) for p in pkgs] if isinstance(pkgs, list) else
+                [str(pkgs)] if pkgs else rc.name.split())
+
+    @classmethod
+    def _pkgs(cls, rc):
+        '''`_pkg_list` joined + quoted, for the command line.'''
+        return ' '.join(shlex.quote(p) for p in cls._pkg_list(rc))
+
+    @staticmethod
+    def _probe_name(rc):
+        '''The ONE package to read install-state / version from: the binding's `installed-name:` when
+        set (a metapackage a system commonly has without — Debian's LibreOffice), else the first of a
+        `packages:` set (the unit's own name — `python-build-deps` — is not a package), else `name`.'''
+        pkgs = rc.fields.get('packages')
+        first = (pkgs[0] if isinstance(pkgs, list) and pkgs else pkgs) if pkgs else None
+        return rc.fields.get('installed-name') or (str(first) if first else rc.name)
+
+    def index_key(self, rc):
+        return self._probe_name(rc)
 
     def ensure_prereqs(self, rc):
         '''Vendor repos / signing keys / plugins to set up before an install (apt PPAs + `deb` sources,

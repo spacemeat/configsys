@@ -1,0 +1,21 @@
+# Disposable Void Linux (glibc) sandbox for configsys xbps/runit integration tests.
+# humon builds from source, so gcc + python3-devel come along with python3. xbps's hard-link
+# extraction needs `--security-opt seccomp=unconfined` under rootless podman (build AND run).
+FROM ghcr.io/void-linux/void-glibc:latest
+
+RUN xbps-install -Syu xbps >/dev/null && xbps-install -Syu >/dev/null \
+    && xbps-install -y python3 python3-devel gcc bash git sudo shadow >/dev/null
+
+# Non-root user with passwordless sudo — configsys shells out to `sudo xbps-install`. /var/service
+# stands in for the runit service dir (no runsvdir runs in the container; enabling = the symlink).
+RUN useradd -m -s /bin/bash tester \
+    && echo 'tester ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/tester \
+    && chmod 0440 /etc/sudoers.d/tester \
+    && mkdir -p /var/service
+
+COPY --chown=tester:tester . /home/tester/configsys
+
+USER tester
+WORKDIR /home/tester/configsys
+
+CMD ["bash", "test/integration_xbps.sh"]

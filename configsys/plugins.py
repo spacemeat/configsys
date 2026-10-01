@@ -606,6 +606,33 @@ def declared_conflicts(plugins_dir, decls):
                   for (kind, name), dirs in owners.items() if len(dirs) > 1)
 
 
+def shadowed_builtins(plugins_dir, decls):
+    '''[(driver_name, plugin_dir)] — drivers a plugin declares (manifest `provides.drivers`) under a
+    name core ALREADY ships. Registering one REPLACES the built-in for every `via:` of that name, so
+    the plugin's copy runs instead of core's — legitimate (a deliberate override), but never silent:
+    an OS that graduated into core (Void's xbps) keeps working through its old plugin while core's
+    fixes quietly don't apply. Declarative (manifest only, no code run), so it shows pre-trust too.'''
+    from .drivers import BUILTIN_DRIVERS
+    out = []
+    for d in decls:
+        key = dir_name(d['source'])
+        pdir = plugins_dir / key
+        if not pdir.exists():
+            continue
+        manifest = read_manifest(pdir)
+        if not _abi_ok(manifest):
+            continue
+        for drv in _as_name_list((manifest.get('provides') or {}).get('drivers')):
+            if drv in BUILTIN_DRIVERS:
+                out.append((drv, key))
+    return sorted(out)
+
+
+def fmt_shadow(driver, plugin):
+    return (f"shadow: plugin {plugin} replaces the built-in '{driver}' driver — its copy runs "
+            f"instead of core's (drop the plugin if core now covers this)")
+
+
 def _emit_block(decls, indent):
     '''`plugins: [...]` humon text at the given base indent (source values quoted as needed).'''
     pad, inner = ' ' * indent, ' ' * (indent + 4)

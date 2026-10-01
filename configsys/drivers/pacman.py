@@ -60,25 +60,25 @@ class Pacman(NativePkgManager):
             if ver is not None:
                 return ver
             # batched but not a package -> maybe an installed GROUP (groups aren't in the pkg index)
-            g = self.runner.run(f'pacman -Qg {shlex.quote(rc.name)}')
+            g = self.runner.run(f'pacman -Qg {shlex.quote(self._probe_name(rc))}')
             return _GROUP if g.ok and g.stdout.strip() else None
         # `pacman -Q btop` -> "btop 1.4.7-1"; nonzero + not-found message if absent
-        r = self.runner.run(f'pacman -Q {shlex.quote(rc.name)}')
+        r = self.runner.run(f'pacman -Q {shlex.quote(self._probe_name(rc))}')
         if r.ok and r.stdout.strip():
             parts = r.stdout.split()
             return parts[1] if len(parts) >= 2 else None
         # not a single package — maybe an installed GROUP: `pacman -Qg xfce4` lists its members
-        g = self.runner.run(f'pacman -Qg {shlex.quote(rc.name)}')
+        g = self.runner.run(f'pacman -Qg {shlex.quote(self._probe_name(rc))}')
         return _GROUP if g.ok and g.stdout.strip() else None
 
     def get_latest(self, rc):
-        r = self.runner.run(f'pacman -Si {shlex.quote(rc.name)}')
+        r = self.runner.run(f'pacman -Si {shlex.quote(self._probe_name(rc))}')
         if r.ok:
             m = _VER_RE.search(r.stdout)
             if m:
                 return m.group(1).strip()
         # a group has no version; report the same marker so an installed group isn't "outdated"
-        g = self.runner.run(f'pacman -Sg {shlex.quote(rc.name)}')
+        g = self.runner.run(f'pacman -Sg {shlex.quote(self._probe_name(rc))}')
         return _GROUP if g.ok and g.stdout.strip() else None
 
     def upgradable_index(self):

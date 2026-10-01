@@ -4,7 +4,7 @@ Uses each family's NATIVE check (no needrestart dependency):
   * apt     — /run/reboot-required (a file update-notifier-common drops on kernel/libc/systemd/… bumps)
   * dnf     — `dnf needs-restarting -r` (exit 1 = reboot advised) / `-s` (services)
   * zypper  — `zypper needs-rebooting`  (exit 102 = reboot needed) / `zypper ps -sss` (services)
-  * pacman/apk — no native flag: a kernel-vs-running heuristic (a newer kernel is installed than the
+  * pacman/apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel is installed than the
     running one). Conservative — compares only MAJOR.MINOR.PATCH so a distro suffix can't false-fire.
 Service lists use the native tool where cheap, else `needrestart` IF it happens to be installed
 (opportunistic — never required). Everything is best-effort + non-fatal; pretend runs report nothing.'''
@@ -78,7 +78,7 @@ def _reboot(ctx, pm):
         r = _run(ctx, 'zypper needs-rebooting')
         return (True, 'kernel or core libraries updated') if (r is not None and r.returncode == 102) \
             else (False, '')
-    if pm in ('pacman', 'apk'):
+    if pm in ('pacman', 'apk', 'xbps'):
         return _kernel_heuristic(ctx, pm)
     return (False, '')                                   # brew/atomic: rpm-ostree messages on its own
 
@@ -110,6 +110,13 @@ def _kernel_heuristic(ctx, pm):
             parts = ln.split()
             if len(parts) == 2:
                 vers.append(parts[1])                    # "linux 6.9.1.arch1-1" -> "6.9.1.arch1-1"
+    elif pm == 'xbps':
+        q = _run(ctx, 'xbps-query -l')                   # "ii linux6.12-6.12.111_1  The Linux kernel…"
+        for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
+            parts = ln.split()
+            m = re.match(r'linux\d+\.\d+-(\d.*)$', parts[1]) if len(parts) >= 2 else None
+            if m:
+                vers.append(m.group(1))                  # series packages; the bare `linux` meta is skipped
     else:                                                # apk
         q = _run(ctx, 'apk list --installed')
         for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
@@ -138,7 +145,7 @@ def _services(ctx, pm):
         r = _run(ctx, 'zypper ps -sss')                  # -sss: bare service names, one per line
         return [ln.strip() for ln in (r.stdout.splitlines() if (r and r.ok) else [])
                 if ln.strip()][:20]
-    if shutil.which('needrestart'):                      # apt/pacman/apk: use it only if already present
+    if shutil.which('needrestart'):                      # apt/pacman/apk/xbps: use it only if already present
         r = _run(ctx, 'needrestart -b')                  # batch: `NEEDRESTART-SVC: <unit>` lines
         return [ln.split(':', 1)[1].strip()
                 for ln in (r.stdout.splitlines() if (r and r.stdout) else [])

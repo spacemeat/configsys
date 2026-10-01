@@ -54,7 +54,7 @@ class Dnf(NativePkgManager):
         ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
         if hit:
             return ver
-        pkg = shlex.quote(rc.name)
+        pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(f"rpm -q --qf '%{{VERSION}}\\n' {pkg}")
         # not-installed -> exit 1 with a "package X is not installed" message
         if r.ok and r.stdout.strip():
@@ -62,7 +62,7 @@ class Dnf(NativePkgManager):
         return None
 
     def get_latest(self, rc):
-        pkg = shlex.quote(rc.name)
+        pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(
             f"dnf -q repoquery --queryformat '%{{version}}' --latest-limit=1 {pkg}")
         if not r.ok:
@@ -75,7 +75,7 @@ class Dnf(NativePkgManager):
         r = self.runner.run('dnf versionlock list')
         if not r.ok:
             return False
-        name = rc.name
+        name = self._probe_name(rc)
         for line in r.stdout.splitlines():
             s = line.strip()
             if s.startswith('Package name:') and s.split(':', 1)[1].strip() == name:
@@ -194,10 +194,8 @@ class Dnf(NativePkgManager):
 
     def lock(self, rc):
         self._ensure_versionlock()
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'dnf versionlock add {pkg}', sudo=True)
+        return self.runner.run(f'dnf versionlock add {self._pkgs(rc)}', sudo=True)
 
     def unlock(self, rc):
         self._ensure_versionlock()
-        pkg = shlex.quote(rc.name)
-        return self.runner.run(f'dnf versionlock delete {pkg}', sudo=True)
+        return self.runner.run(f'dnf versionlock delete {self._pkgs(rc)}', sudo=True)

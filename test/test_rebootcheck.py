@@ -77,3 +77,14 @@ def test_pretend_reports_nothing():
     c = _ctx('dnf', {'dnf needs-restarting -r': (1, '')}, pretend=True)
     assert not rebootcheck.advisory(c).actionable
     assert rebootcheck.reboot_pending(c) == (False, '')
+
+
+def test_xbps_newer_kernel_series_advises_reboot():
+    # Void kernels are series packages (linux6.12, linux6.18); the bare `linux` meta is skipped
+    idx = ('ii linux-6.18_1                     The Linux kernel (meta)\n'
+           'ii linux6.12-6.12.111_1            The Linux kernel and modules (6.12 series)\n'
+           'ii linux6.18-6.18.4_1              The Linux kernel and modules (6.18 series)\n')
+    a = rebootcheck.advisory(_ctx('xbps', {'uname -r': (0, '6.12.111_1\n'), 'xbps-query -l': (0, idx)}))
+    assert a.reboot and '6.18.4_1' in a.reason
+    b = rebootcheck.advisory(_ctx('xbps', {'uname -r': (0, '6.18.4_1\n'), 'xbps-query -l': (0, idx)}))
+    assert not b.reboot

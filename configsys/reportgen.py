@@ -349,6 +349,7 @@ _PLATFORMS = [
     ('RHEL / EL', 'rhel', '9.8'),
     ('Arch', 'arch', '20260101'),
     ('Alpine', 'alpine', '3.20'),
+    ('Void', 'void', ''),
     ('openSUSE', 'opensuse', ''),
     ('Fedora Atomic', 'fedora_atomic', '40'),
 ]

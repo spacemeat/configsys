@@ -425,8 +425,9 @@ a string replaces the resolved package name; `{}` drops the unit as a silent no-
 never an error row — exactly like a `{}`-removed component). It is **driver-keyed**, so it
 expresses cross-driver name facts (a plugin distro's package names) but deliberately does *not*
 address same-driver splits like Ubuntu-vs-Debian `perf` (both `apt`) — those remain `when:`
-splits. This is the substrate the Void plugin uses to supply its xbps names for the ~10 core
-components whose Void name differs, kept honest by the plugin's name-existence sweep.
+splits. This is the substrate the configsys-void example plugin uses to supply its xbps names for core
+components whose Void name differs. (Void has since graduated into core, where those facts live
+as ordinary `xbps:` entries in each binding's `name:` map.)
 
 ## 11. Tool-version vs OS-version
 

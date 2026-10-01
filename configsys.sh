@@ -58,7 +58,20 @@ fi
 if ! "$VPY" -c 'import humon, packaging' >/dev/null 2>&1; then
     echo "configsys: installing python dependencies (humon, packaging)..." >&2
     "$VPY" -m pip install -q --upgrade pip || true
-    "$VPY" -m pip install -q humon packaging
+    if ! "$VPY" -m pip install -q humon packaging; then
+        # humon ships as SOURCE only (a C extension), so pip compiles it: that needs a C compiler and
+        # the Python headers, which minimal installs/containers lack. Name the fix for this distro.
+        hint="a C compiler and the Python development headers"
+        if command -v apt-get >/dev/null 2>&1; then hint="sudo apt-get install build-essential python3-dev"
+        elif command -v dnf >/dev/null 2>&1; then hint="sudo dnf install gcc python3-devel"
+        elif command -v pacman >/dev/null 2>&1; then hint="sudo pacman -S gcc"
+        elif command -v zypper >/dev/null 2>&1; then hint="sudo zypper install gcc python3-devel"
+        elif command -v apk >/dev/null 2>&1; then hint="sudo apk add build-base python3-dev"
+        elif command -v xbps-install >/dev/null 2>&1; then hint="sudo xbps-install gcc python3-devel"
+        fi
+        echo "configsys: building humon failed — it compiles from source; install: $hint" >&2
+        exit 1
+    fi
 fi
 
 # 4. hand off to the app (pass all args through)

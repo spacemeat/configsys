@@ -344,15 +344,8 @@ class Apt(NativePkgManager):
         return self.runner.run(f'{_APT_ENV} apt-get upgrade --with-new-pkgs -y',
                                sudo=True, capture=False)
 
-    @staticmethod
-    def _probe_name(rc):
-        '''The package to READ install-state / version from — the binding's `installed-name:` when
-        set, else the install `name`. For a metapackage that a system commonly has WITHOUT (Debian
-        ships LibreOffice as `libreoffice-core` + `-calc`/… without the `libreoffice` meta), so
-        `name` installs the suite but `installed-name` (a component present whenever any of it is)
-        is what tells us it's installed. Mutation ops (install/remove/upgrade/lock) still use
-        `name`.'''
-        return rc.fields.get('installed-name') or rc.name
+    # _probe_name (installed-name, else the first of `packages:`, else name) and index_key come from
+    # NativePkgManager — mutation ops still act on the whole _pkg_list set.
 
     def batch_index(self, rcs):
         '''Pre-fetch the three inspect probes for these units in THREE calls (not three per package):
@@ -433,21 +426,7 @@ class Apt(NativePkgManager):
 
     # -- mutate -----------------------------------------------------------
 
-    @staticmethod
-    def _pkg_list(rc):
-        '''The apt package NAMES a binding installs. A `packages: [a, b, ...]` binding installs the
-        whole set (the house convention for a native component that needs several apt packages — e.g.
-        a python3.12 interpreter + -venv + -dev, or GL + GLU dev); otherwise `rc.name` (which may
-        itself be a whitespace-separated set). `installed-name:` still governs DETECTION (one package
-        to probe), but every package-name op (install/remove/lock/pin) acts on the whole set.'''
-        pkgs = rc.fields.get('packages')
-        return ([str(p) for p in pkgs] if isinstance(pkgs, list) else
-                [str(pkgs)] if pkgs else rc.name.split())
-
-    @staticmethod
-    def _pkgs(rc):
-        '''`_pkg_list` joined + quoted, for the apt command line.'''
-        return ' '.join(shlex.quote(p) for p in Apt._pkg_list(rc))
+    # _pkg_list / _pkgs (the whole `packages:` set, quoted) are inherited from NativePkgManager.
 
     # install/uninstall/upgrade come from the NativePkgManager templates + ENV + the multi-package
     # _pkgs override above (install/upgrade run ensure_prereqs first). set_version is apt-specific.

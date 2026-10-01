@@ -167,3 +167,17 @@ def test_fedora_atomic_audit_fixes():
     assert rust['brew\\rust'].name == 'rust'
     dig = Resolver('routes.hu', 'fedora_atomic', '40').resolve_names(['dig'])
     assert dig['brew\\dig'].name == 'bind'
+
+
+# -- Void: two libc flavors, one package manager ---------------------------
+
+def test_void_flavors_share_xbps_but_not_glibc(cascade):
+    from configsys import osdetect
+    assert cascade.native('void') == 'xbps'
+    assert cascade.native('void_musl') == 'xbps'
+    assert holds(cascade, 'glibc_linux', 'void')
+    assert not holds(cascade, 'glibc_linux', 'void_musl')         # musl: glibc binaries decline
+    assert not holds(cascade, 'void', 'void_musl')                 # siblings: gate both explicitly
+    musl = '/lib/ld-musl-x86_64.so.1'
+    assert osdetect.refine('void', cascade, env={}, exists=lambda p: p == musl) == 'void_musl'
+    assert osdetect.refine('void', cascade, env={}, exists=lambda p: False) == 'void'
