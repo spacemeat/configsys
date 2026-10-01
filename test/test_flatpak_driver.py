@@ -225,6 +225,36 @@ def test_batch_index_collapses_probes_and_read_ops_use_it():
     assert d.outdated_signal(fp('org.gimp.GIMP')) is False        # not pending
 
 
+def test_remote_versions_cached_until_the_appstream_checkout_changes(tmp_path):
+    # `remote-ls --columns=version` re-parses the whole appstream (~2 s for flathub) every call; its
+    # answer is cached keyed on the appstream checkout `active` points at — reused while unchanged,
+    # re-queried the moment flatpak pulls a new one.
+    from types import SimpleNamespace
+    sysdir = tmp_path / 'sys'
+    arch = sysdir / 'appstream' / 'flathub' / 'x86_64'
+    (arch / 'c1').mkdir(parents=True)
+    (arch / 'c1' / 'appstream.xml.gz').write_bytes(b'one')
+    (arch / 'active').symlink_to('c1')
+    paths = SimpleNamespace(state_dir=tmp_path / 'state', home=tmp_path,
+                            env={'HOME': str(tmp_path), 'FLATPAK_SYSTEM_DIR': str(sysdir),
+                                 'FLATPAK_USER_DIR': str(tmp_path / 'user')})
+    listing = ('flatpak remote-ls --system', 0, 'org.gimp.GIMP\t3.2\n')
+
+    def latest():
+        r = FakeRunner([listing])
+        d = Flatpak(r, paths)
+        d._batch = d.batch_index([fp('org.gimp.GIMP')])
+        return d.get_latest(fp('org.gimp.GIMP')), sum('remote-ls --system flathub' in c for c in r.calls)
+
+    assert latest() == ('3.2', 1)                  # cold: queried, then cached
+    assert latest() == ('3.2', 0)                  # same checkout: no remote-ls at all
+    (arch / 'c2').mkdir()
+    (arch / 'c2' / 'appstream.xml.gz').write_bytes(b'two')
+    (arch / 'active').unlink()
+    (arch / 'active').symlink_to('c2')             # flatpak refreshed its appstream
+    assert latest() == ('3.2', 1)                  # fingerprint changed -> queried again
+
+
 def test_outdated_signal_per_unit_fallback():
     # no batch context: ask flatpak directly (both scopes); membership in --updates = outdated
     r = FakeRunner([('--updates', 0, 'org.a.A\n')])

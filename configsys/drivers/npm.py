@@ -13,6 +13,7 @@ network per inspect); `npm install` fetches the latest at install time.
 
 import json
 import shlex
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..driver import Driver
@@ -59,10 +60,12 @@ class Npm(Driver):
         home = self.paths.home if self.paths is not None else Path.home()
         cmds = {'user': f'npm ls -g --prefix {shlex.quote(str(home / ".local"))} --depth=0 --json',
                 'system': 'npm ls -g --depth=0 --json'}
+        with ThreadPoolExecutor(max_workers=len(cmds)) as ex:   # the two prefixes list concurrently
+            runs = {scope: ex.submit(self.runner.run, cmd) for scope, cmd in cmds.items()}
         out = {}
-        for scope, cmd in cmds.items():
+        for scope, fut in runs.items():
             m = {}
-            r = self.runner.run(cmd)
+            r = fut.result()
             if r.stdout:
                 try:
                     for pkg, dep in (json.loads(r.stdout).get('dependencies') or {}).items():

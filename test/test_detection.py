@@ -23,7 +23,7 @@ def _ctx(r, pins=None):
 
 def _installed(mapping):
     '''A fake _installed_via: comp.name -> via (installed) or absent (not installed).'''
-    return lambda ctx, comp, cx, cache: mapping.get(comp.name)
+    return lambda ctx, comp, cx, cache, unless_only=None: mapping.get(comp.name)
 
 
 PROVIDERS = '''

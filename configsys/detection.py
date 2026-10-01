@@ -21,18 +21,30 @@ from .adapt import to_resolved_component
 from .drivers import get_driver
 from .resolve import candidate_bindings, unit_for_binding, via_representatives
 
-def _installed_via(ctx, comp, cx, cache):
-    '''The via `comp` is installed under here (any of its candidate methods), else None. Batched.'''
+def _candidate_rcs(ctx, comp, cx):
+    '''One ResolvedComponent per candidate install method of `comp` here (no probing — cheap).'''
     r = ctx.routes
     try:
         reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
     except Exception:                           # noqa: BLE001
-        return None
+        return []
+    rcs = []
     for b in reps:
         unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
-        if unit is None:
-            continue
-        rc = to_resolved_component(unit)
+        if unit is not None:
+            rcs.append(to_resolved_component(unit))
+    return rcs
+
+
+def _installed_via(ctx, comp, cx, cache, unless_only=None):
+    '''The via `comp` is installed under here (any of its candidate methods), else None. Batched.
+    `unless_only=<via>`: answer None WITHOUT probing when every candidate method is that via — the
+    method-adoption caller can only act on a DIFFERENT installed method, so a single-method component
+    (all the glue/dotfiles, most scripts) needs no subprocess at all.'''
+    rcs = _candidate_rcs(ctx, comp, cx)
+    if unless_only is not None and all(rc.via == unless_only for rc in rcs):
+        return None
+    for rc in rcs:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None:
             continue
@@ -60,7 +72,18 @@ def detect_pins(ctx, units, progress=None):
     pins = {}
 
     unit_list = list(units.values())
-    drivers = list({rc.driver for rc in unit_list})
+    # Only the drivers a method probe below will actually ask: those of the candidate methods of
+    # components that HAVE an alternative (a single-method component is never probed — see
+    # `unless_only`). Others enumerate lazily if provider detection needs them.
+    drivers = set()
+    for rc in unit_list:
+        comp = r.components.get(rc.comp)
+        if rc.comp in user_pins or comp is None or not comp.bindings:
+            continue
+        alts = _candidate_rcs(ctx, comp, cx)
+        if any(a.via != rc.via for a in alts):
+            drivers.update(a.driver for a in alts)
+    drivers = sorted(drivers)
     total = len(drivers) + len(unit_list)          # one combined progress space over both sub-phases
     base = [0]
 
@@ -90,7 +113,7 @@ def detect_pins(ctx, units, progress=None):
         comp = r.components.get(name)
         if comp is None or not comp.bindings:
             return None
-        inst_via = _installed_via(ctx, comp, cx, cache)
+        inst_via = _installed_via(ctx, comp, cx, cache, unless_only=rc.via)
         return (name, inst_via) if (inst_via and inst_via != rc.via) else None
     for res in _parallel_map(_method, unit_list, progress=relay):
         if res:

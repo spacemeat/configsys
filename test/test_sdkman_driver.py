@@ -56,6 +56,21 @@ def test_get_version_parses_sdk_current():
     assert d2.get_version(rc('scala')) is None
 
 
+def test_get_version_reads_current_symlink_without_spawning(tmp_path):
+    # with paths, the default version is read straight off candidates/<c>/current — no `sdk` spawn
+    from types import SimpleNamespace
+    cand = tmp_path / '.sdkman' / 'candidates'
+    (cand / 'scala' / '3.8.4').mkdir(parents=True)
+    (cand / 'scala' / 'current').symlink_to('3.8.4')
+    (cand / 'sbt').mkdir()                                       # candidate dir, no default set
+    fr = FakeRunner([('current', 0, 'Using scala version 9.9.9\n')])
+    d = get_driver('sdkman', fr, SimpleNamespace(home=tmp_path))
+    assert d.get_version(rc('scala')) == '3.8.4'
+    assert d.get_version(rc('sbt')) is None
+    assert d.get_version(rc('groovy')) is None                   # never installed
+    assert fr.calls == []
+
+
 def test_uninstall_needs_a_version():
     # unknown version -> no-op, never a bare `sdk uninstall`
     d, fr = _drv([('current', 0, 'Not using any version of scala\n')])

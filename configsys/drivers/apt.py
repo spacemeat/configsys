@@ -6,6 +6,7 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 '''
 
 import shlex
+from concurrent.futures import ThreadPoolExecutor
 
 from ..driver import tier_by_name
 from ..failures import SIGNATURE, classify, retry_transient
@@ -363,13 +364,22 @@ class Apt(NativePkgManager):
         installed = self.installed_index()
         if installed is None:
             return None
-        r = self.runner.run('apt-mark showhold')
-        held = set(r.stdout.split()) if r.ok else set()
-        candidate = {}
-        if names:
-            r = self.runner.run('apt-cache policy ' + ' '.join(shlex.quote(n) for n in names))
-            if r.ok:
-                candidate = _parse_policy(r.stdout, set(names))
+        # `apt-cache policy` costs CPU PER PACKAGE (~5 ms: it stats every list file for each), so one
+        # call over ~265 names is ~1.3 s on a single core. Split into chunks run concurrently (each
+        # still a fixed, small number of calls), with `apt-mark showhold` alongside: ~0.5 s.
+        nchunks = min(8, -(-len(names) // 32))
+        chunks = [names[i::nchunks] for i in range(nchunks)]
+        with ThreadPoolExecutor(max_workers=1 + nchunks) as ex:
+            hold = ex.submit(self.runner.run, 'apt-mark showhold')
+            pols = [ex.submit(self.runner.run, 'apt-cache policy ' + ' '.join(shlex.quote(n) for n in c))
+                    for c in chunks]
+            r = hold.result()
+            held = set(r.stdout.split()) if r.ok else set()
+            candidate = {}
+            for c, f in zip(chunks, pols):
+                r = f.result()
+                if r.ok:
+                    candidate.update(_parse_policy(r.stdout, set(c)))
         return {'installed': installed, 'held': held, 'candidate': candidate}
 
     def batch_installed_index(self, batch):

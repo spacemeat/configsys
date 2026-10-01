@@ -10,8 +10,10 @@ nvm/pyenv, an installed SDK is only on PATH once the user's shell sources SDKMAN
 `current` symlink) — configsys installs and version-tracks it; the shell wiring is the user's.
 '''
 
+import os
 import re
 import shlex
+from pathlib import Path
 
 from ..driver import Driver
 from ..runner import Result
@@ -45,6 +47,16 @@ class Sdkman(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
+        # `sdk current <c>` in a fresh shell just reports the default — the `current` symlink under the
+        # candidate dir — but sourcing sdkman-init.sh first costs ~0.4 s per unit. Read the link
+        # directly; spawn only when `current` exists as something else (a hand-made dir).
+        if self.paths is not None:
+            cur = Path(self.paths.home) / '.sdkman' / 'candidates' / self._cand(rc) / 'current'
+            if cur.is_symlink():
+                ver = os.path.basename(os.readlink(cur).rstrip('/'))
+                return ver if ver and ver[0].isdigit() and cur.exists() else None
+            if not cur.exists():
+                return None                # no default set -> "Not using any version of X"
         r = self._sdk(f'current {shlex.quote(self._cand(rc))}')
         if not r.ok or not r.stdout:
             return None
