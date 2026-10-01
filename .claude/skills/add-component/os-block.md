@@ -15,10 +15,10 @@ target). The authoritative model is `docs/routing-model.md` + the routing sectio
 
 - **`using: <parent>`** — single-parent lineage. Everything cascades: the parent's `native:`,
   `provides:`, and `when:`-subtree membership are inherited. The spine is
-  `linux → glibc_linux → {debian, redhat, arch, opensuse, fedora_atomic}` and `linux → alpine`
-  (musl). A bare atom in a `when:` matches a block AND all its descendants (inheritance by identity).
+  `linux → glibc_linux → {debian, redhat, arch, opensuse, fedora_atomic, void}` and
+  `linux → {alpine, void_musl}` (musl). A bare atom in a `when:` matches a block AND all its descendants (inheritance by identity).
 - **`native: <mgr>`** — the OS package manager `via: native` resolves to: `apt`/`dnf`/`pacman`/
-  `zypper`/`apk`/`brew`. **Declare it only where it CHANGES** from the parent; a pure rebrand inherits
+  `zypper`/`apk`/`xbps`/`brew`. **Declare it only where it CHANGES** from the parent; a pure rebrand inherits
   it. (Debian declares `apt`; Pop/Mint/Kali just `using` a parent and inherit it.)
 - **`scale-root: true`** — this block OWNS a version-numbering line. **The load-bearing decision.**
   A distro whose version numbers are *identical* to its parent's borrows the parent's scale (NO
@@ -78,7 +78,7 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
 
 ## Steps
 
-1. **Identify the lineage + libc.** Which family (apt/dnf/pacman/zypper/apk/brew)? glibc or musl?
+1. **Identify the lineage + libc.** Which family (apt/dnf/pacman/zypper/apk/xbps/brew)? glibc or musl?
    Read `/etc/os-release` (`ID`, `ID_LIKE`, `VERSION_ID`, `VARIANT_ID`) on a real image or from docs.
    Find the closest existing block to `using`.
 2. **Decide `scale-root`.** Does it number releases with its OWN scheme, or share the parent's exact

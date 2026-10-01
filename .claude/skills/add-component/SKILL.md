@@ -43,6 +43,7 @@ Base OS families (atoms) and their native package manager:
 | arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda`   | pacman     | community pkgs via `via: aur when: "arch"` |
 | opensuse      | `opensuse` `opensuse_leap` `opensuse_tumbleweed`    | zypper     | |
 | alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here; needs a musl asset or native |
+| void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl. Nonfree pkgs `requires: void-repo-nonfree` |
 | atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable: prefer flatpak + brew; no system pkg installs |
 
 A "comprehensive row" = a `native` binding wherever the tool is in-repo + fallbacks covering the
@@ -67,12 +68,23 @@ on dnf). Use WebSearch for anything uncertain — **flatpak app-ids and release 
 exact or the binding silently fails.** Confirm: Flathub app-id (search "<tool> flathub"), the GitHub
 release asset filename pattern, and whether it's in EPEL (EL) / universe (Ubuntu).
 
+**Void names** follow Fedora-ish conventions more than Debian's: dev headers are `<pkg>-devel`
+(`libX11-devel`, `SDL2-devel`, `gtk+3-devel`), Python modules `python3-<Mod>` (`python3-Cython`),
+and some renames (`fish-shell`, `openjdk21`, `apache-maven`, `openbsd-netcat`, `lm_sensors`, `R`).
+A few packages live only in the `nonfree` repo (nmap, unrar). Check existence fast without a VM:
+`podman run --rm ghcr.io/void-linux/void-glibc xbps-query -R <pkg>` (after `xbps-install -S`) — and
+`void-musl` for the musl flavor, which lacks a handful of glibc-only packages (virtualbox-ose,
+torbrowser-launcher).
+
 ### 1. Read a few existing components that match the shape
 Match the house style. Good exemplars in `routes.hu`:
 - native everywhere, EL via EPEL, Ubuntu universe → `htop`, `btop`, `mc`
 - native + cargo/tarball fallback for EL → `bottom`, `micro`, `nushell`
 - vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave`, `vivaldi`, `tor-browser`
 - upstream `.deb`/`.rpm` release file → `yazi` (`via: native-pkg-file`)
+- Void name map + Void-only native binding → `fish` (`name: { xbps: fish-shell }`), `doas`
+  (`{ via: native  when: "void or void_musl"  name: opendoas }`); nonfree repo → `nmap`; native only
+  on musl where the glibc binary declines → `neovim` (`when: "void_musl"`)
 - name differs per distro → `iproute2`, `cython`, `python3-pip` (`name:` maps)
 - AppImage fallback for a musl/arch gap → `ghostty`
 - install script → `zed`
@@ -205,14 +217,14 @@ gets. When unsure and unbracketed, leave it out and mention it.
 ```
 .venv/bin/python -m configsys --os pop check          # lint the merged config (0 errors)
 ```
-Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic) — all must
+Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl) — all must
 be **0 errors**, and warning count must not rise. Then confirm each new component resolves to the
 *expected* method per OS with a resolve sweep (adapt this):
 ```python
 # reschk.py — prints "<comp>=<via>" per OS; ERR/EXC means it failed to route
 from configsys.app import Context, build_parser
 comps = ['<comp1>', '<comp2>']
-for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic'):
+for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic','void','void_musl'):
     r = Context(build_parser().parse_args(['--home','/tmp/nohome','--os',os,'inspect'])).routes
     row = []
     for c in comps:
@@ -227,7 +239,7 @@ where <component>` (source layer + resolution) and `configsys --os <os> request 
 
 ### 8. Regenerate the golden gate + run the suite
 Adding components changes the frozen resolution snapshot (`test/routing_golden.json`, every
-component × 9 contexts). Regenerate and confirm it's **purely additive**:
+component × 13 contexts, incl. void + void_musl). Regenerate and confirm it's **purely additive**:
 ```
 CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q   # writes the golden
 ```
@@ -250,9 +262,10 @@ These need **podman** and are NOT part of pytest (slow, networked, container-onl
   catches renames/removals like redis→valkey): `bash test/run-name-sweep-in-podman.sh [manager]`.
   Host-side extractor is `tools/namesweep.py` (`--manager apt` lists names, `--json` the full map);
   false-positives go in `test/namesweep-allowlist.hu` with a one-line reason. Gates apt/dnf/pacman/
-  zypper/apk. **Run this after adding native bindings** — it's the cheap 80%-of-breakage catch.
+  zypper/apk/xbps (xbps on void-glibc with the nonfree repo enabled; for musl names, the
+  configsys-void plugin's `test/run-name-sweep.sh` sweeps both flavors). **Run this after adding native bindings** — it's the cheap 80%-of-breakage catch.
 - **Real-install lifecycle** (actually install/upgrade/remove in a throwaway container):
-  `bash test/run-in-podman.sh [PKG]` (apt), plus targeted `test/run-{dnf,pacman,zypper,flatpak,
+  `bash test/run-in-podman.sh [PKG]` (apt), plus targeted `test/run-{dnf,pacman,zypper,xbps,flatpak,
   clang,langs,…}-in-podman.sh` and `test/Containerfile.*` per distro. Use when a new method needs
   real verification (a vendor repo, a .deb file, a toolchain build).
 - **Version-floor sweep** (if you added versioned `requires:`/source floors):
@@ -279,7 +292,7 @@ and need re-sync+re-trust to load.
 ## Driver catalog (`via:` → when to reach for it)
 
 **OS package managers** (`via: native` resolves to the right one; only name via a driver when
-pinning): `apt` `dnf` `pacman` `zypper` `apk` `brew`. Plus `aur` (Arch community, `when: "arch"`),
+pinning): `apt` `dnf` `pacman` `zypper` `apk` `xbps` `brew`. Plus `aur` (Arch community, `when: "arch"`),
 `rpm-ostree` (atomic layering — rarely; prefer flatpak/brew there).
 
 **Upstream distribution:**
@@ -288,7 +301,7 @@ pinning): `apt` `dnf` `pacman` `zypper` `apk` `brew`. Plus `aur` (Arch community
   `asset: { x86_64: <name>.deb  aarch64: <name>.deb }`.
 - `tarball` — a release archive unpacked under a scoped dir + PATH. Fields: `installDir:
   "$CONFIGSYS_APP_DIR/<x>"`, `requires:` (`glibc`, `unzip`), `version: { github: … strip-v: …
-  asset: "…$ARCH…tar.gz" }`. Provide a **musl** asset (or gate `not alpine`) for Alpine.
+  asset: "…$ARCH…tar.gz" }`. Provide a **musl** asset (or gate `not alpine`) for Alpine / void_musl.
 - `appImage` — `name:`, `scope:`, `version: {…}`, `path: ~/apps/<x>.appimage` (needs libfuse2).
 - `flatpak` — `hub: flathub  app: <exact.app.id>`. The universal GUI method + only method on atomic.
 - `snap` — `name: <snap>` (Ubuntu-centric; Chromium's real method there).
@@ -339,14 +352,23 @@ Three distinct things (full model in `docs/versioned-requires.md` — but note t
   (or `rpmfusion` for media). Newer Rust/Go tools are often NOT in EPEL → use cargo/tarball for EL.
 - **Ubuntu universe.** Many tools are in `universe`, not `main` — add `repo-component: universe` to
   the native binding (harmless on non-apt).
-- **musl (Alpine).** glibc tarballs/appImages won't run. Give Alpine a native pkg, a musl asset, or
-  let it decline (`when: "not alpine"`).
+- **musl (Alpine, void_musl).** glibc tarballs/appImages won't run (`requires: glibc` makes them
+  decline cleanly). Give musl a native pkg, a musl asset, or let it decline.
+- **Void flavors are siblings.** `when: "void"` does NOT match `void_musl` — write `void or void_musl`
+  (or just `void` deliberately, for a glibc-only package). Extending an existing or-list
+  (`"debian or fedora or arch"` → `"… or void or void_musl"`) is house style; don't extend a binding
+  that carries `requires: epel`/`ppa:`/vendor-repo fields — add a separate Void binding instead.
+- **Services on Void use runit.** A `-service` component's `{ via: service  unit: X }` also works
+  under runit when Void's service dir is `/etc/sv/X`; if it differs add `runit: <name>` (a list, or
+  a glob like `"postgresql[0-9]*"` for versioned dirs) — check with `xbps-query -R -f <pkg> | grep
+  /etc/sv/`.
 - **Name drift.** `name:` maps per distro; the name-sweep catches renames/removals — run it.
 - **Binary ≠ package name.** Note the real binary in the description (`btm`, `spf`, `nvim`, `hx`).
 - **Metapackage installed via its parts.** If a component installs an apt METAPACKAGE that a system
   often has WITHOUT (Debian/Ubuntu/Pop ship LibreOffice as `libreoffice-core`/`-calc`/… without the
   `libreoffice` meta), probing the meta falsely reports "missing". Add `installed-name: <a-part>` to
   the native binding — apt READS state from it while `name` still installs the meta (`libreoffice`
-  detects via `libreoffice-core`). apt-only; other drivers ignore it.
+  detects via `libreoffice-core`). Honored by every native manager (as is `packages: [...]`, a set
+  installed/removed together, detected via `installed-name:` else its first member).
 - **Exactness.** Flatpak app-ids and asset globs fail silently if wrong — verify by search, and by
   the resolve sweep + (ideally) a podman real-install for the risky ones.
