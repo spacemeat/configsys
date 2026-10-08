@@ -2077,6 +2077,39 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "aur\\designcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "designcraft"
+    },
+    "name": "designcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "detekt": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -2591,6 +2624,39 @@
     "name": "git"
    }
   },
+  "effectcraft": {
+   "aur\\effectcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "effectcraft"
+    },
+    "name": "effectcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "egl": {
    "pacman\\egl": {
     "driver": "pacman",
@@ -3005,6 +3071,39 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "aur\\filmcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "filmcraft"
+    },
+    "name": "filmcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "fio": {
@@ -6827,6 +6926,39 @@
     "name": "zstd"
    }
   },
+  "lightcraft": {
+   "aur\\lightcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "lightcraft"
+    },
+    "name": "lightcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "liquibase": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -8768,6 +8900,39 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "aur\\pdfcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "pdfcraft"
+    },
+    "name": "pdfcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "perf": {
    "pacman\\perf": {
     "driver": "pacman",
@@ -8913,6 +9078,39 @@
      "repo-component": "universe"
     },
     "name": "php"
+   }
+  },
+  "photocraft": {
+   "aur\\photocraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "photocraft"
+    },
+    "name": "photocraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "php": {
@@ -12128,6 +12326,39 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "aur\\vectorcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "vectorcraft"
+    },
+    "name": "vectorcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "vegeta": {
@@ -29789,6 +30020,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.deb",
+      "x86_64": "designcraft-*-linux-x86_64.deb"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "apt\\jdk": {
     "driver": "apt",
@@ -30268,6 +30516,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.deb",
+      "x86_64": "effectcraft-*-linux-x86_64.deb"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "apt\\egl": {
     "driver": "apt",
@@ -30732,6 +30997,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.deb",
+      "x86_64": "filmcraft-*-linux-x86_64.deb"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -34783,6 +35065,23 @@
     "name": "libzstd-dev"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.deb",
+      "x86_64": "lightcraft-*-linux-x86_64.deb"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "apt\\jdk": {
     "driver": "apt",
@@ -36712,6 +37011,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.deb",
+      "x86_64": "pdfcraft-*-linux-x86_64.deb"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -36783,6 +37099,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.deb",
+      "x86_64": "photocraft-*-linux-x86_64.deb"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -39509,6 +39842,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.deb",
+      "x86_64": "vectorcraft-*-linux-x86_64.deb"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -43256,6 +43606,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.deb",
+      "x86_64": "designcraft-*-linux-x86_64.deb"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "apt\\jdk": {
     "driver": "apt",
@@ -43730,6 +44097,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.deb",
+      "x86_64": "effectcraft-*-linux-x86_64.deb"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "apt\\egl": {
     "driver": "apt",
@@ -44194,6 +44578,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.deb",
+      "x86_64": "filmcraft-*-linux-x86_64.deb"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -48245,6 +48646,23 @@
     "name": "libzstd-dev"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.deb",
+      "x86_64": "lightcraft-*-linux-x86_64.deb"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "apt\\jdk": {
     "driver": "apt",
@@ -50174,6 +50592,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.deb",
+      "x86_64": "pdfcraft-*-linux-x86_64.deb"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -50258,6 +50693,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.deb",
+      "x86_64": "photocraft-*-linux-x86_64.deb"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -52992,6 +53444,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.deb",
+      "x86_64": "vectorcraft-*-linux-x86_64.deb"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -56667,6 +57136,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.rpm",
+      "x86_64": "designcraft-*-linux-x86_64.rpm"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -57123,6 +57609,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.rpm",
+      "x86_64": "effectcraft-*-linux-x86_64.rpm"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "dnf\\egl": {
     "driver": "dnf",
@@ -57557,6 +58060,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.rpm",
+      "x86_64": "filmcraft-*-linux-x86_64.rpm"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -61364,6 +61884,23 @@
     "name": "libzstd-devel"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.rpm",
+      "x86_64": "lightcraft-*-linux-x86_64.rpm"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -63231,6 +63768,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.rpm",
+      "x86_64": "pdfcraft-*-linux-x86_64.rpm"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "dnf\\perf": {
     "driver": "dnf",
@@ -63332,6 +63886,23 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.rpm",
+      "x86_64": "photocraft-*-linux-x86_64.rpm"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -66098,6 +66669,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.rpm",
+      "x86_64": "vectorcraft-*-linux-x86_64.rpm"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -69806,6 +70394,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.rpm",
+      "x86_64": "designcraft-*-linux-x86_64.rpm"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -70262,6 +70867,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.rpm",
+      "x86_64": "effectcraft-*-linux-x86_64.rpm"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "dnf\\egl": {
     "driver": "dnf",
@@ -70696,6 +71318,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.rpm",
+      "x86_64": "filmcraft-*-linux-x86_64.rpm"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -74503,6 +75142,23 @@
     "name": "libzstd-devel"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.rpm",
+      "x86_64": "lightcraft-*-linux-x86_64.rpm"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -76370,6 +77026,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.rpm",
+      "x86_64": "pdfcraft-*-linux-x86_64.rpm"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "dnf\\perf": {
     "driver": "dnf",
@@ -76471,6 +77144,23 @@
      "repo-component": "universe"
     },
     "name": "php-cli"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.rpm",
+      "x86_64": "photocraft-*-linux-x86_64.rpm"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -79237,6 +79927,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.rpm",
+      "x86_64": "vectorcraft-*-linux-x86_64.rpm"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -82362,6 +83069,30 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "appImage\\designcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "DesignCraft",
+     "path": "~/apps/designcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "designcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "DesignCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "detekt": {
    "brew\\jdk": {
     "driver": "brew",
@@ -82733,6 +83464,30 @@
     "name": "com.microsoft.Edge"
    }
   },
+  "effectcraft": {
+   "appImage\\effectcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "EffectCraft",
+     "path": "~/apps/effectcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "effectcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "EffectCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "elixir": {
    "brew\\elixir": {
     "driver": "brew",
@@ -83090,6 +83845,30 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "appImage\\filmcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "FilmCraft",
+     "path": "~/apps/filmcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "filmcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "FilmCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "fio": {
@@ -86118,6 +86897,30 @@
     "name": "libzstd"
    }
   },
+  "lightcraft": {
+   "appImage\\lightcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "LightCraft",
+     "path": "~/apps/lightcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "lightcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "LightCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "liquibase": {
    "brew\\jdk": {
     "driver": "brew",
@@ -87705,6 +88508,30 @@
     "name": "gpatch"
    }
   },
+  "pdfcraft": {
+   "appImage\\pdfcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "PdfCraft",
+     "path": "~/apps/pdfcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "pdfcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "PdfCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "perf": {
    "brew\\perf": {
     "driver": "brew",
@@ -87776,6 +88603,30 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "appImage\\photocraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "PhotoCraft",
+     "path": "~/apps/photocraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "photocraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "PhotoCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "php": {
@@ -89990,6 +90841,30 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "appImage\\vectorcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "VectorCraft",
+     "path": "~/apps/vectorcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "vectorcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "VectorCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "vegeta": {
@@ -93425,6 +94300,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.deb",
+      "x86_64": "designcraft-*-linux-x86_64.deb"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "apt\\jdk": {
     "driver": "apt",
@@ -93916,6 +94808,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.deb",
+      "x86_64": "effectcraft-*-linux-x86_64.deb"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "apt\\egl": {
     "driver": "apt",
@@ -94397,6 +95306,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.deb",
+      "x86_64": "filmcraft-*-linux-x86_64.deb"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -98499,6 +99425,23 @@
     "name": "libzstd-dev"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.deb",
+      "x86_64": "lightcraft-*-linux-x86_64.deb"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "apt\\jdk": {
     "driver": "apt",
@@ -100496,6 +101439,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.deb",
+      "x86_64": "pdfcraft-*-linux-x86_64.deb"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -100597,6 +101557,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.deb",
+      "x86_64": "photocraft-*-linux-x86_64.deb"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -103415,6 +104392,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.deb",
+      "x86_64": "vectorcraft-*-linux-x86_64.deb"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -121114,6 +122108,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.deb",
+      "x86_64": "designcraft-*-linux-x86_64.deb"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "apt\\jdk": {
     "driver": "apt",
@@ -121605,6 +122616,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.deb",
+      "x86_64": "effectcraft-*-linux-x86_64.deb"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "apt\\egl": {
     "driver": "apt",
@@ -122086,6 +123114,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.deb",
+      "x86_64": "filmcraft-*-linux-x86_64.deb"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -126188,6 +127233,23 @@
     "name": "libzstd-dev"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.deb",
+      "x86_64": "lightcraft-*-linux-x86_64.deb"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "apt\\jdk": {
     "driver": "apt",
@@ -128185,6 +129247,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.deb",
+      "x86_64": "pdfcraft-*-linux-x86_64.deb"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -128286,6 +129365,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.deb",
+      "x86_64": "photocraft-*-linux-x86_64.deb"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -131105,6 +132201,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.deb",
+      "x86_64": "vectorcraft-*-linux-x86_64.deb"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -134869,6 +135982,23 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "native-pkg-file\\designcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "designcraft-*-linux-aarch64.deb",
+      "x86_64": "designcraft-*-linux-x86_64.deb"
+     },
+     "name": "designcraft",
+     "version": {
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "designcraft"
+   }
+  },
   "detekt": {
    "apt\\jdk": {
     "driver": "apt",
@@ -135343,6 +136473,23 @@
     "name": "microsoft-edge-stable"
    }
   },
+  "effectcraft": {
+   "native-pkg-file\\effectcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "effectcraft-*-linux-aarch64.deb",
+      "x86_64": "effectcraft-*-linux-x86_64.deb"
+     },
+     "name": "effectcraft",
+     "version": {
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "effectcraft"
+   }
+  },
   "egl": {
    "apt\\egl": {
     "driver": "apt",
@@ -135795,6 +136942,23 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "native-pkg-file\\filmcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "filmcraft-*-linux-aarch64.deb",
+      "x86_64": "filmcraft-*-linux-x86_64.deb"
+     },
+     "name": "filmcraft",
+     "version": {
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "filmcraft"
    }
   },
   "fio": {
@@ -139820,6 +140984,23 @@
     "name": "libzstd-dev"
    }
   },
+  "lightcraft": {
+   "native-pkg-file\\lightcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "lightcraft-*-linux-aarch64.deb",
+      "x86_64": "lightcraft-*-linux-x86_64.deb"
+     },
+     "name": "lightcraft",
+     "version": {
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "lightcraft"
+   }
+  },
   "liquibase": {
    "apt\\jdk": {
     "driver": "apt",
@@ -141775,6 +142956,23 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "native-pkg-file\\pdfcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "pdfcraft-*-linux-aarch64.deb",
+      "x86_64": "pdfcraft-*-linux-x86_64.deb"
+     },
+     "name": "pdfcraft",
+     "version": {
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "pdfcraft"
+   }
+  },
   "perf": {
    "apt\\perf": {
     "driver": "apt",
@@ -141859,6 +143057,23 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "photocraft": {
+   "native-pkg-file\\photocraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "photocraft-*-linux-aarch64.deb",
+      "x86_64": "photocraft-*-linux-x86_64.deb"
+     },
+     "name": "photocraft",
+     "version": {
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "photocraft"
    }
   },
   "php": {
@@ -144629,6 +145844,23 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "native-pkg-file\\vectorcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "vectorcraft-*-linux-aarch64.deb",
+      "x86_64": "vectorcraft-*-linux-x86_64.deb"
+     },
+     "name": "vectorcraft",
+     "version": {
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "vectorcraft"
    }
   },
   "vegeta": {
@@ -147882,6 +149114,30 @@
     "name": "shell-glue"
    }
   },
+  "designcraft": {
+   "appImage\\designcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "DesignCraft",
+     "path": "~/apps/designcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "designcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/designcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "DesignCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "detekt": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -148348,6 +149604,30 @@
     "name": "flatpak"
    }
   },
+  "effectcraft": {
+   "appImage\\effectcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "EffectCraft",
+     "path": "~/apps/effectcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "effectcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/effectcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "EffectCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "egl": {
    "xbps\\egl": {
     "driver": "xbps",
@@ -148733,6 +150013,30 @@
      "name": "figlet"
     },
     "name": "figlet"
+   }
+  },
+  "filmcraft": {
+   "appImage\\filmcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "FilmCraft",
+     "path": "~/apps/filmcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "filmcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/filmcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "FilmCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "fio": {
@@ -152259,6 +153563,30 @@
     "name": "libzstd"
    }
   },
+  "lightcraft": {
+   "appImage\\lightcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "LightCraft",
+     "path": "~/apps/lightcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "lightcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/lightcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "LightCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "liquibase": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -154018,6 +155346,30 @@
     "name": "patch"
    }
   },
+  "pdfcraft": {
+   "appImage\\pdfcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "PdfCraft",
+     "path": "~/apps/pdfcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "pdfcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/pdfcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "PdfCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "perf": {
    "xbps\\perf": {
     "driver": "xbps",
@@ -154106,6 +155458,30 @@
      "repo-component": "universe"
     },
     "name": "php"
+   }
+  },
+  "photocraft": {
+   "appImage\\photocraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "PhotoCraft",
+     "path": "~/apps/photocraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "photocraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/photocraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "PhotoCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "php": {
@@ -156953,6 +158329,30 @@
      "glue": "vcpkg"
     },
     "name": "vcpkg-glue"
+   }
+  },
+  "vectorcraft": {
+   "appImage\\vectorcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "VectorCraft",
+     "path": "~/apps/vectorcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "vectorcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/vectorcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "VectorCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "vegeta": {

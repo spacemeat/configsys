@@ -140,8 +140,8 @@ profiles: {
     web-dev: [ +web-lang  +web-browsers  +web-package-managers  +web-lang  +web-tools ]
 
     electronics-tools: [ arduino  kicad  gnuradio ]
-    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16  cbonsai  cmatrix  pipes  asciiquarium  lolcat ]
-    video-editors: [ kdenlive  shotcut  openshot  flowblade  olive  asciinema ]
+    graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  scribus  digikam  photocraft  vectorcraft  lightcraft  designcraft  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16  cbonsai  cmatrix  pipes  asciiquarium  lolcat ]
+    video-editors: [ kdenlive  shotcut  openshot  flowblade  olive  filmcraft  effectcraft  asciinema ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils  kew ]
 
@@ -149,7 +149,9 @@ profiles: {
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  signal  signal-cli  obs-studio ]
-    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice ]
+    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  libreoffice  pdfcraft ]
+    // ArtCraft's "Crafting Apps" — the open-source Adobe-suite rebuilds, as one suite lens (early alpha).
+    artcraft: [ photocraft  vectorcraft  lightcraft  designcraft  filmcraft  effectcraft  pdfcraft ]
 
     // Codec bundles (were parts-components): pick the pieces you want. codecs = license-clean;
     // codecs-restricted = patent-encumbered nonfree, opt-in. Members install wherever they route.
