@@ -6,12 +6,18 @@ write a best-effort .desktop entry so it shows up in application menus. User-spa
 by default (no sudo); `scope: system` switches file ops to sudo for system paths.
 
 Route fields: `url` (download, may be $VERSION-templated), `path` (target file),
-optional `version`, `name` (menu label), `icon`.
+optional `version`, `name` (menu label), `icon`, and `desktop-id` — the app's desktop id
+(its Wayland app_id, e.g. `ai.storyteller.photocraft`). With it, the menu entry is written as
+`<desktop-id>.desktop` instead of `configsys-<comp>.desktop`: the compositor resolves the window's
+dock icon by that name, and an AppImage that self-integrates on launch (writes its own
+`<desktop-id>.desktop`) then shares the ONE file instead of leaving a duplicate menu entry.
+Uninstall removes that entry and the app's `hicolor` icons named `<desktop-id>.*`.
 
 Note: AppImages need FUSE to *run*, so the driver !depends on libfuse2 — installed
 first via the normal cascade. We never launch the app ourselves.
 '''
 
+import re
 import shlex
 from pathlib import Path
 
@@ -41,8 +47,17 @@ class AppImage(Driver):
         t = self._target(rc)
         return t.parent / f'{MARKER_PREFIX}{rc.comp}.version'
 
+    _DESKTOP_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]*$')
+
+    def _desktop_id(self, rc):
+        '''The route's `desktop-id`, if it's a plain reverse-DNS-ish token (it names files we
+        delete on uninstall, so anything else is ignored).'''
+        d = rc.fields.get('desktop-id')
+        return d if isinstance(d, str) and self._DESKTOP_ID.match(d) else None
+
     def _desktop_file(self, rc):
-        return self._home() / '.local/share/applications' / f'configsys-{rc.comp}.desktop'
+        name = self._desktop_id(rc) or f'configsys-{rc.comp}'
+        return self._home() / '.local/share/applications' / f'{name}.desktop'
 
     def _icon_file(self, rc):
         return self._home() / '.local/share/icons' / f'configsys-{rc.comp}.png'
@@ -121,9 +136,15 @@ class AppImage(Driver):
         t = self._target(rc)
         marker, df, icon = self._marker(rc), self._desktop_file(rc), self._icon_file(rc)
         # only remove when we manage it (our marker is present)
+        extra = ''
+        did = self._desktop_id(rc)
+        if did:   # the self-integrated icons the app (or its AppRun) dropped under hicolor
+            hicolor = self._home() / '.local/share/icons/hicolor'
+            extra = (f'; [ -d {shlex.quote(str(hicolor))} ] && find {shlex.quote(str(hicolor))} '
+                     f'-path "*/apps/*" -name {shlex.quote(did + ".*")} -type f -delete')
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
                f'rm -f {shlex.quote(str(t))} {shlex.quote(str(marker))} '
-               f'{shlex.quote(str(df))} {shlex.quote(str(icon))}; fi')
+               f'{shlex.quote(str(df))} {shlex.quote(str(icon))}{extra}; fi')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def location(self, rc):

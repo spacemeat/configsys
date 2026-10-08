@@ -83428,6 +83428,7 @@
    "appImage\\cadcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.cadcraft",
      "name": "CADCraft",
      "path": "~/apps/cadcraft.appimage",
      "scope": "user",
@@ -83999,6 +84000,7 @@
    "appImage\\deckcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.deckcraft",
      "name": "DeckCraft",
      "path": "~/apps/deckcraft.appimage",
      "scope": "user",
@@ -84062,6 +84064,7 @@
    "appImage\\designcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.designcraft",
      "name": "DesignCraft",
      "path": "~/apps/designcraft.appimage",
      "scope": "user",
@@ -84457,6 +84460,7 @@
    "appImage\\effectcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.effectcraft",
      "name": "EffectCraft",
      "path": "~/apps/effectcraft.appimage",
      "scope": "user",
@@ -84843,6 +84847,7 @@
    "appImage\\filmcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.filmcraft",
      "name": "FilmCraft",
      "path": "~/apps/filmcraft.appimage",
      "scope": "user",
@@ -85927,6 +85932,7 @@
    "appImage\\gridcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.gridcraft",
      "name": "GridCraft",
      "path": "~/apps/gridcraft.appimage",
      "scope": "user",
@@ -87921,6 +87927,7 @@
    "appImage\\lightcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.lightcraft",
      "name": "LightCraft",
      "path": "~/apps/lightcraft.appimage",
      "scope": "user",
@@ -89540,6 +89547,7 @@
    "appImage\\pdfcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.pdfcraft",
      "name": "PdfCraft",
      "path": "~/apps/pdfcraft.appimage",
      "scope": "user",
@@ -89637,6 +89645,7 @@
    "appImage\\photocraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.photocraft",
      "name": "PhotoCraft",
      "path": "~/apps/photocraft.appimage",
      "scope": "user",
@@ -91093,6 +91102,7 @@
    "appImage\\soundcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.soundcraft",
      "name": "SoundCraft",
      "path": "~/apps/soundcraft.appimage",
      "scope": "user",
@@ -91910,6 +91920,7 @@
    "appImage\\vectorcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.vectorcraft",
      "name": "VectorCraft",
      "path": "~/apps/vectorcraft.appimage",
      "scope": "user",
@@ -92352,6 +92363,7 @@
    "appImage\\wordcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.wordcraft",
      "name": "WordCraft",
      "path": "~/apps/wordcraft.appimage",
      "scope": "user",
@@ -150346,6 +150358,7 @@
    "appImage\\cadcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.cadcraft",
      "name": "CADCraft",
      "path": "~/apps/cadcraft.appimage",
      "scope": "user",
@@ -150941,6 +150954,7 @@
    "appImage\\deckcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.deckcraft",
      "name": "DeckCraft",
      "path": "~/apps/deckcraft.appimage",
      "scope": "user",
@@ -151027,6 +151041,7 @@
    "appImage\\designcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.designcraft",
      "name": "DesignCraft",
      "path": "~/apps/designcraft.appimage",
      "scope": "user",
@@ -151517,6 +151532,7 @@
    "appImage\\effectcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.effectcraft",
      "name": "EffectCraft",
      "path": "~/apps/effectcraft.appimage",
      "scope": "user",
@@ -151931,6 +151947,7 @@
    "appImage\\filmcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.filmcraft",
      "name": "FilmCraft",
      "path": "~/apps/filmcraft.appimage",
      "scope": "user",
@@ -153158,6 +153175,7 @@
    "appImage\\gridcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.gridcraft",
      "name": "GridCraft",
      "path": "~/apps/gridcraft.appimage",
      "scope": "user",
@@ -155523,6 +155541,7 @@
    "appImage\\lightcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.lightcraft",
      "name": "LightCraft",
      "path": "~/apps/lightcraft.appimage",
      "scope": "user",
@@ -157326,6 +157345,7 @@
    "appImage\\pdfcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.pdfcraft",
      "name": "PdfCraft",
      "path": "~/apps/pdfcraft.appimage",
      "scope": "user",
@@ -157440,6 +157460,7 @@
    "appImage\\photocraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.photocraft",
      "name": "PhotoCraft",
      "path": "~/apps/photocraft.appimage",
      "scope": "user",
@@ -159326,6 +159347,7 @@
    "appImage\\soundcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.soundcraft",
      "name": "SoundCraft",
      "path": "~/apps/soundcraft.appimage",
      "scope": "user",
@@ -160350,6 +160372,7 @@
    "appImage\\vectorcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.vectorcraft",
      "name": "VectorCraft",
      "path": "~/apps/vectorcraft.appimage",
      "scope": "user",
@@ -161095,6 +161118,7 @@
    "appImage\\wordcraft": {
     "driver": "appImage",
     "fields": {
+     "desktop-id": "ai.storyteller.wordcraft",
      "name": "WordCraft",
      "path": "~/apps/wordcraft.appimage",
      "scope": "user",

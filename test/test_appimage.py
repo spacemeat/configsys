@@ -109,6 +109,25 @@ def test_uninstall_guarded_removes_file_marker_desktop(tmp_path):
     assert '.desktop' in cmd
 
 
+def test_desktop_id_names_the_entry_and_uninstall_cleans_self_integration(tmp_path):
+    r = Runner(pretend=True)
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    rc = ai_unit(tmp_path / 'p.appimage', comp='photocraft', name='PhotoCraft')
+    rc.fields['desktop-id'] = 'ai.storyteller.photocraft'
+    ai = AppImage(r, paths=paths)
+    assert ai._desktop_file(rc).name == 'ai.storyteller.photocraft.desktop'
+    ai.uninstall(rc)
+    cmd = r.calls[-1]
+    assert 'ai.storyteller.photocraft.desktop' in cmd
+    assert "-name 'ai.storyteller.photocraft.*'" in cmd and 'icons/hicolor' in cmd
+    # an unsafe id is ignored (it names files we delete): falls back to the configsys-<comp> entry
+    rc.fields['desktop-id'] = '../../x'
+    assert ai._desktop_file(rc).name == 'configsys-photocraft.desktop'
+    r2 = Runner(pretend=True)
+    AppImage(r2, paths=paths).uninstall(rc)
+    assert 'hicolor' not in r2.calls[-1]
+
+
 def test_lock_unlock_noops_ok():
     ai = AppImage(Runner(pretend=True), paths=None)
     assert ai.lock(ai_unit('/x')).ok
