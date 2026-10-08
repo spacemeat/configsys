@@ -1317,6 +1317,39 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "aur\\cadcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "cadcraft"
+    },
+    "name": "cadcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "cairo": {
    "pacman\\cairo": {
     "driver": "pacman",
@@ -2036,6 +2069,39 @@
      "name": "dbus"
     },
     "name": "dbus"
+   }
+  },
+  "deckcraft": {
+   "aur\\deckcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "deckcraft"
+    },
+    "name": "deckcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "deno": {
@@ -4456,6 +4522,39 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "aur\\gridcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "gridcraft"
+    },
+    "name": "gridcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "grim": {
@@ -11207,6 +11306,39 @@
     "name": "flatpak"
    }
   },
+  "soundcraft": {
+   "aur\\soundcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "soundcraft"
+    },
+    "name": "soundcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "source-highlight": {
    "pacman\\source-highlight": {
     "driver": "pacman",
@@ -13133,6 +13265,39 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "aur\\wordcraft": {
+    "driver": "aur",
+    "fields": {
+     "name": "wordcraft"
+    },
+    "name": "wordcraft"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "wormhole": {
@@ -28902,6 +29067,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.deb",
+      "x86_64": "cadcraft-*-linux-x86_64.deb"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "apt\\cairo": {
     "driver": "apt",
@@ -29960,6 +30142,23 @@
      "name": "debhelper"
     },
     "name": "debhelper"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.deb",
+      "x86_64": "deckcraft-*-linux-x86_64.deb"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -32535,6 +32734,23 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.deb",
+      "x86_64": "gridcraft-*-linux-x86_64.deb"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
    }
   },
   "grim": {
@@ -38886,6 +39102,23 @@
     "name": "sonic-pi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.deb",
+      "x86_64": "soundcraft-*-linux-x86_64.deb"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "apt\\source-highlight": {
     "driver": "apt",
@@ -40544,6 +40777,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.deb",
+      "x86_64": "wordcraft-*-linux-x86_64.deb"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -42480,6 +42730,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.deb",
+      "x86_64": "cadcraft-*-linux-x86_64.deb"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "apt\\cairo": {
     "driver": "apt",
@@ -43546,6 +43813,23 @@
      "name": "debhelper"
     },
     "name": "debhelper"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.deb",
+      "x86_64": "deckcraft-*-linux-x86_64.deb"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -46123,6 +46407,23 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.deb",
+      "x86_64": "gridcraft-*-linux-x86_64.deb"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
    }
   },
   "grim": {
@@ -52480,6 +52781,23 @@
     "name": "sonic-pi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.deb",
+      "x86_64": "soundcraft-*-linux-x86_64.deb"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "apt\\source-highlight": {
     "driver": "apt",
@@ -54212,6 +54530,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.deb",
+      "x86_64": "wordcraft-*-linux-x86_64.deb"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -56153,6 +56488,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.rpm",
+      "x86_64": "cadcraft-*-linux-x86_64.rpm"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "dnf\\cairo": {
     "driver": "dnf",
@@ -57076,6 +57428,23 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.rpm",
+      "x86_64": "deckcraft-*-linux-x86_64.rpm"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -59379,6 +59748,23 @@
     "name": "grex"
    }
   },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.rpm",
+      "x86_64": "gridcraft-*-linux-x86_64.rpm"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
+   }
+  },
   "grim": {
    "dnf\\grim": {
     "driver": "dnf",
@@ -65634,6 +66020,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.rpm",
+      "x86_64": "soundcraft-*-linux-x86_64.rpm"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "dnf\\source-highlight": {
     "driver": "dnf",
@@ -67416,6 +67819,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.rpm",
+      "x86_64": "wordcraft-*-linux-x86_64.rpm"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -69385,6 +69805,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.rpm",
+      "x86_64": "cadcraft-*-linux-x86_64.rpm"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "dnf\\cairo": {
     "driver": "dnf",
@@ -70334,6 +70771,23 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.rpm",
+      "x86_64": "deckcraft-*-linux-x86_64.rpm"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -72637,6 +73091,23 @@
     "name": "grex"
    }
   },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.rpm",
+      "x86_64": "gridcraft-*-linux-x86_64.rpm"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
+   }
+  },
   "grim": {
    "dnf\\grim": {
     "driver": "dnf",
@@ -78892,6 +79363,23 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.rpm",
+      "x86_64": "soundcraft-*-linux-x86_64.rpm"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "dnf\\source-highlight": {
     "driver": "dnf",
@@ -80674,6 +81162,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.rpm",
+      "x86_64": "wordcraft-*-linux-x86_64.rpm"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -82483,6 +82988,30 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "appImage\\cadcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "CADCraft",
+     "path": "~/apps/cadcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "cadcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "CADCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "cairo": {
    "brew\\cairo": {
     "driver": "brew",
@@ -83028,6 +83557,30 @@
      "name": "dbus"
     },
     "name": "dbus"
+   }
+  },
+  "deckcraft": {
+   "appImage\\deckcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "DeckCraft",
+     "path": "~/apps/deckcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "deckcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "DeckCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "deno": {
@@ -84925,6 +85478,30 @@
      "name": "grex"
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "appImage\\gridcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "GridCraft",
+     "path": "~/apps/gridcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "gridcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "GridCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "groovy": {
@@ -90050,6 +90627,30 @@
     "name": "net.sonic_pi.SonicPi"
    }
   },
+  "soundcraft": {
+   "appImage\\soundcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "SoundCraft",
+     "path": "~/apps/soundcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "soundcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "SoundCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "source-highlight": {
    "brew\\source-highlight": {
     "driver": "brew",
@@ -91279,6 +91880,30 @@
      "name": "wlroots"
     },
     "name": "wlroots"
+   }
+  },
+  "wordcraft": {
+   "appImage\\wordcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "WordCraft",
+     "path": "~/apps/wordcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "wordcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "WordCraft"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "wormhole": {
@@ -93148,6 +93773,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.deb",
+      "x86_64": "cadcraft-*-linux-x86_64.deb"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "apt\\cairo": {
     "driver": "apt",
@@ -94240,6 +94882,23 @@
      "name": "debhelper"
     },
     "name": "debhelper"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.deb",
+      "x86_64": "deckcraft-*-linux-x86_64.deb"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -96851,6 +97510,23 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.deb",
+      "x86_64": "gridcraft-*-linux-x86_64.deb"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
    }
   },
   "grim": {
@@ -103412,6 +104088,23 @@
     "name": "sonic-pi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.deb",
+      "x86_64": "soundcraft-*-linux-x86_64.deb"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "apt\\source-highlight": {
     "driver": "apt",
@@ -105094,6 +105787,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.deb",
+      "x86_64": "wordcraft-*-linux-x86_64.deb"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -120965,6 +121675,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.deb",
+      "x86_64": "cadcraft-*-linux-x86_64.deb"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "apt\\cairo": {
     "driver": "apt",
@@ -122048,6 +122775,23 @@
      "name": "debhelper"
     },
     "name": "debhelper"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.deb",
+      "x86_64": "deckcraft-*-linux-x86_64.deb"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -124659,6 +125403,23 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.deb",
+      "x86_64": "gridcraft-*-linux-x86_64.deb"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
    }
   },
   "grim": {
@@ -131220,6 +131981,23 @@
     "name": "sonic-pi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.deb",
+      "x86_64": "soundcraft-*-linux-x86_64.deb"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "apt\\source-highlight": {
     "driver": "apt",
@@ -132903,6 +133681,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.deb",
+      "x86_64": "wordcraft-*-linux-x86_64.deb"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -134856,6 +135651,23 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "native-pkg-file\\cadcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "cadcraft-*-linux-aarch64.deb",
+      "x86_64": "cadcraft-*-linux-x86_64.deb"
+     },
+     "name": "cadcraft",
+     "version": {
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "cadcraft"
+   }
+  },
   "cairo": {
    "apt\\cairo": {
     "driver": "apt",
@@ -135922,6 +136734,23 @@
      "name": "debhelper"
     },
     "name": "debhelper"
+   }
+  },
+  "deckcraft": {
+   "native-pkg-file\\deckcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "deckcraft-*-linux-aarch64.deb",
+      "x86_64": "deckcraft-*-linux-x86_64.deb"
+     },
+     "name": "deckcraft",
+     "version": {
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "deckcraft"
    }
   },
   "deno": {
@@ -138461,6 +139290,23 @@
      }
     },
     "name": "grex"
+   }
+  },
+  "gridcraft": {
+   "native-pkg-file\\gridcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "gridcraft-*-linux-aarch64.deb",
+      "x86_64": "gridcraft-*-linux-x86_64.deb"
+     },
+     "name": "gridcraft",
+     "version": {
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "gridcraft"
    }
   },
   "grim": {
@@ -144844,6 +145690,23 @@
     "name": "sonic-pi"
    }
   },
+  "soundcraft": {
+   "native-pkg-file\\soundcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "soundcraft-*-linux-aarch64.deb",
+      "x86_64": "soundcraft-*-linux-x86_64.deb"
+     },
+     "name": "soundcraft",
+     "version": {
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "soundcraft"
+   }
+  },
   "source-highlight": {
    "apt\\source-highlight": {
     "driver": "apt",
@@ -146612,6 +147475,23 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "native-pkg-file\\wordcraft": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "wordcraft-*-linux-aarch64.deb",
+      "x86_64": "wordcraft-*-linux-x86_64.deb"
+     },
+     "name": "wordcraft",
+     "version": {
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "wordcraft"
    }
   },
   "wormhole": {
@@ -148485,6 +149365,30 @@
     "name": "shell-glue"
    }
   },
+  "cadcraft": {
+   "appImage\\cadcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "CADCraft",
+     "path": "~/apps/cadcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "cadcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/cadcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "CADCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "cairo": {
    "xbps\\cairo": {
     "driver": "xbps",
@@ -149054,6 +149958,30 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "deckcraft": {
+   "appImage\\deckcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "DeckCraft",
+     "path": "~/apps/deckcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "deckcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/deckcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "DeckCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "deno": {
@@ -151236,6 +152164,30 @@
      "name": "curl"
     },
     "name": "curl"
+   }
+  },
+  "gridcraft": {
+   "appImage\\gridcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "GridCraft",
+     "path": "~/apps/gridcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "gridcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/gridcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "GridCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "grim": {
@@ -157335,6 +158287,30 @@
     "name": "flatpak"
    }
   },
+  "soundcraft": {
+   "appImage\\soundcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "SoundCraft",
+     "path": "~/apps/soundcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "soundcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/soundcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "SoundCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "source-highlight": {
    "xbps\\source-highlight": {
     "driver": "xbps",
@@ -159070,6 +160046,30 @@
      "repo-component": "universe"
     },
     "name": "wmenu"
+   }
+  },
+  "wordcraft": {
+   "appImage\\wordcraft": {
+    "driver": "appImage",
+    "fields": {
+     "name": "WordCraft",
+     "path": "~/apps/wordcraft.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "wordcraft-*-linux-$ARCH.AppImage",
+      "github": "storytold/wordcraft",
+      "strip-v": "true"
+     }
+    },
+    "name": "WordCraft"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "wormhole": {

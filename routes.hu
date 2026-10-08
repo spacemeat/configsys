@@ -2214,7 +2214,7 @@
         olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
 
         // --- ArtCraft "Crafting Apps" (github.com/storytold, Oct 2026): clean-room Rust rebuilds of the
-        // Adobe suite, MIT/Apache-2.0, offline, no telemetry/account. EARLY ALPHA. Every release ships the
+        // Adobe suite (+ Office, AutoCAD, Pro Tools), MIT/Apache-2.0, offline, no telemetry/account. ALPHA. Every release ships the
         // same Linux assets per app (x86_64 + aarch64 .deb/.rpm/AppImage/tar.gz; no musl build, no Flathub —
         // the attached .flatpak is a bundle file, which the flatpak driver doesn't install). Not in any
         // distro repo yet. All builds are glibc >= 2.35 (the .deb declares libc6 >= 2.35), so every
@@ -2225,9 +2225,10 @@
         //   - x86_64 Arch -> alerque's AUR package (current, built from source; the PKGBUILD is
         //     x86_64-only, so ARM Arch takes the AppImage)
         //   - Void-glibc and atomic -> the AppImage; musl (Alpine, void_musl) declines.
-        // No -dotfiles companions (yet): each app's ~/.config/<app> dir mixes settings with logs/recovery/
-        // catalog state (so a whole-dir link would sweep those into the content store), and the settings
-        // files are written atomically (write-temp + rename), which would replace a per-file symlink.
+        // No -dotfiles companions (yet): settings layouts are still churning across these alphas, and
+        // where they've settled, ~/.config/<app> mixes settings with logs/recovery/catalog state (a
+        // whole-dir link would sweep those into the content store) while the settings files are written
+        // atomically (write-temp + rename, which would replace a per-file symlink).
         photocraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "PhotoCraft — ArtCraft's open-source Photoshop alternative: a raster image editor with layers, masks, adjustment layers and PSD/PSB round-tripping (`photocraft`, `photocraft-cli`)."
             install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/photocraft  strip-v: true }
@@ -2291,6 +2292,51 @@
                        { via: aur  when: "arch and cpu: x86_64"  name: pdfcraft }
                        { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: PdfCraft  scope: user
                          version: { github: storytold/pdfcraft  strip-v: true  asset: "pdfcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/pdfcraft.appimage } ] }
+        wordcraft: { attrs: [ GUI CLI app FOSS permissive ]
+            description: "WordCraft — ArtCraft's open-source Microsoft Word alternative: a word processor with DOCX round-tripping and offline spelling/grammar (`wordcraft`, `wordcraft-cli`)."
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/wordcraft  strip-v: true }
+                         asset: { x86_64: "wordcraft-*-linux-x86_64.deb"  aarch64: "wordcraft-*-linux-aarch64.deb" } }
+                       { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/wordcraft  strip-v: true }
+                         asset: { x86_64: "wordcraft-*-linux-x86_64.rpm"  aarch64: "wordcraft-*-linux-aarch64.rpm" } }
+                       { via: aur  when: "arch and cpu: x86_64"  name: wordcraft }
+                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: WordCraft  scope: user
+                         version: { github: storytold/wordcraft  strip-v: true  asset: "wordcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/wordcraft.appimage } ] }
+        gridcraft: { attrs: [ GUI CLI app FOSS permissive ]
+            description: "GridCraft — ArtCraft's open-source Microsoft Excel alternative: a spreadsheet with XLSX support, formulas, conditional formatting and charts (`gridcraft`, `gridcraft-cli`)."
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/gridcraft  strip-v: true }
+                         asset: { x86_64: "gridcraft-*-linux-x86_64.deb"  aarch64: "gridcraft-*-linux-aarch64.deb" } }
+                       { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/gridcraft  strip-v: true }
+                         asset: { x86_64: "gridcraft-*-linux-x86_64.rpm"  aarch64: "gridcraft-*-linux-aarch64.rpm" } }
+                       { via: aur  when: "arch and cpu: x86_64"  name: gridcraft }
+                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: GridCraft  scope: user
+                         version: { github: storytold/gridcraft  strip-v: true  asset: "gridcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/gridcraft.appimage } ] }
+        deckcraft: { attrs: [ GUI CLI app FOSS permissive ]
+            description: "DeckCraft — ArtCraft's open-source Microsoft PowerPoint alternative: a presentation / slide-show editor (`deckcraft`, `deckcraft-cli`)."
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/deckcraft  strip-v: true }
+                         asset: { x86_64: "deckcraft-*-linux-x86_64.deb"  aarch64: "deckcraft-*-linux-aarch64.deb" } }
+                       { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/deckcraft  strip-v: true }
+                         asset: { x86_64: "deckcraft-*-linux-x86_64.rpm"  aarch64: "deckcraft-*-linux-aarch64.rpm" } }
+                       { via: aur  when: "arch and cpu: x86_64"  name: deckcraft }
+                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: DeckCraft  scope: user
+                         version: { github: storytold/deckcraft  strip-v: true  asset: "deckcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/deckcraft.appimage } ] }
+        cadcraft: { attrs: [ GUI CLI app FOSS permissive ]
+            description: "CADCraft — ArtCraft's open-source AutoCAD alternative: a 2D computer-aided design and drafting app with model/paper-space layouts (`cadcraft`, `cadcraft-cli`)."
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/cadcraft  strip-v: true }
+                         asset: { x86_64: "cadcraft-*-linux-x86_64.deb"  aarch64: "cadcraft-*-linux-aarch64.deb" } }
+                       { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/cadcraft  strip-v: true }
+                         asset: { x86_64: "cadcraft-*-linux-x86_64.rpm"  aarch64: "cadcraft-*-linux-aarch64.rpm" } }
+                       { via: aur  when: "arch and cpu: x86_64"  name: cadcraft }
+                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: CADCraft  scope: user
+                         version: { github: storytold/cadcraft  strip-v: true  asset: "cadcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/cadcraft.appimage } ] }
+        soundcraft: { attrs: [ GUI CLI app FOSS permissive ]
+            description: "SoundCraft — ArtCraft's open-source Avid Pro Tools alternative: a digital audio workstation — recording, editing, mixing, plugins (`soundcraft`, `soundcraft-cli`)."
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  version: { github: storytold/soundcraft  strip-v: true }
+                         asset: { x86_64: "soundcraft-*-linux-x86_64.deb"  aarch64: "soundcraft-*-linux-aarch64.deb" } }
+                       { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/soundcraft  strip-v: true }
+                         asset: { x86_64: "soundcraft-*-linux-x86_64.rpm"  aarch64: "soundcraft-*-linux-aarch64.rpm" } }
+                       { via: aur  when: "arch and cpu: x86_64"  name: soundcraft }
+                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali"  name: SoundCraft  scope: user
+                         version: { github: storytold/soundcraft  strip-v: true  asset: "soundcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/soundcraft.appimage } ] }
 
         // apod (termapod): scrapes NASA's Astronomy Picture of the Day and splats it to the terminal
         // in 24-bit-colour Unicode blocks. No API key (it scrapes apod.nasa.gov). Its ~/.config/termapod
