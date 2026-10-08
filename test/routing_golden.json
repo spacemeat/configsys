@@ -761,9 +761,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -1058,9 +1062,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -2649,6 +2657,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -3405,10 +3416,14 @@
    "tarball\\fresh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/fresh",
      "name": "fresh",
      "version": {
-      "asset": "fresh-editor-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "fresh-editor-$ARCH-unknown-linux-musl.tar.gz",
       "github": "sinelaw/fresh",
       "strip-v": "true"
      }
@@ -4514,10 +4529,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -6125,10 +6144,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -6269,9 +6292,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -7425,7 +7452,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -7923,6 +7950,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -8478,11 +8509,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -8703,10 +8738,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -10343,9 +10382,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -12841,10 +12884,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -13263,10 +13310,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -13806,10 +13857,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -14058,9 +14113,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -14575,9 +14634,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -14925,9 +14988,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -15740,10 +15807,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -16186,9 +16257,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -16754,6 +16829,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -16855,7 +16933,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -16869,7 +16951,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -17337,6 +17423,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -18219,10 +18308,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -18789,10 +18882,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -18976,10 +19073,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -19954,6 +20055,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -20055,10 +20159,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -20144,9 +20252,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -20415,9 +20527,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -20476,10 +20592,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -20540,10 +20660,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -20634,9 +20758,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -21830,7 +21958,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -22320,7 +22448,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -22749,10 +22881,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -22896,11 +23032,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -22958,10 +23098,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -23142,10 +23286,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -24511,9 +24659,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -24976,10 +25128,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -25397,10 +25553,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -26186,10 +26346,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -26635,10 +26799,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -26992,10 +27160,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -27355,10 +27527,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -27591,10 +27767,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -27826,9 +28006,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -28309,9 +28493,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -28659,9 +28847,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -29474,10 +29666,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -29937,9 +30133,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -30522,6 +30722,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -30623,7 +30826,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -30637,7 +30844,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -31105,6 +31316,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -31987,10 +32201,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -32574,10 +32792,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -32761,10 +32983,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -33705,6 +33931,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -33789,10 +34018,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -33878,9 +34111,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -34149,9 +34386,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -34210,10 +34451,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -34274,10 +34519,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -34368,9 +34617,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -35564,7 +35817,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -36003,7 +36256,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -36045,6 +36302,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -36446,10 +36707,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -36593,11 +36858,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -36655,10 +36924,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -36839,10 +37112,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -38174,9 +38451,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -38622,10 +38903,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -39060,10 +39345,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -39849,10 +40138,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -40298,10 +40591,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -40672,10 +40969,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -41018,10 +41319,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -41254,10 +41559,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -41489,9 +41798,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -41972,9 +42285,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -42322,9 +42639,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -43145,10 +43466,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -43608,9 +43933,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -44188,6 +44517,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -44289,7 +44621,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -44303,7 +44639,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -44778,6 +45118,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -45660,10 +46003,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -46247,10 +46594,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -46434,10 +46785,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -47378,6 +47733,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -47462,10 +47820,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -47551,9 +47913,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -47815,9 +48181,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -47876,10 +48246,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -47940,10 +48314,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -48034,9 +48412,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -49230,7 +49612,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -49669,7 +50051,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -49711,6 +50097,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -50112,10 +50502,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -50259,11 +50653,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -50321,10 +50719,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -50505,10 +50907,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -51853,9 +52259,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -52301,10 +52711,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -52747,10 +53161,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -53536,10 +53954,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -53985,10 +54407,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -54425,10 +54851,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -54771,10 +55201,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -55007,10 +55441,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -55242,9 +55680,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -55730,9 +56172,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -56080,9 +56526,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -56803,10 +57253,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -57223,9 +57677,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -57785,6 +58243,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -57886,7 +58347,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -57900,7 +58365,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -58973,10 +59442,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -59586,10 +60059,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -60772,6 +61249,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -60932,9 +61412,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -61187,9 +61671,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -61248,10 +61736,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -61312,10 +61804,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -61406,9 +61902,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -62544,7 +63044,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -62939,7 +63439,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.rpm",
+     "asset": "navidrome_*_linux_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -62981,6 +63485,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -63382,10 +63890,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -63529,11 +64041,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -63591,10 +64107,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -63766,10 +64286,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -64378,10 +64902,14 @@
    "tarball\\prometheus": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/prometheus",
      "name": "prometheus",
      "version": {
-      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "asset": "prometheus-*.linux-$ARCH.tar.gz",
       "github": "prometheus/prometheus",
       "strip-v": "true"
      }
@@ -64940,6 +65468,9 @@
    "tarball\\rar": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/rar",
      "latest-check": {
       "regex": "rarlinux-x64-([0-9]+)[.]tar",
@@ -65063,9 +65594,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -65538,10 +66073,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -65998,10 +66537,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -66846,10 +67389,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -67315,10 +67862,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -67743,10 +68294,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -68088,10 +68643,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -68324,10 +68883,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -68559,9 +69122,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -69047,9 +69614,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -69397,9 +69968,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -70146,10 +70721,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -70566,9 +71145,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -71128,6 +71711,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -71229,7 +71815,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -71243,7 +71833,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -72316,10 +72910,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -72929,10 +73527,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -74115,6 +74717,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -74275,9 +74880,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -74530,9 +75139,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -74591,10 +75204,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -74655,10 +75272,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -74749,9 +75370,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -75887,7 +76512,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -76282,7 +76907,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.rpm",
+     "asset": "navidrome_*_linux_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -76324,6 +76953,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -76725,10 +77358,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -76872,11 +77509,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -76934,10 +77575,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -77109,10 +77754,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -77721,10 +78370,14 @@
    "tarball\\prometheus": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/prometheus",
      "name": "prometheus",
      "version": {
-      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "asset": "prometheus-*.linux-$ARCH.tar.gz",
       "github": "prometheus/prometheus",
       "strip-v": "true"
      }
@@ -78283,6 +78936,9 @@
    "tarball\\rar": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/rar",
      "latest-check": {
       "regex": "rarlinux-x64-([0-9]+)[.]tar",
@@ -78406,9 +79062,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -78881,10 +79541,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -79341,10 +80005,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -80189,10 +80857,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -80658,10 +81330,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -81086,10 +81762,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -81431,10 +82111,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -81657,10 +82341,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -81908,9 +82596,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -83822,6 +84514,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -84392,10 +85087,14 @@
    "tarball\\fresh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/fresh",
      "name": "fresh",
      "version": {
-      "asset": "fresh-editor-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "fresh-editor-$ARCH-unknown-linux-musl.tar.gz",
       "github": "sinelaw/fresh",
       "strip-v": "true"
      }
@@ -85315,10 +86014,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -86527,10 +87230,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -86647,9 +87354,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -87736,7 +88447,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -88104,10 +88815,14 @@
    "tarball\\navidrome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/navidrome",
      "name": "navidrome",
      "version": {
-      "asset": "navidrome_*_linux_amd64.tar.gz",
+      "asset": "navidrome_*_linux_$ARCH.tar.gz",
       "github": "navidrome/navidrome",
       "strip-v": "true"
      }
@@ -88714,10 +89429,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -89204,10 +89923,14 @@
    "tarball\\prometheus": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/prometheus",
      "name": "prometheus",
      "version": {
-      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "asset": "prometheus-*.linux-$ARCH.tar.gz",
       "github": "prometheus/prometheus",
       "strip-v": "true"
      }
@@ -89662,6 +90385,9 @@
    "tarball\\rar": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/rar",
      "latest-check": {
       "regex": "rarlinux-x64-([0-9]+)[.]tar",
@@ -89768,9 +90494,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -91483,10 +92213,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -91760,10 +92494,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -92234,10 +92972,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -92486,9 +93228,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -93003,9 +93749,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -93353,9 +94103,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -94202,10 +94956,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -94665,9 +95423,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -95262,6 +96024,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -95363,7 +96128,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -95377,7 +96146,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -95869,6 +96642,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -96751,10 +97527,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -97338,10 +98118,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -97525,10 +98309,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -98503,6 +99291,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -98604,10 +99395,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -98693,9 +99488,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -98957,9 +99756,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -99018,10 +99821,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -99082,10 +99889,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -99176,9 +99987,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -100389,7 +101204,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -100879,7 +101694,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -100921,6 +101740,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -101322,10 +102145,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -101469,11 +102296,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -101531,10 +102362,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -101715,10 +102550,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -103131,9 +103970,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -103596,10 +104439,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -104041,10 +104888,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -104847,10 +105698,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -105296,10 +106151,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -105670,10 +106529,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -106033,10 +106896,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -106269,10 +107136,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -106527,9 +107398,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -107100,9 +107975,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -107476,9 +108355,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -108213,10 +109096,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -108619,9 +109506,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -109185,6 +110076,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -109236,9 +110130,13 @@
    "tarball\\elvish": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elvish",
      "name": "elvish",
-     "url": "https://dl.elv.sh/linux-amd64/elvish-v$VERSION.tar.gz",
+     "url": "https://dl.elv.sh/linux-$ARCH/elvish-v$VERSION.tar.gz",
      "version": {
       "github": "elves/elvish",
       "strip-v": "true"
@@ -109299,7 +110197,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -109313,7 +110215,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-rpm_*_x86_64.rpm",
+     "asset": "emby-server-rpm_*_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -110507,10 +111413,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -111065,10 +111975,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -112296,6 +113210,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -112463,9 +113380,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -112735,9 +113656,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -112796,10 +113721,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -112860,10 +113789,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -112954,9 +113887,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -114134,7 +115071,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -114594,7 +115531,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.rpm",
+     "asset": "navidrome_*_linux_$ARCH.rpm",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -115055,10 +115996,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -115208,11 +116153,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -115270,10 +116219,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -115440,10 +116393,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -116058,10 +117015,14 @@
    "tarball\\prometheus": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/prometheus",
      "name": "prometheus",
      "version": {
-      "asset": "prometheus-*.linux-amd64.tar.gz",
+      "asset": "prometheus-*.linux-$ARCH.tar.gz",
       "github": "prometheus/prometheus",
       "strip-v": "true"
      }
@@ -116627,6 +117588,9 @@
    "tarball\\rar": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/rar",
      "latest-check": {
       "regex": "rarlinux-x64-([0-9]+)[.]tar",
@@ -116756,9 +117720,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -117289,10 +118257,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -117749,10 +118721,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -118560,10 +119536,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -119021,10 +120001,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -119502,10 +120486,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -119867,10 +120855,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -120115,10 +121107,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -120367,9 +121363,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -120884,9 +121884,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -121234,9 +122238,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -122074,10 +123082,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -122537,9 +123549,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -123134,6 +124150,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -123235,7 +124254,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -123249,7 +124272,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -123741,6 +124768,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -124623,10 +125653,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -125210,10 +126244,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -125397,10 +126435,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -126375,6 +127417,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -126476,10 +127521,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -126565,9 +127614,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -126829,9 +127882,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -126890,10 +127947,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -126954,10 +128015,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -127048,9 +128113,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -128261,7 +129330,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -128751,7 +129820,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -128793,6 +129866,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -129194,10 +130271,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -129341,11 +130422,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -129403,10 +130488,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -129587,10 +130676,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -131003,9 +132096,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -131468,10 +132565,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -131914,10 +133015,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -132720,10 +133825,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -133169,10 +134278,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -133543,10 +134656,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -133906,10 +135023,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -134142,10 +135263,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -134377,9 +135502,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -134860,9 +135989,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -135210,9 +136343,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -136033,10 +137170,14 @@
    "tarball\\croc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/croc",
      "name": "croc",
      "version": {
-      "asset": "croc_v*_Linux-64bit.tar.gz",
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
       "github": "schollz/croc",
       "strip-v": "true"
      }
@@ -136496,9 +137637,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -137076,6 +138221,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -137177,7 +138325,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -137191,7 +138343,11 @@
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "emby-server-deb_*_amd64.deb",
+     "asset": "emby-server-deb_*_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "emby-server",
      "version": {
       "github": "MediaBrowser/Emby.Releases",
@@ -137654,6 +138810,9 @@
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
+     "cpu-names": {
+      "x86_64": "amd64"
+     },
      "name": "fah-client",
      "url": "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb",
      "version": {
@@ -138536,10 +139695,14 @@
    "tarball\\gleam": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/gleam",
      "name": "gleam",
      "version": {
-      "asset": "gleam-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "gleam-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "gleam-lang/gleam",
       "strip-v": "true"
      }
@@ -139097,10 +140260,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -139284,10 +140451,14 @@
    "tarball\\helix": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/helix",
      "name": "helix",
      "version": {
-      "asset": "helix-*-x86_64-linux.tar.xz",
+      "asset": "helix-*-$ARCH-linux.tar.xz",
       "github": "helix-editor/helix",
       "strip-v": "true"
      }
@@ -140228,6 +141399,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -140312,10 +141486,14 @@
    "tarball\\just": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/just",
      "name": "just",
      "version": {
-      "asset": "just-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "casey/just",
       "strip-v": "true"
      }
@@ -140401,9 +141579,13 @@
    "tarball\\k9s": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/k9s",
      "name": "k9s",
-     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz",
+     "url": "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -140665,9 +141847,13 @@
     "driver": "tarball",
     "fields": {
      "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/kubectl",
      "name": "kubectl",
-     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
      "version": {
       "url": "https://dl.k8s.io/release/stable.txt"
      }
@@ -140726,10 +141912,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -140790,10 +141980,14 @@
    "tarball\\lazygit": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazygit",
      "name": "lazygit",
      "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazygit",
       "strip-v": "true"
      }
@@ -140884,9 +142078,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -142080,7 +143278,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -142519,7 +143717,11 @@
    "native-pkg-file\\navidrome": {
     "driver": "native-pkg-file",
     "fields": {
-     "asset": "navidrome_*_linux_amd64.deb",
+     "asset": "navidrome_*_linux_$ARCH.deb",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "name": "navidrome",
      "version": {
       "github": "navidrome/navidrome",
@@ -142561,6 +143763,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -142988,10 +144194,14 @@
    "tarball\\nushell": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/nushell",
      "name": "nushell",
      "version": {
-      "asset": "nu-*-x86_64-unknown-linux-gnu.tar.gz",
+      "asset": "nu-*-$ARCH-unknown-linux-gnu.tar.gz",
       "github": "nushell/nushell",
       "strip-v": "true"
      }
@@ -143135,11 +144345,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -143197,10 +144411,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -143381,10 +144599,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -144729,9 +145951,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -145177,10 +146403,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -145623,10 +146853,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -146448,10 +147682,14 @@
    "tarball\\vegeta": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/vegeta",
      "name": "vegeta",
      "version": {
-      "asset": "vegeta_*_linux_amd64.tar.gz",
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
       "github": "tsenart/vegeta",
       "strip-v": "true"
      }
@@ -146897,10 +148135,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -147337,10 +148579,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -147671,10 +148917,14 @@
    "tarball\\zellij": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/zellij",
      "name": "zellij",
      "version": {
-      "asset": "zellij-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
       "github": "zellij-org/zellij",
       "strip-v": "true"
      }
@@ -147900,10 +149150,14 @@
    "tarball\\adguardhome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
      "name": "adguardhome",
      "version": {
-      "asset": "AdGuardHome_linux_amd64.tar.gz",
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
       "github": "AdguardTeam/AdGuardHome",
       "strip-v": "true"
      }
@@ -148135,9 +149389,13 @@
    "tarball\\antigravity": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz",
      "version": {
       "static": "2.19.1"
      }
@@ -148619,9 +149877,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -148910,9 +150172,13 @@
    "tarball\\bun": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bun",
      "name": "bun",
-     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip",
      "version": {
       "static": "latest"
      }
@@ -149713,9 +150979,13 @@
    "tarball\\deno": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/deno",
      "name": "deno",
-     "url": "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip",
+     "url": "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip",
      "version": {
       "static": "latest"
      }
@@ -150306,6 +151576,9 @@
     "fields": {
      "archive": "gz",
      "binary": "elm",
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/elm",
      "name": "elm",
      "version": {
@@ -150922,10 +152195,14 @@
    "tarball\\fresh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/fresh",
      "name": "fresh",
      "version": {
-      "asset": "fresh-editor-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "fresh-editor-$ARCH-unknown-linux-musl.tar.gz",
       "github": "sinelaw/fresh",
       "strip-v": "true"
      }
@@ -151971,10 +153248,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -153007,6 +154288,9 @@
    "tarball\\julia": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/julia",
      "name": "julia",
      "url": "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz",
@@ -153454,10 +154738,14 @@
    "tarball\\lazydocker": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
      "name": "lazydocker",
      "version": {
-      "asset": "lazydocker_*_Linux_x86_64.tar.gz",
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
       "github": "jesseduffield/lazydocker",
       "strip-v": "true"
      }
@@ -153600,9 +154888,13 @@
    "tarball\\lazysql": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/lazysql",
      "name": "lazysql",
-     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
      "version": {
       "static": "latest"
      }
@@ -154768,7 +156060,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -155136,10 +156428,14 @@
    "tarball\\navidrome": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/navidrome",
      "name": "navidrome",
      "version": {
-      "asset": "navidrome_*_linux_amd64.tar.gz",
+      "asset": "navidrome_*_linux_$ARCH.tar.gz",
       "github": "navidrome/navidrome",
       "strip-v": "true"
      }
@@ -155184,6 +156480,10 @@
    "appImage\\neovim": {
     "driver": "appImage",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "name": "Neovim",
      "path": "~/apps/nvim.appimage",
      "scope": "user",
@@ -155663,11 +156963,15 @@
    "tarball\\odin": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/odin",
      "name": "odin",
-     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz",
+     "url": "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz",
      "version": {
-      "asset": "odin-linux-amd64-*.tar.gz",
+      "asset": "odin-linux-$ARCH-*.tar.gz",
       "github": "odin-lang/Odin"
      }
     },
@@ -155718,10 +157022,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -155886,10 +157194,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -157229,6 +158541,9 @@
    "tarball\\rar": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/rar",
      "latest-check": {
       "regex": "rarlinux-x64-([0-9]+)[.]tar",
@@ -157345,9 +158660,13 @@
    "tarball\\roc": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/roc",
      "name": "roc",
-     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz",
+     "url": "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz",
      "version": {
       "static": "nightly"
      }
@@ -157811,10 +159130,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -158218,10 +159541,14 @@
    "tarball\\superfile": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/superfile",
      "name": "superfile",
      "version": {
-      "asset": "superfile-linux-*-amd64.tar.gz",
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
       "github": "yorukot/superfile"
      }
     },
@@ -159520,10 +160847,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -159942,10 +161273,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },
@@ -161089,9 +162424,13 @@
     "fields": {
      "archive": "none",
      "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
      "name": "bazelisk",
-     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
      "version": {
       "static": "latest"
      }
@@ -163056,10 +164395,14 @@
    "tarball\\fresh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/fresh",
      "name": "fresh",
      "version": {
-      "asset": "fresh-editor-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "fresh-editor-$ARCH-unknown-linux-musl.tar.gz",
       "github": "sinelaw/fresh",
       "strip-v": "true"
      }
@@ -164059,10 +165402,14 @@
    "tarball\\grpcurl": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
      "name": "grpcurl",
      "version": {
-      "asset": "grpcurl_*_linux_x86_64.tar.gz",
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
       "github": "fullstorydev/grpcurl",
       "strip-v": "true"
      }
@@ -166737,7 +168084,7 @@
    "script\\miniforge": {
     "driver": "script",
     "fields": {
-     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
+     "install-cmd": "curl -fsSL \"https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh\" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p \"$HOME/miniforge3\" && rm -f /tmp/mf.sh",
      "location": "~/miniforge3/bin",
      "name": "miniforge",
      "uninstall-cmd": "rm -rf \"$HOME/miniforge3\"",
@@ -167607,10 +168954,14 @@
    "tarball\\ollama": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
      "version": {
-      "asset": "ollama-linux-amd64.tar.zst",
+      "asset": "ollama-linux-$ARCH.tar.zst",
       "github": "ollama/ollama",
       "strip-v": "true"
      }
@@ -167775,10 +169126,14 @@
    "tarball\\opentofu": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/opentofu",
      "name": "opentofu",
      "version": {
-      "asset": "tofu_*_linux_amd64.tar.gz",
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
       "github": "opentofu/opentofu",
       "strip-v": "true"
      }
@@ -169585,10 +170940,14 @@
    "tarball\\sesh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/sesh",
      "name": "sesh",
      "version": {
-      "asset": "sesh_Linux_x86_64.tar.gz",
+      "asset": "sesh_Linux_$ARCH.tar.gz",
       "github": "joshmedeski/sesh",
       "strip-v": "true"
      }
@@ -170954,10 +172313,14 @@
     "fields": {
      "archive": "none",
      "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/websocat",
      "name": "websocat",
      "version": {
-      "asset": "websocat.x86_64-unknown-linux-musl",
+      "asset": "websocat.$ARCH-unknown-linux-musl",
       "github": "vi/websocat"
      }
     },
@@ -171352,10 +172715,14 @@
    "tarball\\xh": {
     "driver": "tarball",
     "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
      "installDir": "$CONFIGSYS_APP_DIR/xh",
      "name": "xh",
      "version": {
-      "asset": "xh-*-x86_64-unknown-linux-musl.tar.gz",
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
       "github": "ducaale/xh"
      }
     },

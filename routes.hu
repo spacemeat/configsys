@@ -165,7 +165,7 @@
         fossil: { attrs: [ CLI web FOSS permissive ] suggests: fossil-glue  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
             install: [ { via: native  when: "(not opensuse and not rhel) and not amzn"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }
-                       { via: tarball  when: "opensuse"  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
+                       { via: tarball  when: "opensuse"  cpu-names: { x86_64: x64 }  installDir: "$CONFIGSYS_APP_DIR/fossil"  requires: glibc  // no openSUSE package; upstream static binary
                          version: { static: "2.28" }  url: "https://fossil-scm.org/home/uv/fossil-linux-x64-2.28.tar.gz"
                          latest-check: { url: "https://fossil-scm.org/home/uv/download.html"  regex: "x64-([0-9]+[.][0-9]+)[.]tar" } } ] }   // `refresh` flags a newer fossil release
         perforce: { attrs: [ CLI daemon app proprietary freemium ] description: "Perforce Helix Core — the `p4` client and `p4d` server." standing: never-auto
@@ -292,8 +292,8 @@
                 { via: native   when: "arch or void or void_musl" }                     // pacman: uv
                 { via: native   when: "fedora_atomic" }            // brew formula `uv`
                 { via: pipx     name: uv }                         // universal (prebuilt wheels)
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/uv"  requires: glibc  standing: never-auto
-                  version: { github: astral-sh/uv  strip-v: true  asset: "uv-x86_64-unknown-linux-gnu.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/uv"  requires: glibc  standing: never-auto
+                  version: { github: astral-sh/uv  strip-v: true  asset: "uv-$ARCH-unknown-linux-gnu.tar.gz" } }
                 { via: cargo    name: uv  standing: never-auto  version: { crates: uv } }   // `cargo install uv`; never-auto so it's offered/pinnable but doesn't tie with pipx
             ]
         }
@@ -311,11 +311,11 @@
         // `repo-component: universe` is the apt archive area (read only by apt; ignored on dnf/pacman).
         ripgrep: { suggests: ripgrep-glue  attrs: [ CLI  FOSS  permissive ]  description: "Fast recursive regex search (`rg`) — grep, but much quicker."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
-                              { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-x86_64-unknown-linux-musl.tar.gz" } }
+                              { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/ripgrep"  version: { github: BurntSushi/ripgrep  asset: "ripgrep-*-$ARCH-unknown-linux-musl.tar.gz" } }
                               { via: cargo  name: ripgrep  version: { crates: ripgrep } } ] }   // prebuilt musl binary (rg in a versioned subdir); `cargo install ripgrep` as a pinnable alt
         fzf:     { attrs: [ CLI FOSS permissive ] suggests: fzf-glue  description: "Fuzzy finder — interactive filtering for files, history, anything piped in."
                    install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"   repo-component: universe }
-                              { via: tarball  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_amd64.tar.gz" } } ] }
+                              { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/fzf"  version: { github: junegunn/fzf  strip-v: true  asset: "fzf-*-linux_$ARCH.tar.gz" } } ] }
         // television: a Rust fuzzy finder; the binary is `tv`. In Arch's official extra repo and a
         // brew formula (atomic); not in Debian/Fedora/openSUSE base repos -> cargo crate `television`
         // (installs `tv`) is the universal fallback everywhere else.
@@ -465,7 +465,7 @@
             install: [
                 { via: native  when: "rhel"  requires: epel }
                 { via: native  when: "not amzn"   repo-component: universe }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/btop"  version: { github: aristocratos/btop  strip-v: true  asset: "btop-x86_64-unknown-linux-musl.tar.gz" } }   // prebuilt musl binary (btop/bin/btop)
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/btop"  version: { github: aristocratos/btop  strip-v: true  asset: "btop-$ARCH-unknown-linux-musl.tar.gz" } }   // prebuilt musl binary (btop/bin/btop)
             ]
         }
         htop: { attrs: [ TUI app FOSS copyleft ] description: "Interactive process viewer — a colorful, friendlier top."
@@ -556,8 +556,8 @@
                        { via: aur     when: "arch"  name: wrk } ] }   // debian/EL/Fedora: not packaged -> build wg/wrk from source
         vegeta: { attrs: [ CLI FOSS permissive ] description: "Vegeta — a versatile HTTP load-testing tool driven by a constant request rate (`vegeta`)."
             install: [ { via: native  when: "arch or fedora_atomic or void or void_musl" }      // Arch [extra] (promoted from the AUR); brew formula `vegeta` on atomic
-                       { via: tarball  when: "not (arch or fedora_atomic)"  installDir: "$CONFIGSYS_APP_DIR/vegeta"
-                         version: { github: tsenart/vegeta  strip-v: true  asset: "vegeta_*_linux_amd64.tar.gz" } } ] }
+                       { via: tarball  when: "not (arch or fedora_atomic)"  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/vegeta"
+                         version: { github: tsenart/vegeta  strip-v: true  asset: "vegeta_*_linux_$ARCH.tar.gz" } } ] }
 
         // --- proprietary cross-platform benchmarks (best-effort) ---
         // Geekbench 6 — free to run, uploads results to geekbench.com by default. Flathub is the clean
@@ -643,8 +643,8 @@
                 description: "sesh — a smart tmux session manager: fuzzy-pick, create and switch sessions by zoxide frecency / git repo."
                 install: [ { via: aur  when: "arch"  name: sesh-bin }
                            { via: native  when: "fedora_atomic" }
-                           { via: tarball  installDir: "$CONFIGSYS_APP_DIR/sesh"
-                             version: { github: joshmedeski/sesh  strip-v: true  asset: "sesh_Linux_x86_64.tar.gz" } } ] }
+                           { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/sesh"
+                             version: { github: joshmedeski/sesh  strip-v: true  asset: "sesh_Linux_$ARCH.tar.gz" } } ] }
         sesh-dotfiles: { description: "sesh config (sesh.toml), linked into place." install: [ { via: dotfiles  config: { src: sesh  dst: $XDG_CONFIG_HOME/sesh } } ] }
         // gum: Charm's toolkit for glamorous shell scripts (Go). Native in Fedora, Arch, Alpine (and
         // EL via EPEL), brew on atomic; Charm's official apt repo on Debian/Ubuntu; a static Go
@@ -659,8 +659,8 @@
                             pubkey-path: /usr/share/keyrings/charm.asc   // Charm ships an ARMORED key -> .asc (apt reads armored via signed-by; a .gpg-named armored file fails "not signed")
                             source-line: "deb [signed-by=/usr/share/keyrings/charm.asc] https://repo.charm.sh/apt/ * *"
                             source-path: /etc/apt/sources.list.d/charm.list }
-                          { via: tarball  installDir: "$CONFIGSYS_APP_DIR/gum"
-                            version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_x86_64.tar.gz" } } ] }
+                          { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/gum"
+                            version: { github: charmbracelet/gum  strip-v: true  asset: "gum_*_Linux_$ARCH.tar.gz" } } ] }
         zsh:  { attrs: [ CLI FOSS permissive ] suggests: [ zsh-dotfiles, shell-glue ]  description: "Z shell — a powerful interactive shell." install: [ { via: native } ] }
         fish: { attrs: [ CLI FOSS copyleft ] suggests: [ fish-dotfiles, shell-glue, bass ]  description: "Friendly interactive shell — smart autosuggestions out of the box." install: [ { via: native  name: { xbps: fish-shell }  when: "not amzn"  } ] }
         // bass: a fish plugin (two files into ~/.config/fish/functions/) that runs bash utilities and
@@ -686,10 +686,10 @@
             install: [
                 { via: native  when: "arch or void or void_musl" }
                 { via: native  when: "fedora_atomic" }              // brew formula `nushell`
-                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"  requires: glibc
-                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-gnu.tar.gz" } }
-                { via: tarball  when: "alpine"  installDir: "$CONFIGSYS_APP_DIR/nushell"   // musl build for Alpine (the gnu one needs glibc)
-                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: tarball  when: "not alpine"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/nushell"  requires: glibc
+                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-$ARCH-unknown-linux-gnu.tar.gz" } }
+                { via: tarball  when: "alpine"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/nushell"   // musl build for Alpine (the gnu one needs glibc)
+                  version: { github: nushell/nushell  strip-v: true  asset: "nu-*-$ARCH-unknown-linux-musl.tar.gz" } }
                 { via: cargo  name: nu  version: { crates: nu } }                            // `cargo install nu` (the crate is `nu`)
             ]
         }
@@ -703,9 +703,9 @@
                 // elvish ships binaries via dl.elv.sh, NOT GitHub release assets (those are empty) --
                 // so a direct url (elvish-v<version>.tar.gz), version discovered from the github tags.
                 // Static Go build -> one binary runs on glibc AND musl, so no alpine split. (x86_64.)
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/elvish"
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/elvish"
                   version: { github: elves/elvish  strip-v: true }
-                  url: "https://dl.elv.sh/linux-amd64/elvish-v$VERSION.tar.gz" }
+                  url: "https://dl.elv.sh/linux-$ARCH/elvish-v$VERSION.tar.gz" }
             ] }
         // No elvish-dotfiles: elvish's rc.elv IS the glue gestalt block (dynamically regenerated on
         // every (de)activation), so it must be GLUE-OWNED and can't be a dotfile capture (capturing
@@ -723,8 +723,8 @@
             install: [
                 { via: native  when: "arch or void or void_musl" }                        // Fedora is COPR-only -> tarball covers it
                 { via: native  when: "fedora_atomic" }               // brew formula `zellij`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zellij"   // musl static -> covers everything else, incl. Alpine
-                  version: { github: zellij-org/zellij  strip-v: true  asset: "zellij-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/zellij"   // musl static -> covers everything else, incl. Alpine
+                  version: { github: zellij-org/zellij  strip-v: true  asset: "zellij-$ARCH-unknown-linux-musl.tar.gz" } }
                 { via: cargo  name: zellij  standing: never-auto  version: { crates: zellij } }
             ] }
         zellij-dotfiles: { description: "Zellij config, linked into place."
@@ -906,8 +906,8 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }              // brew formula `superfile`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/superfile"  requires: glibc
-                  version: { github: yorukot/superfile  asset: "superfile-linux-*-amd64.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/superfile"  requires: glibc
+                  version: { github: yorukot/superfile  asset: "superfile-linux-*-$ARCH.tar.gz" } }
             ]
         }
         superfile-glue: { description: "superfile config, linked into place."
@@ -1042,7 +1042,7 @@
         // single gzipped glibc executable (archive: gz). Off-PATH under the app dir, so elm-glue
         // aliases it; declines on musl Alpine.
         elm: { attrs: [ CLI toolchain FOSS permissive ] suggests: elm-glue  description: "Elm — a functional language for reliable web frontends (compiles to JS)."
-            install: [ { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/elm"  requires: glibc  archive: gz  binary: elm
+            install: [ { via: tarball  when: "not alpine"  cpu-names: { x86_64: x64 }  installDir: "$CONFIGSYS_APP_DIR/elm"  requires: glibc  archive: gz  binary: elm
                          version: { github: elm/compiler  asset: "elm-*-linux-x64.gz" } } ] }
         elm-glue: { description: "elm shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: elm } ] }
 
@@ -1054,14 +1054,14 @@
             install: [
                 { via: native  when: "arch" }
                 { via: native  when: "fedora_atomic" }             // brew formula `deno`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/deno"  requires: [ glibc, unzip ]  version: { static: latest }
-                  url: "https://github.com/denoland/deno/releases/latest/download/deno-x86_64-unknown-linux-gnu.zip" } ]
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/deno"  requires: [ glibc, unzip ]  version: { static: latest }
+                  url: "https://github.com/denoland/deno/releases/latest/download/deno-$ARCH-unknown-linux-gnu.zip" } ]
         }
         bun: { attrs: [ CLI runtime toolchain FOSS permissive ] suggests: bun-glue  description: "Bun — fast all-in-one JavaScript runtime, bundler, and package manager."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bun`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bun"  requires: [ glibc, unzip ]  version: { static: latest }
-                  url: "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-x64.zip" } ]
+                { via: tarball  cpu-names: { x86_64: x64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/bun"  requires: [ glibc, unzip ]  version: { static: latest }
+                  url: "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH.zip" } ]
         }
 
         // Go toolchain, directly usable. Auto-provides the `go` capability the go-install
@@ -1075,10 +1075,10 @@
                 // the distro ships (lazygit/superfile floors). Least-preferred (native stays the
                 // default; pin `go tarball`, or let a go>=X floor advise it). The source driver puts
                 // ~/sdks/go/bin on PATH for builds; `provides: { go }` is the floor it guarantees.
-                { via: tarball  installDir: "$CONFIGSYS_SDK_DIR/go"  strip: 1  requires: [ glibc, curl ]
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_SDK_DIR/go"  strip: 1  requires: [ glibc, curl ]
                   provides: { go: ">=1.21" }
                   version: { url: "https://go.dev/VERSION?m=text"  regex: "go([0-9.]+)" }
-                  url: "https://go.dev/dl/go$VERSION.linux-amd64.tar.gz" }
+                  url: "https://go.dev/dl/go$VERSION.linux-$ARCH.tar.gz" }
             ]
         }
         // Sample `go install` tool (module path in `name:`; binary = its last segment).
@@ -1271,8 +1271,8 @@
                          url: "https://github.com/vlang/v/releases/latest/download/v_linux.zip" } ] }   // prebuilt zip
         gleam: { attrs: [ CLI toolchain FOSS permissive ] suggests: gleam-glue  description: "Gleam — a friendly, statically-typed language for the Erlang VM." requires: erlang
             install: [ { via: native  when: "arch or alpine or fedora_atomic or void or void_musl" }   // pacman/apk/brew gleam
-                       { via: tarball  when: "not arch and not alpine and not fedora_atomic"  installDir: "$CONFIGSYS_APP_DIR/gleam"  requires: glibc
-                         version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-x86_64-unknown-linux-musl.tar.gz" } } ] }   // single static binary
+                       { via: tarball  when: "not arch and not alpine and not fedora_atomic"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/gleam"  requires: glibc
+                         version: { github: gleam-lang/gleam  strip-v: true  asset: "gleam-*-$ARCH-unknown-linux-musl.tar.gz" } } ] }   // single static binary
         fennel: { attrs: [ CLI toolchain FOSS permissive ] description: "Fennel — a Lisp that compiles to Lua." requires: lua
             install: [ { via: native  when: "fedora or arch or alpine or fedora_atomic" }   // dnf/pacman/apk/brew fennel
                        { via: luarocks  name: fennel } ] }
@@ -1289,8 +1289,8 @@
         // Roc — a fast, friendly, functional language. PRE-1.0: only nightly builds exist (no stable
         // release), shipped as a rolling tarball. Binary `roc`.
         roc: { attrs: [ CLI toolchain FOSS permissive ] description: "Roc — a fast, friendly, functional language (nightly `roc`; pre-release)." requires: cc
-            install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/roc"  requires: glibc  version: { static: nightly }
-                         url: "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_x86_64-latest.tar.gz" } ] }
+            install: [ { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/roc"  requires: glibc  version: { static: nightly }
+                         url: "https://github.com/roc-lang/roc/releases/download/nightly/roc_nightly-linux_$ARCH-latest.tar.gz" } ] }
 
         // JVM + Scheme langs. scala/clojure/groovy need a JDK. (No `via: sdkman` driver exists — sdkman
         // is only a component — so these use native / official installer scripts / snap, not sdkman.)
@@ -1455,16 +1455,16 @@
             install: [
                 { via: native  when: "arch" }                      // pacman: julia
                 { via: native  when: "fedora_atomic" }             // brew formula `julia`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc  version: { static: 1.12.6 }
+                { via: tarball  cpu-names: { x86_64: x86_64 }  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc  version: { static: 1.12.6 }
                   url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ]
         }
         // Odin — upstream github release tarball (glibc-linked, so it declines on musl).
         odin: { attrs: [ CLI toolchain FOSS permissive ] suggests: odin-glue  description: "Odin — data-oriented systems programming language."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `odin`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/odin"  requires: glibc
-                  version: { github: odin-lang/Odin  asset: "odin-linux-amd64-*.tar.gz" }
-                  url: "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-amd64-$VERSION.tar.gz" }
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/odin"  requires: glibc
+                  version: { github: odin-lang/Odin  asset: "odin-linux-$ARCH-*.tar.gz" }
+                  url: "https://github.com/odin-lang/Odin/releases/download/$VERSION/odin-linux-$ARCH-$VERSION.tar.gz" }
             ]
         }
 
@@ -1635,7 +1635,7 @@
         whois:      { attrs: [ CLI FOSS copyleft ] description: "Domain/IP registration lookup (`whois`)." install: [ { via: native } ] }
         netcat:     { attrs: [ CLI FOSS ] description: "TCP/UDP swiss-army knife (`nc`) — connect, listen, pipe raw sockets." install: [ { via: native  name: { xbps: openbsd-netcat dnf: nmap-ncat  pacman: openbsd-netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat
         // --- easy end-to-end file/terminal sharing ---
-        croc:       { attrs: [ CLI FOSS permissive ] description: "croc — securely send files/folders between any two machines with a shared code phrase." install: [ { via: native  when: "arch or alpine or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/croc"  version: { github: schollz/croc  strip-v: true  asset: "croc_v*_Linux-64bit.tar.gz" } } ] }   // static Go binary -> tarball runs everywhere (incl. musl); brew on atomic; not in Debian/Fedora/EL/openSUSE repos
+        croc:       { attrs: [ CLI FOSS permissive ] description: "croc — securely send files/folders between any two machines with a shared code phrase." install: [ { via: native  when: "arch or alpine or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: tarball  cpu-names: { x86_64: 64bit  aarch64: ARM64 }  installDir: "$CONFIGSYS_APP_DIR/croc"  version: { github: schollz/croc  strip-v: true  asset: "croc_v*_Linux-$ARCH.tar.gz" } } ] }   // static Go binary -> tarball runs everywhere (incl. musl); brew on atomic; not in Debian/Fedora/EL/openSUSE repos
         wormhole:   { attrs: [ CLI FOSS permissive ] description: "magic-wormhole — get things from one computer to another safely (`wormhole send`/`receive`)." install: [ { via: native  when: "debian or arch or fedora_atomic or void or void_musl"  name: magic-wormhole  repo-component: universe }  { via: pipx  name: magic-wormhole } ] }   // the binary is `wormhole`; in-repo on Debian/Ubuntu + Arch + brew (atomic) (removed from Fedora 37+, not in openSUSE's default repos, absent on Alpine) -> pipx is the universal fallback
         ttyd:       { attrs: [ CLI web FOSS permissive ] description: "ttyd — share your terminal over the web (a browser-based terminal, `ttyd`)." install: [ { via: native  repo-component: universe }  { via: native  when: "fedora_atomic" } ] }   // C; packaged widely (Debian bookworm+, Fedora, Arch, Alpine, openSUSE) + brew on atomic
         dig:        { attrs: [ CLI FOSS permissive ] description: "DNS lookup tool (`dig`) — query records and troubleshoot resolution." install: [ { via: native  name: { apt: dnsutils  dnf: bind-utils  pacman: bind  apk: bind-tools  zypper: bind-utils  brew: bind  default: bind-utils } } ] }   // dig/nslookup; apt `dnsutils` is the transitional metapkg (resolves on old + new), Arch/Homebrew ship the tools in `bind`
@@ -1680,7 +1680,7 @@
         httpie:    { attrs: [ CLI FOSS permissive ] suggests: httpie-dotfiles  description: "Human-friendly HTTP client (`http`) — a nicer curl for APIs." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  } ] }   // the `http`/`https` CLI
         jq:        { attrs: [ CLI FOSS permissive ] suggests: jq-glue  description: "Command-line JSON processor — query and transform JSON."
                      install: [ { via: native }
-                                { via: tarball  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-amd64" } } ] }   // upstream ships a raw static binary
+                                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-$ARCH" } } ] }   // upstream ships a raw static binary
         yq:        { attrs: [ CLI FOSS permissive ] description: "YAML/JSON/XML processor — jq, but for YAML." requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
                      install: [ { via: pipx  name: yq  version: { pypi: yq } } ] }
         // mitmproxy 12+ needs Python >=3.12, but a pipx venv built on an OLD system python (Pop
@@ -1691,8 +1691,8 @@
         // plain pipx uses the system python (and python3.13 doesn't even resolve on atomic — pyenv
         // needs build deps absent there).
         mitmproxy: { attrs: [ CLI TUI FOSS permissive ] description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic." install: [ { via: pipx  when: "debian"  name: mitmproxy  standing: 1  python: "/usr/bin/python3.13"  requires: python3.13  version: { pypi: mitmproxy } }  { via: pipx  when: "not debian"  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }  { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
-        xh:        { attrs: [ CLI FOSS permissive ] suggests: xh-glue  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-x86_64-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
-        websocat:  { attrs: [ CLI FOSS permissive ] suggests: websocat-glue  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.x86_64-unknown-linux-musl" } } ] }   // prebuilt musl binary default
+        xh:        { attrs: [ CLI FOSS permissive ] suggests: xh-glue  description: "Fast HTTPie-compatible HTTP client (`xh`), written in Rust." install: [ { via: cargo  name: xh  version: { crates: xh } }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/xh"  version: { github: ducaale/xh  asset: "xh-*-$ARCH-unknown-linux-musl.tar.gz" } } ] }                // prebuilt musl binary is the default over building from source
+        websocat:  { attrs: [ CLI FOSS permissive ] suggests: websocat-glue  description: "netcat for WebSockets — connect, pipe, and script ws:// endpoints." install: [ { via: cargo  name: websocat  version: { crates: websocat } }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  archive: none  binary: websocat  installDir: "$CONFIGSYS_APP_DIR/websocat"  version: { github: vi/websocat  asset: "websocat.$ARCH-unknown-linux-musl" } } ] }   // prebuilt musl binary default
 
         // GUI API clients — Flatpak from Flathub, like chrome (all community-maintained, current).
         postman:  { attrs: [ GUI app electron proprietary account cloud freemium ] description: "Postman — a GUI for building and testing APIs." install: [ { via: flatpak  hub: flathub  app: com.getpostman.Postman }  { via: snap  name: postman } ] }
@@ -1701,7 +1701,7 @@
         tree-sitter-cli: { attrs: [ CLI FOSS permissive ] suggests: tree-sitter-cli-glue  description: "tree-sitter CLI — build and test tree-sitter grammars."
             install: [ { via: cargo  name: tree-sitter-cli  standing: 1  version: { crates: tree-sitter-cli }   // kept the default (some want it built from source, without the prebuilt-binary apparatus)
                          requires: { cargo: ">=1.90" } }   // current releases' MSRV (0.27: rustc 1.90); an older distro rust (24.04: 1.75) -> advises rustup, or pin the tarball
-                       { via: tarball  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-x64.gz" } } ]   // upstream ships a plain-gzipped single binary
+                       { via: tarball  cpu-names: { x86_64: x64  aarch64: arm64 }  archive: gz  binary: tree-sitter  installDir: "$CONFIGSYS_APP_DIR/tree-sitter"  version: { github: tree-sitter/tree-sitter  asset: "tree-sitter-linux-$ARCH.gz" } } ]   // upstream ships a plain-gzipped single binary
         }
         mononoki-nerd: { attrs: [ font FOSS permissive ] description: "Mononoki Nerd Font — a clean monospace coding font with icons."
             install: [ { via: font  name: Mononoki          // -> requires fontconfig + unzip
@@ -2064,7 +2064,7 @@
             install: [
                 { via: native  when: "debian"  repo-component: multiverse }
                 { via: aur     when: "arch" }
-                { via: tarball  when: "not (debian or arch or alpine)"  installDir: "$CONFIGSYS_APP_DIR/rar"  requires: glibc
+                { via: tarball  when: "not (debian or arch or alpine)"  cpu-names: { x86_64: x64 }  installDir: "$CONFIGSYS_APP_DIR/rar"  requires: glibc
                   version: { static: "7.23" }  url: "https://www.rarlab.com/rar/rarlinux-x64-723.tar.gz"
                   latest-check: { url: "https://www.rarlab.com/download.htm"  regex: "rarlinux-x64-([0-9]+)[.]tar" } }
             ]
@@ -2185,9 +2185,9 @@
         // --- digital-art tools (Flathub, matching gimp/krita/ardour above — uniform across distros) ---
         inkscape:   { attrs: [ GUI app FOSS copyleft ] description: "Inkscape — a vector graphics editor (SVG)." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.inkscape.Inkscape } ] }
         darktable:  { attrs: [ GUI app FOSS copyleft ] description: "darktable — RAW photo workflow and non-destructive editing." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.darktable.Darktable } ] }
-        freecad:    { attrs: [ GUI app FOSS copyleft ] description: "FreeCAD — a parametric 3D CAD modeler." install: [ { via: native  when: "debian or arch or opensuse or void or void_musl"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.freecad.FreeCAD }  { via: appImage  name: FreeCAD  scope: user  version: { github: FreeCAD/FreeCAD  asset: "FreeCAD_*-Linux-x86_64-*.AppImage" }  path: ~/apps/freecad.appimage } ] }   // native on debian/arch/opensuse; Fedora/EL lack it -> flatpak/appImage. asset glob absorbs the bundled-python (pyXYZ) token
+        freecad:    { attrs: [ GUI app FOSS copyleft ] description: "FreeCAD — a parametric 3D CAD modeler." install: [ { via: native  when: "debian or arch or opensuse or void or void_musl"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.freecad.FreeCAD }  { via: appImage  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: FreeCAD  scope: user  version: { github: FreeCAD/FreeCAD  asset: "FreeCAD_*-Linux-$ARCH-*.AppImage" }  path: ~/apps/freecad.appimage } ] }   // native on debian/arch/opensuse; Fedora/EL lack it -> flatpak/appImage. asset glob absorbs the bundled-python (pyXYZ) token
         openscad:   { attrs: [ GUI app FOSS copyleft ] description: "OpenSCAD — the programmer's solid 3D CAD modeller." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.openscad.OpenSCAD } ] }
-        godot:      { attrs: [ GUI app FOSS permissive ] description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.x86_64.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
+        godot:      { attrs: [ GUI app FOSS permissive ] description: "Godot — an open-source 2D/3D game engine." install: [ { via: flatpak  hub: flathub  app: org.godotengine.Godot }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/godot"  requires: unzip  version: { github: godotengine/godot  tag-re: "([0-9][0-9.]*)"  asset: "Godot_v*-stable_linux.$ARCH.zip" } } ] }   // flatpak stays default; the zip holds a single `Godot_v<ver>_linux.x86_64` exe (no clean rename for zip)
         // Godot editor version/project MANAGERS (the FOSS counterpart to Unity Hub) — each downloads and
         // manages its OWN editor builds in its own store, so they complement the direct `godot` component
         // (which configsys installs/versions/locks) rather than replacing it; they don't adopt it.
@@ -2207,7 +2207,7 @@
         shotcut:    { attrs: [ GUI app FOSS copyleft ] description: "Shotcut — a cross-platform non-linear video editor." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or fedora or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.shotcut.Shotcut } ] }
         openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: openshot-qt  zypper: openshot-qt  default: openshot } }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot } ] }
         flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
-        olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
+        olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
 
         // --- ArtCraft "Crafting Apps" (github.com/storytold, Oct 2026): clean-room Rust rebuilds of the
         // Adobe suite (+ Office, AutoCAD, Pro Tools), MIT/Apache-2.0, offline, no telemetry/account. ALPHA. Every release ships the
@@ -2355,7 +2355,7 @@
         // path, so they decline (rather than fail). Arch via AUR.
         foldingathome: { attrs: [ daemon web FOSS GPL ] description: "Folding@home — donate compute to protein-folding research (the `fah-client` daemon + web control)."
             install: [ { via: aur  when: "arch"  name: foldingathome }
-                       { via: native-pkg-file  when: "debian"  name: fah-client
+                       { via: native-pkg-file  when: "debian"  cpu-names: { x86_64: amd64 }  name: fah-client
                          version: { url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"  regex: "fah-client_([0-9.]+)_amd64[.]deb" }
                          url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb" } ] }
         // Foldit — the protein-folding puzzle game. Its Linux download sits behind an academic-license
@@ -2402,20 +2402,20 @@
         emby: { attrs: [ daemon web FOSSish freemium ] description: "Emby Server — a media server (open-core; some features are premium)."
             install: [   // no official repo: Arch `extra`, else the upstream .deb/.rpm on GitHub
                 { via: native  when: "arch"  name: emby-server }
-                { via: native-pkg-file  when: "debian"  name: emby-server
-                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-deb_*_amd64.deb" }
-                { via: native-pkg-file  when: "redhat or opensuse"  name: emby-server
-                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-rpm_*_x86_64.rpm" } ] }
+                { via: native-pkg-file  when: "debian"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: emby-server
+                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-deb_*_$ARCH.deb" }
+                { via: native-pkg-file  when: "redhat or opensuse"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: emby-server
+                  version: { github: MediaBrowser/Emby.Releases  strip-v: true }  asset: "emby-server-rpm_*_$ARCH.rpm" } ] }
         emby-service: { description: "Enable and start Emby Server (systemd / runit)." requires: emby  install: [ { via: service  unit: emby-server } ] }
         navidrome: { attrs: [ daemon web FOSS copyleft ] description: "Navidrome — a self-hosted music streaming server (Subsonic/OpenSubsonic-compatible)." requires: ffmpeg
             install: [   // Arch `extra`; else the upstream .deb/.rpm, or the prebuilt tarball (hand-write a unit)
                 { via: native  when: "arch"  name: navidrome }
-                { via: native-pkg-file  when: "debian"  name: navidrome
-                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_amd64.deb" }
-                { via: native-pkg-file  when: "redhat"  name: navidrome
-                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_amd64.rpm" }
-                { via: tarball  when: "not arch and not debian and not redhat"  installDir: "$CONFIGSYS_APP_DIR/navidrome"  requires: glibc
-                  version: { github: navidrome/navidrome  strip-v: true  asset: "navidrome_*_linux_amd64.tar.gz" } } ] }
+                { via: native-pkg-file  when: "debian"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: navidrome
+                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_$ARCH.deb" }
+                { via: native-pkg-file  when: "redhat"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: navidrome
+                  version: { github: navidrome/navidrome  strip-v: true }  asset: "navidrome_*_linux_$ARCH.rpm" }
+                { via: tarball  when: "not arch and not debian and not redhat"  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/navidrome"  requires: glibc
+                  version: { github: navidrome/navidrome  strip-v: true  asset: "navidrome_*_linux_$ARCH.tar.gz" } } ] }
         kodi: { attrs: [ GUI app FOSS copyleft patent ] description: "Kodi — an open-source home-theater / media-center app."
             install: [ { via: flatpak  hub: flathub  app: tv.kodi.Kodi }   // upstream-recommended; native alternates below
                        { via: native  when: "ubuntu or void or void_musl"  repo-component: universe }
@@ -2444,8 +2444,8 @@
         adguardhome: { attrs: [ daemon web FOSS copyleft ] description: "AdGuard Home — a network-wide DNS ad/tracker blocker (single Go binary)."
             install: [
                 { via: native   when: "arch" }                     // pacman: adguardhome (extra)
-                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/adguardhome"  requires: glibc   // then `AdGuardHome -s install` registers the service; first-run web setup on :3000
-                  version: { github: AdguardTeam/AdGuardHome  strip-v: true  asset: "AdGuardHome_linux_amd64.tar.gz" } }
+                { via: tarball  when: "not arch"  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/adguardhome"  requires: glibc   // then `AdGuardHome -s install` registers the service; first-run web setup on :3000
+                  version: { github: AdguardTeam/AdGuardHome  strip-v: true  asset: "AdGuardHome_linux_$ARCH.tar.gz" } }
                 { via: snap  name: adguard-home } ]                // self-contained alternate (pinnable)
         }
         homebridge: { attrs: [ daemon FOSS permissive ] description: "Homebridge — bridge non-HomeKit devices to Apple HomeKit (Node.js)."
@@ -2460,8 +2460,8 @@
         mosquitto-service: { description: "Enable and start the Mosquitto MQTT broker (systemd / runit)." requires: mosquitto  install: [ { via: service  unit: mosquitto } ] }
         syncthing: { attrs: [ daemon web FOSS permissive ] description: "Syncthing — continuous peer-to-peer file synchronization."
             install: [ { via: native  when: "not amzn"  }                             // uniform pkg `syncthing`
-                       { via: tarball  standing: never-auto  installDir: "$CONFIGSYS_APP_DIR/syncthing"  requires: glibc   // newest upstream build (pinnable)
-                         version: { github: syncthing/syncthing  strip-v: true  asset: "syncthing-linux-amd64-*.tar.gz" } } ] }
+                       { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  standing: never-auto  installDir: "$CONFIGSYS_APP_DIR/syncthing"  requires: glibc   // newest upstream build (pinnable)
+                         version: { github: syncthing/syncthing  strip-v: true  asset: "syncthing-linux-$ARCH-*.tar.gz" } } ] }
         tailscale: { attrs: [ CLI daemon FOSSish permissive account cloud freemium ] description: "Tailscale — a WireGuard-based mesh VPN (`tailscale` CLI + `tailscaled`)."
             install: [   // official repo; the apt codename bumps as they add releases, dnf is $basearch-templated
                 { via: native  when: "ubuntu"
@@ -2491,8 +2491,8 @@
         prometheus: { attrs: [ daemon web FOSS permissive ] description: "Prometheus — a time-series metrics & alerting server."
             install: [
                 { via: native  when: "arch or debian or void or void_musl"  repo-component: universe }   // pacman/apt `prometheus` (debian lags upstream)
-                { via: tarball  when: "not arch and not debian"  installDir: "$CONFIGSYS_APP_DIR/prometheus"  requires: glibc   // upstream static binaries; self-author the unit
-                  version: { github: prometheus/prometheus  strip-v: true  asset: "prometheus-*.linux-amd64.tar.gz" } } ] }
+                { via: tarball  when: "not arch and not debian"  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/prometheus"  requires: glibc   // upstream static binaries; self-author the unit
+                  version: { github: prometheus/prometheus  strip-v: true  asset: "prometheus-*.linux-$ARCH.tar.gz" } } ] }
         cockpit: { attrs: [ web daemon FOSS copyleft ] description: "Cockpit — a web-based server administration UI (socket-activated)."
             install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn" } ] }   // uniform pkg `cockpit`
         cockpit-service: { description: "Enable Cockpit's web UI (systemd socket)." requires: cockpit  install: [ { via: service  unit: cockpit.socket } ] }
@@ -2520,7 +2520,7 @@
                        { via: native  when: "ubuntu"  ppa: "jonaski/strawberry"  requires: software-properties-common } ] }
 
         // --- digital-music tools --- (GUI apps via Flathub; audio-system bits native)
-        musescore:     { attrs: [ GUI app FOSS copyleft ] description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-x86_64.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
+        musescore:     { attrs: [ GUI app FOSS copyleft ] description: "MuseScore — music notation and composition." install: [ { via: flatpak  hub: flathub  app: org.musescore.MuseScore }  { via: appImage  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: MuseScore  scope: user  version: { github: musescore/MuseScore  strip-v: true  asset: "MuseScore-Studio-*-$ARCH.AppImage" }  path: ~/apps/musescore.appimage } ] }   // asset glob absorbs the build-number suffix
         hydrogen:      { attrs: [ GUI app FOSS copyleft ] description: "Hydrogen — a pattern-based drum machine." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
         carla:         { attrs: [ GUI app FOSS copyleft ] description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
         sonic-pi:      { attrs: [ GUI app FOSS permissive ] description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: native  when: "debian"  repo-component: universe }  { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
@@ -2677,8 +2677,8 @@
             suggests: lazygit-glue
             install: [
                 { via: native  when: "arch or void or void_musl or alpine or opensuse_tumbleweed or fedora_atomic or (debian >= 13) or (ubuntu >= 25.10)"  repo-component: universe }   // not in Fedora/EPEL -> tarball there
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazygit"
-                  version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazygit"
+                  version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_$ARCH.tar.gz" } }
             ]
         }
         lazygit-glue: { description: "lazygit shell glue (aliases the ~/apps binary onto PATH), linked into place."
@@ -2712,7 +2712,7 @@
             install: [ { via: native  when: "void_musl or alpine" }  { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
                        { via: native  when: "debian or fedora or arch or opensuse or void"  repo-component: universe  standing: never-auto }
                        { via: native  when: "rhel"  requires: epel  standing: never-auto }
-                       { via: appImage  when: "(arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali)"  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+                       { via: appImage  when: "(arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali)"  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage } ]
@@ -2735,8 +2735,8 @@
             install: [
                 { via: native  when: "void or void_musl" }
                 { via: native  when: "(redhat or arch or opensuse or alpine or fedora_atomic) and not amzn" }
-                { via: tarball  when: "not alpine"  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: [ glibc, xz ]
-                  version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
+                { via: tarball  when: "not alpine"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/helix"  requires: [ glibc, xz ]
+                  version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-$ARCH-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
         // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
         // Alpine, openSUSE (as `micro-editor`), Void, Homebrew; EL via EPEL. Amazon Linux has neither,
@@ -2747,8 +2747,8 @@
             install: [
                 { via: native  when: "(not rhel) and not amzn"  repo-component: universe  name: { zypper: micro-editor } }
                 { via: native  when: "rhel"  requires: epel }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
-                  version: { github: micro-editor/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: linux64  aarch64: linux-arm64 }  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
+                  version: { github: micro-editor/micro  strip-v: true  asset: "micro-*-$ARCH.tar.gz" } }
             ]
         }
         // fresh — a modern, mouse-friendly terminal text editor in Rust (familiar shortcuts, LSP,
@@ -2757,8 +2757,8 @@
         fresh: { attrs: [ TUI FOSS permissive ] description: "fresh — a modern, mouse-friendly terminal text editor (`fresh`)."
             install: [ { via: native-pkg-file  when: "debian"  version: { github: sinelaw/fresh  strip-v: true }  asset: { deb: { x86_64: "fresh-editor_*_amd64.deb" } } }
                        { via: native-pkg-file  when: "redhat or opensuse"  version: { github: sinelaw/fresh  strip-v: true }  asset: { rpm: { x86_64: "fresh-editor*x86_64.rpm" } } }
-                       { via: tarball  when: "not (debian or redhat or opensuse)"  installDir: "$CONFIGSYS_APP_DIR/fresh"
-                         version: { github: sinelaw/fresh  strip-v: true  asset: "fresh-editor-x86_64-unknown-linux-musl.tar.gz" } } ] }   // musl static -> runs on Alpine too
+                       { via: tarball  when: "not (debian or redhat or opensuse)"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/fresh"
+                         version: { github: sinelaw/fresh  strip-v: true  asset: "fresh-editor-$ARCH-unknown-linux-musl.tar.gz" } } ] }   // musl static -> runs on Alpine too
         // Zed — native on Arch; elsewhere its own install script (installs into ~/.local).
         zed: { attrs: [ GUI app FOSS copyleft tele ] suggests: [ zed-dotfiles  zed-glue ]  description: "High-performance, multiplayer code editor from the Atom team."
             install: [
@@ -2770,7 +2770,7 @@
                   version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
                   uninstall-cmd: 'rm -rf "$HOME/.local/zed.app" "$HOME/.local/bin/zed"'
                   location:      '~/.local/bin/zed' }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/zed"  version: { github: zed-industries/zed  strip-v: true  asset: "zed-linux-x86_64.tar.gz" } } ]   // upstream release tarball (zed.app bundle) — cleaner than the curl|sh script
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/zed"  version: { github: zed-industries/zed  strip-v: true  asset: "zed-linux-$ARCH.tar.gz" } } ]   // upstream release tarball (zed.app bundle) — cleaner than the curl|sh script
         }
         // vscode: native from Microsoft's vendor repos. Debian/Ubuntu/Pop use the MS apt
         // repo (key + an inline `deb` source-line -> package `code`); Fedora/EL use the MS
@@ -2821,8 +2821,8 @@
         antigravity: { attrs: [ GUI app electron proprietary freeware account cloud tele beta ] suggests: antigravity-glue  description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
             install: [
                 { via: aur  when: "arch"  name: antigravity }
-                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "2.19.1" }
-                  url: "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz" } ]
+                { via: tarball  when: "not arch"  cpu-names: { x86_64: x64  aarch64: arm }  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "2.19.1" }
+                  url: "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-$ARCH/Antigravity.tar.gz" } ]
         }
         // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
         // for user, /opt/android-studio for system). No clean version API, so the version is a
@@ -2884,7 +2884,7 @@
                   version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
                   uninstall-cmd: 'sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama'
                   location:      '/usr/local/bin/ollama' }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ollama"  requires: zstd  version: { github: ollama/ollama  strip-v: true  asset: "ollama-linux-amd64.tar.zst" } } ]   // upstream tarball (zstd; bin/ + lib/) — a no-daemon userland alt to the install script
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/ollama"  requires: zstd  version: { github: ollama/ollama  strip-v: true  asset: "ollama-linux-$ARCH.tar.zst" } } ]   // upstream tarball (zstd; bin/ + lib/) — a no-daemon userland alt to the install script
         }
 
         // --- container / k8s / dev TUIs & C++ package managers ---
@@ -2892,8 +2892,8 @@
         // and k9s have stable asset names, so they use github's API-free latest/download URL.
         lazydocker: { attrs: [ TUI FOSS permissive ] suggests: [ lazydocker-dotfiles  lazydocker-glue ] 
             description: "Terminal UI for Docker/Compose — containers, logs, stats."
-            install: [ { via: native  when: "void_musl" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
-                         version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_x86_64.tar.gz" } } ]
+            install: [ { via: native  when: "void_musl" }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazydocker"  requires: glibc
+                         version: { github: jesseduffield/lazydocker  strip-v: true  asset: "lazydocker_*_Linux_$ARCH.tar.gz" } } ]
         }
         // TUI clients + creative/misc terminal apps.
         discordo: { attrs: [ TUI app FOSS permissive account cloud online ] description: "Discordo — a lightweight terminal (TUI) Discord client."
@@ -2917,16 +2917,16 @@
         webcamize: { attrs: [ CLI FOSS copyleft ] description: "webcamize — use a DSLR/mirrorless/other camera as a Linux webcam (via v4l2loopback)."
                      install: [ { via: aur  when: "arch"  name: webcamize } ] }   // AUR-only (build-from-source elsewhere); needs v4l2loopback + libgphoto2 at runtime
         lazysql: { attrs: [ TUI FOSS permissive ] suggests: lazysql-glue  description: "Terminal UI for SQL databases (`lazysql`)."
-            install: [ { via: native  when: "void_musl" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
-                         url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_x86_64.tar.gz" } ]
+            install: [ { via: native  when: "void_musl" }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazysql"  requires: glibc  version: { static: latest }
+                         url: "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz" } ]
         }
         k9s: { attrs: [ TUI FOSS permissive ] suggests: [ k9s-dotfiles  k9s-glue ] 
             description: "Terminal UI to navigate and manage Kubernetes clusters."
             install: [
                 { via: native  when: "arch or void or void_musl" }
                 { via: native  when: "fedora_atomic" }             // brew formula `k9s`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/k9s"  requires: glibc  version: { static: latest }
-                  url: "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz" } ]
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/k9s"  requires: glibc  version: { static: latest }
+                  url: "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_$ARCH.tar.gz" } ]
         }
         // kubectl isn't in the Debian/Fedora base repos; native on Arch/Homebrew, else the upstream
         // static binary from dl.k8s.io (bare-binary tarball mode; `stable.txt` gives the version).
@@ -2935,9 +2935,9 @@
             install: [
                 { via: native  when: "arch or void or void_musl" }
                 { via: native  when: "fedora_atomic" }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none   // static Go binary from dl.k8s.io — runs anywhere; a uniform option (native stays default on arch/atomic)
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/kubectl"  archive: none   // static Go binary from dl.k8s.io — runs anywhere; a uniform option (native stays default on arch/atomic)
                   version: { url: "https://dl.k8s.io/release/stable.txt" }
-                  url: "https://dl.k8s.io/release/v$VERSION/bin/linux/amd64/kubectl" }
+                  url: "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl" }
                 { via: snap  name: kubectl  classic: true } ]   // Canonical-official snap (candidate-only)
         }
         // helm & k3s install via their upstream scripts (script driver) where not native.
@@ -3003,16 +3003,16 @@
             install: [
                 { via: native  when: "void or void_musl" }
                 { via: native  when: "(redhat or arch or opensuse or fedora_atomic) and not amzn" }
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/just"
-                  version: { github: casey/just  strip-v: true  asset: "just-*-x86_64-unknown-linux-musl.tar.gz" } }
+                { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/just"
+                  version: { github: casey/just  strip-v: true  asset: "just-*-$ARCH-unknown-linux-musl.tar.gz" } }
                 { via: cargo  name: just  version: { crates: just } } ]                        // `cargo install just` as a pinnable alt
         }
         // Bazelisk (the official launcher that manages bazel versions) — a bare static binary.
         bazelisk: { attrs: [ CLI FOSS permissive ] suggests: bazelisk-glue  description: "Bazelisk — a launcher that manages Bazel versions."
             install: [
                 { via: native  when: "fedora_atomic" }             // brew formula `bazelisk`
-                { via: tarball  installDir: "$CONFIGSYS_APP_DIR/bazelisk"  archive: none  binary: bazelisk  version: { static: latest }
-                  url: "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-amd64" } ]
+                { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/bazelisk"  archive: none  binary: bazelisk  version: { static: latest }
+                  url: "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH" } ]
         }
         // Maven (native everywhere) and Gradle (native except Fedora base — use SDKMAN there). Both
         // need a JVM.
@@ -3116,9 +3116,9 @@
         }
         azure-cli: { attrs: [ CLI FOSS permissive account cloud ] description: "Azure CLI (`az`) — manage Microsoft Azure resources." install: [ { via: pipx  name: azure-cli  version: { pypi: azure-cli } } ] }
         // IaC + gRPC — Go static binaries from github release tarballs.
-        opentofu: { attrs: [ CLI app FOSS permissive ] suggests: opentofu-glue  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_amd64.tar.gz" } } ] }
-        grpcurl:  { attrs: [ CLI FOSS permissive ] suggests: grpcurl-glue  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_x86_64.tar.gz" } } ] }
-        protobuf: { attrs: [ CLI toolchain FOSS permissive ] suggests: protobuf-glue  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-x86_64.zip" } } ] }   // prebuilt protoc + well-known-types include/
+        opentofu: { attrs: [ CLI app FOSS permissive ] suggests: opentofu-glue  description: "OpenTofu — open-source, Terraform-compatible infrastructure as code." install: [ { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/opentofu"  version: { github: opentofu/opentofu  strip-v: true  asset: "tofu_*_linux_$ARCH.tar.gz" } } ] }
+        grpcurl:  { attrs: [ CLI FOSS permissive ] suggests: grpcurl-glue  description: "curl for gRPC — call and inspect gRPC services from the shell." install: [ { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/grpcurl"   version: { github: fullstorydev/grpcurl  strip-v: true  asset: "grpcurl_*_linux_$ARCH.tar.gz" } } ] }
+        protobuf: { attrs: [ CLI toolchain FOSS permissive ] suggests: protobuf-glue  description: "Protocol Buffers compiler (`protoc`)." install: [ { via: native  repo-component: universe  name: { apt: protobuf-compiler  dnf: protobuf-compiler  zypper: protobuf-devel  default: protobuf } }  { via: tarball  cpu-names: { x86_64: x86_64  aarch64: aarch_64 }  installDir: "$CONFIGSYS_APP_DIR/protobuf"  requires: unzip  version: { github: protocolbuffers/protobuf  strip-v: true  asset: "protoc-*-linux-$ARCH.zip" } } ] }   // prebuilt protoc + well-known-types include/
         protobuf-dev: { attrs: [ lib FOSS permissive ] description: "Protocol Buffers C++ runtime + headers (libprotobuf; distinct from the `protobuf` compiler)."
             install: [ { via: native  when: "void or void_musl"  name: protobuf-devel }  { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libprotobuf-dev  dnf: protobuf-devel  pacman: protobuf  apk: protobuf-dev  zypper: protobuf-devel  brew: protobuf } } ] }
@@ -3182,7 +3182,7 @@
         miniforge: { attrs: [ CLI FOSS permissive ] suggests: miniforge-glue  description: "Miniforge — a minimal conda installer (conda-forge default)."
             requires: curl
             install: [ { via: script
-                         install-cmd:   'curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p "$HOME/miniforge3" && rm -f /tmp/mf.sh'
+                         install-cmd:   'curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh" -o /tmp/mf.sh && bash /tmp/mf.sh -b -p "$HOME/miniforge3" && rm -f /tmp/mf.sh'
                          version-cmd:   '"$HOME/miniforge3/bin/conda" --version'
                          version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
                          uninstall-cmd: 'rm -rf "$HOME/miniforge3"'

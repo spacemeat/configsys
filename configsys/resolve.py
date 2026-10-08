@@ -117,7 +117,46 @@ def _matching(component, context, pins):
     # exactly like a false `when:` — so a component whose only method is via it becomes unroutable
     # (a `suggests:` skips it silently, a hard `requires:`/explicit want errors honestly).
     disabled = getattr(context, 'disabled', frozenset())
-    return [b for b in bindings if b.via not in disabled and b.pred.eval(context)], pin
+    cpu = getattr(context, 'cpu', None)
+    return [b for b in bindings
+            if b.via not in disabled and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
+
+
+def cpu_names(details):
+    '''A binding's `cpu-names:` map {cpu: upstream token}, or None. Upstreams spell CPUs their own
+    way (amd64/arm64/x64/linux64…), so `$ARCH` expands through this map — and its KEYS are the CPUs
+    upstream ships: on any other cpu the binding is not valid (like a false `when:`, but without
+    making the binding more specific, so it never shifts which method is the default).'''
+    m = details.get('cpu-names') if isinstance(details, dict) else None
+    return m if isinstance(m, dict) and m else None
+
+
+def _asset_cpus(details):
+    '''The cpus an explicit per-cpu `asset:` map covers ({x86_64: …} or format-then-cpu
+    {deb: {x86_64: …}}), or None when the asset isn't cpu-keyed.'''
+    a = details.get('asset') if isinstance(details, dict) else None
+    if not isinstance(a, dict) or not a:
+        return None
+    inner = [v for v in a.values() if isinstance(v, dict)]
+    return set().union(*inner) if inner else set(a)
+
+
+def arch_ok(details, cpu):
+    '''False when the binding declares the cpus it supports — via `cpu-names:` keys, or an explicit
+    per-cpu `asset:` map — and this cpu isn't among them. An undetected cpu (None) never declines.'''
+    if cpu is None:
+        return True
+    m = cpu_names(details)
+    if m is not None and cpu not in m:
+        return False
+    cpus = _asset_cpus(details)
+    return cpus is None or cpu in cpus
+
+
+def arch_token(details, cpu):
+    '''What `$ARCH` expands to for this cpu: the binding's `cpu-names:` entry, else the cpu itself.'''
+    m = cpu_names(details)
+    return str(m.get(cpu, cpu)) if m and cpu else cpu
 
 
 def candidate_bindings(component, cascade, context, pins=None):
@@ -306,7 +345,7 @@ def resolve_asset(binding, cpu):
     if isinstance(asset, dict):
         return asset.get(cpu)
     if isinstance(asset, str) and cpu:
-        return asset.replace('$ARCH', cpu)
+        return asset.replace('$ARCH', arch_token(binding.details, cpu))
     return asset
 
 

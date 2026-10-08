@@ -261,6 +261,30 @@ fastfetch: {
 }
 ```
 
+A cpu-keyed map's keys gate availability at RESOLVE time: on a cpu the map doesn't list, the
+binding isn't a candidate (format-then-cpu maps like `asset: { deb: { x86_64: … } }` count the
+union of their inner keys).
+
+**`cpu-names:` — one glob, each upstream's spelling.** When the artifact is a single `$ARCH`
+glob or `url:` template (a github `version: { asset: … }`), give the binding a `cpu-names:` map
+`{ <cpu>: <upstream token> }`. `$ARCH` then expands through it (asset glob, `url:` template), and —
+like any cpu-keyed map — its keys are the cpus upstream ships, so the binding declines elsewhere:
+
+```
+lazygit: { install: [ …
+    { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazygit"
+      version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_$ARCH.tar.gz" } } ] }
+julia: { install: [ …
+    { via: tarball  cpu-names: { x86_64: x86_64 }  url: "…/linux/x64/…/julia-1.12.6-linux-x86_64.tar.gz" } ] }   // x86-only
+```
+
+Prefer this over a `when: "… and cpu: x86_64"` clause for an x86-only download: a `when:` clause
+makes the binding MORE SPECIFIC, so it would start out-ranking broader bindings (an ungated
+flatpak) on x86 — `cpu-names`/cpu-keyed maps gate validity without touching specificity. (Two
+same-`via:` bindings whose cpu sets are disjoint are never ambiguous.) `tools/compaudit.py` flags
+an x86-only literal with neither gate (`arch-unguarded`). In a `source` build command `$ARCH`
+stays the raw machine cpu.
+
 Call the axis **cpu**, not `arch` — `arch:` collides with Arch Linux.
 
 ## 8. Specificity and ambiguity

@@ -12,7 +12,7 @@ Run check_all() when loading routes.hu to reject an ambiguous routes file up fro
 from itertools import combinations
 
 from . import predicate
-from .errors import ConfigsysError
+from .errors import ConfigError, ConfigsysError
 
 
 class AmbiguityError(ConfigsysError):
@@ -26,9 +26,18 @@ def check_component(name, component, cascade):
     overlap incomparably: those are alternative install methods, and the driver-preference /
     `standing:` channel picks the default at resolve time (a true tie errors there, pointing at
     preference — never at `when:`). So `when:` stays validity-only and is never forced narrower.'''
+    from .resolve import cpu_names
+    for i, b in enumerate(component.bindings):
+        m = b.details.get('cpu-names')
+        if m is not None and not (isinstance(m, dict) and m and all(isinstance(v, str) for v in m.values())):
+            raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `cpu-names:` must be a '
+                              f'non-empty map {{ <cpu>: <upstream token> }}, e.g. {{ x86_64: amd64  aarch64: arm64 }}')
     for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
         if a.via != b.via:
             continue                                   # cross-method overlap: preference decides
+        ma, mb = cpu_names(a.details), cpu_names(b.details)
+        if ma and mb and not (set(ma) & set(mb)):
+            continue                                   # disjoint cpu sets (cpu-names): never both valid
         if predicate.overlap(a.pred, b.pred, cascade) and not predicate.comparable(a.pred, b.pred, cascade):
             raise AmbiguityError(
                 f'component {name!r}: two via:{a.via} bindings (#{i} and #{j}) overlap but neither '

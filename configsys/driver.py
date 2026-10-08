@@ -119,12 +119,18 @@ class Driver:
         env = self.paths.env if self.paths is not None else {}
         return env.get('CONFIGSYS_ARCH') or platform.machine()
 
-    def _apply_placeholders(self, text, version):
+    def arch_token(self, rc=None):
+        '''What `$ARCH` expands to for this unit: its binding's `cpu-names:` spelling of this cpu
+        (amd64/arm64/x64…), else the raw cpu (x86_64/aarch64).'''
+        from .resolve import arch_token
+        return arch_token(rc.fields if rc is not None else None, self.arch())
+
+    def _apply_placeholders(self, text, version, rc=None):
         if not text:
             return text
         if version:
             text = text.replace('$VERSION', version)
-        return text.replace('$ARCH', self.arch())
+        return text.replace('$ARCH', self.arch_token(rc))
 
     def _disco_spec(self, rc):
         '''The version spec with $ARCH substituted into an `asset` glob (so the
@@ -132,7 +138,7 @@ class Driver:
         spec = rc.fields.get('version')
         if isinstance(spec, dict) and 'asset' in spec:
             spec = dict(spec)
-            spec['asset'] = spec['asset'].replace('$ARCH', self.arch())
+            spec['asset'] = spec['asset'].replace('$ARCH', self.arch_token(rc))
         return spec
 
     def _offline(self):
@@ -234,7 +240,7 @@ class Driver:
             gh, name = spec.get('github'), spec.get('asset')
             if gh and isinstance(name, str) and '*' not in name:
                 return f'https://github.com/{gh}/releases/latest/download/{name}'
-        url = self._apply_placeholders(rc.fields.get('url'), version)
+        url = self._apply_placeholders(rc.fields.get('url'), version, rc)
         if url and '$VERSION' in url:
             # the version couldn't be discovered (network/throttling, nothing cached): no URL, so the
             # driver fails saying so — not a download of a literal `$VERSION` path that 404s

@@ -221,7 +221,7 @@ def _probe_targets(comps):
     return {k: v for k, v in t.items() if v}
 
 
-_X86_TOKEN = re.compile(r'(x86[_-]64|amd64|linux64|\bx64\b|-x64[.-])', re.I)
+_X86_TOKEN = re.compile(r'(x86[_-]64|amd64|linux64|\bx64\b|-x64[.-]|[-_]64bit\b)', re.I)
 
 
 def _arch_unguarded(name, b, ver):
@@ -229,16 +229,16 @@ def _arch_unguarded(name, b, ver):
     arch-keyed map) yet its `when:` doesn't gate `cpu:` — on aarch64 it would fetch an x86 binary.'''
     if b.get('via') not in ('tarball', 'appImage', 'native-pkg-file', 'script'):
         return None
-    if 'cpu:' in str(b.get('when') or ''):
-        return None
+    if 'cpu:' in str(b.get('when') or '') or isinstance(b.get('cpu-names'), dict):
+        return None                                    # cpu-gated (when:) or arch-declared (cpu-names:)
     lits = [x for x in (ver.get('asset'), b.get('url'), b.get('asset')) if isinstance(x, str)]
     hit = next((x for x in lits if '$ARCH' not in x and _X86_TOKEN.search(x)), None)
     if not hit:
         return None
     return _fd('drift', 'arch-unguarded',
                f'{name} via:{b.get("via")} downloads an x86-64-only artifact ({hit!r}) but `when:` has no '
-               f'`cpu: x86_64` gate — on aarch64 it would install an x86 binary (gate it, or add an arm64 '
-               f'binding if upstream ships one)', binding=_bkey({'via': b.get('via'), 'when': b.get('when')}))
+               f'arch gate — on aarch64 it would install an x86 binary. Use `$ARCH` + `cpu-names:` '
+               f'({{ x86_64: <token> }} alone if upstream ships no arm64 build)', binding=_bkey({'via': b.get('via'), 'when': b.get('when')}))
 
 
 def _asset_globs(b, ver):
@@ -256,9 +256,14 @@ def _asset_globs(b, ver):
                 raw.append(v)
             elif isinstance(v, dict):
                 raw += [x for x in v.values() if isinstance(x, str)]
+    names = b.get('cpu-names') if isinstance(b.get('cpu-names'), dict) else None
+    arches = list(names) if names else ARCHES          # cpu-names keys = the cpus upstream ships
     out = []
     for g in raw:
-        out += sorted({g.replace('$ARCH', arch) for arch in ARCHES}) if '$ARCH' in g else [g]
+        if '$ARCH' in g:
+            out += sorted({g.replace('$ARCH', str((names or {}).get(a, a))) for a in arches})
+        else:
+            out.append(g)
     return out
 
 

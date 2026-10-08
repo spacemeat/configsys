@@ -370,5 +370,10 @@ Three distinct things (full model in `docs/versioned-requires.md` — but note t
   the native binding — apt READS state from it while `name` still installs the meta (`libreoffice`
   detects via `libreoffice-core`). Honored by every native manager (as is `packages: [...]`, a set
   installed/removed together, detected via `installed-name:` else its first member).
+- **CPU (aarch64).** A download that names a cpu (`amd64`, `x86_64`, `x64`, `linux64`, `64bit`)
+  must say which cpus it covers: `$ARCH` + `cpu-names: { x86_64: <token>  aarch64: <token> }` (the
+  tokens upstream actually uses — check the release assets), or `cpu-names: { x86_64: <token> }`
+  alone when there's no arm64 build. Never a bare x86 literal (it installs an x86 binary on ARM),
+  and not `when: "cpu: x86_64"` (that out-specifics other methods). See docs/routing-model.md §7.
 - **Exactness.** Flatpak app-ids and asset globs fail silently if wrong — verify by search, and by
   the resolve sweep + (ideally) a podman real-install for the risky ones.
