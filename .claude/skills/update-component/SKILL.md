@@ -181,7 +181,7 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
    `note` that refutes a probe finding drops it.
    **Group cross-cutting patterns:** when one category hits many units (e.g. `arch-unguarded` on
    dozens of tarballs), present it as ONE item listing the units. The right fix for a pattern is
-   often a single driver/model change (an `$ARCH` alias map, a new field) rather than N route
+   often a single driver/model change (like `cpu-names:` was for arch-unguarded) rather than N route
    edits — say so, and let the user choose between the systemic fix and per-unit edits.
 2. Sanity-check before presenting: drop findings without evidence, and spot-verify every
    **broken** finding yourself (one fetch each) — a false "broken" is the most expensive kind.
@@ -257,7 +257,8 @@ Same gates as add-component §7–9, with one twist for the golden:
   asset (`probe_facts.latest_assets` lists what does — usually an arch-token change like
   `aarch64`→`arm64`); `asset-not-in-latest` = only an older release has it (upstream dropped it?);
   `prerelease-only` = resolves from a nightly/prerelease (rolling version, updates invisible);
-  `arch-unguarded` = an x86-64-only download with no `cpu:` gate (wrong binary on aarch64).
+  `arch-unguarded` = an x86-64-only download with no cpu gate (wrong binary on aarch64) — fix with
+  `$ARCH` + `cpu-names:` (docs/routing-model.md §7), `{ x86_64: … }` alone if there's no arm64 build.
 - Cost: a trial audit of 5 units took one agent ~7 min and ~110k tokens, so a first `--full` base
   run (~640 units, ~43 agents) is large — tell the user before fanning out. Routine `*` runs are
   much smaller: the ledger skips units audited within `--due-days` whose definition hasn't
