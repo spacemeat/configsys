@@ -15,7 +15,7 @@ component, a one-line comment on non-obvious gating, plugin data in the plugin's
 Two halves:
 - **Mechanical** — `tools/compaudit.py`: enumerates the scope, groups each component with its
   companions (`-dotfiles`/`-glue`/`-service`/`-group`) into one *unit*, and probes upstreams with a
-  cache (GitHub rename/gone/latest release [+archived/license with a token], and asset globs
+  cache (GitHub rename/gone/latest release [+archived/license with a token — see Phase 0], and asset globs
   checked the way the driver resolves them — latest, then recent releases incl. prereleases,
   case-insensitive; Flathub published/end-of-life/renamed; AUR missing/promoted-to-`[extra]`/
   orphaned/out-of-date; crates/PyPI/npm missing/deprecated; and a static check for x86-64-only
@@ -52,10 +52,21 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
 
 1. `git status` in each scope's repo. A dirty tree is fine to audit, but say so — you'll want a
    clean diff to apply fixes into.
-2. GitHub token: `compaudit` reads `CONFIGSYS_GITHUB_TOKEN` / `GITHUB_TOKEN`. Without one it still
-   detects renames/gone repos/latest release/asset globs (via github.com redirects and release
-   pages), but not *archived* or *license* facts. If unset, tell the user once (`! gh auth login`
-   then `export GITHUB_TOKEN=$(gh auth token)` enables them) and continue.
+2. **GitHub token — ALWAYS check, ALWAYS remind.** The user has said they WILL forget this, so it
+   is never skipped. Run `.venv/bin/python tools/compaudit.py token` (exit 0 = a token is
+   available from `$CONFIGSYS_GITHUB_TOKEN`, `$GITHUB_TOKEN`, or a logged-in `gh` CLI via
+   `gh auth token` — no export needed). Exit 1 = none: without it the probes still catch
+   renames / gone repos / releases / asset globs, but SKIP archived-repo and license-change facts.
+   Then, BEFORE anything else in your reply, show this reminder as its own block:
+   > ⚠ **No GitHub token.** Archived-repo and license-change checks will be skipped. One-time fix
+   > (it persists): type `! gh auth login` — compaudit then picks the token up automatically.
+   - Whole-scope run (`*`, `<plugin>/*`, `--full`): ask (AskUserQuestion) "Log in first" vs
+     "Continue without license/archived checks". A degraded full run is expensive to redo. If they
+     log in, re-run `compaudit.py token` to confirm before continuing.
+   - Named targets: remind and continue.
+   - Either way, repeat the one-line reminder at the END of the Phase 3 report (`summary.json`
+     has `"github_token": "none"` for a degraded run) — that's where the user is reading when
+     they're done.
 3. For `*`/`--full`, state the scale before fanning out: "N units due → M subagents". A first full
    base run is ~640 units / ~43 agents at batch 15; later runs are incremental. Proceed without
    waiting unless the user has said to confirm large runs.
@@ -178,7 +189,8 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
    finding numbered, with unit, binding, summary, evidence, and the proposed edit.
 4. Show the user, in the terminal: counts per severity; every **broken** and **drift** finding
    (number, unit, one line); the opportunity/note counts (offer to list them); units not audited
-   and why. For a large report, offer it as a page. Then ask what to apply — e.g. "all broken +
+   and why. If any scope ran without a GitHub token, end with the reminder line (`! gh auth
+   login` once, then re-run for license/archived checks). For a large report, offer it as a page. Then ask what to apply — e.g. "all broken +
    drift", specific numbers, or nothing. With `--report-only`, stop here (still do Phase 6's
    `record`).
 

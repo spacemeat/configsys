@@ -12,7 +12,8 @@ GitHub API.
 Probes (cached under $XDG_CACHE_HOME/configsys/compaudit, default TTL 1 day):
   github   — repo renamed (redirect / full_name) or gone; latest release tag; whether each
              binding's `asset:` glob still matches an asset of that release. With a token
-             (CONFIGSYS_GITHUB_TOKEN / GITHUB_TOKEN) also archived / license / last push.
+             (CONFIGSYS_GITHUB_TOKEN / GITHUB_TOKEN, else `gh auth token` if gh is logged in)
+             also archived / license / last push.
   flathub  — app-id published; end-of-life (renamed via eol/rebase, or an eol message).
   aur      — package exists; orphaned; flagged out-of-date.
   crates / pypi / npm — package exists; npm deprecation.
@@ -22,6 +23,7 @@ Usage:
   python3 tools/compaudit.py scan  <scope> [names...] [--full | --due-days N] [--batch-size N]
                                    [--out DIR] [--no-probe] [--ttl HOURS]
   python3 tools/compaudit.py record <scope> <names...>    # mark units deep-audited (ledger)
+  python3 tools/compaudit.py token                        # preflight: is a GitHub token available?
 
 <scope> is `base` (this repo's routes.hu) or a plugin: a name (`configsys-blender`) or a path.
 A plugin name resolves to its DEV CHECKOUT — $CONFIGSYS_PLUGIN_SRC/<name>, else a sibling of this
@@ -262,6 +264,32 @@ def _asset_globs(b, ver):
 
 # -- probes -----------------------------------------------------------------
 
+TOKEN_REMINDER = (
+    'NO GITHUB TOKEN — github probes are degraded (renames/gone repos/releases/assets still work;\n'
+    'archived-repo and license-change facts are SKIPPED). Fix once, it persists:\n'
+    '    gh auth login        (in Claude Code: `! gh auth login`)\n'
+    'compaudit then reads the token from `gh auth token` automatically — no export needed.\n'
+    '(Or export CONFIGSYS_GITHUB_TOKEN / GITHUB_TOKEN.)')
+
+
+def github_token():
+    '''(token, source): $CONFIGSYS_GITHUB_TOKEN, $GITHUB_TOKEN, else `gh auth token` when the gh CLI
+    is logged in (so a one-time `gh auth login` is all the setup there is). (None, None) if none.'''
+    for var in ('CONFIGSYS_GITHUB_TOKEN', 'GITHUB_TOKEN'):
+        if os.environ.get(var):
+            return os.environ[var], f'${var}'
+    import shutil
+    import subprocess
+    if shutil.which('gh'):
+        try:
+            r = subprocess.run(['gh', 'auth', 'token'], capture_output=True, text=True, timeout=10)
+            if r.returncode == 0 and r.stdout.strip():
+                return r.stdout.strip(), 'gh auth token'
+        except (OSError, subprocess.SubprocessError):
+            pass
+    return None, None
+
+
 class Fetcher:
     '''Cached GETs with per-host concurrency limits. Returns (status, final_url, body|None).'''
     LIMITS = {'crates.io': 1, 'api.github.com': 4, 'github.com': 4}
@@ -271,7 +299,7 @@ class Fetcher:
         self.dir.mkdir(parents=True, exist_ok=True)
         self.ttl = ttl_hours * 3600
         self.offline = offline
-        self.token = os.environ.get('CONFIGSYS_GITHUB_TOKEN') or os.environ.get('GITHUB_TOKEN')
+        self.token, self.token_source = github_token()
         self._sems = {}
         self._lock = threading.Lock()
 
@@ -598,11 +626,16 @@ def main(argv=None):
     p.add_argument('--no-probe', action='store_true')
     p.add_argument('--offline', action='store_true', help='probe from cache only')
     p.add_argument('--ttl', type=float, default=24, help='probe cache TTL in hours (default 24)')
+    sub.add_parser('token', help='report whether a GitHub token is available (preflight)')
     p = sub.add_parser('record')
     p.add_argument('scope')
     p.add_argument('names', nargs='+')
     a = ap.parse_args(argv)
 
+    if a.cmd == 'token':
+        tok, src = github_token()
+        print(f'github token: available (from {src})' if tok else TOKEN_REMINDER)
+        return 0 if tok else 1
     label, root, units = load_scope(a.scope)
     if a.cmd == 'list':
         for k, u in units.items():
@@ -619,8 +652,8 @@ def main(argv=None):
     if not a.no_probe:
         f = Fetcher(a.ttl, a.offline)
         if not f.token and not a.offline:
-            print('compaudit: no CONFIGSYS_GITHUB_TOKEN/GITHUB_TOKEN — github probes use redirects only '
-                  '(rename/gone/latest/assets; no archived/license facts)', file=sys.stderr)
+            print('\n'.join('compaudit: ' + line for line in TOKEN_REMINDER.split('\n')) + '\n',
+                  file=sys.stderr)
         run_probes(units, f)
     # explicitly-named units are always deep-audited; `*` consults the ledger
     keys = list(units) if (a.full or a.names) else due(units, label, a.due_days)
@@ -633,6 +666,7 @@ def main(argv=None):
             indent=1, default=str))
     summary = {
         'scope': label, 'scope_root': str(root), 'units_total': len(units),
+        'github_token': None if a.no_probe else (f.token_source or 'none'),
         'units_due': len(keys), 'batches': len(batches),
         'skipped_recent': sorted(set(units) - set(keys)),
         'probe_findings': {k: u['probe_findings'] for k, u in units.items() if u.get('probe_findings')},

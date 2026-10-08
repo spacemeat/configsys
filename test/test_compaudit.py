@@ -166,3 +166,21 @@ def test_ledger_due_logic(tmp_path, monkeypatch):
     units['b']['def_hash'] = 'changed'
     assert ca.due(units, 'base', 30) == ['b', 'c']
     assert units['b']['due_reason'] == 'definition changed'
+
+
+def test_github_token_precedence_and_gh_fallback(monkeypatch):
+    import shutil
+    import subprocess
+    monkeypatch.setenv('GITHUB_TOKEN', 'env-tok')
+    monkeypatch.setenv('CONFIGSYS_GITHUB_TOKEN', 'cfs-tok')
+    assert ca.github_token() == ('cfs-tok', '$CONFIGSYS_GITHUB_TOKEN')
+    monkeypatch.delenv('CONFIGSYS_GITHUB_TOKEN')
+    assert ca.github_token() == ('env-tok', '$GITHUB_TOKEN')
+    monkeypatch.delenv('GITHUB_TOKEN')
+    monkeypatch.setattr(shutil, 'which', lambda n: '/usr/bin/gh')
+    monkeypatch.setattr(subprocess, 'run',
+                        lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout='gh-tok\n', stderr=''))
+    assert ca.github_token() == ('gh-tok', 'gh auth token')
+    monkeypatch.setattr(subprocess, 'run',             # gh present but logged out
+                        lambda *a, **k: subprocess.CompletedProcess(a, 1, stdout='', stderr='not logged in'))
+    assert ca.github_token() == (None, None)
