@@ -36,12 +36,12 @@ def test_machine_default_only_stamps_scope_honoring_families(tmp_path):
     (tmp_path / 'configsys.hu').write_text('{ configs: [ dev ]  scope: system }')
     args = argparse.Namespace(pretend=True, os='pop', home=str(tmp_path), config=None)
     ctx = Context(args)
-    units = ctx.apply_scope_default(ctx.routes.resolve_names(['arduino', 'neovim', 'btop']))
+    units = ctx.apply_scope_default(ctx.routes.resolve_names(['arduino', 'neovim', 'ghostty', 'btop']))
     # honoring driver with no route scope -> stamped with the machine default (arduino defaults to
     # flatpak — also scope-honoring — since flatpak outranks its appImage binding)
     assert units['flatpak\\arduino'].fields.get('scope') == 'system'
     # a route that pins scope wins over the machine default
-    assert units['appImage\\neovim'].fields.get('scope') == 'user'
+    assert units['appImage\\ghostty'].fields.get('scope') == 'user'
     # fixed-scope drivers are never stamped
     assert 'scope' not in units['cargo\\tree-sitter-cli'].fields
     assert 'scope' not in units['dotfiles\\neovim-dotfiles'].fields

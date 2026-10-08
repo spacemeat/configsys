@@ -107,36 +107,12 @@
    }
   },
   "android-file-transfer": {
-   "aur\\android-file-transfer": {
-    "driver": "aur",
-    "fields": {
-     "name": "android-file-transfer-linux"
-    },
-    "name": "android-file-transfer-linux"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
+   "pacman\\android-file-transfer": {
     "driver": "pacman",
     "fields": {
-     "name": "base-devel"
+     "name": "android-file-transfer"
     },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
+    "name": "android-file-transfer"
    }
   },
   "android-studio": {
@@ -246,9 +222,9 @@
    "aur\\antigravity": {
     "driver": "aur",
     "fields": {
-     "name": "antigravity-bin"
+     "name": "antigravity"
     },
-    "name": "antigravity-bin"
+    "name": "antigravity"
    },
    "dotfiles\\git-dotfiles": {
     "driver": "dotfiles",
@@ -438,36 +414,12 @@
    }
   },
   "asciiquarium": {
-   "aur\\asciiquarium": {
-    "driver": "aur",
+   "pacman\\asciiquarium": {
+    "driver": "pacman",
     "fields": {
      "name": "asciiquarium"
     },
     "name": "asciiquarium"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
    }
   },
   "asio": {
@@ -480,36 +432,12 @@
    }
   },
   "astroterm": {
-   "aur\\astroterm": {
-    "driver": "aur",
+   "pacman\\astroterm": {
+    "driver": "pacman",
     "fields": {
      "name": "astroterm"
     },
     "name": "astroterm"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
    }
   },
   "atop": {
@@ -928,36 +856,12 @@
    }
   },
   "bonnie++": {
-   "aur\\bonnie++": {
-    "driver": "aur",
+   "pacman\\bonnie++": {
+    "driver": "pacman",
     "fields": {
      "name": "bonnie++"
     },
     "name": "bonnie++"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
    }
   },
   "boost": {
@@ -1230,30 +1134,6 @@
    }
   },
   "c3": {
-   "aur\\c3": {
-    "driver": "aur",
-    "fields": {
-     "name": "c3c"
-    },
-    "name": "c3c"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
    "pacman\\c-toolchain": {
     "driver": "pacman",
     "fields": {
@@ -1261,12 +1141,12 @@
     },
     "name": "gcc"
    },
-   "pacman\\git": {
+   "pacman\\c3": {
     "driver": "pacman",
     "fields": {
-     "name": "git"
+     "name": "c3c"
     },
-    "name": "git"
+    "name": "c3c"
    }
   },
   "cabal": {
@@ -4865,36 +4745,33 @@
    }
   },
   "hey": {
-   "aur\\hey": {
-    "driver": "aur",
+   "glue\\go-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "hey"
+     "glue": "go"
     },
-    "name": "hey"
+    "name": "go-glue"
    },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
+   "glue\\shell-glue": {
+    "driver": "glue",
     "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
+     "loader": "all"
     },
-    "name": "git-dotfiles"
+    "name": "shell-glue"
    },
-   "pacman\\base-devel": {
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   },
+   "pacman\\go": {
     "driver": "pacman",
     "fields": {
-     "name": "base-devel"
+     "name": "go"
     },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
+    "name": "go"
    }
   },
   "hlint": {
@@ -5468,43 +5345,19 @@
    }
   },
   "jenkins": {
-   "aur\\jenkins": {
-    "driver": "aur",
-    "fields": {
-     "name": "jenkins"
-    },
-    "name": "jenkins"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
    "pacman\\jdk": {
     "driver": "pacman",
     "fields": {
      "name": "jdk21-openjdk"
     },
     "name": "jdk21-openjdk"
+   },
+   "pacman\\jenkins": {
+    "driver": "pacman",
+    "fields": {
+     "name": "jenkins"
+    },
+    "name": "jenkins"
    }
   },
   "jetbrains-toolbox": {
@@ -6329,7 +6182,8 @@
    "pacman\\lazygit": {
     "driver": "pacman",
     "fields": {
-     "name": "lazygit"
+     "name": "lazygit",
+     "repo-component": "universe"
     },
     "name": "lazygit"
    }
@@ -6764,36 +6618,12 @@
    }
   },
   "librewolf": {
-   "aur\\librewolf": {
-    "driver": "aur",
-    "fields": {
-     "name": "librewolf-bin"
-    },
-    "name": "librewolf-bin"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
+   "pacman\\librewolf": {
     "driver": "pacman",
     "fields": {
-     "name": "base-devel"
+     "name": "librewolf"
     },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
+    "name": "librewolf"
    }
   },
   "libsecret": {
@@ -9635,36 +9465,12 @@
    }
   },
   "protontricks": {
-   "aur\\protontricks": {
-    "driver": "aur",
+   "pacman\\protontricks": {
+    "driver": "pacman",
     "fields": {
      "name": "protontricks"
     },
     "name": "protontricks"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
    }
   },
   "protonup-qt": {
@@ -12494,36 +12300,12 @@
    }
   },
   "vegeta": {
-   "aur\\vegeta": {
-    "driver": "aur",
+   "pacman\\vegeta": {
+    "driver": "pacman",
     "fields": {
      "name": "vegeta"
     },
     "name": "vegeta"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
    }
   },
   "virt-manager": {
@@ -13906,36 +13688,12 @@
    }
   },
   "zork": {
-   "aur\\zork": {
-    "driver": "aur",
-    "fields": {
-     "name": "frotz"
-    },
-    "name": "frotz"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
+   "pacman\\zork": {
     "driver": "pacman",
     "fields": {
-     "name": "base-devel"
+     "name": "frotz-ncurses"
     },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
+    "name": "frotz-ncurses"
    }
   },
   "zoxide": {
@@ -14302,9 +14060,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -22601,27 +22359,13 @@
    }
   },
   "neovim": {
-   "appImage\\neovim": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Neovim",
-     "path": "~/apps/nvim.appimage",
-     "scope": "user",
-     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
-     "version": {
-      "asset": "nvim-linux-$ARCH.appimage",
-      "github": "neovim/neovim"
-     }
-    },
-    "name": "Neovim"
-   },
-   "apt\\libfuse2": {
+   "apt\\neovim": {
     "driver": "apt",
     "fields": {
-     "name": "libfuse2",
+     "name": "neovim",
      "repo-component": "universe"
     },
-    "name": "libfuse2"
+    "name": "neovim"
    },
    "apt\\ripgrep": {
     "driver": "apt",
@@ -28084,9 +27828,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -41747,9 +41491,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -55500,9 +55244,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -68817,9 +68561,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -82166,9 +81910,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -86823,12 +86567,13 @@
    }
   },
   "lazygit": {
-   "brew\\curl": {
+   "brew\\lazygit": {
     "driver": "brew",
     "fields": {
-     "name": "curl"
+     "name": "lazygit",
+     "repo-component": "universe"
     },
-    "name": "curl"
+    "name": "lazygit"
    },
    "glue\\lazygit-glue": {
     "driver": "glue",
@@ -86843,19 +86588,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   },
-   "tarball\\lazygit": {
-    "driver": "tarball",
-    "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
-     "name": "lazygit",
-     "version": {
-      "asset": "lazygit_*_Linux_x86_64.tar.gz",
-      "github": "jesseduffield/lazygit",
-      "strip-v": "true"
-     }
-    },
-    "name": "lazygit"
    }
   },
   "lazygit-glue": {
@@ -92756,9 +92488,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -106797,9 +106529,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -114268,12 +114000,19 @@
    }
   },
   "micro": {
-   "dnf\\curl": {
+   "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
-     "name": "curl"
+     "name": "epel-release"
     },
-    "name": "curl"
+    "name": "epel-release"
+   },
+   "dnf\\micro": {
+    "driver": "dnf",
+    "fields": {
+     "name": "micro"
+    },
+    "name": "micro"
    },
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
@@ -114298,19 +114037,6 @@
      "loader": "all"
     },
     "name": "shell-glue"
-   },
-   "tarball\\micro": {
-    "driver": "tarball",
-    "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/micro",
-     "name": "micro",
-     "version": {
-      "asset": "micro-*-linux64.tar.gz",
-      "github": "zyedidia/micro",
-      "strip-v": "true"
-     }
-    },
-    "name": "micro"
    }
   },
   "micro-dotfiles": {
@@ -114920,20 +114646,6 @@
    }
   },
   "neovim": {
-   "appImage\\neovim": {
-    "driver": "appImage",
-    "fields": {
-     "name": "Neovim",
-     "path": "~/apps/nvim.appimage",
-     "scope": "user",
-     "url": "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage",
-     "version": {
-      "asset": "nvim-linux-$ARCH.appimage",
-      "github": "neovim/neovim"
-     }
-    },
-    "name": "Neovim"
-   },
    "cargo\\tree-sitter-cli": {
     "driver": "cargo",
     "fields": {
@@ -114951,13 +114663,12 @@
     },
     "name": "epel-release"
    },
-   "dnf\\libfuse2": {
+   "dnf\\neovim": {
     "driver": "dnf",
     "fields": {
-     "name": "fuse-libs",
-     "repo-component": "universe"
+     "name": "neovim"
     },
-    "name": "fuse-libs"
+    "name": "neovim"
    },
    "dnf\\ripgrep": {
     "driver": "dnf",
@@ -120658,9 +120369,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -134668,9 +134379,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -148426,9 +148137,9 @@
     "fields": {
      "installDir": "$CONFIGSYS_APP_DIR/antigravity",
      "name": "antigravity",
-     "url": "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz",
+     "url": "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz",
      "version": {
-      "static": "1.23.2"
+      "static": "2.19.1"
      }
     },
     "name": "antigravity"
@@ -153807,7 +153518,8 @@
    "xbps\\lazygit": {
     "driver": "xbps",
     "fields": {
-     "name": "lazygit"
+     "name": "lazygit",
+     "repo-component": "universe"
     },
     "name": "lazygit"
    }
@@ -165811,7 +165523,8 @@
    "xbps\\lazygit": {
     "driver": "xbps",
     "fields": {
-     "name": "lazygit"
+     "name": "lazygit",
+     "repo-component": "universe"
     },
     "name": "lazygit"
    }

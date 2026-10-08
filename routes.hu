@@ -389,7 +389,7 @@
                          version:       { github: pipeseroni/pipes.sh  strip-v: true }
                          uninstall-cmd: 'rm -f "$HOME/.local/bin/pipes.sh" "$HOME/.local/share/man/man6/pipes.sh.6"'
                          location:      "~/.local/bin/pipes.sh" } ] }
-        asciiquarium: { attrs: [ CLI FOSS GNU copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "rhel"  requires: epel }  { via: aur  when: "arch"  name: asciiquarium }  { via: native  when: "fedora_atomic or void or void_musl" } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, AUR on Arch, brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
+        asciiquarium: { attrs: [ CLI FOSS GNU copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "rhel"  requires: epel }  { via: native  when: "arch or fedora_atomic or void or void_musl" } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, Arch [extra] (promoted from the AUR), brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
         lolcat:     { attrs: [ CLI FOSS permissive ] description: "lolcat — rainbow-colorize any piped output (`lolcat`)." install: [ { via: native  when: "(debian or fedora or arch) and not amzn"  repo-component: universe }  { via: gem  name: lolcat } ] }   // the original is a Ruby gem -> gem covers openSUSE/Alpine/atomic + is pinnable anywhere
         asciinema:  { attrs: [ CLI FOSS GNU copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  repo-component: universe }  { via: pipx  name: asciinema } ] }   // native everywhere; pipx is the universal fallback + pinnable alt
         jrnl:       { attrs: [ CLI FOSS GNU copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora_atomic" } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
@@ -507,9 +507,8 @@
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel" } ] }
         bonnie++: { attrs: [ CLI FOSS GNU copyleft ] description: "bonnie++ — a classic hard-drive and filesystem throughput benchmark."
-            install: [ { via: native  when: "debian or fedora or opensuse or void or void_musl" }
-                       { via: native  when: "rhel"  requires: epel }
-                       { via: aur     when: "arch" } ] }   // pacman: AUR only
+            install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl" }
+                       { via: native  when: "rhel"  requires: epel } ] }   // Arch: [extra] (promoted from the AUR)
         sysbench: { attrs: [ CLI FOSS GNU copyleft ] description: "sysbench — a scriptable multi-threaded CPU / memory / threads / DB benchmark."
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel" } ] }
@@ -550,15 +549,13 @@
                          repo-id: k6  repo-name: "k6"  repo-url: "https://dl.k6.io/rpm" } ] }
         hey: { attrs: [ CLI FOSS permissive ] description: "hey — a tiny HTTP load generator (`hey`)."
             install: [ { via: native  when: "fedora_atomic or void or void_musl" }      // brew formula `hey`
-                       { via: aur     when: "arch"  name: hey }
                        { via: go-install  name: "github.com/rakyll/hey"  requires: go } ] }
         wrk: { attrs: [ CLI FOSS permissive ] description: "wrk — a modern, multithreaded HTTP benchmarking tool."
             install: [ { via: native  when: "alpine or opensuse or void or void_musl" }
                        { via: native  when: "fedora_atomic" }      // brew formula `wrk`
                        { via: aur     when: "arch"  name: wrk } ] }   // debian/EL/Fedora: not packaged -> build wg/wrk from source
         vegeta: { attrs: [ CLI FOSS permissive ] description: "Vegeta — a versatile HTTP load-testing tool driven by a constant request rate (`vegeta`)."
-            install: [ { via: native  when: "fedora_atomic or void or void_musl" }      // brew formula `vegeta`
-                       { via: aur     when: "arch"  name: vegeta }
+            install: [ { via: native  when: "arch or fedora_atomic or void or void_musl" }      // Arch [extra] (promoted from the AUR); brew formula `vegeta` on atomic
                        { via: tarball  when: "not (arch or fedora_atomic)"  installDir: "$CONFIGSYS_APP_DIR/vegeta"
                          version: { github: tsenart/vegeta  strip-v: true  asset: "vegeta_*_linux_amd64.tar.gz" } } ] }
 
@@ -1283,10 +1280,10 @@
         // binary. Listed for arch; elsewhere it's an honest unroutable until we model swiftly.
         swift: { attrs: [ toolchain CLI FOSS permissive ] description: "Swift — the Swift language toolchain."
             install: [ { via: aur  when: "arch"  name: swift-bin } ] }
-        // C3 — a modern systems language evolving C (the `c3c` compiler). Prebuilt Linux tarball from
-        // upstream (also AUR); no distro packages yet. The archive holds c3c + its stdlib under c3/.
+        // C3 — a modern systems language evolving C (the `c3c` compiler). Arch packages it in [extra]
+        // (as `c3c`); elsewhere the prebuilt upstream tarball (c3c + its stdlib under c3/).
         c3: { attrs: [ CLI toolchain FOSS permissive ] description: "C3 — a modern systems language evolving C (the `c3c` compiler)." requires: cc
-            install: [ { via: aur  when: "arch"  name: c3c }
+            install: [ { via: native  when: "arch"  name: c3c }
                        { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/c3"  requires: glibc
                          version: { github: c3lang/c3c  strip-v: true  asset: "c3-linux.tar.gz" } } ] }
         // Roc — a fast, friendly, functional language. PRE-1.0: only nightly builds exist (no stable
@@ -1484,8 +1481,8 @@
                               { via: native  when: "not fedora_atomic"  repo-component: universe  name: { zypper: MozillaFirefox  default: firefox } }
                               { via: snap  name: firefox } ] }
         // LibreWolf — a privacy-hardened Firefox fork (no telemetry). Its own apt repo (Debian/Ubuntu,
-        // suite by $CODENAME) and rpm repo (Fedora + EL, distro-agnostic baseurl); AUR `librewolf-bin`
-        // on Arch; Flathub everywhere (default on openSUSE/atomic, a candidate everywhere else).
+        // suite by $CODENAME) and rpm repo (Fedora + EL, distro-agnostic baseurl); Arch [extra] (was
+        // AUR `librewolf-bin`); Flathub everywhere (default on openSUSE/atomic, a candidate everywhere else).
         librewolf: { attrs: [ GUI web app FOSS copyleft ] description: "LibreWolf — a privacy-hardened fork of Firefox (telemetry stripped, sane defaults)."
             install: [
                 { via: native  when: "debian"  name: librewolf   // LibreWolf's official apt repo
@@ -1497,7 +1494,7 @@
                   pubkey-url: "https://rpm.librewolf.net/pubkey.gpg"
                   repo-id: librewolf  repo-name: "LibreWolf Software Repository"
                   repo-url: "https://rpm.librewolf.net" }
-                { via: aur  when: "arch"  name: librewolf-bin }
+                { via: native  when: "arch" }   // Arch [extra]
                 { via: flatpak  hub: flathub  app: io.gitlab.librewolf-community } ]
         }
         chromium: { attrs: [ GUI app FOSS permissive ] description: "Chromium — the open-source browser upstream of Chrome." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "((debian or redhat or arch or opensuse) and not ubuntu) and not amzn"  name: { default: chromium } }  { via: snap  name: chromium }  { via: flatpak  hub: flathub  app: org.chromium.Chromium } ] }   // Ubuntu ships chromium ONLY as the (Canonical-official) snap — its apt `chromium-browser` is a snap shim; ubuntu excluded from native so the snap is the sole real method there. Flathub flatpak offered everywhere (+ the only method on atomic).
@@ -1750,8 +1747,7 @@
             install: [ { via: flatpak  hub: flathub  app: net.davidotek.pupgui2 }
                        { via: aur  when: "arch"  name: protonup-qt } ] }
         protontricks: { attrs: [ CLI GUI app FOSS copyleft ] description: "protontricks — winetricks for Steam Proton game prefixes."
-            install: [ { via: native  when: "void or void_musl" }  { via: flatpak  hub: flathub  app: com.github.Matoking.protontricks }
-                       { via: aur  when: "arch"  name: protontricks }
+            install: [ { via: native  when: "arch or void or void_musl" }  { via: flatpak  hub: flathub  app: com.github.Matoking.protontricks }
                        { via: pipx  name: protontricks  standing: never-auto } ] }
 
         // --- apps: native everywhere. A clean-config tool manages its ~/.config as a
@@ -2372,7 +2368,7 @@
         zork: { attrs: [ CLI game ] description: "Zork — the Infocom classic, played via the Frotz Z-machine interpreter (bring your own .z5 data files)."
             install: [ { via: native  when: "rhel"  requires: epel  name: frotz }
                        { via: native  when: "not rhel and not arch and not opensuse"  repo-component: universe  name: frotz }
-                       { via: aur     when: "arch"  name: frotz } ] }   // frotz: not in Arch/openSUSE repos (Arch via AUR)
+                       { via: native  when: "arch"  name: frotz-ncurses } ] }   // Arch splits frotz into frotz-ncurses/-sdl/-dumb in [extra] (terminal flavor here); not in openSUSE
 
         // --- media servers (self-hosted; each runs a systemd service — the <name>-service pulls the
         // install AND starts it, like the db-servers) + media players (kodi/stremio, flatpak-first) ---
@@ -2671,19 +2667,21 @@
         xmonad:   { attrs: [ GUI FOSS permissive ] suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: xmonad } } ] }
         fvwm2:    { attrs: [ GUI FOSS copyleft ] suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian or void or void_musl"  name: fvwm } ] }   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
 
-        // lazygit: native on fedora/arch; elsewhere (debian/EL) a static Go binary from the
-        // GitHub release, unpacked under ~/apps/lazygit (scope-honoring). Its bash.d snippet
-        // aliases `lazygit` to that binary when present (a no-op where it's native on PATH).
+        // lazygit: native where the packaged version is reasonably current (Arch, Void, Alpine,
+        // Tumbleweed, Debian 13+, Ubuntu 25.10+, brew on atomic); elsewhere (Fedora/EL, older
+        // Debian/Ubuntu, Leap's 2023-era 0.40) a static Go binary from the GitHub release, unpacked
+        // under ~/apps/lazygit (scope-honoring). Its glue aliases `lazygit` to that binary when
+        // present (a no-op where it's native on PATH).
         lazygit: { attrs: [ TUI FOSS permissive ]
             description: "Terminal UI for git — stage, commit, branch, rebase visually."
             suggests: lazygit-glue
             install: [
-                { via: native  when: "arch or void or void_musl" }                        // not in Fedora repos -> tarball there
+                { via: native  when: "arch or void or void_musl or alpine or opensuse_tumbleweed or fedora_atomic or (debian >= 13) or (ubuntu >= 25.10)"  repo-component: universe }   // not in Fedora/EPEL -> tarball there
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/lazygit"
                   version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_x86_64.tar.gz" } }
             ]
         }
-        lazygit-glue: { description: "lazygit config, linked into place."
+        lazygit-glue: { description: "lazygit shell glue (aliases the ~/apps binary onto PATH), linked into place."
             install: [ { via: glue  requires: shell-glue  glue: lazygit } ]
         }
 
@@ -2706,8 +2704,15 @@
         neovim: { attrs: [ TUI app FOSS permissive ] description: "Hyperextensible Vim-based editor (`nvim`)."
             requires: [ ripgrep, tree-sitter-cli ]
             suggests: [ neovim-dotfiles  neovim-glue ]
-            install: [ { via: native  when: "void_musl" }  { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
-                       { via: appImage  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+            // The upstream AppImage (current release) is the default wherever it runs: it's built on
+            // ubuntu-22.04 runners, so it needs glibc >= 2.35 and is gated to those OSes. Distro
+            // packages are `never-auto` — pinnable, and the method where the AppImage can't run
+            // (EL9 via EPEL, Leap 15, Debian 11 / Ubuntu 20.04 ship older neovims). musl (Alpine,
+            // void_musl) and atomic (brew) take native outright.
+            install: [ { via: native  when: "void_musl or alpine" }  { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
+                       { via: native  when: "debian or fedora or arch or opensuse or void"  repo-component: universe  standing: never-auto }
+                       { via: native  when: "rhel"  requires: epel  standing: never-auto }
+                       { via: appImage  when: "(arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or pikaos or kali)"  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage } ]
@@ -2734,14 +2739,16 @@
                   version: { github: helix-editor/helix  strip-v: true  asset: "helix-*-x86_64-linux.tar.xz" } } ]   // glibc build — offered everywhere except musl (alpine has the native pkg)
         }
         // micro (`micro`): Go terminal editor. Native on Debian/Ubuntu universe, Fedora, Arch,
-        // Alpine, Homebrew; NOT in openSUSE's repos (name-sweep confirmed) and no EL package, so the
-        // upstream release tarball (ships `micro`) covers openSUSE + EL + anything missed.
+        // Alpine, openSUSE (as `micro-editor`), Void, Homebrew; EL via EPEL. Amazon Linux has neither,
+        // so the upstream release tarball (ships `micro`) covers it + anything missed. Upstream moved
+        // from zyedidia/micro to the micro-editor org.
         micro: { attrs: [ TUI app FOSS permissive ] suggests: [ micro-dotfiles  micro-glue ] 
             description: "Modern, intuitive terminal text editor (`micro`)."
             install: [
-                { via: native  when: "(not (rhel or opensuse)) and not amzn"  repo-component: universe }
+                { via: native  when: "(not rhel) and not amzn"  repo-component: universe  name: { zypper: micro-editor } }
+                { via: native  when: "rhel"  requires: epel }
                 { via: tarball  installDir: "$CONFIGSYS_APP_DIR/micro"  requires: glibc
-                  version: { github: zyedidia/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
+                  version: { github: micro-editor/micro  strip-v: true  asset: "micro-*-linux64.tar.gz" } }
             ]
         }
         // fresh — a modern, mouse-friendly terminal text editor in Rust (familiar shortcuts, LSP,
@@ -2813,9 +2820,9 @@
         // self-updates after first launch, so a stale pin only affects the initial install).
         antigravity: { attrs: [ GUI app electron proprietary freeware account cloud tele beta ] suggests: antigravity-glue  description: "Google Antigravity — Google's agent-first AI IDE (a VS Code fork; Gemini/Claude/GPT-OSS)."
             install: [
-                { via: aur  when: "arch"  name: antigravity-bin }
-                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "1.23.2" }
-                  url: "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/1.23.2-4781536860569600/linux-x64/Antigravity.tar.gz" } ]
+                { via: aur  when: "arch"  name: antigravity }
+                { via: tarball  when: "not arch"  installDir: "$CONFIGSYS_APP_DIR/antigravity"  requires: glibc  version: { static: "2.19.1" }
+                  url: "https://storage.googleapis.com/antigravity-public/antigravity-hub/2.19.1-6046815158665216/linux-x64/Antigravity.tar.gz" } ]
         }
         // android-studio: Google's official tarball, unpacked scope-honoring (~/android-studio
         // for user, /opt/android-studio for system). No clean version API, so the version is a
@@ -2830,7 +2837,7 @@
         // directory. Native on the debian + redhat families (apt universe, Fedora); AUR on Arch.
         // NOT in openSUSE/Alpine repos (name sweep confirmed), so the native binding is gated to
         // where it exists. The package pulls its FUSE + libmtp deps transitively (no `requires:`).
-        android-file-transfer: { attrs: [ GUI CLI FOSS permissive ] description: "Android File Transfer for Linux — MTP access to Android devices (`android-file-transfer`, `aft-mtp-cli`)." install: [ { via: native  when: "debian or fedora or opensuse or void or void_musl"  name: { xbps: android-file-transfer-linux zypper: android-file-transfer-linux  default: android-file-transfer } }  { via: aur  when: "arch"  name: android-file-transfer-linux } ] }
+        android-file-transfer: { attrs: [ GUI CLI FOSS permissive ] description: "Android File Transfer for Linux — MTP access to Android devices (`android-file-transfer`, `aft-mtp-cli`)." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  name: { xbps: android-file-transfer-linux zypper: android-file-transfer-linux  default: android-file-transfer } } ] }   // Arch [extra] (was AUR android-file-transfer-linux)
         jmtpfs: { attrs: [ CLI FOSS copyleft ] description: "jmtpfs — mount MTP devices (Android phones) via FUSE."
             install: [
                 { via: native  when: "void or void_musl" }
@@ -2906,8 +2913,7 @@
                    install: [ { via: pipx  name: durdraw }
                               { via: aur   when: "arch"  name: durdraw } ] }   // Python; pipx is the universal method
         astroterm: { attrs: [ TUI app FOSS permissive ] description: "astroterm — a terminal planetarium / star map (stars, planets, constellations)."
-                     install: [ { via: native  when: "fedora or fedora_atomic" }
-                                { via: aur     when: "arch"  name: astroterm } ] }   // dnf on Fedora (F40+), brew on atomic, AUR on arch; declines elsewhere
+                     install: [ { via: native  when: "fedora or fedora_atomic or arch" } ] }   // dnf on Fedora (F40+), brew on atomic, Arch [extra] (promoted from the AUR); declines elsewhere
         webcamize: { attrs: [ CLI FOSS copyleft ] description: "webcamize — use a DSLR/mirrorless/other camera as a Linux webcam (via v4l2loopback)."
                      install: [ { via: aur  when: "arch"  name: webcamize } ] }   // AUR-only (build-from-source elsewhere); needs v4l2loopback + libgphoto2 at runtime
         lazysql: { attrs: [ TUI FOSS permissive ] suggests: lazysql-glue  description: "Terminal UI for SQL databases (`lazysql`)."
@@ -3038,7 +3044,7 @@
                   pubkey-url: "https://keyserver.ubuntu.com/pks/lookup?op=get&options=mr&search=0x5E386EADB55F01504CAE8BCF7198F4B714ABFC68"
                   repo-id: jenkins  repo-name: "Jenkins"
                   repo-url: "https://pkg.jenkins.io/redhat-stable/" }
-                { via: aur  when: "arch"  name: jenkins } ]
+                { via: native  when: "arch" } ]   // Arch [extra] (promoted from the AUR)
         }
 
         // --- debugging / static analysis / profiling (NB: ASan/UBSan/TSan are gcc/clang FLAGS,
