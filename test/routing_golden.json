@@ -3323,6 +3323,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "pacman\\fontconfig-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
   "foot": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -3393,6 +3402,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "pacman\\freealut-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "freealut"
+    },
+    "name": "freealut"
    }
   },
   "freecad": {
@@ -6801,6 +6819,15 @@
     "name": "libxext"
    }
   },
+  "libxfixes": {
+   "pacman\\libxfixes": {
+    "driver": "pacman",
+    "fields": {
+     "name": "libxfixes"
+    },
+    "name": "libxfixes"
+   }
+  },
   "libxft": {
    "pacman\\libxft": {
     "driver": "pacman",
@@ -8614,6 +8641,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "pacman\\openal-dev": {
+    "driver": "pacman",
+    "fields": {
+     "name": "openal"
+    },
+    "name": "openal"
    }
   },
   "opencascade": {
@@ -17445,6 +17481,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -17515,6 +17560,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -21338,6 +21392,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -23161,6 +23224,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -31338,6 +31410,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -31408,6 +31489,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -35197,6 +35287,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -36987,6 +37086,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -45140,6 +45248,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -45210,6 +45327,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -48992,6 +49118,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -50782,6 +50917,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -58821,6 +58965,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "dnf\\fontconfig-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
   "foot": {
    "dnf\\foot": {
     "driver": "dnf",
@@ -58891,6 +59044,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "dnf\\freealut-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "freealut-devel"
+    },
+    "name": "freealut-devel"
    }
   },
   "freecad": {
@@ -62433,6 +62595,15 @@
     "name": "libXext-devel"
    }
   },
+  "libxfixes": {
+   "dnf\\libxfixes": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXfixes-devel"
+    },
+    "name": "libXfixes-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -64170,6 +64341,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "dnf\\openal-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openal-soft-devel"
+    },
+    "name": "openal-soft-devel"
    }
   },
   "opencascade": {
@@ -72289,6 +72469,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "dnf\\fontconfig-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
   "foot": {
    "dnf\\foot": {
     "driver": "dnf",
@@ -72359,6 +72548,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "dnf\\freealut-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "freealut-devel"
+    },
+    "name": "freealut-devel"
    }
   },
   "freecad": {
@@ -75901,6 +76099,15 @@
     "name": "libXext-devel"
    }
   },
+  "libxfixes": {
+   "dnf\\libxfixes": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXfixes-devel"
+    },
+    "name": "libXfixes-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -77638,6 +77845,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "dnf\\openal-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "openal-soft-devel"
+    },
+    "name": "openal-soft-devel"
    }
   },
   "opencascade": {
@@ -85019,6 +85235,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "brew\\fontconfig-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
   "foot-dotfiles": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -85069,6 +85294,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "brew\\freealut-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "freealut"
+    },
+    "name": "freealut"
    }
   },
   "freecad": {
@@ -87842,6 +88076,15 @@
     "name": "libxext"
    }
   },
+  "libxfixes": {
+   "brew\\libxfixes": {
+    "driver": "brew",
+    "fields": {
+     "name": "libxfixes"
+    },
+    "name": "libxfixes"
+   }
+  },
   "libxft": {
    "brew\\libxft": {
     "driver": "brew",
@@ -89362,6 +89605,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "brew\\openal-dev": {
+    "driver": "brew",
+    "fields": {
+     "name": "openal-soft"
+    },
+    "name": "openal-soft"
    }
   },
   "opencv": {
@@ -96676,6 +96928,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -96746,6 +97007,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -100579,6 +100849,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -102437,6 +102716,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -110757,6 +111045,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "dnf\\fontconfig-dev": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
   "foot-dotfiles": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -114430,6 +114727,15 @@
     "name": "libXext-devel"
    }
   },
+  "libxfixes": {
+   "dnf\\libxfixes": {
+    "driver": "dnf",
+    "fields": {
+     "name": "libXfixes-devel"
+    },
+    "name": "libXfixes-devel"
+   }
+  },
   "libxft": {
    "dnf\\libxft": {
     "driver": "dnf",
@@ -116284,6 +116590,16 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "dnf\\openal-dev": {
+    "driver": "dnf",
+    "fields": {
+     "enable-repo": "crb",
+     "name": "openal-soft-devel"
+    },
+    "name": "openal-soft-devel"
    }
   },
   "opencv": {
@@ -124802,6 +125118,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -124872,6 +125197,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -128705,6 +129039,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -130563,6 +130906,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -138844,6 +139196,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "apt\\fontconfig-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfontconfig-dev"
+    },
+    "name": "libfontconfig-dev"
+   }
+  },
   "foot": {
    "apt\\foot": {
     "driver": "apt",
@@ -138914,6 +139275,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "apt\\freealut-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libalut-dev"
+    },
+    "name": "libalut-dev"
    }
   },
   "freecad": {
@@ -142670,6 +143040,15 @@
     "name": "libxext-dev"
    }
   },
+  "libxfixes": {
+   "apt\\libxfixes": {
+    "driver": "apt",
+    "fields": {
+     "name": "libxfixes-dev"
+    },
+    "name": "libxfixes-dev"
+   }
+  },
   "libxft": {
    "apt\\libxft": {
     "driver": "apt",
@@ -144486,6 +144865,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "apt\\openal-dev": {
+    "driver": "apt",
+    "fields": {
+     "name": "libopenal-dev"
+    },
+    "name": "libopenal-dev"
    }
   },
   "opencascade": {
@@ -152126,6 +152514,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "xbps\\fontconfig-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
   "foot": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -152196,6 +152593,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "xbps\\freealut-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "freealut-devel"
+    },
+    "name": "freealut-devel"
    }
   },
   "freecad": {
@@ -155456,6 +155862,15 @@
     "name": "libXext-devel"
    }
   },
+  "libxfixes": {
+   "xbps\\libxfixes": {
+    "driver": "xbps",
+    "fields": {
+     "name": "libXfixes-devel"
+    },
+    "name": "libXfixes-devel"
+   }
+  },
   "libxft": {
    "xbps\\libxft": {
     "driver": "xbps",
@@ -157108,6 +157523,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "xbps\\openal-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "libopenal-devel"
+    },
+    "name": "libopenal-devel"
    }
   },
   "opencascade": {
@@ -164333,6 +164757,15 @@
     "name": "fontconfig"
    }
   },
+  "fontconfig-dev": {
+   "xbps\\fontconfig-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
   "foot": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -164403,6 +164836,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "freealut-dev": {
+   "xbps\\freealut-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "freealut-devel"
+    },
+    "name": "freealut-devel"
    }
   },
   "freecad": {
@@ -167510,6 +167952,15 @@
     "name": "libXext-devel"
    }
   },
+  "libxfixes": {
+   "xbps\\libxfixes": {
+    "driver": "xbps",
+    "fields": {
+     "name": "libXfixes-devel"
+    },
+    "name": "libXfixes-devel"
+   }
+  },
   "libxft": {
    "xbps\\libxft": {
     "driver": "xbps",
@@ -169045,6 +169496,15 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "openal-dev": {
+   "xbps\\openal-dev": {
+    "driver": "xbps",
+    "fields": {
+     "name": "libopenal-devel"
+    },
+    "name": "libopenal-devel"
    }
   },
   "opencascade": {

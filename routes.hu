@@ -3730,6 +3730,15 @@
                        install: [ { via: native  name: { xbps: libXtst-devel apt: libxtst-dev  dnf: libXtst-devel  apk: libxtst-dev  zypper: libXtst-devel  default: libxtst } } ] }
         libxss:      { attrs: [ lib FOSS permissive ] description: "libXScrnSaver — the X11 screen-saver extension library (dev headers + libs)."
                        install: [ { via: native  name: { xbps: libXScrnSaver-devel apt: libxss-dev  dnf: libXScrnSaver-devel  apk: libxscrnsaver-dev  zypper: libXss-devel  pacman: libxss  default: libxss } } ] }
+        libxfixes:   { attrs: [ lib FOSS permissive ] description: "libXfixes — the X11 XFIXES extension library (dev headers + libs)."
+                       install: [ { via: native  name: { xbps: libXfixes-devel apt: libxfixes-dev  dnf: libXfixes-devel  apk: libxfixes-dev  zypper: libXfixes-devel  default: libxfixes } } ] }
+        fontconfig-dev: { attrs: [ lib FOSS permissive ] description: "fontconfig development headers (font discovery/configuration)."
+                       install: [ { via: native  name: { xbps: fontconfig-devel apt: libfontconfig-dev  dnf: fontconfig-devel  apk: fontconfig-dev  zypper: fontconfig-devel  default: fontconfig } } ] }   // pacman/brew ship headers in the main package
+        openal-dev:  { attrs: [ lib FOSS copyleft ] description: "OpenAL Soft — the 3D positional audio API library (dev headers + libs)."
+                       install: [ { via: native  when: "rhel"  name: openal-soft-devel  enable-repo: crb }   // EL: the -devel lives in CRB
+                                  { via: native  when: "not rhel"  name: { xbps: libopenal-devel apt: libopenal-dev  dnf: openal-soft-devel  apk: openal-soft-dev  zypper: openal-soft-devel  brew: openal-soft  default: openal } } ] }
+        freealut-dev: { attrs: [ lib FOSS copyleft ] description: "freealut — the OpenAL Utility Toolkit (ALUT) library (dev headers + libs)."
+                       install: [ { via: native  when: "not (rhel or alpine)"  name: { xbps: freealut-devel apt: libalut-dev  dnf: freealut-devel  zypper: freealut-devel  default: freealut } } ] }   // not packaged on EL (even EPEL/CRB) or Alpine -> declines there
         libpng:      { attrs: [ lib FOSS permissive ] description: "libpng — the reference PNG image library (dev headers + libs)."
                        install: [ { via: native  name: { apt: libpng-dev  dnf: libpng-devel  apk: libpng-dev  zypper: libpng16-devel  default: libpng } } ] }
         libjpeg:     { attrs: [ lib FOSS permissive ] description: "libjpeg-turbo — the JPEG image codec library (dev headers + libs)."
