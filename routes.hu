@@ -571,7 +571,7 @@
                          url: "https://cdn.geekbench.com/Geekbench-$VERSION-Linux.tar.gz" } ] }
         // UNIGINE GPU benchmarks — proprietary, ~1.5GB self-extracting .run installers. The only
         // packaged route is the AUR (known-flaky PKGBUILDs); elsewhere it's a manual download from
-        // unigine.com, so they decline honestly off Arch (the `swift`/`foldit` shape). Superposition is
+        // unigine.com, so they decline honestly off Arch (the `swift` shape). Superposition is
         // current; Heaven/Valley are the widely-used classics.
         unigine-superposition: { attrs: [ GUI game proprietary freeware ] description: "UNIGINE Superposition — a heavy GPU / VRAM stress benchmark (proprietary)."
             install: [ { via: aur  when: "arch"  name: unigine-superposition } ] }
@@ -2207,7 +2207,7 @@
         shotcut:    { attrs: [ GUI app FOSS copyleft ] description: "Shotcut — a cross-platform non-linear video editor." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or fedora or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.shotcut.Shotcut } ] }
         openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "debian or fedora or opensuse"  name: { apt: openshot-qt  zypper: openshot-qt  default: openshot } }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot } ] }
         flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
-        olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
+        olive:      { attrs: [ GUI app FOSS copyleft ] description: "Olive — a non-linear video editor (alpha; development stalled since Dec 2024 — Flathub is still 0.1.2 from 2019)." install: [ { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
 
         // --- ArtCraft "Crafting Apps" (github.com/storytold, Oct 2026): clean-room Rust rebuilds of the
         // Adobe suite (+ Office, AutoCAD, Pro Tools), MIT/Apache-2.0, offline, no telemetry/account. ALPHA. Every release ships the
@@ -2361,11 +2361,6 @@
                        { via: native-pkg-file  when: "debian"  cpu-names: { x86_64: amd64 }  name: fah-client
                          version: { url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/"  regex: "fah-client_([0-9.]+)_amd64[.]deb" }
                          url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-64bit/release/fah-client_$VERSION_amd64.deb" } ] }
-        // Foldit — the protein-folding puzzle game. Its Linux download sits behind an academic-license
-        // order flow (no unauthenticated URL), so it routes AUR-only on Arch and declines honestly
-        // elsewhere (same shape as `swift`). Needs `freeglut` at runtime.
-        foldit: { attrs: [ GUI game proprietary account ] description: "Foldit — a citizen-science protein-folding puzzle game."
-            install: [ { via: aur  when: "arch"  name: foldit } ] }
         // Zork — the classic Infocom text adventure. The trilogy is freeware but unpackaged; install the
         // Frotz Z-machine interpreter and supply the Zork data files yourself (`frotz zork1.z5`).
         zork: { attrs: [ CLI game ] description: "Zork — the Infocom classic, played via the Frotz Z-machine interpreter (bring your own .z5 data files)."
@@ -2677,13 +2672,16 @@
         // present (a no-op where it's native on PATH).
         lazygit: { attrs: [ TUI FOSS permissive ]
             description: "Terminal UI for git — stage, commit, branch, rebase visually."
-            suggests: lazygit-glue
+            suggests: [ lazygit-dotfiles  lazygit-glue ]
             install: [
                 { via: native  when: "arch or void or void_musl or alpine or opensuse_tumbleweed or fedora_atomic or (debian >= 13) or (ubuntu >= 25.10)"  repo-component: universe }   // not in Fedora/EPEL -> tarball there
                 { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazygit"
                   version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_$ARCH.tar.gz" } }
             ]
         }
+        // lazygit's dir also holds the state.yml it rewrites constantly — link only the user's config.yml.
+        lazygit-dotfiles: { description: "lazygit config (config.yml), linked into place."
+            install: [ { via: dotfiles  config: { src: lazygit-config.yml  dst: $XDG_CONFIG_HOME/lazygit/config.yml } } ] }
         lazygit-glue: { description: "lazygit shell glue (aliases the ~/apps binary onto PATH), linked into place."
             install: [ { via: glue  requires: shell-glue  glue: lazygit } ]
         }
@@ -2705,8 +2703,7 @@
 
         // --- editors / IDEs ---
         neovim: { attrs: [ TUI app FOSS permissive ] description: "Hyperextensible Vim-based editor (`nvim`)."
-            requires: [ ripgrep, tree-sitter-cli ]
-            suggests: [ neovim-dotfiles  neovim-glue ]
+            suggests: [ ripgrep  tree-sitter-cli  neovim-dotfiles  neovim-glue ]   // rg/tree-sitter serve popular plugin configs (telescope, nvim-treesitter) — neovim itself runs without them
             // The upstream AppImage (current release) is the default wherever it runs: it's built on
             // ubuntu-22.04 runners, so it needs glibc >= 2.35 and is gated to those OSes. Distro
             // packages are `never-auto` — pinnable, and the method where the AppImage can't run
@@ -3838,7 +3835,13 @@
         maven-dotfiles: { description: "maven config, linked into place." install: [ { via: dotfiles  config: { src: maven-settings.xml  dst: ~/.m2/settings.xml } } ] }
         maxima-dotfiles: { description: "maxima config, linked into place." install: [ { via: dotfiles  config: { src: maxima  dst: ~/.maxima } } ] }
         mercurial-dotfiles: { description: "mercurial config, linked into place." install: [ { via: dotfiles  config: { src: hgrc  dst: ~/.hgrc } } ] }
-        micro-dotfiles: { description: "micro config, linked into place." install: [ { via: dotfiles  config: { src: micro  dst: $XDG_CONFIG_HOME/micro } } ] }
+        // micro keeps runtime state in its config dir (backups/, buffers/ = undo/cursor history), so
+        // link the user-authored configuration only, file by file — never the whole dir.
+        micro-dotfiles: { description: "micro settings (settings.json, bindings.json, init.lua, colorschemes/), linked into place."
+            install: [ { via: dotfiles  settings: { src: micro-settings.json  dst: $XDG_CONFIG_HOME/micro/settings.json }
+                                       bindings: { src: micro-bindings.json  dst: $XDG_CONFIG_HOME/micro/bindings.json }
+                                       init:     { src: micro-init.lua       dst: $XDG_CONFIG_HOME/micro/init.lua }
+                                       colorschemes: { src: micro-colorschemes  dst: $XDG_CONFIG_HOME/micro/colorschemes } } ] }
         micro-glue: { description: "micro shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: micro } ] }
         miniforge-glue: { description: "miniforge shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: miniforge } ] }
         mycli-dotfiles: { description: "mycli config, linked into place." install: [ { via: dotfiles  config: { src: myclirc  dst: ~/.myclirc } } ] }

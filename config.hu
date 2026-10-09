@@ -145,7 +145,7 @@ profiles: {
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
         qjackctl  yabridge  pulseaudio-utils  kew  soundcraft ]
 
-    science: [ apod  astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldit  foldingathome ]
+    science: [ apod  astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  signal  signal-cli  obs-studio ]

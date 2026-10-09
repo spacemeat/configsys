@@ -3248,39 +3248,6 @@
     "name": "git"
    }
   },
-  "foldit": {
-   "aur\\foldit": {
-    "driver": "aur",
-    "fields": {
-     "name": "foldit"
-    },
-    "name": "foldit"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "pacman\\base-devel": {
-    "driver": "pacman",
-    "fields": {
-     "name": "base-devel"
-    },
-    "name": "base-devel"
-   },
-   "pacman\\git": {
-    "driver": "pacman",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   }
-  },
   "folly": {
    "aur\\folly": {
     "driver": "aur",
@@ -6206,6 +6173,16 @@
    }
   },
   "lazygit": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -6227,6 +6204,18 @@
      "repo-component": "universe"
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -7354,9 +7343,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -7388,9 +7389,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -20697,6 +20710,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -20727,6 +20750,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -21904,9 +21939,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -21930,9 +21977,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -34592,6 +34651,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -34622,6 +34691,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -35799,9 +35880,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -35825,9 +35918,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -48423,6 +48528,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -48453,6 +48568,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -49630,9 +49757,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -49656,9 +49795,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -61949,6 +62100,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -61979,6 +62140,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -63098,9 +63271,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -63124,9 +63309,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -75453,6 +75650,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -75483,6 +75690,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -76602,9 +76821,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -76628,9 +76859,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -87522,6 +87765,16 @@
     },
     "name": "lazygit"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -87535,6 +87788,18 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -88580,9 +88845,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -88606,9 +88883,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -100154,6 +100443,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -100184,6 +100483,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -101378,9 +101689,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -101404,9 +101727,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -114081,6 +114416,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -114111,6 +114456,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -115272,9 +115629,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -115298,9 +115667,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -128344,6 +128725,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -128374,6 +128765,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -129568,9 +129971,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -129594,9 +130009,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -142345,6 +142772,16 @@
     },
     "name": "curl"
    },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -142375,6 +142812,18 @@
      }
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -143552,9 +144001,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -143578,9 +144039,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -155213,6 +155686,16 @@
    }
   },
   "lazygit": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -155234,6 +155717,18 @@
      "repo-component": "universe"
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -156376,9 +156871,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -156410,9 +156917,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -167319,6 +167838,16 @@
    }
   },
   "lazygit": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
    "glue\\lazygit-glue": {
     "driver": "glue",
     "fields": {
@@ -167340,6 +167869,18 @@
      "repo-component": "universe"
     },
     "name": "lazygit"
+   }
+  },
+  "lazygit-dotfiles": {
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
    }
   },
   "lazygit-glue": {
@@ -168441,9 +168982,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
@@ -168475,9 +169028,21 @@
    "dotfiles\\micro-dotfiles": {
     "driver": "dotfiles",
     "fields": {
-     "config": {
-      "dst": "$XDG_CONFIG_HOME/micro",
-      "src": "micro"
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
      }
     },
     "name": "micro-dotfiles"
