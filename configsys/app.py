@@ -138,6 +138,7 @@ class Context:
         self.plugin_code_conflicts = []  # code-level registration collisions (version-source/transport)
         self.plugin_pending_vias = set()  # via names those gated-out plugins would provide
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
+        self.route_classes = {}       # {requested_name: ('dangling'|'unmet', detail)} (stranded.py)
         # working-TARGET machine: `--machine X` curates/plans machine X's set from any box (overrides
         # the local `machine:` setting for this run). None -> use the box's own `machine:` selection.
         self.machine_override = getattr(args, 'machine', None) or None
@@ -219,6 +220,13 @@ class Context:
                 add('warn', 'incompatible', f"{r['name']}: needs plugin ABI {r['requires_abi']}")
         for name in sorted(self.resolve_errors or {}):
             add('error', 'unroutable', f"{name}: {self.resolve_errors[name]}")
+        if states:
+            from . import stranded
+            for level, tag, text in stranded.diagnostics(states):
+                add(level, tag, text)
+        else:
+            for name, (status, detail) in sorted((getattr(self, 'route_classes', None) or {}).items()):
+                add('warn', status, f'{name}: {detail}')
         for key, st in sorted((states or {}).items()):
             if not (st.present and st.scope):
                 continue
@@ -445,6 +453,12 @@ class Context:
                                         f'(to meet a version floor)')
             for what, choice in sorted(detected.items()):
                 r.event(report.DEFAULT, f'  adopting installed: {what} -> {choice}')
+        # picks with no install method valid here (dangling) or only a disabled driver's (unmet)
+        # are a ROUTING STATUS, not an error: they get a row (+ any stranded install) below
+        from . import stranded
+        self.route_classes = stranded.classify_unroutable(self, list(self.resolve_errors or {}))
+        for name in self.route_classes:
+            self.resolve_errors.pop(name, None)
         for name in sorted(self.resolve_errors or {}):
             r.error(f'{name}: {self.resolve_errors[name]}')
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
@@ -462,6 +476,13 @@ class Context:
         if cfg.detect_coexisting():
             from .installState import detect_coexisting     # "also present (unmanaged)" per component
             detect_coexisting(self, states)
+        # stranded installs (always — a safety check, not a preference): a component still
+        # installed via a method routes no longer offer here reads `switch`; dangling/unmet picks
+        # get rows. Under --pretend the probes would be pretend reads, so skip it there.
+        if not self.runner.pretend:
+            stranded.augment(self, states, ledger, cache=self._probes)
+        states.update(stranded.unroutable_states(
+            self, self.route_classes, ledger, cache=(None if self.runner.pretend else self._probes)))
         # warnings stream to the console too (errors already did, inline). These need `states`
         # (scope drift) so they land here at the end; the ! page / footer still collect them. Not on a
         # TUI reload (reuse=): the TUI computes its own diagnostics, and this pass costs ~1s.
@@ -594,8 +615,15 @@ def cmd_inspect(ctx, args):
         na = '?' if s.untrusted else '-'      # untrusted: unknown (can't read without the driver)
         print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
               f'{str(s.installed_version or na):20} {s.latest_version or na}{lock}')
+        from .stranded import REASON_TEXT, stranded_reasons
+        strand = stranded_reasons(s)
         for via, pkg, ver in s.also_present:   # coexisting installs via OTHER (unmanaged) methods
-            print(f'{"":30} also present: {via} {ver}  ({pkg}) — `pin {s.component.comp} {via}` to manage')
+            if (via, pkg) in strand:           # routes don't offer it here: repin AWAY from it
+                print(f'{"":30} also present: {via} {ver}  ({pkg}) — stranded '
+                      f'({REASON_TEXT[strand[(via, pkg)]]}); `configsys install {s.component.comp}` '
+                      f'swaps it out')
+            else:
+                print(f'{"":30} also present: {via} {ver}  ({pkg}) — `pin {s.component.comp} {via}` to manage')
         if s.recipe_behind:
             from .installState import recipe_pin_text
             print(f'{"":30} [R] {recipe_pin_text(s.latest_version, s.upstream_version)}')
@@ -654,17 +682,43 @@ def _shell_glue_root(ctx):
 
 
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
+    if ledger is None:
+        ledger = Ledger.load(ctx.paths)      # every op writes it now: locks, and install receipts
     names = _expand_profile_args(ctx, names)
     if names is None:
         return 1
-    units, roots = ctx.routes.resolve_with_roots(names)
-    if not roots:
+    stranded_removes = []
+    if op == 'remove':
+        # a component with no install method here any more (dangling/unmet) can't resolve — but
+        # if it's still installed via a stranded method (receipt / AUR heuristic / gated binding),
+        # removing THAT install is exactly what the user asked for
+        from . import stranded
+        routable = []
+        for n in names:
+            try:
+                ctx.routes.resolve_names([n])
+                routable.append(n)
+            except Exception:                        # noqa: BLE001 — unroutable: look for a stranded install
+                found = stranded.find(ctx, n, ledger=ledger, foreign=stranded.foreign_index(ctx))
+                if found:
+                    stranded_removes += [('remove', s_.key, s_.rc) for s_ in found]
+                else:
+                    routable.append(n)               # let the normal path report it
+        names = routable
+    if names:
+        units, roots = ctx.routes.resolve_with_roots(names)
+    else:
+        units, roots = {}, set()
+    if not roots and not stranded_removes:
         print(f'configsys: nothing resolved for {names}')
         return 1
     ctx.prepare_units(units)
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]
+    for step in stranded_removes:
+        base_plan.append(step)
+        units[step[1]] = step[2]
     if no_deps:
         # targeted rebuild: run the op on ONLY the named unit(s) — no dependency folding, no
         # auto-tighten. A source component installs unconditionally, so this force-REBUILDS it

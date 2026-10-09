@@ -142,6 +142,10 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
         begin(on_line)                   # the ONE prompt, up front — then the run can go unattended
     for cur_op, key, rc in plan:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
+            on_line(f'skip {key}: {rc.comp} has no install method on this machine')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'no install method here'))
+            continue
         if drv is None:
             on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
             outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
@@ -216,6 +220,14 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
         else:
             on_line('  -> ok')
             outcomes.append(OpOutcome(cur_op, key, rc.name, True))
+        # install RECEIPT (stranded.py): remember what configsys installed so the install stays
+        # findable + removable after routes stop offering that method; forget it on removal.
+        if (ledger is not None and not getattr(ctx.runner, 'pretend', False)
+                and outcomes and outcomes[-1].key == key and outcomes[-1].ok):
+            if cur_op in ('install', 'upgrade', 'set-version'):
+                ledger.set_receipt(rc)
+            elif cur_op == 'remove':
+                ledger.clear_receipt(key)
     ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
     if ledger is not None:
         ledger.save(ctx.paths)

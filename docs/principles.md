@@ -49,6 +49,13 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   bare default (precedence: pin > detected > standing default), so we manage reality, not fight it.
 - **Switching a method removes the old install first** — never double up the same capability across
   two mechanisms.
+- **A route change never strands an install silently — and never acts on it silently.** When routes
+  stop offering a component's installed method (an AUR package promoted to `[extra]`, an AppImage
+  dropped or gated, a driver disabled), the component reads `switch`; with no method left on this OS
+  it reads `dangling`; with only a disabled driver's method, `unmet`. Nothing is staged automatically
+  and nothing is ever removed for you — the user installs it (`i`, optionally repinning with `v`
+  first) and the method swap removes the stranded install. An install
+  receipt in the ledger keeps the old install findable. See docs/stranded-installs.md.
 - **Requires is HARD, suggests is SOFT.** An unmet require is an error; an unmet suggest is skipped
   silently. Version floors are *floors only*, surfaced-and-chosen, not silently auto-bumped.
 

@@ -31,6 +31,19 @@ class Aur(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def foreign_index(self):
+        '''`pacman -Qm` — the FOREIGN packages (not from a sync repo: AUR builds, local pkgs) ->
+        {name: version}, or None off Arch. stranded.py reads it for pre-receipt AUR installs.'''
+        r = self.runner.run('pacman -Qm')
+        if not r.ok:
+            return None
+        idx = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if cols:
+                idx[cols[0]] = cols[1] if len(cols) > 1 else 'installed'
+        return idx
+
     def get_version(self, rc):
         r = self.runner.run(f'pacman -Q {shlex.quote(self._pkg(rc))}')
         if not r.ok or not r.stdout.strip():

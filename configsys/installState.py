@@ -69,6 +69,11 @@ class ComponentState:
                                                # overriding the version-string compare; None -> use it
     upstream_version: Optional[str] = None     # newest upstream release of a RECIPE-PINNED method
                                                # (binding `upstream:`); advisory, never "latest"
+    route_status: Optional[str] = None         # 'switch' | 'unmet' | 'dangling' (stranded.py) — the
+                                               # component's ROUTING state, distinct from outdated
+    route_detail: str = ''                     # why (unmet/dangling), for the ! page / inspect
+    stranded: tuple = ()                       # stranded.Stranded installs: via a method routes no
+                                               # longer offer here (removed / gated / disabled)
 
     @property
     def key(self):
@@ -115,6 +120,8 @@ class ComponentState:
             return 'untrusted' if self.untrusted else 'unsupported'
         if self.error:
             return 'error'
+        if self.route_status:                  # dangling / unmet / switch outrank install state
+            return self.route_status
         if not self.present:
             return 'missing'
         if self.locked:
@@ -364,6 +371,19 @@ def superseded_installs(ctx, target_rc):
             ver = None
         if ver is not None:
             out.append((rc, ver))
+    # ...and installs via a method routes no longer offer here (a removed/gated/disabled binding,
+    # found by receipt or the AUR heuristic) — the stranded installs a repin is meant to replace
+    try:
+        from . import probecache, stranded
+        from .ledger import Ledger
+        cache = probecache.of(ctx)
+        have = {rc.key for rc, _v in out} | {target_rc.key}
+        for s in stranded.find(ctx, target_rc.comp, ledger=Ledger.load(ctx.paths), cache=cache,
+                               foreign=stranded.foreign_index(ctx, cache)):
+            if s.key not in have:
+                out.append((s.rc, s.version))
+    except Exception:                               # noqa: BLE001 — never block an op on this
+        pass
     return out
 
 

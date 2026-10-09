@@ -27,7 +27,11 @@ from .theme import STATUS_COLOR, Palette
 
 # op -> (single-char badge, palette color, predicate on a ComponentState)
 OPS = {
-    'install': ('I', 'op_install', lambda s: s.supported and not s.present),
+    # install = "make current": absent, OR present but ALSO via a stranded method (`switch` — the
+    # install folds in the swap-remove of the stranded install). Never on a dangling/unmet placeholder.
+    'install': ('I', 'op_install', lambda s: s.supported
+                and getattr(s, 'route_status', None) not in ('dangling', 'unmet')
+                and (not s.present or getattr(s, 'route_status', None) == 'switch')),
     'upgrade': ('U', 'op_upgrade', lambda s: s.supported and s.outdated),
     'remove':  ('X', 'op_remove',  lambda s: s.supported and s.present),
     'lock':    ('L', 'op_lock',    lambda s: s.supported and s.present and not s.locked
@@ -89,6 +93,9 @@ class Node:
             return 'unsupported'
         if any(m.error for m in ms):
             return 'error'
+        for rs in ('dangling', 'unmet', 'switch'):   # routing state (stranded.py) outranks versions
+            if any(getattr(m, 'route_status', None) == rs for m in supported):
+                return rs
         if any(m.outdated for m in supported):
             return 'outdated'
         present = sum(1 for m in supported if m.present)
@@ -876,7 +883,11 @@ def _infoblock(ms, ctx):
     if loc:
         parts.append(f'at: {loc}')                # location now rides the same line as the versions
     if m.also_present:                            # coexisting installs via OTHER (unmanaged) methods
-        parts.append('also present: ' + ', '.join(f'{via} {ver}' for via, _pkg, ver in m.also_present))
+        from ..stranded import stranded_reasons
+        strand = stranded_reasons(m)
+        parts.append('also present: ' + ', '.join(
+            f'{via} {ver}' + (' (stranded — `i` swaps it out)' if (via, pkg) in strand else '')
+            for via, pkg, ver in m.also_present))
     if m.recipe_behind:                           # [R]: upstream moved past what the recipe builds
         from ..installState import recipe_pin_text
         parts.append('[R] ' + recipe_pin_text(clean_version(m.latest_version),

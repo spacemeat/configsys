@@ -106,6 +106,13 @@ components/os/drivers, synced + content-trusted, no machine-setting authority) w
 to the user's other machines the way a `primary` plugin does. `inspect` still resolves the active
 set resiliently (Context.resolve_errors) so one bad entry is an error row, not a brick.
 
+**Stranded installs (configsys/stranded.py).** When routes stop offering a component's installed
+method (binding removed/gated, driver disabled), the component reads `switch` — nothing staged;
+installing it (`i`; `v` to choose another method first) runs the method-swap, removing the old install; no method left on this OS = `dangling` (never
+removed for you); only a disabled driver's method = `unmet`. Installs stay findable via an install
+RECEIPT the ledger records on every successful install (+ a `pacman -Qm` `<comp>-<variant>`
+heuristic for pre-receipt AUR installs). See `docs/stranded-installs.md`.
+
 Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
 get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
 has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1

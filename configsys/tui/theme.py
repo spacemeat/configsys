@@ -26,6 +26,9 @@ COLOR_MAP = {
     'installed': (90, 200, 120), 'outdated': (230, 190, 70), 'partial': (90, 190, 205),
     'missing': (150, 150, 150), 'locked': (110, 165, 255), 'unsupported': (110, 110, 110),
     'untrusted': (220, 140, 60), 'error': (235, 95, 95),
+    # routing statuses (stranded.py): installed via a method routes no longer offer (switch), only a
+    # disabled driver could install it (unmet), no method on this OS at all (dangling)
+    'switch': (240, 150, 210), 'unmet': (175, 155, 110), 'dangling': (205, 110, 140),
     # orphan install-axis overlay (TUI::Profiles): the colour for an installed-but-untracked component
     # (⊙) and a staged-for-uninstall one (⮾). (The old per-kind excluded/forgotten/foreign hues went
     # with user-profile authoring — the matrix model only distinguishes tracked from untracked here.)
@@ -52,6 +55,7 @@ BASIC_MAP = {
     'installed': 'bright-green', 'outdated': 'bright-yellow', 'partial': 'bright-cyan',
     'missing': 'bright-black', 'locked': 'blue', 'unsupported': 'bright-black',
     'untrusted': 'yellow', 'error': 'bright-red',
+    'switch': 'bright-magenta', 'unmet': 'yellow', 'dangling': 'magenta',
     'orphan_lurking': 'cyan',
     'op_install': 'bright-green', 'op_upgrade': 'bright-yellow', 'op_remove': 'bright-red',
     'op_lock': 'blue', 'op_unlock': 'cyan',
@@ -168,6 +172,7 @@ ROLE_DEFAULTS = {
     'installed': _r('installed'), 'outdated': _r('outdated'), 'partial': _r('partial'),
     'missing': _r('missing'), 'locked': _r('locked'), 'unsupported': _r('unsupported'),
     'untrusted': _r('untrusted'), 'error': _r('error'),
+    'switch': _r('switch', bold=True), 'unmet': _r('unmet'), 'dangling': _r('dangling'),
     'orphan_lurking': _r('orphan_lurking'),
     'op_install': _r('op_install', bold=True), 'op_upgrade': _r('op_upgrade', bold=True),
     'op_remove': _r('op_remove', bold=True), 'op_lock': _r('op_lock', bold=True),
@@ -191,7 +196,7 @@ ALL_PAGES = DEMO_PAGES + ['theme']
 PAGE_ROLES = {
     'components': ['label', 'os', 'issue_warning', 'menu_header', 'component', 'unit', 'driver',
                    'version', 'scope', 'scope_choice', 'installed', 'outdated', 'partial', 'missing',
-                   'locked', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
+                   'locked', 'switch', 'unmet', 'dangling', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
                    'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
     'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'menu_new', 'info',
                   'info_dim', 'dependents', 'method_dim', 'orphan_lurking', 'issue_warning',
@@ -669,4 +674,5 @@ class Palette:
 STATUS_COLOR = {
     'installed': 'installed', 'outdated': 'outdated', 'partial': 'partial', 'missing': 'missing',
     'locked': 'locked', 'unsupported': 'unsupported', 'untrusted': 'untrusted', 'error': 'error',
+    'switch': 'switch', 'unmet': 'unmet', 'dangling': 'dangling',
 }
