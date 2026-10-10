@@ -14,8 +14,9 @@ Subcommands:
                                  option, help string), CONFIGSYS_* env vars read by the code, config
                                  keys + settings registry, component keys, drivers, OS blocks, TUI
                                  screens / keybindings / `?` help glossaries, component statuses
-  inventory  [--json]            every markdown file: title, Status header, class (reference / plan /
-                                 done / history), git created + last-changed dates, size
+  inventory  [--json]            every markdown file: title, Status header, class (reference / todo /
+                                 done / history, or todo? / done? for a plan misfiled in docs/ root),
+                                 git created + last-changed dates, size
   check      [--json] [paths…]   mechanical drift findings (exit 1 if any error-level finding)
   glossary   --write | --check   render README.md's Glossary section from docs/glossary.hu
 
@@ -191,16 +192,19 @@ def doc_class(path, status):
     r = rel(path).replace(os.sep, '/')
     if r.startswith('docs/done/'):
         return 'done'
+    if r.startswith('docs/todo/'):
+        return 'todo'
     if r.startswith('docs/history/') or r.startswith('docs/review-'):
         return 'history'
     if not r.startswith('docs/'):
         return 'public' if r in ('README.md',) else 'meta'
     s = (status or '').upper()
-    # a design/plan doc whose own header says it shipped or was superseded: a docs/done/ candidate
-    if re.search(r'\b(HISTORICAL|SUPERSEDED)\b', s):
+    # docs/ root should hold only reference specs. A plan there is misfiled: `done?` (its header says
+    # it shipped / was superseded -> docs/done/) or `todo?` (unfinished -> docs/todo/).
+    if re.search(r'\b(HISTORICAL|SUPERSEDED|DONE)\b', s):
         return 'done?'
-    if re.search(r'-plan\.md$', r) or 'PLAN' in s or 'NOT BUILT' in s:
-        return 'plan'
+    if re.search(r'-plan\.md$', r) or re.search(r'\b(PLAN|NOT BUILT|IN PROGRESS|DEFERRED|NOT SCHEDULED)\b', s):
+        return 'todo?'
     return 'reference'
 
 
@@ -505,8 +509,12 @@ def _check_settings_coverage():
 def _check_status_headers():
     out = []
     for d in inventory():
-        if d['class'] in ('plan', 'reference', 'done?') and d['path'].startswith('docs/') and not d['status']:
+        if d['class'] in ('reference', 'todo', 'done', 'todo?', 'done?') and not d['status']:
             out.append(_fd('warn', 'no-status', d['path'], 1, 'docs/ file has no Status header'))
+        if d['class'] in ('todo?', 'done?'):
+            dest = 'docs/done/' if d['class'] == 'done?' else 'docs/todo/'
+            out.append(_fd('info', 'misfiled', d['path'], 1, f'a plan in docs/ root — belongs in {dest} '
+                           f'(header: {(d["status"] or "none")[:60]})'))
     return out
 
 

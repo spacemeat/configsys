@@ -1,6 +1,6 @@
 ---
 name: update-docs
-description: The go-to skill for making ALL configsys documentation true and current — README.md (+ its generated Glossary), every markdown it links, CLAUDE.md, everything in docs/ (reference specs, plans, the docs/done/ archive and docs/INDEX.md), the man pages (via their sources), argparse help strings, the TUI `?` help pages and key labels, the config.hu template's comments, DEFERRED.md, and the .claude/skills playbooks. Use when the user says "/update-docs", "update the docs", "make the docs current", "check the documentation", or after a batch of feature work. Verifies line by line with high-effort subagents against ground truth extracted from the code, normalizes terminology to docs/glossary.hu, keeps plan-doc status honest and moves finished plans to docs/done/, regenerates man pages, validates, commits.
+description: The go-to skill for making ALL configsys documentation true and current — README.md (+ its generated Glossary), every markdown it links, CLAUDE.md, everything in docs/ (reference specs in docs/, unfinished plans in docs/todo/, finished ones in docs/done/, the docs/history/ archive, docs/INDEX.md), the man pages (via their sources), argparse help strings, the TUI `?` help pages and key labels, the config.hu template's comments, DEFERRED.md, and the .claude/skills playbooks. Use when the user says "/update-docs", "update the docs", "make the docs current", "check the documentation", or after a batch of feature work. Verifies line by line with high-effort subagents against ground truth extracted from the code, normalizes terminology to docs/glossary.hu, keeps plan-doc status honest and files plans into docs/todo/ → docs/done/, regenerates man pages, validates, commits.
 ---
 
 # update-docs — make every piece of documentation true again
@@ -16,8 +16,17 @@ therefore faithfully wrong. This skill exists so that never accumulates again.
 
 1. **Accuracy.** Every factual claim on every surface below matches the code *as it is now* —
    commands, flags, defaults, config keys, file paths, behaviors, statuses, keybindings, examples.
-2. **Lifecycle honesty.** A plan doc says exactly what's built and what isn't. Finished plans move to
-   `docs/done/` with a dated DONE header; `docs/INDEX.md` records every doc's created / finished dates.
+2. **Lifecycle honesty.** A plan doc says exactly what's built and what isn't, and lives where its
+   status says: unfinished plans in `docs/todo/`, finished ones in `docs/done/` (with a dated DONE
+   header). `docs/` itself holds only living reference specs. `docs/INDEX.md` records every doc's
+   created / finished dates. The layout is for the user to read the project's state at a glance:
+   ```
+   docs/            reference specs — how things work NOW; maintained, never "done"
+   docs/todo/       unfinished plans — not started, in progress, or deferred
+   docs/done/       finished or superseded plans — dated header, historical body
+   docs/history/    archive — old plans, previous definitions of terms, … (kept separate)
+   docs/INDEX.md    every doc: where it lives, status, created / finished dates
+   ```
 3. **One vocabulary.** `docs/glossary.hu` is canonical. README's Glossary is generated from it, and
    every doc, help string and `?` page uses its terms — one word per concept, retired words gone.
 4. **Right voice per reader.** Public surfaces (README, man pages, `--help`, `?` pages) read cleanly
@@ -36,10 +45,10 @@ therefore faithfully wrong. This skill exists so that never accumulates again.
 | TUI `?` pages | users | `_HELP` (per-screen `desc` + `glossary`) in `configsys/tui/menu.py`; `ACTION_LABELS` in `configsys/tui/keyspec.py`; the `keys:` comments in `config.hu` | |
 | `config.hu` comments | users (it's the template new configs are generated from) | `config.hu` | |
 | `CLAUDE.md` | Claude, every session | the file | |
-| `docs/*.md` reference specs | devs + Claude | the file | |
-| `docs/*-plan.md` + design docs | devs + Claude | the file's Status header + phase markers | |
+| `docs/*.md` (root) reference specs | devs + Claude | the file | |
+| `docs/todo/*.md` unfinished plans | devs + Claude, the user's to-do view | the Status header + phase markers (and the plan, if it changed) | |
 | `docs/done/` | history | header/links only (see Lifecycle) | the historical body |
-| `docs/history/`, `docs/review-*/` | archive | links only | content |
+| `docs/history/`, `docs/review-*/` | archive (may hold previous definitions of terms) | links only | content |
 | `docs/INDEX.md` | everyone | the file | |
 | `docs/glossary.hu` | everyone, via README | the file | |
 | `DEFERRED.md` | devs + Claude | the file | |
@@ -108,8 +117,9 @@ Effort: **`xhigh`** for README chunks, `docs/config-format.md`, CLAUDE.md and th
 | TUI help | `_HELP` (menu.py), `ACTION_LABELS` (keyspec.py), `config.hu` `keys:` comments | edit strings/comments only |
 | config template | `config.hu` comments (outside `keys:`) | edit comments only |
 | CLAUDE.md | CLAUDE.md | edit |
-| reference specs, ~1–3 per agent by size | `docs/*.md` classified reference | edit |
-| plans / done-candidates, ~3–4 per agent | `docs/*.md` classified plan or `done?` | status + dates verdict, edit header/phase markers (no moves — you do moves) |
+| reference specs, ~1–3 per agent by size | `docs/*.md` classified `reference` | edit |
+| plans, ~3–4 per agent | `docs/todo/*`, and anything classified `todo?` / `done?` (a plan misfiled in `docs/` root) | status + dates verdict + destination (`docs/todo/` or `docs/done/`); edit header/phase markers (no moves — you do moves) |
+| done plans (light touch) | `docs/done/*` | verify the DONE header/date/`Lives on in:` pointer and links only |
 | skills | `.claude/skills/**` | edit |
 | DEFERRED.md | DEFERRED.md | edit (is each item still deferred, done, or dropped?) |
 | plugins (scope `plugins`) | one repo each | edit, in that repo |
@@ -146,8 +156,9 @@ Each writes `$RUN/report-<unit>.json` and replies with one line.
 >   phase, or that flipped the status header (cite the hash), else `unknown (≤ YYYY-MM-DD)`. Set the
 >   header to one of: `> **Status: PLAN** — not started` / `> **Status: IN PROGRESS** — phases A, B
 >   done; C not started` / `> **Status: DONE** — finished YYYY-MM-DD (commit abc1234)` / `> **Status:
->   SUPERSEDED** by docs/X.md` / `> **Status: DEFERRED** — why`. Recommend `move-to-done` for DONE and
->   SUPERSEDED plans, and name the reference doc (if any) where the shipped behavior now lives.
+>   SUPERSEDED** by docs/X.md` / `> **Status: DEFERRED** — why`. Give its destination: `docs/done/`
+>   for DONE / SUPERSEDED, `docs/todo/` for PLAN / IN PROGRESS / DEFERRED — and name the reference
+>   doc (if any) where the shipped behavior now lives.
 > - **Voice:** public surfaces (README, linked guides, `--help`, man source, `?` pages, config.hu
 >   comments) — second person, present tense, task-first, short paragraphs, plain words; every
 >   non-obvious term is a glossary term (README may link `#glossary`); no internal history ("v2", "the
@@ -161,7 +172,7 @@ Each writes `$RUN/report-<unit>.json` and replies with one line.
 > `{"unit": "...", "files": [...], "changed": ["file: one line per change"],
 >   "findings": [{"file", "line", "kind": "wrong|stale|missing|removed|terminology|voice|broken-link|code-bug|new-term|status",
 >                "current", "proposed", "evidence": "code ref / command output", "confidence": "high|medium|low"}],
->   "status_verdicts": [{"file", "status_header", "created", "finished", "finished_evidence", "move_to_done": bool, "lives_on_in": "docs/X.md|null"}],
+>   "status_verdicts": [{"file", "status_header", "created", "finished", "finished_evidence", "destination": "docs/todo/|docs/done/", "lives_on_in": "docs/X.md|null"}],
 >   "questions": ["anything only the user can decide"]}`
 > In `findings` mode put every proposed edit in `findings` (with exact replacement text). Reply with
 > exactly one line: `{UNIT}: <n> changed, <f> findings, <b> code-bugs, <q> questions`.
@@ -172,33 +183,40 @@ Each writes `$RUN/report-<unit>.json` and replies with one line.
    (commands, defaults) with a quick run before writing it.
 2. **Review every agent edit**: `git diff` per file. Revert anything that bends a doc to a reported
    `code-bug`, invents behavior, or drifts voice.
-3. **Lifecycle moves** (below) for every `move_to_done` verdict.
+3. **Lifecycle moves** (below) for every `status_verdicts` destination that differs from where the
+   file is now.
 4. **Consistency sweep**: `tools/docaudit.py check` again — zero errors; every remaining warning either
    fixed or consciously accepted (say why in the report). Grep the changed set for glossary `avoid:`
    words. Make sure the `?` page glossaries agree with `docs/glossary.hu`.
 5. **CLAUDE.md last**: it summarizes everything else; update it after the specs settle, and repoint
    any path that moved.
 
-## Lifecycle: docs/done/ and docs/INDEX.md
+## Lifecycle: docs/, docs/todo/, docs/done/, docs/history/, docs/INDEX.md
 
-- A **reference** doc describes how something works *now* (`routing-model.md`, `config-format.md`,
-  `principles.md`, `plugins.md`, `stranded-installs.md`, …). It is never "done" — it is maintained.
-  It stays in `docs/`.
-- A **plan / design** doc describes work. When every phase has shipped (or it's superseded), `git mv`
-  it to `docs/done/`, prepend the DONE/SUPERSEDED header (keep the historical body untouched), and
-  where the shipped behavior is specified elsewhere, add `Lives on in: docs/<reference>.md`. If the
-  shipped behavior is specified NOWHERE else, that's a `missing` finding: fold the essentials into
-  the right reference doc first — a done plan is history, not the spec.
-- After moves, fix every inbound link (`grep -rn '<old path>'` across the repo, CLAUDE.md, skills,
+- **`docs/` (root) = reference specs only.** A reference doc describes how something works *now*
+  (`routing-model.md`, `config-format.md`, `principles.md`, `plugins.md`, `stranded-installs.md`,
+  `glossary.hu`, …). It is never "done" — it's maintained. Anything else found in the root is
+  misfiled (`docaudit` classes `todo?` / `done?`, `misfiled` findings).
+- **`docs/todo/` = unfinished plans** — Status `PLAN`, `IN PROGRESS` (say which phases are done) or
+  `DEFERRED` (say why). A new plan is created here.
+- **`docs/done/` = finished or superseded plans.** When every phase has shipped (or it's superseded),
+  `git mv` it from `docs/todo/` (or a misfiled root location) to `docs/done/`, prepend the
+  DONE/SUPERSEDED header (keep the historical body untouched), and where the shipped behavior is
+  specified elsewhere add `Lives on in: docs/<reference>.md`. If the shipped behavior is specified
+  NOWHERE else, that's a `missing` finding: fold the essentials into the right reference doc first —
+  a done plan is history, not the spec.
+- **`docs/history/` = archive, kept separate** (old plans, previous definitions of terms, early
+  design records); `docs/review-*/` are dated reviews. Fix links only; never rewrite. When a
+  glossary term is renamed, its old definition may be worth preserving here.
+- After any move, fix every inbound link (`grep -rn '<old path>'` across the repo, CLAUDE.md, skills,
   and the user's memory directory — repoint memory notes that cite moved docs).
-- `docs/history/` and `docs/review-*/` are archives: fix links only. (Fold `docs/history/` into
-  `docs/done/history/` if the user agrees — ask once.)
 - **`docs/INDEX.md`** — create on the first run, then maintain. Top line: `Last full audit:
-  YYYY-MM-DD at <commit>`. Then one table per class (reference / in progress / plans / done /
-  archive) with columns: doc · status · created · finished · one-line summary. Created comes from
-  `inventory` (git). Finished comes from the agents' `status_verdicts` (with the evidence commit);
-  when it can't be recovered, write `unknown (≤ YYYY-MM-DD)` using the date the status header first
-  said done. Don't fabricate dates.
+  YYYY-MM-DD at <commit>`. Then one table per directory — reference (`docs/`), to do (`docs/todo/`),
+  done (`docs/done/`), archive (`docs/history/`, `docs/review-*/`) — with columns: doc · status ·
+  created · finished · one-line summary (for to-do items, the status says which phases remain).
+  Created comes from `inventory` (git). Finished comes from the agents' `status_verdicts` (with the
+  evidence commit); when it can't be recovered, write `unknown (≤ YYYY-MM-DD)` using the date the
+  status header first said done. Don't fabricate dates.
 
 ## Phase 4 — regenerate + validate
 
@@ -216,7 +234,7 @@ breakage only shows there.
 ## Phase 5 — report + commit
 
 1. Report to the user, in the terminal (offer a page if it's long): what changed per surface;
-   docs moved to `docs/done/`; glossary terms added/retired/renamed; every **code-bug** (doc right,
+   docs moved between `docs/`, `docs/todo/` and `docs/done/`; glossary terms added/retired/renamed; every **code-bug** (doc right,
    code wrong) with evidence — these are the most valuable output; open **questions**; accepted
    warnings and why.
 2. Commit locally (never push): one commit for the docs/glossary/help/man changes, separate commits
@@ -232,7 +250,8 @@ breakage only shows there.
 - [ ] Every driver (`via:` value) is listed where drivers are enumerated (README, CLAUDE.md).
 - [ ] Every OS family / notable OS block is reflected where supported platforms are listed.
 - [ ] Every example runs; every humon snippet parses; every link resolves.
-- [ ] Every plan doc has an honest Status header; every DONE plan is in `docs/done/`; INDEX current.
+- [ ] `docs/` root holds only reference specs; every unfinished plan is in `docs/todo/` with an
+      honest Status (phases remaining), every finished one in `docs/done/` with its date; INDEX current.
 - [ ] No retired term outside narrated history; no glossary `avoid:` word for its concept.
 - [ ] CLAUDE.md matches the architecture as built, and points at docs that exist.
 - [ ] Skills' instructions match current fields, components and commands.
