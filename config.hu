@@ -33,11 +33,11 @@ profiles: {
     // delete this profile. (NAMESWEEP still pending on several of these.)
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
-    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp  atuin  zellij  tuxedo  leaf  tree-sitter-cli ]
+    terminal-utils: [ tmux  xclip  zoxide  bat  xsel  wl-clipboard  sesh  gum  ueberzugpp  atuin  zellij  tuxedo  leaf  tree-sitter-cli  herdr  tuios ]
     system-utils: [ doas  dosfstools  fastfetch  gcompat  lsblk  needrestart ]
     native-package-tools: [ epel-release  rpmfusion-free  rpmfusion-nonfree  snapd  snapd-snap-link  snapd-socket  yay  software-properties-common ]
     packagers: [ flatpak  snapd ]
-    system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors ]
+    system-monitors: [ btop  htop  bottom  atop  bmon  iotop  s-tui  glances  nvtop  wavemon  /*sysdig*/  dstat  lm-sensors  tmog ]
     disk-usage-utils: [ ncdu  duf  dysk ]
     file-browsers: [ mc  yazi  superfile  fff  tree  eza  rclone ]
     fish-shell: [ fish  bass ]
@@ -49,9 +49,9 @@ profiles: {
     iso-image-tools: [ caligula  balena-etcher ]
 
     text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
-        vscodium  zed  fresh  jrnl ]
+        vscodium  zed  fresh  jrnl  vis ]
 
-    desktops-compositors: [ budgie  cinnamon  cosmic  fvwm2  gnome  hyprland  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad ]
+    desktops-compositors: [ budgie  cinnamon  cosmic  fvwm2  gnome  hyprland  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad  niri  mutter  kwin ]
     desktop-tools: [ wmenu ]
     web-browsers: [ chrome  chromium  firefox  librewolf  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]
@@ -62,7 +62,7 @@ profiles: {
     containers: [ docker  docker-engine  docker-service  docker-group  lazydocker  podman  xephyr ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
-    db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql ]
+    db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql  dbx ]
     db-servers: [ postgresql  postgresql-service  mariadb  mariadb-service  redis  redis-service  mongodb  mongodb-service ]
 
     net-tools: [ iproute2  impala  bluetui  curl  wget  wireshark  wireshark-group  tshark  tcpdump  nmap  mtr  gping  traceroute  iperf3
@@ -115,7 +115,7 @@ profiles: {
 
     jvm-dev: [ +jvm-lang  +jvm-tools ]
 
-    dev-tools: [ debhelper  dh-make  gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex ]
+    dev-tools: [ debhelper  dh-make  gh  git  lazygit  jq  just  protobuf  yq  liquibase  perf  jenkins  po4a  source-highlight  obsidian  ghidra  radare2  faker  grex  raddebugger ]
     autotools: [ autoconf  automake  libtool  pkg-config  bison  flex ]   // the basic C-dev / GNU build toolchain (make/cmake are their own tools)
     version-control-tools: [ git  lazygit  mercurial  subversion  cvs  perforce  fossil  bazaar  git-lfs  patch ]
     compression-tools: [ zstd  lz4  p7zip  zip  unzip  unrar  rar ]
@@ -128,7 +128,7 @@ profiles: {
 
     ai-tools: [ claude-code  codex  llm  aider  ollama  impala ]
 
-    web-tools: [ cockpit  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  nginx-service  newsboat ]
+    web-tools: [ cockpit  prettier  httpie  mitmproxy  xh  websocat  postman  insomnia  bruno  jmeter  nginx  nginx-service  newsboat  headscale  headscale-service  wireguard ]
     web-package-managers: [ bun  pnpm  yarn ]
 
     graphics-runtime: [ vulkan-runtime  mesa-vulkan-drivers  libvulkan1  vulkan-loader  vulkan-icd-loader  vulkan-radeon  vulkan-intel  vulkan-swrast ]
@@ -143,14 +143,16 @@ profiles: {
     graphics-tools: [ blender  chafa  durdraw  krita  gimp  inkscape  darktable  freecad  openscad  cadcraft  scribus  digikam  photocraft  vectorcraft  lightcraft  designcraft  grim  slurp  pastel  webcamize  wl-screenrec  swaybg  figlet  pywal16  cbonsai  cmatrix  pipes  asciiquarium  lolcat ]
     video-editors: [ kdenlive  shotcut  openshot  flowblade  olive  filmcraft  effectcraft  asciinema ]
     audio-tools: [ audacity  espeak  ardour  lmms  tenacity  musescore  hydrogen  carla  sonic-pi  supercollider
-        qjackctl  yabridge  pulseaudio-utils  kew  soundcraft ]
+        qjackctl  yabridge  pulseaudio-utils  kew  soundcraft  cliamp ]
 
     science: [ apod  astroterm  jupyterlab  gnuplot  paraview  opencv  opencv-python  foldingathome ]
     math: [ texlive  texlive-full  julia  r  octave  maxima  wxmaxima  pari  gap  gnuplot  sagemath  numpy ]
 
     communication: [ discord  discordo  slack  signal  signal-cli  obs-studio ]
     office: [ libreoffice  pdfcraft  wordcraft  gridcraft  deckcraft ]
-    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  +office ]
+    // digital-asset management: photo / media libraries and organizers
+    dam-tools: [ digikam  lap  xnview-mp  kphotoalbum  gthumb  rawtherapee  shotwell  allusion  mediachips  video-hub-app ]
+    creative-tools: [ +electronics-tools  +graphics-tools  +audio-tools  +office  +dam-tools  neo ]
     // ArtCraft's "Crafting Apps" — open-source rebuilds of the Adobe suite (+ Office, AutoCAD, Pro
     // Tools), as one suite lens (alpha).
     artcraft: [ photocraft  vectorcraft  lightcraft  designcraft  filmcraft  effectcraft  pdfcraft

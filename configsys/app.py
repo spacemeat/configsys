@@ -197,6 +197,19 @@ class Context:
                 'podman, or rpm-ostree for those. Review the plan before you run any op, and '
                 'please report anything that misroutes.')
 
+        _blk = self.os_info.block
+        if _blk == 'kde_linux':
+            add('warn', 'immutable',
+                'KDE Linux detected (alpha, immutable, NO system package manager) — configsys installs '
+                'apps via Flatpak and CLI tools via userland methods (tarballs, cargo, pipx, …); a '
+                'component offered only as a distro package declines here. KDE Linux routing is NEW and '
+                'not validated on real hardware — review plans before running them.')
+        elif _blk == 'chimera':
+            add('warn', 'partial-os',
+                'Chimera Linux detected — configsys does not route its apk packages yet (Chimera\'s '
+                'package names differ from Alpine\'s), so only portable methods (musl tarballs, cargo, '
+                'pipx, …) install here and most components decline. Chimera-named apk routes are a '
+                'planned follow-up.')
         self.ensure_plugin_code()                        # populates plugin_code_warnings
         for w in getattr(self.config, 'load_warnings', []):
             add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin)

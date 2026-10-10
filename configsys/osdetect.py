@@ -32,6 +32,8 @@ _ALIASES = {
     # Legacy Raspbian (Bullseye-, ID=raspbian) is the same distro as Raspberry Pi OS, renamed.
     # Bookworm+ reports ID=debian and is caught by the `pios` block's /etc/rpi-issue detect marker.
     'raspbian': 'pios',
+    # KDE Linux reports ID=kde-linux; the when: DSL has no `-`
+    'kde-linux': 'kde_linux',
 }
 
 # Fedora Atomic desktops report ID=fedora with the variant in VARIANT_ID. uBlue images

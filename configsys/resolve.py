@@ -118,8 +118,12 @@ def _matching(component, context, pins):
     # (a `suggests:` skips it silently, a hard `requires:`/explicit want errors honestly).
     disabled = getattr(context, 'disabled', frozenset())
     cpu = getattr(context, 'cpu', None)
+    # an OS with no system package manager (KDE Linux): `via: native` can't work there, so it isn't a
+    # candidate — the component falls through to flatpak/tarball/cargo/… instead of erroring
+    no_native = not getattr(context, 'has_native', True)
     return [b for b in bindings
-            if b.via not in disabled and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
+            if b.via not in disabled and not (no_native and b.via == 'native')
+            and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
 
 
 def cpu_names(details):

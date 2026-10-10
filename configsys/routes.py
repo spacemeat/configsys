@@ -196,7 +196,7 @@ class OsCascade:
     def context(self, block, version=None, cpu=None, disabled=()):
         return predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
                                  facets_cat=self.facets_cat, facets_ver=self.facets_ver,
-                                 disabled=disabled)
+                                 disabled=disabled, has_native=self.native(block) is not None)
 
 
 def _pf(entry):

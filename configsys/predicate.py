@@ -135,8 +135,11 @@ class Context:
     blocks are version scale-roots.'''
 
     def __init__(self, lineage, version=None, cpu=None, scale_roots=(),
-                 facets_cat=None, facets_ver=None, disabled=()):
+                 facets_cat=None, facets_ver=None, disabled=(), has_native=True):
         self.lineage = list(lineage)
+        # False on an OS block with no system package manager (KDE Linux, an image-based distro):
+        # `via: native` bindings are then non-matching, like a false `when:` (resolve._matching).
+        self.has_native = has_native
         # driver/via names DISABLED on this machine (`disabled-drivers:` setting): their bindings
         # are treated as non-matching here, exactly like a false `when:` (see resolve._matching).
         self.disabled = frozenset(disabled)

@@ -106,6 +106,39 @@
     "name": "alacritty-dotfiles"
    }
   },
+  "allusion": {
+   "aur\\allusion": {
+    "driver": "aur",
+    "fields": {
+     "name": "allusion-appimage-rafauc"
+    },
+    "name": "allusion-appimage-rafauc"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "android-file-transfer": {
    "pacman\\android-file-transfer": {
     "driver": "pacman",
@@ -1431,6 +1464,91 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "aur\\cliamp": {
+    "driver": "aur",
+    "fields": {
+     "name": "cliamp-bin"
+    },
+    "name": "cliamp-bin"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "pacman\\clojure": {
     "driver": "pacman",
@@ -1957,6 +2075,39 @@
      "name": "dbus"
     },
     "name": "dbus"
+   }
+  },
+  "dbx": {
+   "aur\\dbx": {
+    "driver": "aur",
+    "fields": {
+     "name": "dbx-bin"
+    },
+    "name": "dbx-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "deckcraft": {
@@ -4581,6 +4732,16 @@
     "name": "gst-plugins-ugly"
    }
   },
+  "gthumb": {
+   "pacman\\gthumb": {
+    "driver": "pacman",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "pacman\\gtk": {
     "driver": "pacman",
@@ -4645,6 +4806,76 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\headscale": {
+    "driver": "pacman",
+    "fields": {
+     "name": "headscale"
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\headscale": {
+    "driver": "pacman",
+    "fields": {
+     "name": "headscale"
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -4746,6 +4977,91 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "aur\\herdr": {
+    "driver": "aur",
+    "fields": {
+     "name": "herdr-bin"
+    },
+    "name": "herdr-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -6045,6 +6361,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "pacman\\kphotoalbum": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "pacman\\krita": {
     "driver": "pacman",
@@ -6092,6 +6418,44 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "pacman\\kwin": {
+    "driver": "pacman",
+    "fields": {
+     "name": "kwin",
+     "repo-component": "universe"
+    },
+    "name": "kwin"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "pacman\\libfuse2": {
+    "driver": "pacman",
+    "fields": {
+     "name": "fuse2",
+     "repo-component": "universe"
+    },
+    "name": "fuse2"
    }
   },
   "lazydocker": {
@@ -7298,6 +7662,39 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "aur\\mediachips": {
+    "driver": "aur",
+    "fields": {
+     "name": "mediachips-bin"
+    },
+    "name": "mediachips-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "mercurial": {
    "dotfiles\\mercurial-dotfiles": {
     "driver": "dotfiles",
@@ -7812,6 +8209,15 @@
     "name": "flatpak"
    }
   },
+  "mutter": {
+   "pacman\\mutter": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -7960,6 +8366,39 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "neo": {
+   "aur\\neo": {
+    "driver": "aur",
+    "fields": {
+     "name": "neo-matrix"
+    },
+    "name": "neo-matrix"
    },
    "dotfiles\\git-dotfiles": {
     "driver": "dotfiles",
@@ -8296,6 +8735,37 @@
      "name": "ninja"
     },
     "name": "ninja"
+   }
+  },
+  "niri": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
+   },
+   "pacman\\niri": {
+    "driver": "pacman",
+    "fields": {
+     "name": "niri"
+    },
+    "name": "niri"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -10242,6 +10712,39 @@
     "name": "radare2"
    }
   },
+  "raddebugger": {
+   "aur\\raddebugger": {
+    "driver": "aur",
+    "fields": {
+     "name": "raddebugger"
+    },
+    "name": "raddebugger"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "raku": {
    "aur\\raku": {
     "driver": "aur",
@@ -10336,6 +10839,38 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "rawtherapee": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "pacman\\rawtherapee": {
+    "driver": "pacman",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
    }
   },
   "rclone": {
@@ -10944,6 +11479,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "pacman\\shotwell": {
+    "driver": "pacman",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -11693,6 +12237,39 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "aur\\tmog": {
+    "driver": "aur",
+    "fields": {
+     "name": "tmog-bin"
+    },
+    "name": "tmog-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "tmux": {
    "dotfiles\\tmux-dotfiles": {
     "driver": "dotfiles",
@@ -11860,6 +12437,91 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "aur\\tuios": {
+    "driver": "aur",
+    "fields": {
+     "name": "tuios-bin"
+    },
+    "name": "tuios-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -12400,6 +13062,39 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "aur\\video-hub-app": {
+    "driver": "aur",
+    "fields": {
+     "name": "video-hub-app-bin"
+    },
+    "name": "video-hub-app-bin"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "pacman\\base-devel": {
+    "driver": "pacman",
+    "fields": {
+     "name": "base-devel"
+    },
+    "name": "base-devel"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "virt-manager": {
    "pacman\\libvirt": {
     "driver": "pacman",
@@ -12444,6 +13139,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   },
+   "pacman\\vis": {
+    "driver": "pacman",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -13420,6 +14147,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   },
+   "pacman\\flatpak": {
+    "driver": "pacman",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "xsel": {
    "pacman\\xsel": {
     "driver": "pacman",
@@ -14023,6 +14767,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -15523,6 +16294,86 @@
      }
     },
     "name": "claude-code-dotfiles"
+   }
+  },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "clojure": {
@@ -19018,6 +19869,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -19087,6 +19948,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -19217,6 +20164,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -20558,6 +21585,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -20622,6 +21659,44 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "lazydocker": {
@@ -21877,6 +22952,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -22436,6 +23538,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -22900,6 +24011,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -24697,6 +25820,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -25313,6 +26468,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -26100,6 +27264,84 @@
     "name": "ttyd"
    }
   },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   }
+  },
   "tuxedo-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -26492,6 +27734,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -26536,6 +27804,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -27352,6 +28652,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -27998,6 +29315,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -29483,6 +30827,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "apt\\clojure": {
     "driver": "apt",
@@ -30204,6 +31628,23 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.deb",
+      "x86_64": "DBX_*_amd64.deb"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "debhelper": {
@@ -33010,6 +34451,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -33079,6 +34530,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -33209,6 +34746,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -34499,6 +36116,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -34563,6 +36190,33 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "native-pkg-file\\lap": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "Lap_*_arm64.deb",
+      "x86_64": "Lap_*_amd64.deb"
+     },
+     "name": "lap",
+     "version": {
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "lap"
    }
   },
   "lazydocker": {
@@ -35818,6 +37472,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -36343,6 +38024,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -36500,6 +38190,16 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   }
+  },
+  "neo": {
+   "apt\\neo": {
+    "driver": "apt",
+    "fields": {
+     "name": "neo-cli",
+     "repo-component": "universe"
+    },
+    "name": "neo-cli"
    }
   },
   "neovim": {
@@ -36808,6 +38508,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -38571,6 +40283,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -39170,6 +40914,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -39828,6 +41581,24 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "native-pkg-file\\tmog": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "name": "taskmanagerog",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.deb",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "taskmanagerog"
+   }
+  },
   "tmux": {
    "apt\\tmux": {
     "driver": "apt",
@@ -39972,6 +41743,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo-glue": {
@@ -40366,6 +42215,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -40410,6 +42285,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -41243,6 +43150,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -41872,6 +43796,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -43365,6 +45316,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "apt\\clojure": {
     "driver": "apt",
@@ -44086,6 +46117,23 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.deb",
+      "x86_64": "DBX_*_amd64.deb"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "debhelper": {
@@ -46894,6 +48942,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -46963,6 +49021,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -47093,6 +49237,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -48376,6 +50600,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -48440,6 +50674,33 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "native-pkg-file\\lap": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "Lap_*_arm64.deb",
+      "x86_64": "Lap_*_amd64.deb"
+     },
+     "name": "lap",
+     "version": {
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "lap"
    }
   },
   "lazydocker": {
@@ -49695,6 +51956,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -50220,6 +52508,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -50377,6 +52674,16 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   }
+  },
+  "neo": {
+   "apt\\neo": {
+    "driver": "apt",
+    "fields": {
+     "name": "neo-cli",
+     "repo-component": "universe"
+    },
+    "name": "neo-cli"
    }
   },
   "neovim": {
@@ -50685,6 +52992,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -52461,6 +54780,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -53060,6 +55411,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -53726,6 +56086,24 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "native-pkg-file\\tmog": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "name": "taskmanagerog",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.deb",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "taskmanagerog"
+   }
+  },
   "tmux": {
    "apt\\tmux": {
     "driver": "apt",
@@ -53870,6 +56248,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo-glue": {
@@ -54264,6 +56720,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -54308,6 +56790,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -55207,6 +57721,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -55836,6 +58367,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "android-file-transfer": {
@@ -57221,6 +59779,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -57921,6 +60559,23 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.rpm",
+      "x86_64": "DBX-*-1.x86_64.rpm"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "deckcraft": {
@@ -60461,6 +63116,16 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "gthumb": {
+   "dnf\\gthumb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -60525,6 +63190,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
    }
   },
   "heaptrack": {
@@ -60631,6 +63404,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -61948,6 +64801,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "dnf\\kphotoalbum": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "dnf\\krita": {
     "driver": "dnf",
@@ -62012,6 +64875,44 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "dnf\\kwin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kwin",
+     "repo-component": "universe"
+    },
+    "name": "kwin"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "lazydocker": {
@@ -63209,6 +66110,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "mercurial": {
    "dnf\\mercurial": {
     "driver": "dnf",
@@ -63679,6 +66607,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "dnf\\mutter": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -63847,6 +66784,16 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   }
+  },
+  "neo": {
+   "dnf\\neo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "neo",
+     "repo-component": "universe"
+    },
+    "name": "neo"
    }
   },
   "neovim": {
@@ -64155,6 +67102,37 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri": {
+   "dnf\\niri": {
+    "driver": "dnf",
+    "fields": {
+     "name": "niri"
+    },
+    "name": "niri"
+   },
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -65878,6 +68856,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dnf\\rawtherapee": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "dnf\\rclone": {
     "driver": "dnf",
@@ -66504,6 +69514,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "dnf\\shotwell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -67184,6 +70203,34 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "tmux": {
    "dnf\\tmux": {
     "driver": "dnf",
@@ -67328,6 +70375,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -67781,6 +70906,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -67835,6 +70986,38 @@
      "name": "VirtualBox"
     },
     "name": "VirtualBox"
+   }
+  },
+  "vis": {
+   "dnf\\vis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -68732,6 +71915,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "dnf\\xsel": {
     "driver": "dnf",
@@ -69360,6 +72560,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "android-file-transfer": {
@@ -70771,6 +73998,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -71471,6 +74778,23 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.rpm",
+      "x86_64": "DBX-*-1.x86_64.rpm"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "deckcraft": {
@@ -74011,6 +77335,16 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "gthumb": {
+   "dnf\\gthumb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -74075,6 +77409,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
    }
   },
   "heaptrack": {
@@ -74181,6 +77623,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -75498,6 +79020,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "dnf\\kphotoalbum": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "dnf\\krita": {
     "driver": "dnf",
@@ -75562,6 +79094,44 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "dnf\\kwin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kwin",
+     "repo-component": "universe"
+    },
+    "name": "kwin"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "lazydocker": {
@@ -76759,6 +80329,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "mercurial": {
    "dnf\\mercurial": {
     "driver": "dnf",
@@ -77229,6 +80826,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "dnf\\mutter": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -77397,6 +81003,16 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   }
+  },
+  "neo": {
+   "dnf\\neo": {
+    "driver": "dnf",
+    "fields": {
+     "name": "neo",
+     "repo-component": "universe"
+    },
+    "name": "neo"
    }
   },
   "neovim": {
@@ -77705,6 +81321,37 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri": {
+   "dnf\\niri": {
+    "driver": "dnf",
+    "fields": {
+     "name": "niri"
+    },
+    "name": "niri"
+   },
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -79428,6 +83075,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dnf\\rawtherapee": {
+    "driver": "dnf",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "dnf\\rclone": {
     "driver": "dnf",
@@ -80054,6 +83733,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "dnf\\shotwell": {
+    "driver": "dnf",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -80734,6 +84422,34 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "tmux": {
    "dnf\\tmux": {
     "driver": "dnf",
@@ -80878,6 +84594,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -81331,6 +85125,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -81385,6 +85205,38 @@
      "name": "VirtualBox"
     },
     "name": "VirtualBox"
+   }
+  },
+  "vis": {
+   "dnf\\vis": {
+    "driver": "dnf",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -82282,6 +86134,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "dnf\\xsel": {
     "driver": "dnf",
@@ -82925,6 +86794,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-studio": {
@@ -84028,6 +87924,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "brew\\clojure": {
     "driver": "brew",
@@ -84453,6 +88429,34 @@
      "name": "dbus"
     },
     "name": "dbus"
+   }
+  },
+  "dbx": {
+   "appImage\\dbx": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "name": "DBX",
+     "path": "~/apps/dbx.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "DBX_*_$ARCH.AppImage",
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "DBX"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "deckcraft": {
@@ -86528,6 +90532,16 @@
     "name": "shell-glue"
    }
   },
+  "gthumb": {
+   "flatpak\\gthumb": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gnome.gThumb"
+    },
+    "name": "org.gnome.gThumb"
+   }
+  },
   "gtk3": {
    "brew\\gtk3": {
     "driver": "brew",
@@ -86565,6 +90579,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
    }
   },
   "helix": {
@@ -86657,6 +90779,67 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "brew\\herdr": {
+    "driver": "brew",
+    "fields": {
+     "name": "herdr"
+    },
+    "name": "herdr"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -87629,6 +91812,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "flatpak\\kphotoalbum": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kphotoalbum"
+    },
+    "name": "org.kde.kphotoalbum"
+   }
+  },
   "krita": {
    "flatpak\\krita": {
     "driver": "flatpak",
@@ -87676,6 +91869,34 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "lazydocker": {
@@ -88792,6 +93013,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "brew\\mercurial": {
     "driver": "brew",
@@ -89619,6 +93867,18 @@
      "name": "ninja"
     },
     "name": "ninja"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -90968,6 +95228,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "flatpak\\rawtherapee": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.rawtherapee.RawTherapee"
+    },
+    "name": "com.rawtherapee.RawTherapee"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "brew\\rclone": {
     "driver": "brew",
@@ -91539,6 +95831,16 @@
     "name": "org.shotcut.Shotcut"
    }
   },
+  "shotwell": {
+   "flatpak\\shotwell": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gnome.Shotwell"
+    },
+    "name": "org.gnome.Shotwell"
+   }
+  },
   "signal": {
    "flatpak\\signal": {
     "driver": "flatpak",
@@ -91995,6 +96297,34 @@
     "name": "tcl-tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "tmux": {
    "brew\\tmux": {
     "driver": "brew",
@@ -92129,6 +96459,67 @@
      "name": "ttyd"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "brew\\tuios": {
+    "driver": "brew",
+    "fields": {
+     "name": "tuios"
+    },
+    "name": "tuios"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -92491,6 +96882,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "brew\\libfuse2": {
+    "driver": "brew",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "brew\\libvirt": {
     "driver": "brew",
@@ -92525,6 +96942,38 @@
      "unit": "libvirtd"
     },
     "name": "libvirt-service"
+   }
+  },
+  "vis": {
+   "brew\\vis": {
+    "driver": "brew",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -93089,6 +97538,16 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "brew\\xsel": {
     "driver": "brew",
@@ -93642,6 +98101,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -95169,6 +99655,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "apt\\clojure": {
     "driver": "apt",
@@ -95916,6 +100482,23 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.deb",
+      "x86_64": "DBX_*_amd64.deb"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "debhelper": {
@@ -98758,6 +103341,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -98827,6 +103420,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -98957,6 +103636,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -100291,6 +105050,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -100355,6 +105124,33 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "native-pkg-file\\lap": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "Lap_*_arm64.deb",
+      "x86_64": "Lap_*_amd64.deb"
+     },
+     "name": "lap",
+     "version": {
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "lap"
    }
   },
   "lazydocker": {
@@ -101627,6 +106423,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -102186,6 +107009,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -102668,6 +107500,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -104512,6 +109356,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -105128,6 +110004,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -105793,6 +110678,34 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "tmux": {
    "apt\\tmux": {
     "driver": "apt",
@@ -105937,6 +110850,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo-glue": {
@@ -106348,6 +111339,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -106392,6 +111409,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -107225,6 +112274,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -107903,6 +112969,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "android-studio": {
@@ -109389,6 +114482,86 @@
      }
     },
     "name": "claude-code-dotfiles"
+   }
+  },
+  "cliamp": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "clojure": {
@@ -112724,6 +117897,22 @@
     "name": "rpmfusion-free-release"
    }
   },
+  "gthumb": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\gthumb": {
+    "driver": "dnf",
+    "fields": {
+     "name": "gthumb"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "dnf\\gtk": {
     "driver": "dnf",
@@ -112795,6 +117984,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
    }
   },
   "heaptrack": {
@@ -112901,6 +118198,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -114257,6 +119634,23 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kphotoalbum": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kphotoalbum"
+    },
+    "name": "org.kde.kphotoalbum"
+   }
+  },
   "krita": {
    "dnf\\flatpak": {
     "driver": "dnf",
@@ -114328,6 +119722,50 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
+   "dnf\\kwin": {
+    "driver": "dnf",
+    "fields": {
+     "name": "kwin"
+    },
+    "name": "kwin"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
    }
   },
   "lazydocker": {
@@ -115555,6 +120993,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "mercurial": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -116087,6 +121552,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "dnf\\mutter": {
+    "driver": "dnf",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "dnf\\jdk": {
     "driver": "dnf",
@@ -116585,6 +122059,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -118330,6 +123816,45 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "flatpak\\rawtherapee": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.rawtherapee.RawTherapee"
+    },
+    "name": "com.rawtherapee.RawTherapee"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "dnf\\rclone": {
     "driver": "dnf",
@@ -119027,6 +124552,23 @@
      "name": "org.shotcut.Shotcut"
     },
     "name": "org.shotcut.Shotcut"
+   }
+  },
+  "shotwell": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\shotwell": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gnome.Shotwell"
+    },
+    "name": "org.gnome.Shotwell"
    }
   },
   "signal": {
@@ -119856,6 +125398,84 @@
     "name": "ttyd"
    }
   },
+  "tuios": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   }
+  },
   "tuxedo-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -120260,6 +125880,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "dnf\\libfuse2": {
+    "driver": "dnf",
+    "fields": {
+     "name": "fuse-libs",
+     "repo-component": "universe"
+    },
+    "name": "fuse-libs"
+   }
+  },
   "virt-manager": {
    "dnf\\libvirt": {
     "driver": "dnf",
@@ -120322,6 +125968,18 @@
      "name": "VirtualBox"
     },
     "name": "VirtualBox"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -121256,6 +126914,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "dnf\\flatpak": {
+    "driver": "dnf",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "dnf\\epel-release": {
     "driver": "dnf",
@@ -121933,6 +127608,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -123460,6 +129162,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "apt\\clojure": {
     "driver": "apt",
@@ -124198,6 +129980,23 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.deb",
+      "x86_64": "DBX_*_amd64.deb"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "debhelper": {
@@ -127040,6 +132839,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -127109,6 +132918,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -127239,6 +133134,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -128573,6 +134548,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -128637,6 +134622,33 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "native-pkg-file\\lap": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "Lap_*_arm64.deb",
+      "x86_64": "Lap_*_amd64.deb"
+     },
+     "name": "lap",
+     "version": {
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "lap"
    }
   },
   "lazydocker": {
@@ -129909,6 +135921,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -130468,6 +136507,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -130950,6 +136998,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -132794,6 +138854,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -133410,6 +139502,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -134076,6 +140177,34 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "tmux": {
    "apt\\tmux": {
     "driver": "apt",
@@ -134220,6 +140349,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo-glue": {
@@ -134631,6 +140838,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -134675,6 +140908,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -135508,6 +141773,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -136154,6 +142436,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
    }
   },
   "android-file-transfer": {
@@ -137647,6 +143956,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "apt\\clojure": {
     "driver": "apt",
@@ -138368,6 +144757,23 @@
      "name": "libdbus-1-dev"
     },
     "name": "libdbus-1-dev"
+   }
+  },
+  "dbx": {
+   "native-pkg-file\\dbx": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "DBX_*_arm64.deb",
+      "x86_64": "DBX_*_amd64.deb"
+     },
+     "name": "dbx",
+     "version": {
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "dbx"
    }
   },
   "debhelper": {
@@ -141138,6 +147544,16 @@
     "name": "gstreamer1.0-plugins-ugly"
    }
   },
+  "gthumb": {
+   "apt\\gthumb": {
+    "driver": "apt",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "apt\\gtk": {
     "driver": "apt",
@@ -141207,6 +147623,92 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "native-pkg-file\\headscale": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "headscale_*_linux_arm64.deb",
+      "x86_64": "headscale_*_linux_amd64.deb"
+     },
+     "name": "headscale",
+     "version": {
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
    }
   },
   "heaptrack": {
@@ -141337,6 +147839,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -142620,6 +149202,16 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "apt\\kphotoalbum": {
+    "driver": "apt",
+    "fields": {
+     "name": "kphotoalbum",
+     "repo-component": "universe"
+    },
+    "name": "kphotoalbum"
+   }
+  },
   "krita": {
    "apt\\krita": {
     "driver": "apt",
@@ -142684,6 +149276,33 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "apt\\kwin": {
+    "driver": "apt",
+    "fields": {
+     "name": "kwin-wayland",
+     "repo-component": "universe"
+    },
+    "name": "kwin-wayland"
+   }
+  },
+  "lap": {
+   "native-pkg-file\\lap": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "asset": {
+      "aarch64": "Lap_*_arm64.deb",
+      "x86_64": "Lap_*_amd64.deb"
+     },
+     "name": "lap",
+     "version": {
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "lap"
    }
   },
   "lazydocker": {
@@ -143939,6 +150558,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "mercurial": {
    "apt\\mercurial": {
     "driver": "apt",
@@ -144464,6 +151110,15 @@
     "name": "org.musescore.MuseScore"
    }
   },
+  "mutter": {
+   "apt\\mutter": {
+    "driver": "apt",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "apt\\jdk": {
     "driver": "apt",
@@ -144621,6 +151276,16 @@
      "name": "needrestart"
     },
     "name": "needrestart"
+   }
+  },
+  "neo": {
+   "apt\\neo": {
+    "driver": "apt",
+    "fields": {
+     "name": "neo-cli",
+     "repo-component": "universe"
+    },
+    "name": "neo-cli"
    }
   },
   "neovim": {
@@ -144955,6 +151620,18 @@
      "name": "ninja-build"
     },
     "name": "ninja-build"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -146731,6 +153408,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "apt\\rawtherapee": {
+    "driver": "apt",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "apt\\rclone": {
     "driver": "apt",
@@ -147330,6 +154039,15 @@
      "repo-component": "universe"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "apt\\shotwell": {
+    "driver": "apt",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -147996,6 +154714,24 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "native-pkg-file\\tmog": {
+    "driver": "native-pkg-file",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "name": "taskmanagerog",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.deb",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "taskmanagerog"
+   }
+  },
   "tmux": {
    "apt\\tmux": {
     "driver": "apt",
@@ -148140,6 +154876,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -148570,6 +155384,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "apt\\libfuse2": {
+    "driver": "apt",
+    "fields": {
+     "name": "libfuse2",
+     "repo-component": "universe"
+    },
+    "name": "libfuse2"
+   }
+  },
   "virt-manager": {
    "apt\\libvirt": {
     "driver": "apt",
@@ -148614,6 +155454,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox"
+   }
+  },
+  "vis": {
+   "apt\\vis": {
+    "driver": "apt",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   },
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -149513,6 +156385,23 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "apt\\flatpak": {
+    "driver": "apt",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
   "xsel": {
    "apt\\xsel": {
     "driver": "apt",
@@ -150130,6 +157019,33 @@
      }
     },
     "name": "alacritty-dotfiles"
+   }
+  },
+  "allusion": {
+   "appImage\\allusion": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "Allusion",
+     "path": "~/apps/allusion.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Allusion-*-ruc.AppImage",
+      "github": "RafaUC/Allusion",
+      "strip-v": "true"
+     }
+    },
+    "name": "Allusion"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "android-file-transfer": {
@@ -151400,6 +158316,86 @@
     "name": "claude-code-dotfiles"
    }
   },
+  "cliamp": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   },
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\cliamp": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "cliamp",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/cliamp",
+     "name": "cliamp",
+     "version": {
+      "asset": "cliamp-linux-$ARCH",
+      "github": "bjarneo/cliamp",
+      "strip-v": "true"
+     }
+    },
+    "name": "cliamp"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "clojure": {
    "xbps\\clojure": {
     "driver": "xbps",
@@ -151809,6 +158805,34 @@
      "name": "dbus-devel"
     },
     "name": "dbus-devel"
+   }
+  },
+  "dbx": {
+   "appImage\\dbx": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "name": "DBX",
+     "path": "~/apps/dbx.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "DBX_*_$ARCH.AppImage",
+      "github": "t8y2/dbx",
+      "tag-re": "^v([0-9][0-9.]*)$"
+     }
+    },
+    "name": "DBX"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "deckcraft": {
@@ -154221,6 +161245,16 @@
     "name": "gst-plugins-ugly1"
    }
   },
+  "gthumb": {
+   "xbps\\gthumb": {
+    "driver": "xbps",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "xbps\\gtk": {
     "driver": "xbps",
@@ -154284,6 +161318,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    }
   },
   "heaptrack": {
@@ -154385,6 +161527,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -155558,6 +162780,23 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "flatpak\\kphotoalbum": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kphotoalbum"
+    },
+    "name": "org.kde.kphotoalbum"
+   },
+   "xbps\\flatpak": {
+    "driver": "xbps",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "krita": {
    "xbps\\krita": {
     "driver": "xbps",
@@ -155605,6 +162844,44 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "xbps\\kwin": {
+    "driver": "xbps",
+    "fields": {
+     "name": "kwin",
+     "repo-component": "universe"
+    },
+    "name": "kwin"
+   }
+  },
+  "lap": {
+   "appImage\\lap": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "amd64"
+     },
+     "name": "Lap",
+     "path": "~/apps/lap.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "Lap_*_$ARCH.AppImage",
+      "github": "julyx10/lap",
+      "strip-v": "true"
+     }
+    },
+    "name": "Lap"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
    }
   },
   "lazydocker": {
@@ -156826,6 +164103,33 @@
     "name": "mc"
    }
   },
+  "mediachips": {
+   "appImage\\mediachips": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "MediaChips",
+     "path": "~/apps/mediachips.appimage",
+     "scope": "user",
+     "version": {
+      "asset": "MediaChips.v*.Linux.AppImage",
+      "github": "fupdec/MediaChips",
+      "strip-v": "true"
+     }
+    },
+    "name": "MediaChips"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "mercurial": {
    "dotfiles\\mercurial-dotfiles": {
     "driver": "dotfiles",
@@ -157271,6 +164575,15 @@
     "name": "flatpak"
    }
   },
+  "mutter": {
+   "xbps\\mutter": {
+    "driver": "xbps",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -157679,6 +164992,37 @@
      "name": "ninja"
     },
     "name": "ninja"
+   }
+  },
+  "niri": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
+   },
+   "xbps\\niri": {
+    "driver": "xbps",
+    "fields": {
+     "name": "niri"
+    },
+    "name": "niri"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -159545,6 +166889,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "xbps\\rawtherapee": {
+    "driver": "xbps",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "xbps\\rclone": {
     "driver": "xbps",
@@ -160153,6 +167529,15 @@
      "name": "shotcut"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "xbps\\shotwell": {
+    "driver": "xbps",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -160775,6 +168160,34 @@
     "name": "tk"
    }
   },
+  "tmog": {
+   "appImage\\tmog": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "name": "TMOG",
+     "path": "~/apps/tmog.appimage",
+     "scope": "user",
+     "url": "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage",
+     "version": {
+      "regex": "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage",
+      "url": "https://tmog.org/"
+     }
+    },
+    "name": "TMOG"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "tmux": {
    "dotfiles\\tmux-dotfiles": {
     "driver": "dotfiles",
@@ -160919,6 +168332,84 @@
      "repo-component": "universe"
     },
     "name": "ttyd"
+   }
+  },
+  "tuios": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
    }
   },
   "tuxedo": {
@@ -161345,6 +168836,32 @@
     "name": "vegeta"
    }
   },
+  "video-hub-app": {
+   "appImage\\video-hub-app": {
+    "driver": "appImage",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "name": "VideoHubApp",
+     "path": "~/apps/video-hub-app.appimage",
+     "scope": "user",
+     "url": "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage",
+     "version": {
+      "static": "3.2.0"
+     }
+    },
+    "name": "VideoHubApp"
+   },
+   "xbps\\libfuse2": {
+    "driver": "xbps",
+    "fields": {
+     "name": "fuse",
+     "repo-component": "universe"
+    },
+    "name": "fuse"
+   }
+  },
   "virt-manager": {
    "service\\libvirt-service": {
     "driver": "service",
@@ -161389,6 +168906,38 @@
      "repo-component": "multiverse"
     },
     "name": "virtualbox-ose"
+   }
+  },
+  "vis": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   },
+   "xbps\\vis": {
+    "driver": "xbps",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -162287,6 +169836,23 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xnview-mp": {
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   },
+   "xbps\\flatpak": {
+    "driver": "xbps",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "xsel": {
@@ -163939,6 +171505,34 @@
      }
     },
     "name": "claude-code-dotfiles"
+   }
+  },
+  "cliamp-dotfiles": {
+   "dotfiles\\cliamp-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/cliamp",
+      "src": "cliamp"
+     }
+    },
+    "name": "cliamp-dotfiles"
+   }
+  },
+  "cliamp-glue": {
+   "glue\\cliamp-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "cliamp"
+    },
+    "name": "cliamp-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "clojure": {
@@ -166463,6 +174057,16 @@
     "name": "gst-plugins-ugly1"
    }
   },
+  "gthumb": {
+   "xbps\\gthumb": {
+    "driver": "xbps",
+    "fields": {
+     "name": "gthumb",
+     "repo-component": "universe"
+    },
+    "name": "gthumb"
+   }
+  },
   "gtk": {
    "xbps\\gtk": {
     "driver": "xbps",
@@ -166526,6 +174130,114 @@
      "repo-component": "universe"
     },
     "name": "ghc"
+   }
+  },
+  "headscale": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "headscale-glue": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    }
   },
   "heaptrack": {
@@ -166627,6 +174339,86 @@
      }
     },
     "name": "helm-dotfiles"
+   }
+  },
+  "herdr": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "herdr-dotfiles": {
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   }
+  },
+  "herdr-glue": {
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "hey": {
@@ -167727,6 +175519,23 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "flatpak\\kphotoalbum": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kphotoalbum"
+    },
+    "name": "org.kde.kphotoalbum"
+   },
+   "xbps\\flatpak": {
+    "driver": "xbps",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
   "krita": {
    "xbps\\krita": {
     "driver": "xbps",
@@ -167774,6 +175583,16 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "kwin": {
+   "xbps\\kwin": {
+    "driver": "xbps",
+    "fields": {
+     "name": "kwin",
+     "repo-component": "universe"
+    },
+    "name": "kwin"
    }
   },
   "lazydocker": {
@@ -169382,6 +177201,15 @@
     "name": "flatpak"
    }
   },
+  "mutter": {
+   "xbps\\mutter": {
+    "driver": "xbps",
+    "fields": {
+     "name": "mutter"
+    },
+    "name": "mutter"
+   }
+  },
   "mvnd": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -169738,6 +177566,37 @@
      "name": "ninja"
     },
     "name": "ninja"
+   }
+  },
+  "niri": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
+   },
+   "xbps\\niri": {
+    "driver": "xbps",
+    "fields": {
+     "name": "niri"
+    },
+    "name": "niri"
+   }
+  },
+  "niri-dotfiles": {
+   "dotfiles\\niri-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/niri",
+      "src": "niri"
+     }
+    },
+    "name": "niri-dotfiles"
    }
   },
   "nload": {
@@ -171472,6 +179331,38 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "xbps\\rawtherapee": {
+    "driver": "xbps",
+    "fields": {
+     "name": "rawtherapee",
+     "repo-component": "universe"
+    },
+    "name": "rawtherapee"
+   }
+  },
+  "rawtherapee-dotfiles": {
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   }
+  },
   "rclone": {
    "xbps\\rclone": {
     "driver": "xbps",
@@ -172048,6 +179939,15 @@
      "name": "shotcut"
     },
     "name": "shotcut"
+   }
+  },
+  "shotwell": {
+   "xbps\\shotwell": {
+    "driver": "xbps",
+    "fields": {
+     "name": "shotwell"
+    },
+    "name": "shotwell"
    }
   },
   "signal": {
@@ -172723,6 +180623,84 @@
     "name": "ttyd"
    }
   },
+  "tuios": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
+  "tuios-dotfiles": {
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   }
+  },
+  "tuios-glue": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   }
+  },
   "tuxedo-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -173071,6 +181049,38 @@
      "name": "virt-manager"
     },
     "name": "virt-manager"
+   }
+  },
+  "vis": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
+   },
+   "xbps\\vis": {
+    "driver": "xbps",
+    "fields": {
+     "name": "vis",
+     "repo-component": "universe"
+    },
+    "name": "vis"
+   }
+  },
+  "vis-dotfiles": {
+   "dotfiles\\vis-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/vis",
+      "src": "vis"
+     }
+    },
+    "name": "vis-dotfiles"
    }
   },
   "visualvm": {
@@ -173811,6 +181821,23 @@
      }
     },
     "name": "xmonad-dotfiles"
+   }
+  },
+  "xnview-mp": {
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   },
+   "xbps\\flatpak": {
+    "driver": "xbps",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
    }
   },
   "xsel": {

@@ -182,3 +182,36 @@ def test_void_flavors_share_xbps_but_not_glibc(cascade):
     musl = '/lib/ld-musl-x86_64.so.1'
     assert osdetect.refine('void', cascade, env={}, exists=lambda p: p == musl) == 'void_musl'
     assert osdetect.refine('void', cascade, env={}, exists=lambda p: False) == 'void'
+
+
+# -- 2026-10: zorin / scientific / kde_linux / chimera ------------------------
+
+def test_zorin_owns_its_scale_scientific_borrows_el(cascade):
+    assert cascade.native('zorin') == 'apt' and cascade.native('scientific') == 'dnf'
+    # Zorin 17 = Ubuntu 22.04 (different digits): a versioned ubuntu atom must not misfire on it
+    assert not holds(cascade, 'ubuntu < 23.04', 'zorin', '17')
+    assert holds(cascade, 'ubuntu', 'zorin', '17') and holds(cascade, 'zorin >= 17', 'zorin', '18')
+    # SL 7.9 IS RHEL 7.9: EL's versioned atoms apply
+    assert holds(cascade, 'rhel < 8', 'scientific', '7.9') and holds(cascade, 'rhel', 'scientific', '7.9')
+
+
+def test_no_native_manager_blocks_route_around_native():
+    # KDE Linux has no system package manager: native bindings aren't candidates, so a component
+    # with a flatpak falls through to it, and a native-only one declines (instead of erroring on
+    # "no native package manager")
+    r = Resolver(ROUTES, 'kde_linux', '202610071200', 'x86_64')
+    assert r.cascade.native('kde_linux') is None
+    assert 'flatpak\\gimp' in r.resolve_names(['gimp'])
+    with pytest.raises(ResolveError):
+        r.resolve_names(['bonnie++'])
+    # its provides (flatpak + the image's curl/git/unzip/xz) let tarballs route with nothing installed
+    units = r.resolve_names(['lazygit'])
+    assert 'tarball\\lazygit' in units and not any(k.endswith('\\curl') for k in units)
+
+
+def test_chimera_is_musl_with_no_native_yet():
+    r = Resolver(ROUTES, 'chimera', None, 'x86_64')
+    assert r.cascade.native('chimera') is None
+    assert 'glibc' not in r.cascade.provides('chimera')          # musl: glibc binaries decline
+    with pytest.raises(ResolveError):
+        r.resolve_names(['ghostty'])                              # glibc AppImage + natives only

@@ -145,3 +145,13 @@ def test_refine_detect_marker_selects_derivative():
                            exists=lambda p: True) == 'debian'
     # an unrelated block is untouched even if the marker exists
     assert osdetect.refine('arch', casc, env={}, exists=lambda p: True) == 'arch'
+
+
+def test_2026_10_os_blocks_detect(tmp_path):
+    # zorin / scientific / chimera name their block by os-release ID; KDE Linux's hyphenated ID aliases
+    for os_release, block in (('ID=zorin\nID_LIKE="ubuntu debian"\nVERSION_ID="18"\n', 'zorin'),
+                              ('ID="scientific"\nID_LIKE="rhel centos fedora"\nVERSION_ID="7.9"\n', 'scientific'),
+                              ('ID="chimera"\n', 'chimera'),
+                              ('ID=kde-linux\nVERSION_ID=202610071200\nVARIANT_ID=testing\n', 'kde_linux')):
+        info = osdetect.detect(env={}, os_release_path=_write(tmp_path, os_release))
+        assert info.block == block, os_release
