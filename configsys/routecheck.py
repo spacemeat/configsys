@@ -45,10 +45,13 @@ def check_component(name, component, cascade):
                 f'their when: comparable (one a subset of the other) or disjoint')
 
 
-def _method_tie_warnings(name, component, cascade):
+def _method_tie_warnings(name, component, cascade, candidate_only=None):
     '''Cross-method (different via) bindings that overlap AND would tie under the built-in
     driver-preference (nothing separates them) — resolution errors on such a machine, so flag it
-    at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.'''
+    at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.
+    `candidate_only` = the vias whose `drivers:` block is `standing: never-auto` (defaults to the
+    set routes.load stamped on the cascade) — excluded from the default pool exactly like
+    resolve._select does, so a never-auto driver can't read as a false tie.'''
     from .resolve import _prefer_rank, _binding_candidate_only, DEFAULT_DRIVER_PREFERENCE as order
 
     def rank(b):
@@ -57,7 +60,10 @@ def _method_tie_warnings(name, component, cascade):
     # a `standing: never-auto` binding is never eligible to be the auto-default, so it can never
     # TIE for it — resolution excludes it from the default pool. Mirror that here (else an opt-in
     # never-auto method overlapping an ordinary one reads as a false ambiguity).
-    eligible = [(i, b) for i, b in enumerate(component.bindings) if not _binding_candidate_only(b)]
+    if candidate_only is None:
+        candidate_only = getattr(cascade, 'candidate_only', frozenset())
+    eligible = [(i, b) for i, b in enumerate(component.bindings)
+                if not _binding_candidate_only(b) and b.via not in candidate_only]
 
     out = []
     for (i, a), (j, b) in combinations(eligible, 2):
@@ -179,7 +185,34 @@ def pin_constraint_conflicts(pins, components, valid_via):
     return out
 
 
-def validate(components, cascade, drivers, pending_vias=frozenset()):
+def retired_key_warnings(component):
+    '''[message] for each retired preference key (`prefer:` / `opt-in:` / `candidate-only:`) on one of
+    the component's bindings — inert there (they'd pass through as driver fields), so a value the
+    author meant as a preference would silently do nothing. Mirrors layers._RETIRED_TOP_KEYS.'''
+    from .routes import RETIRED_STANDING_KEYS
+    out = []
+    for i, b in enumerate(component.bindings):
+        for k, why in RETIRED_STANDING_KEYS.items():
+            if k in b.details:
+                out.append(f'binding #{i} (via:{b.via}) `{k}:` is {why} — ignored')
+    return out
+
+
+def retired_driver_key_warnings(cascade):
+    '''[(message, source)] for each retired preference key on a `drivers:` block (inert there too).'''
+    from .routes import RETIRED_STANDING_KEYS
+    out = []
+    for drv, spec in sorted((getattr(cascade, 'driver_specs', None) or {}).items()):
+        if not isinstance(spec, dict):
+            continue
+        for k, why in RETIRED_STANDING_KEYS.items():
+            if k in spec:
+                src = (getattr(cascade, 'driver_sources', None) or {}).get(drv)
+                out.append((f'driver {drv!r}: `{k}:` is {why} — ignored', src))
+    return out
+
+
+def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_only=None):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
     requires-nothing-provides (warnings — localized). Attribution via each Component.source.
@@ -202,8 +235,14 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
             check_component(name, comp, cascade)
         except AmbiguityError as e:
             add('ambiguity', str(e), comp)
-        for msg in _method_tie_warnings(name, comp, cascade):
+        for msg in _method_tie_warnings(name, comp, cascade, candidate_only):
             add('method-tie', msg, comp, 'warning')
+        for msg in retired_key_warnings(comp):
+            add('retired-key', msg, comp, 'warning')
+        if getattr(comp, 'parts_ignored', False):
+            add('parts-ignored', 'component-level `parts:` is ignored because the component also has '
+                '`install:` methods — put the bundle on a `{ via: parts  parts: [...] }` binding (or '
+                'drop `install:` to make it a pure bundle)', comp, 'warning')
         for b in comp.bindings:
             if b.via not in valid_via:
                 add('unknown-via', f'via:{b.via!r} is not a known driver', comp)
@@ -244,6 +283,8 @@ def validate(components, cascade, drivers, pending_vias=frozenset()):
                 add('unsatisfiable-constraint', f'requires {cap} {con!r} but no provider satisfies '
                     f'it (have: {have})', comp, 'warning')
 
+    for msg, src in retired_driver_key_warnings(cascade):
+        issues.append(Issue('retired-key', msg, None, src, 'warning'))
     for drv, reqs in drivers.items():
         for cap in reqs:
             if cap not in providable:

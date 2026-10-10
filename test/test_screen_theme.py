@@ -79,7 +79,7 @@ def test_handle_switch_pane_toggles_focus(ctx):
     tab = next(k for k in range(1, 400) if km.action_for('theme', k) == 'switch-pane')
     intent = scr.handle(tab, ctx, None, None)
     assert scr.model.focus == 'roles'
-    assert intent.handled and intent.new_pal is None and not intent.dirty and intent.goto is None
+    assert intent.new_pal is None and not intent.dirty and intent.goto is None
     scr.handle(tab, ctx, None, None)
     assert scr.model.focus == 'map'
 

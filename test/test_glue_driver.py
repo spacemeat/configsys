@@ -33,7 +33,7 @@ def test_glue_registered_under_via_glue(tmp_path):
 
 
 def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
-    # a glue snippet deploys to <store>/<shell>/conf.d/<name>.<ext> (the store mirrors the deployed
+    # a glue snippet deploys to <store>/<shell>/conf.d/50-<name>.<ext> (the store mirrors the deployed
     # ~/.config/<shell>/conf.d/ layout), made a+x; the link points at the store copy, never the repo.
     p = paths_for(tmp_path)
     (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
@@ -43,8 +43,8 @@ def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
     rc = _glue_unit()
     assert g.get_version(rc) is None
     assert g.install(rc).ok
-    link = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
-    store = p.user_glue_dir / 'bash' / 'conf.d' / 'btop.sh'
+    link = p.home / '.config' / 'bash' / 'conf.d' / '50-btop.sh'
+    store = p.user_glue_dir / 'bash' / 'conf.d' / '50-btop.sh'
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(store)
     assert store.read_text() == '# btop glue\n'
     assert os.access(store, os.X_OK)                                  # executable
@@ -67,7 +67,7 @@ def test_activate_refreshes_a_stale_store_copy_from_source(tmp_path):
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()
     assert g.install(rc).ok
-    store = p.user_glue_dir / 'bash' / 'conf.d' / 'btop.sh'
+    store = p.user_glue_dir / 'bash' / 'conf.d' / '50-btop.sh'
     assert store.read_text() == '# v1\n'
     auth.write_text('# v2 updated\n')                    # source changes upstream
     res = g.install(rc)
@@ -132,9 +132,9 @@ def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     assert 'fn cf {|@a| put configsys }' in block                    # inlined, not sourced
     assert 'fn bat {|@a| batcat $@a }' in block
     assert '[nomatch-ok]' not in block and 'eval (slurp' not in block  # NOT the old source-loop
-    assert block.index('# >> 00-configsys.elv') < block.index('# >> bat.elv')   # 00- first
+    assert block.index('# >> 00-configsys.elv') < block.index('# >> 50-bat.elv')   # 00- first
     # links still deploy to conf.d
-    link = p.home / '.config' / 'elvish' / 'conf.d' / 'bat.elv'
+    link = p.home / '.config' / 'elvish' / 'conf.d' / '50-bat.elv'
     assert link.is_symlink()
 
     # deactivating bat regenerates the block WITHOUT bat, keeps the substrate
@@ -209,8 +209,8 @@ def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
     assert 'def cf [...a] { configsys ...$a }' in block               # inlined, not sourced
     assert 'def --wrapped fd [...r] { ^fdfind ...$r }' in block
     assert 'source ' not in block                                    # nu can't source-loop a dir
-    assert block.index('# >> 00-configsys.nu') < block.index('# >> fd.nu')   # 00- first
-    link = p.home / '.config' / 'nushell' / 'conf.d' / 'fd.nu'
+    assert block.index('# >> 00-configsys.nu') < block.index('# >> 50-fd.nu')   # 00- first
+    link = p.home / '.config' / 'nushell' / 'conf.d' / '50-fd.nu'
     assert link.is_symlink()
 
     # deactivating fd regenerates the block WITHOUT fd, keeps the substrate
@@ -300,9 +300,9 @@ def test_snippet_activates_only_installed_shells(tmp_path):
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     assert g.install(_glue_unit()).ok
-    assert (p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh').is_symlink()
-    assert (p.home / '.config' / 'fish' / 'conf.d' / 'btop.fish').is_symlink()
-    assert not (p.home / '.config' / 'zsh' / 'conf.d' / 'btop.zsh').exists()   # zsh not installed
+    assert (p.home / '.config' / 'bash' / 'conf.d' / '50-btop.sh').is_symlink()
+    assert (p.home / '.config' / 'fish' / 'conf.d' / '50-btop.fish').is_symlink()
+    assert not (p.home / '.config' / 'zsh' / 'conf.d' / '50-btop.zsh').exists()   # zsh not installed
 
 
 def test_install_only_shells_scopes_activation_to_one_shell(tmp_path):
@@ -316,9 +316,9 @@ def test_install_only_shells_scopes_activation_to_one_shell(tmp_path):
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()
-    bash = p.home / '.config' / 'bash' / 'conf.d' / 'btop.sh'
-    zsh = p.home / '.config' / 'zsh' / 'conf.d' / 'btop.zsh'
-    fish = p.home / '.config' / 'fish' / 'conf.d' / 'btop.fish'
+    bash = p.home / '.config' / 'bash' / 'conf.d' / '50-btop.sh'
+    zsh = p.home / '.config' / 'zsh' / 'conf.d' / '50-btop.zsh'
+    fish = p.home / '.config' / 'fish' / 'conf.d' / '50-btop.fish'
 
     g.install(rc, only_shells=['bash'])                      # activate ONLY bash
     assert bash.is_symlink() and not zsh.exists() and not fish.exists()
@@ -343,7 +343,7 @@ def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
     g = Glue(Runner(pretend=False), paths=p)
     rc = _glue_unit()
     assert g.install(rc).ok
-    store_file = store_confd / 'btop.sh'
+    store_file = store_confd / '50-btop.sh'
     assert store_file.is_file() and not store_file.is_symlink()
     assert g.get_version(rc) == 'linked'
     assert g.install(rc).ok                                # idempotent — no crash, no re-created loop
@@ -370,7 +370,7 @@ def test_pretend_install_touches_no_files(tmp_path):
     (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')
     drv = Glue(Runner(pretend=True), p)
     drv.install(_glue_unit())
-    store = p.glue_store_dir / 'bash' / 'conf.d' / 'btop.sh' if hasattr(p, 'glue_store_dir') else None
+    store = p.glue_store_dir / 'bash' / 'conf.d' / '50-btop.sh' if hasattr(p, 'glue_store_dir') else None
     # nothing was written into the store conf.d mirror
     mirror = list((p.state_dir).rglob('conf.d/*.sh')) if p.state_dir.exists() else []
     assert mirror == []
@@ -426,7 +426,7 @@ def test_user_glue_scaffolds_home_and_links(tmp_path):
     mine = p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'myalias.sh'
     mine.write_text('alias gs="git status"\n')
     assert g.install(_loader_unit('all')).ok
-    mlink = p.home / '.config' / 'bash' / 'conf.d' / 'myalias.sh'
+    mlink = p.home / '.config' / 'bash' / 'conf.d' / '90-myalias.sh'
     assert mlink.is_symlink() and os.path.realpath(mlink) == os.path.realpath(mine)
 
 
@@ -468,7 +468,7 @@ def test_new_user_snippet_creates_and_deploys(tmp_path):
     assert created and path == p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'mytools.sh'
     assert os.access(path, os.X_OK)
     g.deploy_user_glue('bash')
-    link = p.home / '.config' / 'bash' / 'conf.d' / 'mytools.sh'
+    link = p.home / '.config' / 'bash' / 'conf.d' / '90-mytools.sh'
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(path)
     path.write_text('alias x=1\n')                                    # user edits it
     path2, created2 = g.new_user_snippet('mytools', 'bash')           # same name -> no-op

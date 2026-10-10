@@ -5,11 +5,12 @@ handful of window operations: `getmaxyx`, `erase`, `addstr`, `move`, `refresh`, 
 Theme screen renders sub-pages into a sub-window). A Surface is exactly that contract, so a painter
 can render to a real curses window OR to an off-screen buffer without knowing which.
 
-- `CursesSurface` wraps a curses `stdscr`/window and delegates verbatim (a thin, transparent shim —
-  the real terminal path).
+- `CursesSurface` wraps a curses `stdscr`/window and delegates verbatim (a thin, transparent shim).
+  NOT used by `menu.run`, which hands each screen's draw the raw `stdscr` (it satisfies the same
+  duck-typed contract); it's kept as the explicit adapter for tests / a headless or embedding host.
 - `BufferSurface` records every drawn cell into a `{(y, x): Cell}` grid and does nothing else. It is
-  what makes the TUI renderable headlessly: the render-equivalence harness paints a screen from a
-  fixed state into a BufferSurface and compares the grid, and it is the seam an eventual
+  what makes the TUI renderable headlessly: the render tests (test/_render_harness.py) paint a screen
+  from a fixed state into a BufferSurface and assert on the grid, and it is the seam an eventual
   headless/SDK mode would drive.
 
 Palette is untouched by any of this — its `style/at/fill/get/rgb_*` methods only COMPUTE attrs, they
@@ -24,8 +25,8 @@ Cell = namedtuple('Cell', 'char attr')
 
 
 class CursesSurface:
-    '''A transparent shim over a curses window. Delegates every op to the underlying window, so the
-    real terminal path behaves exactly as direct `stdscr` use did.'''
+    '''A transparent shim over a curses window: delegates every op to the underlying window. The
+    test/headless seam — production (`menu.run`) paints on `stdscr` directly, not through this.'''
 
     __slots__ = ('win',)
 

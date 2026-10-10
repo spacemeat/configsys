@@ -8,14 +8,15 @@ historically; they are split so each is its own concern (and, later, its own TUI
 
 A `via: glue` binding is one of:
   * `glue: <name>`   — a snippet: link `shell/<shell>/<name>.<ext>` (a `bash.d/<name>.sh` fallback
-                       for the pre-move layout) into `~/.config/<shell>/conf.d/<name>.<ext>`, for
+                       for the pre-move layout) into `~/.config/<shell>/conf.d/50-<name>.<ext>`, for
                        each INSTALLED shell that ships a variant. Snippets deploy through the
                        machine-local store MIRROR (never linking the repo).
   * `loader: <shell>`— hook one shell up to source its conf.d (zsh needs an rc marker-block; fish
                        auto-sources natively; bash rides `~/.bash_aliases`; elvish/nushell inline the
                        snippets into the rc — they can't dynamically source a dir).
 
-User-space only (no sudo); no version — glue is "active" or not.
+User-space only (no sudo); no version — glue is "active" or not. Spec: docs/shell-glue.md (loaders,
+the conf.d load-order bands 00-/50-/90-/99-, user.d, overrides, the shell-writes guard).
 
 Storage is SEGREGATED from the dotfiles driver: glue authoring lives at `glue/shell/<shell>/
 <name>.<ext>` (repo/plugin), materializes into the machine-local glue store `<state>/glue/<shell>/
@@ -55,6 +56,27 @@ _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 # that the driver ALWAYS deploys into conf.d — the user's OWN startup, linked from the layer and
 # edited in the layer (portable when the layer is the primary plugin). `99-user` is the auto-scaffolded
 # home; the `99-` prefix loads it AFTER component glue so the user's aliases win. (docs/done/glue-customization-plan.md P0)
+
+# conf.d LOAD ORDER (docs/shell-glue.md): every loader sources conf.d in lexical order, so the link
+# NAME is the order. Three bands: `00-` the configsys prelude (its glue name already carries the
+# prefix) -> `50-` component glue -> `90-` user glue (user.d snippets: `glue add`, activated staged
+# blocks), with the blessed `99-user` home last. A name that already starts with a two-digit `NN-`
+# keeps it (00-configsys, 99-user, a user's deliberate `10-early`). Links made before the bands
+# existed (unprefixed `<name>.<ext>`) are migrated on install / relink / status when they point into
+# a glue root configsys owns; anything else in conf.d is never touched.
+_ORDER_PREFIX = re.compile(r'^\d\d-')
+COMPONENT_PREFIX = '50-'
+USER_PREFIX = '90-'
+
+
+def component_link_stem(glue):
+    '''The conf.d link stem of a component's `glue: <name>` (`bat` -> `50-bat`; `00-configsys` kept).'''
+    return glue if _ORDER_PREFIX.match(glue) else f'{COMPONENT_PREFIX}{glue}'
+
+
+def user_link_name(filename):
+    '''The conf.d link name of a user.d snippet file (`foo.sh` -> `90-foo.sh`; `99-user.sh` kept).'''
+    return filename if _ORDER_PREFIX.match(filename) else f'{USER_PREFIX}{filename}'
 _USER_GLUE_HEADER = (
     '# Your own shell startup. configsys links this into conf.d but NEVER edits its contents.\n'
     '# Add aliases / env / functions below — they load after component glue, so yours win.\n'
@@ -105,6 +127,7 @@ _RC_SOURCE = {
 
 class Glue(Driver):
     name = 'glue'
+    targets_version = False   # glue has no version
     privileged = False
     default_scope = 'user'
 
@@ -125,7 +148,8 @@ class Glue(Driver):
 
     def _glue_specs(self, glue, rc):
         '''snippet specs for a glue name: one per shell that actually ships a snippet.'''
-        return [(f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{glue}.{ext}')
+        stem = component_link_stem(glue)
+        return [(f'{glue}@{shell}', src, f'{_SHELL_CONFD[shell]}/{stem}.{ext}')
                 for shell, ext, src in self._glue_variants(glue, rc)]
 
     def _installed_shells(self):
@@ -211,10 +235,13 @@ class Glue(Driver):
                 if chosen:
                     break
             if chosen is None:                             # fallback: an existing store deploy mirror
-                mirror = f'{shell}/conf.d/{glue}.{ext}'
-                for root, _tier in self._content_roots(rc):
-                    if (root / mirror).exists():
-                        chosen = mirror
+                for mirror in dict.fromkeys((f'{shell}/conf.d/{component_link_stem(glue)}.{ext}',
+                                             f'{shell}/conf.d/{glue}.{ext}')):   # banded, then legacy
+                    for root, _tier in self._content_roots(rc):
+                        if (root / mirror).exists():
+                            chosen = mirror
+                            break
+                    if chosen:
                         break
             if chosen:
                 out.append((shell, ext, chosen))
@@ -306,6 +333,58 @@ class Glue(Driver):
         just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.'''
         return self._ensure_shell_loader(shell)
 
+    def user_glue_link(self, shell, filename):
+        '''The conf.d link a user.d snippet file deploys to (`foo.sh` -> ~/.config/bash/conf.d/90-foo.sh)
+        — what `glue add` / `dotfiles activate` print. None for an unknown shell.'''
+        if shell not in _SHELL_CONFD:
+            return None
+        return self._confd(shell) / user_link_name(Path(filename).name)
+
+    def add_user_glue(self, name, shell, body, local=False):
+        '''Write `body` as user glue `user.d/<name>.<ext>` (the same namespace + destination root as
+        `glue add`: the primary plugin unless `local`, else the local store) and deploy it. The
+        front door for turning a staged installer block into ordinary user glue
+        (shellguard.activate). Never clobbers: an existing snippet that already contains `body` is
+        left as is; otherwise `body` is APPENDED to it, so a user's edits survive a re-activation.
+        Returns (snippet_path, conf.d_link), or (None, None) for an unknown shell / no store.'''
+        path, created = self.new_user_snippet(name, shell, local=local)
+        if path is None:
+            return None, None
+        text = body if body.endswith('\n') else body + '\n'
+        try:
+            cur = path.read_text()
+        except OSError:
+            cur = ''
+        if text.strip() not in cur:
+            sep = '' if (not cur or cur.endswith('\n')) else '\n'
+            path.write_text(f'{cur}{sep}{text}')
+        path.chmod(0o755)
+        self.deploy_user_glue(shell)
+        return path, self.user_glue_link(shell, path.name)
+
+    def user_glue_entries(self):
+        '''[(shell, snippet_path, link_path, state)] for every user.d snippet in the user glue roots
+        (local store wins over primary on a name clash), for each glue shell. `state` is 'linked'
+        (its conf.d link resolves to the snippet) or 'unlinked' — the user-glue rows a status view
+        (the Glue screen, `dotfiles status`) lists next to component glue.'''
+        out = []
+        for shell in _GLUE_SHELLS:
+            ext = _SHELL_EXT[shell]
+            seen = {}
+            for root in self._user_glue_roots():
+                d = self._user_d(root, shell)
+                if d.is_dir():
+                    for f in sorted(d.glob(f'*.{ext}')):
+                        seen.setdefault(f.name, f)
+            for fname, src in sorted(seen.items(), key=lambda kv: user_link_name(kv[0])):
+                link = self.user_glue_link(shell, fname)
+                try:
+                    ok = link.is_symlink() and os.path.realpath(link) == os.path.realpath(src)
+                except OSError:
+                    ok = False
+                out.append((shell, src, link, 'linked' if ok else 'unlinked'))
+        return out
+
     # -- override a component's shipped glue (docs/done/glue-customization-plan.md P2) -------------------
 
     def _glue_names(self, rc):
@@ -396,6 +475,100 @@ class Glue(Driver):
                         drift.append((shell, digest, cur))
         return drift
 
+    # -- conf.d load-order bands: legacy (unprefixed) link migration -----------------------------
+
+    def _owned_glue_roots(self, rc=None):
+        '''Every glue root configsys owns content in: the machine-local store, the primary plugin's
+        glue/, the repo glue/, and (for a component) its defining layer's glue/.'''
+        roots = []
+        p = self.paths
+        if p is not None:
+            for attr in ('user_glue_dir', 'primary_glue_dir', 'glue_dir'):
+                d = getattr(p, attr, None)
+                if d is not None:
+                    roots.append(Path(d))
+        if rc is not None:
+            roots.append(self._defining_root(rc))
+        return roots
+
+    def _link_into_owned(self, link, rc=None, user_d=None):
+        '''True when `link` is a symlink whose target lies inside a glue root configsys owns.
+        `user_d=True` additionally requires the target to be a user.d snippet, `False` forbids it
+        (a component's legacy link vs a user snippet's). Judged on the link TEXT (normalized) and on
+        its realpath, so a link whose target was just renamed away still counts. Never raises.'''
+        try:
+            if not link.is_symlink():
+                return False
+            raw = Path(os.readlink(link))
+        except OSError:
+            return False
+        if not raw.is_absolute():
+            raw = link.parent / raw
+        cands = {Path(os.path.normpath(str(raw))), Path(os.path.realpath(str(link)))}
+        if user_d is not None and any(('user.d' in c.parts) != user_d for c in cands):
+            return False
+        for root in self._owned_glue_roots(rc):
+            for r in {Path(os.path.normpath(str(root))), Path(os.path.realpath(str(root)))}:
+                if any(c == r or r in c.parents for c in cands):
+                    return True
+        return False
+
+    def _migrate_legacy_component(self, rc, only_shells=None):
+        '''Move a component's pre-band deployment to the `50-` band: the store mirror
+        `<store>/<shell>/conf.d/<glue>.<ext>` becomes `.../50-<glue>.<ext>` (it is configsys's cache),
+        and an unprefixed `~/.config/<shell>/conf.d/<glue>.<ext>` link that points into an owned glue
+        root (not a user.d snippet) is replaced by the banded link. A real file, or a link elsewhere,
+        is left alone. No-op under --pretend. Returns the number of links migrated.'''
+        if getattr(self.runner, 'pretend', False):
+            return 0
+        store = getattr(self.paths, 'user_glue_dir', None) if self.paths is not None else None
+        moved = 0
+        for glue in self._glue_names(rc):
+            stem = component_link_stem(glue)
+            if stem == glue:
+                continue
+            for shell in _GLUE_SHELLS:
+                if only_shells is not None and shell not in only_shells:
+                    continue
+                ext = _SHELL_EXT[shell]
+                confd = self._confd(shell)
+                legacy, new = confd / f'{glue}.{ext}', confd / f'{stem}.{ext}'
+                owned = self._link_into_owned(legacy, rc, user_d=False)
+                new_mirror = None
+                if store is not None:
+                    old_mirror = Path(store) / shell / 'conf.d' / f'{glue}.{ext}'
+                    new_mirror = Path(store) / shell / 'conf.d' / f'{stem}.{ext}'
+                    try:
+                        if old_mirror.is_file() and not old_mirror.is_symlink():
+                            if new_mirror.exists() or new_mirror.is_symlink():
+                                old_mirror.unlink()          # a stale duplicate of our own cache
+                            else:
+                                old_mirror.rename(new_mirror)
+                    except OSError:
+                        pass
+                if not owned:
+                    continue
+                try:
+                    legacy.unlink()
+                    if (new_mirror is not None and new_mirror.exists()
+                            and not (new.exists() or new.is_symlink())):
+                        new.symlink_to(new_mirror)
+                    moved += 1
+                except OSError:
+                    pass
+        return moved
+
+    def _legacy_linked(self, rc, name):
+        '''--pretend view of an un-migrated deployment: True when the unprefixed legacy link for spec
+        `name` (`<glue>@<shell>`) is ours and resolves to a file — so a dry run doesn't misreport an
+        active snippet as inactive just because the migration (a write) hasn't run.'''
+        glue, _, shell = name.rpartition('@')
+        ext = _SHELL_EXT.get(shell)
+        if not glue or ext is None or component_link_stem(glue) == glue:
+            return False
+        legacy = self._confd(shell) / f'{glue}.{ext}'
+        return self._link_into_owned(legacy, rc, user_d=False) and legacy.exists()
+
     def _deploy_user_glue(self, shell):
         '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time
         (when NO user.d dir exists yet in any root — so emptying it doesn't resurrect it), then link
@@ -432,7 +605,13 @@ class Glue(Driver):
                 srcpath.chmod(0o755)                                     # loaders source only a+x files
             except OSError:
                 pass
-            tgt = confd / name
+            tgt = confd / user_link_name(name)                           # the user band (90-, or NN- kept)
+            legacy = confd / name
+            if legacy != tgt and self._link_into_owned(legacy, user_d=True):
+                try:
+                    legacy.unlink()                                      # pre-band link to a user.d file
+                except OSError:
+                    pass
             try:
                 if tgt.is_symlink():
                     tgt.unlink()                                         # replace our/foreign link
@@ -617,6 +796,7 @@ class Glue(Driver):
         if getattr(self.runner, 'pretend', False):         # --pretend: report hooked, write nothing
             return True
         self._ensure_confd(shell)
+        self._record_launcher()                            # where the preludes' `configsys`/`cfs` run
         self._deploy_user_glue(shell)                      # scaffold + link the user.d namespace
         if shell == 'bash':                                # bash rides ~/.bash_aliases
             self._link_bash_aliases(rc)
@@ -641,6 +821,28 @@ class Glue(Driver):
         rc_path.parent.mkdir(parents=True, exist_ok=True)
         rc_path.write_text(new)
         return True
+
+    def _record_launcher(self):
+        '''Write the clone's launcher path to `<state>/launcher`, which every 00-configsys prelude
+        reads (after $CONFIGSYS_LAUNCHER, before the `$HOME/<src>/configsys` guess) to find configsys
+        when it isn't on PATH — so `configsys`/`cfs` work wherever the clone actually lives. Only when
+        the repo has a configsys.sh; rewritten only on change; best-effort.'''
+        p = self.paths
+        state = getattr(p, 'state_dir', None) if p is not None else None
+        repo = getattr(p, 'repo', None) if p is not None else None
+        if state is None or repo is None:
+            return
+        launcher = Path(repo) / 'configsys.sh'
+        if not launcher.is_file():
+            return
+        rec = Path(state) / 'launcher'
+        text = f'{launcher.resolve()}\n'
+        try:
+            if not rec.is_file() or rec.read_text() != text:
+                rec.parent.mkdir(parents=True, exist_ok=True)
+                rec.write_text(text)
+        except OSError:
+            pass
 
     def _link_bash_aliases(self, rc):
         '''Link ~/.bash_aliases to the shipped `bash_aliases` loader (materialized into the store, so
@@ -750,14 +952,17 @@ class Glue(Driver):
         loaders = self._loader_shells(rc)
         if loaders:
             return 'linked' if all(self._loader_ok(s) for s in loaders) else None
+        self._migrate_legacy_component(rc)                 # pre-band links -> the 50- band
         specs = self._specs(rc)
         if not specs:
             return None
-        for _name, src, dst in specs:
+        for name, src, dst in specs:
             ref = self._deployed(dst, src, rc)
             tgt = self._expand(dst)
             if not (ref.exists()
                     and os.path.realpath(str(tgt)) == os.path.realpath(str(ref))):
+                if getattr(self.runner, 'pretend', False) and self._legacy_linked(rc, name):
+                    continue                               # dry run: the migration would keep it active
                 return None
         return 'linked'
 
@@ -769,6 +974,7 @@ class Glue(Driver):
             state = 'loader-on' if self._loader_ok(shell) else 'loader-off'
             out.append((f'{shell} loader', self.display_path(self._confd(shell)), state,
                         None, '', state == 'loader-on', 'glue'))
+        self._migrate_legacy_component(rc)                 # pre-band links -> the 50- band
         for name, src, dst in self._specs(rc):
             srcpath, tier, root = self._resolve(src, rc)   # authoritative source (the SRC column)
             tgt = self._expand(dst)
@@ -819,6 +1025,7 @@ class Glue(Driver):
             for shell in loaders:
                 self._ensure_shell_loader(shell, rc)
             return Result(f'glue: conf.d loader hooked up ({", ".join(loaders)})', 0)
+        self._migrate_legacy_component(rc, only_shells)    # pre-band links -> the 50- band
         specs = self._specs(rc)
         if only_shells is not None:
             specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
@@ -896,9 +1103,15 @@ class Glue(Driver):
         if not specs:
             return Result(f'glue: {rc.comp} has no snippet to remove', 0, advisory=True)
         lines = []
-        for _name, _src, dst in specs:
+        for name, _src, dst in specs:
             t = shlex.quote(str(self._expand(dst)))
             lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')  # only our own symlink
+            glue, _, shell = name.rpartition('@')
+            legacy = self._confd(shell) / f'{glue}.{_SHELL_EXT[shell]}' if shell in _SHELL_EXT else None
+            if (legacy is not None and component_link_stem(glue) != glue
+                    and self._link_into_owned(legacy, rc, user_d=False)):
+                lq = shlex.quote(str(legacy))               # a pre-band link of ours: remove it too
+                lines.append(f'if [ -L {lq} ]; then rm -f {lq}; fi')
         res = self.runner.run('\n'.join(lines), capture=False)
         # inline (gestalt) shells snapshot conf.d into the rc block — regenerate it after removing
         # this snippet's file(s) so its content doesn't linger in the block.

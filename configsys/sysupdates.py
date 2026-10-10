@@ -109,17 +109,22 @@ def gather(ctx):
     return out
 
 
+_SCAN_LOCK = threading.Lock()     # orders a scan's result store against invalidate()
+
+
 # -- TUI: a background scan + the synthetic Components tree injection (P2) -----
 
 def start_scan(ctx):
     '''Run gather() on a daemon thread and cache it on ctx._sysupd_groups, so the ~3.5s of manager
     queries never blocks TUI startup — the System Updates group folds into the Components tree once
-    ready (the run loop polls scan_busy/take_dirty). No-op if a result is already cached or a scan is
-    in flight.'''
+    ready (the run loop polls scan_busy/take_dirty). No-op if a result is already cached or a scan of
+    the CURRENT generation is in flight. A scan started before the last invalidate() is superseded:
+    a fresh one starts, and the stale thread's result is discarded when it lands (see invalidate).'''
     if getattr(ctx, '_sysupd_groups', None) is not None:
         return
+    gen = getattr(ctx, '_sysupd_gen', 0)
     t = getattr(ctx, '_sysupd_thread', None)
-    if t is not None and t.is_alive():
+    if t is not None and t.is_alive() and getattr(ctx, '_sysupd_thread_gen', 0) == gen:
         return
     ctx._sysupd_dirty = False
 
@@ -128,17 +133,23 @@ def start_scan(ctx):
             g = gather(ctx)
         except Exception:                                # noqa: BLE001 — never let the scan brick the TUI
             g = {}
-        ctx._sysupd_groups = g
-        ctx._sysupd_dirty = True
+        with _SCAN_LOCK:                                 # atomic vs invalidate()'s bump + clear
+            if getattr(ctx, '_sysupd_gen', 0) != gen:
+                return                                   # superseded by an invalidate(): drop it
+            ctx._sysupd_groups = g
+            ctx._sysupd_dirty = True
 
+    ctx._sysupd_thread_gen = gen
     ctx._sysupd_thread = threading.Thread(target=run, daemon=True)
     ctx._sysupd_thread.start()
 
 
 def scan_busy(ctx):
-    '''True while the background gather is running (its result not yet folded).'''
+    '''True while the background gather of the current generation is running (its result not yet
+    folded). A superseded scan still finishing in the background doesn't count.'''
     t = getattr(ctx, '_sysupd_thread', None)
-    return bool(t is not None and t.is_alive())
+    return bool(t is not None and t.is_alive()
+                and getattr(ctx, '_sysupd_thread_gen', 0) == getattr(ctx, '_sysupd_gen', 0))
 
 
 def take_dirty(ctx):
@@ -150,9 +161,13 @@ def take_dirty(ctx):
 
 
 def invalidate(ctx):
-    '''Drop the cached scan so the next start_scan re-gathers — after a system upgrade or refresh.'''
-    ctx._sysupd_groups = None
-    ctx._sysupd_dirty = False
+    '''Drop the cached scan so the next start_scan re-gathers — after a system upgrade or refresh.
+    Bumps the scan GENERATION, so a scan still in flight (started before the upgrade/refresh) can't
+    land its stale result afterwards, and start_scan won't mistake it for the fresh one.'''
+    with _SCAN_LOCK:
+        ctx._sysupd_gen = getattr(ctx, '_sysupd_gen', 0) + 1
+        ctx._sysupd_groups = None
+        ctx._sysupd_dirty = False
 
 
 def cached_total(ctx):

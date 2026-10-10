@@ -29,6 +29,7 @@ MARKER_PREFIX = '.configsys-'
 
 class AppImage(Driver):
     name = 'appImage'
+    targets_version = False   # the url is templated on the ROUTED version
     privileged = False
     default_scope = 'user'
     honors_scope = True

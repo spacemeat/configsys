@@ -4,6 +4,6 @@ The MVVM split of the former monolithic menu.py (docs/done/d2-mvvm-plan.md). `ba
 protocol + ViewModel; each screen module holds its model, its ViewModel, and its painter.
 '''
 
-from .base import Intent, Screen, Size, ViewModel
+from .base import Intent, Screen, ViewModel
 
-__all__ = ['Screen', 'ViewModel', 'Intent', 'Size']
+__all__ = ['Screen', 'ViewModel', 'Intent']

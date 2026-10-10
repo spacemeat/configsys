@@ -35,6 +35,7 @@ _SAFE = re.compile(r'^[A-Za-z0-9_.@*?\[\]-]+$')
 
 class Service(Driver):
     name = 'service'
+    targets_version = False   # a service enablement has no version
     privileged = True
     default_scope = 'system'   # system units (fixed)
 

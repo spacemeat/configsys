@@ -37,6 +37,7 @@ _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
 
 class AltDriver(Driver):
+    targets_version = False   # the toolchain version is fixed by the package (gcc-13)
     privileged = True
     native_backed = True         # clang/gcc install into apt/dnf — packages land in the native index
     default_scope = 'system'

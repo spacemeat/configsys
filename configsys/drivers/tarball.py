@@ -26,6 +26,7 @@ _SHARED_SYSTEM_DIRS = frozenset(
 
 class Tarball(Driver):
     name = 'tarball'
+    targets_version = False   # the url is templated on the ROUTED version
     privileged = False
     default_scope = 'user'
     honors_scope = True

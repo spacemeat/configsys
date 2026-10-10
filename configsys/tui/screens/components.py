@@ -15,11 +15,11 @@ import curses
 
 from .. import menu
 from ..menu import (COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE, STATUS_COLOR, UNIT,
-                    _COMP_OPS, _REFRESH_WARN_DAYS, _columns, _components_model, _confirm_and_execute,
+                    _COMP_OPS, _REFRESH_WARN_DAYS, _columns, _confirm_and_execute,
                     _draw_nav, _fill_bg, _filter_edit, _find_edit_tree, _fit, _identity_line,
                     _infoblock, _methods_line, _node_component, _offer_method_swap, _page_rows,
-                    _pick_choices, _put, _rebuild_menu, _reload, _row_component, _scope_is_choice,
-                    _scroll_reveal, _scroll_top, _scrollbar_v)
+                    _pick_choices, _put, _reload, _row_component, _scope_is_choice,
+                    _scroll_reveal, _scroll_top, _scrollbar_v, _switch_mode)
 from ..screen import suspended
 from .base import Intent, Screen, ViewModel
 
@@ -29,6 +29,21 @@ _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'u
 # forms) trigger the whole-machine bulk upgrade; the rest are inapplicable and just explain themselves.
 _SU_BULK_ACTS = {'op-install', 'op-upgrade', 'op-install-all', 'op-upgrade-all'}
 _SU_NA_ACTS = {'op-remove', 'select', 'method', 'where', 'lock'}
+
+
+def _rescan_system_updates(ctx, ms, *, before_reload):
+    '''Re-gather the System Updates scan after something changed what's upgradable (a refresh, an
+    execute). Called twice around the _reload: `before_reload=True` drops the cached scan
+    (sysupdates.invalidate) so the rebuilt tree no longer injects the stale rows, returning how many
+    SU rows were staged (their marks go with the rows); `before_reload=False` starts the background
+    re-scan (sysupdates.start_scan), which the router folds in when it lands.'''
+    from ... import sysupdates
+    if before_reload:
+        n = sum(1 for k in ms.staged if sysupdates.is_synthetic(ms.states.get(k)))
+        sysupdates.invalidate(ctx)
+        return n
+    sysupdates.start_scan(ctx)
+    return 0
 
 
 def _cursor_in_sysupd(ms):
@@ -313,7 +328,12 @@ class ComponentsScreen(Screen):
         elif act == 'clear':
             _tgt = {ms.states[m.key].component.comp for node in ms._target_nodes()
                     for m in node.members if m.key in ms.states}
-            ms.unstage()
+            _su_before = sum(1 for k in ms.staged if menu._is_system_update(ms.states.get(k)))
+            ms.unstage()                                   # System Updates: all-or-nothing (see unstage)
+            _su_after = sum(1 for k in ms.staged if menu._is_system_update(ms.states.get(k)))
+            if _su_before and not _su_after:
+                intent.note = (f'unstaged all {_su_before} system update(s) — they apply in bulk, '
+                               'all or nothing')
             ms.clear_selection()
             ms.errors.clear()
             _dropped = _tgt & ctx.config.uninstall_queue()
@@ -325,7 +345,8 @@ class ComponentsScreen(Screen):
                     new = _reload(ctx, ms, set())
                     self.model = new[0]
                     intent.reloaded = new
-                    intent.note = f'unstaged {len(_dropped)} from !uninstall'
+                    intent.note = menu._pretend_note(   # --pretend: the queue edit wasn't saved
+                        ctx, f'unstaged {len(_dropped)} from !uninstall', True)
                 except Exception as e:  # noqa: BLE001
                     intent.note = f'reload failed: {e}'
         elif act == 'method':
@@ -372,11 +393,15 @@ class ComponentsScreen(Screen):
                     bulk = {k.partition('\\')[2] for k in touched if k.startswith('system-updates\\')}
                     if bulk:
                         touched |= {k for k, st in ms.states.items() if st.component.driver in bulk}
+                    # what's upgradable changed (a bulk upgrade, or a package op pulling deps) ->
+                    # drop the stale System Updates scan before the rebuild, re-gather after it
+                    _rescan_system_updates(ctx, ms, before_reload=True)
                     new = _reload(ctx, ms, touched)
                     self.model = ms = new[0]
                     intent.reloaded = new
                 except Exception as e:  # noqa: BLE001
                     intent.note = f'reload failed: {e}'
+                _rescan_system_updates(ctx, ms, before_reload=False)
                 ms.staged.clear()
                 ms.errors = failed
                 if ctx.config.reboot_advice():
@@ -391,9 +416,7 @@ class ComponentsScreen(Screen):
             nxt = COMPONENT_MODES[(COMPONENT_MODES.index(getattr(ms, 'mode', 'to-do')) + 1)
                                   % len(COMPONENT_MODES)]
             try:
-                states, layouts, transitive = _components_model(
-                    ctx, cfg, dict(ms.states), nxt, caches=ms._overlay_caches)
-                new_ms = _rebuild_menu(ms, states, layouts, transitive, nxt)
+                new_ms, states, layouts, transitive = _switch_mode(ctx, cfg, ms, nxt)
                 self.model = new_ms
                 intent.remodeled = (new_ms, states, layouts, transitive)
             except Exception as e:  # noqa: BLE001
@@ -414,6 +437,11 @@ class ComponentsScreen(Screen):
             curses.flushinp()
             self.note, self.diags = 'updating latest versions…', ms.states and self.diags
             self.draw(stdscr, pal, self.build_vm(ctx, stdscr.getmaxyx()))
+            # the package index just changed -> the System Updates scan (group + header count chip) is
+            # stale too: drop it BEFORE the reload (so the rebuilt tree doesn't re-inject the old rows;
+            # the header shows the 'checking' spinner), then re-gather in the background — the router
+            # polls while it runs and folds the fresh group in when it lands.
+            su_dropped = _rescan_system_updates(ctx, ms, before_reload=True)
             try:
                 new = _reload(ctx, ms, set(ms.states))
                 self.model = new[0]
@@ -421,5 +449,8 @@ class ComponentsScreen(Screen):
             except Exception as e:  # noqa: BLE001
                 intent.note = f'reload failed: {e}'
             else:
-                intent.note = 'refreshed version caches + package index'
+                intent.note = 'refreshed version caches + package index' + (
+                    f' — {su_dropped} staged system update(s) cleared: re-stage after the rescan'
+                    if su_dropped else '')
+            _rescan_system_updates(ctx, ms, before_reload=False)
         return intent

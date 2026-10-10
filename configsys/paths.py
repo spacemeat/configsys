@@ -55,6 +55,10 @@ class Paths:
         self.home = Path(
             self.env.get('CONFIGSYS_HOME') or self.env.get('HOME') or Path.home()
         )
+        # a `~` in an `include:` path expands against THIS home (CONFIGSYS_HOME / --home), not the
+        # real $HOME — like every other configsys path (layers._resolve)
+        from . import layers
+        layers.set_include_home(self.home)
 
         # Data root holds the shipped routes.hu / config.hu / dotfiles/ (and man/). It is
         # resolved from three sources in order (see _locate_data_root): an explicit

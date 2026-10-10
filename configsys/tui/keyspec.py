@@ -82,9 +82,70 @@ _FALLBACK = {
 }
 
 
+# The global actions the ROUTER (menu.run) owns rather than a screen's handle: it acts on them before
+# the screen sees the key. A screen may still bind these in its own scope (they then work there), and
+# a screen-scope binding of their keys to something else wins on that screen (see Keymap.own_action).
+ROUTER_ACTIONS = ('quit', 'quit-force', 'issues', 'help')
+
+
+def merge_layer_keys(layers, warnings=None):
+    '''Merge every layer's `keys:` section (low -> high precedence) into `{scope: {action: spec}}` —
+    Config.keys()'s per-action override, plus REBIND-WINS: when a higher layer binds a key that a
+    LOWER layer gave to another action in the same scope, that key is removed from the lower action
+    (an action left with no key is dropped), so the user's rebind wins deterministically instead of
+    whichever action happens to come first in the map. Each such steal appends a warning to
+    `warnings` (if given). `layers` are objects with `.data` (dict) and `.path`.'''
+    import os
+    out, owner = {}, {}                              # owner: scope -> action -> (layer idx, basename)
+    for idx, lyr in enumerate(layers):
+        keys = (getattr(lyr, 'data', None) or {}).get('keys')
+        if not isinstance(keys, dict):
+            continue
+        where = os.path.basename(getattr(lyr, 'path', '') or '?')
+        for scope, actions in keys.items():
+            if not isinstance(actions, dict):
+                continue
+            dst, own = out.setdefault(scope, {}), owner.setdefault(scope, {})
+            for action, spec in actions.items():
+                specs = spec if isinstance(spec, list) else [spec]
+                codes = {c for c in (parse_key(k) for k in specs) if c is not None}
+                for other in list(dst):
+                    if other == action or own.get(other, (idx,))[0] >= idx:
+                        continue                     # same action, or not from a LOWER layer
+                    ospecs = dst[other] if isinstance(dst[other], list) else [dst[other]]
+                    keep = [k for k in ospecs if parse_key(k) not in codes]
+                    if len(keep) == len(ospecs):
+                        continue
+                    lost = [k for k in ospecs if parse_key(k) in codes]
+                    if warnings is not None:
+                        gone = (f" — '{other}' is now unbound in keys.{scope}" if not keep else '')
+                        warnings.append(
+                            f"{where}: keys.{scope}.{action}: "
+                            f"{', '.join(repr(str(k)) for k in lost)} takes the key from "
+                            f"'{other}' ({own[other][1]}){gone}")
+                    if keep:
+                        dst[other] = keep
+                    else:
+                        del dst[other]
+                dst[action] = spec                   # per-action override (whole value replaced)
+                own[action] = (idx, where)
+    return out
+
+
+def config_keys(config):
+    '''The merged `keys:` for a Config with rebind-wins (merge_layer_keys) applied over its layer
+    stack; falls back to `config.keys()` for an object without layers.'''
+    layers = getattr(config, '_layers', None)
+    if layers is None:
+        return config.keys()
+    return merge_layer_keys(layers)
+
+
 class Keymap:
     '''Resolved bindings: `{scope: {action: [codes]}}`. Built from the merged `keys:` dict (already
-    layer-merged by Config.keys()). Page scopes override the `global` scope for the same key.'''
+    layer-merged — config_keys / Config.keys()). Page scopes override the `global` scope for the
+    same key; within one scope, if a key is (mis)bound to two actions the first listed wins
+    (lint_merged / `configsys check` reports that).'''
 
     def __init__(self, merged):
         src = merged if (isinstance(merged, dict) and merged.get('global')) else _FALLBACK
@@ -109,6 +170,18 @@ class Keymap:
             return self.action_for('global', code)
         return None
 
+    def own_action(self, scope, code):
+        '''The action `code` triggers in `scope`'s OWN bindings — no fall-back to `global`. The router
+        consults this first: a key a screen binds itself goes to that screen (even one `global` /
+        `screens` would otherwise claim), and a screen-scope binding of a ROUTER_ACTIONS action
+        (quit/quit-force/issues/help) is acted on by the router on that screen.'''
+        if scope in ('global', 'screens'):
+            return None
+        for action, codes in self._m.get(scope, {}).items():
+            if code in codes:
+                return action
+        return None
+
     def keys_for(self, scope, action):
         '''Every code bound to `action` in `scope` (empty if none).'''
         return self._m.get(scope, {}).get(action, [])
@@ -119,6 +192,12 @@ class Keymap:
             if code in codes:
                 return sid
         return None
+
+    @staticmethod
+    def label(scope, action):
+        '''The `?` help label for `action` on `scope` — a scope-specific `<scope>.<action>` entry in
+        ACTION_LABELS first (one action id can mean different things per page), else the shared one.'''
+        return ACTION_LABELS.get(f'{scope}.{action}') or ACTION_LABELS.get(action, action)
 
     def glyph(self, scope, action):
         '''The primary key for `action` as a legend glyph (scope, then global). '?' if unbound.'''
@@ -138,7 +217,7 @@ class Keymap:
 
         for a in order:                                    # global (shared) keys, in a readable order
             if a in self._m.get('global', {}):
-                rows.append((keyglyph('global', a), ACTION_LABELS.get(a, a)))
+                rows.append((keyglyph('global', a), self.label('global', a)))
         for a in sorted(self._m.get(scope, {})):           # then the page's own actions
             if a.startswith('page-'):
                 if not seen_page:
@@ -147,7 +226,7 @@ class Keymap:
                     g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else 'F1-F7'
                     rows.append((g, 'preview sample page'))
                 continue
-            rows.append((keyglyph(scope, a), ACTION_LABELS.get(a, a)))
+            rows.append((keyglyph(scope, a), self.label(scope, a)))
         return rows
 
 
@@ -170,7 +249,8 @@ KNOWN_ACTIONS = {
                 'trust', 'trust-all', 'set-ref'},
     'profiles': {'track-all', 'track-one', 'select-all', 'method', 'comp-machines', 'machine-target',
                  'attr-filter', 'toggle-install', 'stage-uninstall', 'disp-interesting', 'disp-seen',
-                 'disp-interesting-all', 'disp-seen-all', 'mark-all-seen', 'claim', 'orphan-ignore'},
+                 'disp-interesting-all', 'disp-seen-all', 'mark-all-seen', 'claim', 'orphan-ignore',
+                 'where'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
               'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6', 'page-7'},
@@ -184,9 +264,11 @@ ACTION_LABELS = {
     'top': 'jump to top', 'bottom': 'jump to bottom', 'page-down': 'page down', 'page-up': 'page up',
     'select': 'select / mark', 'confirm': 'activate / open',
     'switch-pane': 'switch pane', 'switch-pane-back': 'switch pane (back)', 'find': 'find (jump cursor)',
-    'filter': 'filter (narrow the list)', 'issues': 'show issues (!)', 'help': 'this help',
+    'filter': 'filter (narrow the list)', 'issues': 'show issues', 'help': 'this help',
     'quit': 'quit (asks to confirm)', 'quit-force': 'quit now (no prompt)',
-    'where': 'explain component (where)', 'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
+    'where': 'explain component (where)',
+    'profiles.where': 'explain (where): cursor component, or the profile (left pane)',
+    'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
     'clear': 'unstage cursor/selection, clear selection', 'method': 'pick install method / provider',
     'op-install': 'make current: install if missing, else upgrade',
     'op-install-all': 'make every tracked component current',
@@ -233,12 +315,15 @@ def _valid_actions(scope):
 def lint_keys(layers):
     '''Lint every layer's `keys:` section for a `configsys check`. Returns a list of warning strings
     (with the offending file's basename as provenance). Catches: an unknown scope, an unknown action
-    for its scope (typo), an unparseable key name, and — per layer, per scope — the same key bound to
-    two different actions (a self-conflict; a page key that shadows a `global` one is NOT flagged, that
-    override is intentional and page-wins). `layers` is an iterable of objects with `.data` (dict) and
+    for its scope (typo), an unparseable key name, per layer per scope the same key bound to two
+    different actions (a self-conflict), ACROSS layers a higher layer's binding taking a key a lower
+    layer gave another action in the same scope (resolved rebind-wins, see merge_layer_keys), and a
+    page that shadows every quit key. A page key that shadows a `global` one is NOT flagged — that
+    override is intentional and page-wins. `layers` is an iterable of objects with `.data` (dict) and
     `.path`.'''
     import os
     out = []
+    layers = list(layers)
     for lyr in layers:
         keys = getattr(lyr, 'data', {}).get('keys')
         if not isinstance(keys, dict):
@@ -269,4 +354,46 @@ def lint_keys(layers):
                                    f"'{seen[code]}' and '{action}'")
                     else:
                         seen[code] = action
+    # ACROSS layers: a higher layer rebinding a key a lower layer gave another action in the same
+    # scope. The TUI resolves it rebind-wins (merge_layer_keys) — report what got taken.
+    merged = merge_layer_keys(layers, warnings=out)
+    out.extend(lint_merged(merged, only_lockout=True))
+    return out
+
+
+def lint_merged(keys, only_lockout=False):
+    '''Lint a MERGED `keys:` map (`{scope: {action: spec}}`, e.g. Config.keys() / config_keys()):
+    a key bound to two actions within one scope (at runtime the first listed silently wins), and a
+    page scope that shadows EVERY quit and quit-force key (no way out of the TUI from that page).
+    Returns warning strings. `only_lockout` skips the duplicate check (lint_keys already reports
+    duplicates per layer and across layers).'''
+    out = []
+    if not isinstance(keys, dict):
+        return out
+    parsed = {}
+    for scope, actions in keys.items():
+        if not isinstance(actions, dict):
+            continue
+        am = parsed.setdefault(scope, {})
+        seen = {}
+        for action, spec in actions.items():
+            specs = spec if isinstance(spec, list) else [spec]
+            codes = [c for c in (parse_key(k) for k in specs) if c is not None]
+            am[action] = codes
+            for k, c in zip([k for k in specs if parse_key(k) is not None], codes):
+                if not only_lockout and c in seen and seen[c] != action:
+                    out.append(f"keys.{scope}: '{k}' bound to both '{seen[c]}' and '{action}' "
+                               f"(the TUI uses '{seen[c]}')")
+                else:
+                    seen.setdefault(c, action)
+    gl = parsed.get('global', {})
+    exits = set(gl.get('quit', [])) | set(gl.get('quit-force', []))
+    for scope, am in parsed.items():
+        if scope in ('global', 'screens'):
+            continue
+        own_exit = set(am.get('quit', [])) | set(am.get('quit-force', []))
+        taken = {c for a, cs in am.items() if a not in ('quit', 'quit-force') for c in cs}
+        if exits and not own_exit and exits <= taken:
+            out.append(f"keys.{scope}: every quit / quit-force key is bound to another action "
+                       f"on this page — there is no way to quit from it")
     return out

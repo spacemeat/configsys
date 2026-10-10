@@ -199,6 +199,11 @@ class ThemeScreen(Screen):
         km = menu._KEYMAP
         note = None
         new_pal = None
+        wrote = []                                  # a theme write was attempted (for the --pretend note)
+
+        def _w(fn):
+            wrote.append(True)
+            return fn
         try:
             page = ALL_PAGES[ts.page]
             tact = km.action_for('theme', ch) if km is not None else None
@@ -251,7 +256,7 @@ class ThemeScreen(Screen):
                     if parse_color(new.strip()) is None:
                         note = f'invalid color: {new.strip()}'          # reject, don't store
                     else:
-                        actions.set_theme_value(ctx, f'colors.{name}', new.strip())
+                        _w(actions.set_theme_value)(ctx, f'colors.{name}', new.strip())
                         new_pal = Palette(ctx.config.theme())
                         note = f'{name} = {new.strip()}'
             elif ts.focus == 'map' and tact == 'new':
@@ -262,7 +267,7 @@ class ThemeScreen(Screen):
                     if hexv is None or parse_color(hexv.strip()) is None:
                         note = f'invalid color — {nm} not added'
                     else:
-                        actions.set_theme_value(ctx, f'colors.{nm}', hexv.strip())
+                        _w(actions.set_theme_value)(ctx, f'colors.{nm}', hexv.strip())
                         new_pal = Palette(ctx.config.theme())
                         ts.reload()
                         if nm in ts.map_names:
@@ -273,7 +278,7 @@ class ThemeScreen(Screen):
                 if ts.color_override(name) is None:
                     note = f'{name} is a built-in color (nothing to remove)'
                 else:
-                    actions.set_theme_value(ctx, f'colors.{name}', None)
+                    _w(actions.set_theme_value)(ctx, f'colors.{name}', None)
                     new_pal = Palette(ctx.config.theme())
                     ts.reload()
                     note = f'{name} reset to default'
@@ -292,14 +297,14 @@ class ThemeScreen(Screen):
                         if not _valid_ref(new, ts.map_names):
                             note = f'invalid color/ref: {new.strip()}'
                         else:
-                            actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', new.strip())
+                            _w(actions.set_theme_value)(ctx, f'pages.{page}.gradient.{which}', new.strip())
                             new_pal = Palette(ctx.config.theme())
                             note = f'gradient {which} = {new.strip()}'
                 elif tact == 'reset':
                     if ts.grad_override(which) is None:
                         note = f'gradient {which} is default on {page} (nothing to reset)'
                     else:
-                        actions.set_theme_value(ctx, f'pages.{page}.gradient.{which}', None)
+                        _w(actions.set_theme_value)(ctx, f'pages.{page}.gradient.{which}', None)
                         new_pal = Palette(ctx.config.theme())
                         note = f'gradient {which} reset to default on {page}'
                 else:                                     # B/o/u/v — endpoints are one color
@@ -315,7 +320,7 @@ class ThemeScreen(Screen):
                     if not _valid_ref(new, ts.map_names):
                         note = f'invalid color/ref: {new.strip()}'
                     else:
-                        actions.set_theme_value(ctx, f'pages.{page}.{role}.fg', new.strip())
+                        _w(actions.set_theme_value)(ctx, f'pages.{page}.{role}.fg', new.strip())
                         new_pal = Palette(ctx.config.theme())
                         note = f'{role} fg = {new.strip()}'
             elif ts.focus == 'roles' and tact == 'edit-bg':
@@ -327,7 +332,7 @@ class ThemeScreen(Screen):
                     if new.strip() and not _valid_ref(new, ts.map_names):
                         note = f'invalid color/ref: {new.strip()}'
                     else:
-                        actions.set_theme_value(ctx, f'pages.{page}.{role}.bg', new.strip() or None)
+                        _w(actions.set_theme_value)(ctx, f'pages.{page}.{role}.bg', new.strip() or None)
                         new_pal = Palette(ctx.config.theme())
                         note = f'{role} bg {"set" if new.strip() else "cleared"}'
             elif ts.focus == 'roles' and tact in ('effect-bold', 'effect-underline', 'effect-reverse'):
@@ -335,7 +340,7 @@ class ThemeScreen(Screen):
                 attr = {'effect-bold': 'bold', 'effect-underline': 'underline',
                         'effect-reverse': 'reverse'}[tact]
                 on = not bool(ts.role_style(role).get(attr))
-                actions.set_theme_value(ctx, f'pages.{page}.{role}.{attr}', on)
+                _w(actions.set_theme_value)(ctx, f'pages.{page}.{role}.{attr}', on)
                 new_pal = Palette(ctx.config.theme())
                 note = f'{role} {attr} {"on" if on else "off"}'
             elif ts.focus == 'roles' and tact == 'reset':
@@ -343,14 +348,14 @@ class ThemeScreen(Screen):
                 if ts.role_override(role) is None:
                     note = f'{role} is default on {page} (nothing to reset)'
                 else:
-                    actions.set_theme_value(ctx, f'pages.{page}.{role}', None)
+                    _w(actions.set_theme_value)(ctx, f'pages.{page}.{role}', None)
                     new_pal = Palette(ctx.config.theme())
                     ts.reload()
                     note = f'{role} reset to default on {page}'
 
             elif tact == 'gradient-toggle':               # from/to now live in the role list
                 on = not ts.page_gradient_enabled(page)
-                actions.set_theme_value(ctx, f'pages.{page}.gradient.enabled', on)
+                _w(actions.set_theme_value)(ctx, f'pages.{page}.gradient.enabled', on)
                 new_pal = Palette(ctx.config.theme())
                 note = f'{page} gradient {"on" if on else "off"}'
             elif tact == 'copy-page':                     # copy this page's look onto another
@@ -358,7 +363,7 @@ class ThemeScreen(Screen):
                 di = _popup_choose(stdscr, pal, f'copy {page}’s theme onto…',
                                    [(p, '') for p in others], 0)
                 if di is not None:
-                    ok, label = actions.copy_page_theme(ctx, page, others[di])
+                    ok, label = _w(actions.copy_page_theme)(ctx, page, others[di])
                     if ok:
                         new_pal = Palette(ctx.config.theme())
                         note = f'copied {page} → {others[di]}'
@@ -380,7 +385,7 @@ class ThemeScreen(Screen):
                                        'plugins won\'t show through) — continue?',
                                        [('promote', ''), ('cancel', '')], 1)
                     if ci == 0:
-                        ok, label = actions.save_theme_to_primary(ctx)
+                        ok, label = _w(actions.save_theme_to_primary)(ctx)
                         new_pal = Palette(ctx.config.theme())
                         note = f'promoted full theme → {label}' if ok else label
                     else:
@@ -389,12 +394,12 @@ class ThemeScreen(Screen):
                     nm = _input_box(stdscr, pal, 'export theme pack — name', '')
                     if nm and nm.strip():
                         nm = nm.strip()
-                        _pdir, existed = actions.save_theme_plugin(ctx, nm)
+                        _pdir, existed = _w(actions.save_theme_plugin)(ctx, nm)
                         if existed:
                             oi = _popup_choose(stdscr, pal, f'{nm} exists — overwrite?',
                                                [('overwrite', ''), ('cancel', '')], 1)
                             if oi == 0:
-                                actions.save_theme_plugin(ctx, nm, force=True)
+                                _w(actions.save_theme_plugin)(ctx, nm, force=True)
                                 note = f'exported theme pack {nm} (overwritten)'
                             else:
                                 note = 'export cancelled'
@@ -405,11 +410,12 @@ class ThemeScreen(Screen):
                 if names:
                     idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
                     if idx is not None:
-                        actions.load_theme(ctx, names[idx])
+                        _w(actions.load_theme)(ctx, names[idx])
                         new_pal = Palette(ctx.config.theme())
                         note = f'loaded {names[idx]}'
                 else:
                     note = 'no theme plugins saved yet (s to save one)'
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
-        return Intent(note=note, new_pal=new_pal)
+            wrote.clear()                           # a failure is reported as such, not as "not saved"
+        return Intent(note=menu._pretend_note(ctx, note, bool(wrote)), new_pal=new_pal)

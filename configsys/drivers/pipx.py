@@ -10,6 +10,7 @@ get_latest resolves from pypi.org only when the route carries a
 `version: { pypi: <dist> }` spec (cached).
 '''
 
+import functools
 import json
 import re
 import shlex
@@ -27,6 +28,32 @@ _PIPX = 'python3 -m pipx'
 # always-present pip backend UP FRONT (same pipx method + venv, just a different internal installer),
 # with a note, rather than letting pipx discover the mismatch by failing. Bump if pipx raises it.
 _UV_MIN = '0.9.17'
+
+
+# The python3 providers routes.hu ships, used when the routes can't be read (no paths / a parse
+# failure). Normally `_shipped_pythons` derives the list from the routes themselves.
+_FALLBACK_PYTHONS = (('3.10', 'python3.10'), ('3.11', 'python3.11'), ('3.12', 'python3.12'),
+                     ('3.13', 'python3.13'), ('3.14', 'python3.14'))
+
+
+@functools.lru_cache(maxsize=4)
+def _shipped_pythons(routes_file):
+    '''[(version, component)] for every version-scoped `python3` provider in the routes
+    (`provides: { python3: "3.NN" }` — python3.10 … python3.14), oldest first; the fallback list
+    when the routes are unavailable. Cached: the advisory may ask once per pipx unit.'''
+    if routes_file:
+        try:
+            from .. import routes
+            _c, comps, _m, _o = routes.load(str(routes_file), validate=False)
+            from packaging.version import Version
+            found = sorted(((c.prov_versions['python3'], name) for name, c in comps.items()
+                            if (getattr(c, 'prov_versions', None) or {}).get('python3')),
+                           key=lambda vn: Version(str(vn[0])))
+            if found:
+                return tuple((str(v), n) for v, n in found)
+        except Exception:                           # noqa: BLE001 — an advisory never breaks
+            pass
+    return _FALLBACK_PYTHONS
 
 
 class Pipx(Driver):
@@ -126,7 +153,8 @@ class Pipx(Driver):
 
     def _suggest_pin(self, requires_python):
         '''The lowest `python3.NN` we ship a component for that satisfies `requires_python`
-        (e.g. ">=3.11" -> "python3.11"), so the advisory can name a concrete, installable pin.'''
+        (e.g. ">=3.11" -> "python3.11"), so the advisory can name a concrete, installable pin. The
+        candidates are the routes' version-scoped `python3` providers (`_shipped_pythons`).'''
         try:
             from packaging.specifiers import SpecifierSet, InvalidSpecifier
         except ImportError:
@@ -135,7 +163,8 @@ class Pipx(Driver):
             spec = SpecifierSet(requires_python)
         except (InvalidSpecifier, TypeError):
             return None
-        return next((f'python3.{n}' for n in (11, 12, 13) if f'3.{n}.0' in spec), None)
+        return next((name for ver, name in _shipped_pythons(getattr(self.paths, 'routes_file', None))
+                     if f'{ver}.0' in spec), None)
 
     def version_advisory(self, rc):
         '''`configsys versions` heads-up: ONE line when this venv's python CAPS the installable

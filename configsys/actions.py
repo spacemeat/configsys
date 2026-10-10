@@ -11,6 +11,17 @@ from pathlib import Path
 from . import plugins
 
 
+# --pretend is a true dry run for the TUI too: every config-editing action below refuses to write
+# under ctx.runner.pretend and returns this as its label/message (a `(False, PRETEND_NOT_SAVED)` for
+# the (changed, label) writers, 0 for the counters) so a surface can show it instead of a change.
+PRETEND_NOT_SAVED = '[pretend] not saved'
+
+
+def _pretend(ctx):
+    '''True when this run is --pretend (so an edit must not be written).'''
+    return bool(getattr(getattr(ctx, 'runner', None), 'pretend', False))
+
+
 def invalidate_location_cache(ctx):
     '''Drop the glue-locations cache after an edit that changes WHERE a component installs (a method
     pin, a pick added/removed) so the next shell startup recomputes it. Lives here (not app.py) and
@@ -122,6 +133,35 @@ def detected_after(drv, rc):
         return True
 
 
+def targets_version(drv):
+    '''Can `drv.set_version(rc, v)` actually install version `v`? Read from the driver's
+    `targets_version` class attribute (Driver base default True; False = "installs the routed version
+    only" — its set_version would silently reinstall whatever the route resolves and report ok, e.g.
+    tarball/appImage/font/native-pkg-file/dotfiles/glue/service/group).'''
+    return drv is not None and bool(getattr(drv, 'targets_version', True))
+
+
+def no_version_target_message(via, comp):
+    '''The one wording for "this method can't set a version" (CLI preflight + the op loop).'''
+    return (f'{via} installs the routed version only — pin a method that supports versions '
+            f'(`configsys versions {comp}`)')
+
+
+def pretend_unresolved_download(drv, rc):
+    '''Under --pretend, is this failed op just a download whose version/asset isn't in the offline
+    cache? --pretend never touches the network, so a discovery-spec binding (`version: { github: … }`)
+    with nothing cached has no URL to show — that is not a failure of the route, only of the dry run.
+    True when the binding carries a discovery spec and the driver can't build a download URL offline.'''
+    spec = (rc.fields or {}).get('version')
+    if not isinstance(spec, dict) or not hasattr(drv, 'download_target'):
+        return False
+    try:
+        _ver, url = drv.download_target(rc)
+    except Exception:                                # noqa: BLE001 — unknowable offline = unresolved
+        return True
+    return not url
+
+
 def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     '''Execute an ordered `[(op, key, rc)]` plan — the ONE op-execution loop the CLI and TUI share.
     Per step it dispatches the op (install/remove/upgrade/lock/unlock/set-version), runs the
@@ -137,6 +177,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     from . import reportgen, shellguard
     from .drivers import get_driver
     outcomes, failures, n_fatal, rc_code, interrupted = [], [], 0, 0, False
+    pretend = bool(getattr(ctx.runner, 'pretend', False))   # --pretend: print, never record anything
     begin = getattr(ctx.runner, 'begin_sudo', None)
     if begin and any(_may_need_root(get_driver(rc.driver, ctx.runner, ctx.paths), rc) for _, _, rc in plan):
         begin(on_line)                   # the ONE prompt, up front — then the run can go unattended
@@ -149,6 +190,15 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
         if drv is None:
             on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
             outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
+            continue
+        if cur_op == 'set-version' and not targets_version(drv):
+            # tarball/appImage/font/... set_version would just reinstall the ROUTED version and say
+            # "ok" — a lie about what got installed. Refuse up front, naming the fix.
+            msg = no_version_target_message(rc.via or rc.driver, rc.comp)
+            on_line(f'set-version {key}: FAILED — {msg}')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
+            rc_code = rc_code or 1
+            n_fatal += 1
             continue
         on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
         rc_snap = shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op)
@@ -165,11 +215,12 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                     res = drv.set_version(rc, version)
                 elif cur_op == 'lock':
                     res = drv.lock(rc)
-                    if res.ok and ledger is not None and getattr(drv, 'holds_version', True):
+                    if (res.ok and ledger is not None and not pretend
+                            and getattr(drv, 'holds_version', True)):
                         ledger.set_lock(key, True)   # never record a hold a rolling manager can't keep
                 elif cur_op == 'unlock':
                     res = drv.unlock(rc)
-                    if res.ok and ledger is not None:
+                    if res.ok and ledger is not None and not pretend:
                         ledger.set_lock(key, False)
             finally:
                 # revert + stage even on failure/abort — a half-finished installer may have written
@@ -186,7 +237,16 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             rc_code = rc_code or 2
             outcomes.append(OpOutcome(cur_op, key, rc.name, False, f'unknown op {cur_op}'))
             continue
-        if not res.ok and getattr(res, 'advisory', False):
+        if not res.ok and pretend and cur_op in ('install', 'upgrade') \
+                and pretend_unresolved_download(drv, rc):
+            # a dry run is offline: with nothing cached there's no version/asset to name. Show a
+            # placeholder for the step instead of a fake failure (and a report offer).
+            on_line(f'[pretend] {rc.via or rc.driver}: download + {cur_op} {rc.comp} @ <latest release> '
+                    '(not in the offline version cache — a real run resolves it; '
+                    '`configsys refresh` caches versions for --pretend)')
+            on_line('  -> ok (pretend)')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'pretend: version unresolved offline'))
+        elif not res.ok and getattr(res, 'advisory', False):
             on_line('  -> needs your input:')
             for line in (res.output or 'action required').splitlines():
                 on_line(f'    {line}')
@@ -209,7 +269,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             for line in (res.output or res.cmd or '').strip().splitlines():
                 on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
             failures.append(rec)
-        elif cur_op in ('install', 'upgrade') and not detected_after(drv, rc):
+        elif cur_op in ('install', 'upgrade') and not pretend and not detected_after(drv, rc):
             # the op succeeded, but the component still reads "not installed" — a DETECTION bug (a
             # renamed package, a binary off PATH, an empty version marker). Say so NOW, not when the
             # user later wonders why it's listed missing.
@@ -222,49 +282,52 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             outcomes.append(OpOutcome(cur_op, key, rc.name, True))
         # install RECEIPT (stranded.py): remember what configsys installed so the install stays
         # findable + removable after routes stop offering that method; forget it on removal.
-        if (ledger is not None and not getattr(ctx.runner, 'pretend', False)
+        if (ledger is not None and not pretend
                 and outcomes and outcomes[-1].key == key and outcomes[-1].ok):
             if cur_op in ('install', 'upgrade', 'set-version'):
                 ledger.set_receipt(rc)
             elif cur_op == 'remove':
                 ledger.clear_receipt(key)
     ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
-    if ledger is not None:
+    if ledger is not None and not pretend:          # a dry run records nothing (no locks, no receipts)
         ledger.save(ctx.paths)
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
 
 
-def edit_target(ctx):
+def edit_target(ctx, *, create=False):
     '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
     synced (so edits travel to your other machines), else this machine's top config. NOTE: the
     primary layer sits BELOW the top config, so an edit here is only effective when a higher layer
-    doesn't shadow it — profile/config edits use the effective-target helpers below instead.'''
-    decls = plugins.declared(ctx.paths.user_config_file)
-    prim = plugins.primary_name(decls)
-    if prim:
-        files = [f for f, role in plugins.layer_files(ctx.paths.plugins_dir, decls)
-                 if role == 'primary']
-        if files:
-            return files[0], prim
+    doesn't shadow it — profile/config edits use the effective-target helpers below instead.
+    `create` (write paths) gives a primary with no data file yet an empty one (_primary_data_file);
+    without it, display callers see the label a write would land under.'''
+    pfile, prim = (_writable_primary_file(ctx) if create else _primary_target_label(ctx))
+    if pfile:
+        return pfile, prim
     return str(ctx.paths.user_config_file), 'top config'
 
 
-def _nature_target(ctx, key, lives_in):
+def _nature_target(ctx, key, lives_in, *, create=False):
     '''(file, label) where an edit to `key` should land — the ONE policy scalars, picks, and
     dispositions all share, driven by SETTING_NATURE (declared config, not incidental file content).
     `lives_in(file) -> bool` says whether the edit's slice already exists in that file. Preference:
     the writable layer it already lives in (the local top config shadows the primary, so editing a
     lower layer would be ineffective), else the nature DEFAULT — the primary plugin for a 'uniform'
     key when one is blessed+synced (portable), else this box's top config (a 'machine' key, or no
-    primary).'''
+    primary). `create` (write paths only) lets a primary with no data file yet get an empty one;
+    without it a display caller still sees the label an edit WOULD land under.'''
     local = str(ctx.paths.user_config_file)
     pfile, pname = _primary_data_file(ctx)
     if lives_in(local):
         return local, 'top config'
     if pfile and lives_in(pfile):
         return pfile, pname
-    if SETTING_NATURE.get(key) == 'uniform' and pfile:
-        return pfile, pname
+    if SETTING_NATURE.get(key) == 'uniform':
+        if not pfile:
+            pfile, pname = (_writable_primary_file(ctx) if create
+                            else _primary_target_label(ctx))
+        if pfile:
+            return pfile, pname
     return local, 'top config'
 
 
@@ -275,6 +338,8 @@ def stage_uninstall(ctx, comp, *, on=True):
     '''Stage (`on`) or unstage (`on=False`) `comp` in the top-level `uninstall:` queue — a
     machine-local (top-config) pending-removal list. Returns (changed, label). The TUI `x` calls
     this; the real uninstall runs later from TUI::Components (execute) — or `clear_uninstall` cancels.'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     tfile = str(ctx.paths.user_config_file)          # machine-local, like pins — never a plugin
     cur = plugins.read_list_section(tfile, 'uninstall')
     if on and comp not in cur:
@@ -304,6 +369,8 @@ def set_disposition(ctx, comp, state):
     '''Set component `comp`'s disposition — 'seen' | 'interesting', or clear it (state None/'new').
     dispositions are `machine`-nature (SETTING_NATURE) -> the LOCAL top config by default (this box's
     triage), but honor an existing home if you've moved them. Returns (changed, label).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     tfile, label = _nature_target(ctx, 'dispositions', lambda f: bool(plugins.read_dispositions(f)))
     disp = plugins.read_dispositions(tfile)
     want = None if state in (None, 'new') else state
@@ -318,10 +385,10 @@ def set_disposition(ctx, comp, state):
     return True, label
 
 
-def _picks_target(ctx, machine):
+def _picks_target(ctx, machine, *, create=False):
     '''(file, label) for a picks edit on `machine`. picks are `uniform` (SETTING_NATURE) -> the
     portable primary plugin by default; a per-machine local list still overrides (shadow-guard).'''
-    return _nature_target(ctx, 'picks', lambda f: machine in plugins.read_picks(f))
+    return _nature_target(ctx, 'picks', lambda f: machine in plugins.read_picks(f), create=create)
 
 
 def set_included(ctx, comp, machines, on):
@@ -329,9 +396,11 @@ def set_included(ctx, comp, machines, on):
     fan-out). Each machine's picks write to its PORTABLE target — the primary plugin by default, else
     this box's top config, and always the top config when it already overrides that machine (see
     _picks_target). Returns (changed_count, label naming where it landed).'''
+    if _pretend(ctx):
+        return 0, PRETEND_NOT_SAVED
     by_target = {}                                   # (file, label) -> [machines] (usually one target)
     for m in machines:
-        by_target.setdefault(_picks_target(ctx, m), []).append(m)
+        by_target.setdefault(_picks_target(ctx, m, create=True), []).append(m)
     changed, labels = 0, set()
     for (tfile, label), ms in by_target.items():
         picks = plugins.read_picks(tfile)
@@ -360,6 +429,8 @@ def set_included(ctx, comp, machines, on):
 def set_included_clear_machine(ctx, machine):
     '''Drop a machine's entire `picks:` entry (when the machine is removed) — from BOTH the local top
     config and the primary plugin, since its picks may live in either. Returns (changed, label).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     changed = False
     pfile, _pn = _primary_data_file(ctx)
     files = {str(ctx.paths.user_config_file)} | ({str(pfile)} if pfile else set())
@@ -380,7 +451,9 @@ def move_picks_to_primary(ctx):
     machines. Writes the current EFFECTIVE picks (the merged, local-wins view) to the primary and
     clears the local `picks:` node. No-op when there's no blessed+synced primary, or no local picks.
     Returns (moved_component_count, label). Dispositions are deliberately left local.'''
-    prim_file, label = _primary_data_file(ctx)
+    if _pretend(ctx):
+        return 0, PRETEND_NOT_SAVED
+    prim_file, label = _writable_primary_file(ctx)
     if not prim_file:                                # no blessed+synced primary -> nowhere portable
         return 0, 'no primary'
     local_file = str(ctx.paths.user_config_file)
@@ -398,6 +471,8 @@ def mark_all_seen(ctx, names):
     '''Mark every UNDISPOSITIONED (NEW) component in `names` as `seen`, in ONE write — leaving any
     existing seen/interesting flag alone (SEEN never clobbers a flag). Returns the count newly seen.
     Used by the `E` mass-acknowledge and by Include (tracked implies seen).'''
+    if _pretend(ctx):
+        return 0
     tfile = str(ctx.paths.user_config_file)
     disp = plugins.read_dispositions(tfile)
     added = 0
@@ -433,6 +508,8 @@ def unignore_orphan(ctx, pattern):
 
 def clear_uninstall(ctx):
     '''Empty the `uninstall:` queue (cancel every pending removal). Returns how many were cleared.'''
+    if _pretend(ctx):
+        return 0
     n = len(ctx.config.uninstall_queue())
     if n:
         plugins.set_list_section(str(ctx.paths.user_config_file), 'uninstall', [])
@@ -444,12 +521,14 @@ def add_machine(ctx, name):
     '''Register a new machine as an empty column — an empty `picks:` entry (picks: IS the machine
     registry). Written to the portable pick target (primary if blessed, see _picks_target). Returns
     (changed, label); a bad/duplicate name returns (False, reason).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     name = (name or '').strip()
     if not name:
         return False, 'a machine name is required'
     if name in ctx.config.machine_names():
         return False, f'machine "{name}" already exists'
-    tfile, label = _picks_target(ctx, name)
+    tfile, label = _picks_target(ctx, name, create=True)
     picks = plugins.read_picks(tfile)
     picks[name] = picks.get(name, [])                      # an empty column
     plugins.set_picks(tfile, picks)
@@ -467,6 +546,8 @@ def remove_machine(ctx, name):
 def rename_machine(ctx, old, new):
     '''Rename a machine: move its `picks:` entry (in whichever layer holds it) to `new`, and re-point
     the `machine:` selection if it named `old`. Returns (changed, reason).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     new = (new or '').strip()
     if not new:
         return False, 'a new name is required'
@@ -487,7 +568,7 @@ def rename_machine(ctx, old, new):
             plugins.set_picks(f, picks)
             moved = True
     if not moved:                                          # synthetic 'this-machine' with no picks yet
-        tfile, _l = _picks_target(ctx, new)
+        tfile, _l = _picks_target(ctx, new, create=True)
         picks = plugins.read_picks(tfile)
         picks[new] = []
         plugins.set_picks(tfile, picks)
@@ -544,6 +625,18 @@ CONFIG_SETTINGS = {
     'machine': ('scalar', 'This box\'s machine name — which `picks:` column is "this machine". Unset '
                           'defaults to `this-machine`.',
                 'configsys(1)'),
+    'detect-coexisting': ('bool',   'After inspect, also detect installs of a component via its OTHER '
+                                    '(unmanaged) methods and show them as "also present". On by '
+                                    'default.', 'configsys.hu(5)'),
+    'installer-shell-writes': ('scalar', "Shell-rc guard: 'block' (default) snapshots your rc files "
+                                    'around each install and reverts what an installer writes there '
+                                    "(staged as glue for review); 'allow' turns the guard off.",
+                               'configsys.hu(5)'),
+    'installer-shell-writes-allow': ('list', 'Components exempt from the shell-rc guard — their '
+                                    'installer may edit your rc files.', 'configsys.hu(5)'),
+    'locations':         ('map',    'Per-component install-location overrides, <component>=<absolute '
+                                    'path> tokens: find/manage that install HERE (scope-bypassing; '
+                                    'path-based drivers honor it).', 'configsys.hu(5)'),
     # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
     'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
                                     'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
@@ -574,6 +667,10 @@ SETTING_NATURE = {
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
     'machine':           'machine',           # which machine THIS box is — inherently per-box (local)
+    'detect-coexisting': 'uniform',           # a behavior preference
+    'installer-shell-writes': 'uniform',      # a safety posture you want on every box
+    'installer-shell-writes-allow': 'uniform',
+    'locations':         'machine',           # install paths are a truth about THIS box's disk
     'dirs.user':         'machine',
     'dirs.system':       'machine',
     'dirs.app':          'uniform',
@@ -585,11 +682,77 @@ SETTING_NATURE = {
 }
 
 
+# key -> getter(config) for the EFFECTIVE value `config show` / the TUI display. Every non-`dir`
+# setting in CONFIG_SETTINGS must appear here (config_settings indexes it, and a test pins the key
+# sets equal) so a new setting can't silently show "(unset)". `dir` settings resolve via Paths.
+_SETTING_GETTERS = {
+    'scope':                  lambda c: c.default_scope(),
+    'driver-preference':      lambda c: c.driver_preference(),
+    'disabled-drivers':       lambda c: c.disabled_drivers(),
+    'auto-tighten':           lambda c: c.auto_tighten(),
+    'adopt-installed':        lambda c: c.adopt_installed(),
+    'refresh-before-execute': lambda c: c.refresh_before_execute(),
+    'install-overlay':        lambda c: c.install_overlay_default(),
+    'reboot-advice':          lambda c: c.reboot_advice(),
+    'splash':                 lambda c: c.splash(),
+    'effects':                lambda c: c.effects(),
+    'orphans-ignore':         lambda c: c.orphans_ignore(),
+    'machine':                lambda c: c.selected_machine(),
+    'detect-coexisting':      lambda c: c.detect_coexisting(),
+    'installer-shell-writes': lambda c: 'block' if c.block_installer_shell_writes() else 'allow',
+    'installer-shell-writes-allow': lambda c: c.shell_writes_allowlist(),
+    'locations':              lambda c: _map_tokens(c.locations()),
+}
+
+
+def _map_tokens(mapping):
+    '''A `map` setting's value as `key=value` tokens (what `config get` prints and `config set`
+    takes; also what the TUI's generic list editor round-trips).'''
+    return [f'{k}={v}' for k, v in sorted((mapping or {}).items())]
+
+
+def _parse_map_tokens(tokens):
+    '''`key=value` tokens -> {key: value}. Raises ValueError on a token without `=`.'''
+    out = {}
+    for t in tokens:
+        k, sep, v = str(t).partition('=')
+        if not sep or not k.strip() or not v.strip():
+            raise ValueError(f'expected <component>=<path>, got {t!r}')
+        out[k.strip()] = v.strip()
+    return out
+
+
+def _read_map_section(config_file, key):
+    '''The flat scalar map of a top-level `<key>: { … }` in ONE .hu file, or {}.'''
+    from . import layers
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    m = data.get(key) if isinstance(data, dict) else None
+    return ({k: v for k, v in m.items() if not isinstance(v, (dict, list))}
+            if isinstance(m, dict) else {})
+
+
+def _set_map_section(config_file, key, mapping):
+    '''Rewrite a top-level map `<key>: { k: v … }` in place, or remove the node when empty.'''
+    from .troveio import _scalar
+    if not mapping:
+        plugins.remove_sections(config_file, [key])
+        return
+    plugins.set_section(config_file, key, lambda indent: '\n'.join(
+        [f'{key}: {{']                               # set_section places the first line itself
+        + [f'{" " * (indent + 4)}{_scalar(k)}: {_scalar(v)}' for k, v in mapping.items()]
+        + [' ' * indent + '}']))
+
+
 def _read_setting(config_file, key):
     '''The value of machine setting `key` in ONE .hu file (kind-aware), or None if absent.'''
     kind = CONFIG_SETTINGS[key][0]
     if kind == 'dir':
         return plugins.read_dirs(config_file).get(key.split('.', 1)[1])
+    if kind == 'map':
+        return _read_map_section(config_file, key) or None
     if kind == 'list':
         return plugins.read_list_section(config_file, key) or None
     return plugins.read_scalar_section(config_file, key)      # scalar + bool
@@ -601,6 +764,8 @@ def _setting_tokens(value, kind):
         return []
     if kind == 'list':
         return list(value)
+    if kind == 'map':
+        return _map_tokens(value)
     if kind == 'bool':
         return ['true' if _to_bool(value) else 'false']
     return [str(value)]                                       # scalar + dir
@@ -619,12 +784,12 @@ def _setting_home(ctx, key):
     return None, None
 
 
-def _setting_target(ctx, key):
+def _setting_target(ctx, key, *, create=False):
     '''(file, label) where an edit to machine setting `key` is EFFECTIVE: the writable layer it
     already lives in (editing a lower one would be shadowed), else its nature default — the primary
     plugin for a 'uniform' setting when one is blessed+synced, this machine's top config for a
     'machine' setting (or when no primary exists). Delegates to the shared _nature_target.'''
-    return _nature_target(ctx, key, lambda f: _read_setting(f, key) is not None)
+    return _nature_target(ctx, key, lambda f: _read_setting(f, key) is not None, create=create)
 
 
 def config_settings(ctx):
@@ -632,15 +797,9 @@ def config_settings(ctx):
     `config show` and the TUI Config screen). Read-only.'''
     from .paths import CONFIG_DIR_KEYS
     cfg = ctx.config
-    values = {
-        'scope':             cfg.default_scope(),
-        'driver-preference': cfg.driver_preference(),
-        'auto-tighten':      cfg.auto_tighten(),
-        'adopt-installed':   cfg.adopt_installed(),
-        'orphans-ignore':    cfg.orphans_ignore(),
-        'splash':            cfg.splash(),
-        'machine':           cfg.selected_machine(),
-    }
+    # derived from the registry: a setting without a getter is a KeyError here, never a silent "(unset)"
+    values = {key: _SETTING_GETTERS[key](cfg)
+              for key, (kind, _d, _m) in CONFIG_SETTINGS.items() if kind != 'dir'}
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}
     ucf = getattr(ctx.paths, 'user_config_file', None)    # absent in some test fakes -> skip homing
@@ -673,8 +832,10 @@ def _to_bool(s):
 def set_config_setting(ctx, key, values, *, target=None):
     '''Set machine setting `key` from `values` (tokens, parsed per the setting's kind); an empty
     `values` clears it. Returns (changed, target_label). Raises KeyError for an unknown key.'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     kind = CONFIG_SETTINGS[key][0]
-    tfile, label = (target, target) if target else _setting_target(ctx, key)
+    tfile, label = (target, target) if target else _setting_target(ctx, key, create=True)
     if kind == 'dir':                                     # nested `dirs.<sub>`: edit the dirs map
         sub = key.split('.', 1)[1]
         dirs = plugins.read_dirs(tfile)
@@ -683,6 +844,12 @@ def set_config_setting(ctx, key, values, *, target=None):
         else:
             dirs.pop(sub, None)
         plugins.set_dirs(tfile, dirs)
+        ctx.invalidate()
+        return True, label
+    if kind == 'map':                                     # `k=v` tokens replace the whole map
+        _set_map_section(tfile, key, _parse_map_tokens(values) if values else {})
+        if key == 'locations':
+            invalidate_location_cache(ctx)                # WHERE things install just changed
         ctx.invalidate()
         return True, label
     if not values:                                        # clear
@@ -704,12 +871,14 @@ def move_config_setting(ctx, key):
     its effective value and clearing the source. The direction is inferred from where it lives now
     (local->primary, or primary->local); a setting at its built-in default has nothing to move.
     Returns (ok, message).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     where, _who = _setting_home(ctx, key)
     if where is None:
         return False, f'{key} is at its default — set a value before moving it'
     kind = CONFIG_SETTINGS[key][0]
     local = str(ctx.paths.user_config_file)
-    pfile, pname = _primary_data_file(ctx)
+    pfile, pname = _writable_primary_file(ctx) if where == 'local' else _primary_data_file(ctx)
     if where == 'local':
         if not pfile:
             return False, 'no primary plugin blessed + synced to move into'
@@ -733,7 +902,9 @@ _THEME_BOOL_ATTRS = ('bold', 'underline', 'reverse')
 def set_theme_value(ctx, dotted_key, value, *, target=None):
     '''Set one theme value by dotted path (`colors.accent`, `elements.profile.fg`, `gradient.from`);
     `value=None` removes it. bold/underline/reverse coerce to a bool. Returns (changed, label).'''
-    tfile, label = (target, target) if target else edit_target(ctx)
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
+    tfile, label = (target, target) if target else edit_target(ctx, create=True)
     theme = plugins.read_theme(tfile)
     parts = dotted_key.split('.')
     node = theme
@@ -813,7 +984,7 @@ def save_theme_plugin(ctx, name, *, force=False):
     existing plugin unless `force` (the caller warns first).'''
     pdir = Path(ctx.paths.plugins_dir) / name
     existed = pdir.exists()
-    if existed and not force:
+    if (existed and not force) or _pretend(ctx):     # --pretend: nothing written (caller checks _pretend)
         return pdir, existed
     from .tui import theme as _theme
     pdir.mkdir(parents=True, exist_ok=True)
@@ -829,10 +1000,12 @@ def save_theme_plugin(ctx, name, *, force=False):
 def load_theme(ctx, name, *, target=None):
     '''Apply a saved theme plugin's `theme:` to the edit target (replacing your theme overrides, so
     the template becomes your look — retune on top after). Returns (changed, label|None).'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     theme = _plugin_theme(Path(ctx.paths.plugins_dir) / name)
     if not theme:
         return False, None
-    tfile, label = (target, target) if target else edit_target(ctx)
+    tfile, label = (target, target) if target else edit_target(ctx, create=True)
     plugins.set_theme(tfile, theme)
     ctx.invalidate()
     return True, label
@@ -841,7 +1014,9 @@ def load_theme(ctx, name, *, target=None):
 def copy_page_theme(ctx, src, dst):
     '''Copy one page's theme overrides (its role styles + gradient) onto another page, in the edit
     target. Returns (ok, label|reason). Nothing to copy if the source page has no overrides.'''
-    tfile, label = edit_target(ctx)
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
+    tfile, label = edit_target(ctx, create=True)
     theme = plugins.read_theme(tfile)
     pages = theme.setdefault('pages', {})
     srcov = pages.get(src)
@@ -856,7 +1031,8 @@ def copy_page_theme(ctx, src, dst):
 def _primary_data_file(ctx):
     '''The primary plugin's highest-precedence synced data file (where a theme/pin can be written so
     it travels with the primary), plus the primary's name — or (None, None) if no primary is blessed
-    and synced. Mirrors the edit_target / _pin_promote idiom.'''
+    and synced. Mirrors the edit_target / _pin_promote idiom. Read-only; writers use
+    _writable_primary_file.'''
     decls = plugins.declared(ctx.paths.user_config_file)
     prim = plugins.primary_name(decls)
     if not prim:
@@ -865,10 +1041,62 @@ def _primary_data_file(ctx):
     return (files[0], prim) if files else (None, None)
 
 
+def _writable_primary_file(ctx):
+    '''_primary_data_file for a WRITE: a primary can legitimately have NO data file yet (`plugin
+    init` on a config with no components/profiles scaffolds only the manifest), which would leave it
+    unable to hold picks, pins or settings — so an empty `<name>.hu` is created on demand when that's
+    safe (see _creatable_primary_file). Never under --pretend.'''
+    pfile, prim = _primary_data_file(ctx)
+    if pfile or getattr(getattr(ctx, 'runner', None), 'pretend', False):
+        return pfile, prim
+    decls = plugins.declared(ctx.paths.user_config_file)
+    prim = plugins.primary_name(decls)
+    new = _creatable_primary_file(ctx, decls, prim) if prim else None
+    if new is None:
+        return None, None
+    new.write_text('{\n}\n', encoding='utf-8')
+    ctx.invalidate()
+    return str(new), prim
+
+
+def _creatable_primary_file(ctx, decls, prim):
+    '''The path an empty primary data file can be created at, or None when that's not safe/possible:
+    the primary must be synced, ABI-compatible, with no explicit manifest `data:` list (a new file
+    would then be ignored — data files come from the `*.hu` glob otherwise) and no `sha256:` pin
+    (a new file would change its content hash and quarantine it).'''
+    decl = next((d for d in decls if d.get('primary')), None)
+    if decl is None or decl.get('sha256'):
+        return None
+    pdir = Path(ctx.paths.plugins_dir) / plugins.dir_name(decl['source'])
+    if not (pdir / 'plugin.hu').exists():
+        return None
+    manifest = plugins.read_manifest(pdir)
+    if manifest.get('data') or not plugins._abi_ok(manifest):
+        return None
+    target = pdir / f'{pdir.name}.hu'
+    return None if target.exists() else target
+
+
+def _primary_target_label(ctx):
+    '''(file_or_would_be_path, name) for DISPLAY: the primary's data file, else the path one would
+    be created at on the first write — so "edits → <primary>" reads true before the file exists.
+    Never creates anything.'''
+    pfile, pname = _primary_data_file(ctx)
+    if pfile:
+        return pfile, pname
+    decls = plugins.declared(ctx.paths.user_config_file)
+    prim = plugins.primary_name(decls)
+    if prim:
+        new = _creatable_primary_file(ctx, decls, prim)
+        if new is not None:
+            return str(new), prim
+    return None, None
+
+
 def primary_theme_target(ctx):
     '''The primary plugin's name if one is blessed AND synced (so a theme can be written into it),
     else None — used to offer/hide the "save into primary plugin" destination.'''
-    return _primary_data_file(ctx)[1]
+    return _primary_target_label(ctx)[1]
 
 
 def save_theme_to_primary(ctx):
@@ -876,8 +1104,10 @@ def save_theme_to_primary(ctx):
     diffs) and MOVE it there — clearing any theme in the top config so the primary's now-absolute
     theme isn't shadowed. This is deliberately absolute: a full theme in the primary overrides any
     theme plugin (the caller confirms first). Returns (ok, label): the primary name, or a reason.'''
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
     from .tui import theme as _theme
-    target, prim = _primary_data_file(ctx)
+    target, prim = _writable_primary_file(ctx)
     if not target:
         return False, 'no primary plugin blessed/synced to promote into'
     plugins.set_theme(target, _theme.full_snapshot(ctx.config.theme()))
@@ -928,7 +1158,9 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     easy way to swap an in-development local copy for its published version). Returns (ok, message,
     sync_results).'''
     import shutil
-    ctx.ensure_user_config()
+    pretend = bool(getattr(ctx.runner, 'pretend', False))
+    if not pretend:
+        ctx.ensure_user_config()
     # a local-path source is saved ABSOLUTE (resolved from the CWD now), so the decl doesn't silently
     # point elsewhere when configsys is later run from another directory. Remote sources pass through.
     source = plugins.abs_local_source(source)
@@ -965,6 +1197,16 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
         return False, f'could not sync {source} — nothing changed {plugins.source_hint(source)}', results
     if moved and backup.exists():                        # new source synced OK -> discard the backup
         shutil.rmtree(backup)
+
+    if pretend:                                      # a dry run declares nothing (no config writes)
+        decls = plugins.declared(ctx.paths.user_config_file)
+        primary = plugins.primary_name(decls)
+        where = (f'the primary plugin ({primary})' if primary and not local
+                 else 'your top config' + (' (this machine only)' if primary else ''))
+        swap = (f', replacing {", ".join(sorted({d["source"] for d in clashes}))}'
+                if retargeting else '')
+        return True, (f'[pretend] would declare {source}' + (f' @{ref}' if ref else '')
+                      + f' in {where}{swap}' + (' with a sha256 pin' if pin else '')), results
 
     # sync confirmed: NOW drop the old clashing decl(s) — keep_dir, since the synced dir is the new
     # content, not the old one to delete.
@@ -1016,6 +1258,9 @@ def plugin_remove(ctx, ident, *, keep_dir=False):
     cfg_file, cur, target = _locate_decl(ctx, ident)
     if target is None:
         return False, f'no declared plugin matches {ident!r}'
+    if getattr(ctx.runner, 'pretend', False):
+        return True, (f'[pretend] would remove {target["source"]}'
+                      + ('' if keep_dir else ' and delete its synced dir'))
     plugins.set_declared(cfg_file, [d for d in cur if d is not target])
     pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
     # defense in depth: dir_name already guarantees a contained segment, but never rmtree a path

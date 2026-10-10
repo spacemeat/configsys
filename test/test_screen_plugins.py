@@ -99,7 +99,7 @@ def test_handle_nav_moves_cursor_and_invalidates_diff(ctx):
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.cur == 1
     assert scr.model.diff_key is None                     # nav invalidates the loaded diff
-    assert intent.handled and not intent.dirty
+    assert not intent.dirty
 
 
 def test_handle_switch_pane_toggles_focus(ctx):

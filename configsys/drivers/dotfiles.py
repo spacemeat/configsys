@@ -7,8 +7,9 @@ A component maps to one or more *link specs*, each `{ src, dst }`:
     locations (e.g. `$XDG_CONFIG_HOME/nvim`, which defaults to ~/.config/nvim)
 
 Install symlinks dst -> src (edits flow back to the repo, per the sync design). An
-existing non-symlink dst is backed up to `<dst>.pre-configsys` first (no surprises);
-uninstall removes our symlink and restores the backup. A component may have many
+existing non-symlink dst is backed up to `<dst>.pre-configsys` first (no surprises) — never over
+an earlier backup: a second displacement lands at `.pre-configsys.1`, `.2`, …; uninstall removes
+our symlink and restores the (first) backup. A component may have many
 specs (neovim's whole config, plus stray files), each with its own OS-dependent dst.
 
 SHELL-INTEGRATION GLUE (PATH/aliases/env + the conf.d loaders) is a SEPARATE concern —
@@ -47,6 +48,16 @@ MANIFEST_NAME = 'manifest.hu'
 CONFIG_STATES = ('managed', 'unmanaged', 'no config')
 
 
+def backup_cmd(t):
+    '''Shell fragment that moves the (already shell-quoted) path `t` aside to a FREE backup name:
+    `<t>.pre-configsys`, else `.pre-configsys.1`, `.2`, … — an earlier backup (the user's original
+    file, from a first `--force`) is never overwritten. `mv -n` as a belt-and-braces no-clobber.'''
+    return (f'_cfs_b={t}{BACKUP_SUFFIX}; _cfs_n=1; '
+            f'while [ -e "$_cfs_b" ] || [ -L "$_cfs_b" ]; do '
+            f'_cfs_b={t}{BACKUP_SUFFIX}.$_cfs_n; _cfs_n=$((_cfs_n+1)); done; '
+            f'mv -n {t} "$_cfs_b"')
+
+
 def config_display_state(raw, capturable):
     '''Map a raw spec_states value (+ whether it has on-system content to capture) to one of the
     three user-facing CONFIG_STATES.'''
@@ -67,6 +78,7 @@ class DotFiles(Driver):
     name = 'dotfiles'
     privileged = False
     default_scope = 'user'
+    targets_version = False       # config has no version: set_version just re-links (actions.targets_version)
 
     # -- specs & paths ----------------------------------------------------
 
@@ -561,8 +573,13 @@ class DotFiles(Driver):
         force = self._force()
         # #5: stamp the config `.cfs` marker + manifest so this location is "managed" even before any
         # content is captured/linked. Runs even if we refuse below — refusing is itself an act of
-        # management (we won't clobber what we now track).
-        self._ensure_marker(rc)
+        # management (we won't clobber what we now track). --pretend writes nothing: say so instead.
+        pretend = bool(getattr(self.runner, 'pretend', False))
+        if pretend:
+            if self._config_specs(rc):
+                self._echo(f'[pretend] would stamp the config marker {self._cfs_dir(rc)}/{MANIFEST_NAME}')
+        else:
+            self._ensure_marker(rc)
         pairs, blocked = [], []
         for _name, src, dst, absorb in specs:
             srcpath, tier, _root = self._resolve(src, rc)
@@ -600,7 +617,10 @@ class DotFiles(Driver):
         # store path.
         for _srcpath, tier, src, _link_src, _tgt, _ab in pairs:
             if tier == 'template':
-                self._materialize(_srcpath, src)
+                if pretend:
+                    self._echo(f'[pretend] would copy {_srcpath} -> {_link_src}')
+                else:
+                    self._materialize(_srcpath, src)
         lines = ['set -e']
         for _srcpath, _tier, src, link_src, tgt, absorb in pairs:
             # If the deploy target already RESOLVES to the store copy, the store file IS the deployed
@@ -623,14 +643,18 @@ class DotFiles(Driver):
                 a, ap = shlex.quote(str(absorb)), shlex.quote(str(absorb.parent))
                 lines.append(
                     f'  if [ -e {t} ] && [ ! -L {t} ]; then mkdir -p {ap}; '
-                    f'if [ -e {a} ]; then mv {t} {t}{BACKUP_SUFFIX}; '
+                    f'if [ -e {a} ]; then {backup_cmd(t)}; '
                     f'else mv {t} {a} && chmod +x {a}; fi; fi')
             else:
-                lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then mv {t} {t}{BACKUP_SUFFIX}; fi')
+                lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then {backup_cmd(t)}; fi')
             lines.append(f'  ln -sfn {s} {t}')
             lines.append(f'else echo "dotfiles: {rc.comp} not populated ({src} absent) — '
                          f'capture to manage {tgt}" >&2; fi')
         return self.runner.run('\n'.join(lines), capture=False)
+
+    def _echo(self, msg):
+        echo = getattr(self.runner, 'echo', None)
+        (echo or print)(msg)
 
     def upgrade(self, rc):
         return self.install(rc)  # idempotent re-link

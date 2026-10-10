@@ -15,6 +15,18 @@ import shlex
 from ..driver import Driver
 
 
+def installed_name(rc, driver=None):
+    '''A native binding's `installed-name:` for one package manager, or None. Like `name:` it may be
+    a driver-keyed map (`installed-name: { apt: libreoffice-core }`, optional `default:`) — an
+    apt-ism (a Debian meta over split packages) must not make pacman/dnf/brew probe a package that
+    doesn't exist there; a manager the map doesn't name (and no `default:`) probes the ordinary
+    name. A scalar applies to every manager (back-compat). `driver` defaults to the unit's own.'''
+    inm = rc.fields.get('installed-name')
+    if isinstance(inm, dict):
+        inm = inm.get(driver or rc.driver) or inm.get('default')
+    return str(inm) if inm else None
+
+
 class NativePkgManager(Driver):
     privileged = True
     default_scope = 'system'          # OS packages are system-wide (a fixed scope)
@@ -44,12 +56,13 @@ class NativePkgManager(Driver):
 
     @staticmethod
     def _probe_name(rc):
-        '''The ONE package to read install-state / version from: the binding's `installed-name:` when
-        set (a metapackage a system commonly has without — Debian's LibreOffice), else the first of a
-        `packages:` set (the unit's own name — `python-build-deps` — is not a package), else `name`.'''
+        '''The ONE package to read install-state / version from: the binding's `installed-name:` for
+        THIS manager when set (a metapackage a system commonly has without — Debian's LibreOffice),
+        else the first of a `packages:` set (the unit's own name — `python-build-deps` — is not a
+        package), else `name`. See `installed_name` for the driver-keyed map form.'''
         pkgs = rc.fields.get('packages')
         first = (pkgs[0] if isinstance(pkgs, list) and pkgs else pkgs) if pkgs else None
-        return rc.fields.get('installed-name') or (str(first) if first else rc.name)
+        return installed_name(rc) or (str(first) if first else rc.name)
 
     def index_key(self, rc):
         return self._probe_name(rc)

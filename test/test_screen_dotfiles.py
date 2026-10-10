@@ -144,7 +144,7 @@ def test_handle_nav_moves_cursor_and_scrolls(ctx):
     right = next(k for k in range(32, 127) if km.action_for('dotfiles', k) == 'right')
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.cur == 1
-    assert intent.handled and not intent.dirty and intent.note is None
+    assert not intent.dirty and intent.note is None
     scr.handle(right, ctx, None, None)
     assert scr.model.hscroll == 4
     assert scr.model.dirty == set()                       # pure nav touches no unit

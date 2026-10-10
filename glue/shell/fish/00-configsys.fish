@@ -1,12 +1,22 @@
 # Make `configsys` callable from scripts/functions (so other conf.d snippets can run it). Defers to a real `configsys` on PATH (e.g. a pipx
-# install) and only otherwise falls back to the clone's launcher. Override the launcher with
-# CONFIGSYS_LAUNCHER; the default assumes the clone lives at <src>/configsys (per CONFIGSYS_SRC_DIR).
+# install) and only otherwise falls back to the clone's launcher, found in this order:
+# $CONFIGSYS_LAUNCHER; the launcher path the glue driver records on every shell hookup
+# (`<state>/launcher`); else <src>/configsys/configsys.sh under $HOME (per CONFIGSYS_SRC_DIR).
 if not command -v configsys >/dev/null 2>&1
     function configsys
-        set -l srcdir $CONFIGSYS_SRC_DIR
-        test -z "$srcdir"; and set srcdir src
         set -l launcher $CONFIGSYS_LAUNCHER
-        test -z "$launcher"; and set launcher "$HOME/$srcdir/configsys/configsys.sh"
+        if test -z "$launcher"
+            set -l state $CONFIGSYS_STATE_DIR
+            if test -z "$state"
+                set state (set -q XDG_CONFIG_HOME; and echo $XDG_CONFIG_HOME; or echo $HOME/.config)/configsys
+            end
+            test -r $state/launcher; and read -l rec < $state/launcher; and set launcher $rec
+        end
+        if test -z "$launcher"
+            set -l srcdir $CONFIGSYS_SRC_DIR
+            test -z "$srcdir"; and set srcdir src
+            set launcher "$HOME/$srcdir/configsys/configsys.sh"
+        end
         if test -x "$launcher"
             $launcher $argv
         else
@@ -16,7 +26,10 @@ if not command -v configsys >/dev/null 2>&1
     end
 end
 
-alias cf="~/src/configsys/configsys.sh"
+# cfs: interactive shorthand for configsys (the same command in every configsys shell).
+function cfs --wraps configsys --description 'shorthand for configsys'
+    configsys $argv
+end
 
 # cs_loc <component>: the managed install location of a component ("" if none/native) — what the
 # tarball/appImage/source snippets use to find their off-PATH binaries. A `configsys location <x>` per

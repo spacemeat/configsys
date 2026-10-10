@@ -1,10 +1,14 @@
 # Make `configsys` callable from scripts (so other snippets can run it). Aliases do NOT expand in non-interactive
 # shells, so this is a function. It defers to a real `configsys` on PATH (e.g. a pipx install)
-# and only otherwise falls back to the clone's launcher. Override the launcher with
-# CONFIGSYS_LAUNCHER; the default assumes the clone lives at <src>/configsys (per CONFIGSYS_SRC_DIR).
+# and only otherwise falls back to the clone's launcher, found in this order: $CONFIGSYS_LAUNCHER;
+# the launcher path the glue driver records on every shell hookup (`<state>/launcher` — wherever the
+# clone actually lives); else <src>/configsys/configsys.sh under $HOME (per CONFIGSYS_SRC_DIR).
 if ! command -v configsys >/dev/null 2>&1; then
     configsys() {
-        local launcher="${CONFIGSYS_LAUNCHER:-$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh}"
+        local launcher="${CONFIGSYS_LAUNCHER:-}"
+        local rec="${CONFIGSYS_STATE_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/configsys}/launcher"
+        [ -z "$launcher" ] && [ -r "$rec" ] && launcher=$(<"$rec")
+        [ -z "$launcher" ] && launcher="$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh"
         if [ -x "$launcher" ]; then
             "$launcher" "$@"
         else
@@ -15,7 +19,8 @@ if ! command -v configsys >/dev/null 2>&1; then
     }
 fi
 
-alias cf="~/src/configsys/configsys.sh"
+# cfs: interactive shorthand for configsys (the same command in every configsys shell).
+alias cfs=configsys
 
 # cs_loc <component>: the managed install location of a component ("" if none/native) — what the
 # tarball/appImage/source snippets use to find their off-PATH binaries. A `configsys location <x>` per

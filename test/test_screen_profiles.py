@@ -54,7 +54,7 @@ def test_handle_down_left_focus_bumps_lcur(ctx):
     down = next(k for k in range(32, 127) if km.action_for('profiles', k) == 'down')
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.lcur == 1
-    assert intent.handled and not intent.dirty and intent.note is None
+    assert not intent.dirty and intent.note is None
     assert intent.pending_notes is None and intent.open_where is None
 
 

@@ -37,6 +37,15 @@ class Binding:
 _COMPONENT_KEYS = frozenset({'provides', 'requires', 'suggests', 'parts', 'install', 'standing',
                              'description', 'attrs'})
 
+# The retired preference trio, replaced by the ONE `standing:` knob (routing-model §8). At component
+# level they are unknown-key load errors (with this hint); on a binding / a `drivers:` block they would
+# be inert driver fields, so routecheck.validate warns about them (mirrors layers._RETIRED_TOP_KEYS).
+RETIRED_STANDING_KEYS = {
+    'prefer':         'retired — use `standing: <integer>` (a preference rank, higher wins)',
+    'opt-in':         'retired — use `standing: never-auto`',
+    'candidate-only': 'retired — use `standing: never-auto`',
+}
+
 # Attrs auto-derived from a component's install methods — companion/asset kinds tag themselves, so
 # the -dotfiles/-service companions and font components need no hand-authored `attrs:` (see
 # docs/component-attrs.md). Union'd with authored attrs.
@@ -60,6 +69,9 @@ def _check_component_keys(name, spec):
         hint = ''
         if 'dotfiles' in unknown:  # the removed inline-node construct
             hint = '; config is a required `<name>-dotfiles` component now, not a `dotfiles:` field'
+        retired = sorted(unknown & set(RETIRED_STANDING_KEYS))
+        if retired:                # the old preference trio -> the one `standing:` knob
+            hint += '; ' + '; '.join(f'`{k}:` is {RETIRED_STANDING_KEYS[k]}' for k in retired)
         raise ConfigError(
             f'component {name!r}: unknown key(s) {sorted(unknown)}; '
             f'valid keys are {sorted(_COMPONENT_KEYS)}{hint}')
@@ -125,11 +137,23 @@ class Component:
         # requirement. For best-effort/caveated providers (e.g. gcompat, a glibc shim) or the
         # non-default of a versioned pair. See resolve.py `_satisfy`.
         from .resolve import NEVER_AUTO, _standing
-        self.opt_in = _standing(spec) == NEVER_AUTO
+        _st = _standing(spec)
+        self.opt_in = _st == NEVER_AUTO
+        # an INTEGER component `standing:` RANKS this component among the providers of a capability
+        # (higher wins) when several could auto-satisfy a `requires:` — resolve._pick_provider. 0 =
+        # unranked (the default); a strict top rank resolves what would otherwise be an ambiguity.
+        self.standing_rank = _st if isinstance(_st, int) else 0
         # optional one-line human description (names can be esoteric); shown in the TUI. Empty if
         # unset — populated incrementally in routes.hu/plugins.
         self.description = str(spec.get('description') or '')
         self.bindings = [Binding(b) for b in (spec.get('install') or [])]
+        # component-level `parts:` with no `install:` of its own is shorthand for the aggregator
+        # binding `{ via: parts  parts: [...] }` (a bundle = the union of its parts, no unit of its
+        # own). With an `install:` too it can't mean that — it stays inert and routecheck warns
+        # (`parts_ignored`); per-OS bundles put `parts:` on a `when:`-gated `via: parts` binding.
+        self.parts_ignored = bool(self.parts) and bool(self.bindings)
+        if self.parts and not self.bindings:
+            self.bindings = [Binding({'via': 'parts', 'parts': list(self.parts)})]
         # Component attributes (attrs:) — cross-cutting tags for filtering, ORTHOGONAL to profiles
         # (interface CLI/TUI/GUI, role lib/SDK/app, license FOSS/GNU/proprietary [free-form multi],
         # data tele, ...). Case preserved as authored; the eventual filter matches case-insensitively.
@@ -163,6 +187,10 @@ class OsCascade:
         self.facet_specs = facet_specs or {}   # declared `facets:` {name: {kind, detect, …}}
         self.facets_cat = {}                   # detected {ns: frozenset(tags)}  (set by detect_facets)
         self.facets_ver = {}                   # detected {name: version string}
+        self.driver_specs = {}                 # raw merged `drivers:` blocks (set by load)
+        self.driver_sources = {}               # {driver: file whose block wins} (provenance)
+        self.os_sources = {}                   # {os block: file whose block wins} (provenance)
+        self.candidate_only = frozenset()      # vias whose driver block is `standing: never-auto`
 
     def provides(self, block):
         '''Capabilities baseline in this environment (union over the lineage's blocks).'''
@@ -238,7 +266,10 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     def _facet_ok(lyr):
         if lyr.role == 'repo':
             return True
-        if lyr.role in ('plugin', 'primary'):
+        # a plugin/primary file — or a file some layer INCLUDES (it carries its includer's trust:
+        # command_trust attributes a file under a synced plugin to that plugin, and treats the
+        # user's own / repo includes as the user) — merges its probes only when trusted.
+        if lyr.role in ('plugin', 'primary', 'include'):
             return command_trust is None or command_trust(lyr.path)
         return False
     facets = {}
@@ -246,13 +277,42 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         _fd = _lyr.data.get('facets')
         if not (isinstance(_fd, dict) and _fd):
             continue
-        if _facet_ok(_lyr):
-            facets.update(_fd)                       # later layer wins per facet name
-        elif warnings_out is not None:
-            warnings_out.append(f'{_lyr.path}: `facets:` from an untrusted plugin is ignored — run '
-                                f'`configsys plugin trust <name>` to enable its hardware/env probes')
-    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', ('repo', 'plugin', 'primary')),
-                        facets)
+        if _lyr.role == 'user':
+            # the TOP config's `facets:` is a VALUE map (`facets: { gpu: nvidia }` — a declared machine
+            # fact, read by Resolver via layers.read_setting), never a probe spec: skip it here
+            # silently. Only a spec-shaped (map) entry there is flagged — spec definitions belong in a
+            # plugin (or the repo), and a map can't be a value.
+            for _n, _v in _fd.items():
+                if isinstance(_v, dict) and warnings_out is not None:
+                    warnings_out.append(f'{_lyr.path}: facet {_n!r} — the top config\'s `facets:` holds '
+                                        f'VALUES (e.g. `{_n}: nvidia`), not probe specs; define the '
+                                        f'facet in a plugin — ignored')
+            continue
+        if not _facet_ok(_lyr):
+            if warnings_out is not None:
+                warnings_out.append(f'{_lyr.path}: `facets:` from an untrusted plugin is ignored — '
+                                    f'run `configsys plugin trust <name>` to enable its '
+                                    f'hardware/env probes')
+            continue
+        for _n, _spec in _fd.items():                # later layer wins per facet name
+            if not isinstance(_spec, dict):
+                # a non-map spec (e.g. a VALUE `gpu: nvidia` written in a plugin/primary) can't be
+                # probed — skip it with a clear warning rather than crash detect_facets later.
+                if warnings_out is not None:
+                    warnings_out.append(f'{_lyr.path}: facet {_n!r} is not a spec map '
+                                        f'({{ kind: categorical|version  detect: …  match: … }}) — '
+                                        f'skipped (a facet VALUE override belongs in your top '
+                                        f'config\'s `facets:`)')
+                continue
+            facets[_n] = _spec
+    # os / drivers are DEFINITIONS: every layer may contribute (the uniform layer rule) — a plugin's
+    # derivative-distro block, an include's, or a machine-local tweak in the TOP config (highest
+    # precedence, e.g. `drivers: { snap: { standing: never-auto } }` on this box only).
+    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', layers.ALL_ROLES), facets)
+    cascade.os_sources = layers.dict_section_sources(layer_list, 'os')
+    drvs = layers.merge_dict_section(layer_list, 'drivers', layers.ALL_ROLES)
+    cascade.driver_specs = drvs                      # raw `drivers:` blocks (routecheck lints them)
+    cascade.driver_sources = layers.dict_section_sources(layer_list, 'drivers')
     forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
     from . import routecheck
     components = {}
@@ -278,14 +338,15 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         comp.shadows = len(chain) > 1
         components[name] = comp
 
-    drvs = layers.merge_dict_section(layer_list, 'drivers', ('repo', 'plugin', 'primary'))
-    drivers = {name: cap_names((spec or {}).get('requires')) for name, spec in drvs.items()}
+    drivers = {name: cap_names(spec.get('requires') if isinstance(spec, dict) else None)
+               for name, spec in drvs.items()}
     # a driver block's `standing: never-auto` marks EVERY binding of
     # that via as valid+listed but never the auto-default (see resolve._select). Ships on snap; a
     # user's primary plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:`.
     from .resolve import NEVER_AUTO, _standing
     candidate_only = frozenset(name for name, spec in drvs.items()
-                               if _standing(spec or {}) == NEVER_AUTO)
+                               if isinstance(spec, dict) and _standing(spec) == NEVER_AUTO)
+    cascade.candidate_only = candidate_only          # so routecheck.validate mirrors resolve._select
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
     return cascade, components, drivers, candidate_only
 
@@ -310,6 +371,21 @@ def _apply_version_floors(components, floors):
 
 
 _FACET_CACHE = {}
+
+
+def _facet_value(raw, kind):
+    '''A config-declared facet value as the override string. A humon LIST is accepted for a
+    categorical facet (`gpu: [ nvidia amd ]` = both tags — joined, the same as `gpu: "nvidia amd"`);
+    for a version facet a list takes its first item. A map can't be a value -> None (unset).'''
+    if isinstance(raw, dict):
+        return None
+    if isinstance(raw, (list, tuple)):
+        items = [str(x).strip() for x in raw if x is not None and not isinstance(x, (dict, list))]
+        items = [x for x in items if x]
+        if not items:
+            return None
+        return ' '.join(items) if kind == 'categorical' else items[0]
+    return None if raw is None else str(raw)
 
 
 def detect_facets(specs, env=None, run=None, overrides=None):
@@ -345,10 +421,11 @@ def detect_facets(specs, env=None, run=None, overrides=None):
 
     cat, ver = {}, {}
     for name, spec in (specs or {}).items():
-        spec = spec or {}
+        if not isinstance(spec, dict):
+            continue                                  # malformed spec (load warns + drops these)
         override = env.get(f'CONFIGSYS_FACET_{name}')
         if override is None and name in overrides:
-            override = str(overrides[name])           # config-declared value (env still wins)
+            override = _facet_value(overrides[name], spec.get('kind'))   # config-declared (env wins)
         if spec.get('kind') == 'categorical':
             if override is not None:
                 tags = frozenset(t for t in re.split(r'[,\s]+', override) if t)
@@ -403,6 +480,8 @@ class Resolver:
         self.preference = preference or None   # driver-preference order; None = built-in default
         self.disabled = frozenset(disabled or ())   # vias disabled on this machine (`disabled-drivers:`)
         self._dep_index = None                       # lazy cap -> {dependent components} reverse index
+        self.dropped_soft_pins = {}                  # {pin key: reason} soft pins the last resilient resolve dropped
+        self.provider_rules = {}                     # {cap: deciding rule} from the last resilient resolve
 
     @property
     def cascade_names(self):
@@ -430,17 +509,28 @@ class Resolver:
     def resolve_resilient(self, names, extra_pins=None, soft_pins=None):
         '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
         that can't route here is reported, not fatal (for inspect/TUI over the active set).
-        `extra_pins` (auto-tighten) layer ON TOP of the config pins; `soft_pins` (the detection
-        tier) layer BELOW them — so precedence is soft/detected < user pin < extra/tighten. Applied
-        to THIS resolve only (the Resolver isn't mutated).'''
+        Precedence (routing-model §10): YOUR config pins > `extra_pins` (auto-tighten floor pins) >
+        `soft_pins` (the detection tier) > the default. A user pin always wins — when it keeps a
+        method that fails a floor auto-tighten would have fixed, flooradvise.advise says so (the `!`
+        page) instead of overriding you. Detected pins are SOFT: one that can't be honored here (it
+        fails a version constraint, or names a method/provider not valid here) is dropped for this
+        resolution — never an error; the dropped ones are recorded in `self.dropped_soft_pins`.
+        Applied to THIS resolve only (the Resolver's own pins aren't mutated).'''
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
-        pins = ({**(soft_pins or {}), **self.pins, **(extra_pins or {})}
+        soft_pins, extra_pins = dict(soft_pins or {}), dict(extra_pins or {})
+        pins = ({**soft_pins, **extra_pins, **self.pins}
                 if (extra_pins or soft_pins) else self.pins)
+        soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)
+        dropped, rules = {}, {}
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
-                                          self.candidate_only, self.disabled)
+                                          self.candidate_only, self.disabled,
+                                          soft=soft, dropped_out=dropped,
+                                          provider_rules_out=rules)
+        self.dropped_soft_pins = dropped
+        self.provider_rules = rules         # {cap: rule that picked its auto provider} (for `where`)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names):

@@ -179,16 +179,19 @@ profiles: {
     // `g` != `G`), a named key (enter kpenter tab esc space up down left right pgup pgdn home end
     // del ins backspace shift-tab f1…f12), or `ctrl-<x>`. Dispatch is by ACTION, and the on-screen
     // legends and `?` help read this same map, so a rebind updates the hints too (`configsys check`
-    // flags unknown actions and clashes). Override just what you want:
+    // flags unknown actions and clashes). A key you bind in a higher layer is TAKEN from whatever
+    // action a lower layer gave it in the same section (so your rebind wins; check names the action
+    // that lost it). Override just what you want:
     //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: t } }
     keys: {
         // The number-key screen switcher (the chip bar). One key each.
         screens: { components: "1"  profiles: "2"  plugins: "3"  glue: "4"  dotfiles: "5"  config: "6"  theme: "7" }
 
         // Actions shared by every screen. A page section below shadows these for the same key on
-        // that page, and may add extra keys for any of these actions just for itself. Exception:
-        // quit, quit-force, issues, help and the screen keys are read before any page sees the key,
-        // so a page can't take those keys, and those four actions bind only here.
+        // that page, and may add extra keys for any of these actions just for itself. A page's own
+        // section is read FIRST for every key: a key a page binds goes to that page even if it is a
+        // quit/quit-force/issues/help or screen-switch key here, and a page may bind those four
+        // actions itself (they then work on that page). None of the shipped page sections take them.
         global: {
             down: [ j  down ]
             up: [ k  up ]
@@ -294,6 +297,7 @@ profiles: {
             mark-all-seen: E        // mark every NEW component SEEN at once (confirms first)
             claim: C                // track every INSTALLED component (adopt an existing system; confirms)
             orphan-ignore: "."      // add / remove the cursor component in orphans-ignore
+            where: w                // explain: the cursor component (table focused) or the current profile's provenance
         }
 
         // Theme editor. Nav (down/up/left/right/top/bottom, switch-pane) from `global`; confirm/select

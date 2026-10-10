@@ -128,13 +128,13 @@ def build_ctx(home):
     profiles/config/theme samples read a genuine catalog. Primes the per-frame ctx fields the
     painters expect (reboot chip) and the module-global keymap the legends read.'''
     from configsys.tui import menu
-    from configsys.tui.keyspec import Keymap
+    from configsys.tui.keyspec import Keymap, config_keys
     args = build_parser().parse_args(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
     ctx = Context(args)
     ctx.ensure_user_config()
     ctx.runner._echo = None            # silence the pretend-runner echo the sample probes trigger
     ctx._reboot_pending = (False, '')
-    menu._KEYMAP = Keymap(ctx.config.keys())
+    menu._KEYMAP = Keymap(config_keys(ctx.config))   # the same rebind-wins merge menu.run uses
     return ctx
 
 

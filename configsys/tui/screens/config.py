@@ -210,6 +210,11 @@ class ConfigScreen(Screen):
         note = None
         dirty = False
         goto = None
+        wrote = []                              # a config write was attempted (for the --pretend note)
+
+        def _set(*a, **k):
+            wrote.append(True)
+            return actions.set_config_setting(*a, **k)
         if cact == 'down':
             cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
         elif cact == 'up':
@@ -239,7 +244,7 @@ class ConfigScreen(Screen):
             info = cs.settings[key]
             try:
                 if info['kind'] == 'bool':
-                    actions.set_config_setting(
+                    _set(
                         ctx, key, ['false' if info['value'] else 'true'])
                     note = f'{key} = {"false" if info["value"] else "true"}'
                     cs.reload()
@@ -250,7 +255,7 @@ class ConfigScreen(Screen):
                                         [('user', '(default)'), ('system', ''),
                                          ('unset', '(→ user)')], cur_idx)
                     if idx is not None:
-                        actions.set_config_setting(ctx, key, [['user'], ['system'], []][idx])
+                        _set(ctx, key, [['user'], ['system'], []][idx])
                         note = f'{key} set'
                         cs.reload()
                         dirty = True
@@ -278,7 +283,7 @@ class ConfigScreen(Screen):
                     if idx is not None:
                         val = names[idx]
                         # picking the built-in default clears the setting (tracks the default)
-                        actions.set_config_setting(ctx, key, [] if val == DEFAULT_SPLASH else [val])
+                        _set(ctx, key, [] if val == DEFAULT_SPLASH else [val])
                         note = f'{key} = {val}'
                         cs.reload()
                 elif key == 'effects':              # motion level: auto (unset) / full / reduced / none
@@ -290,7 +295,7 @@ class ConfigScreen(Screen):
                     idx = _popup_choose(stdscr, pal, key, opts, cur_idx)
                     if idx is not None:
                         val = names[idx]
-                        actions.set_config_setting(ctx, key, [] if val == 'auto' else [val])
+                        _set(ctx, key, [] if val == 'auto' else [val])
                         note = f'{key} = {val}'
                         cs.reload()
                 elif info['kind'] == 'scalar':      # any other scalar -> text input
@@ -298,7 +303,7 @@ class ConfigScreen(Screen):
                                      str(info['value'] or ''))
                     if new is not None:
                         v = new.strip()
-                        actions.set_config_setting(ctx, key, [v] if v else [])
+                        _set(ctx, key, [v] if v else [])
                         note = f'{key} {"set" if v else "cleared"}'
                         cs.reload()
                 elif key == 'driver-preference':    # ordered list -> reorder editor
@@ -308,7 +313,7 @@ class ConfigScreen(Screen):
                                       'driver-preference — space grab, j/k move', cur,
                                       label=lambda d: f'{_DRIVER_ABBR.get(d, d) + ":":<5}{d}')
                     if new is not None:
-                        actions.set_config_setting(ctx, key, new)
+                        _set(ctx, key, new)
                         note = f'{key} reordered'
                         cs.reload()
                         dirty = True
@@ -317,19 +322,22 @@ class ConfigScreen(Screen):
                                      str(info['value'] or ''))
                     if new is not None:
                         v = new.strip()
-                        actions.set_config_setting(ctx, key, [v] if v else [])
+                        _set(ctx, key, [v] if v else [])
                         note = f'{key} {"set" if v else "cleared"}'
                         cs.reload()
                         dirty = True
-                else:                               # other list settings: input box
+                else:                               # other list / map settings: input box
                     new = _input_box(stdscr, pal,
-                                     f'{key}  (space-separated; empty clears)',
+                                     f'{key}  (space-separated'
+                                     + (' component=path tokens' if info['kind'] == 'map' else '')
+                                     + '; empty clears)',
                                      ' '.join(info['value'] or []))
                     if new is not None:
-                        actions.set_config_setting(ctx, key, new.split())
+                        _set(ctx, key, new.split())
                         note = f'{key} set'
                         cs.reload()
                         dirty = True
             except Exception as e:  # noqa: BLE001 — surface, don't crash
                 note = f'edit failed: {e}'
-        return Intent(note=note, dirty=dirty, goto=goto)
+                wrote.clear()                   # a failure is reported as such, not as "not saved"
+        return Intent(note=menu._pretend_note(ctx, note, bool(wrote)), dirty=dirty, goto=goto)

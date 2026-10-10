@@ -36,6 +36,7 @@ def _truthy(v):
 
 class RpmOstree(Driver):
     name = 'rpm-ostree'
+    targets_version = False   # a layered package takes what the image/repos provide
     privileged = True
     default_scope = 'system'   # layered into the system image (always root)
 

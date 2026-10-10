@@ -12,7 +12,9 @@ This class IS the contract a code plugin subclasses. A plugin's code module impo
 plugin may also call `register_driver` directly for dynamic cases). The frozen,
 ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
 
-  Class attributes to set : name, privileged, default_scope, honors_scope
+  Class attributes to set : name, privileged, default_scope, honors_scope, targets_version
+                            (False = set_version can't reach a requested version; the op
+                            loop refuses set-version instead of calling it)
   Ops to implement        : get_version, get_latest, is_locked, install, uninstall,
                             upgrade, set_version, lock, unlock
   Overridable (optional)  : location(rc), scope(rc)
@@ -88,6 +90,13 @@ class Driver:
     # (pacman -Syu / apk upgrade): there a "lock" can't be honored and set-version can't reach an old
     # version, so lock/set-version are DECLINED and the UI doesn't offer them — no surprises.
     holds_version = True
+
+    # Whether set_version(rc, version) can install the REQUESTED version. False for a driver whose
+    # artifact is fixed by its route (a version-templated tarball/AppImage/font/.deb url, a
+    # package-fixed toolchain, the current AUR PKGBUILD) or that has no version at all (glue,
+    # service, group): there set_version could only reinstall the routed version, so the op loop
+    # REFUSES a set-version with a clear message instead of reporting a retarget that didn't happen.
+    targets_version = True
 
     def __init__(self, runner, paths=None):
         self.runner = runner

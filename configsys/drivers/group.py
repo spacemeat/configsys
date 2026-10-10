@@ -19,6 +19,7 @@ _USER = '"${SUDO_USER:-$USER}"'   # the invoking user even under sudo
 
 class Group(Driver):
     name = 'group'
+    targets_version = False   # a group membership has no version
     privileged = True
     default_scope = 'system'
 

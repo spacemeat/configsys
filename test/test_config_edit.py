@@ -101,6 +101,8 @@ def test_config_settings_view_has_desc_and_man(tmp_path):
     assert set(s) == {'scope', 'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed',
                       'refresh-before-execute', 'install-overlay', 'reboot-advice', 'splash', 'effects',
                       'orphans-ignore', 'machine',
+                      'detect-coexisting', 'installer-shell-writes', 'installer-shell-writes-allow',
+                      'locations',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}
     assert s['scope']['value'] == 'user' and s['scope']['desc'] and s['scope']['man']
     assert s['auto-tighten']['kind'] == 'bool'

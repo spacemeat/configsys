@@ -68,7 +68,9 @@
         // packages, but pacman is REMOVED from the image, so no `ID_LIKE=arch`). There is NO system
         // package manager: no `native:`, so `via: native` bindings aren't candidates here and
         // components fall through to Flatpak (preinstalled -> `provides: flatpak`) and userland
-        // methods (tarballs, cargo, pipx, …); distro-package-only components decline honestly. No
+        // methods (tarballs, `via: script` installers, cargo via rustup, go-install via the go tarball);
+        // NOT pipx/pip — pipx and python3-pip route only through native bindings here, so PyPI CLIs decline —
+        // and distro-package-only components decline honestly. No
         // libfuse2 either (fuse3 only), so AppImages decline. VERSION_ID is a build timestamp
         // (YYYYMMDDHHMM): scale-root so no parent's versioned atom misreads it. Alpha. `provides:` =
         // tools in the image per its mkosi package lists (git, unzip, xz, flatpak; curl via git's
@@ -91,8 +93,11 @@
         // no VERSION_ID). It uses apk-tools v3 but NOT Alpine's package names (`-devel` not `-dev`,
         // `python` not `python3`, …), so every `apk:` name in these routes would be wrong there: no
         // `native:` until Chimera-named `via: apk  when: "chimera"` bindings are verified (a name
-        // sweep in the chimeralinux/chimera image). Until then only portable methods route (musl
-        // tarballs, cargo, pipx, …). Under `linux`, not glibc_linux: glibc binaries decline.
+        // sweep in the chimeralinux/chimera image). Until then PRACTICALLY NOTHING routes: chimera
+        // `provides:` nothing beyond linux's python3, and the portable methods' prerequisites are
+        // native-only here — tarball needs curl, flatpak/pipx/cargo need their tool (rust's rustup
+        // script needs curl too) — so only dotfiles/glue and a few self-contained `via: script`
+        // installers resolve. Under `linux`, not glibc_linux: glibc binaries decline.
         chimera: { using: linux }
 
         // Void Linux (xbps). Rolling — no version scale. Ships in TWO flavors differing only by C
@@ -128,6 +133,7 @@
         luarocks:    { requires: luarocks }            // a rock needs the luarocks tool (-> lua)
         cabal:       { requires: cabal }               // a hackage exe needs cabal (-> ghc)
         sdkman:      { requires: sdkman }              // a JVM SDK (scala/groovy/sbt/…) needs the sdkman tool
+        brew:        { requires: homebrew }            // a formula needs Homebrew itself (pre-installed on uBlue atomic images -> detected, not reinstalled)
         font: { requires: [ fontconfig, unzip ] }
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
@@ -170,6 +176,34 @@
         openssl:    { attrs: [ CLI FOSS permissive ] description: "OpenSSL — the TLS/crypto toolkit CLI (the `openssl` command; its DEV library is the `libssl` component)." install: [ { via: native } ] }   // package `openssl` is the CLI everywhere (brew's `openssl` -> openssl@3)
         ghostscript: { attrs: [ CLI FOSS copyleft ] description: "Ghostscript (`gs`) — a PostScript and PDF interpreter/renderer." install: [ { via: native } ] }
         git:        { attrs: [ CLI FOSS copyleft ] suggests: git-dotfiles  description: "Distributed version control — the `git` you already know." install: [ { via: native } ] }
+        // Homebrew on Linux ("Linuxbrew") — the `brew` driver's tool (drivers.brew requires it), so
+        // any brew method pulls it into the closure. Installed by the OFFICIAL installer into
+        // /home/linuxbrew/.linuxbrew (it sudo-creates that prefix itself: `sudo -v` first warms the
+        // credentials its NONINTERACTIVE `sudo -n` needs). glibc only — Linuxbrew's bottles are
+        // glibc builds. uBlue atomic images (Bazzite/Bluefin/Aurora) ship brew pre-installed and
+        // usually NOT on a non-login PATH, so the version probe also tries the standard prefix (and
+        // a per-user ~/.linuxbrew) — a resident brew reads installed and is never reinstalled. On
+        // fedora_atomic the installer's curl/git are image tools (curl/git route THROUGH brew there,
+        // so requiring them would loop); elsewhere they are real requires. Not auto-installed
+        // unless a brew method is chosen (brew is only fedora_atomic's native; pin it elsewhere).
+        homebrew: { attrs: [ CLI FOSS permissive ] description: "Homebrew on Linux — the `brew` package manager (prefix /home/linuxbrew/.linuxbrew)."
+            install: [
+                { via: script  when: "fedora_atomic"
+                  install-cmd:   'sudo -v && NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+                  version-cmd:   'for b in "$(command -v brew)" /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do [ -x "$b" ] && { "$b" --version; break; }; done'
+                  version-re:    'Homebrew ([0-9][0-9.]*)'
+                  version:       { github: Homebrew/brew }
+                  upgrade-cmd:   'for b in "$(command -v brew)" /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do [ -x "$b" ] && { "$b" update; break; }; done'
+                  uninstall-cmd: 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"'
+                  location:      /home/linuxbrew/.linuxbrew }
+                { via: script  when: "glibc_linux and not fedora_atomic"  requires: [ curl, git ]
+                  install-cmd:   'sudo -v && NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+                  version-cmd:   'for b in "$(command -v brew)" /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do [ -x "$b" ] && { "$b" --version; break; }; done'
+                  version-re:    'Homebrew ([0-9][0-9.]*)'
+                  version:       { github: Homebrew/brew }
+                  upgrade-cmd:   'for b in "$(command -v brew)" /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do [ -x "$b" ] && { "$b" update; break; }; done'
+                  uninstall-cmd: 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"'
+                  location:      /home/linuxbrew/.linuxbrew } ] }
         git-lfs:    { attrs: [ CLI FOSS permissive ] requires: git  description: "Git Large File Storage (`git lfs`) — version large files via lightweight pointers." install: [ { via: native } ] }   // `git-lfs` on every family
         // Other version-control systems (git is above). Package name == component name except:
         // subversion's CLI is `svn`; bazaar is now Breezy (`brz`); perforce ships `helix-cli` (`p4`).
@@ -202,9 +236,11 @@
             install: [ { via: native  when: "debian"  name: brz  repo-component: universe }   // `bzr` is a transitional dummy -> brz
                        { via: native  when: "fedora or arch or alpine or fedora_atomic"  name: breezy }
                        { via: pipx  name: breezy } ] }   // no breezy in EL/EPEL or openSUSE -> pipx there; pinnable anywhere else too
-        // FUSE2 runtime — the appImage driver requires it; native, name differs by manager.
+        // FUSE2 runtime — the appImage driver requires it; native, name differs by manager. Not on
+        // fedora_atomic: brew has no libfuse2 (and AppImages are NOT managed on atomic — see the
+        // atomic advisory), so appImage methods decline there instead of `brew install libfuse2`.
         libfuse2: { attrs: [ lib FOSS copyleft ] description: "libfuse2 — the FUSE runtime many AppImages need."
-            install: [ { via: native  repo-component: universe  name: { xbps: fuse dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
+            install: [ { via: native  when: "not fedora_atomic"  repo-component: universe  name: { xbps: fuse dnf: fuse-libs  pacman: fuse2  apk: fuse  default: libfuse2 } } ]
         }
         doas:       { attrs: [ CLI FOSS permissive ] description: "doas — a minimal, simpler sudo alternative." install: [ { via: native  when: "void or void_musl"  name: opendoas }  { via: apk  when: "alpine" } ] }   // Alpine's sudo (folded from the alpine plugin); Void packages OpenBSD's as opendoas
         xtools:     { attrs: [ CLI FOSS permissive ] description: "xtools — Void's opinionated XBPS helper scripts (`xi`, `xcheckrestart`, `xlocate`, …)." install: [ { via: native  when: "void or void_musl" } ] }   // Void-only
@@ -233,7 +269,7 @@
         // `pyenv` to COMPILE any version user-scope (newest/RCs, per-project via `.python-version`) —
         // pick the method with a binding-pin. NEVER repoints the system `python3` default (apt and
         // distro tools depend on it): select a version by calling `python3.X` or a venv built from it.
-        // 3.11 / 3.12 / 3.14 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern
+        // 3.10 / 3.11 / 3.12 / 3.14 are `never-auto` (constraint- or explicitly-selected); 3.13 is the modern
         // default (3.14 is stable but opt-in until the package ecosystem fully catches up to it).
         python3.10: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Python 3.10 interpreter (+ minimal, venv, dev headers) — configsys's minimum line; the system python on many LTS distros."
             standing: never-auto  provides: { python3: "3.10" }
@@ -500,7 +536,7 @@
                        { via: native-pkg-file  when: "(ubuntu >= 24.04) or (debian >= 12) or (elementary >= 8) or (linuxmint >= 22) or (lmde >= 6) or (mx >= 23) or (zorin >= 18) or pikaos or kali"  name: taskmanagerog  cpu-names: { x86_64: amd64  aarch64: arm64 }
                          version: { url: "https://tmog.org/"  regex: "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage" }
                          url: "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.deb" }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: TMOG  scope: user
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: TMOG  scope: user
                          version: { url: "https://tmog.org/"  regex: "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage" }
                          url: "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage"  path: ~/apps/tmog.appimage } ] }
         htop: { attrs: [ TUI app FOSS copyleft ] description: "Interactive process viewer — a colorful, friendlier top."
@@ -883,7 +919,7 @@
         ghostty: { attrs: [ GUI FOSS permissive ] suggests: [ ghostty-dotfiles  ghostty-glue ]  description: "Fast, native GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "arch or void or void_musl" }
-                { via: appImage  name: Ghostty  scope: user
+                { via: appImage  when: "not fedora_atomic"  name: Ghostty  scope: user
                   version: { github: pkgforge-dev/ghostty-appimage  strip-v: true  asset: "Ghostty-*-$ARCH.AppImage" }
                   path: ~/apps/ghostty.appimage }
             ]
@@ -1040,7 +1076,7 @@
         rust: { attrs: [ CLI toolchain FOSS permissive ] suggests: rust-glue  description: "The Rust toolchain (cargo, rustc) — safe systems programming."
             provides: cargo
             install: [
-                { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo }  installed-name: cargo }   // Ubuntu splits the toolchain: `rust-all` is a meta over cargo/rustc — read state from `cargo`
+                { via: native  repo-component: universe  name: { apt: rust-all  pacman: rust  brew: rust  default: cargo }  installed-name: { apt: cargo } }   // Ubuntu splits the toolchain: `rust-all` is a meta over cargo/rustc — read state from `cargo` (apt only: Arch's `rust` merely PROVIDES cargo, which `pacman -Q` doesn't resolve)
                 // rustup: the official installer -> the LATEST STABLE toolchain, userland in
                 // ~/.cargo (no sudo, on the standard ~/.cargo/bin PATH). For source builds that
                 // need a newer cargo than the distro ships (the toolchain-floor case). Least-
@@ -1158,7 +1194,7 @@
             // apt installs the `ruby-full` meta (interpreter + dev + ri + tk), but the base `ruby`
             // package (pulled in as a dependency of other tools) provides a working interpreter WITHOUT
             // ruby-full — so read install-state from `ruby`, else a resident base Ruby reads uninstalled.
-            install: [ { via: native  name: { apt: ruby-full  default: ruby }  installed-name: ruby } ]
+            install: [ { via: native  name: { apt: ruby-full  default: ruby }  installed-name: { apt: ruby } } ]
         }
         // Sample gem (userland by default; see the gem driver).
         bundler: { attrs: [ CLI FOSS permissive ] description: "Bundler — manage Ruby gem dependencies (`bundle`)." install: [ { via: gem  name: bundler } ] }
@@ -1676,7 +1712,7 @@
             requires: wireshark
             install: [ { via: group  name: wireshark } ]
         }
-        tshark:     { attrs: [ CLI FOSS copyleft ] description: "TShark — Wireshark's command-line capture/analysis." install: [ { via: native  name: { xbps: wireshark dnf: wireshark-cli  pacman: wireshark-cli  zypper: wireshark } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt
+        tshark:     { attrs: [ CLI FOSS copyleft ] description: "TShark — Wireshark's command-line capture/analysis." install: [ { via: native  name: { xbps: wireshark dnf: wireshark-cli  pacman: wireshark-cli  zypper: wireshark  brew: wireshark } } ] }   // CLI capture; ships as wireshark-cli on dnf/pacman, tshark on apt; brew's `wireshark` formula is the CLI-only build (tshark/dumpcap — the GUI is a mac-only cask)
         tcpdump:    { attrs: [ CLI FOSS permissive ] description: "tcpdump — command-line packet capture and analysis." install: [ { via: native } ] }
         nmap:       { attrs: [ CLI FOSS copyleft ] description: "Nmap — a network scanner and security probe." install: [ { via: native  when: "void or void_musl"  requires: void-repo-nonfree }  { via: native } ] }
         openssh-server: { attrs: [ daemon FOSS permissive ] description: "OpenSSH server (`sshd`) — the remote-login daemon." install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openssh pacman: openssh  zypper: openssh  default: openssh-server } } ] }   // pacman/zypper ship server+client in `openssh`
@@ -1697,7 +1733,7 @@
         socat:      { attrs: [ CLI FOSS copyleft ] description: "Multipurpose socket relay — bidirectional data between two endpoints." install: [ { via: native } ] }
         ethtool:    { attrs: [ CLI FOSS copyleft ] description: "ethtool — query and control NIC driver/hardware settings." install: [ { via: native } ] }
         whois:      { attrs: [ CLI FOSS copyleft ] description: "Domain/IP registration lookup (`whois`)." install: [ { via: native } ] }
-        netcat:     { attrs: [ CLI FOSS ] description: "TCP/UDP swiss-army knife (`nc`) — connect, listen, pipe raw sockets." install: [ { via: native  name: { xbps: openbsd-netcat dnf: nmap-ncat  pacman: openbsd-netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat
+        netcat:     { attrs: [ CLI FOSS ] description: "TCP/UDP swiss-army knife (`nc`) — connect, listen, pipe raw sockets." install: [ { via: native  name: { xbps: openbsd-netcat dnf: nmap-ncat  pacman: openbsd-netcat  brew: netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat; brew has only GNU `netcat` (same `nc` role, GNU flags)
         // --- easy end-to-end file/terminal sharing ---
         croc:       { attrs: [ CLI FOSS permissive ] description: "croc — securely send files/folders between any two machines with a shared code phrase." install: [ { via: native  when: "arch or alpine or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: tarball  cpu-names: { x86_64: 64bit  aarch64: ARM64 }  installDir: "$CONFIGSYS_APP_DIR/croc"  version: { github: schollz/croc  strip-v: true  asset: "croc_v*_Linux-$ARCH.tar.gz" } } ] }   // static Go binary -> tarball runs everywhere (incl. musl); brew on atomic; not in Debian/Fedora/EL/openSUSE repos
         wormhole:   { attrs: [ CLI FOSS permissive ] description: "magic-wormhole — get things from one computer to another safely (`wormhole send`/`receive`)." install: [ { via: native  when: "debian or arch or fedora_atomic or void or void_musl"  name: magic-wormhole  repo-component: universe }  { via: pipx  name: magic-wormhole } ] }   // the binary is `wormhole`; in-repo on Debian/Ubuntu + Arch + brew (atomic) (removed from Fedora 37+, not in openSUSE's default repos, absent on Alpine) -> pipx is the universal fallback
@@ -1833,10 +1869,12 @@
                        // install the `libreoffice` meta but DETECT via libreoffice-core: Debian/Ubuntu/
                        // Pop commonly ship the suite as the parts (-core/-calc/…) WITHOUT the meta, so
                        // probing the meta falsely reports "missing". libreoffice-core is present
-                       // whenever any LibreOffice is (only apt reads installed-name; pacman installs
-                       // libreoffice-fresh, which is itself what's present).
+                       // whenever any LibreOffice is. Fedora splits the suite the same way (Workstation
+                       // ships -core/-writer/… without the meta). Keyed per manager: pacman installs
+                       // libreoffice-fresh, which is itself what's present; zypper's `libreoffice` IS
+                       // the core; apk/xbps (no -core package) probe the meta they install.
                        { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe
-                         name: { pacman: libreoffice-fresh }  installed-name: libreoffice-core } ]
+                         name: { pacman: libreoffice-fresh }  installed-name: { apt: libreoffice-core  dnf: libreoffice-core } } ]
         }
 
         // kicad: native where it's packaged, Flathub (org.kicad.KiCad) where it isn't. It's in
@@ -2301,19 +2339,19 @@
         lap:        { attrs: [ GUI app FOSS GNU copyleft tele ] description: "Lap — an offline-first photo manager for large local libraries (`Lap`; local AI search, faces, dedupe)."
             install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"
                          version: { github: julyx10/lap  strip-v: true }  asset: { x86_64: "Lap_*_amd64.deb"  aarch64: "Lap_*_arm64.deb" } }
-                       { via: appImage  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
+                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
                          version: { github: julyx10/lap  strip-v: true  asset: "Lap_*_$ARCH.AppImage" }  path: ~/apps/lap.appimage } ] }   // Tauri app, not in any distro; the .deb needs webkit2gtk-4.1 (Ubuntu 22.04+/Debian 12+). Aptabase usage stats are ON by default (tele)
         allusion:   { attrs: [ GUI app FOSS GNU copyleft electron ] description: "Allusion — a visual reference/image library for artists (the maintained RafaUC fork)."
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: allusion-appimage-rafauc }
-                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: Allusion  scope: user
+                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: Allusion  scope: user
                          version: { github: RafaUC/Allusion  strip-v: true  asset: "Allusion-*-ruc.AppImage" }  path: ~/apps/allusion.appimage } ] }   // upstream allusion-app is dormant since 2023; the fork keeps the same appId/config. x86_64 only
         mediachips: { attrs: [ GUI app FOSS GNU copyleft electron freemium ] description: 'MediaChips — a local media library (video/images/audio) with custom metadata "chips" and tags.'
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: mediachips-bin }
-                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: MediaChips  scope: user
+                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: MediaChips  scope: user
                          version: { github: fupdec/MediaChips  strip-v: true  asset: "MediaChips.v*.Linux.AppImage" }  path: ~/apps/mediachips.appimage } ] }   // x86_64-only AppImage; an optional paid activation key exists (freemium)
         video-hub-app: { attrs: [ GUI app FOSS permissive electron paid ] description: "Video Hub App — browse/search/preview local video like YouTube (Linux build is the 2023 DEMO, 50 videos per hub)."
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: video-hub-app-bin }
-                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: VideoHubApp  scope: user  version: { static: "3.2.0" }
+                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: VideoHubApp  scope: user  version: { static: "3.2.0" }
                          url: "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage"  path: ~/apps/video-hub-app.appimage } ] }   // v3.3.0 dropped the Linux asset; the full version is a paid ($10) download — pinned to the last Linux demo
 
         // --- video editors (NLEs): native in the big repos + Flathub (universal / atomic / the gaps) ---
@@ -2349,7 +2387,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/photocraft  strip-v: true }
                          asset: { x86_64: "photocraft-*-linux-x86_64.rpm"  aarch64: "photocraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: photocraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PhotoCraft  scope: user  desktop-id: ai.storyteller.photocraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PhotoCraft  scope: user  desktop-id: ai.storyteller.photocraft
                          version: { github: storytold/photocraft  strip-v: true  asset: "photocraft-*-linux-$ARCH.AppImage" }  path: ~/apps/photocraft.appimage } ] }
         vectorcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "VectorCraft — ArtCraft's open-source Illustrator alternative: a vector illustration editor (`vectorcraft`, `vectorcraft-cli`)."
@@ -2358,7 +2396,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/vectorcraft  strip-v: true }
                          asset: { x86_64: "vectorcraft-*-linux-x86_64.rpm"  aarch64: "vectorcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: vectorcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: VectorCraft  scope: user  desktop-id: ai.storyteller.vectorcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: VectorCraft  scope: user  desktop-id: ai.storyteller.vectorcraft
                          version: { github: storytold/vectorcraft  strip-v: true  asset: "vectorcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/vectorcraft.appimage } ] }
         lightcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "LightCraft — ArtCraft's open-source Lightroom alternative: a local-first RAW photo catalog and non-destructive developer (`lightcraft`, `lightcraft-cli`)."
@@ -2367,7 +2405,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/lightcraft  strip-v: true }
                          asset: { x86_64: "lightcraft-*-linux-x86_64.rpm"  aarch64: "lightcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: lightcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: LightCraft  scope: user  desktop-id: ai.storyteller.lightcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: LightCraft  scope: user  desktop-id: ai.storyteller.lightcraft
                          version: { github: storytold/lightcraft  strip-v: true  asset: "lightcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/lightcraft.appimage } ] }
         designcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "DesignCraft — ArtCraft's open-source InDesign alternative: a page-layout / desktop-publishing app (`designcraft`, `designcraft-cli`)."
@@ -2376,7 +2414,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/designcraft  strip-v: true }
                          asset: { x86_64: "designcraft-*-linux-x86_64.rpm"  aarch64: "designcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: designcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DesignCraft  scope: user  desktop-id: ai.storyteller.designcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DesignCraft  scope: user  desktop-id: ai.storyteller.designcraft
                          version: { github: storytold/designcraft  strip-v: true  asset: "designcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/designcraft.appimage } ] }
         filmcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "FilmCraft — ArtCraft's open-source Premiere Pro alternative: a non-linear video editor with its own H.264/HEVC/ProRes/AAC codecs (`filmcraft`, `filmcraft-cli`)."
@@ -2385,7 +2423,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/filmcraft  strip-v: true }
                          asset: { x86_64: "filmcraft-*-linux-x86_64.rpm"  aarch64: "filmcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: filmcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: FilmCraft  scope: user  desktop-id: ai.storyteller.filmcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: FilmCraft  scope: user  desktop-id: ai.storyteller.filmcraft
                          version: { github: storytold/filmcraft  strip-v: true  asset: "filmcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/filmcraft.appimage } ] }
         effectcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "EffectCraft — ArtCraft's open-source After Effects alternative: a motion-graphics and compositing app (`effectcraft`, `effectcraft-cli`)."
@@ -2394,7 +2432,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/effectcraft  strip-v: true }
                          asset: { x86_64: "effectcraft-*-linux-x86_64.rpm"  aarch64: "effectcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: effectcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: EffectCraft  scope: user  desktop-id: ai.storyteller.effectcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: EffectCraft  scope: user  desktop-id: ai.storyteller.effectcraft
                          version: { github: storytold/effectcraft  strip-v: true  asset: "effectcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/effectcraft.appimage } ] }
         pdfcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "PdfCraft — ArtCraft's open-source Acrobat alternative: a PDF viewer/editor — annotate, edit, forms, sign, OCR (`pdfcraft`, `pdfcraft-cli`)."
@@ -2403,7 +2441,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/pdfcraft  strip-v: true }
                          asset: { x86_64: "pdfcraft-*-linux-x86_64.rpm"  aarch64: "pdfcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: pdfcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PdfCraft  scope: user  desktop-id: ai.storyteller.pdfcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PdfCraft  scope: user  desktop-id: ai.storyteller.pdfcraft
                          version: { github: storytold/pdfcraft  strip-v: true  asset: "pdfcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/pdfcraft.appimage } ] }
         wordcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "WordCraft — ArtCraft's open-source Microsoft Word alternative: a word processor with DOCX round-tripping and offline spelling/grammar (`wordcraft`, `wordcraft-cli`)."
@@ -2412,7 +2450,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/wordcraft  strip-v: true }
                          asset: { x86_64: "wordcraft-*-linux-x86_64.rpm"  aarch64: "wordcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: wordcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: WordCraft  scope: user  desktop-id: ai.storyteller.wordcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: WordCraft  scope: user  desktop-id: ai.storyteller.wordcraft
                          version: { github: storytold/wordcraft  strip-v: true  asset: "wordcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/wordcraft.appimage } ] }
         gridcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "GridCraft — ArtCraft's open-source Microsoft Excel alternative: a spreadsheet with XLSX support, formulas, conditional formatting and charts (`gridcraft`, `gridcraft-cli`)."
@@ -2421,7 +2459,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/gridcraft  strip-v: true }
                          asset: { x86_64: "gridcraft-*-linux-x86_64.rpm"  aarch64: "gridcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: gridcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: GridCraft  scope: user  desktop-id: ai.storyteller.gridcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: GridCraft  scope: user  desktop-id: ai.storyteller.gridcraft
                          version: { github: storytold/gridcraft  strip-v: true  asset: "gridcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/gridcraft.appimage } ] }
         deckcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "DeckCraft — ArtCraft's open-source Microsoft PowerPoint alternative: a presentation / slide-show editor (`deckcraft`, `deckcraft-cli`)."
@@ -2430,7 +2468,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/deckcraft  strip-v: true }
                          asset: { x86_64: "deckcraft-*-linux-x86_64.rpm"  aarch64: "deckcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: deckcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DeckCraft  scope: user  desktop-id: ai.storyteller.deckcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DeckCraft  scope: user  desktop-id: ai.storyteller.deckcraft
                          version: { github: storytold/deckcraft  strip-v: true  asset: "deckcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/deckcraft.appimage } ] }
         cadcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "CADCraft — ArtCraft's open-source AutoCAD alternative: a 2D computer-aided design and drafting app with model/paper-space layouts (`cadcraft`, `cadcraft-cli`)."
@@ -2439,7 +2477,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/cadcraft  strip-v: true }
                          asset: { x86_64: "cadcraft-*-linux-x86_64.rpm"  aarch64: "cadcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: cadcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: CADCraft  scope: user  desktop-id: ai.storyteller.cadcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: CADCraft  scope: user  desktop-id: ai.storyteller.cadcraft
                          version: { github: storytold/cadcraft  strip-v: true  asset: "cadcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/cadcraft.appimage } ] }
         soundcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "SoundCraft — ArtCraft's open-source Avid Pro Tools alternative: a digital audio workstation — recording, editing, mixing, plugins (`soundcraft`, `soundcraft-cli`)."
@@ -2448,7 +2486,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/soundcraft  strip-v: true }
                          asset: { x86_64: "soundcraft-*-linux-x86_64.rpm"  aarch64: "soundcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: soundcraft }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: SoundCraft  scope: user  desktop-id: ai.storyteller.soundcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: SoundCraft  scope: user  desktop-id: ai.storyteller.soundcraft
                          version: { github: storytold/soundcraft  strip-v: true  asset: "soundcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/soundcraft.appimage } ] }
 
         // apod (termapod): scrapes NASA's Astronomy Picture of the Day and splats it to the terminal
@@ -2844,11 +2882,11 @@
             // ubuntu-22.04 runners, so it needs glibc >= 2.35 and is gated to those OSes. Distro
             // packages are `never-auto` — pinnable, and the method where the AppImage can't run
             // (EL9 via EPEL, Leap 15, Debian 11 / Ubuntu 20.04 ship older neovims). musl (Alpine,
-            // void_musl) and atomic (brew) take native outright.
+            // void_musl) and atomic (brew; AppImages aren't managed there) take native outright.
             install: [ { via: native  when: "void_musl or alpine" }  { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
                        { via: native  when: "debian or fedora or arch or opensuse or void"  repo-component: universe  standing: never-auto }
                        { via: native  when: "rhel"  requires: epel  standing: never-auto }
-                       { via: appImage  when: "(arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali)"  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+                       { via: appImage  when: "(arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali)"  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage } ]
@@ -3068,7 +3106,7 @@
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$" }
                          asset: { x86_64: "DBX-*-1.x86_64.rpm"  aarch64: "DBX_*_arm64.rpm" } }
                        { via: aur  when: "arch"  name: dbx-bin }
-                       { via: appImage  when: "arch or void or fedora_atomic or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: DBX  scope: user
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: DBX  scope: user
                          version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$"  asset: "DBX_*_$ARCH.AppImage" }  path: ~/apps/dbx.appimage } ] }
         k9s: { attrs: [ TUI FOSS permissive ] suggests: [ k9s-dotfiles  k9s-glue ] 
             description: "Terminal UI to navigate and manage Kubernetes clusters."
@@ -3585,7 +3623,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-10, g++-10 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3594,7 +3632,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-11, g++-11 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3603,7 +3641,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-12, g++-12 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }
@@ -3612,7 +3650,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-13, g++-13 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc  when: "fedora = 41"  packages: [ gcc13, gcc13-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -3622,7 +3660,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
                 { via: gcc-toolset  when: "rhel" }
             ]
@@ -3632,7 +3670,7 @@
             standing: never-auto
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
-                  requires: [ cxx, software-properties-common ]  suggests: gcc-glue }
+                  requires: software-properties-common  suggests: gcc-glue }
                 { via: gcc-toolset  when: "rhel" }
             ]
         }

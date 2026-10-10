@@ -1,28 +1,32 @@
 # Make `configsys` callable from later glue snippets and interactively. Defined at TOP LEVEL (a `def`
 # inside an `if` would be scoped to that block and never reach the REPL — same trap as elvish's
-# fn-in-if). The check for a real `configsys` on PATH lives INSIDE the command. Falls back to the
-# clone launcher at $HOME/<src>/configsys/configsys.sh (override with $CONFIGSYS_LAUNCHER; <src>
-# defaults to `src`, or $CONFIGSYS_SRC_DIR). `which --all ... where type == external` finds a real
-# binary (never this def itself).
+# fn-in-if). The check for a real `configsys` on PATH lives INSIDE the command. Otherwise the clone's
+# launcher, found in this order: $CONFIGSYS_LAUNCHER; the launcher path the glue driver records on
+# every shell hookup (`<state>/launcher`); else $HOME/<src>/configsys/configsys.sh (<src> =
+# $CONFIGSYS_SRC_DIR or src). `which --all ... where type == external` finds a real binary (never
+# this def itself).
+# configsys's state dir (for the glue-locations cache) — mirrors paths.py: CONFIGSYS_STATE_DIR, else
+# $XDG_CONFIG_HOME/configsys, else ~/.config/configsys.
+def cs-state-dir [] {
+  if ($env.CONFIGSYS_STATE_DIR? | is-not-empty) { $env.CONFIGSYS_STATE_DIR
+  } else { ($env.XDG_CONFIG_HOME? | default $"($env.HOME)/.config") | path join configsys }
+}
+
 def --wrapped configsys [...args] {
   if (which --all configsys | where type == "external" | is-not-empty) {
     ^configsys ...$args
   } else {
     let src = ($env.CONFIGSYS_SRC_DIR? | default "src")
-    let launcher = ($env.CONFIGSYS_LAUNCHER? | default $"($env.HOME)/($src)/configsys/configsys.sh")
+    let rec = (cs-state-dir | path join launcher)
+    let recorded = (if ($rec | path exists) { open --raw $rec | str trim } else { "" })
+    let fallback = (if ($recorded | is-not-empty) { $recorded } else { $"($env.HOME)/($src)/configsys/configsys.sh" })
+    let launcher = ($env.CONFIGSYS_LAUNCHER? | default $fallback)
     if ($launcher | path exists) {
       ^$launcher ...$args
     } else {
       print -e "configsys: launcher not found — set CONFIGSYS_LAUNCHER, or install configsys on your PATH"
     }
   }
-}
-
-# configsys's state dir (for the glue-locations cache) — mirrors paths.py: CONFIGSYS_STATE_DIR, else
-# $XDG_CONFIG_HOME/configsys, else ~/.config/configsys.
-def cs-state-dir [] {
-  if ($env.CONFIGSYS_STATE_DIR? | is-not-empty) { $env.CONFIGSYS_STATE_DIR
-  } else { ($env.XDG_CONFIG_HOME? | default $"($env.HOME)/.config") | path join configsys }
 }
 
 # The managed install locations, cached. A `configsys location <x>` per snippet is ~250ms (a whole
@@ -46,8 +50,8 @@ $env.__cs_locs = (do {
 # their off-PATH binaries.
 def cs-loc [name: string] { ($env.__cs_locs? | default {} | get --optional $name | default "") }
 
-# cf: shorthand for configsys.
-def --wrapped cf [...args] { configsys ...$args }
+# cfs: interactive shorthand for configsys (the same command in every configsys shell).
+def --wrapped cfs [...args] { configsys ...$args }
 
 # cs-prepend / cs-append <dir>: add a dir to the FRONT / BACK of PATH when it exists, deduped. `--env`
 # so the mutation reaches the caller (config.nu's top scope -> the REPL). The PATH glue snippets use

@@ -20,6 +20,7 @@ MARKER_PREFIX = '.configsys-'
 
 class Font(Driver):
     name = 'font'
+    targets_version = False   # the archive url is fixed by the route
     privileged = False
     default_scope = 'user'
     honors_scope = True

@@ -22,6 +22,7 @@ _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
 class GccToolset(Driver):
     name = 'gcc-toolset'
+    targets_version = False   # the toolset version is fixed by the package name
     privileged = True
     default_scope = 'system'
 

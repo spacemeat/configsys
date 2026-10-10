@@ -55,7 +55,7 @@ from configsys.tui.menu import _attr_pass, _ATTR_AXIS_OF
 
 def test_attr_axes_cover_the_vocabulary():
     for t in ('cli', 'gui', 'sdk', 'daemon', 'foss', 'gnu', 'proprietary', 'tele', 'electron',
-              'dotfiles', 'service', 'font'):
+              'dotfiles', 'glue', 'service', 'font'):
         assert t in _ATTR_AXIS_OF, t
 
 

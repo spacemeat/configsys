@@ -91,8 +91,9 @@ def _unit_keys(rc, drv):
     plus `installed-name` (a part that's present whenever the unit is — e.g. `cargo` for the
     `rust-all` metapackage), plus any extra package names a unit installs (`fields['packages']` —
     an apt metapackage, or a clang-N unit whose `packages: [ clang-18 ]` are the real dpkg names).'''
+    from .drivers._native import installed_name
     keys = {drv.index_key(rc)}
-    inm = rc.fields.get('installed-name')
+    inm = installed_name(rc)            # a driver-keyed map resolves for this unit's driver
     if inm:
         keys.add(inm)
     for extra in (rc.fields.get('packages') or []):

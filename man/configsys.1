@@ -56,13 +56,13 @@ print nothing to the console while loading, not even errors (they still appear o
 show the install state of this machine's picks (status, installed and latest versions) and any issues
 .TP
 \fBinstall\fR
-Install components. A name is a component; profile:<name> expands to that profile's components. Components already present are not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. --no-deps acts on only the named components, without installing their dependencies. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first). Installing does not add a component to this machine's picks; \fBconfigsys picks add\fR does that.
+Install components. A name is a component; profile:<name> expands to that profile's components. Components already present are not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. --no-deps acts on only the named components, without installing their dependencies. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first). Installing does not add a component to this machine's picks; \fBconfigsys picks add\fR does that. --picks installs every pick of this box that is not installed (with any names given), after showing the plan and asking (--yes skips the question); picks with no install method here are skipped with a notice.
 .TP
 \fBremove\fR
 Uninstall components. A name is a component; profile:<name> expands to that profile's components. Glue that only the removed components needed goes with them; their dependencies stay. A component with no install method left on this OS is still removed when a stranded install of it remains, through the method that made it. Removing does not unpick a component; \fBconfigsys picks rm\fR does that.
 .TP
 \fBupgrade\fR
-Upgrade components to their latest version, or the whole system with --system. A name is a component; profile:<name> expands to that profile's components. Components already present are not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. --no-deps acts on only the named components, without installing their dependencies. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first). --system upgrades the whole machine instead and takes no names; see \fBconfigsys updates\fR.
+Upgrade components to their latest version, or the whole system with --system. A name is a component; profile:<name> expands to that profile's components. Components already present are not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. --no-deps acts on only the named components, without installing their dependencies. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first). --picks upgrades every outdated pick of this box (with any names given), after showing the plan and asking (--yes skips the question). --system upgrades the whole machine instead and takes no names; see \fBconfigsys updates\fR.
 .TP
 \fBlock\fR
 Hold components at their installed version. A name is a component; profile:<name> expands to that profile's components. The hold is the package manager's own where it has one (apt-mark hold, dnf versionlock, …), else a record in configsys' ledger; managers that cannot hold a version, such as pacman and apk, decline.
@@ -232,7 +232,8 @@ open the interactive TUI (the default; prints \fBinspect\fR output when not on a
   CONFIGSYS_NO_SPLASH                  set to anything to turn the startup splash off
   CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: detected)
   CONFIGSYS_PM                         apt or dnf: the package manager the gcc / clang drivers use
-  CONFIGSYS_GITHUB_TOKEN               GitHub API token for release lookups (GITHUB_TOKEN also works)
+  CONFIGSYS_GITHUB_TOKEN               GitHub API token: lifts the API rate limit for version checks
+                                       (GITHUB_TOKEN also works)
   CONFIGSYS_GIT_TOKEN                  token for cloning private github: / gitlab: plugin repos
 .fi
 .SH FILES

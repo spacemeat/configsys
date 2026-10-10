@@ -12,6 +12,7 @@ into base once Alpine graduated to a first-class OS.
 
 import re
 import shlex
+from pathlib import Path
 
 from ..runner import Result
 from ._native import NativePkgManager
@@ -34,17 +35,74 @@ def _version_from_apk_list(lines, name):
     return None
 
 
+# A /etc/apk/world line is a dependency atom: "<name>[@tag][<op><version>]" (ops = < > = ~ and
+# combos like >= ~= ><), or a "!<name>" conflict. The bare package name is everything before the
+# first tag/constraint character.
+_WORLD_NAME = re.compile(r'^([^\s<>=~@!]+)')
+
+
+def _parse_installed(lines):
+    '''{name: version} from `apk list --installed` ("<name>-<ver> <arch> {origin} (lic) [installed]")
+    or `apk info -v` ("<name>-<ver>") lines. The atom is split at the first digit-led segment.'''
+    idx = {}
+    for line in lines:
+        s = line.strip()
+        if not s or s.startswith('WARNING') or s.startswith('ERROR'):
+            continue
+        m = _APK_ATOM.match(s.split()[0])
+        if m:
+            idx.setdefault(m.group(1), m.group(2) or 'installed')
+    return idx
+
+
+def _parse_world(text):
+    '''The package names in /etc/apk/world (what the user asked apk for — `apk add` records it;
+    dependencies never appear there). Conflicts ("!name") aren't installs, so they're skipped.'''
+    out = set()
+    for tok in text.split():                    # world is whitespace-separated (usually one per line)
+        if tok.startswith('!'):
+            continue
+        m = _WORLD_NAME.match(tok)
+        if m:
+            out.add(m.group(1))
+    return out
+
+
 class Apk(NativePkgManager):
     name = 'apk'
     holds_version = False          # rolling: no per-package hold; a branch carries one current version
     INSTALL = 'apk add {pkgs}'
     REMOVE = 'apk del {pkgs}'
     UPGRADE = 'apk add --upgrade {pkgs}'
+    WORLD = '/etc/apk/world'       # the explicit set: every `apk add`ed atom (docs/orphans.md)
 
     # -- read (no root needed) -------------------------------------------
 
+    def installed_index(self):
+        '''ONE `apk list --installed` -> {name: version} for every installed package — the orphan
+        scan's native enumeration and the inspection prepass (docs/orphans.md). Falls back to
+        `apk info -v` (apk-tools < 2.12 has no `list`). None when both fail — never {}.'''
+        r = self.runner.run('apk list --installed')
+        if r.ok and r.stdout.strip():
+            return _parse_installed(r.stdout.splitlines())
+        r = self.runner.run('apk info -v')
+        if not r.ok:
+            return None
+        return _parse_installed(r.stdout.splitlines())
+
+    def explicit_keys(self):
+        '''The packages the user asked for: the names in /etc/apk/world (apk records every
+        `apk add` there; pulled-in dependencies never appear). None when it can't be read.'''
+        try:
+            return _parse_world(Path(self.WORLD).read_text())
+        except (OSError, UnicodeDecodeError):
+            return None
+
     def get_version(self, rc):
         '''Installed version, or None if the package isn't installed.'''
+        ver, hit = self._batched_version(rc)        # answer from the one `apk list --installed`
+        if hit:
+            return ver
         name = self._probe_name(rc)
         r = self.runner.run(f'apk list --installed {shlex.quote(name)}')
         return _version_from_apk_list(r.stdout.splitlines(), name) if r.ok else None

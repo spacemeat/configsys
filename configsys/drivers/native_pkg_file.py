@@ -25,6 +25,7 @@ from ..runner import Result
 
 class NativePkgFile(Driver):
     name = 'native-pkg-file'
+    targets_version = False   # the release package tracks the discovered version
     privileged = True
     native_backed = True       # the .deb/.rpm is registered in dpkg/rpm — enumerated by the native mgr
     default_scope = 'system'   # a native package is system-wide, like apt/dnf

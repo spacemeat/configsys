@@ -12,12 +12,12 @@ import os
 from . import layers
 from .errors import ConfigError
 
-# Layer roles that may set MACHINE settings (configs / scope / pins), lowest
+# Layer roles that may set MACHINE settings (picks / scope / pins / … — layers.MACHINE_SETTING_SECTIONS), lowest
 # precedence first: the repo baseline, then a top-config-designated `primary` plugin (your
 # portable personal defaults), then this machine's top user config (which overrides). Ordinary
 # `plugin`/`include` layers are excluded — a shared plugin can't seize machine control
 # unless the local top config explicitly grants it `primary`.
-_MACHINE_ROLES = ('repo', 'primary', 'machine', 'user')
+_MACHINE_ROLES = ('repo', 'primary', 'user')
 
 
 def _leaves(v):
@@ -234,20 +234,11 @@ class Config:
         '''The merged TUI `keys:` bindings — like `theme`, contributed by EVERY layer and merged
         per scope, per action across the full stack repo < plugins < primary < top-config (later
         wins per action). Returns {scope: {action: key-or-[keys]}}, consumed by tui.keyspec.Keymap.
-        A primary plugin's configsys.hu (or your top config) can carry a `keys:` block right beside
-        its profiles/components; a layer overrides just the actions it names.'''
-        out = {}
-        for layer in self._layers:                 # low -> high precedence
-            k = layer.data.get('keys')
-            if not isinstance(k, dict):
-                continue
-            for scope, actions in k.items():
-                if not isinstance(actions, dict):
-                    continue
-                dst = out.setdefault(scope, {})
-                for action, spec in actions.items():
-                    dst[action] = spec                 # per-action override (whole value replaced)
-        return out
+        REBIND-WINS: a higher layer that binds a key a lower layer gave to ANOTHER action takes it
+        from that action (tui.keyspec.merge_layer_keys) — identical to a plain per-action overlay when
+        nothing conflicts.'''
+        from .tui.keyspec import merge_layer_keys
+        return merge_layer_keys(self._layers)
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across

@@ -151,7 +151,7 @@ def test_handle_nav_moves_cursor(ctx):
     down = next(k for k in range(32, 127) if km.action_for('config', k) == 'down')
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.cur == 1
-    assert intent.handled and not intent.dirty and intent.goto is None
+    assert not intent.dirty and intent.goto is None
 
 
 def test_handle_theme_jumps_to_theme_screen(ctx):
@@ -161,4 +161,4 @@ def test_handle_theme_jumps_to_theme_screen(ctx):
     intent = scr.handle(theme, ctx, None, None)
     assert isinstance(intent, Intent)
     assert intent.goto == 'theme'
-    assert intent.handled and not intent.dirty and intent.note is None
+    assert not intent.dirty and intent.note is None

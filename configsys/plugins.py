@@ -434,7 +434,9 @@ _EXEC_DATA_CACHE = {}                                 # (path, newest-mtime) -> 
 
 def ships_executable_data(plugin_dir):
     '''True if the plugin's DATA declares anything configsys runs as shell — a via:script/source
-    binding, an apt source-line/ppa/apt-source, or a glue snippet carrying a `#!cs-eval` directive.
+    binding, an apt source-line/ppa/apt-source, a `facets:` probe with a `detect:` command, or ANY
+    shipped glue (a via:glue binding, a snippet under a `glue/` root, or a `#!cs-eval` directive) —
+    glue is sourced at every shell start and the glue driver refuses an untrusted plugin's.
     Such data is code for trust purposes (command_source_trusted gates it), so `plugin trust` accepts
     a data-only plugin that ships it. Memoised on the tree's newest mtime (a sync changes it).'''
     pdir = Path(plugin_dir)
@@ -457,19 +459,31 @@ def _scan_executable_data(pdir):
             data = layers.materialize_string(f.read_text(encoding='utf-8'))
         except Exception:                            # noqa: BLE001 — a malformed file ships nothing
             continue
+        # a `facets:` probe with a `detect:` command runs shell on every resolve — routes.load drops
+        # an untrusted plugin's facets and tells the user to trust it, so it must be trustable here.
+        facets = data.get('facets') if isinstance(data, dict) else None
+        if isinstance(facets, dict) and any(isinstance(fs, dict) and fs.get('detect')
+                                            for fs in facets.values()):
+            return True
         comps = data.get('components') if isinstance(data, dict) else None
         for spec in (comps.values() if isinstance(comps, dict) else ()):
             for b in _spec_bindings(spec):
-                if b.get('via') in ('script', 'source') or any(
+                # glue is shell SOURCED at every shell start, and drivers/glue.py refuses ANY glue
+                # whose defining layer is an untrusted plugin — so any shipped glue binding (or a
+                # binding carrying a nested `glue:` half) is executable data.
+                if b.get('via') in ('script', 'source', 'glue') or 'glue' in b or any(
                         k in b for k in ('source-line', 'ppa', 'apt-source')):
                     return True
-    for f in pdir.rglob('*'):                         # glue snippets with an eval directive
-        if f.is_file() and f.suffix in ('.sh', '.fish', '.elv', '.nu'):
-            try:
-                if '#!cs-eval' in f.read_text(encoding='utf-8', errors='ignore'):
-                    return True
-            except OSError:
-                pass
+    for f in pdir.rglob('*'):                         # shipped glue snippets (any — they're sourced)
+        if not f.is_file() or f.suffix not in ('.sh', '.fish', '.elv', '.nu', '.zsh', '.bash'):
+            continue
+        if 'glue' in f.relative_to(pdir).parts[:-1]:
+            return True
+        try:
+            if '#!cs-eval' in f.read_text(encoding='utf-8', errors='ignore'):
+                return True
+        except OSError:
+            pass
     return False
 
 
@@ -895,8 +909,10 @@ def set_dirs(config_file, dirs):
     if not dirs:
         remove_sections(config_file, ['dirs'])
         return
+    # set_section already places the FIRST line at `indent` (replacing in place, or inserting after its
+    # own pad), so emit it bare — only the body/closing lines carry the indent.
     pad_body = lambda indent: '\n'.join(                       # noqa: E731 — small local emitter
-        [' ' * indent + 'dirs: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in dirs.items()]
+        ['dirs: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in dirs.items()]
         + [' ' * indent + '}'])
     set_section(config_file, 'dirs', pad_body)
 

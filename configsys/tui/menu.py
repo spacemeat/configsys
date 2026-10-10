@@ -50,6 +50,19 @@ _PGDN_KEYS = (curses.KEY_NPAGE, 10)
 _PGUP_KEYS = (curses.KEY_PPAGE, 11)
 
 
+def _pretend_note(ctx, note, wrote):
+    '''The status note after a config-EDITING key. Under --pretend every actions-level config writer
+    refuses (returns actions.PRETEND_NOT_SAVED / 0 instead of writing), so a note built from the
+    attempt ("x set", "no change", "3 tracked") would misreport it: say it wasn't saved, plus what it
+    would have done when that's known. Unchanged when nothing was written or it isn't a dry run.'''
+    if not wrote or not getattr(getattr(ctx, 'runner', None), 'pretend', False):
+        return note
+    from ..actions import PRETEND_NOT_SAVED
+    if note and '[pretend]' in note:                  # the writer's own message already says so
+        return note
+    return f'{PRETEND_NOT_SAVED} (--pretend)' + (f' — would: {note}' if note else '')
+
+
 def _page_rows(stdscr):
     '''One screenful of the content area — how far page-up/page-down jump the cursor.'''
     return max(1, stdscr.getmaxyx()[0] - 5)
@@ -90,8 +103,15 @@ class Node:
         ms = self.members
         supported = [m for m in ms if m.supported]
         if not supported:
+            # like ComponentState.status: a driver a not-yet-trusted plugin provides reads
+            # 'untrusted' (fixable with `plugin trust`), not 'unsupported'. Only when EVERY
+            # member is untrusted, a mix with a genuinely unsupported member stays 'unsupported'.
+            if ms and all(getattr(m, 'untrusted', False) for m in ms):
+                return 'untrusted'
             return 'unsupported'
-        if any(m.error for m in ms):
+        # an untrusted member carries its trust hint in `error`; that's a trust state, not a
+        # failure, so it must not turn its group 'error' (the unit's own row reads 'untrusted').
+        if any(m.error for m in ms if not getattr(m, 'untrusted', False)):
             return 'error'
         for rs in ('dangling', 'unmet', 'switch'):   # routing state (stranded.py) outranks versions
             if any(getattr(m, 'route_status', None) == rs for m in supported):
@@ -443,13 +463,25 @@ class MenuState:
         with the SAME per-unit semantics as `stage` — `install` means "make current" (install if
         absent, else upgrade if outdated); `upgrade` upgrades an outdated unit. Returns count staged.
         Glue/dotfiles companions are skipped: they're hidden from this screen's tree (managed on the
-        Glue/Dotfiles pages), so a bulk op must not sweep them into the staged/execute list either.'''
+        Glue/Dotfiles pages), so a bulk op must not sweep them into the staged/execute list either.
+        A unit that already carries a staged op is LEFT ALONE — notably a `remove` seeded from the
+        !uninstall queue (`_seed_uninstall`), which a bulk install/upgrade must never flip. And only
+        TRACKED units are swept: those a pick of this machine pulled in (`requested_as` ∩ the install
+        set this tree was built for, `_req_sig`) — not installed-but-untracked extras or
+        !uninstall-queue entries that `states` also holds. (`_req_sig` unset = no restriction: a
+        directly-constructed MenuState, e.g. in tests.)'''
+        tracked = getattr(self, '_req_sig', None)
         n = 0
         for k, s in self.states.items():
             if getattr(s.component, 'driver', '') in ('glue', 'dotfiles'):   # owned by the Glue/Dotfiles screens
                 continue
             if s.component.fields.get('system_update'):   # System Updates apply in bulk, never per-row
                 continue
+            if k in self.staged:                          # never override an explicit/seeded op
+                continue
+            if tracked is not None and not (set(getattr(s.component, 'requested_as', ()) or ())
+                                            & set(tracked)):
+                continue                                  # not part of this machine's picks
             eff = op
             if op == 'install' and not OPS['install'][2](s) and OPS['upgrade'][2](s):
                 eff = 'upgrade'
@@ -500,9 +532,28 @@ class MenuState:
         return acted
 
     def unstage(self):
+        '''Drop the staged op of every target unit. System Updates rows are all-or-nothing, like
+        their staging: execute bulk-upgrades a whole manager (upgrade_all) whenever ANY of its rows
+        is staged, so unstaging just some rows would leave badges that lie about what X does —
+        touching any System Updates row unstages them all. Returns the count unstaged.'''
+        n, su = 0, False
         for node in self._target_nodes():
             for m in node.members:
-                self.staged.pop(m.key, None)
+                if _is_system_update(m):
+                    su = True
+                    continue
+                if self.staged.pop(m.key, None) is not None:
+                    n += 1
+        if su:
+            n += self.unstage_system_updates()
+        return n
+
+    def unstage_system_updates(self):
+        '''Unstage EVERY System Updates row (the bulk mark's inverse). Returns count.'''
+        keys = [k for k in self.staged if _is_system_update(self.states.get(k))]
+        for k in keys:
+            del self.staged[k]
+        return len(keys)
 
     def clear_all_staged(self):
         self.staged.clear()
@@ -930,8 +981,8 @@ _HELP = {
                 "install driver, scope, status, and installed/latest versions. Stage operations on rows, "
                 "then run them with the execute key.",
         'glossary': [
-            ('view (M)', 'to-do (the default: tracked components missing or outdated, plus installed '
-                         'ones staged for uninstall) · tracked (all of this machine\'s picks) · '
+            ('view (M)', 'to-do (the default: tracked components missing, outdated or with a routing '
+                         'status — switch / unmet / dangling — plus installed ones staged for uninstall) · tracked (all of this machine\'s picks) · '
                          'installed+tracked (also installed components you haven\'t tracked)'),
             ('status', 'installed · outdated (newer available) · missing · locked (version held) · '
                        'partial (some units installed) · unsupported (no driver for its method here) · '
@@ -944,12 +995,14 @@ _HELP = {
                           'with execute. ✗ marks a failed op; » a selected row'),
             ('make current (i / I)', 'install if missing, upgrade if outdated, swap out a switch row\'s '
                                      'stranded install. i is the cursor/selection, I every tracked '
-                                     'component. u/U upgrade outdated only'),
+                                     'component (a row already staged — e.g. a remove from !uninstall '
+                                     '— is left as is). u/U upgrade outdated only'),
             ('tree', '▾/▸ expand/collapse. Components group under the profile that defines them '
                      '((other) = none); a component opens to its units — itself plus what it requires'),
             ('System Updates', 'OS packages with pending updates outside your picks, by tier (kernel, '
                                'core, standard, apps); auto-pulled ones are dimmed. i/u stages them all, '
-                               'the execute key applies them in bulk'),
+                               'c on any of them unstages them all (all or nothing), the execute key '
+                               'applies them in bulk. R rescans them'),
             ('header', 'view mode · package-index age (refresh with R) · ⚠ reboot advised · ⟳ N '
                        'system updates · ⚠ N issues (! to view)'),
             ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
@@ -968,7 +1021,7 @@ _HELP = {
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
                         "from (origin: repo / plugin / local) · inst'd (● installed+tracked / "
-                        '⊙ installed+untracked / ◐ partial: some parts, or a required component '
+                        '⊙ installed+untracked [dimmed when orphans-ignore lists it] / ◐ partial: some parts, or a required component '
                         'missing / ○ none / ⮾ staged for uninstall / ⊘ no install method on this OS) · '
                         'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
                         '(● tracked / ○ not)'),
@@ -1401,6 +1454,24 @@ def _draw_nav(stdscr, pal, screen, h, w):
 
 
 
+def _route_key(keymap, screen, ch):
+    '''How the router resolves one key on `screen` -> (router_action, dest_screen); (None, None) means
+    "hand it to the screen's handle". The screen's OWN scope is consulted first (Keymap.own_action):
+    a key the screen binds goes to the screen even when `global`'s quit/quit-force/issues/help or the
+    `screens` switcher also claims it, and a screen-scope binding of one of those four actions is
+    the router's to act on, on that screen. Otherwise: `global` (router actions only), then
+    `screens`. With the shipped config.hu no screen binds those keys, so this is the old
+    global-then-screens order.'''
+    from .keyspec import ROUTER_ACTIONS
+    own = keymap.own_action(screen, ch)
+    if own is not None:
+        return (own, None) if own in ROUTER_ACTIONS else (None, None)
+    gact = keymap.action_for('global', ch)
+    if gact in ROUTER_ACTIONS:
+        return gact, None
+    return None, keymap.screen_for(ch)
+
+
 def _reload(ctx, old, dirty):
     '''Rebuild the menu after a pin change or an execute, requerying only `dirty` (+ any
     newly-appearing) units and REUSING the rest of the cached probe. Preserves cursor position,
@@ -1408,11 +1479,12 @@ def _reload(ctx, old, dirty):
     Returns (ms, cfg, ledger, states, diags).'''
     cfg, _requested, _units, ledger, states = ctx.load_pipeline(reuse=old.states, dirty=dirty)
     mode = getattr(old, 'mode', 'to-do')
+    base = states
     states, layouts, transitive = _components_model(ctx, cfg, states, mode)   # fresh overlay: disk changed
     ms = MenuState(states, layouts, transitive)
     ms.mode = mode
     ms._overlay_caches = {}                            # installed reality changed -> re-enumerate on next switch
-    ms._req_sig = frozenset(_requested)
+    ms._extra_keys = _added_extras(base, states) if mode == 'installed+tracked' else set()
     ids = {n.id for n in ms._all_nodes()}
     ms.selected = {i for i in old.selected if i in ids}
     ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
@@ -1817,6 +1889,10 @@ def _menu_model(cfg):
 
 
 COMPONENT_MODES = ('to-do', 'tracked', 'installed+tracked')   # the Components view MODE cycle
+# ComponentState.status values that keep a tracked component in the to-do view: it isn't green and
+# the user has something to do. Routing statuses rank ahead of missing/outdated in .status, so they
+# must be listed or a stranded `switch` (whose action is `i`) would never surface by default.
+_TODO_STATUSES = ('missing', 'outdated', 'switch', 'unmet', 'dangling')
 
 
 def _components_model(ctx, cfg, states, mode, caches=None):
@@ -1825,7 +1901,10 @@ def _components_model(ctx, cfg, states, mode, caches=None):
       'installed+tracked'  — the picked set PLUS installed-but-untracked components (mapped to
                              recipes); the extras are resolved + inspected and folded into `states`.
       'to-do'              — ONLY components needing action for full green: a tracked component that
-                             is missing or outdated, or a staged-for-uninstall component still
+                             is missing or outdated, or whose ROUTING needs attention (`switch` —
+                             installed via a method routes no longer offer, `i` swaps it; `unmet` /
+                             `dangling` — no usable method here, untrack it or re-enable the driver;
+                             docs/stranded-installs.md), or a staged-for-uninstall component still
                              present. Fully-green components (and thus now-empty profiles) are omitted.
     Returns the (possibly extended) states plus the grouped layouts/transitive.'''
     tracked = set(cfg.requested())
@@ -1861,7 +1940,7 @@ def _components_model(ctx, cfg, states, mode, caches=None):
         actionable, present = {}, {}                   # per component: needs install/update? present?
         for st in states.values():
             c = st.component.comp
-            actionable[c] = actionable.get(c, False) or (st.status in ('missing', 'outdated'))
+            actionable[c] = actionable.get(c, False) or (st.status in _TODO_STATUSES)
             present[c] = present.get(c, False) or st.present
         scope = {c for c in tracked if actionable.get(c)}          # tracked but not green
         scope |= {c for c in queue if present.get(c)}              # staged-uninstall, still installed
@@ -1904,7 +1983,8 @@ def _rebuild_menu(old, states, layouts, transitive, mode):
     (install state is unchanged; only WHICH components are shown). The cheap counterpart to _reload.'''
     ms = MenuState(states, layouts, transitive)
     ms.mode = mode
-    ms._req_sig = getattr(old, '_req_sig', frozenset())
+    if hasattr(old, '_req_sig'):                     # (absent on a directly-built MenuState: keep it so)
+        ms._req_sig = old._req_sig
     ms._uninstall_q = getattr(old, '_uninstall_q', frozenset())
     ms._overlay_caches = getattr(old, '_overlay_caches', {})
     ids = {n.id for n in ms._all_nodes()}
@@ -1917,7 +1997,29 @@ def _rebuild_menu(old, states, layouts, transitive, mode):
             n.expanded = n.id in expanded
     ms._refresh(keep_id=(old.cur().id if old.cur() else None))
     ms.descriptions = old.descriptions               # routes didn't change -> reuse
+    ms._extra_keys = {k for k in getattr(old, '_extra_keys', ()) if k in states}
     return ms
+
+
+def _added_extras(base, states):
+    '''Unit keys `_components_model` folded into `states` beyond `base` (installed+tracked's
+    installed-but-untracked extras) — synthetic System Updates rows excluded (re-injected per build).'''
+    return {k for k, st in states.items() if k not in base and not _is_system_update(st)}
+
+
+def _switch_mode(ctx, cfg, ms, mode):
+    '''A view-MODE switch -> (new_ms, states, layouts, transitive). The installed+tracked extras are
+    remembered on the MenuState (`_extra_keys`) and DROPPED from `states` when switching away — else
+    they'd linger in `states` (invisible in to-do/tracked) for a later bulk op to sweep up. An extra
+    carrying a staged op is kept (dropping it would silently discard what the user staged).'''
+    drop = {k for k in getattr(ms, '_extra_keys', ()) if k not in ms.staged}
+    base = {k: v for k, v in ms.states.items() if k not in drop}
+    states, layouts, transitive = _components_model(ctx, cfg, dict(base), mode,
+                                                    caches=getattr(ms, '_overlay_caches', None))
+    new_ms = _rebuild_menu(ms, states, layouts, transitive, mode)
+    kept = (set(getattr(ms, '_extra_keys', ())) - drop) & set(states)
+    new_ms._extra_keys = kept | (_added_extras(base, states) if mode == 'installed+tracked' else set())
+    return new_ms, states, layouts, transitive
 
 
 SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
@@ -2320,7 +2422,7 @@ def _find_edit_tree(stdscr, ms, redraw):
 ATTR_AXES = [
     ('interface', ['CLI', 'TUI', 'GUI', 'daemon', 'web', 'headless']),
     ('role',      ['lib', 'SDK', 'app', 'toolchain', 'runtime', 'driver', 'font',
-                   'theme', 'plugin', 'game', 'service', 'group', 'dotfiles']),
+                   'theme', 'plugin', 'game', 'service', 'group', 'dotfiles', 'glue']),
     ('license',   ['FOSS', 'FOSSish', 'proprietary', 'source-available', 'freeware',
                    'GNU', 'copyleft', 'permissive']),
     ('data',      ['tele', 'tele-optin', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),
@@ -2560,11 +2662,11 @@ def _machines_modal(stdscr, pal, ctx, targets):
         if mode == 'confirm':
             if ch in (ord('y'), ord('Y')):
                 rm = rows[sel]
-                actions.remove_machine(ctx, rm)
-                actions.set_included_clear_machine(ctx, rm)
+                ok, why = actions.remove_machine(ctx, rm)   # (False, '[pretend] not saved') on --pretend
+                if ok:                                # (remove_machine already cleared its picks)
+                    tg.discard(rm)
                 ctx.invalidate()
-                tg.discard(rm)
-                note = f'removed "{rm}"'
+                note = f'removed "{rm}"' if ok else why
             mode = None
             continue
 
@@ -2579,10 +2681,11 @@ def _machines_modal(stdscr, pal, ctx, targets):
                                                      # empty set is allowed (A/D then simply no-op)
         elif ch == ord('m'):                         # make the selected machine THIS box's current
             if rows[sel] != this:
-                actions.set_machine_active(ctx, rows[sel])
+                ok, why = actions.set_machine_active(ctx, rows[sel])
                 ctx.invalidate()
-                note = f'current → "{rows[sel]}"'
-                sel = 0                              # current sorts first
+                note = f'current → "{rows[sel]}"' if ok else why
+                if ok:
+                    sel = 0                          # current sorts first
         elif ch == ord('a'):
             mode, buf = 'add', ''
         elif ch == ord('r'):
@@ -2601,6 +2704,17 @@ _GKEY = '\x00#grp:'
 _GROUP_ORDER = ['machine', 'user', 'primary', 'plugin', 'repo']
 _GROUP_LABEL = {'machine': 'machine', 'user': 'this machine', 'primary': 'your primary',
                 'plugin': 'plugins', 'repo': 'repo catalog'}
+
+
+# Serializes the TUI's resolves through a Resolver (`ctx.routes` keeps internal caches) between the
+# UI thread and the ProfileScreen warm thread(s). One process-wide lock: there is one TUI per
+# process, and keying it per ctx would miss two ctx wrappers over one routes (the Profiles sample).
+_ROUTES_LOCK = threading.RLock()
+
+
+def _routes_lock(ctx):
+    '''The lock serializing TUI resolves through `ctx.routes` (see _ROUTES_LOCK).'''
+    return _ROUTES_LOCK
 
 
 class ProfileScreen:
@@ -2627,6 +2741,7 @@ class ProfileScreen:
         self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
                                                # by default (each has its own page)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
+        self._res_lock = threading.Lock()   # guards _res/_res_rid: _warm_cache fills it off-thread
         self._parts_cache = {}           # component -> its context-valid `via: parts` list; same lifecycle
                                          # as _res (a `when:`/pin thing, not a membership edit) — the
                                          # hot per-frame call, ~28ms/frame uncached on a 760-component catalog
@@ -2635,6 +2750,7 @@ class ProfileScreen:
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
                                          # installed underlined, installed-but-unpicked ⊙ coloured
+                                         # (dimmed when orphans-ignore lists it)
         self._scan_caches = None         # retained per-driver enumeration (installed/explicit/origin);
                                          # survives membership edits (reality is stable on this page) —
                                          # dropped only on an install/uninstall execute (invalidate_overlay)
@@ -3344,18 +3460,33 @@ class ProfileScreen:
         # Drop the cache when ctx.routes was rebuilt (a pin / route / plugin edit calls ctx.invalidate,
         # which swaps in a fresh Resolver) — even one made from ANOTHER screen. A membership/profile
         # edit does NOT invalidate, so its `id` is unchanged and the cache survives (the perf win).
-        rid = id(self.ctx.routes)
-        if rid != getattr(self, '_res_rid', None):
-            self._res.clear()
-            self._res_rid = rid
-        if name not in self._res:
+        #
+        # Thread-safe: the `_warm_cache` daemon thread calls this concurrently with the UI thread. The
+        # cache check/clear/insert runs under `_res_lock`; the (slow) resolve runs outside it, under
+        # the per-ctx `_routes_lock` so no two threads drive one Resolver's internal caches at once
+        # (also across two ProfileScreens over one ctx). The insert is a setdefault — a value already
+        # present (another thread's, or a deliberate priming) wins — and is skipped if ctx.routes was
+        # swapped mid-resolve (that result belongs to the old routes).
+        routes = self.ctx.routes
+        rid = id(routes)
+        with self._res_lock:
+            if rid != getattr(self, '_res_rid', None):
+                self._res.clear()
+                self._res_rid = rid
+            hit = self._res.get(name)
+        if hit is not None:
+            return hit
+        with _routes_lock(self.ctx):
             try:
-                cands = self.ctx.routes.candidates(name)
+                cands = routes.candidates(name)
             except Exception:                       # noqa: BLE001 — unroutable
                 cands = []
-            win = next((c for c in cands if c['default']), None)
-            self._res[name] = (bool(cands), win['via'] if win else None, bool(win and win['pinned']))
-        return self._res[name]
+        win = next((c for c in cands if c['default']), None)
+        val = (bool(cands), win['via'] if win else None, bool(win and win['pinned']))
+        with self._res_lock:
+            if getattr(self, '_res_rid', None) != rid:
+                return val                           # routes rebuilt meanwhile: don't cache a stale value
+            return self._res.setdefault(name, val)
 
     def available(self, name):
         return self._resolve(name)[0]
@@ -3509,7 +3640,9 @@ def _order_list(stdscr, pal, title, items, label=None):
 def _setting_str(kind, val, key=None):
     if key == 'scope' and val in (None, ''):
         return 'user (default)'
-    if kind == 'list':
+    if kind == 'map' and isinstance(val, dict):               # (defensive: a raw mapping -> tokens)
+        val = [f'{k}={v}' for k, v in sorted(val.items())]
+    if kind in ('list', 'map'):                               # map = `key=value` tokens, shown like a list
         if not val:
             return '(unset — built-in default)'
         if key == 'driver-preference':                        # abbreviate so the order fits the column
@@ -3621,14 +3754,16 @@ def _sample_profiles_state(ctx):
     the infobox shows the ⊘ warn banner alongside the requires/required-by lines. A synthetic empty
     overlay is injected so overlay() never spawns the real (threaded) scan.'''
     ps = ProfileScreen(ctx)
-    ps._warm_gen = 10 ** 9                           # stop __init__'s warm sweep BEFORE priming: an
-    # in-flight resolve finishing after the priming below overwrote a primed [pinned] row (flaky)
+    ps._warm_gen = 10 ** 9                           # stop __init__'s whole-catalog warm sweep: a
+    # sample only paints the visible rows (resolved on demand), so warming ~all components would just
+    # burn CPU (this sample also backs the Theme editor's Profiles preview). Not a race guard: _resolve
+    # is lock-guarded and inserts with setdefault, so a late warm result can't overwrite the priming.
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())     # present -> overlay() returns it, no orphan scan
     ps._async_overlay = None
-    ps.ensure_probes = lambda *a, **k: None          # sample: no async resolve pre-warm — the draw still
-    # resolves each visible row on demand (same values), so the render is complete AND deterministic
-    # (single-threaded); the background probe thread would otherwise race _res under a loaded test run.
+    ps.ensure_probes = lambda *a, **k: None          # sample: no background installed-probe — its
+    # results would fold underlines in at a nondeterministic moment; the sample's install state is the
+    # stubbed install_state below, so the render is complete AND deterministic.
     ps.focus = 'right'                               # the catalog cursor drives the infobox + selection
 
     vis = [nm for nm, _d in ps._catalog_rows()]      # the stable visible catalog (config-independent)
@@ -3751,17 +3886,20 @@ def _sample_plugins_state(ctx):
 def _sample_glue_state(ctx):
     '''A stable synthetic Glue sample: snippets across two shells covering active / changed / available
     + loader on/off, so every glue role is colourable regardless of the user's real glue. The draw
-    reads only the row tuple's comp/state/target/source/shell, so a placeholder rc (None) is fine.'''
+    reads only the row tuple's comp/state/target/source/shell, so a placeholder rc (None) is fine. One
+    USER glue row (7-tuple flagged True) shows the user.d namespace next to component glue.'''
     gs = GlueScreen(ctx)
-    gs.rows = [
-        (None, 'fd-glue',     '~/.config/bash/conf.d/fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
-        (None, 'zoxide-glue', '~/.config/bash/conf.d/zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
-        (None, 'yazi-glue',   '~/.config/bash/conf.d/yazi.sh',   'template', '<repo>/shell/bash/yazi.sh',   'bash'),
-        (None, 'bat-glue',    '~/.config/fish/conf.d/bat.fish',  'linked',   '<repo>/shell/fish/bat.fish',  'fish'),
+    gs.rows = [   # component glue links as conf.d/50-<name>.<ext>; user glue (user.d) as 90-<name>
+        (None, 'fd-glue',     '~/.config/bash/conf.d/50-fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
+        (None, 'zoxide-glue', '~/.config/bash/conf.d/50-zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
+        (None, 'yazi-glue',   '~/.config/bash/conf.d/50-yazi.sh',   'template', '<repo>/shell/bash/yazi.sh',   'bash'),
+        (None, '(user) aliases', '~/.config/bash/conf.d/90-aliases.sh', 'linked',
+         '<plugin>/shell/bash/user.d/aliases.sh', 'bash', True),
+        (None, 'bat-glue',    '~/.config/fish/conf.d/50-bat.fish',  'linked',   '<repo>/shell/fish/bat.fish',  'fish'),
     ]
     gs.loader = {'bash': 'loader-on', 'fish': 'loader-off'}       # one wired, one not
-    gs.display = [('hdr', 'bash', 'loader-on'), ('row', 0), ('row', 1), ('row', 2),
-                  ('hdr', 'fish', 'loader-off'), ('row', 3)]
+    gs.display = [('hdr', 'bash', 'loader-on'), ('row', 0), ('row', 1), ('row', 2), ('row', 3),
+                  ('hdr', 'fish', 'loader-off'), ('row', 4)]
     gs.cur = gs.top = gs.hscroll = 0
     return gs
 
@@ -3927,9 +4065,10 @@ def _sample_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
 
 
 def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
-    '''Render the actual `_draw_<page>` into a sub-window over the sample slot, fed a preview-only
-    state object (a real instance, lightly augmented so every themeable role shows). The sub-window
-    gives the draw fn its own 0-based coordinate space, so it lays out (and scroll-thumbs) naturally at
+    '''Render `page` through its REAL Screen (screens/<page>.py build_vm + draw, as the router does)
+    into a sub-window over the sample slot, fed a preview-only state object (a real instance, lightly
+    augmented so every themeable role shows). The sub-window gives the draw its own 0-based coordinate
+    space, so it lays out (and scroll-thumbs) naturally at
     the compressed size. Never raises — a broken preview must not break the Theme editor.'''
     try:
         sub = stdscr.derwin(hh, ww, y0, x0)
@@ -4155,7 +4294,8 @@ def _plugin_code_elem(row):
 _DF_STATE_ELEM = {  # config DISPLAY states (managed/unmanaged/no config) + glue RAW states
     'managed': 'installed', 'unmanaged': 'outdated', 'no config': 'info_dim',
     'linked': 'installed', 'loader-on': 'installed', 'template': 'info_dim', 'loader-off': 'info_dim',
-    'drifted': 'outdated'}                              # active but the shipped snippet changed -> re-activate
+    'drifted': 'outdated',                              # active but the shipped snippet changed -> re-activate
+    'unlinked': 'info_dim'}                             # a user glue snippet not linked into conf.d
 _DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
@@ -4235,14 +4375,47 @@ class GlueScreen(_ContentRootLabelMixin):
                     src = f'{self._root_label(src_root)}/{src_rel}' if src_root is not None else src_rel
                     by_shell[sh].append((rc, rc.comp, tgt, state, src))
         self.loader = loader
-        self.rows = []                                       # (rc, comp, tgt, state, src, shell)
+        user_by_shell = self._user_rows(by_shell)
+        self.rows = []                                       # (rc, comp, tgt, state, src, shell[, True])
         self.display = []                                    # ('hdr', shell, loader_state) | ('row', idx)
         for sh in shells:
             self.display.append(('hdr', sh, loader.get(sh)))
             for rc, comp, tgt, state, src in sorted(by_shell[sh], key=lambda r: r[1]):
                 self.rows.append((rc, comp, tgt, state, src, sh))
                 self.display.append(('row', len(self.rows) - 1))
+            for row in user_by_shell.get(sh, ()):            # then YOUR glue (user.d), after the shipped
+                self.rows.append(row)
+                self.display.append(('row', len(self.rows) - 1))
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
+
+    def _user_rows(self, by_shell):
+        '''{shell: [user-glue row]} for the installed shells — `glue add` snippets and activated
+        staged installer blocks (the user.d namespace, Glue.user_glue_entries). A user row is a 7-tuple
+        flagged True: (None, '(user) <name>', conf.d link, 'linked'|'unlinked', source, shell, True).
+        They aren't units: configsys links them but never edits them.'''
+        out = {}
+        try:
+            entries = self.gd.user_glue_entries() if self.gd is not None else []
+        except Exception:                                    # noqa: BLE001 — never brick the page
+            entries = []
+        roots = []
+        try:
+            roots = list(self.gd._user_glue_roots())
+        except Exception:                                    # noqa: BLE001
+            pass
+        for shell, src, link, state in entries:
+            if shell not in by_shell:                        # a shell that isn't installed here
+                continue
+            label = str(src)
+            for root in roots:
+                try:
+                    label = f'{self._root_label(root)}/{src.relative_to(root)}'
+                    break
+                except (ValueError, AttributeError, TypeError):
+                    continue
+            out.setdefault(shell, []).append(
+                (None, f'(user) {src.stem}', str(link), state, label, shell, True))
+        return out
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
@@ -4270,10 +4443,18 @@ def _df_cells(row):
     return [rc.comp, f'{mark} {config_display_state(state, cap)}', str(tgt), source]
 
 
+def _is_user_glue(row):
+    '''True for a USER glue row (the user.d namespace: `glue add` / an activated staged block) — not a
+    component's shipped snippet. Flagged by a 7th tuple element (see GlueScreen._user_rows).'''
+    return len(row) > 6 and bool(row[6])
+
+
 def _glue_cells(row):
-    '''The four column strings for a glue row — state in the active/available/inactive vocabulary.'''
-    _rc, comp, tgt, state, src, _shell = row
-    return [comp, _GLUE_STATE_LABEL.get(state, state), str(tgt), src]
+    '''The four column strings for a glue row — state in the active/available/inactive vocabulary
+    (a user snippet whose conf.d link is missing reads 'inactive').'''
+    comp, tgt, state, src = row[1], row[2], row[3], row[4]
+    return [comp, _GLUE_STATE_LABEL.get(state, 'inactive' if state == 'unlinked' else state),
+            str(tgt), src]
 
 
 
@@ -4339,7 +4520,7 @@ def run(ctx):
         curses.noecho()
         curses.cbreak()
         stdscr.keypad(True)
-        from .keyspec import Keymap
+        from .keyspec import Keymap, config_keys
         # migrated screens (lazy import: avoids an import cycle; the new *Screen classes intentionally
         # shadow the like-named legacy MODEL classes within run(), which now only builds the new screens)
         from .screens.plugins import PluginsScreen
@@ -4350,7 +4531,8 @@ def run(ctx):
         from .screens.theme import ThemeScreen
         from .screens.components import ComponentsScreen
         global _KEYMAP
-        _KEYMAP = keymap = Keymap(ctx.config.keys())   # merged bindings; legends read the same map
+        # merged bindings (rebind-wins across layers); legends read the same map
+        _KEYMAP = keymap = Keymap(config_keys(ctx.config))
         comp_mode = 'to-do'                       # Components view MODE: to-do | tracked | installed+tracked
         _mode_caches = {}                         # overlay-enumeration bundle, reused across mode switches
         states, layouts, transitive = _components_model(ctx, cfg, states, comp_mode, caches=_mode_caches)
@@ -4439,7 +4621,8 @@ def run(ctx):
 
             oact = keymap.action_for('components', ch)   # overlays scroll via the same nav actions
             if show_where:                              # where overlay: scroll or exit
-                if oact in ('where', 'quit') or ch == 27:
+                if (oact in ('where', 'quit') or ch == 27
+                        or keymap.action_for(screen, ch) in ('where', 'quit')):   # the opening key
                     show_where = False
                 elif oact == 'down':
                     where_top += 1
@@ -4456,7 +4639,8 @@ def run(ctx):
                 continue
 
             if show_diag:                               # diagnostics overlay: scroll, file an issue, or exit
-                if oact in ('issues', 'quit') or ch == 27:
+                if (oact in ('issues', 'quit') or ch == 27
+                        or keymap.action_for(screen, ch) in ('issues', 'quit')):
                     show_diag = False
                 elif ch in (ord('r'), ord('f'), ord('s')):   # file a report / request / os-request in-TUI
                     _kind = {'r': 'report', 'f': 'request', 's': 'os'}[chr(ch)]
@@ -4477,8 +4661,12 @@ def run(ctx):
                     diag_top = 10 ** 6                  # clamped by _draw
                 continue
 
-            # -- global keys (every screen), resolved through the keymap --
-            gact = keymap.action_for('global', ch)
+            # -- router keys, resolved through the keymap. The screen's OWN scope is consulted first:
+            # a key the screen binds itself goes to the screen (even one `global`'s quit/issues/help
+            # or the `screens` switcher would claim), and a screen-scope binding of quit/quit-force/
+            # issues/help works on that screen. With the shipped config no screen binds those keys,
+            # so this reads exactly as global-then-screens did.
+            gact, dest = _route_key(keymap, screen, ch)
             if gact == 'quit-force':                     # leave immediately, no confirm (harder to hit)
                 break
             if gact == 'quit':                          # confirm before leaving; esc no longer quits
@@ -4493,7 +4681,6 @@ def run(ctx):
             if gact == 'help':
                 _help_modal(stdscr, pal, screen)
                 continue
-            dest = keymap.screen_for(ch)
             if dest is not None:
                 if dest in IMPLEMENTED:
                     # dotfiles/glue mutated on their pages (link/activate) -> re-probe those units so

@@ -283,8 +283,12 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
     excluded = candidate_only or frozenset()
+    # a `drivers:` block describes the MANAGER, whichever via label reached it: a never-auto block on
+    # this OS's native manager (e.g. `brew`) covers its `via: native` bindings too.
+    native_drv = cascade.native(context.lineage[0]) if (excluded and context.lineage) else None
     pool = [b for b in matching
-            if b.via not in excluded and not _binding_candidate_only(b)] or matching
+            if b.via not in excluded and not (b.via == 'native' and native_drv in excluded)
+            and not _binding_candidate_only(b)] or matching
     if len(pool) == 1:
         return pool[0], matching, 'only ordinary method here'
     ms = _most_specific_binding(pool, cascade)
@@ -410,14 +414,22 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None, overrides=None, preference=None, candidate_only=None, disabled=None):
+                      pins=None, overrides=None, preference=None, candidate_only=None, disabled=None,
+                      soft=None, dropped_out=None, provider_rules_out=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
     (units, errors) with errors = {requested_name: message}. So one broken component in the
-    active set (e.g. from an auto-activated project profile) can't brick the tool.'''
+    active set (e.g. from an auto-activated project profile) can't brick the tool.
+
+    `soft` names the `pins` keys that are SOFT (the detection tier's adopt-installed pins): such a
+    pin is honored when it can be, but one that can't (its provider fails a version constraint, or
+    its method/provider isn't valid here) is DROPPED for that edge and normal selection proceeds —
+    never an error. `dropped_out` (a dict) collects {pin key: why it was dropped};
+    `provider_rules_out` (a dict) collects {cap: the rule that picked its auto provider}.'''
     st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
-                pins or {}, overrides or {}, preference, candidate_only)
+                pins or {}, overrides or {}, preference, candidate_only, soft=soft,
+                dropped=dropped_out)
     errors = {}
     root_keys = {}
     for name in names:
@@ -429,6 +441,8 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     if st.failed_keys:
         _prune_failed(st, root_keys)
     st.propagate_requested()
+    if provider_rules_out is not None:
+        provider_rules_out.update(st.provider_rules)
     return st.units, errors
 
 
@@ -460,6 +474,14 @@ def _prune_failed(st, root_keys):
         u.deps = u.deps - gone                            # a dropped soft companion isn't a dep
 
 
+def provider_standing(components):
+    '''-> rank(name): a provider component's integer `standing:` (higher wins; 0 when unset or
+    `never-auto`). Orders candidate providers of a capability in resolve._State._pick_provider.'''
+    def rank(name):
+        return getattr(components.get(name), 'standing_rank', 0) or 0
+    return rank
+
+
 def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=None):
     try:
         select_binding(component, cascade, ctx, pins, preference, candidate_only)
@@ -470,12 +492,17 @@ def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=Non
 
 class _State:
     def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None,
-                 candidate_only=None):
+                 candidate_only=None, soft=None, dropped=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
         self.ctx = ctx
         self.pins = pins
+        # SOFT pin keys (detected-installed adoption): honored when possible, dropped — never an
+        # error — when they can't be (see _select_binding / _satisfy). `dropped` records why.
+        self.soft = frozenset(soft or ())
+        self.dropped = dropped if dropped is not None else {}
+        self.provider_rules = {}           # cap -> the rule that picked its auto provider (explain/where)
         self.preference = preference       # driver-preference order (config global); None = built-in
         self.candidate_only = candidate_only or frozenset()   # vias never auto-defaulted (e.g. snap)
         self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
@@ -518,8 +545,7 @@ class _State:
         # bindings but none match the context (select_binding below errors "no binding here").
         if not comp.bindings:
             return frozenset()
-        binding = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
-                                 self.candidate_only)
+        binding = self._select_binding(comp)
 
         # a `via: parts` binding is a pure aggregator: no unit of its own, just the
         # union of its (recursively resolved) parts, each attributed to this root.
@@ -557,8 +583,14 @@ class _State:
         # selects a resident by version. A component's config is just another required component
         # (a `via: dotfiles` one), so it flows through here too.
         bind_cons = cap_constraints(binding.details.get('requires'))
+        # driver-level requires are keyed by the DRIVER that installs the unit: a `via: native`
+        # binding reaches the OS's manager (`drv` — apt/dnf/brew/…), so that manager's `drivers:` block
+        # applies too (fedora_atomic's native brew requires homebrew).
+        drv_reqs = list(self.drivers.get(binding.via, []))
+        if binding.via == 'native' and drv != binding.via:
+            drv_reqs += [c for c in self.drivers.get(drv, []) if c not in drv_reqs]
         reqs = ([(cap, comp.req_versions.get(cap)) for cap in comp.requires]
-                + [(cap, None) for cap in self.drivers.get(binding.via, [])]
+                + [(cap, None) for cap in drv_reqs]
                 + [(cap, bind_cons.get(cap)) for cap in cap_names(binding.details.get('requires'))])
         for cap, con in reqs:
             self.queue.append((key, name, cap, con, root, False))
@@ -568,6 +600,22 @@ class _State:
             self.queue.append((key, name, cap, None, root, True))
         return frozenset({key})
 
+    def _select_binding(self, comp):
+        '''select_binding under this resolution's pins — but a SOFT (detected) pin on `comp` that
+        can't be honored here (names a method not valid on this machine) is ignored for it, falling
+        through to the normal default, instead of erroring.'''
+        try:
+            return select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
+                                  self.candidate_only)
+        except ResolveError as e:
+            if comp.name not in self.soft or comp.name not in self.pins:
+                raise
+            unpinned = {k: v for k, v in self.pins.items() if k != comp.name}
+            b = select_binding(comp, self.cascade, self.ctx, unpinned, self.preference,
+                               self.candidate_only)
+            self.dropped.setdefault(comp.name, str(e))
+            return b
+
     def drain(self, errors=None):
         '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous HARD
         provider raises). If `errors` is given, catch such failures into it (keyed by the
@@ -576,7 +624,7 @@ class _State:
         while self.queue:
             requiring_key, requiring_name, cap, constraint, root, optional = self.queue.pop(0)
             try:
-                got = self._satisfy(cap, constraint, root, requiring_name)
+                got = self._satisfy(cap, constraint, root, requiring_name, requiring_key)
                 self.units[requiring_key].deps |= got
                 if not optional:                 # HARD edges, for pruning a failed unit's dependents
                     self.hard_deps.setdefault(requiring_key, set()).update(got)
@@ -591,8 +639,35 @@ class _State:
     def _bindable_viable(self, cap, requiring):
         '''Providers of `cap` that can bind in this context (bootstrap guard: never self-provide).'''
         return [p for p in self.providers.get(cap, []) if p != requiring
-                and _bindable(self.components[p], self.cascade, self.ctx, self.pins,
-                              self.preference, self.candidate_only)]
+                and self._is_bindable(self.components[p])]
+
+    def _is_bindable(self, comp):
+        try:
+            self._select_binding(comp)
+            return True
+        except ResolveError:
+            return False
+
+    def _pick_provider(self, cap, cands, requiring, constraint=None):
+        '''The provider to auto-pull among `cands` (already past pins / soft pins / the version
+        constraint / reuse): the only one, else the strict highest component `standing:` rank. Equal
+        top rank is an ambiguity error naming BOTH fixes — a provider-pin (this machine) or a
+        `standing:` rank (the definitions). Records the deciding rule in `provider_rules`.'''
+        if len(cands) == 1:
+            self.provider_rules[cap] = 'only provider here'
+            return cands[0]
+        rank = provider_standing(self.components)
+        ranked = sorted(cands, key=lambda p: -rank(p))
+        top = [p for p in ranked if rank(p) == rank(ranked[0])]
+        what = f'{cap} {constraint}' if constraint else cap
+        if len(top) > 1:
+            tied = sorted(top)
+            how = (f'equal standing: {rank(top[0])}' if rank(top[0]) else 'none ranked by standing:')
+            raise ResolveError(f'ambiguous providers for "{what}": {tied} (required by {requiring}; '
+                               f'{how}) — needs a provider-pin (`pins: {{ {cap}: {tied[0]} }}`) or a '
+                               f'component `standing: <integer>` rank (higher wins)')
+        self.provider_rules[cap] = f'standing: {rank(top[0])}'
+        return top[0]
 
     def _version_scoped(self, cap):
         '''True if `cap` has VERSION-SCOPED providers — provider components that each declare a fixed
@@ -602,8 +677,27 @@ class _State:
         return any(self.components[p].prov_versions.get(cap) is not None
                    for p in self.providers.get(cap, []))
 
-    def _satisfy(self, cap, constraint, root, requiring):
+    def _self_held(self, keys, requiring_key):
+        '''True if `keys` (a resident / cached provider set) includes the REQUIRER's own unit — a
+        provider never satisfies its own requirement (gcc-16 {provides: cc, requires: cc} must pull a
+        DIFFERENT cc provider, not depend on itself).'''
+        return requiring_key is not None and requiring_key in (keys or ())
+
+    def _satisfy(self, cap, constraint, root, requiring, requiring_key=None):
         pin = self.pins.get(cap)
+        if (pin is not None and cap in self.soft
+                and not (pin in self.via_names or pin not in self.components)):
+            # a SOFT provider-pin (detected-installed): try it; if it can't satisfy this edge (fails
+            # the constraint / isn't viable here), drop it for this edge and select normally.
+            try:
+                return self._satisfy_pinned(cap, constraint, root, requiring, requiring_key, pin)
+            except ResolveError as e:
+                got = self._satisfy_pinned(cap, constraint, root, requiring, requiring_key, None)
+                self.dropped.setdefault(cap, str(e))
+                return got
+        return self._satisfy_pinned(cap, constraint, root, requiring, requiring_key, pin)
+
+    def _satisfy_pinned(self, cap, constraint, root, requiring, requiring_key, pin):
         # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
         # (cap -> provider component). Here we satisfy a CAPABILITY, so only a PROVIDER-pin applies.
         # A pin whose value names a via/driver is a BINDING-pin — even when that name is ALSO a
@@ -614,12 +708,13 @@ class _State:
         if pin is not None and (pin in self.via_names or pin not in self.components):
             pin = None
         if constraint:
-            return self._satisfy_constrained(cap, constraint, root, requiring, pin)
+            return self._satisfy_constrained(cap, constraint, root, requiring, pin, requiring_key)
         # --- unconstrained: the single-resident DEFAULT path (byte-identical to pre-Phase-2) ---
         # Fast reuse path — but a provider-pin is TOP precedence and must never be shadowed by reuse
         # (the inventory hit would otherwise silently ignore a pin on an env-provided or already-
         # wanted capability). With a pin present we fall through and honor it.
-        if pin is None and cap in self.inventory:
+        self_held = self._self_held(self.inventory.get(cap), requiring_key)
+        if pin is None and cap in self.inventory and not self_held:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
         viable = self._bindable_viable(cap, requiring)
         if not viable:
@@ -637,28 +732,28 @@ class _State:
             if not auto:
                 hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
                 raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}')
-            if len(auto) == 1:
-                chosen = auto[0]
-            else:
-                raise ResolveError(f'ambiguous providers for "{cap}": {sorted(auto)} '
-                                   f'(required by {requiring}) — needs a provider-pin')
+            chosen = self._pick_provider(cap, auto, requiring)
         keys = self.add_component(chosen, root)
-        self.inventory[cap] = keys
-        self.resident_version[cap] = self.components[chosen].prov_versions.get(cap)
+        if not self_held:                               # the requirer stays the default resident
+            self.inventory[cap] = keys
+            self.resident_version[cap] = self.components[chosen].prov_versions.get(cap)
         return keys
 
-    def _satisfy_constrained(self, cap, constraint, root, requiring, pin):
+    def _satisfy_constrained(self, cap, constraint, root, requiring, pin, requiring_key=None):
         '''Version-scoped selection: pick/reuse the resident whose PROVIDED version meets `constraint`
         (`>=12`, `<12`, …). Lets two consumers of one capability run different versions side-by-side,
         and a constraint ENABLES a never-auto provider (like a by-name require does — the constraint IS
         an explicit selection). A provider-pin still wins if it also meets the constraint.'''
         from .versionsweep import meets
         # 1. the default resident, if it meets the constraint
-        if pin is None and cap in self.inventory and meets(self.resident_version.get(cap), constraint):
+        # (never the requirer itself: a provider doesn't satisfy its own requirement)
+        if (pin is None and cap in self.inventory and meets(self.resident_version.get(cap), constraint)
+                and not self._self_held(self.inventory[cap], requiring_key)):
             return self.inventory[cap]
         # 2. a prior resident pulled for this exact (cap, constraint)
         ck = (cap, constraint)
-        if pin is None and ck in self.constrained:
+        if (pin is None and ck in self.constrained
+                and not self._self_held(self.constrained[ck], requiring_key)):
             return self.constrained[ck]
         # 3. pull a provider whose declared version satisfies the constraint
         viable = [p for p in self._bindable_viable(cap, requiring)
@@ -671,7 +766,7 @@ class _State:
             # HARD failure. A version-scoped cap (python3.11/12, jdk-17/21) still fails — you asked for
             # a version that no provider carries. A provider-pin also stays hard.
             if pin is None and not self._version_scoped(cap):
-                return self._satisfy(cap, None, root, requiring)
+                return self._satisfy(cap, None, root, requiring, requiring_key)
             raise ResolveError(f'nothing provides "{cap} {constraint}" here (required by {requiring})')
         if pin is not None:
             if pin not in viable:
@@ -692,10 +787,10 @@ class _State:
                 chosen = max(pool, key=lambda p: (parse_version(
                     str(self.components[p].prov_versions.get(cap))) or (), p))
             else:
-                raise ResolveError(f'ambiguous providers for "{cap} {constraint}": {sorted(pool)} '
-                                   f'(required by {requiring}) — needs a provider-pin')
+                chosen = self._pick_provider(cap, pool, requiring, constraint)
         keys = self.add_component(chosen, root)
-        self.constrained[ck] = keys
+        if not self._self_held(self.constrained.get(ck), requiring_key):
+            self.constrained[ck] = keys
         if cap not in self.inventory:                   # nothing unconstrained yet -> this is the default too
             self.inventory[cap] = keys
             self.resident_version[cap] = self.components[chosen].prov_versions.get(cap)

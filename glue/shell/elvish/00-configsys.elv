@@ -1,9 +1,17 @@
 # Make `configsys` callable from later glue snippets and interactively. Defined at TOP LEVEL (an
 # `fn` inside an `if` would be local to that block) — the check for a real `configsys` on PATH lives
-# INSIDE the function instead. Falls back to the clone launcher at $E:HOME/<src>/configsys/configsys.sh
-# (override with $E:CONFIGSYS_LAUNCHER; <src> defaults to `src`, or $E:CONFIGSYS_SRC_DIR).
+# INSIDE the function instead. Otherwise the clone's launcher, found in this order:
+# $E:CONFIGSYS_LAUNCHER; the launcher path the glue driver records on every shell hookup
+# (`<state>/launcher`); else $E:HOME/<src>/configsys/configsys.sh (<src> = $E:CONFIGSYS_SRC_DIR or src).
 use path
 use str
+# configsys's state dir — mirrors paths.py: CONFIGSYS_STATE_DIR, else $XDG_CONFIG_HOME/configsys,
+# else ~/.config/configsys.
+fn -cs-state-dir {
+  if (has-env CONFIGSYS_STATE_DIR) { put $E:CONFIGSYS_STATE_DIR
+  } elif (has-env XDG_CONFIG_HOME) { put $E:XDG_CONFIG_HOME/configsys
+  } else { put $E:HOME/.config/configsys }
+}
 fn configsys {|@a|
   if (has-external configsys) {
     (external configsys) $@a
@@ -11,6 +19,11 @@ fn configsys {|@a|
     var src = 'src'
     if (has-env CONFIGSYS_SRC_DIR) { set src = $E:CONFIGSYS_SRC_DIR }
     var launcher = $E:HOME/$src/configsys/configsys.sh
+    var rec = (-cs-state-dir)/launcher
+    if (path:is-regular $rec) {
+      var recorded = (str:trim-space (slurp < $rec))
+      if (not-eq $recorded '') { set launcher = $recorded }
+    }
     if (has-env CONFIGSYS_LAUNCHER) { set launcher = $E:CONFIGSYS_LAUNCHER }
     if (path:is-regular $launcher) {
       (external $launcher) $@a
@@ -25,11 +38,6 @@ fn configsys {|@a|
 # normal launch reads it (~1ms, freshness via `find -mmin -60`). Only on a cold/stale cache do we spawn
 # `configsys location --all` (which rewrites it). cs-loc then reads this map. `?()` swallows a failing
 # configsys so a hiccup leaves the cache empty, not a broken block.
-fn -cs-state-dir {
-  if (has-env CONFIGSYS_STATE_DIR) { put $E:CONFIGSYS_STATE_DIR
-  } elif (has-env XDG_CONFIG_HOME) { put $E:XDG_CONFIG_HOME/configsys
-  } else { put $E:HOME/.config/configsys }
-}
 var cs-locs = [&]
 fn -cs-load-locs {
   var cache = (-cs-state-dir)/glue-locations.tsv
@@ -53,4 +61,5 @@ fn cs-loc {|name|
   if (has-key $cs-locs $name) { put $cs-locs[$name] } else { put '' }
 }
 
-fn cf {|@a| configsys $@a }
+# cfs: interactive shorthand for configsys (the same command in every configsys shell).
+fn cfs {|@a| configsys $@a }

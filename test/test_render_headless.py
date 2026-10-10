@@ -1,10 +1,10 @@
-'''Phase 0 of the D2 MVVM refactor (docs/done/d2-mvvm-plan.md): prove every TUI screen renders HEADLESSLY
-— into an off-screen BufferSurface via a deterministic RecordingPalette, with no curses and no PTY.
+'''Every TUI screen renders HEADLESSLY — into an off-screen BufferSurface via a deterministic
+RecordingPalette, through its real build_vm/draw, with no curses and no PTY (docs/tui-architecture.md
+"Surfaces and headless rendering").
 
-This is the safety-net infrastructure the per-screen migration builds on: if a screen can be painted
-into a buffer and captured as a stable grid, its legacy painter and its future build_vm/draw
-replacement can be diffed cell-for-cell. It also IS the headless-render milestone toward the
-SDK/headless optionality the rewrite is for.'''
+These are the cross-screen smoke checks: each screen paints something, in bounds, deterministically,
+at a roomy and a tight size and across the palette branches (gradient / flat / low-colour / mono).
+Per-screen render regression lives in test_screen_<id>.py against hand-built data.'''
 
 import pytest
 
@@ -29,8 +29,8 @@ def test_screen_renders_headless_nonempty(ctx, name, h, w):
 
 @pytest.mark.parametrize('name', SCREENS)
 def test_render_is_deterministic(ctx, name):
-    '''Same state + same palette -> byte-identical grid on repeat. Non-determinism here would make
-    legacy-vs-new equivalence meaningless, so it's asserted up front.'''
+    '''Same state + same palette -> byte-identical grid on repeat: draw is a deterministic function
+    of (model, ctx, vm, palette) — the contract every render assertion leans on.'''
     h, w = SIZES[0]
     a = capture(name, ctx, RecordingPalette(), h, w)
     b = capture(name, ctx, RecordingPalette(), h, w)
@@ -40,8 +40,8 @@ def test_render_is_deterministic(ctx, name):
 @pytest.mark.parametrize('name', SCREENS)
 @pytest.mark.parametrize('mode', ['grad', 'flat', 'lowcolor', 'mono'], )
 def test_render_across_palette_modes(ctx, name, mode):
-    '''The painters branch on pal.gradient / pal.have256 (and mono); render in each so a change on any
-    of those branches is coverable by the equivalence tests, not just the default truecolor path.'''
+    '''The painters branch on pal.gradient / pal.have256 (and mono); render in each so every one of
+    those branches is exercised, not just the default truecolor path.'''
     pal = {
         'grad': RecordingPalette(gradient=True, have256=True),
         'flat': RecordingPalette(gradient=False, have256=True),

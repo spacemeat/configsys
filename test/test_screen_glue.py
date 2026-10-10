@@ -25,10 +25,10 @@ def _fake_model():
     routes). Row tuples follow _sample_glue_state / _glue_cells: (rc, comp, target, state, source, shell).
     Two shells: bash (loader wired; one active + one changed snippet) and fish (loader off; one
     available snippet).'''
-    rows = [
-        (None, 'fd-glue',     '~/.config/bash/conf.d/fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
-        (None, 'zoxide-glue', '~/.config/bash/conf.d/zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
-        (None, 'bat-glue',    '~/.config/fish/conf.d/bat.fish',  'template', '<repo>/shell/fish/bat.fish',  'fish'),
+    rows = [   # component glue links as conf.d/50-<name>.<ext>
+        (None, 'fd-glue',     '~/.config/bash/conf.d/50-fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
+        (None, 'zoxide-glue', '~/.config/bash/conf.d/50-zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
+        (None, 'bat-glue',    '~/.config/fish/conf.d/50-bat.fish',  'template', '<repo>/shell/fish/bat.fish',  'fish'),
     ]
     display = [('hdr', 'bash', 'loader-on'), ('row', 0), ('row', 1),
                ('hdr', 'fish', 'loader-off'), ('row', 2)]
@@ -45,7 +45,7 @@ def test_build_vm_cells_roles_and_status():
     assert vm.has_rows
     assert vm.headers == ['component', 'state', 'conf.d', 'source']
     # a known row's four cells — state in the active/changed/available vocabulary
-    assert vm.cells[0] == ['fd-glue', 'active', '~/.config/bash/conf.d/fd.sh', '<repo>/shell/bash/fd.sh']
+    assert vm.cells[0] == ['fd-glue', 'active', '~/.config/bash/conf.d/50-fd.sh', '<repo>/shell/bash/fd.sh']
     assert vm.cells[1][1] == 'changed'
     assert vm.cells[2][1] == 'available'
     # per-row element roles: active -> green, drifted -> amber, template -> dim
@@ -81,8 +81,8 @@ def test_draw_places_title_headers_status_and_note():
     scr.model = SimpleNamespace(cur=0, top=0, hscroll=0)      # the scroll fields draw writes back
     vm = GlueVM()
     vm.has_rows = True
-    vm.cells = [['fd-glue', 'active', '~/.config/bash/conf.d/fd.sh', '<repo>/shell/bash/fd.sh'],
-                ['bat-glue', 'available', '~/.config/fish/conf.d/bat.fish', '<repo>/shell/fish/bat.fish']]
+    vm.cells = [['fd-glue', 'active', '~/.config/bash/conf.d/50-fd.sh', '<repo>/shell/bash/fd.sh'],
+                ['bat-glue', 'available', '~/.config/fish/conf.d/50-bat.fish', '<repo>/shell/fish/bat.fish']]
     vm.widths = [max(len(h), max(len(r[c]) for r in vm.cells))
                  for c, h in enumerate(vm.headers)]
     vm.xs, vx = [], 0
@@ -146,7 +146,7 @@ def test_handle_nav_moves_cursor(ctx):
     down = next(k for k in range(32, 127) if km.action_for('glue', k) == 'down')
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.cur == 1
-    assert intent.handled and intent.note is None and not scr.model.dirty
+    assert intent.note is None and not scr.model.dirty
     bottom = next(k for k in range(32, 127) if km.action_for('glue', k) == 'bottom')
     scr.handle(bottom, ctx, None, None)
     assert scr.model.cur == len(scr.model.rows) - 1
@@ -162,3 +162,98 @@ def test_handle_right_left_scrolls(ctx):
     scr.handle(left, ctx, None, None)
     scr.handle(left, ctx, None, None)
     assert scr.model.hscroll == 0                          # clamped at 0
+
+
+# -- USER glue (the user.d namespace: `glue add` snippets + activated staged blocks) ----------
+
+def test_build_vm_labels_user_glue_rows():
+    scr = GlueScreen.__new__(GlueScreen)
+    m = _fake_model()
+    m.rows = m.rows[:2] + [
+        (None, '(user) aliases', '~/.config/bash/conf.d/90-aliases.sh', 'linked',
+         '<plugin>/shell/bash/user.d/aliases.sh', 'bash', True),
+        (None, '(user) staged', '~/.config/bash/conf.d/90-staged.sh', 'unlinked',
+         '<local>/shell/bash/user.d/staged.sh', 'bash', True)] + m.rows[2:]
+    m.display = [('hdr', 'bash', 'loader-on'), ('row', 0), ('row', 1), ('row', 2), ('row', 3),
+                 ('hdr', 'fish', 'loader-off'), ('row', 4)]
+    scr.model = m
+    vm = scr.build_vm(None, (40, 120))
+    assert vm.cells[2] == ['(user) aliases', 'active', '~/.config/bash/conf.d/90-aliases.sh',
+                           '<plugin>/shell/bash/user.d/aliases.sh']
+    assert vm.cells[3][1] == 'inactive' and vm.elems[3] == 'info_dim'     # unlinked -> inactive
+    assert vm.elems[2] == 'installed'
+    assert vm.status.endswith('(2 your own user glue)')
+
+
+class _FakeGlueDrv:
+    def __init__(self, entries=()):
+        self.entries = list(entries)
+        self.deployed = []
+        self.installed = []
+
+    def user_glue_entries(self):
+        return self.entries
+
+    def _user_glue_roots(self):
+        from pathlib import Path
+        return [Path('/store/glue')]
+
+    def deploy_user_glue(self, shell):
+        self.deployed.append(shell)
+
+    def install(self, rc, only_shells=None):
+        self.installed.append((rc, tuple(only_shells or ())))
+
+
+def test_model_appends_user_rows_under_installed_shells(ctx):
+    from pathlib import Path
+    gs = menu.GlueScreen.__new__(menu.GlueScreen)
+    gs.ctx = ctx
+    gs.gd = _FakeGlueDrv([
+        ('bash', Path('/store/glue/shell/bash/user.d/aliases.sh'),
+         Path('/h/.config/bash/conf.d/90-aliases.sh'), 'linked'),
+        ('elvish', Path('/store/glue/shell/elvish/user.d/x.elv'),
+         Path('/h/.config/elvish/conf.d/90-x.elv'), 'unlinked')])     # elvish not installed -> skipped
+    rows = gs._user_rows({'bash': []})
+    (row,) = rows['bash']
+    assert menu._is_user_glue(row) and row[1] == '(user) aliases' and row[3] == 'linked'
+    assert row[2].endswith('conf.d/90-aliases.sh') and row[4].endswith('shell/bash/user.d/aliases.sh')
+    assert 'elvish' not in rows
+
+
+def _user_row_screen(ctx):
+    scr = GlueScreen(ctx, menu._sample_glue_state(ctx))
+    gs = scr.model
+    gs.gd = _FakeGlueDrv()
+    gs.reload = lambda: None                                  # keep the hand-built rows
+    gs.cur = next(i for i, r in enumerate(gs.rows) if menu._is_user_glue(r))
+    return scr, gs
+
+
+def test_handle_user_glue_activate_relinks_and_deactivate_explains(ctx, monkeypatch):
+    from contextlib import nullcontext
+    from configsys.tui.screens import glue as glue_mod
+    monkeypatch.setattr(glue_mod, 'suspended', lambda _s: nullcontext())
+    scr, gs = _user_row_screen(ctx)
+    km = menu._KEYMAP
+    act = next(k for k in range(32, 127) if km.action_for('glue', k) == 'activate')
+    deact = next(k for k in range(32, 127) if km.action_for('glue', k) == 'deactivate')
+    intent = scr.handle(act, ctx, None, None)
+    assert gs.gd.deployed == ['bash'] and 'user glue' in intent.note and not gs.dirty
+    intent = scr.handle(deact, ctx, None, None)
+    assert 'your own glue' in intent.note and gs.gd.deployed == ['bash']   # nothing unlinked
+    assert not intent.note.startswith('error')
+
+
+def test_handle_activate_group_includes_user_glue(ctx, monkeypatch):
+    from contextlib import nullcontext
+    from configsys.tui.screens import glue as glue_mod
+    monkeypatch.setattr(glue_mod, 'suspended', lambda _s: nullcontext())
+    scr, gs = _user_row_screen(ctx)
+    gs.rows = [r for r in gs.rows if menu._is_user_glue(r) or r[5] != 'bash'] + \
+        [(SimpleNamespace(key='glue\\fd', comp='fd-glue'), 'fd-glue', 't', 'template', 's', 'bash')]
+    gs.cur = 0
+    grp = next(k for k in range(32, 127) if menu._KEYMAP.action_for('glue', k) == 'activate-group')
+    intent = scr.handle(grp, ctx, None, None)
+    assert gs.gd.deployed == ['bash'] and len(gs.gd.installed) == 1
+    assert '2 snippet(s)' in intent.note

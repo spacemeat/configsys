@@ -1,9 +1,3 @@
-if [ $PYTHONPATH ]; then
-    export PYTHONPATH=.:$PYTHONPATH
-else
-    export PYTHONPATH=.
-fi
-
 # Source configsys's shell glue in lexical order (bash sorts glob expansion), so a snippet can
 # order itself with an NN- prefix — 00-configsys.sh runs first and exports the CONFIGSYS_*_DIR
 # layout vars, which later snippets can then use. Managed glue links into ~/.config/bash/conf.d.
@@ -16,5 +10,3 @@ if [ -d ~/.config/bash/conf.d ]; then
     done
     unset shfile
 fi
-
-alias x="xdg-open"

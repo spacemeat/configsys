@@ -19,6 +19,7 @@ three MVVM seams:
 '''
 
 import curses
+from fnmatch import fnmatchcase
 
 from .. import menu
 from ..menu import (_GKEY, ProfileScreen as _ProfilesModel, _attr_filter_modal, _busy,
@@ -52,12 +53,12 @@ def _nav_strs():
         g = lambda a: km.glyph('profiles', a)
         nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
                 f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
-                f"{g('attr-filter')} attrs · {g('machine-target')} machines ")
+                f"{g('attr-filter')} attrs · {g('machine-target')} machines · {g('where')} where ")
         nav2 = (f" {g('track-all')} track-set · {g('track-one')} track-one · {g('disp-interesting')} int · "
                 f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · "
                 f"{g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     else:
-        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines ')
+        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines · w where ')
         nav2 = (' T track-set · t track-one · i int · s seen · space sel · a all · v via · x uninst · q quit ')
     return nav1, nav2
 
@@ -311,6 +312,17 @@ class ProfilesScreen(Screen):
         picks_map = ctx.config.picks()
         _uq = ctx.config.uninstall_queue()               # staged-for-uninstall -> ⮾ in the inst'd column
         _cur_track = ctx.config.included()               # tracked on THIS box -> ● vs ⊙ (installed-untracked)
+        # an IGNORED orphan (orphans-ignore: — `.` toggles it) is dimmed: the user said "leave it be".
+        # The overlay's async orphan classification carries `ignored` (glob over comp OR package key);
+        # the config globs over the name cover the frames before that scan lands (and right after `.`).
+        try:
+            _ign_globs = list(ctx.config.orphans_ignore() or ())
+        except Exception:                                # noqa: BLE001 — never break the paint
+            _ign_globs = []
+
+        def _ignored_orphan(nm):
+            o = ov_orph.get(nm) if isinstance(ov_orph, dict) else None
+            return bool(getattr(o, 'ignored', False)) or any(fnmatchcase(nm, g) for g in _ign_globs)
         rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, vm.ctitle, ps.focus == 'right', h, w)
         n = len(vcat)
         body_rows = max(1, rih - 1)                       # one row reserved for the column header
@@ -402,12 +414,14 @@ class ProfilesScreen(Screen):
                   pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
             _hput(y, x_org, _fit(ps.origin(name), org_w),
                   pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
-            # inst'd: ⮾ staged-for-uninstall · ● installed+tracked · ⊙ installed+untracked · ◐ partial · ○ none
+            # inst'd: ⮾ staged-for-uninstall · ● installed+tracked · ⊙ installed+untracked (dimmed when
+            # ignored) · ◐ partial · ○ none
             if name in _uq:
                 inst_g, inst_role = '⮾', 'orphan_lurking'
             elif istate == 'all':
                 inst_g = '●' if name in _cur_track else '⊙'
-                inst_role = 'installed' if name in _cur_track else 'orphan_lurking'
+                inst_role = ('installed' if name in _cur_track
+                             else 'info_dim' if _ignored_orphan(name) else 'orphan_lurking')
             elif istate == 'some':
                 inst_g, inst_role = '◐', 'installed'
             elif not avail:                              # no install method on THIS OS
@@ -468,6 +482,11 @@ class ProfilesScreen(Screen):
         dirty = False
         pending = []
         open_where = None
+        wrote = []                                 # a config write was attempted (for the --pretend note)
+
+        def _w(fn):
+            wrote.append(True)
+            return fn
         if pfact == 'down':
             if ps.focus == 'left':
                 ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + 1)
@@ -528,11 +547,11 @@ class ProfilesScreen(Screen):
                     ps.focus = 'left'          # at the left edge -> back to the browse pane
         elif pfact == 'toggle-install':
             ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
-            # installed-but-unpicked ⊙ coloured). NOTE: don't invalidate the
+            # installed-but-unpicked ⊙ coloured, ignored orphans dimmed). NOTE: don't invalidate the
             # overlay cache here — the data is identical on/off (only the rendering differs).
             note = ('install overlay off',
                     'install overlay ON — installed underlined, installed-but-unpicked ⊙ '
-                    'coloured')[ps.show_install]
+                    'coloured, ignored orphans dimmed')[ps.show_install]
         elif pfact == 'stage-uninstall' and ps.focus == 'right':
             _targets = ps.action_targets()         # stage the set (else the cursor) for uninstall
             if _targets:                           # (idempotent — like Components `x`; unstage there)
@@ -541,7 +560,7 @@ class ProfilesScreen(Screen):
                     for _c in _targets:
                         if _c in ctx.config.uninstall_queue():
                             continue
-                        changed, _lbl = actions.stage_uninstall(ctx, _c, on=True)
+                        changed, _lbl = _w(actions.stage_uninstall)(ctx, _c, on=True)
                         nch += 1 if changed else 0
                     ps.selected_comps.clear()
                     ps.reload(); dirty = dirty or nch > 0
@@ -563,7 +582,7 @@ class ProfilesScreen(Screen):
                             continue
                         _state = ('new' if (_single and ctx.config.disposition(_c) == _want)
                                   else _want)
-                        changed, _lbl = actions.set_disposition(ctx, _c, _state)
+                        changed, _lbl = _w(actions.set_disposition)(ctx, _c, _state)
                         nch += 1 if changed else 0
                     if _batch:
                         ps.selected_comps.clear()
@@ -583,10 +602,10 @@ class ProfilesScreen(Screen):
                 nch = 0
                 try:
                     for _c in _targets:
-                        cn, _l = actions.set_included(ctx, _c, tg, on)
+                        cn, _l = _w(actions.set_included)(ctx, _c, tg, on)
                         nch += cn
                     if on:                         # tracked implies seen (undispositioned -> seen)
-                        actions.mark_all_seen(ctx, _targets)
+                        _w(actions.mark_all_seen)(ctx, _targets)
                     if pfact == 'track-all':
                         ps.selected_comps.clear()
                     ps.reload(); dirty = dirty or nch > 0
@@ -615,7 +634,7 @@ class ProfilesScreen(Screen):
                 note = 'nothing NEW to mark seen'
             elif _popup_choose(stdscr, pal, f'mark all {len(_new)} NEW components as seen?',
                                [('cancel', ''), ('mark seen', '')], 0) == 1:
-                nch = actions.mark_all_seen(ctx, _new)
+                nch = _w(actions.mark_all_seen)(ctx, _new)
                 ps.reload()
                 note = f'{nch} marked seen'
         elif pfact == 'claim':                 # `C`: track everything already INSTALLED (adopt a box)
@@ -630,9 +649,9 @@ class ProfilesScreen(Screen):
                 nch = 0
                 for _cc in _claim:
                     for _m in tg:
-                        cn, _l = actions.set_included(ctx, _cc, [_m], True)
+                        cn, _l = _w(actions.set_included)(ctx, _cc, [_m], True)
                         nch += cn
-                actions.mark_all_seen(ctx, _claim)   # tracked implies seen
+                _w(actions.mark_all_seen)(ctx, _claim)   # tracked implies seen
                 ps.reload(); dirty = True
                 note = f'claimed {len(_claim)} installed → tracked on {", ".join(tg)}'
         elif pfact == 'top':
@@ -694,7 +713,7 @@ class ProfilesScreen(Screen):
             vcat = ps.vcatalog()                   # toggle THIS component's tracking per machine
             if vcat:
                 _c = vcat[ps.rcur]
-                mnote = _component_machines_modal(stdscr, pal, ctx, _c)
+                mnote = _w(_component_machines_modal)(stdscr, pal, ctx, _c)
                 ps.reload(); dirty = True
                 note = mnote or f'{_c} machines'
         elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
@@ -708,12 +727,19 @@ class ProfilesScreen(Screen):
             self.model = ps
             dirty = True
             note = mnote or f'targets: {", ".join(sorted(cur)) or "(none)"}'
-        elif pfact == 'where':                     # full-page provenance for the current profile
-            _wp = ps.cur_profile()
-            if _wp:
-                from ...app import where_profile_report
-                where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
-                open_where = (where_lines, _wp)
+        elif pfact == 'where':                     # full-page `where`: the cursor COMPONENT when the
+            if ps.focus == 'right':                # table is focused (like Components), else the
+                _vc = ps.vcatalog()                # current profile's provenance
+                _wc = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
+                if _wc:
+                    from ...app import where_report
+                    open_where = (where_report(ctx, _wc) or [f'{_wc}: nothing to show'], _wc)
+            else:
+                _wp = ps.cur_profile()
+                if _wp:
+                    from ...app import where_profile_report
+                    where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
+                    open_where = (where_lines, _wp)
         elif pfact == 'select' and ps.focus == 'right':
             vcat = ps.vcatalog()               # `space`: build the multi-select set (A/I/S/X batch)
             if vcat:
@@ -731,13 +757,15 @@ class ProfilesScreen(Screen):
                     tg = sorted(ps.targets())
                     on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude
                     try:
-                        nch, _l = actions.set_included(ctx, name, tg, on)
+                        nch, _l = _w(actions.set_included)(ctx, name, tg, on)
                         if on:                            # tracked implies seen
-                            actions.mark_all_seen(ctx, [name])
+                            _w(actions.mark_all_seen)(ctx, [name])
                         ps.reload()
                         dirty = dirty or nch > 0
                         note = (f'{name} {"included on" if on else "excluded from"} {", ".join(tg)}'
                                 if nch else 'no change')
                     except ConfigsysError as e:
                         note = f'edit failed: {e}'
+        if wrote and getattr(ctx.runner, 'pretend', False):   # --pretend: the writers refused; the
+            note = menu._pretend_note(ctx, None, True)         # counts/notes above would misreport it
         return Intent(note=note, dirty=dirty, pending_notes=pending or None, open_where=open_where)

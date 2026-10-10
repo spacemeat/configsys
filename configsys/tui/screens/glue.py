@@ -16,8 +16,8 @@ composed unchanged; this adds the three MVVM seams:
 
 from .. import menu
 from ..menu import (_DF_STATE_ELEM, _GLUE_HEADERS, _GLUE_STATE_LABEL, GlueScreen as _GlueModel,
-                    _draw_nav, _fill_bg, _fit, _page_rows, _panel, _glue_cells, _put, _put_hscroll,
-                    _scroll_top, _scrollbar_h, _scrollbar_v)
+                    _draw_nav, _fill_bg, _fit, _is_user_glue, _page_rows, _panel, _glue_cells, _put,
+                    _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
 from ..screen import suspended
 from .base import Intent, Screen, ViewModel
 
@@ -102,6 +102,9 @@ class GlueScreen(Screen):
         if n_changed:
             status += f'   {n_changed} changed (A to re-activate)'
         status += f'   {n_inactive} inactive'
+        n_user = sum(1 for r in gs.rows if _is_user_glue(r))
+        if n_user:
+            status += f'   ({n_user} your own user glue)'
         vm.status = status
         vm.nav = _nav_str()
         return vm
@@ -181,6 +184,14 @@ class GlueScreen(Screen):
                 gs.cur = 0
             elif gact == 'bottom':
                 gs.cur = max(0, len(gs.rows) - 1)
+            elif gact == 'activate' and row and _is_user_glue(row):   # USER glue: (re)link the
+                with suspended(stdscr):                 # shell's user.d namespace into conf.d
+                    gs.gd.deploy_user_glue(row[5])
+                gs.reload()
+                note = f'linked your user glue for {row[5]} ({row[1]})'
+            elif gact == 'deactivate' and row and _is_user_glue(row):   # not a unit -> nothing to unlink
+                note = (f'{row[1]} is your own glue: configsys links every user.d snippet and never '
+                        f'edits it — delete or move {row[4]} to stop it loading')
             elif gact == 'activate' and row:        # activate the current snippet for ITS shell only
                 with suspended(stdscr):
                     res = gs.gd.install(row[0], only_shells=[row[5]])
@@ -199,16 +210,20 @@ class GlueScreen(Screen):
                 # re-install the whole group, not just the inactive rows: glue install is
                 # idempotent and drift-refreshes, so this also picks up an active-but-stale
                 # store copy after the shipped snippet changed (the gestalt/inline case).
-                grp = {r[0].key: r[0] for r in gs.rows if r[5] == shell}
+                grp = {r[0].key: r[0] for r in gs.rows if r[5] == shell and not _is_user_glue(r)}
+                user = [r for r in gs.rows if r[5] == shell and _is_user_glue(r)]
                 n_inactive = sum(1 for r in gs.rows
                                  if r[5] == shell and r[3] not in ('linked', 'loader-on'))
                 with suspended(stdscr):
                     for rc in grp.values():
                         gs.gd.install(rc, only_shells=[shell])   # scope to THIS shell, not the component's others
+                    if user:                                     # + relink the shell's user.d snippets
+                        gs.gd.deploy_user_glue(shell)
                 gs.dirty.update(grp)
                 gs.reload()
-                note = (f'(re)activated {len(grp)} snippet(s) in the {shell} group'
-                        f' ({n_inactive} newly active)' if grp
+                n = len(grp) + len(user)
+                note = (f'(re)activated {n} snippet(s) in the {shell} group'
+                        f' ({n_inactive} newly active)' if n
                         else f'no snippets in the {shell} group')
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'

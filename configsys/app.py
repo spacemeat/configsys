@@ -35,9 +35,9 @@ USER_CONFIG_TEMPLATE = '''{
     // configsys — this machine's settings and overrides. Overlays the repo's
     // config.hu + routes.hu section by section (your definitions win).
 
-    // Pull in other files (component definitions only — machine settings like picks:, pins:
-    // and scope: in an included file are ignored). Relative paths resolve against THIS file's
-    // directory.
+    // Pull in other files. An included file may define anything this file can (components,
+    // profiles, os/drivers blocks); only machine settings like picks:, pins: and scope: are
+    // ignored there. Relative paths resolve against THIS file's directory.
     // include: [ ~/src/myproject/configsys.hu ]
 
     // Data plugins from git repos, pinned to a ref, then `configsys plugin sync`. A
@@ -77,6 +77,11 @@ USER_CONFIG_TEMPLATE = '''{
     //         profiles:   { gradient: { from: "#08221e"  to: "#020806" } }   // just a different bg
     //     }
     // }
+
+    // Your own browse categories (they never install anything — `picks:` does). A profile is a
+    // list of components and `+other-profile` includes; same name as a shipped one replaces it,
+    // and `+<its own name>` first amends it instead.
+    // profiles: { my-favorites: [ btop  ripgrep  +file-browsers ] }
 
     // Override component routes: bindings merge ADDITIVELY — add an install method (or your
     // own component), override a binding by its (via, when), `drop:` one, or {} to remove the
@@ -149,6 +154,12 @@ class Context:
             return                                       # explicit path -> nothing to migrate
         new, legacy = self.paths.user_config_file, self.paths.legacy_user_config_file
         if not new.exists() and legacy.exists() and legacy != new:
+            if self.runner.pretend:
+                # a dry run moves nothing: READ the legacy file in place for this run (every config
+                # write is refused under --pretend, so nothing can land in it), and say so
+                print(f'configsys: [pretend] would move {legacy} -> {new} (reading it in place)')
+                self.paths.user_config_file = legacy
+                return
             new.parent.mkdir(parents=True, exist_ok=True)
             legacy.rename(new)
             print(f'configsys: moved {legacy} -> {new}')
@@ -190,14 +201,18 @@ class Context:
         if _blk == 'kde_linux':
             add('warn', 'immutable',
                 'KDE Linux detected (alpha, immutable, NO system package manager) — configsys installs '
-                'apps via Flatpak and CLI tools via userland methods (tarballs, cargo, pipx, …); a '
-                'component offered only as a distro package declines here. KDE Linux routing is NEW and '
-                'not validated on real hardware — review plans before running them.')
+                'apps via Flatpak and CLI tools via userland methods (tarballs, `via: script` '
+                'installers, cargo once rust is in); pip/pipx components decline here (pipx and '
+                'python3-pip have only distro-package routes), as does anything offered only as a '
+                'distro package. KDE Linux routing is NEW and not validated on real hardware — review '
+                'plans before running them.')
         elif _blk == 'chimera':
             add('warn', 'partial-os',
                 'Chimera Linux detected — configsys does not route its apk packages yet (Chimera\'s '
-                'package names differ from Alpine\'s), so only portable methods (musl tarballs, cargo, '
-                'pipx, …) install here and most components decline. Chimera-named apk routes are a '
+                'package names differ from Alpine\'s), and nothing beyond python3 is assumed present, '
+                'so practically NOTHING installs here: tarballs and `via: script` installers need '
+                'curl, Flatpak and pipx need their own distro packages — all unroutable. Only '
+                'dotfiles/glue and self-contained methods apply. Chimera-named apk routes are a '
                 'planned follow-up.')
         self.ensure_plugin_code()                        # populates plugin_code_warnings
         for w in getattr(self.config, 'load_warnings', []):
@@ -384,6 +399,11 @@ class Context:
         p = self.paths.user_config_file
         if p.exists():
             return
+        if self.runner.pretend:
+            # a dry run writes nothing. The template is comments only, so an ABSENT file loads to
+            # the identical default config (layers skip a missing root); every config write is
+            # refused under --pretend (actions.PRETEND_NOT_SAVED), so nothing needs the file.
+            return
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(USER_CONFIG_TEMPLATE, encoding='utf-8')
         print(f'configsys: generated {p}')
@@ -453,8 +473,12 @@ class Context:
             for prov, via in sorted(tighten.items()):
                 r.event(report.DEFAULT, f'  auto-tightened {prov} -> via {via} '
                                         f'(to meet a version floor)')
+            dropped = getattr(routes, 'dropped_soft_pins', None) or {}
             for what, choice in sorted(detected.items()):
-                r.event(report.DEFAULT, f'  adopting installed: {what} -> {choice}')
+                if what in dropped:          # a detected install that fails a version need: not adopted
+                    r.event(report.VERBOSE, f'  not adopting installed {what} -> {choice}: {dropped[what]}')
+                else:
+                    r.event(report.DEFAULT, f'  adopting installed: {what} -> {choice}')
         # picks with no install method valid here (dangling) or only a disabled driver's (unmet)
         # are a ROUTING STATUS, not an error: they get a row (+ any stranded install) below
         from . import stranded
@@ -652,9 +676,18 @@ def _expand_profile_args(ctx, names):
     bare tokens pass through as component names. The `profile:` prefix disambiguates from a
     component of the same name. Returns the expanded list, or None on a bad profile (after
     printing the error).'''
-    out, seen = [], set()
+    got = _expand_profile_args_detail(ctx, names)
+    return None if got is None else got[0]
 
-    def add(c):
+
+def _expand_profile_args_detail(ctx, names):
+    '''_expand_profile_args plus WHICH names came only from a `profile:` expansion (not named
+    explicitly) — those may be skipped when they can't install here. Returns (names, from_profile)
+    or None on a bad profile.'''
+    out, seen, explicit, from_profile = [], set(), set(), set()
+
+    def add(c, via_profile=False):
+        (from_profile if via_profile else explicit).add(c)
         if c not in seen:
             seen.add(c)
             out.append(c)
@@ -671,31 +704,73 @@ def _expand_profile_args(ctx, names):
                 print(f'configsys: {e}')
                 return None
             for c in members:
-                add(c)
+                add(c, via_profile=True)
         else:
             add(tok)
-    return out
+    return out, from_profile - explicit
 
 
-def _shell_glue_root(ctx):
-    '''Where staged glue candidates live: the primary plugin's dotfiles/ if configured (portable, in
-    git), else the machine-local store — the same capture root the dotfiles driver reads.'''
-    return getattr(ctx.paths, 'primary_dotfiles_dir', None) or ctx.paths.user_dotfiles_dir
+def _skip_unroutable_profile_members(ctx, names, from_profile):
+    '''Drop profile-expanded members that have no install route on this machine (no binding here, an
+    unmet hard requirement) with ONE notice line, so `install profile:terminal` installs what it can
+    instead of aborting on one Arch-only member. Explicitly named components are never skipped —
+    they still error loudly.'''
+    cand = [n for n in names if n in from_profile]
+    if not cand:
+        return names
+    try:
+        _units, errs = ctx.routes.resolve_resilient(cand)
+    except Exception:                                # noqa: BLE001 — let the normal path report it
+        return names
+    bad = [n for n in cand if n in (errs or {})]
+    if bad:
+        print(f'configsys: skipped {len(bad)} not installable here: {", ".join(bad)}  '
+              '(`configsys where <name>` says why)')
+    return [n for n in names if n not in bad]
 
 
-def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
+def _confirm_plan(ctx, plan, *, yes=False):
+    '''Show a multi-op plan and ask before running it (the --picks runs). True = go. --yes skips
+    the question; --pretend runs without asking (nothing happens anyway); a non-interactive run
+    without --yes stops, like `upgrade --system`.'''
+    print(f'\nplan ({len(plan)} op{"" if len(plan) == 1 else "s"}):')
+    for op, key, _rc in plan:
+        print(f'  {op:12} {key}')
+    if yes or getattr(ctx.runner, 'pretend', False):
+        return True
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        print('\nconfigsys: re-run with --yes to apply this plan non-interactively.')
+        return False
+    try:
+        ans = input(f'\nRun these {len(plan)} op(s) now? [y/N] ').strip().lower()
+    except EOFError:
+        ans = ''
+    if ans not in ('y', 'yes'):
+        print('Aborted — nothing changed.')
+        return False
+    return True
+
+
+def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, confirm=False,
+                 yes=False):
     if ledger is None:
         ledger = Ledger.load(ctx.paths)      # every op writes it now: locks, and install receipts
-    names = _expand_profile_args(ctx, names)
-    if names is None:
+    got = _expand_profile_args_detail(ctx, names)
+    if got is None:
         return 1
+    names, from_profile = got
+    if op != 'remove':                       # a remove still looks for stranded installs (below)
+        names = _skip_unroutable_profile_members(ctx, names, from_profile)
+        if not names:
+            print('configsys: nothing installable here in that selection')
+            return 1
     stranded_removes = []
     if op == 'remove':
         # a component with no install method here any more (dangling/unmet) can't resolve — but
         # if it's still installed via a stranded method (receipt / AUR heuristic / gated binding),
         # removing THAT install is exactly what the user asked for
         from . import stranded
-        routable = []
+        routable, skipped = [], []
         for n in names:
             try:
                 ctx.routes.resolve_names([n])
@@ -704,8 +779,12 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
                 found = stranded.find(ctx, n, ledger=ledger, foreign=stranded.foreign_index(ctx))
                 if found:
                     stranded_removes += [('remove', s_.key, s_.rc) for s_ in found]
+                elif n in from_profile:
+                    skipped.append(n)                # a profile member with nothing here to remove
                 else:
                     routable.append(n)               # let the normal path report it
+        if skipped:
+            print(f'configsys: skipped {len(skipped)} not installable here: {", ".join(skipped)}')
         names = routable
     if names:
         units, roots = ctx.routes.resolve_with_roots(names)
@@ -715,6 +794,18 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
         print(f'configsys: nothing resolved for {names}')
         return 1
     ctx.prepare_units(units)
+    if op == 'set-version':
+        # no surprises: a method that can't target a version (tarball/appImage/font/...) would just
+        # reinstall the routed one and report ok — refuse BEFORE anything (deps included) runs.
+        from . import actions
+        for key in sorted(roots):
+            rc = units[key]
+            drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+            if drv is not None and not actions.targets_version(drv):
+                print(f'configsys: set-version {rc.comp}: '
+                      f'{actions.no_version_target_message(rc.via or rc.driver, rc.comp)}',
+                      file=sys.stderr)
+                return 1
     # Apply the requested op to the *named* units; expand_plan folds in dependency
     # installs (e.g. apt\flatpak before flatpak\firefox) and orders the whole thing.
     base_plan = [(op, key, units[key]) for key in sorted(roots)]
@@ -752,6 +843,8 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False):
                 print(f'configsys: heads-up — {adv["text"]}', file=sys.stderr)
         except Exception:                    # noqa: BLE001 — an advisory must never block the op
             pass
+    if confirm and not _confirm_plan(ctx, plan, yes=yes):
+        return 1
     maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
     from . import actions
     result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # the shared op loop
@@ -787,10 +880,15 @@ def _installed_despite_failure(drv, rc, op, version):
 def _offer_report(ctx, failures, fatal=None):
     '''Persist EVERY problem from the run (real failures + installed-with-a-warning) so `configsys
     report` can reuse them later, and — on a terminal — offer to file real failures now. `fatal` is
-    how many are hard failures (None = treat all as fatal). Never fatal itself; a --pretend run
-    doesn't reach here.'''
+    how many are hard failures (None = treat all as fatal). Never fatal itself. A --pretend run
+    records nothing: no last-failure.hu, no report offer — just a note of what would have failed.'''
     if not isinstance(failures, list):                    # tolerate a single record
         failures = [failures]
+    if getattr(ctx.runner, 'pretend', False):
+        names = [f['component'] for f in failures]
+        print(f'\nconfigsys: [pretend] {", ".join(names)} would fail as shown above — nothing '
+              'recorded (no report saved).')
+        return
     reportgen.save_failures(ctx.paths, failures)
     fatal = len(failures) if fatal is None else fatal
     if fatal == 0:                                        # only installed-with-warnings — note, don't push
@@ -855,9 +953,65 @@ def cmd_fix_scope(ctx, args):
     return 1 if failed else 0
 
 
+def _picks_selection(ctx, op):
+    '''For `install --picks` / `upgrade --picks`: (names, error_rc). The component names of THIS
+    box's picks that need `op` — not installed (install) or outdated (upgrade) — from a full inspect.
+    Picks with no install method here are skipped with the same one-line notice as a profile:
+    expansion. Refuses (error_rc=1) when --machine names another machine: installs only ever happen
+    on this box, so curating machine X's set from here must not install X's picks here.'''
+    from .config import _selected_machine
+    cfg = ctx.config
+    own = _selected_machine(cfg._layers) or 'this-machine'
+    if ctx.machine_override and ctx.machine_override != own:
+        print(f'configsys: --picks acts on THIS box ("{own}"), but --machine names '
+              f'"{ctx.machine_override}" — installs never happen for another machine here. Drop '
+              '--machine (or run this on that machine).', file=sys.stderr)
+        return None, 1
+    _cfg, requested, _units, _ledger, states = ctx.load_pipeline()
+    picked = list(requested)
+    unroutable = sorted(set(ctx.resolve_errors or {}) | set(getattr(ctx, 'route_classes', None) or {}))
+    unroutable = [n for n in unroutable if n in picked]
+    if unroutable:
+        print(f'configsys: skipped {len(unroutable)} not installable here: {", ".join(unroutable)}  '
+              '(`configsys where <name>` says why)')
+    want = 'missing' if op == 'install' else 'outdated'
+    need = {s.component.comp for s in states.values() if s.status == want}
+    return [n for n in picked if n in need], 0
+
+
+def _merge_names(explicit, extra):
+    out = list(explicit or [])
+    out += [n for n in extra if n not in out]
+    return out
+
+
+def _ops_from_picks(ctx, args, op):
+    '''The shared `--picks` front half of cmd_install / cmd_upgrade: (names, rc) where rc is not
+    None when the command should stop now (refused, or nothing to do).'''
+    sel, err = _picks_selection(ctx, op)
+    if err:
+        return None, err
+    names = _merge_names(args.names, sel)
+    if not names:
+        print('configsys: nothing to do — every pick of this box is '
+              + ('installed' if op == 'install' else 'up to date (locked picks are left alone)'))
+        return None, 0
+    return names, None
+
+
 def cmd_install(ctx, args):
     ctx.paths.dotfiles_force = getattr(args, 'force', False)   # read by the dotfiles driver
-    return _dispatch_op(ctx, args.names, 'install', no_deps=getattr(args, 'no_deps', False))
+    names, confirm = args.names, False
+    if getattr(args, 'picks', False):
+        names, rc = _ops_from_picks(ctx, args, 'install')
+        if rc is not None:
+            return rc
+        confirm = True
+    elif not names:
+        print('configsys: `install` needs component name(s), or `--picks` for every uninstalled pick')
+        return 1
+    return _dispatch_op(ctx, names, 'install', no_deps=getattr(args, 'no_deps', False),
+                        confirm=confirm, yes=getattr(args, 'yes', False))
 
 
 def cmd_remove(ctx, args):
@@ -867,11 +1021,19 @@ def cmd_remove(ctx, args):
 def cmd_upgrade(ctx, args):
     if getattr(args, 'system', False):
         return cmd_upgrade_system(ctx, args)
-    if not args.names:
-        print('configsys: `upgrade` needs component name(s), or `--system` to upgrade the whole system')
+    names, confirm = args.names, False
+    if getattr(args, 'picks', False):
+        names, rc = _ops_from_picks(ctx, args, 'upgrade')
+        if rc is not None:
+            return rc
+        confirm = True
+    elif not names:
+        print('configsys: `upgrade` needs component name(s), `--picks` for every outdated pick, or '
+              '`--system` to upgrade the whole system')
         return 1
     ctx.paths.dotfiles_force = getattr(args, 'force', False)
-    return _dispatch_op(ctx, args.names, 'upgrade', no_deps=getattr(args, 'no_deps', False))
+    return _dispatch_op(ctx, names, 'upgrade', no_deps=getattr(args, 'no_deps', False),
+                        confirm=confirm, yes=getattr(args, 'yes', False))
 
 
 _TIER_LABEL = {'kernel': 'kernel', 'core': 'core (base system)',
@@ -1403,6 +1565,12 @@ def where_report(ctx, name):
         out.append(f'  provides    {_fmt_caps(comp.provides, comp.prov_versions)}')
     if comp.requires:
         out.append(f'  requires    {_fmt_caps(comp.requires, comp.req_versions)}')
+        # how each required capability's provider was decided, when a rule other than "the only
+        # one" did it (e.g. `standing: 5`) — recorded by the last resilient resolve
+        rules = getattr(r, 'provider_rules', None) or {}
+        decided = [f'{c} by {rules[c]}' for c in comp.requires if c in rules]
+        if decided:
+            out.append(f'  providers   {", ".join(decided)}')
     pinned = r.pins.get(name)
     if pinned is not None:
         out.append(f'  pinned      via:{pinned}   (from your config)')
@@ -1522,6 +1690,16 @@ def cmd_where(ctx, args):
     return 0
 
 
+def _pretend_edit(ctx, what):
+    '''--pretend is a TRUE dry run, config edits included: print what the edit WOULD do and return
+    True so the caller skips the write (and the user-config generation before it). The same shape
+    pin set/unset/promote, plugin set-source and glue add/override already use.'''
+    if getattr(ctx.runner, 'pretend', False):
+        print(f'configsys: [pretend] would {what}')
+        return True
+    return False
+
+
 def cmd_disp(ctx, args):
     '''Component dispositions (v2 triage): seen / interesting / new. include/exclude are profile
     membership; NEW is the undispositioned default. Local (per-machine) side-store.'''
@@ -1561,6 +1739,12 @@ def cmd_disp(ctx, args):
         return 0
 
     if sub == 'set':
+        if ctx.runner.pretend:
+            from . import plugins
+            _f, label = actions._nature_target(ctx, 'dispositions',
+                                               lambda f: bool(plugins.read_dispositions(f)))
+            _pretend_edit(ctx, f'set {args.name} → {args.state}  (in {label})')
+            return 0
         ctx.ensure_user_config()
         changed, label = actions.set_disposition(ctx, args.name, args.state)
         print(f'configsys: {args.name} → {args.state}  (in {label})' if changed
@@ -1586,6 +1770,22 @@ def cmd_picks(ctx, args):
             print('  (none — pick components in the TUI, or `configsys picks add <name>`)')
         return 0
 
+    machines = getattr(args, 'machines', None) or [cfg.current_machine()]
+    if ctx.runner.pretend:
+        if sub == 'to-primary':
+            from . import plugins
+            _pf, prim = actions._primary_target_label(ctx)
+            local = plugins.read_picks(ctx.paths.user_config_file)
+            n = sum(len(v) for v in local.values())
+            _pretend_edit(ctx, f'move {n} local pick(s) into "{prim}"' if prim and n
+                          else 'do nothing — ' + ('no primary plugin' if not prim
+                                                  else 'no local picks to move'))
+        elif sub in ('add', 'rm'):
+            labels = sorted({actions._picks_target(ctx, m)[1] for m in machines})
+            _pretend_edit(ctx, f'{"pick" if sub == "add" else "unpick"} {args.component} on '
+                               f'{", ".join(machines)}  (in {" + ".join(labels)})')
+        return 0
+
     ctx.ensure_user_config()
 
     if sub == 'to-primary':
@@ -1599,8 +1799,6 @@ def cmd_picks(ctx, args):
             print(f'configsys: nothing to move — no local picks (they already live in "{label}")')
         return 0
 
-    machines = getattr(args, 'machines', None) or [cfg.current_machine()]
-
     if sub in ('add', 'rm'):
         n, label = actions.set_included(ctx, args.component, machines, sub == 'add')  # invalidates glue cache
         verb = 'picked' if sub == 'add' else 'unpicked'
@@ -1613,7 +1811,8 @@ def cmd_picks(ctx, args):
 
 def cmd_orphans(ctx, args):
     '''List installed software this machine doesn't track, grouped by driver, each tagged with its
-    kind (lurking / forgotten / foreign). Read-only report — the phase-1 surface.'''
+    kind (lurking / forgotten / foreign) — or act on one: --adopt (track it), --remove (uninstall
+    it), --ignore (quiet it). The bare listing is read-only.'''
     from . import orphans as orphans_mod, actions
     cfg = ctx.config
 
@@ -1621,6 +1820,13 @@ def cmd_orphans(ctx, args):
     if args.ignore:
         cur = list(cfg.orphans_ignore())
         added = [p for p in args.ignore if p not in cur]
+        if added and ctx.runner.pretend:
+            _pretend_edit(ctx, f'ignore {", ".join(added)}  →  orphans-ignore in '
+                               f'{actions._setting_target(ctx, "orphans-ignore")[1]}')
+            return 0
+        if not added:
+            print(f'already ignored: {", ".join(args.ignore)}')
+            return 0
         _changed, label = actions.set_config_setting(ctx, 'orphans-ignore', cur + added)
         if added:
             print(f'ignoring {", ".join(added)}  →  orphans-ignore in {label}')
@@ -1633,6 +1839,11 @@ def cmd_orphans(ctx, args):
                   f'(a component); a foreign orphan has no recipe to adopt')
             return 1
         machines = getattr(args, 'machines', None) or [ctx.config.current_machine()]
+        if ctx.runner.pretend:
+            labels = sorted({actions._picks_target(ctx, m)[1] for m in machines})
+            _pretend_edit(ctx, f'adopt (track) {args.adopt} on {", ".join(machines)}  '
+                               f'(in {" + ".join(labels)})')
+            return 0
         n, label = actions.stage_adopt(ctx, args.adopt, machines)
         print(f'adopted (tracked) {args.adopt} on {", ".join(machines)}  (in {label})' if n
               else f'no change — {args.adopt} already tracked on {", ".join(machines)}')
@@ -1662,8 +1873,9 @@ def cmd_orphans(ctx, args):
                                      include_auto=args.include_auto, include_system=True)
     if args.driver:
         found = [o for o in found if o.driver == args.driver]
-    # hide OS-base foreign (required/important/standard) unless asked — but the tier rode in on every
-    # orphan, so `--system` (or --json) surfaces them; a user can still choose to manage systemd.
+    # hide OS-base foreign (required/important/standard) unless `--system` — in the listing AND in
+    # --json (the filter runs first). The tier rides on every orphan, so `--system` surfaces them
+    # (tier included in the JSON); a user can still choose to manage systemd.
     base_hidden = 0
     if not args.system:
         kept = []
@@ -2000,12 +2212,15 @@ def _pin_promote(ctx, name):
         print('configsys: no primary plugin set — bless one first '
               '(`configsys plugin bless <source>`)', file=sys.stderr)
         return 1
-    files = [f for f, role in plugins.layer_files(ctx.paths.plugins_dir, decls) if role == 'primary']
-    if not files:
+    from . import actions
+    # a primary with no data file yet gets an empty one on demand (never under --pretend)
+    target, _pn = (actions._primary_target_label(ctx) if ctx.runner.pretend
+                   else actions._writable_primary_file(ctx))
+    if not target:
         print(f'configsys: primary plugin {prim!r} has no synced data file to hold the pin '
               '(add one to it first)', file=sys.stderr)
         return 1
-    target, value = files[0], local[name]
+    value = local[name]
     if ctx.runner.pretend:
         print(f'configsys: [pretend] would move pin {name} -> {value} into primary plugin {prim}')
         return 0
@@ -2499,7 +2714,38 @@ def cmd_plugin_set_source(ctx, args, decls):
         d['source'] = new_source
     plugins.set_declared(ctx.paths.user_config_file, decls)
     print(f'configsys: {args.name} source -> {new_source}  (run `configsys plugin sync` to fetch)')
+    _retarget_clone(ctx, args.name, new_source)
     return 0
+
+
+def _retarget_clone(ctx, old_dir, new_source):
+    '''After `plugin set-source`, point the SYNCED clone at the new source too — sync only `git
+    fetch`es an existing clone, so without this it would keep pulling the OLD remote. Sets (or adds)
+    `origin` to the new clone URL via the runner. Leaves the dir alone when the new source isn't
+    git-transported, is the clone itself (locally authored), or syncs into a different dir.'''
+    from . import plugins
+    import shlex
+    pdir = ctx.paths.plugins_dir / old_dir
+    if not (pdir / '.git').exists():
+        return
+    if plugins.dir_name(new_source) != old_dir:
+        print(f'configsys: note — {new_source} syncs into {plugins.dir_name(new_source)}/; the old '
+              f'clone {pdir} is left in place (remove it by hand once the new one syncs)')
+        return
+    if plugins._transport_for(new_source) is not plugins._git_transport:
+        return                                         # a registered transport materializes it
+    if plugins.is_local_authored(new_source, pdir):
+        return                                         # the source IS this dir — nothing to fetch
+    dq, uq = shlex.quote(str(pdir)), shlex.quote(plugins.clone_url(new_source))
+    r = ctx.runner.run(f'git -C {dq} remote set-url origin {uq} 2>/dev/null || '
+                       f'git -C {dq} remote add origin {uq}', capture=True)
+    if r is not None and not r.ok:
+        print(f'configsys: warning — could not point {pdir} at the new source; sync may still fetch '
+              f'the old remote (fix: git -C {pdir} remote set-url origin {plugins.source_url(new_source)})',
+              file=sys.stderr)
+        return
+    plugins._set_push_remote(ctx.runner, pdir, new_source)   # ssh push url for a github:/gitlab: source
+    print(f'configsys: retargeted the synced clone\'s origin -> {plugins.source_url(new_source)}')
 
 
 def cmd_plugin(ctx, args):
@@ -2925,11 +3171,12 @@ def _show_file(ctx, what):
 def cmd_keys(ctx, args):
     '''Print the effective TUI keybindings — the `keys:` section merged across every layer (repo <
     plugins < primary < your config). For a humon-only user (no TUI editor) to see what's active.'''
-    from .tui.keyspec import Keymap, key_name
-    km = Keymap(ctx.config.keys())
+    from .tui.keyspec import Keymap, config_keys, key_name
+    km = Keymap(config_keys(ctx.config))           # rebind-wins across layers, as the TUI resolves it
     print('TUI keybindings — merged repo < plugins < primary < your config '
           '(edit the `keys:` section in ~/.config/configsys/configsys.hu or your primary plugin):')
-    order = ['screens', 'global', 'components', 'profiles', 'plugins', 'dotfiles', 'config', 'theme']
+    order = ['screens', 'global', 'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config',
+             'theme']                                         # screen order (keys 1-7)
     for scope in order + [s for s in km._m if s not in order]:
         actions = km._m.get(scope)
         if not actions:
@@ -3013,7 +3260,8 @@ environment:
   CONFIGSYS_NO_SPLASH                  set to anything to turn the startup splash off
   CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: detected)
   CONFIGSYS_PM                         apt or dnf: the package manager the gcc / clang drivers use
-  CONFIGSYS_GITHUB_TOKEN               GitHub API token for release lookups (GITHUB_TOKEN also works)
+  CONFIGSYS_GITHUB_TOKEN               GitHub API token: lifts the API rate limit for version checks
+                                       (GITHUB_TOKEN also works)
   CONFIGSYS_GIT_TOKEN                  token for cloning private github: / gitlab: plugin repos
 '''
 
@@ -3085,9 +3333,14 @@ def build_parser():
                      'captured (it is backed up to .pre-configsys first).')
     _op_notes = {
         'install': (_rebuild_note + ' Installing does not add a component to this machine\'s picks; '
-                    '`configsys picks add` does that.'),
-        'upgrade': (_rebuild_note + ' --system upgrades the whole machine instead and takes no '
-                    'names; see `configsys updates`.'),
+                    '`configsys picks add` does that. --picks installs every pick of this box that '
+                    'is not installed (with any names given), after showing the plan and asking '
+                    '(--yes skips the question); picks with no install method here are skipped '
+                    'with a notice.'),
+        'upgrade': (_rebuild_note + ' --picks upgrades every outdated pick of this box (with any '
+                    'names given), after showing the plan and asking (--yes skips the question). '
+                    '--system upgrades the whole machine instead and takes no names; see '
+                    '`configsys updates`.'),
         'remove': (' Glue that only the removed components needed goes with them; their dependencies '
                    'stay. A component with no install method left on this OS is still removed when a '
                    'stranded install of it remains, through the method that made it. Removing does '
@@ -3106,8 +3359,9 @@ def build_parser():
                 'profile:<name> expands to that profile\'s components.')
         desc += _op_notes.get(name, '')
         sp = sub.add_parser(name, help=help_, description=desc)
-        # upgrade takes NO names with --system (the whole-machine lane), so it allows zero.
-        sp.add_argument('names', nargs=('*' if name == 'upgrade' else '+'),
+        # upgrade takes NO names with --system (the whole-machine lane), and install/upgrade take
+        # none with --picks, so those allow zero (cmd_install/cmd_upgrade insist otherwise).
+        sp.add_argument('names', nargs=('*' if name in ('install', 'upgrade') else '+'),
                         help='component names, and/or profile:<name> to expand a whole profile')
         if name in ('install', 'upgrade'):
             sp.add_argument('--force', action='store_true',
@@ -3118,6 +3372,16 @@ def build_parser():
                             help='act on only the named components, without installing their '
                                  'dependencies. A source component always rebuilds, so this rebuilds '
                                  'just it (e.g. to pick up a recipe change), not its dependencies')
+            sp.add_argument('--picks', action='store_true',
+                            help=("also act on every pick of this box that is not installed: show "
+                                  'the plan and ask first (on this box only, so not with --machine '
+                                  'naming another machine)') if name == 'install' else
+                                 ('also act on every outdated pick of this box: show the plan and ask '
+                                  'first (on this box only, so not with --machine naming another '
+                                  'machine)'))
+        if name == 'install':
+            sp.add_argument('--yes', action='store_true',
+                            help='with --picks: skip the confirmation prompt')
         if name == 'upgrade':
             sp.add_argument('--system', action='store_true',
                             help='upgrade the whole system: preview the System Updates list, confirm, '
@@ -3125,7 +3389,7 @@ def build_parser():
                                  'flatpak, snap), which also updates anything else it manages; held '
                                  'packages stay held. Within-release only; see `configsys updates`')
             sp.add_argument('--yes', action='store_true',
-                            help='with --system: skip the confirmation prompt')
+                            help='with --system or --picks: skip the confirmation prompt')
 
     fs = sub.add_parser('fix-scope', help='move installs whose scope (user / system) differs from the '
                                           'configured scope, so they match the config (the config is '
@@ -3169,7 +3433,9 @@ def build_parser():
                                       '(also editable in the TUI Profiles screen)')
     pksub = pk.add_subparsers(dest='picks_command')
     pkl = pksub.add_parser('list', help="list a machine's picks (default)")
-    pkl.add_argument('--machine', metavar='NAME', help="which machine (default: this box's)")
+    # SUPPRESS: unset here must not clobber the global --machine (same dest) with None
+    pkl.add_argument('--machine', metavar='NAME', default=argparse.SUPPRESS,
+                     help="which machine (default: this box's)")
     for _n, _h in (('add', "track a component: add it to a machine's picks (kept in your primary "
                            'plugin when you have one)'),
                    ('rm', "untrack a component: remove it from a machine's picks (it is not "
@@ -3401,9 +3667,13 @@ def build_parser():
     cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
     dfsub.add_parser('staged', help='list inactive glue candidates the shell-writes guard captured '
                                     '(installers that tried to edit your rc files)')
-    act = dfsub.add_parser('activate', help='promote a staged glue candidate to active glue '
-                                            '(link it into ~/.config/<shell>/conf.d/)')
+    act = dfsub.add_parser('activate', help='promote a staged glue candidate to your own user glue '
+                                            '(a user.d snippet, linked into ~/.config/<shell>/conf.d/ '
+                                            'as 90-<name>)')
     act.add_argument('names', nargs='+', help='component(s) whose staged glue to activate')
+    act.add_argument('--local', action='store_true',
+                     help="write to this machine's store even if a primary plugin is set "
+                          '(default: the primary, so it travels to your other machines)')
     disc = dfsub.add_parser('discard', help='delete a staged glue candidate without activating it')
     disc.add_argument('names', nargs='+', help='component(s) whose staged glue to drop')
 
@@ -3588,7 +3858,7 @@ def cmd_glue_override(ctx, args):
 def cmd_glue_add(ctx, args):
     '''Create a user-owned startup snippet in the user-glue namespace (primary plugin if set, else the
     local store), open it in $EDITOR, and deploy it (linked into conf.d; inlined for gestalt shells).'''
-    from .drivers.glue import _GLUE_SHELLS, _SHELL_CONFD
+    from .drivers.glue import _GLUE_SHELLS
     drv = get_driver('glue', ctx.runner, ctx.paths)
     shell = args.shell or _default_glue_shell(ctx)
     if shell not in _GLUE_SHELLS:
@@ -3611,22 +3881,32 @@ def cmd_glue_add(ctx, args):
           f'in the {"primary plugin (portable)" if portable else "local store"}')
     _open_in_editor(path)
     drv.deploy_user_glue(shell)                            # link into conf.d (+ refresh gestalt block)
-    confd = _SHELL_CONFD.get(shell, '~/.config/<shell>/conf.d')
-    print(f'linked into {confd}/{path.name} — loads on your next {shell} session.')
+    link = drv.user_glue_link(shell, path.name)
+    print(f'linked into {drv.display_path(link) if link else path.name} — loads on your next '
+          f'{shell} session.')
     if not portable and not args.local:
         print('  (saved locally — `configsys plugin bless <source>` sets a primary so your glue travels.)')
     return 0
 
 
+def _migrate_staged_glue(ctx):
+    '''Carry the old staged/activated-glue layout over to the current one (shellguard.migrate_legacy),
+    printing what moved. Skipped under --pretend (it writes); returns nothing either way.'''
+    if ctx.runner.pretend:
+        return
+    for note in shellguard.migrate_legacy(ctx.paths, ctx.runner):
+        print(f'migrated: {note}')
+
+
 def cmd_dotfiles_staged(ctx, args):
     '''List the glue candidates the shell-writes guard captured — each is an rc-file block an
     installer tried to write, held INACTIVE until you review and activate it.'''
-    root = _shell_glue_root(ctx)
-    rows = shellguard.list_staged(root)
+    _migrate_staged_glue(ctx)
+    rows = shellguard.list_staged(ctx.paths)
     if not rows:
         print('no staged glue — nothing has tried to write your shell rc files.')
         return 0
-    print(f'staged glue candidates (in {root}/staged-glue):\n')
+    print(f'staged glue candidates (in {shellguard.stage_dir(ctx.paths)}):\n')
     for comp, shell, path in rows:
         body = path.read_text().strip().splitlines()
         print(f'  {comp} [{shell}]  ({len(body)} line(s))')
@@ -3639,27 +3919,44 @@ def cmd_dotfiles_staged(ctx, args):
 
 
 def cmd_dotfiles_activate(ctx, args):
-    '''Promote staged glue to active: link it into ~/.config/<shell>/conf.d/ so the shell sources
-    it on init, and keep the snippet in your managed content store.'''
-    root = _shell_glue_root(ctx)
+    '''Promote staged glue to your own USER glue: each block becomes a user.d snippet (primary plugin
+    unless --local, else the local store — where `glue add` writes), linked into conf.d as
+    90-<name>, and leaves staging.'''
+    _migrate_staged_glue(ctx)
+    local = getattr(args, 'local', False)
     rc = 0
     for name in args.names:
-        done = shellguard.activate(root, name, ctx.paths.home)
+        if ctx.runner.pretend:
+            staged = shellguard.staged_for(ctx.paths, name)
+            if not staged:
+                print(f'{name}: nothing staged to activate.')
+                rc = 1
+                continue
+            for shell, _path in staged:
+                print(f'[pretend] would activate {name} as {shell} user glue'
+                      f'{" (local)" if local else ""}')
+            continue
+        done = shellguard.activate(ctx.paths, name, ctx.runner, local=local)
         if not done:
             print(f'{name}: nothing staged to activate.')
             rc = 1
             continue
         for shell, link in done:
-            print(f'{name}: activated {shell} glue -> {link}')
+            print(f'{name}: activated as {shell} user glue -> {link}')
     return rc
 
 
 def cmd_dotfiles_discard(ctx, args):
-    root = _shell_glue_root(ctx)
+    _migrate_staged_glue(ctx)
     rc = 0
     for name in args.names:
-        n = shellguard.discard(root, name)
-        print(f'{name}: discarded {n} staged candidate(s)' if n else f'{name}: nothing staged.')
+        if ctx.runner.pretend:
+            n = len(shellguard.staged_for(ctx.paths, name))
+            print(f'[pretend] would discard {n} staged candidate(s) for {name}' if n
+                  else f'{name}: nothing staged.')
+        else:
+            n = shellguard.discard(ctx.paths, name)
+            print(f'{name}: discarded {n} staged candidate(s)' if n else f'{name}: nothing staged.')
         rc = rc or (0 if n else 1)
     return rc
 
@@ -3667,6 +3964,20 @@ def cmd_dotfiles_discard(ctx, args):
 def _dotfiles_root_label(ctx, root):
     '''A short, stable label for a content root (see Paths.content_root_label).'''
     return ctx.paths.content_root_label(root)
+
+
+def _print_user_glue(drv, entries):
+    '''The `user glue` table of `dotfiles status`: every user.d snippet (`glue add`, an activated
+    staged block) per shell, whether its conf.d link is live, and where the snippet lives.'''
+    if not entries:
+        return
+    disp = drv.display_path if drv is not None else str
+    sw = max(len('SHELL'), *(len(e[0]) for e in entries))
+    print('\n  user glue  (your own snippets: `configsys glue add`, activated staged blocks)')
+    print(f'    {"STATE":8} {"SHELL":{sw}} LINK  ->  SNIPPET')
+    for shell, snippet, link, state in entries:
+        print(f'  {"!" if state != "linked" else " "} {state:8} {shell:{sw}} '
+              f'{disp(link) if link else "-"}  ->  {disp(snippet)}')
 
 
 def cmd_dotfiles_status(ctx, args):
@@ -3692,8 +4003,14 @@ def cmd_dotfiles_status(ctx, args):
             else:
                 glue.append((state, tgt, rc.comp, root, src_rel, here))
     print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(ctx.config)}')
+    gdrv = get_driver('glue', ctx.runner, ctx.paths)
+    try:                                         # your own user.d snippets (`glue add`/activate) —
+        user_glue = gdrv.user_glue_entries() if gdrv is not None else []   # visible, no surprises
+    except Exception:                            # noqa: BLE001 — a status view never crashes on it
+        user_glue = []
     if not cfg and not glue:
         print('\n(no dotfiles components in the install set)')
+        _print_user_glue(gdrv, user_glue)
         return 0
     roots = {}                                   # distinct src roots -> label, listed once
     for r in cfg + glue:
@@ -3730,6 +4047,7 @@ def cmd_dotfiles_status(ctx, args):
                        '  (→ = on capture)')
     gcounts = _section('glue — shell integration  (shipped; never captured)', glue,
                        _GLUE_ORDER, GLUE_STATE_LABEL, '')
+    _print_user_glue(gdrv, user_glue)
     gbuckets = {}
     for state, n in gcounts.items():
         lbl = GLUE_STATE_LABEL.get(state, state)
@@ -3827,6 +4145,23 @@ def cmd_machine(ctx, args):
         print(f'  tracked ({len(tracked)}): {", ".join(tracked) if tracked else "(none)"}')
         return 0
 
+    if ctx.runner.pretend:
+        if sub == 'add':
+            name = (args.name or '').strip()
+            if name in cfg.machine_names():
+                print(f'configsys: machine "{name}" already exists')
+                return 1
+            _pretend_edit(ctx, f'create machine "{name}"  (in {actions._picks_target(ctx, name)[1]})')
+        elif sub == 'rm':
+            if args.name not in cfg.machine_names():
+                print(f'configsys: machine "{args.name}" is not defined')
+                return 1
+            _pretend_edit(ctx, f'remove machine "{args.name}" (its picks column)')
+        elif sub == 'use':
+            label = actions._setting_target(ctx, 'machine')[1]
+            _pretend_edit(ctx, f'make this box machine "{args.name}"  (in {label})' if args.name
+                          else f'clear the machine selection  (in {label})')
+        return 0
     ctx.ensure_user_config()
     if sub == 'add':
         changed, label = actions.add_machine(ctx, args.name)
@@ -3892,7 +4227,7 @@ def cmd_profile(ctx, args):
 
 
 def _fmt_setting_value(kind, val):
-    if kind == 'list':
+    if kind in ('list', 'map'):                   # a map's value arrives as `key=value` tokens
         return ' '.join(val) if val else '(unset — built-in default)'
     if kind == 'bool':
         return 'true' if val else 'false'
@@ -3907,6 +4242,7 @@ def cmd_config(ctx, args):
     settings = actions.config_settings(ctx)
 
     if sub == 'show':
+        w = max(18, max((len(k) for k in settings), default=0))
         for key, info in settings.items():
             src = info.get('source')
             if isinstance(src, str) and src.startswith('env '):
@@ -3916,8 +4252,8 @@ def cmd_config(ctx, args):
                        'primary': f'primary: {info.get("home_label")}'}[info['home']]
             else:                                 # at default -> name where an edit would land
                 loc = f'built-in default → edits: {info.get("target")}'
-            print(f'  {key:18} {_fmt_setting_value(info["kind"], info["value"])}  ({loc})')
-            print(f'  {"":18} {info["desc"]}  (see {info["man"]})')
+            print(f'  {key:{w}} {_fmt_setting_value(info["kind"], info["value"])}  ({loc})')
+            print(f'  {"":{w}} {info["desc"]}  (see {info["man"]})')
         print('\n  uniform settings default to your primary plugin; machine settings to this box.'
               '\n  edit: configsys config set <key> <value>   (--local = this machine only)'
               '\n  move: configsys config move <key>          (local <-> primary)')
@@ -3927,6 +4263,16 @@ def cmd_config(ctx, args):
         if args.key not in actions.CONFIG_SETTINGS:
             print(f'configsys: unknown setting {args.key!r}', file=sys.stderr)
             return 1
+        if ctx.runner.pretend:
+            where, _who = actions._setting_home(ctx, args.key)
+            if where is None:
+                print(f'configsys: {args.key} is at its default — set a value before moving it',
+                      file=sys.stderr)
+                return 1
+            dst = ('top config' if where == 'primary'
+                   else actions._primary_target_label(ctx)[1] or '(no primary plugin)')
+            _pretend_edit(ctx, f'move {args.key} → {dst}')
+            return 0
         ctx.ensure_user_config()
         ok, msg = actions.move_config_setting(ctx, args.key)
         print(f'configsys: {msg}', file=sys.stdout if ok else sys.stderr)
@@ -3944,9 +4290,21 @@ def cmd_config(ctx, args):
         print(f'configsys: unknown setting {args.key!r} '
               f'(known: {", ".join(actions.CONFIG_SETTINGS)})', file=sys.stderr)
         return 1
+    values = [] if sub == 'unset' else args.value
+    if values and actions.CONFIG_SETTINGS[args.key][0] == 'map':
+        try:
+            actions._parse_map_tokens(values)
+        except ValueError as e:
+            print(f'configsys: {args.key}: {e}', file=sys.stderr)
+            return 1
+    if ctx.runner.pretend:
+        label = ('top config' if getattr(args, 'local', False)
+                 else actions._setting_target(ctx, args.key)[1])
+        _pretend_edit(ctx, f'clear {args.key}  (in {label})' if sub == 'unset'
+                      else f'set {args.key} = {" ".join(values)}  (in {label})')
+        return 0
     ctx.ensure_user_config()
     target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
-    values = [] if sub == 'unset' else args.value
     _changed, label = actions.set_config_setting(ctx, args.key, values, target=target)
     if sub == 'unset':
         print(f'configsys: cleared {args.key}  (in {label})')
@@ -3989,6 +4347,26 @@ def cmd_theme(ctx, args):
               else 'configsys: no theme plugins saved (create one: configsys theme save <name>)')
         return 0
 
+    if ctx.runner.pretend:
+        label = 'top config' if getattr(args, 'local', False) else actions.edit_target(ctx)[1]
+        if sub == 'set':
+            _pretend_edit(ctx, f'set {args.key} = {args.value}  (in {label})')
+        elif sub == 'unset':
+            _pretend_edit(ctx, f'clear {args.key}  (in {label})')
+        elif sub == 'save':
+            pdir = ctx.paths.plugins_dir / args.name
+            if pdir.exists() and not args.force:
+                print(f'configsys: theme plugin {args.name!r} already exists at {pdir} — '
+                      f'use --force to overwrite', file=sys.stderr)
+                return 1
+            _pretend_edit(ctx, f'save the current theme -> {pdir}')
+        elif sub == 'load':
+            if args.name not in actions.theme_plugins(ctx):
+                print(f'configsys: no theme plugin {args.name!r} (see `configsys theme list`)',
+                      file=sys.stderr)
+                return 1
+            _pretend_edit(ctx, f'apply theme {args.name}  (in {label})')
+        return 0
     ctx.ensure_user_config()
     target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
 

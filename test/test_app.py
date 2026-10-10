@@ -14,7 +14,7 @@ def base_args(tmp_path):
 
 
 def test_inspect_generates_user_config_and_exits_zero(tmp_path, capsys):
-    rc = main(base_args(tmp_path) + ['inspect'])
+    rc = main(['--home', str(tmp_path), '--os', 'pop', 'inspect'])      # a REAL run generates it
     assert rc == 0
     assert (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()   # XDG location
     out = capsys.readouterr().out
@@ -29,7 +29,7 @@ def test_legacy_user_config_is_migrated(tmp_path, capsys):
     # an old ~/configsys.hu is moved to ~/.config/configsys/configsys.hu on first run
     legacy = tmp_path / 'configsys.hu'
     legacy.write_text('{ picks: { this-machine: [ btop ] } }')
-    rc = main(base_args(tmp_path) + ['inspect'])
+    rc = main(['--home', str(tmp_path), '--os', 'pop', 'inspect'])      # a real run moves it
     assert rc == 0
     new = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     assert new.exists() and not legacy.exists()          # moved
@@ -577,3 +577,23 @@ def test_file_issue_returns_display_lines(tmp_path, monkeypatch):
     assert rc == 0
     joined = '\n'.join(lines)
     assert 'issues/new?' in joined and 'a+short+body+line' in joined      # prefilled URL, body encoded
+
+
+def test_pretend_inspect_writes_no_user_config(tmp_path, capsys):
+    # --pretend is a true dry run: the (comments-only) template isn't written; an absent file loads
+    # to the same default config.
+    rc = main(base_args(tmp_path) + ['inspect'])
+    assert rc == 0
+    assert not (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()
+    assert 'STATUS' in capsys.readouterr().out
+
+
+def test_pretend_reads_a_legacy_config_in_place_without_moving_it(tmp_path, capsys):
+    legacy = tmp_path / 'configsys.hu'
+    legacy.write_text('{ picks: { this-machine: [ btop ] } }')
+    rc = main(base_args(tmp_path) + ['inspect'])
+    assert rc == 0
+    assert legacy.exists()
+    assert not (tmp_path / '.config' / 'configsys' / 'configsys.hu').exists()
+    out = capsys.readouterr().out
+    assert 'would move' in out and 'this-machine (1 tracked)' in out

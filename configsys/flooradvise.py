@@ -26,6 +26,21 @@ def _declared_version(comp, cap):
     return v if (v is not None and _pv(str(v)) is not None) else None
 
 
+def _user_pin(ctx, name):
+    '''The user's own `pins:` value for `name` (config pins, not detected/auto-tighten), or None.'''
+    try:
+        return (ctx.config.pins() or {}).get(name)
+    except Exception:  # noqa: BLE001 — no config -> no user pin
+        return None
+
+
+def _auto_tighten(ctx):
+    try:
+        return bool(ctx.config.auto_tighten())
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def active_floors(rc, comp):
     '''The versioned requirements ACTIVE for this resolved unit: component-level floors, plus the
     floors on the binding that actually WON (matched by via) — only for caps the unit really
@@ -114,6 +129,23 @@ def advise(ctx, units):
         # INSTALLED via the default method, switching won't remove that install.
         replace = (f'  ({provider} is installed via {default.via}; switching won\'t remove '
                    f'it — remove it after)') if default.installed else ''
+        pinned = _user_pin(ctx, provider)
+        if pinned is not None and pinned == default.via:
+            # YOUR pin keeps a method below the floor. A user pin always wins (auto-tighten never
+            # overrides it), so say exactly what it costs and what would satisfy the floor.
+            other = [w for w in who if w != pinned]
+            tight = ''
+            if other and _auto_tighten(ctx):
+                tight = f' (your pin overrides auto-tighten, which would pick {other[0]})'
+            fix = (f'unpin it (`configsys pin unset {provider}`) or pin {other[0]} to satisfy '
+                   f'(`configsys pin set {provider} {other[0]}`){tight}') if other else \
+                  f'no install method here meets {cap} {floor}'
+            text = (f'{rc.comp} (via {rc.via}) needs {cap} {floor}, but {provider} is pinned to '
+                    f'{pinned}, which gives {default.latest} < floor; {fix}{replace}')
+            if text not in seen:
+                seen.add(text)
+                out.append({'level': 'warn', 'tag': 'pin-floor', 'text': text})
+            continue
         text = (f'{rc.comp} (via {rc.via}) needs {cap} {floor}, but the default method for '
                 f'{provider} provides {default.latest}; {fix}{replace}')
         if text not in seen:
@@ -130,6 +162,8 @@ def tighten_pins(ctx, units):
     pins = {}
     for _rc, cap, floor, provider, rp, default in _unmet(ctx, units):
         if default.installed:                             # a replacement -> never auto
+            continue
+        if _user_pin(ctx, provider) is not None:          # YOUR pin always wins (advise() flags it)
             continue
         who = _who_meets(ctx.routes.components.get(provider), rp, cap, floor)
         if who and provider not in pins:

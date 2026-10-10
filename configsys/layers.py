@@ -1,16 +1,18 @@
 '''layers.py — the config/routes layer stack: expand `include:` graphs and merge sources.
 
-Every config/routes file is a LAYER contributing sections: os / drivers / components /
-profiles / configs / scope / pins. A file may `include:` others (paths relative to the
-including file resolve against ITS directory). Layers overlay lowest-precedence-first: the
-repo (routes.hu + config.hu) is the base, an included file sits below the file that
-includes it, and the top user file (~/.config/configsys/configsys.hu) wins. Merge is by section and, within
-components/profiles, by name (later wins).
+Every config/routes file is a LAYER contributing sections: definitions (os / drivers / components /
+profiles / component-names / version-floors / facets) and machine settings (picks / scope / pins / …).
+A file may `include:` others (paths relative to the including file resolve against ITS directory;
+`~` against the configsys home). Layers overlay lowest-precedence-first: the repo (routes.hu +
+config.hu) is the base, an included file sits below the file that includes it, and the top user file
+(~/.config/configsys/configsys.hu) wins. Merge is by section and, within components/profiles, by
+name (later wins).
 
-Includes are DEFINITIONS-ONLY: an included file's components + profiles merge in, but its
-machine settings (configs / scope / pins) and code-adjacent os / drivers are ignored
-(collected as warnings). This is the shared substrate the plugin model will reuse — a
-plugin is just another source in the stack.
+THE UNIFORM LAYER RULE: every layer — repo, plugins, primary, the top config, and any file they
+include — may DEFINE things (components, profiles, os blocks, drivers; facet probe specs still need
+plugin trust). Only the top config and the primary plugin may SET machine settings
+(MACHINE_SETTING_SECTIONS); an include or an ordinary plugin that sets one is ignored with a warning.
+This is the shared substrate the plugin model reuses — a plugin is just another source in the stack.
 '''
 
 import os
@@ -20,8 +22,34 @@ import humon
 from .errors import ConfigError
 
 _DEFINITION_SECTIONS = ('components', 'profiles')
-_SETTING_SECTIONS = ('configs', 'scope', 'pins')
 _REPO_SECTIONS = ('os', 'drivers')
+
+# Every top-level MACHINE SETTING — a section Config reads only from the machine-role layers (repo /
+# primary / user, config._MACHINE_ROLES). An include or an ordinary (non-primary) plugin that sets one
+# is IGNORED, so these feed _FORBIDDEN_BY_ROLE (-> a `check` / `!` warning instead of a silent drop).
+# The scalar/list settings the CLI + TUI Config screen edit are registered in actions.CONFIG_SETTINGS
+# and unioned in by machine_setting_sections() (so a newly registered setting is covered
+# automatically); this list adds the matrix/side-store sections and the settings not editable there.
+# Cosmetic `theme:` / `keys:` are NOT machine settings — every layer may contribute them.
+MACHINE_SETTING_SECTIONS = frozenset({
+    'picks', 'machine', 'scope', 'pins', 'dispositions', 'uninstall', 'dirs', 'locations',
+    'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed', 'detect-coexisting',
+    'installer-shell-writes', 'installer-shell-writes-allow', 'refresh-before-execute',
+    'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore',
+})
+
+
+def machine_setting_sections():
+    '''MACHINE_SETTING_SECTIONS ∪ the top-level keys of actions.CONFIG_SETTINGS (`dirs.user` -> `dirs`).
+    actions is imported lazily (it imports this module's dependents), and a failed import just falls
+    back to the static list.'''
+    keys = set(MACHINE_SETTING_SECTIONS)
+    try:
+        from .actions import CONFIG_SETTINGS
+        keys.update(k.split('.', 1)[0] for k in CONFIG_SETTINGS)
+    except Exception:                         # noqa: BLE001 — the static list is complete on its own
+        pass
+    return frozenset(keys)
 
 
 def materialize(node):
@@ -72,10 +100,29 @@ class Layer:
         self.data = data          # {section: value}
 
 
+# The configsys home that a `~` in an `include:` path expands against — Paths.home (CONFIGSYS_HOME /
+# --home), not the real $HOME, so a sandboxed run reads the sandbox's includes like every other path.
+# Paths sets it when constructed (set_include_home); None falls back to $CONFIGSYS_HOME, then $HOME.
+_INCLUDE_HOME = None
+
+
+def set_include_home(home):
+    '''Record the configsys home `~` include paths expand against (called by Paths).'''
+    global _INCLUDE_HOME
+    _INCLUDE_HOME = None if home is None else str(home)
+
+
+def _expand_home(inc, home=None):
+    home = home or _INCLUDE_HOME or os.environ.get('CONFIGSYS_HOME')
+    if home and (inc == '~' or inc.startswith('~/')):
+        return os.path.join(str(home), inc[2:]) if inc != '~' else str(home)
+    return os.path.expanduser(inc)
+
+
 def _resolve(inc, base_dir):
     inc = str(inc)
     if inc.startswith('~'):
-        return os.path.expanduser(inc)
+        return _expand_home(inc)
     if os.path.isabs(inc):
         return inc
     return os.path.join(base_dir, inc)
@@ -239,24 +286,50 @@ def merge_dict_section(layers, section, roles):
     return out
 
 
+ALL_ROLES = ('repo', 'plugin', 'primary', 'include', 'user')
+
+
+def dict_section_sources(layers, section, roles=ALL_ROLES):
+    """{name: source_path} for a dict section (os / drivers) — the file whose entry WINS per name
+    under merge_dict_section (provenance for `where` / `check`)."""
+    out = {}
+    for layer in layers:
+        if layer.role in roles and isinstance(layer.data.get(section), dict):
+            for name in layer.data[section]:
+                out[name] = layer.path
+    return out
+
+
 # what each non-repo/non-user role may NOT contribute (ignored -> a `check` warning)
-_FORBIDDEN_BY_ROLE = {
-    'include':  _SETTING_SECTIONS + _REPO_SECTIONS,   # definitions-only
-    'plugin':   _SETTING_SECTIONS,                    # may add os/drivers, not machine settings
-    # 'primary' (the top config's designated personal plugin) has NO entry: it may contribute
-    # everything a user config can — machine settings included — sitting just below the top
-    # config in precedence. The grant lives in the top config, so it stays a per-machine choice.
-}
+def _forbidden_by_role():
+    '''What each non-repo/non-user role may NOT contribute. The retired `configs:` is not listed — it
+    carries its own retired warning (unknown_section_warnings) everywhere.'''
+    settings = tuple(sorted(machine_setting_sections()))
+    # THE UNIFORM LAYER RULE: every layer may DEFINE (components / profiles / os / drivers / …); only
+    # the top config and the primary plugin may SET machine settings. So an include (of any file) and
+    # an ordinary plugin lose exactly the machine settings.
+    return {
+        'include': settings,                      # definitions only — like its includer's definitions
+        'plugin':  settings,                      # definitions, not machine settings
+        # 'primary' (the top config's designated personal plugin) has NO entry: it may contribute
+        # everything a user config can — machine settings included — sitting just below the top
+        # config in precedence. The grant lives in the top config, so it stays a per-machine choice.
+    }
 
 
 def ignored_section_warnings(layers):
     '''Sections a layer set that its role doesn't permit (silently ignored) — surfaced by check.'''
+    forbidden = _forbidden_by_role()
     warns = []
     for layer in layers:
-        for sec in _FORBIDDEN_BY_ROLE.get(layer.role, ()):
+        if not isinstance(layer.data, dict):
+            continue
+        for sec in forbidden.get(layer.role, ()):
             if sec in layer.data:
+                why = ('an included file only defines things' if layer.role == 'include' else
+                       'only the top config or the primary plugin sets machine settings')
                 warns.append(f'{layer.path}: `{sec}:` is ignored here (not permitted from a '
-                             f'{layer.role} layer)')
+                             f'{layer.role} layer — {why})')
     return warns
 
 
@@ -265,36 +338,30 @@ def ignored_section_warnings(layers):
 _KNOWN_TOP_KEYS = frozenset({
     # definitions + structure
     'os', 'drivers', 'components', 'profiles', 'component-names', 'include', 'plugins', 'facets',
-    # machine settings / local state
-    'scope', 'pins', 'dispositions', 'picks', 'uninstall', 'machine', 'dirs',
-    'effects', 'splash', 'theme', 'keys', 'adopt-installed', 'auto-tighten', 'driver-preference',
-    'install-overlay', 'refresh-before-execute', 'orphans-ignore', 'locations', 'reboot-advice',
-    'detect-coexisting', 'disabled-drivers', 'installer-shell-writes', 'installer-shell-writes-allow',
-    'version-floors', 'last-refresh',
-})
+    'version-floors',
+    # cosmetic (every layer)
+    'theme', 'keys',
+}) | MACHINE_SETTING_SECTIONS                    # machine settings / local state
 # Understood historically, now dropped -> always warn.
 _RETIRED_TOP_KEYS = {
     'configs': 'retired — the matrix model installs from picks:, not active profiles',
     'machines': 'retired — picks: is now the machine registry (each picks: key is a machine/column)',
     'orphans-adopt-target': 'retired — orphan adopt now tracks (picks) the component, not a staging profile',
 }
-_PROFILE_AUTHORING_ROLES = ('user', 'primary')   # `profiles:` is browse-only (repo/plugins)
 
 
 def unknown_section_warnings(layers):
     '''Non-fatal warnings for top-level keys configsys no longer understands — a typo, or a RETIRED
-    construct (`configs:`, or a user-level `profiles:`). Definitions (`profiles:`/`os:`/`components:`…)
-    stay valid in the repo + plugins; only a user/primary/machine config is warned for `profiles:`.'''
+    construct (`configs:`, `machines:`, `orphans-adopt-target:`). Definitions (`profiles:` / `os:` /
+    `components:` …) are valid in EVERY layer (the uniform layer rule).'''
     warns = []
+    known = _KNOWN_TOP_KEYS | machine_setting_sections()
     for layer in layers:
         if not isinstance(layer.data, dict):
             continue
         for key in layer.data:
             if key in _RETIRED_TOP_KEYS:
                 warns.append(f'{layer.path}: `{key}:` {_RETIRED_TOP_KEYS[key]}')
-            elif key == 'profiles' and layer.role in _PROFILE_AUTHORING_ROLES:
-                warns.append(f'{layer.path}: `profiles:` is retired in a user config — the matrix '
-                             f'browses the shipped catalog and installs from picks:')
-            elif key not in _KNOWN_TOP_KEYS:
+            elif key not in known:
                 warns.append(f'{layer.path}: unrecognized top-level key `{key}:` (typo, or retired?)')
     return warns

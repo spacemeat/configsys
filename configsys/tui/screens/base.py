@@ -1,19 +1,22 @@
 '''base.py — the Screen protocol the MVVM TUI is built from (docs/tui-architecture.md).
 
-A Screen owns its model (the existing state classes — MenuState, ProfileScreen, … — move in as-is)
+A Screen owns its model (the state classes — MenuState, ProfileScreen, … — composed as `self.model`)
 and exposes three seams:
 
 - `build_vm(ctx, size) -> ViewModel`: compute the frame's render model. PURE — reads the model and
-  ctx, does no drawing. This is what makes a screen renderable headlessly and testable.
+  ctx, does no drawing. `size` is the `(h, w)` tuple from `getmaxyx()`. This is what makes a screen
+  renderable headlessly and testable.
 - `draw(surface, pal, vm)`: paint the ViewModel through a Surface. A dumb painter — it positions and
-  colours, but decides nothing the ViewModel didn't already settle.
-- `handle(key, host) -> Intent`: process one key. Mutates the model; asks the host (via the returned
-  Intent, or host helpers for the things that must happen mid-key like modals) to switch screen, set
-  the status note, mark the components tree dirty, execute a plan, or quit.
+  colours, but decides nothing the ViewModel and model didn't already settle.
+- `handle(ch, ctx, stdscr, pal) -> Intent`: process one key (Components' takes `cfg, ledger` too —
+  it re-runs the load pipeline). Mutates the model and may run modal loops inline on `stdscr`
+  (popups, input boxes, the suspended confirm/execute prompt); asks the router, via the returned
+  Intent, for the effects it owns — switch screen, set the status note, mark the Components tree
+  dirty, adopt a re-probed state, open the `where` overlay.
 
-`build_vm`/`draw` are split from a single legacy `_draw_*` painter so the SUM paints identically —
-the render-equivalence harness proves it — not reimagined. Over successive passes `draw` gets thinner
-as more decision moves up into `build_vm`.
+The router (menu.run) resolves its own keys (quit/issues/help/screen switch — after the screen's own
+key scope, see keyspec.Keymap.own_action) before calling `handle`, so every key that reaches
+`handle` is the screen's to consume.
 '''
 
 from dataclasses import dataclass
@@ -26,18 +29,10 @@ class ViewModel:
 
 
 @dataclass
-class Size:
-    '''The drawable area a build_vm lays out against (curses getmaxyx order: h then w).'''
-    h: int
-    w: int
-
-
-@dataclass
 class Intent:
-    '''What a key press asks the router to do. Defaults mean "handled, nothing else": the model may
+    '''What a key press asks the router to do. Defaults mean "nothing else": the model may
     have changed (cursor moved, selection toggled) with no router action needed. A screen sets fields
     to request cross-cutting effects the router owns.'''
-    handled: bool = True        # False -> the key wasn't consumed here; let the router try globals
     goto: str = None            # switch to this screen id
     note: str = None            # status-line note to show next frame
     dirty: bool = False         # the Components tree must be rebuilt (a pick/route/config edit)
@@ -64,5 +59,5 @@ class Screen:
     def draw(self, surface, pal, vm):
         raise NotImplementedError
 
-    def handle(self, key, host):
+    def handle(self, ch, ctx, stdscr, pal):
         raise NotImplementedError
