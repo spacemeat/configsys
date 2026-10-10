@@ -313,7 +313,11 @@ startup-time win; any driver whose manager can list what it has installed should
   the shared probe cache, pre-warmed for all drivers in parallel); the coexisting-install pass ("also
   present"); the orphan scan and the TUI install overlay; and the default `batch_index`. Return
   `None` if the manager isn't enumerable **or the command failed** — callers then fall back to a
-  per-unit `get_version`. Never return `{}` on failure: that claims nothing is installed. Default:
+  per-unit `get_version`. Never return `{}` on failure: that claims nothing is installed. The
+  exception is a manager that isn't installed at all (the shell's command-not-found, exit 127):
+  then nothing *is* installed through it, so `{}` is the true answer — and it spares every unit a
+  doomed per-unit probe (the brew driver also marks its batch `missing` so `get_latest`/`is_locked`
+  skip their spawns). Default:
   `None`.
 - **`index_key(rc) -> str`** — the key a unit occupies in `installed_index()` (and in
   `upgradable_index()`). Default: `rc.name`. Override when your install identity isn't the resolved

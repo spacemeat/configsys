@@ -24,6 +24,8 @@ import shlex
 from ..driver import Driver
 from ..runner import Result
 
+_NOT_FOUND = 127     # the shell's exit status for "command not found": Homebrew isn't installed
+
 
 class Brew(Driver):
     name = 'brew'
@@ -36,17 +38,36 @@ class Brew(Driver):
 
     # -- read -------------------------------------------------------------
 
-    def installed_index(self):
-        # ONE `brew list --versions` -> "<formula> <v1> [<v2>...]" per line -> {formula: newest-listed}.
+    def _listing(self):
+        '''(installed {formula: newest-listed} | None, missing). ONE `brew list --versions` ->
+        "<formula> <v1> [<v2>...]" per line. When Homebrew isn't installed at all (the shell's
+        command-not-found, exit 127) that is a TRUE empty — nothing is installed via brew — so it
+        returns ({}, True) rather than the None that means "couldn't tell".'''
         r = self.runner.run('brew list --versions')
+        if r.returncode == _NOT_FOUND:
+            return {}, True
         if not r.ok:
-            return None
+            return None, False
         idx = {}
         for line in r.stdout.splitlines():
             cols = line.split()
             if cols:
                 idx[cols[0]] = (cols[1] if len(cols) > 1 else '') or 'installed'
-        return idx
+        return idx, False
+
+    def installed_index(self):
+        return self._listing()[0]
+
+    def batch_index(self, rcs):
+        # the default shape + `missing`: with no Homebrew, every per-unit read answers from here
+        # instead of spawning a `brew` that doesn't exist (3 per unit — 100+ failed spawns at
+        # startup for a machine whose picks default to brew before Homebrew is installed)
+        idx, missing = self._listing()
+        return None if idx is None else {'installed': idx, 'missing': missing}
+
+    def _missing(self):
+        '''True when this inspection's batch found no Homebrew at all.'''
+        return isinstance(self.batch, dict) and bool(self.batch.get('missing'))
 
     def index_key(self, rc):
         return self._formula(rc)
@@ -74,7 +95,10 @@ class Brew(Driver):
         return None
 
     def get_latest(self, rc):
-        # the tap's stable version (offline once `brew update` has run); no spec needed.
+        # the tap's stable version (offline once `brew update` has run); no spec needed. Unknown
+        # until Homebrew itself is installed.
+        if self._missing():
+            return None
         r = self.runner.run(
             f'brew info --json=v2 --formula {shlex.quote(self._formula(rc))}')
         if not r.ok or not r.stdout.strip():
@@ -86,6 +110,8 @@ class Brew(Driver):
             return None
 
     def is_locked(self, rc):
+        if self._missing():
+            return False
         r = self.runner.run('brew list --pinned')
         if not r.ok:
             return False

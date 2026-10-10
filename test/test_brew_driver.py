@@ -95,3 +95,23 @@ def test_location_uses_prefix_else_generic():
     assert Brew(fr).location(formula('btop')) == '/home/linuxbrew/.linuxbrew/opt/btop'
     # not installed / brew missing -> generic marker
     assert Brew(FakeRunner([('brew --prefix', 1, '')])).location(formula()) == '(homebrew)'
+
+
+def test_no_homebrew_is_a_true_empty_and_reads_spawn_nothing():
+    # command-not-found (127): nothing is installed via brew — {} (not None = "couldn't tell"), and
+    # the batched per-unit reads answer from it instead of spawning a missing `brew` 3x per unit
+    fr = FakeRunner([('brew list --versions', 127, '')])
+    d = Brew(fr)
+    assert d.installed_index() == {}
+    d.batch = d.batch_index([])
+    assert d.batch == {'installed': {}, 'missing': True}
+    fr.calls.clear()
+    rc = formula('btop')
+    assert d.get_version(rc) is None and d.get_latest(rc) is None and d.is_locked(rc) is False
+    assert fr.calls == []
+
+
+def test_a_failing_brew_is_still_unknown_not_empty():
+    fr = FakeRunner([('brew list --versions', 1, '')])
+    d = Brew(fr)
+    assert d.installed_index() is None and d.batch_index([]) is None
