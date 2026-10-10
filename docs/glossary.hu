@@ -1,0 +1,281 @@
+// glossary.hu — configsys' canonical vocabulary. ONE source for:
+//   * README.md's Glossary section (generated: `tools/docaudit.py glossary --write`; test_docs.py
+//     keeps it current),
+//   * the terms every other doc, CLI help string and TUI `?` page should use — one word per concept,
+//   * `tools/docaudit.py check`'s retired-term warnings (the `retired:` section; docs/done/ and
+//     docs/history/ are historical and exempt).
+// Maintained by the /update-docs skill (.claude/skills/update-docs/SKILL.md). Entry fields:
+//   def:   one or two plain sentences — what it IS, for someone who has never seen configsys
+//   short: optional parenthetical (the config key / CLI word it corresponds to)
+//   see:   related terms (must themselves be entries)
+//   avoid: synonyms NOT to use for this concept (they mean something else here, or nothing)
+// retired: entries are old terms -> `use:` (the replacement) + `why:`; optional `match:` = a regex
+// when the bare term would over-match.
+{
+    terms: {
+        component: {
+            def: "One installable thing, by name (`ripgrep`, `firefox`, `jdk-21`): a capability plus the list of ways to install it (its bindings). Defined in routes.hu or a plugin."
+            see: [ binding  capability  unit ]
+            avoid: [ package  app ]
+        }
+        binding: {
+            short: "an entry in a component's `install:` list"
+            def: 'One way to install a component on some set of machines: `{ via: <driver>  when: "…"  …fields }`. A component usually has several; configsys picks one per machine.'
+            see: [ via  when  standing  candidate ]
+        }
+        via: {
+            short: "`via:`"
+            def: "The install mechanism a binding uses — names a driver (`apt`, `flatpak`, `tarball`, `cargo`, …), or `native` (this OS's package manager) or `parts` (an aggregate)."
+            see: [ driver  native ]
+        }
+        driver: {
+            def: "The code that performs one install mechanism behind a uniform set of operations (install, uninstall, upgrade, version, lock, …). Each `via:` value names one driver; plugins can add more."
+            see: [ via ]
+            avoid: [ backend  provider ]
+        }
+        native: {
+            short: "`via: native`"
+            def: "The OS's own package manager, whichever it is here (apt, dnf, pacman, zypper, apk, xbps, brew). A `native` binding installs through it; its package name can differ per manager (`name: { apt: …  dnf: … }`)."
+            see: [ via  OS-block ]
+        }
+        when: {
+            short: "`when:`"
+            def: "A binding's validity condition — an expression over the OS (`debian`, `ubuntu >= 24.04`), CPU and facets. It says only whether the method WORKS here, never whether it is preferred."
+            see: [ binding  standing  specificity ]
+        }
+        candidate: {
+            def: "A binding whose `when:` holds on this machine (and whose driver isn't disabled). Among the candidates, configsys picks the default; the rest stay pinnable."
+            see: [ binding  specificity  standing  pin ]
+        }
+        specificity: {
+            def: "Tie-breaking among candidates: a binding with a narrower `when:` (e.g. `rhel`) beats a broader one, before any preference applies."
+            see: [ candidate  standing  driver-preference ]
+        }
+        standing: {
+            short: "`standing:`"
+            def: "The one preference knob on a binding, driver or provider: `never-auto` (listed and pinnable, never chosen automatically) or an integer rank (higher wins)."
+            see: [ never-auto  driver-preference  specificity ]
+        }
+        never-auto: {
+            short: "`standing: never-auto`"
+            def: "Marks a binding (or provider) as valid and pinnable but never the automatic choice — used where it's the only method, or when you pin it."
+            see: [ standing  pin ]
+        }
+        driver-preference: {
+            short: "`driver-preference:`"
+            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, tarball, source, script)."
+            see: [ standing  specificity ]
+        }
+        capability: {
+            def: "A named feature a component offers or needs (`provides:` / `requires:`), optionally versioned (`provides: { jdk: 21 }`). Resolution satisfies a `requires:` with a component that provides it."
+            see: [ requires  suggests  provider ]
+        }
+        provider: {
+            def: "A component that `provides:` a capability another component `requires:` (e.g. `jdk-21` provides `jdk`)."
+            see: [ capability  pin ]
+        }
+        requires: {
+            short: "`requires:`"
+            def: "A HARD dependency: the capability must resolve here or the component errors."
+            see: [ suggests  capability ]
+        }
+        suggests: {
+            short: "`suggests:`"
+            def: "A SOFT dependency: pulled in when it can be installed here, silently skipped when it can't (how a tool attaches its optional `-dotfiles` / `-glue` companions)."
+            see: [ requires  companion ]
+        }
+        resolution: {
+            def: "Turning wanted component names into concrete units for THIS machine: pick a binding per component, close its requires/suggests, dedupe."
+            see: [ unit  candidate ]
+        }
+        unit: {
+            short: "unit key `driver\comp`"
+            def: "One concrete install the drivers act on — a component bound to a driver (`apt\ripgrep`, `flatpak\gimp`). Two requests resolving to the same unit install it once."
+            see: [ resolution  component ]
+        }
+        picks: {
+            short: "`picks:`"
+            def: "What each machine installs: a component × machine matrix in your config (`picks: { <machine>: [ components ] }`). This machine's column is its install set."
+            see: [ machine  profile ]
+            avoid: [ "active profiles"  configs ]
+        }
+        machine: {
+            short: "`machine:`"
+            def: "Which picks column this box is (default `this-machine`). `configsys machine …` lists, adds and switches them."
+            see: [ picks ]
+        }
+        profile: {
+            def: "A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin. Profiles never install anything themselves; you pick from them."
+            see: [ picks  subprofile ]
+            avoid: [ "install set" ]
+        }
+        subprofile: {
+            def: "A profile included in another with `+name` (and removable with `~name`)."
+            see: [ profile ]
+        }
+        pin: {
+            short: "`pins:`"
+            def: "A per-machine override at top precedence: a binding-pin forces a component's method (`pins: { yazi: tarball }`), a provider-pin forces which component satisfies a capability."
+            see: [ candidate  provider ]
+        }
+        layer: {
+            def: "One config/routes file in the stack configsys merges, lowest first: repo < plugins < primary plugin < your user config (includes sit below the file that includes them)."
+            see: [ plugin  primary-plugin ]
+        }
+        plugin: {
+            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. Code plugins must be trusted."
+            see: [ layer  primary-plugin  trust ]
+        }
+        primary-plugin: {
+            short: "`primary: true`"
+            def: "Your personal plugin: travels with you across machines and may also set machine settings that should be uniform."
+            see: [ plugin  setting-nature ]
+        }
+        trust: {
+            short: "`configsys plugin trust`"
+            def: "Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data."
+            see: [ plugin ]
+        }
+        setting-nature: {
+            def: "Whether a machine setting is uniform (belongs in your primary plugin, same everywhere) or machine-local (belongs in this box's config). `configsys config move` carries one across."
+            see: [ primary-plugin ]
+        }
+        OS-block: {
+            short: "an entry in routes.hu `os:`"
+            def: "configsys' model of a distro: its parent (`using:`), package manager (`native:`), version numbering (`scale-root:`) and built-in capabilities (`provides:`). `when:` atoms name these."
+            see: [ lineage  scale-root  native ]
+            avoid: [ distro-profile ]
+        }
+        lineage: {
+            def: "An OS block's chain of parents (`pop_os!` → ubuntu → debian → linux). A bare `when:` atom matches a block and all its descendants."
+            see: [ OS-block ]
+        }
+        scale-root: {
+            short: "`scale-root: true`"
+            def: "Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version."
+            see: [ OS-block ]
+        }
+        facet: {
+            def: "A detected machine trait beyond the OS — CPU, GPU, and so on — usable in `when:` (`cpu: x86_64`)."
+            see: [ when ]
+        }
+        cpu-names: {
+            short: "`cpu-names:`"
+            def: "A binding's map from CPU to the spelling upstream uses in file names (`{ x86_64: amd64  aarch64: arm64 }`): `$ARCH` expands through it, and its keys are the CPUs the download exists for."
+            see: [ binding ]
+        }
+        scope: {
+            short: "`scope:`"
+            def: "Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Package managers are always system."
+        }
+        companion: {
+            def: "A small helper component named after its parent — `<name>-dotfiles` (its config), `<name>-glue` (its shell setup), `<name>-service` (start its daemon), `<name>-group` (add you to its group)."
+            see: [ dotfiles  glue  suggests ]
+        }
+        dotfiles: {
+            short: "`via: dotfiles`"
+            def: "An app's own configuration (its `~/.config/<app>` files), kept in your content store and linked into place. Usually captured from your machine, not shipped."
+            see: [ glue  capture  content-store  companion ]
+            avoid: [ "shell config" ]
+        }
+        glue: {
+            short: "`via: glue`"
+            def: "A small shipped shell snippet that wires a tool into your shells (PATH, aliases, init hooks), installed into each shell's `conf.d`. Distinct from dotfiles: glue is shipped, not captured."
+            see: [ dotfiles  shell-glue ]
+        }
+        shell-glue: {
+            def: "The component that makes every installed shell load its `~/.config/<shell>/conf.d/` snippets — the substrate every `-glue` companion needs."
+            see: [ glue ]
+        }
+        capture: {
+            short: "`configsys dotfiles capture`"
+            def: "Adopting config files that already exist on your machine into your content store, so configsys manages and syncs them from then on."
+            see: [ dotfiles  content-store ]
+        }
+        content-store: {
+            def: "Where your captured dotfiles live — your primary plugin if you have one, else a local store — one `<name>-dotfiles.cfs/` folder (with a manifest) per app."
+            see: [ dotfiles  capture ]
+        }
+        detection: {
+            def: "configsys reading what's already installed and adopting it: an installed method or provider beats the bare default (precedence: pin > detected > default)."
+            see: [ pin  also-present ]
+        }
+        also-present: {
+            def: "Another install of the same component via a different method than the one configsys manages — shown so you can adopt it (pin) or swap it out."
+            see: [ swap  stranded ]
+        }
+        swap: {
+            def: "Switching a component's method: the old install is removed first, then the new one installs — never both at once."
+            see: [ also-present  pin ]
+        }
+        receipt: {
+            def: "The ledger's record of each unit configsys installed (method, package name, fields), so the install stays findable and removable after routes stop offering that method."
+            see: [ stranded  ledger ]
+        }
+        stranded: {
+            def: "Installed via a method routes no longer offer on this machine (removed, gated out, or its driver disabled). Shown as the `switch` status; installing the component swaps it out."
+            see: [ routing-status  receipt  swap ]
+        }
+        routing-status: {
+            def: "A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS)."
+            see: [ stranded ]
+        }
+        ledger: {
+            short: "`state.hu`"
+            def: "configsys' small local state file: version locks, managed markers and install receipts. The system itself stays the source of truth for what's installed."
+            see: [ receipt  lock ]
+        }
+        lock: {
+            def: "Holding a component at its current version: the package manager's own hold where it has one, else recorded in the ledger."
+            see: [ ledger ]
+        }
+        staged: {
+            def: "In the TUI, an operation marked to run (install, upgrade, remove, …) but not yet executed; `X` runs everything staged after a confirmation."
+        }
+        system-updates: {
+            def: "The OS packages with pending updates that aren't configsys components — shown and applied in bulk, so configsys can be your one updater."
+        }
+        disposition: {
+            short: "`dispositions:`"
+            def: "Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything."
+            see: [ picks ]
+        }
+        orphan: {
+            def: "Something installed that this machine's picks don't account for, but that configsys could manage — listed so you can track it, remove it, or ignore it."
+            see: [ picks ]
+        }
+        attrs: {
+            short: "`attrs:`"
+            def: "Free-form tags on a component for filtering (`CLI`, `GUI`, `FOSS`, `proprietary`, `tele`, `electron`, …), independent of profiles."
+            see: [ component  profile ]
+        }
+        version-floor: {
+            def: 'A hard minimum version a component needs from a capability (`requires: { go: ">=1.21" }`); configsys surfaces methods that cannot meet it rather than silently upgrading.'
+            see: [ capability ]
+        }
+        refresh: {
+            short: "`configsys refresh`"
+            def: "Re-checking upstream versions and refreshing the OS package index."
+        }
+        golden: {
+            short: "test/routing_golden.json"
+            def: "A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly."
+        }
+        name-sweep: {
+            def: "A container test that checks every native package name configsys would install really exists in each distro's repos."
+        }
+    }
+
+    retired: {
+        "configs:": { use: "`picks:`"  why: "the install set is this machine's picks column, not a list of active profiles" }
+        "machines:": { use: "`picks:` (each key is a machine)"  why: "picks is the machine registry" }
+        "orphans-adopt-target:": { use: "(adopting an orphan picks it)"  why: "no staging profile any more" }
+        "prefer:": { use: "`standing: <integer>`"  why: "standing is the one preference knob" }
+        "opt-in:": { use: "`standing: never-auto`"  why: "standing is the one preference knob" }
+        "candidate-only:": { use: "`standing: never-auto`"  why: "standing is the one preference knob" }
+        "bash-dotfiles": { use: "`shell-glue` (a `-glue` companion)"  why: "shell setup moved from dotfiles to the glue driver" }
+        "active profiles": { use: "this machine's picks"  why: "profiles are browse-only; picks are the install set"  match: "(?i)active profiles?" }
+        "discovered layer": { use: "a machine-level plugin (`configsys plugin add <dir> --local`)"  why: "CWD project discovery was removed"  match: "(?i)discover(ed|y)[ -](layer|role)" }
+        "RouteResolver": { use: "the capability resolver (resolve.py)"  why: "the v1 resolver was deleted" }
+    }
+}

@@ -469,3 +469,82 @@ every native package name configsys maps to still exists in each distro's repos 
 renames/removals). Deeper design docs live in [`docs/`](docs/): the routing model
 ([routing-model.md](docs/routing-model.md)), the plugin system ([plugins.md](docs/plugins.md)), and
 the name sweep ([name-sweep-test.md](docs/name-sweep-test.md)).
+
+## Glossary
+
+<!-- glossary:begin — generated from docs/glossary.hu by `tools/docaudit.py glossary --write`;
+edit that file, not this section -->
+
+- **also-present** — Another install of the same component via a different method than the one configsys manages — shown so you can adopt it (pin) or swap it out. *See also:* **swap**, **stranded**.
+- **attrs** (`attrs:`) — Free-form tags on a component for filtering (`CLI`, `GUI`, `FOSS`, `proprietary`, `tele`, `electron`, …), independent of profiles. *See also:* **component**, **profile**.
+- **binding** (an entry in a component's `install:` list) — One way to install a component on some set of machines: `{ via: <driver>  when: "…"  …fields }`. A component usually has several; configsys picks one per machine. *See also:* **via**, **when**, **standing**, **candidate**.
+- **candidate** — A binding whose `when:` holds on this machine (and whose driver isn't disabled). Among the candidates, configsys picks the default; the rest stay pinnable. *See also:* **binding**, **specificity**, **standing**, **pin**.
+- **capability** — A named feature a component offers or needs (`provides:` / `requires:`), optionally versioned (`provides: { jdk: 21 }`). Resolution satisfies a `requires:` with a component that provides it. *See also:* **requires**, **suggests**, **provider**.
+- **capture** (`configsys dotfiles capture`) — Adopting config files that already exist on your machine into your content store, so configsys manages and syncs them from then on. *See also:* **dotfiles**, **content-store**.
+- **companion** — A small helper component named after its parent — `<name>-dotfiles` (its config), `<name>-glue` (its shell setup), `<name>-service` (start its daemon), `<name>-group` (add you to its group). *See also:* **dotfiles**, **glue**, **suggests**.
+- **component** — One installable thing, by name (`ripgrep`, `firefox`, `jdk-21`): a capability plus the list of ways to install it (its bindings). Defined in routes.hu or a plugin. *See also:* **binding**, **capability**, **unit**. *Not:* “package”, “app”.
+- **content-store** — Where your captured dotfiles live — your primary plugin if you have one, else a local store — one `<name>-dotfiles.cfs/` folder (with a manifest) per app. *See also:* **dotfiles**, **capture**.
+- **cpu-names** (`cpu-names:`) — A binding's map from CPU to the spelling upstream uses in file names (`{ x86_64: amd64  aarch64: arm64 }`): `$ARCH` expands through it, and its keys are the CPUs the download exists for. *See also:* **binding**.
+- **detection** — configsys reading what's already installed and adopting it: an installed method or provider beats the bare default (precedence: pin > detected > default). *See also:* **pin**, **also-present**.
+- **disposition** (`dispositions:`) — Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything. *See also:* **picks**.
+- **dotfiles** (`via: dotfiles`) — An app's own configuration (its `~/.config/<app>` files), kept in your content store and linked into place. Usually captured from your machine, not shipped. *See also:* **glue**, **capture**, **content-store**, **companion**. *Not:* “shell config”.
+- **driver** — The code that performs one install mechanism behind a uniform set of operations (install, uninstall, upgrade, version, lock, …). Each `via:` value names one driver; plugins can add more. *See also:* **via**. *Not:* “backend”, “provider”.
+- **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, tarball, source, script). *See also:* **standing**, **specificity**.
+- **facet** — A detected machine trait beyond the OS — CPU, GPU, and so on — usable in `when:` (`cpu: x86_64`). *See also:* **when**.
+- **glue** (`via: glue`) — A small shipped shell snippet that wires a tool into your shells (PATH, aliases, init hooks), installed into each shell's `conf.d`. Distinct from dotfiles: glue is shipped, not captured. *See also:* **dotfiles**, **shell-glue**.
+- **golden** (test/routing_golden.json) — A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly.
+- **layer** — One config/routes file in the stack configsys merges, lowest first: repo < plugins < primary plugin < your user config (includes sit below the file that includes them). *See also:* **plugin**, **primary-plugin**.
+- **ledger** (`state.hu`) — configsys' small local state file: version locks, managed markers and install receipts. The system itself stays the source of truth for what's installed. *See also:* **receipt**, **lock**.
+- **lineage** — An OS block's chain of parents (`pop_os!` → ubuntu → debian → linux). A bare `when:` atom matches a block and all its descendants. *See also:* **OS-block**.
+- **lock** — Holding a component at its current version: the package manager's own hold where it has one, else recorded in the ledger. *See also:* **ledger**.
+- **machine** (`machine:`) — Which picks column this box is (default `this-machine`). `configsys machine …` lists, adds and switches them. *See also:* **picks**.
+- **name-sweep** — A container test that checks every native package name configsys would install really exists in each distro's repos.
+- **native** (`via: native`) — The OS's own package manager, whichever it is here (apt, dnf, pacman, zypper, apk, xbps, brew). A `native` binding installs through it; its package name can differ per manager (`name: { apt: …  dnf: … }`). *See also:* **via**, **OS-block**.
+- **never-auto** (`standing: never-auto`) — Marks a binding (or provider) as valid and pinnable but never the automatic choice — used where it's the only method, or when you pin it. *See also:* **standing**, **pin**.
+- **orphan** — Something installed that this machine's picks don't account for, but that configsys could manage — listed so you can track it, remove it, or ignore it. *See also:* **picks**.
+- **OS-block** (an entry in routes.hu `os:`) — configsys' model of a distro: its parent (`using:`), package manager (`native:`), version numbering (`scale-root:`) and built-in capabilities (`provides:`). `when:` atoms name these. *See also:* **lineage**, **scale-root**, **native**. *Not:* “distro-profile”.
+- **picks** (`picks:`) — What each machine installs: a component × machine matrix in your config (`picks: { <machine>: [ components ] }`). This machine's column is its install set. *See also:* **machine**, **profile**. *Not:* “active profiles”, “configs”.
+- **pin** (`pins:`) — A per-machine override at top precedence: a binding-pin forces a component's method (`pins: { yazi: tarball }`), a provider-pin forces which component satisfies a capability. *See also:* **candidate**, **provider**.
+- **plugin** — A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. Code plugins must be trusted. *See also:* **layer**, **primary-plugin**, **trust**.
+- **primary-plugin** (`primary: true`) — Your personal plugin: travels with you across machines and may also set machine settings that should be uniform. *See also:* **plugin**, **setting-nature**.
+- **profile** — A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin. Profiles never install anything themselves; you pick from them. *See also:* **picks**, **subprofile**. *Not:* “install set”.
+- **provider** — A component that `provides:` a capability another component `requires:` (e.g. `jdk-21` provides `jdk`). *See also:* **capability**, **pin**.
+- **receipt** — The ledger's record of each unit configsys installed (method, package name, fields), so the install stays findable and removable after routes stop offering that method. *See also:* **stranded**, **ledger**.
+- **refresh** (`configsys refresh`) — Re-checking upstream versions and refreshing the OS package index.
+- **requires** (`requires:`) — A HARD dependency: the capability must resolve here or the component errors. *See also:* **suggests**, **capability**.
+- **resolution** — Turning wanted component names into concrete units for THIS machine: pick a binding per component, close its requires/suggests, dedupe. *See also:* **unit**, **candidate**.
+- **routing-status** — A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS). *See also:* **stranded**.
+- **scale-root** (`scale-root: true`) — Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version. *See also:* **OS-block**.
+- **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Package managers are always system.
+- **setting-nature** — Whether a machine setting is uniform (belongs in your primary plugin, same everywhere) or machine-local (belongs in this box's config). `configsys config move` carries one across. *See also:* **primary-plugin**.
+- **shell-glue** — The component that makes every installed shell load its `~/.config/<shell>/conf.d/` snippets — the substrate every `-glue` companion needs. *See also:* **glue**.
+- **specificity** — Tie-breaking among candidates: a binding with a narrower `when:` (e.g. `rhel`) beats a broader one, before any preference applies. *See also:* **candidate**, **standing**, **driver-preference**.
+- **staged** — In the TUI, an operation marked to run (install, upgrade, remove, …) but not yet executed; `X` runs everything staged after a confirmation.
+- **standing** (`standing:`) — The one preference knob on a binding, driver or provider: `never-auto` (listed and pinnable, never chosen automatically) or an integer rank (higher wins). *See also:* **never-auto**, **driver-preference**, **specificity**.
+- **stranded** — Installed via a method routes no longer offer on this machine (removed, gated out, or its driver disabled). Shown as the `switch` status; installing the component swaps it out. *See also:* **routing-status**, **receipt**, **swap**.
+- **subprofile** — A profile included in another with `+name` (and removable with `~name`). *See also:* **profile**.
+- **suggests** (`suggests:`) — A SOFT dependency: pulled in when it can be installed here, silently skipped when it can't (how a tool attaches its optional `-dotfiles` / `-glue` companions). *See also:* **requires**, **companion**.
+- **swap** — Switching a component's method: the old install is removed first, then the new one installs — never both at once. *See also:* **also-present**, **pin**.
+- **system-updates** — The OS packages with pending updates that aren't configsys components — shown and applied in bulk, so configsys can be your one updater.
+- **trust** (`configsys plugin trust`) — Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data. *See also:* **plugin**.
+- **unit** (unit key `driver\comp`) — One concrete install the drivers act on — a component bound to a driver (`apt\ripgrep`, `flatpak\gimp`). Two requests resolving to the same unit install it once. *See also:* **resolution**, **component**.
+- **version-floor** — A hard minimum version a component needs from a capability (`requires: { go: ">=1.21" }`); configsys surfaces methods that cannot meet it rather than silently upgrading. *See also:* **capability**.
+- **via** (`via:`) — The install mechanism a binding uses — names a driver (`apt`, `flatpak`, `tarball`, `cargo`, …), or `native` (this OS's package manager) or `parts` (an aggregate). *See also:* **driver**, **native**.
+- **when** (`when:`) — A binding's validity condition — an expression over the OS (`debian`, `ubuntu >= 24.04`), CPU and facets. It says only whether the method WORKS here, never whether it is preferred. *See also:* **binding**, **standing**, **specificity**.
+
+**Retired terms** — you may still meet these in older docs (`docs/done/`) or configs:
+
+| retired | use instead | |
+|---|---|---|
+| `active profiles` | this machine's picks | profiles are browse-only; picks are the install set |
+| `bash-dotfiles` | `shell-glue` (a `-glue` companion) | shell setup moved from dotfiles to the glue driver |
+| `candidate-only:` | `standing: never-auto` | standing is the one preference knob |
+| `configs:` | `picks:` | the install set is this machine's picks column, not a list of active profiles |
+| `discovered layer` | a machine-level plugin (`configsys plugin add <dir> --local`) | CWD project discovery was removed |
+| `machines:` | `picks:` (each key is a machine) | picks is the machine registry |
+| `opt-in:` | `standing: never-auto` | standing is the one preference knob |
+| `orphans-adopt-target:` | (adopting an orphan picks it) | no staging profile any more |
+| `prefer:` | `standing: <integer>` | standing is the one preference knob |
+| `RouteResolver` | the capability resolver (resolve.py) | the v1 resolver was deleted |
+
+<!-- glossary:end -->
