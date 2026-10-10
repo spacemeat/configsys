@@ -35,7 +35,7 @@ web UI) · `headless` (no UI — libs, pure daemons)
 `lib` · `SDK` · `app` (end-user application) · `toolchain` (compiler/interpreter) · `runtime`
 (language/VM runtime) · `driver` (kernel/hardware/DKMS) · `font` · `theme` · `plugin` (extends
 another app) · `game` · `service` (a `-service` companion) · `group` (a `-group` usermod companion) ·
-`dotfiles` (a `-dotfiles` companion)
+`dotfiles` (a `-dotfiles` companion) · `glue` (a `-glue` shell-startup companion)
 
 ### 3. License / openness — free-form, combine as many as apply
 `FOSS` (OSI-free) · `FOSSish` (partly non-free — open core) · `proprietary` (closed) ·
@@ -60,7 +60,7 @@ offline) · `ads` (carries advertising) · `paid` (costs money) · `freemium` (f
 
 - **ALL-CAPS** for acronyms: `CLI TUI GUI FOSS FOSSish GNU SDK`.
 - **lowercase** for words: `lib app daemon web headless toolchain runtime driver font theme plugin
-  game service group dotfiles proprietary source-available freeware copyleft permissive tele
+  game service group dotfiles glue proprietary source-available freeware copyleft permissive tele
   tele-optin account cloud online ads paid freemium electron patent legacy beta`.
 - Stored **as authored** (for display); the filter **matches case-insensitively**, so a stray
   `Cli` still filters correctly — but author them in canonical case.
@@ -79,8 +79,8 @@ and **unioned** with the authored `attrs:`, so companion/asset components tag th
 | a binding is `via: group`        | `group`      |
 | a binding is `via: font`         | `font`       |
 
-(`glue` is derived but is not in `ATTR_AXES`, so the modal can't toggle it on its own — see the
-default exclusion below.) Interface/role could be derived further later — e.g. `via: cargo`/`pip` →
+(Both `dotfiles` and `glue` are on the role axis, so the modal can toggle each — see the default
+exclusion below.) Interface/role could be derived further later — e.g. `via: cargo`/`pip` →
 `CLI`, a dev-headers component → `lib` — but the **license / data / pedigree axes must always be
 authored**: only a human knows Audacity phones home. Authored tags win/merge; the derivation only
 *adds*.
@@ -106,7 +106,7 @@ every new real component (companions get theirs by derivation).
   of the selected browse profile's membership and the substring filter.
 - **`dotfiles`- and `glue`-tagged companions are hidden by default** (they live on the Dotfiles/Glue
   pages and are noise for most filtering) — the initial exclude set is `{dotfiles, glue}`; **`service`
-  stays visible**. `c` in the modal clears both to reveal them. The catalog title shows a `✓/✗` chip
+  stays visible**. `c` in the modal clears both to reveal them, or toggle either tag on its own. The catalog title shows a `✓/✗` chip
   (`attr_summary`) once the filter deviates from that default.
 - Implementation: `ProfileScreen.attr_inc`/`attr_exc` (lowercased sets), `_attr_pass()`,
   `_attr_filter_modal()`, `ATTR_AXES` in `configsys/tui/menu.py`; drawn by

@@ -70,13 +70,18 @@ Each synced plugin's data files become layers. Precedence, lowest to highest:
 repo (routes.hu + config.hu)  <  plugins (declaration order)  <  primary plugin  <  your config
 ```
 
-Your `~/.config/configsys/configsys.hu` always wins over a plugin. What a plugin's data may
-contribute:
+Your `~/.config/configsys/configsys.hu` always wins over a plugin. The same rule holds for every
+layer — the repo, each plugin, your primary, your top config, and any file one of them includes: any
+layer may **define** things (the sections below); only your top config and your primary plugin may
+**set machine settings**. What a plugin's data may contribute:
 
 - **`components:`** — new components, or additions to existing ones. Bindings merge across layers
   by `(via, when)`, so a plugin can add an install method to a shipped component without restating
   the rest.
-- **`os:`** and **`drivers:`** — new OS blocks (derivative distros) and driver settings.
+- **`os:`** and **`drivers:`** — new OS blocks (derivative distros) and driver settings. A
+  `drivers:` entry's `requires:` and `standing:` apply to every binding that driver installs,
+  including `via: native` bindings that resolve to it on an OS whose `native:` it is (on Fedora
+  Atomic, `brew`'s requires cover every `via: native` component).
 - **`component-names:`** — per-driver package-name patches for components it doesn't own
   (`{ toybox: { ripgrep: rg  nmap: {} } }`: a string renames, `{}` means "not packaged here").
 - **`profiles:`** — browse-only profiles. A profile with the same name as a lower layer's replaces
@@ -87,8 +92,11 @@ contribute:
 - **`facets:`** — detection probes; these run shell commands, so they load only once the plugin is
   trusted (§6).
 
-A plain plugin may **not** set machine settings (`picks:`, `machine:`, `scope:`, `pins:`, …);
-they are ignored. Only your primary plugin (§8) may.
+A plain plugin may **not** set machine settings (`picks:`, `machine:`, `scope:`, `pins:`, …), and
+neither may a file pulled in with `include:`. They are ignored, and `configsys check` (and the TUI
+`!` page) warns about each one so it isn't a silent drop. The machine settings are every section in
+`layers.MACHINE_SETTING_SECTIONS` plus every setting registered in `actions.CONFIG_SETTINGS`
+(`layers.machine_setting_sections`). Only your primary plugin (§8) may set them.
 
 `configsys where <component>` shows which file defined a component, plugin files included.
 
@@ -142,7 +150,7 @@ so you can push a plugin you author without a token.
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
 | `configsys plugin bless <source>` / `unbless` | Make a plugin your primary (§8), or clear that. `bless none` also clears. |
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
-| `configsys plugin set-source <name> <source>` | Repoint a plugin you authored in place (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`; `sync` then fetches from there. To move a plugin configsys cloned to a different source, use `plugin add <source> --replace`. |
+| `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
 
 The TUI **Plugins** screen (key `3`) shows the same tree, with a diff of what updating the
 selected plugin to its remote ref would change — review it before you trust. Keys: `a` add, `x`
@@ -172,10 +180,12 @@ The dividing line is **does configsys run something from it as a program** — a
   flatpak, tarball, …), OS blocks, profiles, themes. These sync and load freely. The worst case
   is bad definitions, which `configsys check` catches, and installs stay explicit.
 - **Command-carrying data** — a `via: script` or `via: source` binding, an apt
-  `source-line:`/`ppa:`/`apt-source:`, a glue snippet with a `#!cs-eval` directive, or a
+  `source-line:`/`ppa:`/`apt-source:`, **any shipped glue** (a `via: glue` binding, a snippet under
+  a `glue/` directory, a `#!cs-eval` directive — glue is sourced at every shell start), or a
   `facets:` `detect:` probe. configsys runs these as shell commands, so they need the same trust as
-  code: until you approve the plugin, its recipes are refused with a "run `configsys plugin trust
-  <name>`" message, and its facets are ignored.
+  code: until you approve the plugin, its recipes and glue are refused with a "run `configsys plugin
+  trust <name>`" message, and its facets are ignored. `plugin trust` accepts a data-only plugin that
+  ships any of these (`plugins.ships_executable_data`), so the nudge can always be acted on.
 - **Code plugins** (a `code:` module) — not imported, and their drivers not registered, until
   trusted.
 
@@ -230,7 +240,9 @@ may also call `register_driver` itself for dynamic cases.) The `Driver` docstrin
 authoritative contract; in summary:
 
 - **Class attributes:** `name`, `privileged` (mutations need sudo), `default_scope` (`user` or
-  `system`), `honors_scope` (whether user/system is selectable per component).
+  `system`), `honors_scope` (whether user/system is selectable per component), `targets_version`
+  (whether `set_version` can install a requested version; `False` makes configsys refuse
+  set-version).
 - **Ops to implement:** `get_version(rc)`, `get_latest(rc)`, `is_locked(rc)` (reads; no root),
   and `install(rc)`, `uninstall(rc)`, `upgrade(rc)`, `set_version(rc, version)`, `lock(rc)`,
   `unlock(rc)` (mutations; return a `Result`). Implement what your manager supports.
@@ -260,8 +272,9 @@ class, so a driver that overrides none of them still works — every unit is jus
 and the driver stays out of the bulk features (System Updates, the orphan scan's package
 enumeration). Override the ones your manager can answer.
 
-The `Driver` docstring's frozen list names only some of these (the class attributes, `sudo(rc)`,
-`scope(rc)` and `upstream_version(rc)`). The rest are public methods of the base class the core
+The `Driver` docstring's frozen list names only some of these (the class attributes `privileged`,
+`default_scope`, `honors_scope` and `targets_version`, plus `sudo(rc)`, `scope(rc)` and
+`upstream_version(rc)`). The rest are public methods of the base class the core
 calls today, but they are not yet in that list, so the ABI guarantee above does not cover them.
 
 **Class attributes**
@@ -272,6 +285,7 @@ calls today, but they are not yet in that list, so the ABI guarantee above does 
 | `default_scope` | `'user'` | Your scope when the unit sets none: returned by `scope(rc)`, assumed by the default `get_installed`, and read by `sudo(rc)`. |
 | `honors_scope` | `False` | `True` = user/system is selectable per unit. The core then stamps the machine's `scope:` setting onto your units that lack a `scope` field (`apply_scope_default`), flags it in the issues list (the TUI `!` page, the end of `configsys inspect`) when the installed scope differs from the declared one, and lets `configsys fix-scope` call `reconcile_scope`. Override `get_installed` too, so the scope you report is where the unit really is. |
 | `holds_version` | `True` | `False` for a rolling manager that can neither hold a package nor install an older version (pacman, apk). The unit then never reads as locked, a `lock` op records no ledger hold, and the UI doesn't offer lock or set-version. Make `lock()` decline as well. |
+| `targets_version` | `True` | `False` when `set_version` can't reach a requested version — the artifact is fixed by the route (a version-templated tarball/AppImage/font URL, the current AUR PKGBUILD, a package-fixed toolchain like `gcc-13`) or there is no version at all (glue, service, group). `configsys set-version` and the op loop (`actions.targets_version`) then refuse with a clear message before anything runs, instead of reinstalling the routed version and reporting success. |
 | `native_backed` | `False` | `True` when your installs register in the OS package database (a `.deb`/`.rpm` installed with dpkg/rpm, a makepkg build installed with pacman). The orphan scan then looks for your units' packages under the native manager's index too (so they don't show as foreign orphans), and stranded-install detection treats the same package name under the native manager as the same install. |
 
 **Scope and privilege**
@@ -430,6 +444,12 @@ machine) or machine-local (belongs in this machine's config). configsys writes e
 right place, and `configsys config move` (TUI Config screen `m`) carries a setting across. A new
 `plugin add` lands in the primary's manifest too, unless you pass `--local`. Changes to a primary
 reach your other machines once you commit, push, and bump its ref there.
+
+A primary that has no data file yet (a `plugin init` with no components or profiles to move writes
+only the manifest) gets an empty `<name>.hu` the first time configsys writes a setting, pin or pick
+to it — provided it is synced, ABI-compatible, has no `sha256:` pin (a new file would change its
+hash) and its manifest has no explicit `data:` list (a new file would be ignored). Never under
+`--pretend`.
 
 ## 9. Machine-level plugins
 

@@ -1,6 +1,6 @@
 # Glue / dotfiles separation
 
-> **Status: IN PROGRESS** — phases 1–2 done (06db74e, 39b3f28, 568eec9; c25a146 2026-09-16); phase 3 partly: apod's real home landed (72aeb71, `apod-glue`), best-ps1's home + purifying the bash loader not started.
+> **Status: DONE** — finished 2026-10-10 (2a577c0). Phases 1–2: 06db74e, 39b3f28, 568eec9, c25a146 (2026-09-16). Phase 3: apod's real home (72aeb71, `apod-glue`); best-ps1, citybanner and geg moved out of the repo to the user's ~/cfs-todo/ (2026-10-10, user decision) and the shared bash loader purified of personal PYTHONPATH/alias lines (2a577c0). Lives on in: docs/shell-glue.md
 
 Split the conflated `via: dotfiles` mechanism into two first-class, separately-modeled concerns:
 

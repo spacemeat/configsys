@@ -1,6 +1,6 @@
 # Docs index
 
-Last full audit: 2026-10-09 at f25cb60 (`/update-docs`; the audit commit follows it).
+Last full audit: 2026-10-09 at f25cb60 (`/update-docs`, committed as d958cf9); bug batch + decisions 2026-10-10.
 
 Where every doc lives and what state it's in. Created = first git commit of the file; finished = the commit that landed the last phase (from the doc's Status header). Maintained by the `/update-docs` skill.
 
@@ -14,15 +14,15 @@ How things work now. Maintained, never "done".
 | [facets.md](facets.md) | REFERENCE | 2026-08-08 | — | `facets:` — detected environment atoms (gpu, cuda, …) usable in `when:`. |
 | [glossary.hu](glossary.hu) | REFERENCE | 2026-10-09 | — | Canonical vocabulary; README's Glossary is generated from it. |
 | [name-sweep-test.md](name-sweep-test.md) | REFERENCE | 2026-07-24 | — | The native package-name existence sweep (podman) and its allowlist. |
-| [orphans.md](orphans.md) | REFERENCE | 2026-10-09 (this audit) | — | Managed orphans: finding installed things you don't pick; adopt / ignore. |
+| [orphans.md](orphans.md) | REFERENCE | 2026-10-09 | — | Managed orphans: finding installed things you don't pick; adopt / ignore. |
 | [plugins.md](plugins.md) | REFERENCE | 2026-07-17 | — | Plugins: add, sync, pin, trust; data vs code plugins; the driver ABI and hooks. |
 | [principles.md](principles.md) | REFERENCE | 2026-09-23 | — | Load-bearing policies: safety, routing invariants, no surprises, what we don't model. |
 | [routing-model.md](routing-model.md) | REFERENCE | 2026-07-16 | — | The capability/component routing model as built: bindings, `when:`, selection, resolution. |
 | [shell-glue.md](shell-glue.md) | REFERENCE | 2026-09-24 | — | Glue loaders per shell, user startup space, and the shell-writes guard. |
 | [stranded-installs.md](stranded-installs.md) | REFERENCE | 2026-10-08 | — | Stranded-install detection and the `switch` / `unmet` / `dangling` statuses. |
-| [system-updates.md](system-updates.md) | REFERENCE | 2026-10-09 (this audit) | — | System updates: non-component upgrades, tiers, `updates` / `upgrade --system`. |
+| [system-updates.md](system-updates.md) | REFERENCE | 2026-10-09 | — | System updates: non-component upgrades, tiers, `updates` / `upgrade --system`. |
 | [theming.md](theming.md) | REFERENCE | 2026-07-30 | — | The `theme:` section, the Theme editor screen, color depth and effects. |
-| [tui-architecture.md](tui-architecture.md) | REFERENCE | 2026-10-09 (this audit) | — | How the TUI is built: MVVM screens (build_vm / draw / handle), router, surfaces. |
+| [tui-architecture.md](tui-architecture.md) | REFERENCE | 2026-10-09 | — | How the TUI is built: MVVM screens (build_vm / draw / handle), router, surfaces. |
 | [versioned-requires.md](versioned-requires.md) | REFERENCE | 2026-08-02 | — | Version floors, version-scoped providers, `version-floors:`, auto-tighten; Python versions. |
 
 ## To do — `docs/todo/`
@@ -31,9 +31,7 @@ Unfinished plans: not started, in progress, or deferred.
 | doc | status | created | finished | summary |
 |---|---|---|---|---|
 | [community-routes-registry.md](todo/community-routes-registry.md) | DEFERRED | 2026-09-23 | — | Design note: crowdsourcing route data safely (catalog → curated repo → federated). *design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).* |
-| [dotfiles-glue-split-plan.md](todo/dotfiles-glue-split-plan.md) | IN PROGRESS | 2026-09-15 | — | Separate glue from dotfiles. *phases 1–2 done (06db74e, 39b3f28, 568eec9; c25a146 2026-09-16); phase 3 partly: apod's real home landed (72aeb71, `apod-glue`), best-ps1's home + purifying the bash loader not started.* |
 | [method-broadening-plan.md](todo/method-broadening-plan.md) | IN PROGRESS | 2026-08-27 | — | Offer every working install method (`when:` is validity, not preference). *Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.* |
-| [routing-overhaul-plan.md](todo/routing-overhaul-plan.md) | IN PROGRESS | 2026-08-11 | — | Version-scoped providers, one `standing` knob, detection-first, where picker. *phases 0–2 + 4 done and phase 3's `standing` consolidation done (2026-08-11, 63b3823…9d3b791, 020da4f, 8018f77); phase 3 follow-ons (`choices:` section, `driver-preference` → via-scope `standing`, `when:`-scopable `standing`) not started; phase 5 deferred.* |
 | [source-plugin-plan.md](todo/source-plugin-plan.md) | IN PROGRESS | 2026-08-02 | — | configsys-source: additive build-from-source bindings. *pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.* |
 
 ## Done — `docs/done/`
@@ -43,7 +41,9 @@ Finished or superseded plans. The body is historical; the header says where the 
 |---|---|---|---|---|
 | [d2-mvvm-findings.md](done/d2-mvvm-findings.md) | DONE | 2026-09-20 | 2026-09-20 (aef1da9) | Findings log kept during the MVVM rewrite. |
 | [d2-mvvm-plan.md](done/d2-mvvm-plan.md) | DONE | 2026-09-20 | 2026-09-20 (5641778) | TUI rewrite to MVVM screens + a lazy router. |
+| [docs-audit-fixes-2026-10.md](done/docs-audit-fixes-2026-10.md) | DONE | 2026-10-10 | 2026-10-10 | The audit bug batch + grilled decisions (uniform layers, brew routes, glue bands). |
 | [dotfiles-capture-plan.md](done/dotfiles-capture-plan.md) | DONE | 2026-07-25 | 2026-07-26 (40f24f3) | Capture/adopt on-system dotfiles into your store; clobber-proof linking. |
+| [dotfiles-glue-split-plan.md](done/dotfiles-glue-split-plan.md) | DONE | 2026-09-15 | 2026-10-10 (2a577c0) | Separate glue from dotfiles. |
 | [dotfiles-redesign.md](done/dotfiles-redesign.md) | DONE | 2026-08-16 | 2026-08-17 (a4e081e) | Two kinds of dotfiles, user-owned links, managed-even-when-empty. |
 | [driver-resilience-plan.md](done/driver-resilience-plan.md) | DONE | 2026-08-26 | 2026-08-26 (269817d) | Diagnose broken sources, rotated-key self-heal, validate-then-commit. |
 | [expansion-plan.md](done/expansion-plan.md) | DONE | 2026-07-24 | 2026-07-24 (0be7bcc) | Languages, tools, desktops and `configsys request`. |
@@ -59,6 +59,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | [profiles-matrix-plan.md](done/profiles-matrix-plan.md) | DONE | 2026-09-10 | 2026-09-14 (406546f) | Profiles v3: the component × machine picks matrix. |
 | [profiles-plan.md](done/profiles-plan.md) | DONE | 2026-07-24 | 2026-07-25 (3d4f228) | The first profiles pass. |
 | [python-versions-plan.md](done/python-versions-plan.md) | DONE | 2026-08-12 | 2026-08-12 (f48080d) | Python versions as version-scoped components. |
+| [routing-overhaul-plan.md](done/routing-overhaul-plan.md) | DONE | 2026-08-11 | 2026-08-11 (9d3b791) | Version-scoped providers, one `standing` knob, detection-first, where picker. |
 | [shell-writes-switch.md](done/shell-writes-switch.md) | DONE | 2026-08-18 | 2026-08-18 (58c8c4b) | Stop installers scribbling in rc files. |
 | [startup-perf-plan.md](done/startup-perf-plan.md) | DONE | 2026-08-12 | 2026-08-12 (c24a056) | Startup performance investigation + fixes (~50s → ~5s). |
 | [system-update-coverage-plan.md](done/system-update-coverage-plan.md) | DONE | 2026-09-21 | 2026-09-23 (cd65037) | configsys as the single updater: system updates P0–P3. |

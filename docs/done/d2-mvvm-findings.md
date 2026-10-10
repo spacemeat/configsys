@@ -1,6 +1,6 @@
 # D2 MVVM rewrite — findings log (fix SEPARATELY, not mid-refactor)
 
-> **Status: DONE** — finished 2026-09-20 (commit aef1da9). Lives on in: docs/tui-architecture.md (open item → DEFERRED.md)
+> **Status: DONE** — finished 2026-09-20 (commit aef1da9). Lives on in: docs/tui-architecture.md (open item since fixed, 2a577c0)
 
 The rewrite holds a strict pixel-preservation bar (docs/done/d2-mvvm-plan.md). Any pre-existing bug or
 rough edge noticed while migrating a screen is recorded HERE and left behavior-identical, so the
@@ -8,7 +8,7 @@ refactor stays provably neutral. Address these in their own commits afterward.
 
 ## Open
 
-_(2026-10-09: the remaining open item below now lives in DEFERRED.md → "TUI — latent thread-safety".)_
+_(2026-10-09: the remaining open item below moved to DEFERRED.md; FIXED 2026-10-10 in 2a577c0 — see DEFERRED.md → Done since deferral.)_
 
 - **ProfileScreen._warm_cache resolves into shared ctx.routes caches from a daemon thread.** Each
   ProfileScreen spawns a background sweep that calls `_resolve` (which reads/writes ctx-level

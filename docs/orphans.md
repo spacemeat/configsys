@@ -60,9 +60,10 @@ network, no per-item subprocess.
    cross-slots, so an active clang-18 never resurfaces as an apt orphan.
 2. **Drivers scanned** — those of the active units ∪ every driver in the reverse index ∪
    `USER_FACING`; each whose `installed_index()` is non-empty. Today that means apt, dnf, pacman,
-   zypper, xbps, brew, flatpak, snap, pip, pipx, npm, cargo, gem, go-install, luarocks, opam,
-   wherever present. apk, tarball, appImage, script and source have no batch enumeration and are
-   not scanned.
+   zypper, apk, xbps, brew, flatpak, snap, pip, pipx, npm, cargo, gem, go-install, luarocks, opam,
+   wherever present (apk enumerates with one `apk list --installed`, falling back to `apk info -v`
+   on apk-tools without `list`). tarball, appImage, script and source have no batch enumeration and
+   are not scanned.
 3. **Per installed key**, in order: skip if an active slot; skip if `explicit_keys()` is a set and
    the key isn't in it (auto-installed dependency) unless `include_auto`; if the reverse index maps
    it, classify (`lurking`/`forgotten`, or skip when every match is picked); else `foreign` only on
@@ -73,7 +74,8 @@ network, no per-item subprocess.
 Why the filters: native managers and language installers carry hundreds of dependency packages,
 so for them only the **known** intersection is listed by default; flatpak/snap installs are
 deliberate user apps and few, so their recipe-less installs are shown. `explicit_keys` (apt-mark
-showmanual, dnf `--userinstalled`, pacman `-Qe`, brew leaves, xbps `-m`, pip `INSTALLER=pip` +
+showmanual, dnf `--userinstalled`, pacman `-Qe`, apk's `/etc/apk/world` (every `apk add`ed atom,
+`!conflict` entries skipped), brew leaves, xbps `-m`, pip `INSTALLER=pip` +
 `--not-required`, npm minus node-bundled) keeps the thousands of packages nobody chose out; a
 driver returning `None` (zypper, flatpak, snap, pipx, …) counts every key as chosen. Base-tier
 foreign packages are hidden but the tier rides on every orphan, so a user can still opt to manage
@@ -98,7 +100,7 @@ Report (default): resolves the picks, scans with `include_system=True`, then fil
 | `--include-auto` | keep auto-installed dependency packages |
 | `--system` | keep base-tier (required/important/standard) foreign orphans |
 | `--all` | keep ignored orphans (marked `[ignored]`) |
-| `--json` | the filtered list as JSON (`vars(Orphan)`); same filters as the report |
+| `--json` | the filtered list as JSON (`vars(Orphan)`); same filters as the report — base-tier foreign orphans are hidden unless `--system`, ignored ones unless `--all` |
 
 Output groups by driver: `key  version  → component  (kind)`, or `(foreign — no cf recipe ·
 <tier>)`. The footer counts known / foreign / ignored and says what's hidden and how to show it.
@@ -130,7 +132,9 @@ What's drawn: the component name is underlined when installed; the `inst'd` colu
 installed and picked here, `⊙` installed but **not** picked (in the `orphan_lurking` role colour),
 `◐` partial, `○` absent, `⊘` no method on this OS, `⮾` queued for uninstall. A browse profile's
 `⊙N` badge counts its installed-but-unpicked members. `⊙` reads raw installed state, so it is wider
-than the orphan scan (no explicit-keys filter, no ignore filter, no per-kind colour).
+than the orphan scan (no explicit-keys filter, no per-kind colour). An ignored `⊙` (its name matches
+an `orphans-ignore` glob, or the overlay scan marked it `ignored` by name or package key) is drawn in
+the dim `info_dim` role instead of `orphan_lurking`, so `.` visibly takes effect at once.
 
 **Keys on the catalog** (configurable in `keys:`, see config.hu):
 

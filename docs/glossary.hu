@@ -44,7 +44,7 @@
             see: [ binding  standing  specificity ]
         }
         candidate: {
-            def: "A binding whose `when:` holds on this machine (and whose driver isn't disabled). Among the candidates, configsys picks the default; the rest stay pinnable."
+            def: "A binding whose `when:` holds on this machine, whose driver isn't disabled or gated out here (a `drivers:` block's own `when:`), and that covers this CPU. Among the candidates, configsys picks the default; the rest stay pinnable."
             see: [ binding  specificity  standing  pin ]
         }
         specificity: {
@@ -63,7 +63,7 @@
         }
         driver-preference: {
             short: "`driver-preference:`"
-            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, tarball, source, script)."
+            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script)."
             see: [ standing  specificity ]
         }
         capability: {
@@ -105,7 +105,7 @@
             see: [ picks ]
         }
         profile: {
-            def: "A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin. Profiles never install anything themselves; you pick from them."
+            def: "A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin, or written in your own config as your own category. Profiles never install anything themselves; you pick from them."
             see: [ picks  subprofile ]
             avoid: [ "install set" ]
         }
@@ -123,7 +123,7 @@
             see: [ plugin  primary-plugin ]
         }
         plugin: {
-            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Code — and data that runs shell commands, like build recipes — loads only after you trust it."
+            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Code — and data that runs shell commands, like build recipes or shell glue — loads only after you trust it."
             see: [ layer  primary-plugin  trust  transitive-plugin ]
         }
         primary-plugin: {
@@ -287,12 +287,17 @@
         }
         user-glue: {
             short: "`configsys glue add`"
-            def: "Your own shell startup snippets, not tied to any component, kept in a `user.d` folder and loaded like other glue; a `99-user` snippet is scaffolded for you."
-            see: [ glue  conf.d ]
+            def: "Your own shell startup snippets, not tied to any component, kept in a `user.d` folder and loaded after component glue (so yours win); a `99-user` snippet is scaffolded for you."
+            see: [ glue  conf.d  band ]
         }
         conf.d: {
             def: "The per-shell folder (`~/.config/<shell>/conf.d/`) every glue snippet is linked into; shell-glue makes each installed shell load it."
-            see: [ glue  shell-glue ]
+            see: [ glue  shell-glue  band ]
+        }
+        band: {
+            short: "`00-` / `50-` / `90-` / `99-`"
+            def: "The load-order prefix on each conf.d link: shells load conf.d in name order, so configsys's own setup (`00-`) comes first, then component glue (`50-`), then your user glue (`90-`), then your `99-user` snippet. A snippet already named `NN-…` keeps its prefix."
+            see: [ conf.d  glue  user-glue ]
         }
         ABI: {
             short: "`requires-abi:`"
@@ -335,8 +340,8 @@
         }
         staged-glue: {
             short: "`configsys dotfiles staged`"
-            def: "Shell startup lines an installer tried to add, reverted by the shell-writes guard and held as inactive glue until you activate or discard them. Not the same as a staged TUI operation."
-            see: [ shell-writes-guard  glue  staged ]
+            def: "Shell startup lines an installer tried to add, reverted by the shell-writes guard and held, inactive, on this machine until you activate them (they become your user glue) or discard them. Not the same as a staged TUI operation."
+            see: [ shell-writes-guard  user-glue  staged ]
         }
         view-mode: {
             def: "The Components screen's filter, cycled with `M`: to-do (what needs action — the default), tracked (every pick), installed+tracked (also installed components you haven't picked)."
@@ -365,7 +370,7 @@
         "candidate-only:": { use: "`standing: never-auto`"  why: "standing is the one preference knob" }
         "bash-dotfiles": { use: "`shell-glue` (a `-glue` companion)"  why: "shell setup moved from dotfiles to the glue driver" }
         "active profiles": { use: "this machine's picks"  why: "profiles are browse-only; picks are the install set"  match: "(?i)active profiles?" }
-        "discovered layer": { use: "a machine-level plugin (`configsys plugin add <dir> --local`)"  why: "CWD project discovery was removed"  match: "(?i)discover(ed|y)[ -](layer|role)" }
+        "discovered layer": { use: "a machine-level plugin (`configsys plugin add <dir> --local`)"  why: "CWD project discovery was removed"  match: "(?i)discover(ed|y)( |-)(layer|role)" }
         "RouteResolver": { use: "the capability resolver (resolve.py)"  why: "the v1 resolver was deleted" }
     }
 }

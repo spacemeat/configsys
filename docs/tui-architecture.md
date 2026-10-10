@@ -15,10 +15,10 @@ are in [principles.md](principles.md).
 | Module | Holds |
 |---|---|
 | `tui/menu.py` | `run` (the router + event loop), `MenuState` (the Components tree), the screen MODEL classes (`ProfileScreen`, `PluginScreen`, `ConfigScreen`, `ThemeScreen`, `DotfilesScreen`, `GlueScreen`), shared modals/painting helpers (`_put`, `_fit`, `_popup_choose`, `_input_box`, `_filter_edit`, `_find_edit*`, `_panel`, scrollbars, `_draw_nav`, `_fill_bg`), `_HELP`, the overlays (`_draw_where`, `_draw_diagnostics`), and the `_sample_*_state` fixtures |
-| `tui/screens/base.py` | the protocol: `Screen`, `ViewModel`, `Intent`, `Size` |
+| `tui/screens/base.py` | the protocol: `Screen`, `ViewModel`, `Intent` |
 | `tui/screens/<id>.py` | one `<Id>Screen` + `<Id>VM` per screen: `components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`, `theme` |
 | `tui/surface.py` | `CursesSurface`, `BufferSurface`, `Cell` |
-| `tui/keyspec.py` | key-name parsing, `Keymap`, `KNOWN_ACTIONS`, `ACTION_LABELS`, `lint_keys` |
+| `tui/keyspec.py` | key-name parsing, `Keymap`, `merge_layer_keys` / `config_keys`, `ROUTER_ACTIONS`, `KNOWN_ACTIONS`, `ACTION_LABELS`, `lint_keys` / `lint_merged` |
 | `tui/theme.py` | `COLOR_MAP`, `BASIC_MAP`, `ROLE_DEFAULTS`, `PAGE_ROLES`, `BUILTIN_GRADIENTS`, `resolve_theme`, `Palette`, `STATUS_COLOR`, `env_color_cap`/`env_effects` |
 | `tui/screen.py` | curses lifecycle: `curses_screen`, `suspended`, Return/Ctrl-J separation, direct-color terminfo selection |
 | `tui/terminfo.py` | pure-Python compiled-terminfo reader/writer (builds a `-direct` entry without `tic`) |
@@ -37,8 +37,7 @@ stay acyclic.
 seams:
 
 - **`build_vm(ctx, size) -> ViewModel`** — pure: read the model and `ctx`, return plain data. No curses,
-  no drawing. `size` is the `(h, w)` tuple from `getmaxyx()` (the `Size` dataclass exists but the
-  router passes a tuple). The router stamps `vm.note` (the transient status note it owns) on every VM
+  no drawing. `size` is the `(h, w)` tuple from `getmaxyx()`. The router stamps `vm.note` (the transient status note it owns) on every VM
   except Components', which carries the note and diagnostics as `ComponentsScreen.note`/`.diags` and
   copies them into `ComponentsVM`.
 - **`draw(surface, pal, vm)`** — a dumb painter: positions and colours, decides nothing the VM and model
@@ -57,14 +56,29 @@ reads the clock or probes the system — the Components header's System Updates 
 start and after an execute, never per frame; descriptions come from `ms.descriptions`, cached by
 `_describe`.
 
+**Config-editing keys under `--pretend`.** Every actions-level config writer refuses under `--pretend`
+(returns `actions.PRETEND_NOT_SAVED` instead of writing), so a screen that edits config (Components'
+uninstall-queue unstage, Profiles, Config, Theme) routes its status note through
+`menu._pretend_note(ctx, note, wrote)`: under a dry run it reads "[pretend] not saved (--pretend) — would: …"
+rather than claiming the edit happened.
+
+**Glue screen user glue.** `GlueScreen._user_rows` adds your own user.d snippets
+(`Glue.user_glue_entries`) to each installed shell's group, after its component glue, as 7-tuples
+flagged `True` (`menu._is_user_glue`); a snippet whose conf.d link is missing reads `inactive`
+(state `unlinked`). They aren't units: `a` relinks that shell's user.d namespace
+(`Glue.deploy_user_glue`), `A` also relinks it with the group, and `x` only explains that configsys
+never edits user glue. See [shell-glue.md](shell-glue.md).
+
 **`Intent`** is how a key asks for effects the router owns, so the shared loop state has one owner:
 `note`, `goto` (switch screen), `dirty` (rebuild the Components tree on the next visit), `quit`,
 `new_pal` (Theme edits rebuild the `Palette`), `open_where` (`(lines, subject)` for the full-page
 `where` overlay), `pending_notes` (printed after the TUI exits), and the Components-only `reloaded`
 (`(ms, cfg, ledger, states, diags)` from `_reload`), `remodeled` (`(ms, states, layouts, transitive)`
-from a view-mode switch), `pending_report`, `invalidate_ps_overlay`. `handled` defaults to `True` and the
-router never reads it: global keys are resolved *before* the screen sees the key (below), so there's
-no fall-through path to fall back to.
+from a view-mode switch), `pending_report`, `invalidate_ps_overlay`. There is no "handled" flag: the
+router resolves its own keys *before* the screen sees the key (below), so every key that reaches
+`handle` is the screen's to consume and there's no fall-through path. `quit` is declared but the
+router never reads it (no screen sets it; leaving goes through the `quit` / `quit-force` router
+actions).
 
 ## Router and event loop (`menu.run`)
 
@@ -89,9 +103,15 @@ background work must paint on its own: on Components while the System Updates sc
 is unconsumed; on Profiles while `overlay_busy()` / `probe_busy()`. A timeout (`-1`) folds a landed
 System Updates scan and redraws.
 
-**Key resolution order:** overlay keys (where / diagnostics, scrolled via the `components` scope's
-nav actions) → `global` scope (`quit-force`, `quit` with a confirm popup, `issues`, `help`) →
-`screens` scope (`Keymap.screen_for`) → the current screen's `handle`. On switching *to* Components
+**Key resolution order** (`menu._route_key`): overlay keys first (where / diagnostics, scrolled via
+the `components` scope's nav actions; the key that opened an overlay closes it, even when the screen
+rebinds `where`/`issues`) → the current screen's **own** scope (`Keymap.own_action`, no fall-back to
+`global`): a key the screen binds goes to its `handle` even when `global` or `screens` also claims it,
+and a screen-scope binding of a router action is acted on by the router on that screen → `global`
+scope, router actions only (`keyspec.ROUTER_ACTIONS`: `quit-force`, `quit` with a confirm popup,
+`issues`, `help`) → `screens` scope (`Keymap.screen_for`) → the current screen's `handle`. With the
+shipped `config.hu` no screen binds a router or screen-switch key, so this reads as
+global-then-screens. On switching *to* Components
 the router reloads (`_reload`) if any of: an Intent set `dirty`, the Dotfiles/Glue models report
 mutated units (`model.dirty`), the uninstall queue differs from `ms._uninstall_q`, or
 `config.requested()` differs from `ms._req_sig` (picks or the current machine changed). Switching to
@@ -111,7 +131,13 @@ which is what lets rebuilds keep cursor/selection/expansion.
 **Model building** (`_components_model(ctx, cfg, states, mode, caches)`): the view mode
 (`COMPONENT_MODES`: `to-do` default, `tracked`, `installed+tracked`) picks the scope — tracked picks
 not green, plus present uninstall-queue entries / all picks / picks plus installed-but-untracked
-(`orphans.install_overlay`, its enumeration `caches` reused across switches). Names not yet in
+(`orphans.install_overlay`, its enumeration `caches` reused across switches). The to-do test is
+`menu._TODO_STATUSES` — `missing`, `outdated`, and the routing statuses `switch`/`unmet`/`dangling`
+(they rank ahead of missing/outdated in `ComponentState.status`, so a stranded `switch` would otherwise
+never surface by default). A view-mode switch goes through `menu._switch_mode`: installed+tracked's
+extra units are remembered on the MenuState (`ms._extra_keys`, from `_added_extras`) and dropped from
+`states` when switching away, unless they carry a staged op — so they can't linger invisibly for a
+later bulk op to sweep up. Names not yet in
 `states` are inspected (`ctx.inspect_components`). Then `_group_by_owner` groups by owning profile and
 the synthetic System Updates group is injected from `ctx._sysupd_groups` (`sysupdates.tree_injection`).
 
@@ -122,9 +148,14 @@ installs; on a present one it falls back to `upgrade` if outdated; a `switch` ro
 installed via a method routes no longer offer) passes the install predicate, and the swap is folded
 in at execute. `dangling`/`unmet` never stage install. `lock` requires `holds_version` (not on rolling
 managers). `toggle_lock` flips both a pending request and a settled lock. `stage_all` covers every
-unit except companions and System Updates rows. System Updates rows are a **bulk mark**:
+unit except companions and System Updates rows, and skips a unit that already carries a staged op (a
+`remove` seeded from the uninstall queue by `_seed_uninstall` is never flipped by `I`/`U`) and any unit
+not tracked on this machine (its `requested_as` must meet `ms._req_sig`, so installed+tracked extras
+and uninstall-queue entries aren't swept up). System Updates rows are a **bulk mark**:
 `stage_system_updates` stages all or none, and the screen intercepts per-row actions inside that
-subtree (`_SU_BULK_ACTS`, `_SU_NA_ACTS`).
+subtree (`_SU_BULK_ACTS`, `_SU_NA_ACTS`). `unstage` is all-or-nothing for them too: touching any System
+Updates row unstages every one (`unstage_system_updates`), because execute upgrades a whole manager
+whenever any of its rows is staged — a partial unstage would leave badges that lie about `X`.
 
 **Execute** (`_confirm_and_execute`): pull System Updates out of `ms.plan()`, apply
 `installState.plan_with_swaps` (a method switch removes the old install before reinstalling), then
@@ -133,7 +164,9 @@ subtree (`_SU_BULK_ACTS`, `_SU_NA_ACTS`).
 same loop the CLI uses; all failures saved for `configsys report`); drain successfully removed
 components from the uninstall queue. Back in `handle`, the touched keys (plus every unit of a
 bulk-upgraded manager) are re-probed via `_reload`, `ms.errors` gets the failures, the reboot check
-reruns, and `invalidate_ps_overlay` tells Profiles to re-enumerate.
+reruns, and `invalidate_ps_overlay` tells Profiles to re-enumerate. Every executed run also drops the
+System Updates scan before the `_reload` (`sysupdates.invalidate`, so the rebuilt tree doesn't
+re-inject stale rows) and starts a fresh background scan after it (`_rescan_system_updates`).
 
 ## Background work and reloads
 
@@ -149,19 +182,23 @@ reruns, and `invalidate_ps_overlay` tells Profiles to re-enumerate.
   `dirty` + newly-appearing units and reuses the cached probes for the rest; rebuilds the model fresh
   (overlay caches dropped: disk changed); carries over selection, still-valid staged ops, expansion and
   cursor; re-seeds the uninstall queue (`_seed_uninstall`). Used after a pin (`v`), execute, refresh
-  (`R`, which re-probes everything), unstaging from the uninstall queue, and screen-return rebuilds.
+  (`R`, which re-probes everything — and, like execute, invalidates the System Updates scan before the
+  reload and rescans after it; staged System Updates marks go with the old rows and the note says
+  so), unstaging from the uninstall queue, and screen-return rebuilds.
   `_rebuild_menu` is the cheap counterpart for a view-mode switch (same states, new tree).
 - **Screen-local threads**, each generation-guarded so a reload abandons a stale result:
   `ProfileScreen._start_overlay_scan` (orphan classification), `ProfileScreen._start_probe`
   (installed checks for non-enumerable drivers), `ProfileScreen._warm_cache` (pre-resolves the
   catalog), `PluginScreen._start_remote` (`git ls-remote`). They rely on the idle loop blocking in
   `getch` (GIL released). Results are written into model attributes and painted on a later frame.
-- **Open — `_warm_cache` thread-safety.** The warm thread calls `ProfileScreen._resolve` →
-  `ctx.routes.candidates(...)` concurrently with the UI thread. That shares `ctx.routes`' internal
-  caches and `self._res` (including its `_res.clear()` on a routes-id change) with no lock. It is
-  safe enough with one ProfileScreen per session, which is production. It is **not** safe for two
-  views over one ctx (seen in tests and worked around in the sample fixture). Fix it before adding a
-  second profile view: make the cache instance-local or lock it.
+- **`_warm_cache` thread-safety.** The warm thread calls `ProfileScreen._resolve` concurrently with
+  the UI thread, so `_resolve` uses two locks. `self._res_lock` (per screen) guards the result cache
+  `_res`/`_res_rid`: the routes-id check, the clear on a routes swap, the lookup and the insert. The
+  slow `ctx.routes.candidates(...)` call runs outside it, under `menu._ROUTES_LOCK` (a process-wide
+  `RLock`, via `_routes_lock(ctx)`), so no two threads drive one Resolver's internal caches at once —
+  also across two ProfileScreens over one ctx (the Profiles sample). The insert is a `setdefault`
+  (a value already there wins, so a late warm result can't overwrite a primed row) and is skipped if
+  `ctx.routes` was swapped mid-resolve.
 
 ## Surfaces and headless rendering
 
@@ -194,21 +231,30 @@ The legacy-vs-new render-equivalence phase is over; the `Attr` type and some doc
 
 The defaults live in the repo's `config.hu` `keys:` section. There is no Python default map, only
 `keyspec._FALLBACK` (quit + screen switch) so a broken section can't brick the TUI. `Config.keys()`
-merges `keys:` from **every** layer (repo < plugins < primary < top config), replacing per action.
+delegates to `keyspec.merge_layer_keys`, which merges `keys:` from **every** layer (repo < plugins <
+primary < top config), replacing per action, with **rebind-wins**: when a higher layer binds a key a
+lower layer gave to another action in the same scope, the key is taken from that lower action (an
+action left with no key is dropped), so your rebind wins deterministically. `run` builds the keymap
+from `keyspec.config_keys(ctx.config)` (the same merge over the config's layer stack).
 `Keymap(merged)` parses each spec (`parse_key`: a literal char, case-sensitive; named keys such as
 `enter`/`pgdn`/`shift-tab`; `ctrl-x`; `f1`–`f12`) into `{scope: {action: [codes]}}`. Scopes:
 `screens`, `global`, and one per screen id. `action_for(scope, code)` tries the page scope first, then
 `global`, so a page key overrides a global key on that page (`tab` = `expand-all` on Components,
-`switch-pane` elsewhere). Return (CR) and Ctrl-J (LF) are distinct because `screen.distinct_return_mode`
+`switch-pane` elsewhere); within one scope, a key bound to two actions goes to the first listed.
+Return (CR) and Ctrl-J (LF) are distinct because `screen.distinct_return_mode`
 turns off CR→NL folding (vim-style); that's why `confirm` and `page-down` can coexist.
 
 **Legends and help read the same Keymap**, so hints can't drift from bindings: `Keymap.glyph` feeds
 the footers and chip bar, through the module global `menu._KEYMAP` set in `run`. The `?` overlay
 (`_help_modal`) combines `_HELP[screen]` (description + glossary) with `Keymap.help_rows(scope)`: the
-global actions in a fixed order, then the page's own actions, labelled by `ACTION_LABELS`
-(`page-1..7` collapse to one row). `KNOWN_ACTIONS` is the per-scope dispatch contract.
-`lint_keys` (run by `configsys check`) flags unknown scopes and actions, unparseable keys, and
-same-layer self-conflicts. To add an action, add it to `config.hu`, `KNOWN_ACTIONS`, `ACTION_LABELS`,
+global actions in a fixed order, then the page's own actions, labelled by `Keymap.label(scope,
+action)` — a scope-specific `ACTION_LABELS` entry `<scope>.<action>` first (one action id can mean
+different things per page, e.g. `profiles.where`), else the shared label (`page-1..7` collapse to one
+row). Labels name the action only, never a hard-coded key (the key column comes from the keymap).
+`KNOWN_ACTIONS` is the per-scope dispatch contract. `lint_keys` (run by `configsys check`) flags
+unknown scopes and actions, unparseable keys, same-layer self-conflicts, cross-layer steals (each
+key a higher layer took from a lower layer's action, as `merge_layer_keys` resolves it), and — via
+`lint_merged` — a page that shadows every `quit`/`quit-force` key (no way out from it). To add an action, add it to `config.hu`, `KNOWN_ACTIONS`, `ACTION_LABELS`,
 and the screen's `handle`.
 
 ## Theming hooks

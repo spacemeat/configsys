@@ -16,8 +16,9 @@ source builds in the configsys-opencv and configsys-blender plugins.
 
 ## Declaring facets — the `facets:` section
 
-A top-level definitions section. It is merged across the repo and plugin layers, **later layer wins
-per facet name**:
+A top-level definitions section. Its probe **specs** are merged across the repo, plugin, primary and
+included layers, **later layer wins per facet name** (the top config's `facets:` is different: it holds
+*values*, see below):
 
 ```
 // base routes.hu — shared, so any plugin can gate on gpu:nvidia / gpu:amd
@@ -41,10 +42,19 @@ facets: {
   degrades to the CPU one rather than erroring.
 
 **Facets are command-carrying data.** A `detect:` probe runs on every resolve/startup with no user
-action, so `routes.load` merges a plugin's `facets:` only when that plugin's content is trusted
-(`command_trust` → `plugins.command_source_trusted`); an untrusted plugin's facets are dropped with
-a warning naming `configsys plugin trust`. The repo's always merge. An `include:`d file or the top
-user config never contributes *declarations* (see values, below).
+action, so `routes.load` merges a plugin's (or the primary's) `facets:` only when that plugin's content
+is trusted (`command_trust` → `plugins.command_source_trusted`); an untrusted plugin's facets are
+dropped with a warning naming `configsys plugin trust`, and `plugin trust` accepts a data-only plugin
+whose only executable data is a facet probe (`plugins.ships_executable_data`). The repo's always
+merge. An `include:`d file carries its includer's trust: a file inside a synced plugin needs that
+plugin trusted, while an include of your own (from your top config, or the repo's) is trusted as you.
+
+Each spec entry must be a map (`{ kind: …  detect: …  match: … }`). A non-map entry in a plugin,
+primary or include — typically a *value* like `gpu: nvidia` written in the wrong layer — is skipped
+with a warning pointing at the top config, rather than crashing detection later. The top user
+config never contributes *declarations*: its `facets:` is a value map (see values, below), so it never
+triggers the untrusted-plugin warning; only a spec-shaped (map) entry there is flagged (define the
+facet in a plugin) and ignored.
 
 Only nvidia/amd are auto-detected for `gpu`: Intel iGPUs vs the compute-capable path are too
 ambiguous to auto-pick, so an Intel variant (configsys-blender's `gpu:intel` oneAPI build) is reached
@@ -62,7 +72,9 @@ A facet's value comes from, in precedence order (`routes.detect_facets`):
    e.g. `facets: { cuda: 12 }` or `facets: { gpu: intel }`: the user's declared machine fact. Key for
    bootstrap — on a box without CUDA yet, it states the target. Read with `layers.read_setting`
    from that one file only (not includes, not the primary plugin), and only for facets some layer
-   declares.
+   declares. A categorical facet also takes a list — `facets: { gpu: [ nvidia amd ] }` is both tags,
+   the same as `gpu: "nvidia amd"` (`routes._facet_value` joins it); for a version facet a list
+   takes its first item, and a map is no value (left unset).
 3. **probe** — the declaration's `detect:`, classified per `kind`.
 
 Probes are read-only and cached per process (keyed on the specs + overrides), so repeated Resolver

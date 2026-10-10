@@ -128,7 +128,8 @@ A few of them, by what they color:
   `dangling` are the routing statuses — an install whose method routes no longer offer, a
   component only a disabled driver could install, and one with no method on this OS.
 - **`orphan_lurking`** marks, on the Profiles page, a component that is installed but not picked
-  for this machine, and one staged for uninstall.
+  for this machine, and one staged for uninstall. One you've told configsys to ignore
+  (`orphans-ignore`, `.` on Profiles) gets its `⊙` marker in **`info_dim`** instead.
 - **`method_dim`** / **`dependents`** — the install-method label and the "required by" line in
   the Profiles detail pane; **`menu_new`** — offered (new) profile items; **`row_desc`** — the
   faded description after a row's name.

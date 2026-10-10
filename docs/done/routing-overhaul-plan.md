@@ -1,6 +1,6 @@
 # Routing model + TUI overhaul — plan
 
-> **Status: IN PROGRESS** — phases 0–2 + 4 done and phase 3's `standing` consolidation done (2026-08-11, 63b3823…9d3b791, 020da4f, 8018f77); phase 3 follow-ons (`choices:` section, `driver-preference` → via-scope `standing`, `when:`-scopable `standing`) not started; phase 5 deferred.
+> **Status: DONE** — finished 2026-08-11 (9d3b791; phases 0–2, 4 and phase 3's `standing` consolidation). The remaining phase-3 follow-ons were RETIRED 2026-10-10 (user decision): `when:`-scoped `standing` is already expressible as a narrow same-via binding plus a broad `standing: never-auto` one; folding `driver-preference` into via-scope `standing` would rename a clear setting for no user benefit; `choices:` solved a pin-namespace collision that `resolve.pin_via_names` already handles. Phase 5 moved to DEFERRED.md. Lives on in: docs/routing-model.md
 
 Decisions locked 2026-08-11. Derived from a six-facet
 parallel audit (control taxonomy, resolution semantics, TUI coverage, install-situation catalogue,

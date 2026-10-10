@@ -91,25 +91,25 @@ checks only apt/dnf/pacman/zypper/apk/xbps.
   resolves to `brew\<component>` via its universal native binding. (valgrind was verified, and
   wxmaxima resolves to its flatpak there; see Done.)
 
-### Nushell glue — personal snippets only
-Every shipped elvish snippet now has a nu path (see Done). What remains is **personal**:
-citybanner, ps1 and geg (`glue/shell/bash/{citybanner,ps1,geg}.sh`, plus `geg.zsh`/`geg.fish`).
-They still sit in the repo's `glue/shell/` but no component ships them. Their home is the user's
-configsys-user plugin. The shell-on-PATH-for-other-shells snippets (elvish, nushell) don't apply to
-nu itself. More init-eval tools can be added with one `#!cs-eval <cmd>` line each (e.g.
-`starship init nu`, if a starship component is added; none exists today).
+### Nushell glue — more init-evals on demand
+Every shipped elvish snippet now has a nu path (see Done). The personal snippets (citybanner, ps1,
+geg) left the repo on 2026-10-10 (to the user's ~/cfs-todo/). More init-eval tools can be added with
+one `#!cs-eval <cmd>` line each (e.g. `starship init nu`, if a starship component is added; none
+exists today).
 
-### TUI — latent thread-safety
-- **`ProfileScreen._warm_cache` resolves into shared `ctx.routes` caches from a daemon thread.**
-  With one Profiles screen per session (production) this is safe; two screens over one `ctx` race
-  the detection caches (a row's via/pin can differ between renders). It only showed up in the
-  render-equivalence harness, which works around it in the sample fixture. Make the per-`_resolve`
-  cache mutation thread-safe or instance-local if the TUI ever runs two profile views over one
-  `ctx`. (Moved from docs/done/d2-mvvm-findings.md.)
+### Routing — variant-aware identity
+- **Same-driver multi-version instances** (routing-overhaul phase 5): variant-aware unit identity so
+  one driver can hold several versions of one component side by side. Only on a concrete case.
+  (Moved from docs/done/routing-overhaul-plan.md, 2026-10-10.)
 
 ---
 
 ## Done since deferral
+
+- **`ProfileScreen._warm_cache` thread-safety** (from docs/done/d2-mvvm-findings.md) — FIXED
+  2026-10-10 (2a577c0): `_resolve`'s cache read/mutate runs under a per-instance `_res_lock`, and
+  `routes.candidates()` under the module-level `menu._ROUTES_LOCK`, so two profile views over one
+  ctx can't race.
 
 - **2026-08-08, d98f306 — C++ libs + 3 flatpaks.** `boost`, `abseil`, `qt` (Qt6), `gtk` (GTK4),
   `gtkmm` natively; `folly` (Fedora native + Arch AUR); `eastl` (Arch AUR). Flatpak for `emacs`

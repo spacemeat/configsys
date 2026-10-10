@@ -13,7 +13,7 @@ Every system we care about either comes with a version of python3, or that must 
 
 The application should be python3, and so python3 and humon must be the first to synchronize; this can be done via bash, since we need these components for the rest of the app. The app should be an interactive TUI, and slick looking on a 24-bit RGB terminal. It should be menu-driven, with single-key actions and menu navigation via VIM-like controls.
 
-On start, the user config file (`~/.config/configsys/configsys.hu`, i.e. `$XDG_CONFIG_HOME/configsys/` — the state dir that also holds the ledger `state.hu` and the synced `plugins/`; `CONFIGSYS_CONFIG` / `CONFIGSYS_STATE_DIR` / `CONFIGSYS_HOME` override) must be present: `Context._migrate_user_config` moves a legacy `~/configsys.hu` there, and if it is still absent `Context.ensure_user_config` writes one from `app.USER_CONFIG_TEMPLATE` (an interactive first run also offers to bless a primary plugin). What a machine installs is its **picks**: `picks:` is a component × machine matrix (`{ <machine>: [ components ] }`, merged repo < primary < user, a higher layer replacing a machine's whole list) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (repo/plugin-defined, `+include` / `~remove` / `+self` term algebra; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on CLI ops). The old `configs:` (also `machines:`, `orphans-adopt-target:`) and user-authored `profiles:` are RETIRED (each emits a `check` warning — `layers.unknown_section_warnings`). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ the global `--machine` working-target flag) edit the matrix; `picks` is uniform-nature, so edits land in the primary plugin when one is blessed, else the top config. `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
+On start, the user config file (`~/.config/configsys/configsys.hu`, i.e. `$XDG_CONFIG_HOME/configsys/` — the state dir that also holds the ledger `state.hu` and the synced `plugins/`; `CONFIGSYS_CONFIG` / `CONFIGSYS_STATE_DIR` / `CONFIGSYS_HOME` override) must be present: `Context._migrate_user_config` moves a legacy `~/configsys.hu` there, and if it is still absent `Context.ensure_user_config` writes one from `app.USER_CONFIG_TEMPLATE` (an interactive first run also offers to bless a primary plugin). What a machine installs is its **picks**: `picks:` is a component × machine matrix (`{ <machine>: [ components ] }`, merged repo < primary < user, a higher layer replacing a machine's whole list) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (definable in ANY layer, the top config included — a user's `profiles:` are their own browse categories, never an install set; `+include` / `~remove` / `+self` term algebra; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on CLI ops, where members with no route here are skipped with a one-line notice while an explicitly named component still errors). The old `configs:`, `machines:` and `orphans-adopt-target:` are RETIRED (each emits a `check` warning — `layers._RETIRED_TOP_KEYS` via `layers.unknown_section_warnings`). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ the global `--machine` working-target flag) edit the matrix; `picks` is uniform-nature, so edits land in the primary plugin when one is blessed, else the top config. `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
 
 - view the install state of each component
 - interactively mark installed components for an operation (upgrade, remove, etc)
@@ -24,18 +24,35 @@ with state/versions, plus the System Updates group), Profiles (the component × 
 track `t`/`T`, claim `C`, dispositions, stage uninstall `x`), Plugins, Glue, Dotfiles, Config
 (settings; `m` moves one local ⇄ primary), Theme. vim navigation (`j/k/h/l`, `g/G`), `/` find,
 `F` filter, `!` issues, `?` help; on Components stage `i`/`u`/`x` (`I`/`U` for all, `a` select-all,
-`v` pick method, `L` lock), then `X` runs everything staged after a confirmation. Each screen is a
-`Screen` (build_vm / draw / handle in configsys/tui/screens/) painting through a `Surface`
-(`BufferSurface` = headless render tests). Keys are rebindable via `keys:` (tui/keyspec.py); color
+`v` pick method, `L` lock, `w` where — also on Profiles), then `X` runs everything staged after a
+confirmation. Each screen is a `Screen` (build_vm / draw / handle in configsys/tui/screens/)
+painting through a `Surface` (`BufferSurface` = headless render tests). Keys are rebindable via
+`keys:` (tui/keyspec.py): a screen's own scope is consulted FIRST, even over `q`/`!`/`?`/screen
+numbers (router actions `keyspec.ROUTER_ACTIONS` — quit/quit-force/issues/help — bound in a screen
+scope work there); a higher layer's rebind takes the key from the lower layer's other action in the
+same scope, and `check` reports each cross-layer steal and any page left with no quit key
+(`keyspec.lint_merged`). Color
 depth (direct 24-bit via a `-direct` terminfo; `--color`, `NO_COLOR`) and motion (`effects:`,
 auto-reduced over SSH) degrade gracefully; the startup splash is a pluggable provider (`splash:`).
 
 **CLI (`app.build_parser`).** No command = the TUI. Ops `inspect` / `install` / `remove` / `upgrade`
 (`--system` = System Updates) / `lock` / `unlock` / `set-version` / `fix-scope`; the matrix `picks` /
 `machine` / `profile` / `disp`; `pin`, `where`, `check`, `versions`, `location`, `show`; `config` /
-`theme` / `keys`; `plugin …`; `dotfiles …`, `glue add|override`; `orphans`; `updates`, `refresh`;
-`report` / `request` / `request-os`; `manpages`. Global `--pretend` (dry run), `--os`, `--home`
-(sandbox), `--machine`, `--config`.
+`theme` / `keys`; `plugin …` (incl. `set-source`, which also retargets the synced clone's origin);
+`dotfiles …` (`activate [--local]` turns a staged block into user glue), `glue add|override`;
+`orphans`; `updates`, `refresh`; `report` / `request` / `request-os`; `manpages`. Global
+`--pretend`, `--os`, `--home` (sandbox), `--machine`, `--config`. `install --picks` (missing picks) /
+`upgrade --picks` (outdated picks) = `app._picks_selection`: this box only (refused when
+`--machine` names another), unioned with any names, plan shown + confirmed unless `--yes`; bare
+`install` with neither names nor `--picks` errors. `set-version` refuses up front on a driver whose
+class attribute `targets_version = False` (tarball, appImage, font, native-pkg-file, aur,
+rpm-ostree, gcc/clang alternatives, gcc-toolset, glue, dotfiles, service, group —
+`actions.targets_version`). **`--pretend` is a full dry run**: the runner echoes instead of
+executing (so probes read empty → everything reads missing), and no ledger/receipt/lock, `.cfs`
+marker, `last-failure.hu`, config edit (CLI `app._pretend_edit`; TUI writers in actions.py return
+`(False, actions.PRETEND_NOT_SAVED)`), user-config generation or legacy-config move happens, and no
+false "NOT DETECTED"; an uncached download prints a `<latest release>` placeholder
+(`actions.pretend_unresolved_download`). Any new write path must honor `ctx.runner.pretend`.
 
 In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
 the full spec). Its sections:
@@ -44,7 +61,7 @@ the full spec). Its sections:
   glibc_linux; the musl blocks alpine, chimera, void_musl -> linux directly — so `void` and
   `void_musl` are siblings and a Void-wide gate is `void or void_musl`), which package manager each
   block declares `native:` (apt/dnf/pacman/zypper/apk/xbps/brew — brew is fedora_atomic's CLI
-  native; the **native-less** blocks kde_linux and chimera declare none, so `via: native` bindings
+  native, and elsewhere on glibc an ordinary `via: brew` method; the **native-less** blocks kde_linux and chimera declare none, so `via: native` bindings
   aren't candidates there and components fall through to flatpak/tarball/cargo/…), version
   `scale-root:` markers, `provides:` (capabilities baseline in that environment: `linux` provides
   python3, `glibc_linux` provides glibc), optional `detect:` (id + on-disk marker refinement,
@@ -52,20 +69,31 @@ the full spec). Its sections:
 - `drivers:` — per-driver config: each driver's inherent `requires:`, closed for every binding of
   that via (e.g. appImage->[libfuse2, glibc], flatpak->flatpak, cargo->cargo, tarball->curl,
   source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
-  python-build-deps]), and an optional driver-wide `standing:` (snap ships `standing: never-auto`).
-  Merged repo < plugins < primary.
+  python-build-deps], brew->homebrew), an optional driver-wide `standing:` (snap ships `standing:
+  never-auto`), and an optional driver-wide **validity gate** `when:` (brew ships `when:
+  "glibc_linux"` — Linuxbrew bottles are glibc builds). Driver `requires:`/`standing:`/`when:` also
+  apply to a `via: native` binding that resolves to that manager. The gate is validity-only, like
+  `cpu-names:`: `routes._driver_gates` parses it into `OsCascade.driver_gates`,
+  `OsCascade.context` evaluates it once into `ctx.gated_drivers`, `resolve.driver_gated` drops the
+  bindings in `_matching`, and it adds NO specificity — `routecheck.gated` intersects it with
+  `when:` to judge OVERLAP only (specificity stays on the raw `when:`); `where` names the reason
+  (`resolve.driver_gate_reason`). Merged across every layer (`layers.merge_dict_section` over
+  `ALL_ROLES`), the top config last.
 - `facets:` — detected machine traits beyond OS/cpu, usable as `when:` atoms (`gpu:nvidia`;
   `docs/facets.md`). A `detect:` probe is command-carrying data, so a plugin's facets merge only
   when that plugin is trusted.
 - `components:` — each component is a named **capability** plus an `install:` list of
   context-selected **bindings**. A binding is `{ via: <driver>  when: "<expr>"  ...details }`.
   `via: native` resolves to the OS's declared package manager (name defaults to the component
-  name, override with a `name:` map keyed by driver, plus `default:`). `when:` is a boolean DSL
+  name, override with a `name:` map keyed by driver, plus `default:`; `installed-name:` — the
+  package probed for state — takes the same driver-keyed map shape, a scalar applying to every
+  manager, `drivers/_native.py`). `when:` is a boolean DSL
   (predicate.py) over OS atoms (bare = subtree membership; versioned e.g. `ubuntu < 23.04`,
   scale-bound), `cpu:` and facets, with `and`/`or`/`not` (negation is general, over any atom).
   `when:` states VALIDITY ONLY (does this method work here), never preference. A binding is a
   **candidate** (`resolve._matching`) when its `when:` holds, its driver isn't in
-  `disabled-drivers:`, it covers this cpu, and it isn't `via: native` on a native-less OS. CPU
+  `disabled-drivers:` or gated out by its `drivers:` `when:`, it covers this cpu, and it isn't
+  `via: native` on a native-less OS. CPU
   coverage of a download is stated with `cpu-names: { <cpu>: <upstream token> }` (or a cpu-keyed
   `asset:` map): its keys are the cpus upstream ships and `$ARCH` expands through it — this gates
   validity WITHOUT adding specificity, unlike a `when: cpu:` clause (routing-model §7). Among the
@@ -73,13 +101,22 @@ the full spec). Its sections:
   candidate is one -> most-specific comparable `when:` -> per-binding `standing:` rank (a NARROW
   author signal, so it outranks the broad machine order below) -> `driver-preference` (a machine
   setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, flatpak, snap, native-pkg-file,
-  appImage, tarball, source, script; overridable per OS block); a remaining tie is an error naming
+  appImage, brew, tarball, source, script — drivers absent from it are least preferred and tie;
+  overridable per OS block; brew sits just ahead of tarball so it beats tarball/script/
+  cargo/pipx/npm/sdkman but never a native/flatpak/snap/.deb/AppImage default; CLI tools,
+  toolchains and servers carry a `{ via: brew  name: <formula> }` binding — libs, keg-only
+  formulae and curl/git, which `homebrew` itself requires, don't); a remaining tie is an error naming
   the preference channel (never `when:`), a user binding-pin overrides. **`standing:`** is the ONE
   preference knob (on a binding, a `drivers:` block, or a component): `standing: never-auto` =
   valid+listed+pinnable but never the auto-default (on a binding/driver; it still wins when it is
   the only valid method) or never auto-pulled to satisfy a `requires:` (on a component-provider);
-  an INTEGER = a preference rank (higher wins). (History: `standing` replaced the old
-  `prefer:`/`candidate-only:`/`opt-in:` trio — those names are gone.) A versioned capability adds
+  an INTEGER = a preference rank (higher wins) — on a component it RANKS PROVIDERS of a capability
+  (`resolve._pick_provider`, after pins / soft pins / version selection / reuse; an equal top rank
+  is an ambiguity error naming both fixes, a provider-pin or a `standing:` rank; `where` prints
+  `providers  <cap> by standing: N`). (History: `standing` replaced the old
+  `prefer:`/`candidate-only:`/`opt-in:` trio — `routes.RETIRED_STANDING_KEYS`: on a binding or a
+  `drivers:` block they raise a `retired-key` check warning, on a component an unknown-key load
+  error naming the replacement.) A versioned capability adds
   `provides: { cap: N }` + `requires: { cap: ">=N" }` (a constraint selects a resident by version
   and ENABLES a `never-auto` provider; on a cap whose providers carry no component-level version —
   go, ghc — it is a soft floor surfaced as an advisory, auto-picked only under `auto-tighten:`;
@@ -91,7 +128,9 @@ the full spec). Its sections:
   overlap is a legal multi-method choice decided by preference (a genuine tie there is a
   resolve-time error + a `check` warning). A component may also declare
   `provides:`/`requires:`/`suggests:` (capabilities), `parts:` (a `via: parts` binding is a pure
-  aggregator = the union of its parts, no unit of its own), `standing:`, `description:` and
+  aggregator = the union of its parts, no unit of its own; a component-level `parts:` with no
+  `install:` is shorthand for that implicit binding, and alongside an `install:` it is ignored
+  with a `parts-ignored` check warning), `standing:`, `description:` and
   `attrs:` (kind tags, unioned across layers; docs/component-attrs.md) — any other key is a load
   error. `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled in if resolvable in the
   loaded layers, skipped silently if not (both work at component and binding level). Dotfiles are
@@ -109,7 +148,7 @@ fixed machine context: seed the explicitly-wanted components + what they provide
 `requires` (component-level + the driver's `drivers:` requires + binding-level) and pull resolvable
 `suggests`, reusing existing/env-provided providers; no backtracking (unmet HARD require /
 ambiguous providers = error; an unmet suggest is skipped); dedup by unit key; a provider never
-satisfies its own requirement. A `never-auto` provider is used only when explicitly wanted,
+satisfies its own requirement (enforced on the reuse path too — `_self_held`). A `never-auto` provider is used only when explicitly wanted,
 required by its own name, version-constrained, or provider-pinned. A suggested component's own
 `requires` stay hard once it is pulled. `resolve_resilient` collects per-pick errors (surfaced as
 `Context.resolve_errors`) and prunes units whose hard requirement failed, so one bad pick is an
@@ -119,32 +158,45 @@ namespace — a value naming a via is a binding-pin, `resolve.pin_via_names`) ar
 suggestion (an unrealizable pin is an error, never silently ignored) — merged
 per key repo < primary < user, edited with `configsys pin set|unset|list|promote` (the light
 reroute that doesn't require redefining a component). The app's second resolve pass
-(`Resolver.resolve_resilient`) adds two machine-derived pin sets: effective order opt-in
-`auto-tighten:` floor pins > user pins > detected-installed soft pins > reuse > auto default
-(routing-model §10). The result is `{unit_key: Unit}` (`driver\comp`), mapped by
+(`routes.Resolver.resolve_resilient`) adds two machine-derived pin sets: effective order user pins >
+opt-in `auto-tighten:` floor pins > detected-installed soft pins > reuse > auto default
+(routing-model §10). A user pin always wins; when it keeps a method that misses a floor
+auto-tighten would fix, `flooradvise.advise` raises a `pin-floor` warning (`!` / inspect — not
+`check`, which doesn't probe versions). Detected pins are SOFT: one that can't be honored (fails a
+version constraint, names a method not valid here) is dropped for that resolution, never an error
+(`Resolver.dropped_soft_pins`, shown verbosely). The result is `{unit_key: Unit}` (`driver\comp`), mapped by
 `adapt.to_resolved_components` onto `{unit_key: ResolvedComponent}`, which the drivers consume
 unchanged.
 
 The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: machine
-settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/`disabled-drivers:`/`dirs:`/… —
-the registry is `actions.CONFIG_SETTINGS` + `layers._KNOWN_TOP_KEYS`; read only from the
+settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/`disabled-drivers:`/`dirs:`/
+`locations:`/… — the registry is `layers.MACHINE_SETTING_SECTIONS` ∪ the keys of
+`actions.CONFIG_SETTINGS` (`layers.machine_setting_sections`; `config set|unset|show|move` cover
+`locations` [machine nature, `component=path` tokens], `detect-coexisting`,
+`installer-shell-writes` and `installer-shell-writes-allow` [uniform]); read only from the
 repo/primary/user layers, `config._MACHINE_ROLES`; `actions.SETTING_NATURE` routes an edit:
 uniform → the primary plugin when blessed, machine → the local top config, and `configsys config
 move` / TUI Config `m` carries one across), `components:` (route overrides — bindings
 merge ADDITIVELY across layers by `(via, when)` identity, `routes._merge_component_chain`: a higher
 layer adds an install method, overrides a matching binding, `drop:`s one, or `{}` removes the whole
 component; the other fields override with inheritance; to merely pick an existing method, use a
-`pins:` entry), and the cosmetic `theme:`/`keys:` (merged from every layer). `configsys where
+`pins:` entry), `profiles:`, `os:`/`drivers:` (honored at highest precedence — machine-local
+driver tweaks), `facets:` (in the top config a facet VALUE map, not probe specs; docs/facets.md),
+and the cosmetic `theme:`/`keys:` (merged from every layer). A primary plugin with no data file
+gets an empty `<name>.hu` on its first write. `configsys where
 <component>` explains a component's source layer + resolution (every candidate, the default, and
 the rule that decided it); `configsys check` lints the whole merged config.
 
 **Layer stack (configsys/layers.py).** Every config/routes file is a LAYER (role repo / plugin /
 primary / user / include); a file may `include:` others (paths relative to the including file's
-directory). Layers overlay lowest-first — repo (routes.hu + config.hu, the shipped profile catalog
-+ default `keys:`) < plugins < primary < the top user file, with includes sitting below the file
-that includes them — merging by section and, for components/profiles, by name. Includes are
-DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but `picks:`/`scope:`/`pins:` (machine
-settings) and `os:`/`drivers:` (code-adjacent) are ignored (a `check` warning). Cycles/missing
+directory; a leading `~` expands against the configsys home, so `--home`/`CONFIGSYS_HOME` apply).
+Layers overlay lowest-first — repo (routes.hu + config.hu, the shipped profile catalog + default
+`keys:`) < plugins < primary < the top user file, with includes sitting below the file that
+includes them — merging by section and, for components/profiles, by name. **The uniform layer
+rule:** every layer may DEFINE (components, profiles, os blocks, drivers; facet probe specs still
+need plugin trust); only the top config and the primary plugin may SET machine settings — an
+include or a non-primary plugin that sets one is ignored with a `check` / `!` warning
+(`layers._forbidden_by_role` → `ignored_section_warnings`). Cycles/missing
 files error clearly (a bad plugin/primary file is skipped with a warning; a bad repo/user file is
 loud — `layers.expand_tolerant`); provenance (`Component.source`, `Config.profile_source`) flows
 through so `where`/`check` attribute to the right file. The plugin model reuses this substrate — a
@@ -155,8 +207,7 @@ plugin is just another source in the stack.
 in the top config, then `configsys plugin sync` clones each to `~/.config/configsys/plugins/
 <name>/` at the pinned ref (git via the runner); a plugin's manifest (`plugin.hu`) may declare
 further `plugins:`, synced transitively. Its `.hu` data files become `plugin`-role layers; a plugin
-may add components, profiles AND os blocks (derivative distros — `merge_dict_section` unions
-os/drivers from repo+plugins). Loading uses what's on disk; unsynced / ABI-incompatible (manifest
+may add components, profiles, drivers AND os blocks (derivative distros). Loading uses what's on disk; unsynced / ABI-incompatible (manifest
 `requires-abi` vs `ABI_VERSION`/`ABI_SUPPORTED`) / sha256-mismatched (quarantined) / malformed
 plugins are skipped, never fatal. Only the top config may grant `primary: true` (`configsys plugin
 bless`): the **primary plugin** is the user's portable personal layer — it sorts last among plugins
@@ -164,8 +215,9 @@ and may set machine settings; `plugin add` writes to it by default. **Code plugi
 `code:` module exporting `DRIVERS = [Driver subclasses]` / `SPLASHES`, plus
 `register_version_source` / `register_transport`) load only when trusted at their exact content
 hash (`configsys plugin trust`; `plugin_identity`, `plugin-trust.hu`); command-carrying DATA
-(script/source recipes, glue `#!cs-eval`, apt `source-line`, `facets:` probes) is gated by the same
-trust (`command_source_trusted`). `configsys plugin list` (and the TUI Plugins screen) shows status.
+(script/source recipes, apt `source-line`/`ppa`, `facets:` `detect:` probes, and ANY shipped glue —
+it is sourced at every shell start) is gated by the same trust (`command_source_trusted`;
+`ships_executable_data` makes such a data-only plugin trustable). `configsys plugin list` (and the TUI Plugins screen) shows status.
 
 **Machine-level plugins (was: project discovery).** (History: the old CWD-walk-up scan for
 `.configsys.hu`/`.configsys-*.hu`, which auto-activated layers, was REMOVED.) A source repo or app
@@ -204,10 +256,18 @@ ranked after native in driver-preference], flatpak, snap, appImage [`desktop-id:
 entry after the app's own desktop id, so the compositor matches the window], font, script
 [declared install/version/uninstall commands], `source` [declarative build from a git checkout or
 archive]; the config drivers dotfiles [an app's own config: `.cfs` marker dir + manifest in the
-user's content store, linked into place] and glue [per-shell `conf.d` enablement snippets, shipped
-not captured, its own `glue/` roots; plus the user-glue namespace — `configsys glue add`
+user's content store, linked into place; a displaced real file goes to `.pre-configsys`, then
+`.pre-configsys.1`, `.2`, … — never overwritten] and glue [per-shell `conf.d` enablement snippets,
+shipped not captured, its own `glue/` roots, linked in load-order BANDS `00-configsys` / `50-<component
+glue>` (`component_link_stem`) / `90-<user glue>` (`user_link_name`) / `99-user` (an existing `NN-`
+prefix is kept; legacy links migrated); plus the user-glue namespace — `configsys glue add`
 (`user.d/`, a scaffolded `99-user`) and `glue override` (fork a component's shipped glue; `check`
-flags drift) — see docs/shell-glue.md]; the language toolchains and their module/version installers
+flags drift). The `configsys-glue` preludes (all five shells) define `configsys` → the real
+launcher ($CONFIGSYS_LAUNCHER, else `<state>/launcher` written on shell hookup by
+`Glue._record_launcher`, else `$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh`) and the
+`cfs` alias; the shared loaders carry nothing personal. The shell-writes guard (shellguard.py)
+exempts configsys's own marker blocks and stages an installer's rc edits machine-locally in
+`<state>/staged-glue/`; `dotfiles activate` turns one into user glue — see docs/shell-glue.md]; the language toolchains and their module/version installers
 cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman, gcc, gcc-toolset,
 clang; and the post-install primitives service [systemd or runit] and group [usermod]) — except
 `via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure aggregator, no

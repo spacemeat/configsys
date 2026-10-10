@@ -141,6 +141,16 @@ still listed and still upgraded.
   waits). The loop polls (`scan_busy` / `take_dirty`) and folds the result in with
   `menu._fold_system_updates`, which rebuilds only the tree from the states already held — no
   reload.
+- **Invalidate supersedes an in-flight scan.** `sysupdates.invalidate` bumps a scan generation
+  (`ctx._sysupd_gen`) and clears the cache under `sysupdates._SCAN_LOCK`; a scan thread stores its
+  result under the same lock only if its generation is still current, so a scan started before an
+  upgrade or refresh can never land its stale list afterwards. `start_scan` starts a fresh scan
+  whenever the running one belongs to an older generation, and `scan_busy` ignores a superseded
+  thread still finishing.
+- **Rescans.** `R` (refresh) and every executed `X` drop the scan before the Components reload — so
+  the rebuilt tree doesn't re-inject stale rows, and the header shows the spinner — and start a new
+  background scan after it (`screens/components.py` `_rescan_system_updates`). Staged System Updates
+  marks go with the dropped rows; after `R` the note says how many to re-stage once the rescan lands.
 - **Header chip.** A spinner + `checking system updates…` while the scan runs (or after an apply
   invalidated it); `⟳ N system updates`
   (`cached_total`) once it lands, hidden at zero.
@@ -151,7 +161,10 @@ still listed and still upgraded.
   `clean_version`'d — the change is often only the Debian revision).
 - **Bulk action.** With the cursor anywhere in the subtree, `i`/`u`/`I`/`U` stage **every** System
   Updates row (`MenuState.stage_system_updates`, all managers); `x`, select, `v`, `w` and `L` only
-  explain "apply in bulk". Outside the subtree, `stage`/`stage_all` skip these rows.
+  explain "apply in bulk". Outside the subtree, `stage`/`stage_all` skip these rows. Clearing is
+  all-or-nothing too: `c` on any System Updates row unstages every one (`MenuState.unstage` →
+  `unstage_system_updates`), because execute upgrades a whole manager whenever any of its rows is
+  staged — a partial unstage would leave badges that misstate what `X` does.
 - **Apply.** `X` → `menu._confirm_and_execute` partitions the synthetic rows out of the per-unit plan
   (they never reach `expand_plan`/`run_plan`), shows one `sys-update` preview line per manager set,
   and after the single confirm runs `sysupdates.apply_bulk` **first** (refresh the native index,

@@ -84,7 +84,7 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **"Data, not script" is not a security boundary.** Route/plugin *data* can still drive shell, so
   a plugin's data is gated exactly like its code — by trusting that plugin's exact content (hash),
   never by file extension. Command-carrying data = `via: script`/`source` bindings, apt
-  `source-line`/`ppa`, glue `#!cs-eval` generators, and `facets:` `detect:` probes
+  `source-line`/`ppa`, any shipped shell glue (it is sourced by your shell; `#!cs-eval` generators most of all), and `facets:` `detect:` probes
   (`plugins.command_source_trusted`, `plugins.ships_executable_data`). Never a live-central
   registry (docs/todo/community-routes-registry.md sketches per-driver risk tiers for one, unbuilt).
 

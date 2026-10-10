@@ -61,8 +61,10 @@ selected here) but **not** one ranking rule:
 - **Binding selection** ("given we install neovim, how?") — specificity, then `standing:`, then
   `driver-preference` (§8, §8a).
 - **Provider selection** ("who supplies `cxx-stdlib`?") — reuse what is already in the inventory,
-  else the unique auto-eligible viable provider; several = an ambiguity error that needs a
-  provider-pin (§9). Providers are **not** ranked by specificity.
+  else the unique auto-eligible viable provider, else the one with the strictly highest
+  component-level integer `standing:`; a tie at the top is an ambiguity error naming both fixes, a
+  provider-pin or a `standing:` rank (§9, `_State._pick_provider`). Providers are **not** ranked by
+  specificity.
 
 ## 3. Component and binding shape
 
@@ -77,15 +79,17 @@ Schema (placeholders in `<…>`; every real entry is humon `key: value`, `when:`
     suggests:  <cap | [caps]>      // SOFT needs: pulled in if resolvable in the loaded layers,
                                    //   skipped silently if not (a package `suggests:` its
                                    //   `<name>-dotfiles` / `<name>-glue`, which may live only in a plugin)
-    standing:  never-auto          // on a component-provider: its capabilities are NEVER auto-pulled
-                                   //   to satisfy someone else's `requires:` — only used when wanted
-                                   //   directly, required by its own name, version-constrained, or
-                                   //   provider-pinned (gcompat, libc++, versioned gcc/clang). An
-                                   //   integer here is accepted but has no effect (§8a)
+    standing:  never-auto | <int>  // never-auto on a component-provider: its capabilities are NEVER
+                                   //   auto-pulled to satisfy someone else's `requires:` — only used
+                                   //   when wanted directly, required by its own name, version-
+                                   //   constrained, or provider-pinned (gcompat, libc++, versioned
+                                   //   gcc/clang). An integer RANKS it among a capability's auto
+                                   //   providers, higher wins (§9 `_pick_provider`)
     description: "<one line>"      // shown in the TUI infobox / catalog
     attrs:     [ <tags> ]          // cross-cutting kind tags (CLI/TUI/GUI/FOSS/…; docs/component-attrs.md)
-    parts:     <cap | [caps]>      // accepted for back-compat and counted by Resolver.dependents, but
-                                   //   IGNORED by resolution — aggregation lives on a `via: parts` binding
+    parts:     <cap | [caps]>      // with no `install:`, shorthand for the one binding
+                                   //   `{ via: parts  parts: [...] }`; alongside an `install:` it is
+                                   //   inert and routecheck warns `parts-ignored`
 
     install: [                     // ordered list of bindings
         { via: <driver>  when: "<predicate>"  standing: <never-auto | int>
@@ -98,7 +102,14 @@ Schema (placeholders in `<…>`; every real entry is humon `key: value`, `when:`
 ```
 
 Any other top-level key is a load error (`routes._check_component_keys`) — a typo or a removed
-construct must fail loudly, not vanish.
+construct must fail loudly, not vanish. For the retired preference keys (`prefer:`, `opt-in:`,
+`candidate-only:`, `routes.RETIRED_STANDING_KEYS`) the error names the `standing:` replacement.
+
+The component-level `parts:` shorthand is expanded at load (`routes.Component`): a component with
+`parts:` and no `install:` gets the single binding `{ via: parts  parts: [...] }`, so it resolves
+as a pure bundle everywhere. With an `install:` as well it can't mean that, so it stays inert
+(`Component.parts_ignored`) and `configsys check` warns `parts-ignored`. A bundle that differs
+per OS puts `parts:` on `when:`-gated `via: parts` bindings instead.
 
 - A **binding** names its driver with `via:` (required), guards itself with an optional `when:`
   (absent = valid everywhere), and carries driver fields. Common fields: `name:` (package name, a
@@ -170,11 +181,18 @@ Ubuntu/Pop commonly ship LibreOffice as its parts (`libreoffice-core`/`-calc`/�
 
 ```humon
 { libreoffice: { install: [ { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe
-                              name: { pacman: libreoffice-fresh }  installed-name: libreoffice-core } ] } }
+                              name: { pacman: libreoffice-fresh }
+                              installed-name: { apt: libreoffice-core  dnf: libreoffice-core } } ] } }
 ```
 
-(The field is driver-agnostic: a binding that reaches several managers probes `installed-name` on
-every one of them, so it must name a package that exists under each.)
+Like `name:`, it may be a **driver-keyed map** with an optional `default:`
+(`drivers/_native.installed_name`): a manager the map doesn't name (and no `default:`) probes the
+ordinary name. A metapackage split is usually one distro family's packaging fact (Ubuntu's
+`rust-all` over `cargo`, `ruby-full` over `ruby`), and a binding that reaches several managers
+must not make pacman or dnf probe a package that doesn't exist there — Arch's `rust` only
+*provides* `cargo`, which `pacman -Q` doesn't resolve. A **scalar** applies to every manager the
+binding reaches, so it must name a package that exists under each (fine on a `when: "debian"`
+binding).
 
 This deletes all `\apt btop` / `\dnf btop` / `\pacman btop` triplicate entries and the
 `*: apt\*` wildcard. The OS blocks shrink to *lineage + which manager is native*.
@@ -222,8 +240,9 @@ gcc runtime it needs + *a* stdlib) rather than the g++ compiler. `cxx-stdlib` re
 `libstdc++` component (auto-eligible) — whose Debian and Alpine bindings install `g++`, since the
 default C++ dev headers ship only with it there — and `libc++` is a `never-auto` alternate selected
 with a provider-pin (`pins: { cxx-stdlib: libc++ }`). Note clang requires the *component*
-`c-toolchain`, not the `cc` capability: clang itself `provides: cc`, and requiring the capability
-would let it satisfy itself and never pull gcc (see the bootstrap-guard caveat in §9).
+`c-toolchain`, not the `cc` capability: what clang needs is gcc's runtime specifically, and the
+capability would be met by whichever other `cc` provider is resident (the self-requirement guard,
+§9, already keeps clang from satisfying it itself).
 
 **Environment capabilities.** An OS block can `provides:` capabilities that are baseline in that
 environment (`OsCascade.provides` unions them over the lineage); the inventory starts with them, so
@@ -319,8 +338,9 @@ matches, so `configsys check` warns `unknown-os` (`routecheck.validate`).
 Identity and scale are orthogonal: sharing a version line does not make two OSes the
 same OS.
 
-**OS block fields** (the `os:` section; merged from repo + plugin + primary layers,
-`layers.merge_dict_section` — a plugin may add a derivative distro): `using:` (parent),
+**OS block fields** (the `os:` section; merged per block from EVERY layer, lowest first —
+`layers.merge_dict_section(…, layers.ALL_ROLES)`, the uniform layer rule of §10b — so a plugin may
+add a derivative distro and the top config may tweak a block on one machine): `using:` (parent),
 `native:` (package-manager driver, inherited; absent on native-less blocks, §3), `scale-root:`,
 `provides:` (environment capabilities, §4), `driver-preference:` (an OS-specific preference order,
 §8a), and `detect:` (`{ id: …  marker: <path> }`, for os-release ambiguity — `pios`, `void_musl`;
@@ -355,7 +375,8 @@ that with ONE block:
 - **`native: brew`.** Every plain `via: native` binding resolves to `brew install <name>` (the
   name-map key is `brew`; `drivers/brew.Brew`, user-scope, never sudo). Homebrew's formula set
   covers most CLI tools under their usual names, so most `via: native` CLI components route with no
-  atomic-specific data. Where a component's only valid method is a broad `via: native` naming
+  atomic-specific data. The `drivers: { brew: … }` block applies to these native-resolved bindings
+  too (§9): they require `homebrew`, and pass brew's glibc gate. Where a component's only valid method is a broad `via: native` naming
   something that has no Linux formula (a GUI app whose brew name is a macOS cask, a Linux-kernel
   tool), the binding is gated `not fedora_atomic` and the component gets a flatpak method or
   declines. Conversely `{ via: native  when: "fedora_atomic" }` is the idiom for "brew has it here":
@@ -406,11 +427,35 @@ on inspect and the TUI `!` page: atomic routing is new and not hardware-validate
 Homebrew, apps via Flatpak, `via: rpm-ostree` is reboot-gated; dev toolchains, the GPU/Vulkan stack,
 docker and AppImages are not managed here (use distrobox, podman or rpm-ostree). Those exclusions
 are routing facts, not just text — e.g. `python-build-deps` has no route there, so the `python3.X`
-components (pyenv-only on this block) are unroutable.
+components (pyenv-only on this block) are unroutable; and `libfuse2` is gated
+`when: "not fedora_atomic"` (the image ships fuse3, and brew has no libfuse2 formula), so the
+appImage driver's `requires: libfuse2` is unmet and **AppImage-only components decline** there
+instead of resolving to a brew install that can't exist. Where a brew formula's name differs from
+the tool's, the binding's `name:` map says so (`tshark` is brew's `wireshark` formula, the CLI-only
+build; `netcat` is brew's GNU `netcat`).
 
-Homebrew itself is assumed present (uBlue ships it configured); no component installs or
-`provides:` brew, so on a plain Silverblue/Kinoite without Homebrew every brew-routed component
-reads "not installed" and installs fail at the driver.
+**Homebrew itself is a component.** `drivers: { brew: { requires: homebrew  when: "glibc_linux" } }`
+makes every brew unit — a `via: brew` binding or a `via: native` one reaching brew — require the
+`homebrew` component, which runs the official installer via `script` (into
+`/home/linuxbrew/.linuxbrew`). Its version probe also tries that prefix and a per-user
+`~/.linuxbrew`, because uBlue images ship brew pre-installed but often not on a non-login `PATH`;
+a resident brew reads installed and is never reinstalled. On `fedora_atomic` the installer's
+`curl`/`git` are image tools — those components route *through* brew there, so requiring them
+would loop — while elsewhere the binding requires them for real (they carry no brew binding, so
+`homebrew → curl/git` can never route back through brew). A plain Silverblue/Kinoite without
+Homebrew therefore gets it installed on the first brew-routed op, instead of failing at the driver.
+
+**brew beyond the atomic block.** brew is not only `fedora_atomic`'s native: since the brew sweep,
+~266 components also carry an ordinary `{ via: brew  name: <formula> }` binding (CLI tools,
+toolchains, servers; not libraries, keg-only formulae, or `curl`/`git`), valid on every glibc OS
+through the driver gate (§8a) and ranked just ahead of `tarball` in `DEFAULT_DRIVER_PREFERENCE`.
+On a glibc distro it therefore wins only where nothing ranked above it is valid — it beats
+tarball / sdkman / pipx / cargo / npm / script defaults and fills gaps (swift, wrk, versioned gcc
+on Fedora/Arch), but never displaces a native, flatpak, snap, native-pkg-file or AppImage default,
+and an existing install keeps its method through the detection tier (§10). On musl blocks the gate
+makes every brew binding a non-candidate, so nothing changes there. On `fedora_atomic` a component
+carrying both `{ via: native }` and `{ via: brew }` picks `native` by driver-preference; both reach
+the brew driver.
 
 ### No system package manager — `kde_linux`, `chimera`
 
@@ -430,9 +475,12 @@ an error about a missing driver. With no `native:` there is also no native index
   xz ]` lists what the image ships, which is what makes the non-native methods work at all:
   flatpak apps (driver `requires: flatpak`), tarballs (`requires: curl`), `source` builds
   (`requires: git`) and `script` methods such as rustup (→ `cargo`) resolve with nothing to
-  install first. The `pipx` and `python3-pip` tools have only native routes, so `via: pipx` and
-  `via: pip` components currently decline here. It ships fuse3 only and libfuse2 has no non-native
-  route, so the appImage driver's `requires: libfuse2` is unmet and **AppImages decline**. VERSION_ID is a build timestamp
+  install first. It is a glibc block, so brew is valid here too: a component with a
+  `via: brew` binding resolves to it (pulling `homebrew`, whose `curl`/`git` the image provides),
+  which is how the `pipx` tool — and with it every `via: pipx` component — routes. `python3-pip`
+  has only a native route, so `via: pip` components decline. It ships fuse3 only and libfuse2 has
+  no non-native route, so the appImage driver's `requires: libfuse2` is unmet and **AppImages
+  decline**. VERSION_ID is a build timestamp
   (YYYYMMDDHHMM); `scale-root: true` keeps any parent's versioned atom from misreading it.
   Diagnostics add an `immutable` warning (alpha, no system package manager, Flatpak + userland
   methods only).
@@ -513,7 +561,7 @@ Among a component's candidate bindings, **specificity = set inclusion**: A beats
 `when:` match-set ⊆ B's (`predicate.subset`). Per dimension: OS = subtree containment; version =
 interval containment on that OS's scale; cpu and categorical facets = set containment; a missing
 dimension = the whole axis. (Arch gating by `cpu-names:`/asset maps is *not* part of the
-match-set — §7.) Specificity ranks **bindings only**; providers of a capability are not ranked by
+match-set — §7 — and neither is a `drivers:` `when:` gate — §8a.) Specificity ranks **bindings only**; providers of a capability are not ranked by
 it (§9).
 
 **The rule that makes it unambiguous** applies **per `via:`**: for any two bindings of the *same*
@@ -532,8 +580,17 @@ install methods in one context (native + flatpak on Ubuntu), not an error. `when
 **validity only** (does this method work here); *which* valid method becomes the default is the
 separate preference channel (§8a). A genuine tie there is a resolve-time error, and `configsys
 check` warns `method-tie` (`routecheck._method_tie_warnings`, judged against the built-in
-`DEFAULT_DRIVER_PREFERENCE` and ignoring binding-level `never-auto` bindings) — not a load-time
-error, and never a reason to narrow a validity `when:`.
+`DEFAULT_DRIVER_PREFERENCE` and ignoring `never-auto` bindings and vias whose `drivers:` block is
+`never-auto`, exactly as `resolve._select` sets them aside) — not a load-time error, and never a
+reason to narrow a validity `when:`.
+
+**Driver gates in the checker** (`routecheck.gated`). Both checks judge OVERLAP on each binding's
+true candidate set — its `when:` intersected with the driver gate it is subject to
+(`OsCascade.gate_pred`, §8a) — so a gated-out driver's binding never reads as ambiguous or tied
+where it can't be a candidate. SPECIFICITY stays on the raw `when:`, because resolution ranks raw
+`when:`s (the gate adds none): a same-via pair that overlaps inside the gate must still be
+raw-comparable, or `_most_specific_binding` couldn't order them. Witness contexts in the messages
+come from the gated sets.
 
 **Checker shape:** decidable and cheap (`predicate._cells`). Enumerate a finite grid: every OS
 block as a possible leaf × each categorical namespace's mentioned values plus an "other" sentinel ×
@@ -551,15 +608,30 @@ passes all of:
   non-matching, exactly like a false `when:` (a `suggests:` then skips silently; a hard require or
   a pick errors — classified as `unmet` routing status, docs/stranded-installs.md);
 - **not `via: native` on a native-less OS** (§3);
+- **not gated out by its driver** (`resolve.driver_gated`) — a `drivers:` block may carry a
+  driver-wide `when:` (`drivers: { brew: { when: "glibc_linux" } }`: Linuxbrew bottles are glibc
+  builds). Where that gate is false, every binding of that via is a non-candidate, and so is a
+  `via: native` binding whose OS manager is that driver. `OsCascade.context` evaluates each gate
+  once per machine into `Context.gated_drivers` (`routes._driver_gates` parses them at load; a
+  malformed gate from a plugin is dropped with a warning, from the repo or your own config it is an
+  attributed `ConfigError`; an unknown OS name in one is a `check` `unknown-os` warning);
 - **`arch_ok`** — the cpu is among those a `cpu-names:`/cpu-keyed `asset:` declares (§7);
 - its **`when:`** holds.
+
+The driver gate is **validity only**, like `cpu-names:`: it never enters a binding's match-set, so
+it adds no specificity and cannot shift which method is the default where the driver IS valid. That
+is why it is a separate field rather than a `when:` clause copied onto every brew binding — the
+clause would make each brew binding narrower than a broad native one and hijack the default on
+every glibc box. `configsys where` labels a gated-out binding "not a candidate: the brew driver
+isn't valid here (drivers: brew when: glibc_linux)" (`resolve.driver_gate_reason`).
 
 One candidate is chosen as the default, deterministically (`resolve._select`, which also returns
 the deciding rule — `configsys where <comp>` prints it):
 
 0. **Only one candidate** → it wins (`only method here`).
 1. **`never-auto` filter** — drop candidates whose via is `standing: never-auto` in the `drivers:`
-   section, or whose binding carries `standing: never-auto`, *unless that would leave none* (then
+   section (for a `via: native` binding, the block of the OS manager it reaches), or whose binding
+   carries `standing: never-auto`, *unless that would leave none* (then
    they compete normally — e.g. chromium on Ubuntu, snap-only). They stay in the candidate set
    (listed, pinnable). One left → it wins (`only ordinary method here`).
 2. **Most specific** — the unique remaining binding whose `when:` ⊆ every other remaining
@@ -570,8 +642,10 @@ the deciding rule — `configsys where <comp>` prints it):
    blanket order (the machine owner still overrides any case with a **pin**).
 4. **`driver-preference`** — the nearest OS block's `driver-preference:` walking the lineage, else
    the `driver-preference:` setting, else the built-in `DEFAULT_DRIVER_PREFERENCE` (`native, flatpak,
-   snap, native-pkg-file, appImage, tarball, source, script`). It matches `via:` names (`native`,
-   not `apt`); vias absent from the order rank last and tie among themselves.
+   snap, native-pkg-file, appImage, brew, tarball, source, script`). It matches `via:` names
+   (`native`, not `apt`); vias absent from the order rank last and tie among themselves. `brew`
+   sits just ahead of `tarball`: a managed, upgradable package beats a hand-rolled download, but
+   never a native, flatpak, snap, `.deb`/`.rpm` or AppImage method (§6a).
 
 If steps 3–4 still tie, `_by_preference` raises an error naming the preference channel (set a
 `driver-preference` order or a `standing:` rank) — never `when:`. A user **binding-pin** (§10)
@@ -579,14 +653,18 @@ overrides the default outright, and the detection tier adopts an installed metho
 (precedence: pin > detected-installed > default; §10).
 
 **`standing:` — the one preference knob.** It replaced the old `prefer:` / `candidate-only:` /
-`opt-in:` trio (history: those names are gone — at component level they are unknown-key errors,
-on a binding they are inert driver fields). `resolve._standing` reads it
-from a binding, a `drivers:`-section block, or a component:
+`opt-in:` trio (history). The old names are not read: at component level they are unknown-key load
+errors whose message names the replacement, and on a binding or a `drivers:` block — where they
+would pass through as inert driver fields — `configsys check` warns `retired-key`
+(`routecheck.retired_key_warnings`, `retired_driver_key_warnings`). `resolve._standing` reads
+`standing:` from a binding, a `drivers:`-section block, or a component:
 - **`never-auto`** — valid + listed + pinnable, but never the auto-default (on a binding or a
   driver), or never auto-pulled to satisfy a `requires:` (on a component-provider, §9). Was
   `candidate-only:` / `opt-in:`.
-- an **integer** — a preference rank among bindings, higher wins. Was `prefer:`. Meaningful only on
-  a binding: provider selection has no ranking, so an integer on a component is inert.
+- an **integer** — a preference rank, higher wins (default 0). Was `prefer:`. On a binding it ranks
+  methods (step 3 above); on a component it ranks that component among a capability's auto
+  providers (`Component.standing_rank`, `resolve.provider_standing`, §9). On a `drivers:` block an
+  integer has no effect.
 
 `never-auto` exists because a validity gate can hijack the default: a method gated narrowly for
 *validity* would be the §8 most-specific candidate and beat a broad `native` binding, even when it
@@ -597,8 +675,11 @@ method — e.g. `native-pkg-file` is the sensible debian default for a versioned
 (dbeaver/bruno), but for a *rolling* vendor `.deb` under a universal flatpak (discord) you want the
 flatpak to stay default and the `.deb` merely available. On a **component-provider** it marks the
 non-default of a versioned pair or a caveated shim like gcompat. The `drivers:` section is overlaid
-repo → plugin → primary (`layers.merge_dict_section`), so a primary plugin can add
-`flatpak: { standing: never-auto }`. A binding-pin still forces such a method. Because `when:` is
+per driver from every layer (`layers.merge_dict_section(…, layers.ALL_ROLES)`; §10b), so a primary
+plugin can add `flatpak: { standing: never-auto }` for all your machines, or the top config for
+this one only. The merge is per name and then per FIELD (`merge_dict_section` overlays each block's
+fields), so an override changes only what it sets and keeps the shipped `requires:`/`when:`; a field
+it restates (e.g. a `requires:` list) replaces that field whole. A binding-pin still forces such a method. Because `when:` is
 validity-only, `configsys where <comp>` can show every candidate method, the default, and *which
 rule decided it*.
 
@@ -617,33 +698,44 @@ for name in wants: add_component(name)
 
 add_component(name):
     {} / no bindings            -> contributes nothing (removed component)
-    binding = _select(...)      // §8a; pins first
+    binding = _select(...)      // §8a; pins first (a SOFT pin that can't be honored is dropped, §10)
     via: parts                  -> add_component(each part); no unit of its own
     driver  = native ? OsCascade.native(block) : via
     component-names drop        -> contributes nothing (§10a)
     unit key "driver\name"      -> reuse if already built (dedup), else build it
     for cap in provides ∪ {name}: if cap ∉ inventory: inventory[cap] = this unit   // first = resident
-    enqueue HARD edges:  component requires + drivers[via].requires + binding requires
+    enqueue HARD edges:  component requires + drivers[via].requires
+                         (+ drivers[driver].requires when via is native) + binding requires
     enqueue SOFT edges:  component suggests + binding suggests
 
 // Phase 2 — drain the FIFO queue to a fixpoint
 while queue: (unit, cap, constraint, soft) = pop
-    got = satisfy(cap, constraint)      // unmet SOFT edge -> skipped silently; unmet HARD -> error
+    got = satisfy(cap, constraint, requirer=unit)   // unmet SOFT edge -> skipped silently; unmet HARD -> error
     unit.deps |= got
 
-satisfy(cap, constraint):               // _satisfy
+satisfy(cap, constraint, requirer):     // _satisfy / _satisfy_pinned
     provider-pin on cap (value is a component, not a via) -> must be viable, wins over reuse
+                                           (a SOFT detected pin that fails here is dropped, §10)
     constrained                         -> §11
-    cap ∈ inventory                     -> reuse (keys, or ∅ for env)
+    cap ∈ inventory, held by another unit -> reuse (keys, or ∅ for env)
+                                           (never the requirer's own unit: _self_held)
     viable = providers of cap with a selectable binding here, excluding the requirer itself
     auto   = viable minus never-auto providers (unless the provider's name == cap)
-    exactly one -> add_component it;  none -> error (names a pin if only never-auto ones exist);
-    several -> "ambiguous providers … needs a provider-pin"
+    none -> error (names a pin if only never-auto ones exist)
+    else -> _pick_provider: the only one, else the strictly highest component `standing:` integer;
+            equal top rank -> "ambiguous providers … needs a provider-pin … or a standing: rank"
 ```
 
-`drivers[via]` is keyed by the binding's `via:` string, so driver prerequisites are declared for
-`flatpak`, `appImage`, `cargo`, `tarball`, … — a `drivers: { apt: … }` block would never apply to
-`via: native` bindings.
+Driver-level requires are keyed by the DRIVER that installs the unit, whichever via label reached
+it: `drivers[via]` covers `flatpak`, `appImage`, `cargo`, `tarball`, …, and a `via: native` binding
+also takes the block of the OS manager it resolves to (`drivers: { brew: { requires: homebrew } }`
+applies to `fedora_atomic`'s native bindings). The same holds for a driver block's `standing:
+never-auto` (§8a step 1) and its `when:` gate. A `drivers: { apt: … }` block therefore applies to
+every `via: native` binding on a Debian-family box.
+
+`_pick_provider` records the deciding rule per capability (`only provider here` / `standing: N`)
+in `_State.provider_rules`; `Resolver.provider_rules` keeps the last resilient resolve's, and
+`configsys where` prints them on a `providers` line.
 
 **Strict vs resilient.** `resolve`/`resolve_roots` raise on the first failure. The app uses
 `resolve_resilient`: a pick that can't route is recorded (`{root: first error}`) and everything
@@ -661,13 +753,13 @@ Key rules:
 - **Reuse is graph-wide** and runs to a fixpoint, so a capability is installed once, whichever
   edge reaches it first. The one order sensitivity: when two *explicit wants* provide the same
   capability, the first-listed becomes its resident.
-- **A requirement never pulls its own requirer** (`_bindable_viable` excludes it): source-building
-  `gcc-16` that requires `cc` must be met by a *different* compiler; if none → a clear error. This
-  is the bootstrap-cycle guard. *Caveat, as built:* the guard covers pulling a new provider, not
-  the reuse path — a component's own `provides:` enter the inventory before its requires drain, so
-  a component that both provides and requires `cc` reuses itself unless another `cc` provider got
-  there first. That is why clang-NN requires the `c-toolchain` *component* (§4); treat the same
-  shape as mandatory for any self-hosting compiler (a known gap in the guard).
+- **A provider never satisfies its own requirement** — the bootstrap-cycle guard. Source-building
+  `gcc-16` that provides and requires `cc` must be met by a *different* compiler; if none → a clear
+  error. It holds on every path: pulling a new provider (`_bindable_viable` excludes the requirer)
+  and reuse — a component's own `provides:` enter the inventory before its requires drain, so
+  `_State._self_held` refuses an inventory resident or a cached `(cap, constraint)` resident that is
+  the requirer's own unit and pulls another provider instead. The requirer stays the capability's
+  default resident for everyone else.
 - **Requirements are not validity.** A binding's (and its driver's) `requires:` play no part in
   choosing it: if the selected method's HARD requirement can't be met, the component errors — it
   does not fall back to another method (no backtracking; e.g. an appImage-only component on
@@ -702,14 +794,29 @@ namespace for both kinds) and sits at the **top of user precedence** — above r
 
 A pin is a **filter**, not a suggestion: it restricts candidates to the pinned one, then
 selection runs on that set. It must be **realizable** here — a binding-pin to a via the component
-has no binding for, or whose bindings are all invalid here (a false `when:`, a disabled driver),
-is an error; a provider-pin to a provider that can't bind here (or can't meet the constraint) is an
+has no binding for, or whose bindings are all invalid here (a false `when:`, a disabled or
+gated-out driver), is an error; a provider-pin to a provider that can't bind here (or can't meet the constraint) is an
 error. The tool never silently ignores a pin and never silently falls back.
 
-The app layers two more pin sources per resolve (`Resolver.resolve_resilient`): **detected** soft
-pins *below* the user's (the detection tier, below) and, with the opt-in `auto-tighten` setting,
-**floor** pins *above* them (§11). Effective precedence: auto-tighten > user pin > detected-installed
-> reuse > auto default.
+The app layers two more pin sources per resolve (`Resolver.resolve_resilient`): with the opt-in
+`auto-tighten` setting, **floor** pins (§11, `flooradvise.tighten_pins`), and **detected** soft pins
+(the detection tier, below). Effective precedence:
+
+**user pin > auto-tighten floor pin > detected-installed soft pin > reuse > auto default.**
+
+- **Your pin always wins.** `tighten_pins` skips a provider you pinned, and the merge puts your
+  pins on top. When your binding-pin keeps a provider on a method below a consumer's version floor,
+  `flooradvise.advise` emits a `pin-floor` warning instead of overriding you: it names the floor,
+  what the pinned method gives, and the fix (unpin, or pin a method that meets it — and, with
+  `auto-tighten` on, which method it would have picked). It surfaces on inspect and the TUI `!`
+  page; `configsys check` doesn't report it, because check doesn't probe versions. (History: the
+  merge order was once auto-tighten > user pin.)
+- **Detected pins are soft.** Only detected keys that neither you nor auto-tighten pinned are soft
+  (`resolve_resilient(soft=…)`). A soft pin is honored when it can be; one that can't — its method
+  isn't valid here (`_State._select_binding`), or its provider fails a version constraint or can't
+  bind (`_State._satisfy`) — is **dropped for that resolution** and normal selection proceeds, never
+  an error. The dropped ones are recorded (`Resolver.dropped_soft_pins`, `{key: why}`), and the app
+  reports "not adopting installed X -> Y: …" at verbose level instead of "adopting installed".
 
 **Detection tier (`adopt-installed`, on by default).** Resolution is otherwise blind to the disk.
 After a first resolve, `detection.detect_pins` probes installed state (one batched
@@ -769,6 +876,39 @@ those remain `when:` splits. The configsys-void example plugin uses it to supply
 components; Void itself has since graduated into core, where those facts live as ordinary `xbps:`
 entries in each binding's `name:` map.
 
+## 10b. The uniform layer rule: definitions vs machine settings
+
+Every layer — repo, plugins, the primary plugin, the top config, and any file one of them
+`include:`s — may **define** things: `components:`, `profiles:`, `os:`, `drivers:`,
+`component-names:`, `version-floors:`, plus the cosmetic `theme:`/`keys:` (facet probe specs are
+definitions too, but still need plugin trust, §5 / docs/facets.md). Only the top config and the
+primary plugin may **set machine settings** (`layers.MACHINE_SETTING_SECTIONS` ∪ the top-level keys
+of `actions.CONFIG_SETTINGS`, via `layers.machine_setting_sections()`; read from the repo/primary/user
+roles, `config._MACHINE_ROLES`). An include or an ordinary plugin that sets one is ignored, and
+`layers.ignored_section_warnings` turns that into a `check` / `!` warning rather than a silent drop.
+
+Why the line falls there: a definition only *offers* something (a method, a block, a browse lens),
+and the machine's own picks and pins still decide what happens, so anyone may contribute one. A
+machine setting *decides*, so a shared plugin must not seize it unless the top config grants it
+`primary`. Consequences for routing:
+
+- `os:` and `drivers:` merge per name from all roles (`layers.merge_dict_section(…, ALL_ROLES)`,
+  provenance in `OsCascade.os_sources` / `driver_sources`). The top config's blocks have the
+  highest precedence, so a machine-local driver tweak
+  (`drivers: { flatpak: { standing: never-auto } }` on this box only) needs no plugin. A block
+  overlays the lower layer's block of that name field by field (a restated field replaces that
+  field whole). (History: includes were once definitions-only *minus*
+  `os:`/`drivers:`, and the top config's were ignored.)
+- User-authored `profiles:` are valid again — browse categories only; the install set is still
+  `picks:`.
+- Retired top-level keys always warn (`layers._RETIRED_TOP_KEYS`: `configs:`, `machines:`,
+  `orphans-adopt-target:`), as does an unrecognized one (`last-refresh:` is no longer accepted
+  silently — the refresh stamp lives in the state directory). The retired preference keys on
+  bindings and `drivers:` blocks are §8a's `retired-key` warning.
+- An include's `~` expands against the configsys home (`Paths.home`: `--home` / `CONFIGSYS_HOME`,
+  via `layers.set_include_home`), not the real `$HOME`, so a sandboxed run reads the sandbox's
+  includes.
+
 ## 11. Tool-version vs OS-version, and versioned capabilities
 
 Three different things, all "version":
@@ -798,8 +938,9 @@ Resolution with a constraint (`_State._satisfy_constrained`):
    different versions coexist side by side;
 3. else pull a viable provider whose **component-level** provided version meets it — the
    constraint itself *enables* `never-auto` providers (ordinary ones preferred on a tie); among
-   several **version-scoped** providers the highest satisfying version wins; a provider-pin must
-   also meet the constraint.
+   several **version-scoped** providers the highest satisfying version wins, among several others
+   `_pick_provider` decides by component `standing:` rank (§9); a provider-pin must also meet the
+   constraint. (Steps 1–2 never hand back the requirer's own unit — §9's self-requirement guard.)
 4. If no provider meets it: for a **version-scoped** capability (some provider declares a
    component-level version — python3.X, jdk-NN, cuda-toolkit-NN) it is an error. For a capability
    whose version lives only on a method (go, ghc — a binding-level `provides: { go: ">=1.21" }`),
@@ -835,7 +976,8 @@ are now deleted) onto the capability model.
 - **Sugar** for the trivial single-binding component (a bare `btop: { via: native }` or string
   form) — never built; a component must spell `install: [ { via: native } ]` (~44 do exactly that),
   and `via:` at component level is rejected as an unknown key. Still a live decision: add the sugar
-  or leave it explicit.
+  or leave it explicit. (The one shorthand that did ship is for bundles: component-level `parts:`
+  with no `install:`, §3.)
 
 Resolved since the first draft: **driver-specific binding fields** DO hang off the binding as
 driver-scoped fields, ignored by non-matching drivers (`repo-component:`, `debconf:`,
@@ -845,7 +987,7 @@ routecheck (the "nothing provides X → warn" path), not a registry.
 The larger consolidation — folding the preference cluster into one `standing`, version-scoped
 providers (`provides: { cap: N }` / `requires: { cap: ">=N" }`), and the detection tier
 (`adopt-installed`: pin > detected-installed > default) — has **shipped**; §8a, §10 and §11
-describe it as built. `docs/todo/routing-overhaul-plan.md` is the historical plan.
+describe it as built. `docs/done/routing-overhaul-plan.md` is the historical plan.
 
 ## 14. Migration (parallel, iterated) — DONE (history)
 
@@ -876,7 +1018,7 @@ each flip.
 ## 15. Deferred
 
 **Windows / macOS.** The architecture would absorb them cleanly (a new OS root plus a
-`winget`/`scoop` driver, or the existing `brew` driver — today the `native:` of `fedora_atomic` — as
-macOS's `native:`). Deferred for two honest reasons: no test path (podman is Linux-only, so they
+`winget`/`scoop` driver, or the existing `brew` driver — today the `native:` of `fedora_atomic` and an
+ordinary method on every glibc block — as macOS's `native:`, with its `drivers:` gate widened). Deferred for two honest reasons: no test path (podman is Linux-only, so they
 can't get the throwaway-box rigor everything else has), and little overlap with the Linux model.
 Parked, not abandoned.

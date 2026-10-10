@@ -1,6 +1,6 @@
 # Dotfiles redesign — two kinds, user-owned links, managed-even-when-empty
 
-> **Status: DONE** — finished 2026-08-17 (a4e081e); glue half later superseded by docs/todo/dotfiles-glue-split-plan.md (`via: glue` + `shell-glue`, 39b3f28, 2026-09-15) and `dotfiles migrate` removed (2584731, 2026-08-27). Lives on in: docs/config-format.md
+> **Status: DONE** — finished 2026-08-17 (a4e081e); glue half later superseded by docs/done/dotfiles-glue-split-plan.md (`via: glue` + `shell-glue`, 39b3f28, 2026-09-15) and `dotfiles migrate` removed (2584731, 2026-08-27). Lives on in: docs/config-format.md
 
 Captures the decisions from the design discussion so
 implementation can follow without re-litigating. Supersedes the ad-hoc parts of the current

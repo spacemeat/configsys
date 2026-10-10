@@ -26,6 +26,11 @@ Each status also gets a `warn` line on the `!` page and in `configsys inspect`
 `stranded` with its reason, instead of the usual "pin it to manage" hint: routes don't offer that
 method here, so it can't be adopted with a pin — only swapped out.
 
+A tracked component with a routing status stays in the TUI Components screen's default **to-do**
+view (`menu._TODO_STATUSES` = `missing`, `outdated`, `switch`, `unmet`, `dangling`), so a stranded
+install surfaces without switching views. (Routing statuses rank ahead of missing/outdated in
+`ComponentState.status`, so they have to be listed explicitly.)
+
 ## Finding a stranded install
 
 `stranded.find(ctx, comp)` checks three sources, in order:

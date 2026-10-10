@@ -5,7 +5,7 @@ Scope: `configsys/drivers/glue.py`, `configsys/drivers/dotfiles.py`, `configsys/
 `test_shellguard.py` / `test_coexistence.py`. Read-only; every claim below was verified by reading
 (and, for the `re.sub` bug, by running the real shipped snippet through the exact expression).
 
-Terminology used here, per docs/todo/dotfiles-glue-split-plan.md: **dotfiles** = an app's own config
+Terminology used here, per docs/done/dotfiles-glue-split-plan.md: **dotfiles** = an app's own config
 under `<comp>.cfs/` + `manifest.hu` (`via: dotfiles`, `dotfiles/` roots); **glue** = shell
 snippets in `~/.config/<shell>/conf.d/` (`via: glue`, `glue/` roots); **inline/gestalt shells** =
 elvish + nu, whose rc marker block inlines the concatenated conf.d.
@@ -178,7 +178,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - Why: puts the current working directory on every Python invocation's import path — running any
   Python tool inside an untrusted checkout imports that checkout's `os.py`/`site.py`-shaped modules.
   Also unrelated to loading conf.d (the "purify the bash loader" item in
-  docs/todo/dotfiles-glue-split-plan.md:133-137 is still open) and only bash gets it (zsh/fish don't).
+  docs/done/dotfiles-glue-split-plan.md:133-137 is still open) and only bash gets it (zsh/fish don't).
 - Recommend: drop it from the loader (move to an opt-in `python-dev-glue` snippet if wanted).
 
 ### [MED] performance — `_installed_shells()` recomputed per spec, per unit, per call
@@ -205,7 +205,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - `app.py:3213-3286` `cmd_dotfiles_status` prints a "glue — shell integration" section; docstring
   says "every via:dotfiles target". `actions.py:956-964` `dotfiles_units` returns both drivers with
   the comment "(Phase 2 splits these into separate glue/dotfiles pages)" — Phase 2 is DONE
-  (docs/todo/dotfiles-glue-split-plan.md:160-176), the comment is stale. `GlueScreen.reload`
+  (docs/done/dotfiles-glue-split-plan.md:160-176), the comment is stale. `GlueScreen.reload`
   (`menu.py:4827`) calls `actions.dotfiles_units`. `shellguard.py:132` and `app.py:3169-3170` tell
   the user to run `configsys dotfiles activate` for glue. There is no `configsys glue` command at all
   (`app.py` grep). `config.hu:17` documents `disabled-drivers: [ dotfiles ]` only, while
