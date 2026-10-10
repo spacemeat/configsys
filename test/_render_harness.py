@@ -1,4 +1,4 @@
-'''Render harness for the D2 TUI MVVM refactor (see docs/d2-mvvm-plan.md).
+'''Render harness for the D2 TUI MVVM refactor (see docs/done/d2-mvvm-plan.md).
 
 Renders each TUI screen from a FIXED synthetic state into a BufferSurface, using a deterministic
 RecordingPalette that returns hashable descriptor tokens instead of curses attrs — so a screen's
@@ -8,7 +8,7 @@ This module holds the shared machinery — `RecordingPalette` (a deterministic f
 `build_ctx`, and `capture`/`_render`, which paint any screen from its sample through the REAL
 build_vm/draw. `test_render_headless.py` asserts every screen renders headlessly; the per-screen
 render-regression assertions live in `test_screen_*.py` against HAND-BUILT data (no golden, no oracle,
-nothing reads routes.hu — see docs/d2-mvvm-plan.md). The `Attr` value object below dates from the
+nothing reads routes.hu — see docs/done/d2-mvvm-plan.md). The `Attr` value object below dates from the
 retired legacy-vs-new equivalence phase and is kept because the fake palette still returns it.
 '''
 

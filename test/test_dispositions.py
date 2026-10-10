@@ -1,4 +1,4 @@
-'''Phase 2 of the disposition model (docs/profiles-disposition-plan.md): the `dispositions:` side-store
+'''Phase 2 of the disposition model (docs/done/profiles-disposition-plan.md): the `dispositions:` side-store
 (seen/interesting), the NEW = undispositioned rule, and the `configsys disp` CLI. include/exclude live
 in the profiles themselves; NEW is the unstored default.'''
 

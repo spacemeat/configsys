@@ -1,5 +1,7 @@
 # System-wide update coverage — plan
 
+> **Status: DONE** — finished 2026-09-23 (commit cd65037). Lives on in: docs/system-updates.md
+
 cfs today tracks and updates a machine's **picks** (the curated set). Everything else the OS
 knows is upgradable — base packages, dependencies, flatpak runtimes/extensions, snaps — is
 invisible to cfs, so the user still reaches for Pop!_Shop / GNOME Software / `apt upgrade`. This
@@ -71,7 +73,7 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
 
 ## Phasing
 
-- **P0 — pipeline proof (this machine): DONE.** `Driver.upgradable_index()` / `held_keys()` /
+- ✅ **P0 — pipeline proof (this machine): DONE.** `Driver.upgradable_index()` / `held_keys()` /
   `upgrade_all()` (base no-ops) implemented for apt + flatpak + snap; `configsys/sysupdates.py`
   aggregates upgradable − managed picks (`gather`); CLI `configsys updates` (list, grouped by
   manager, `installed -> candidate`, `[held]` marks) + `configsys upgrade --system` (index refresh →
@@ -80,14 +82,14 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   so multi-branch runtimes stay distinct rows matched to their own installed version; `update_dedup_key`
   maps a ref back to the app id for the managed-picks exclusion. Verified live (171 apt + 16 flatpak
   upgradable, correct exclusion). Tests in test/test_system_updates.py. No TUI yet.
-- **P1 — tiers: DONE.** Fixed `UPDATE_TIERS = (kernel, core, standard, apps)` + `tier_by_name`
+- ✅ **P1 — tiers: DONE.** Fixed `UPDATE_TIERS = (kernel, core, standard, apps)` + `tier_by_name`
   fallback (kernel/libc by name) in driver.py; `Driver.classify_index(keys)` (base = name heuristic)
   overridden by apt (Priority required/important→core, standard→standard, optional/extra→apps, with
   kernel split off by name — reuses origin_index) and flatpak (runtime/app split: `.Platform`/`.Sdk`
   ids → core, else apps). `UpdateRow.tier` carried through `gather`; CLI `updates` /
   `upgrade --system` preview now sub-group each manager by tier, most-fundamental first. Verified
   live (apt: 4 kernel / 46 core / … ; flatpak: 15 runtimes→core, Chrome→apps). Tests extended.
-- **P2a — TUI (view + bulk apply): DONE.** A synthetic **System Updates** group (sibling to
+- ✅ **P2a — TUI (view + bulk apply): DONE.** A synthetic **System Updates** group (sibling to
   `(other)`) with per-tier subgroups (kernel/core/standard/apps) and a package row each, folded into
   the Components tree from a BACKGROUND `gather` scan (sysupdates.start_scan/scan_busy/take_dirty — no
   startup regression; the run loop polls and rebuilds when it lands) + a header **count chip**. Rows
@@ -101,7 +103,7 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   anything cfs knows as a component AND has installed (picks + orphans like curl/htop), handled in the
   component world instead — System Updates is the genuinely-unmanaged tail (a wget/tor with no recipe
   still shows; the bulk `apt upgrade` patches the excluded ones anyway).
-- **P2a refinement — dim auto-pulled deps.** A real machine's `apps` tier is ~98% auto-installed
+- ✅ **P2a refinement — dim auto-pulled deps.** A real machine's `apps` tier is ~98% auto-installed
   DEPENDENCIES (the closure of the desktop/apps/toolchains — e.g. openjdk-*-jre, php8.1-*,
   dotnet-runtime-*, libvirt-*, gstreamer* — only a couple are user-chosen), and nothing there is
   system-critical (apt Priority required/important is the `core` tier). So the update lane marks each
@@ -110,11 +112,11 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   auto-deps in the standard/apps tiers so the handful you actually chose stand out. kernel/core are
   never dimmed (a libc/kernel bump stays prominent). Everything is still listed and the bulk upgrade
   still patches it all — this only changes emphasis. `UpdateRow.explicit`; `_su_dim` in the painter.
-- **P2b — TUI (subset select + coalesced targeted apply): TODO.** Per-tier / per-package selection
+- ✗ **P2b — TUI (subset select + coalesced targeted apply): DECLINED.** Per-tier / per-package selection
   with a coalesced `Driver.upgrade_many(names)` (one `apt install --only-upgrade <pkgs>` etc.),
   partitioning synthetic rows out of the normal plan. Deferred (distro managers ship fixes in
   complete bulks, so all-or-nothing is the safe default).
-- **P3 — remaining managers: DONE (dnf/pacman/zypper/apk/brew).** `upgradable_index` +
+- ✅ **P3 — remaining managers: DONE (dnf/pacman/zypper/apk/brew).** `upgradable_index` +
   `upgrade_all` (+ `held_keys` where the manager has a hold: dnf versionlock, zypper locks, brew
   pin; pacman/apk are rolling — no hold) on each: `dnf -q check-update` (exit 100 = updates),
   `pacman -Qu`, `zypper list-updates`, `apk list --upgradable`, `brew outdated --verbose`; bulk =
@@ -125,7 +127,7 @@ contributes what it can; the bucket set is fixed so the grouping is consistent a
   **rpm-ostree deliberately omitted:** on atomic the native pm is brew (+ flatpak), and rpm-ostree is
   image-based (a new deployment, not per-package upgradables) — forcing it into the per-package lane
   would mislead, so it stays out. Parsers unit-tested; live-verified where the manager exists.
-- **P4 — release advisory: DECLINED (not building).** A per-OS "a new release is available"
+- ✗ **P4 — release advisory: DECLINED (not building).** A per-OS "a new release is available"
   advisory (mirroring the reboot advisory) only has a clean, reliable native probe on Ubuntu/Pop
   (`do-release-upgrade -c` / `pop-upgrade release check`). Fedora / openSUSE-Leap / Alpine-stable / EL
   have no first-class "is a new release out?" CLI — detection there needs a networked or

@@ -1,8 +1,7 @@
 # Name-existence sweep — design & tool reference
 
-Status: **SHIPPED** — the sweep is a real, runnable tool: `test/run-name-sweep-in-podman.sh`
-(with `test/namesweep-allowlist.hu`), plus the plugin-side `test/run-name-sweep.sh` in the
-`configsys-void` / `configsys-proxmox` repos. This doc is the living reference for how it works.
+> **Status: REFERENCE** — the native package-name sweep (`test/run-name-sweep-in-podman.sh` →
+> `tools/namesweep.py`, allowlist `test/namesweep-allowlist.hu`) and its plugin-OS mode; maintained.
 
 **Goal:** catch the single most likely cross-distro failure — a native package being **renamed or
 removed** (redis→valkey, Fedora dropping `sagemath`, a `-dev` suffix change) — automatically,
@@ -12,9 +11,9 @@ package exist?". Fast, container-only, no kernel/GPU/GUI/hardware needed, so it'
 
 ## Why this is the high-value cheap test
 
-configsys's routing is already frozen by the golden gate (every component × 9 contexts). What the
-golden CANNOT know is whether the package *name* it resolves to still exists upstream — repos drift
-under us. This sweep closes exactly that gap, and only that gap. It's the 20% that catches 80% of
+configsys's routing is already frozen by the golden gate (`test/routing_golden.json`: every
+component × 13 reference machines). What the golden CANNOT know is whether the package *name* it
+resolves to still exists upstream — repos drift under us. This sweep closes exactly that gap, and only that gap. It's the 20% that catches 80% of
 real breakage.
 
 ## Architecture — three stages
@@ -22,43 +21,52 @@ real breakage.
 ```
   extractor (host, Python)        verifier (container, per manager)      differ
   resolve every component     ->  query each pkg exists in real repos ->  report renames/removals
-  collect native pkg names        (apt-cache / dnf / pacman / ...)        (exit nonzero on drift)
+  collect native pkg names        (apt-cache / dnf / pacman / ... / xbps) (exit nonzero on drift)
 ```
 
-### 1. Extractor — DONE (`tools/namesweep.py`)
+### 1. Extractor (`tools/namesweep.py`)
 
-Resolves every component in a representative context per manager (ubuntu24=apt, fedora42=dnf,
-arch=pacman, opensuse=zypper, alpine=apk) and collects the **native** package names each maps to —
-respecting `when:` (only what routes there) and `name:` (the real per-distro name). Non-native
-units (flatpak app-ids, pipx/npm/cargo dists, tarball URLs, `script`) are skipped — a different
-verification. Current volume: **~130–150 packages per manager** (~675 total with overlap).
+Resolves every component in a representative context per manager (ubuntu 24.04=apt, fedora
+42=dnf, arch=pacman, opensuse=zypper, alpine 3.20=apk, void=xbps) and collects the **native**
+package names each maps to — respecting `when:` (only what routes there) and `name:` (the real
+per-distro name). A multi-package unit contributes each of its real `packages:`. Skipped:
+non-native units (flatpak app-ids, pipx/npm/cargo dists, tarball URLs, `script`) — a different
+verification — and native units that first wire a third-party repo or fetch a package file
+(`source-line:`, `ppa:`, `deb-source:`, `repo-url:`, …), whose names only exist after that setup.
+Current volume: **~320–420 packages per manager** (~2,300 across the six).
 
 ```
-$ python3 tools/namesweep.py                 # apt 138 / dnf 140 / pacman 150 / zypper 129 / apk 128
+$ python3 tools/namesweep.py                 # count per manager (apt 401 / dnf 392 / pacman 417 / zypper 344 / apk 320 / xbps 408)
 $ python3 tools/namesweep.py --manager apt   # one name per line -> feed a container
 $ python3 tools/namesweep.py --json          # {manager: {pkg: [components]}}
 ```
 
 It already reflects known drift: `apt=redis-server`, `dnf=valkey`, `pacman=valkey`.
 
-### 2. Verifier — per-manager existence query (the container half) — DONE
+### 2. Verifier — per-manager existence query (the container half)
 
-One container per manager (reuse `test/Containerfile.*`), enable the repos configsys itself uses,
-refresh metadata once, then check each name. The query verbs (all read-only, no install):
+One throwaway container per manager, from a stock upstream image (`podman run --rm`, no image
+build): enable the repos configsys itself uses, refresh metadata once, then check each name. All
+names for a manager go through one container run, which prints the **missing** ones. The images
+and query verbs (all read-only, nothing installed):
 
-- **apt** — `apt-cache show "$p"` (enable `universe`+`multiverse`; `apt-get update`)
-- **dnf** — `dnf -q info "$p"` (enable RPM Fusion free + EPEL, matching `requires: rpmfusion/epel`)
-- **pacman** — `pacman -Si "$p" || pacman -Sg "$p"` (groups like `xfce4`; `pacman -Sy`)
-- **zypper** — `zypper -n se -x "$p"` (`zypper -n ref`)
-- **apk** — `apk search -x "$p"` (add the `community` repo; `apk update`)
+- **apt** — `ubuntu:24.04`; `apt-cache show "$p"` (enables `restricted universe multiverse`;
+  `apt-get update`)
+- **dnf** — `fedora:41`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
+  nonfree)
+- **pacman** — `archlinux:latest`; `pacman -Si "$p" || pacman -Sg "$p"` (groups like `xfce4`;
+  `pacman -Sy`)
+- **zypper** — `opensuse/tumbleweed:latest`; `zypper -n se -x "$p"`, requiring a package row
+  (`zypper -n ref`)
+- **apk** — `alpine:latest`; `apk search -x "$p"` (adds the `community` repo; `apk update`)
+- **xbps** — `void-linux/void-glibc:latest`; `xbps-query -R "$p"` (enables `void-repo-nonfree`,
+  which components there `requires:`; xbps names are the same on musl)
 
-Batch all names in one container run per manager (not one container per package). Emit the set of
-**missing** names.
+### 3. Differ + report
 
-### 3. Differ + report — DONE
-
-Missing names → look up the components that map to them (the extractor's reverse map) and print,
-e.g. `dnf: 'sagemath' (component: sagemath) NOT FOUND`. Exit non-zero if any survive the allowlist.
+Missing names → the components that map to them (the extractor's reverse map), printed as
+`DRIFT  dnf: package "sagemath" NOT FOUND  (component: sagemath)`. Exit 1 if any survive the
+allowlist; exit 2 if podman is missing.
 
 ## The allowlist (avoid false alarms)
 
@@ -69,14 +77,16 @@ Some names are *expected* to be unfindable by this sweep even though the routing
   won't emit it there);
 - brand-new packages not yet mirrored.
 
-Keep a small, commented `test/namesweep-allowlist.hu` — `{ dnf: [ ... ]  apk: [ ... ] }` — and
-subtract it before failing. Every allowlist entry needs a one-line reason (so it's revisited, not
-forgotten). A found-but-allowlisted name should *warn* ("allowlist entry no longer needed").
+`test/namesweep-allowlist.hu` — `{ dnf: [ ... ]  apk: [ ... ] }`, keyed by manager — is subtracted
+before failing. Every entry carries a `//` reason so it's revisited, not forgotten; today it holds
+GPU/accelerator SDKs from vendor repos and Arch's opt-in `multilib` `steam`. Prefer fixing the
+route over allowlisting. An allowlisted name that the sweep now finds prints a `note` asking you to
+remove the entry.
 
-## Scope & what the first runs caught
+## Scope, and what it has caught
 
-The default sweep gates on **all five families** (apt/dnf/pacman/zypper/apk) — all green. Getting
-there paid off immediately; the sweep caught, and we fixed:
+The default sweep gates on **all six families** (apt/dnf/pacman/zypper/apk/xbps). Its first runs
+caught, among others:
 
 - **nim** and **lazygit** aren't in Fedora repos → gated / retargeted to the tarball.
 - **gcc-cpp** lacked apt/pacman names → gated redhat; **gst-libav** is `gstreamer1-plugin-libav` on
@@ -88,7 +98,8 @@ there paid off immediately; the sweep caught, and we fixed:
   and genuinely-absent packages gated away (ffmpeg needs Packman on openSUSE; gap/maxima/paraview/
   supercollider not in Alpine).
 
-Run a subset with `bash test/run-name-sweep-in-podman.sh zypper,apk`. openSUSE's versioned names
+Run everything with `bash test/run-name-sweep-in-podman.sh`, or a subset with
+`bash test/run-name-sweep-in-podman.sh zypper,apk`. openSUSE's versioned names
 (`python313-pip`, `ffmpeg-7`) will drift as Tumbleweed rolls — the sweep flags it, you bump the
 `name:` map. That's the maintenance loop working, not a false alarm.
 
@@ -104,7 +115,7 @@ $ python3 tools/namesweep.py --sweep --plugin <plugin>/routes.hu \
       --image docker.io/library/debian:12 --setup <plugin>/test/pve-repo-setup.sh
 ```
 
-`--plugin` loads the plugin's layers (its `os:` block + components), resolves the whole catalog on
+`--plugin` loads the plugin's routes file (its `os:` block + components) as a plugin layer, resolves the whole catalog on
 `--context`, collects the `--manager` package names, and verifies them in `--image` (after
 `--setup`), reusing the core allowlist for that manager (union in a plugin-local one with
 `--allowlist`). The test itself lives WITH the plugin (image + setup are the plugin's business);
@@ -113,10 +124,11 @@ core just provides the mode. Two plugins use it:
 - **configsys-proxmox** (`apt` on `debian:12` + the PVE repo). Because it checks against real
   Debian, not Ubuntu, it's a *stricter* apt check — it's what caught `perf` naming Ubuntu's
   `linux-tools-generic` (Debian/Proxmox = `linux-perf`).
-- **configsys-void** (`xbps` on `void-glibc`) — now a worked EXAMPLE of an OS plugin: Void itself
-  graduated into core (2026-09), whose own `xbps` sweep (the core gate above, on void-glibc with
-  the nonfree repo enabled) is authoritative. The plugin keeps its `component-names:` map (§10a of
-  the routing model) as the teaching form of the same name facts core carries as `xbps:` entries.
+- **configsys-void** (`xbps` on `void-glibc`) — a worked example of an OS plugin. Void itself is
+  supported in core, whose own `xbps` sweep (the core gate above) is authoritative. The plugin
+  keeps its `component-names:` map (§10a of the routing model) as the teaching form of the same
+  name facts core carries as `xbps:` names; it also ships a plugin-local allowlist (`--allowlist`)
+  keyed by its driver.
 
 ## Gating & cadence
 
@@ -124,7 +136,8 @@ core just provides the mode. Two plugins use it:
   in-podman.sh`, like the other `run-*-in-podman.sh` scripts.
 - Run **on a schedule** (weekly cron / CI) and on-demand before a release. Repo drift is slow, so
   weekly is plenty; a failure is a heads-up, not a build blocker for unrelated work.
-- Wall-clock: 5 container builds + 5 metadata refreshes + ~675 cheap queries ≈ a few minutes.
+- Wall-clock: 6 image pulls + 6 metadata refreshes + ~2,300 cheap queries ≈ a few minutes (each
+  verifier times out after 20 minutes and is skipped).
 
 ## What it deliberately does NOT do
 
@@ -132,14 +145,10 @@ core just provides the mode. Two plugins use it:
 - Check flatpak app-ids, npm/pipx/cargo/gem dist names, tarball URLs, or `script` endpoints —
   each is a separate, lighter check (an HTTP HEAD for URLs; `flatpak remote-info` for app-ids;
   a registry API for dist names). Worth their own sketch later; the native sweep is the first win.
-- Cover managers/OSes without a Containerfile (fedora_atomic/brew, macOS, Windows).
+- Cover managers/OSes without a verifier image (rpm-ostree/brew, macOS, Windows).
 
-## Roadmap
+## Not yet done
 
-1. **(done)** extractor `tools/namesweep.py`.
-2. **(done)** per-manager verifier script + `test/run-name-sweep-in-podman.sh`.
-3. **(done)** allowlist file (`test/namesweep-allowlist.hu`) + differ.
-4. wire into a weekly CI job; surface drift as an issue. *(The plugin repos `configsys-void` /
-   `configsys-proxmox` carry their own `test/run-name-sweep.sh`; a scheduled CI job for the core
-   sweep is not yet wired.)*
-5. *(stretch)* sibling checks: URL HEADs for tarball/`script`, app-id checks for flatpak.
+- A scheduled CI job for the core sweep that surfaces drift as an issue. (The plugin repos
+  `configsys-void` / `configsys-proxmox` carry their own `test/run-name-sweep.sh`.)
+- *(stretch)* sibling checks: URL HEADs for tarball/`script`, app-id checks for flatpak.

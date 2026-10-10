@@ -1,6 +1,6 @@
 # Profiles v3 — the component × machine matrix
 
-> **Status: CURRENT (v3) — BUILT: phases A/B/C shipped, including the matrix TUI; `configs:`/user `profiles:` retired. Live reference: docs/config-format.md §Picks.**
+> **Status: DONE** — finished 2026-09-14 (commit 406546f). Lives on in: docs/config-format.md
 
 Supersedes the disposition-model Profiles page (preserved at tag
 `profiles-disposition-model` / branch `profiles-disposition-model-snapshot`). Reuses most of that
@@ -46,18 +46,18 @@ The whole install path goes through `requested()` → `active_profiles` → `pro
 
 ## Build phases
 
-- **A — data + storage.** `plugins.read_picks/set_picks`; `Config.picks()/included(machine)/
+- ✅ **A — data + storage.** `plugins.read_picks/set_picks`; `Config.picks()/included(machine)/
   current_machine()`; `actions.set_included(ctx, comp, machines, on)` (plural fan-out, local writes).
   Tests. (Self-contained, low risk.)
-- **B — wire the install set.** `@picks` reserved profile → `profile_components`/`active_profiles`;
+- ✅ **B — wire the install set.** `@picks` reserved profile → `profile_components`/`active_profiles`;
   regen golden (installs now seed from picks). Migrate: seed `picks[current]` from today's active
   profiles' members once, so nothing silently drops. The risky step — do it behind tests.
-- **C — matrix TUI.** Left = repo/plugin browse groups only. Right = ONE vertical list (a table):
+- ✅ **C — matrix TUI.** Left = repo/plugin browse groups only. Right = ONE vertical list (a table):
   columns `sel · name · installed · included · new · interesting · <machine…>`. Keys: `A` include /
   `D` exclude (fan out to selected machines), `I` interesting, `S` seen, `space` multi-select,
   select-all-in-view, `M` plural machine-target. Scope-to-browsed-profile paging stays. Keep the
   install-probe underline + `?` help.
-- **D — retire authoring** from the screen (clone/add-to-profile/per-layer pane/⁺N-into-clones);
+- ✅ **D — retire authoring** from the screen (clone/add-to-profile/per-layer pane/⁺N-into-clones);
   code stays in git. Keep `⁺N`/`*N` counts as browse-lens triage hints if still useful.
 
 ## Open / defaults (overridable)

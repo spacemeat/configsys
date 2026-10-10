@@ -1,8 +1,8 @@
 # Startup performance — investigation + fix plan
 
-> **Status: HISTORICAL — all phases BUILT (apt/flatpak/npm batch prepasses, parallel inspect/detect, time-paced startup bar).**
+> **Status: DONE** — finished 2026-08-12 (c24a056). Lives on in: docs/plugins.md (Optional hooks: `batch_index`, `installed_index`)
 
-Status: INVESTIGATION COMPLETE; all fixes since BUILT (see banner). 2026-08-12. Numbers profiled on
+Investigated 2026-08-12. Numbers profiled on
 the user's Pop!_OS box; claims below verified against the code, not just profiler output.
 
 ## The verdict: yes, it's genuinely slow, and it's all serial subprocess I/O
@@ -35,7 +35,7 @@ why warm == cold.
 
 ## Fix plan (phased; ratios are from the profile)
 
-**Phase A — pure batching, no semantic change (safe, ~34s off).** A per-inspect prepass that, for each
+**✅ Phase A — pure batching, no semantic change (safe, ~34s off).** A per-inspect prepass that, for each
 driver present in the unit set, runs its enumerable queries once and hands the results to `inspect_one`
 (the detection pass already does this shape). Per apt:
 - `is_locked`: fetch the hold set **once** → in-process membership. ~14s → ~0.15s.
@@ -48,7 +48,7 @@ Mechanism choice to decide: pass a batch-context object into `inspect_one` → t
 only apt/flatpak implement it, others fall back to per-unit), vs. a driver method-signature change.
 The context-object route keeps the driver interface intact.
 
-**Phase B — use the cache + go lazy (fixes flatpak, makes warm fast; has a staleness tradeoff).**
+**✗ Phase B — use the cache + go lazy (fixes flatpak, makes warm fast; has a staleness tradeoff).**
 Route inspect's `get_latest` through `method-versions.hu` (TTL), and/or compute "latest" lazily — only
 for units actually shown/acted on, not all 149 up front. Flatpak ~20s → ~0 on a warm cache; also
 collapse `flatpak mask` (16→2, arg-ignored like showhold) and gate `remote-info` behind the cache.
@@ -56,7 +56,7 @@ collapse `flatpak mask` (16→2, arg-ignored like showhold) and gate `remote-inf
 you want fresh-every-start accuracy (and keep it slow)? A short TTL + a manual `refresh` is the usual
 answer.
 
-**Phase C — parallelize `inspect_one` (bigger, orthogonal).** The probes are read-only, captured, and
+**✅ Phase C — parallelize `inspect_one` (bigger, orthogonal).** The probes are read-only, captured, and
 already stdin-detached — a thread pool over units would cut wall time several-fold even without A/B.
 More moving parts (ordering, progress callback, error handling), so last.
 

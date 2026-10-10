@@ -1,9 +1,6 @@
 # `configsys plugin init` — assemble a personal plugin from local bits (plan)
 
-> **Status: HISTORICAL — SHIPPED (`configsys plugin init`).**
-
-Status: **SHIPPED** — `configsys plugin init` (create/merge, git-init, bless-primary) is in the
-tree, alongside `bless`/`unbless`/`set-source`. Kept for the design rationale below.
+> **Status: DONE** — finished 2026-07-26 (621a0a3). Lives on in: docs/plugins.md
 
 Get set up locally (capture dotfiles, define profiles/components, declare plugins), then package
 it all into a personal **primary** plugin you develop in place and push to a remote when ready.

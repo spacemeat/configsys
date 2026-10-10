@@ -126,7 +126,7 @@ class Source(Driver):
             # autotools' generated files — so a rebuild reuses the STALE configuration and a recipe
             # change (or a failed partial build) never takes effect. Exclude our version marker so a
             # failed rebuild doesn't wrongly read as uninstalled (the artifacts install into $PREFIX,
-            # which the clean never touches). See docs/driver-resilience-plan.md (transactional builds).
+            # which the clean never touches). See docs/done/driver-resilience-plan.md (transactional builds).
             marker_name = f'{MARKER_PREFIX}{rc.comp}.version'
             acquire = (f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
                        f'git -C {srcq} fetch --tags --force && '

@@ -1,4 +1,4 @@
-'''Phase 0 of the D2 MVVM refactor (docs/d2-mvvm-plan.md): prove every TUI screen renders HEADLESSLY
+'''Phase 0 of the D2 MVVM refactor (docs/done/d2-mvvm-plan.md): prove every TUI screen renders HEADLESSLY
 — into an off-screen BufferSurface via a deterministic RecordingPalette, with no curses and no PTY.
 
 This is the safety-net infrastructure the per-screen migration builds on: if a screen can be painted

@@ -35,8 +35,9 @@ USER_CONFIG_TEMPLATE = '''{
     // configsys — this machine's settings and overrides. Overlays the repo's
     // config.hu + routes.hu section by section (your definitions win).
 
-    // Pull in other files (profiles + components; definitions-only). Relative paths
-    // resolve against THIS file's directory. Handy for per-project dependency sets.
+    // Pull in other files (component definitions only — machine settings like picks:, pins:
+    // and scope: in an included file are ignored). Relative paths resolve against THIS file's
+    // directory.
     // include: [ ~/src/myproject/configsys.hu ]
 
     // Data plugins from git repos, pinned to a ref, then `configsys plugin sync`. A
@@ -58,7 +59,7 @@ USER_CONFIG_TEMPLATE = '''{
     //     steam: flatpak
     // }
 
-    // TUI theme (all optional; edit live on the Theme screen, key 6). `colors:` is a shared MAP of
+    // TUI theme (all optional; edit live on the Theme screen, key 7). `colors:` is a shared MAP of
     // name -> #rrggbb; `pages:` gives each screen's ROLES a style { fg  bg  bold  underline
     // reverse } where fg/bg name a map color OR are a literal "#rrggbb", plus that page's background
     // `gradient:` (24-bit terminals only; `gradient: false` turns it off). A role defaults to a
@@ -77,21 +78,9 @@ USER_CONFIG_TEMPLATE = '''{
     //     }
     // }
 
-    // Define, amend, or shadow profiles. A profile is an ordered list of terms: a bare `name`
-    // adds a component, `+name` includes another profile's members, `~name` removes — a component
-    // if `name` is one, or (if `name` is a DEFINED profile) that whole subprofile's members (order
-    // matters; a later add re-adds). `+<this profile's own name>` amends the same profile from the
-    // layer below (super), instead of replacing it; a bare redefine (no `+self`) replaces wholesale.
-    // profiles: {
-    //     dev:      [ btop, neovim, gcc-15, gdb ]
-    //     desktop:  [ +dev, steam, ~gdb ]          // everything in dev, plus steam, minus gdb
-    //     user:     [ +user, apod ]                // the base `user` profile PLUS apod
-    //     ts-langs: [ +languages, ~haskell-lang ]  // all of `languages` EXCEPT the haskell-lang subprofile
-    // }
-
     // Override component routes: bindings merge ADDITIVELY — add an install method (or your
     // own component), override a binding by its (via, when), `drop:` one, or {} to remove the
-    // whole component. To just pick an existing method, prefer a pin (below). See routes.hu.
+    // whole component. To just pick an existing method, prefer a pin (above). See routes.hu.
     // components: {
     //     my-cli: { install: [ { via: native } ] }              // add your own
     //     steam:  { install: [ { via: native  when: "pop_os!"  drop: true } ] }  // drop a binding
@@ -408,7 +397,7 @@ class Context:
         import sys
         if not (sys.stdin.isatty() and sys.stdout.isatty()):
             return
-        print('\nYour personal config (profiles, scope, pins) can live in a "primary" plugin so')
+        print('\nYour personal config (picks, scope, pins) can live in a "primary" plugin so')
         print("it travels with you. Point configsys at yours now, or press Enter to skip.")
         try:
             ans = input('  primary plugin  <provider>:<user>/<name>  [none]: ').strip()
@@ -1728,9 +1717,9 @@ def cmd_orphans(ctx, args):
     if base_hidden:
         print(f'({base_hidden} OS-base foreign package{"s" if base_hidden != 1 else ""} hidden '
               '[required/important/standard] — `--system` to show them)')
-    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/brew, flatpak, snap, '
-          'pip/pipx/npm); not scanned: cargo/tarball/appImage/gem/… (no batch enumeration) or '
-          'arbitrary files.')
+    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/xbps/brew, '
+          'flatpak, snap, pip/pipx/npm/cargo/gem/go-install/luarocks/opam); not scanned: apk, '
+          'tarball/appImage/source installs (no batch enumeration) or arbitrary files.')
     return 0
 
 
@@ -2197,7 +2186,7 @@ def cmd_check(ctx, args):
                           for c, p in sorted(refreshstate.read_stale_pins(ctx.paths).items())
                           if isinstance(p, (list, tuple)) and len(p) == 2]
 
-    # glue-override drift (docs/glue-customization-plan.md P2): a user override whose SHIPPED source
+    # glue-override drift (docs/done/glue-customization-plan.md P2): a user override whose SHIPPED source
     # has since changed. Advisory — the override stays authoritative; nudge to refresh if wanted.
     glue_drift_warnings = []
     try:
@@ -2402,7 +2391,7 @@ def _plugin_init_create(ctx, args, decls):
     name = args.name or f'configsys-{getpass.getuser()}'
     plug = ctx.paths.plugins_dir / name
     if plug.exists():
-        print(f'configsys: {plug} already exists — pick another --name, or remove it first')
+        print(f'configsys: {plug} already exists — pick another name (`configsys plugin init <name>`), or remove it first')
         return 1
     store = ctx.paths.user_dotfiles_dir
     store_entries = sorted(store.iterdir()) if store.exists() else []
@@ -2986,150 +2975,209 @@ def cmd_show(ctx, args):
 
 _EPILOG = '''\
 examples:
-  configsys                          open the interactive TUI (the default)
-  configsys inspect                  install-state table for this machine's tracked (picked) components
-  configsys install rust ripgrep     install components (deps pulled + ordered)
-  configsys install profile:dev       install every component in the `dev` profile
-  configsys upgrade profile:dev btop  a profile plus an extra, to latest
-  configsys where neovim             explain how a component resolves on this machine
-  configsys location vulkan-sdk      print its absolute install dir (for shell snippets)
-  configsys pin set steam flatpak    choose an install method (a local pin)
-  configsys pin promote steam        make that pin portable via your primary plugin
-  configsys show routes              print the shipped base routes.hu (or --path for its location)
-  configsys --pretend install steam  dry run: print the commands, change nothing
+  configsys                            open the interactive TUI (the default)
+  configsys --machine laptop           open the TUI on the `laptop` machine's picks, to curate them
+  configsys inspect                    install state of this machine's picks, plus any issues
+  configsys picks add ripgrep          track ripgrep: add it to this machine's picks
+  configsys install rust ripgrep       install components now (dependencies pulled in and ordered)
+  configsys install profile:finders    install every component in the `finders` profile
+  configsys upgrade profile:finders btop
+                                       upgrade a profile's components plus one more, to latest
+  configsys updates                    list System Updates (pending updates outside configsys)
+  configsys upgrade --system           preview, confirm, then run each package manager's bulk upgrade
+  configsys where neovim               explain how a component resolves on this machine
+  configsys location vulkan-sdk        print its absolute install dir (for shell snippets)
+  configsys pin set steam flatpak      choose an install method (a local pin)
+  configsys pin promote steam          make that pin portable via your primary plugin
+  configsys glue add aliases           write your own shell startup snippet in $EDITOR
+  configsys show routes                print the shipped routes.hu (--path prints its location)
+  configsys --pretend install steam    dry run: print the commands instead of running them
 
 environment:
-  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   override the detected OS block / version
-  CONFIGSYS_HOME, CONFIGSYS_CONFIG     relocate the HOME base / the selector file
-  CONFIGSYS_ARCH                       override CPU arch for $ARCH substitution
-  CONFIGSYS_GITHUB_TOKEN / _GIT_TOKEN  auth for private plugin repos
+  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block / version instead of the detected one (--os)
+  CONFIGSYS_ARCH                       CPU arch for `$ARCH` and `cpu:` conditions (default: detected)
+  CONFIGSYS_HOME                       stand-in for $HOME on every configsys path (--home)
+  CONFIGSYS_CONFIG                     your user config file (--config)
+  CONFIGSYS_STATE_DIR                  holds your user config, the ledger, caches and synced plugins
+                                       (default $XDG_CONFIG_HOME/configsys, else ~/.config/configsys)
+  CONFIGSYS_REPO                       data root holding the shipped routes.hu and config.hu
+  CONFIGSYS_USERSCOPE_DIR              base dir for user-scope installs (default ~)
+  CONFIGSYS_SYSTEMSCOPE_DIR            base dir for system-scope installs (default /opt)
+  CONFIGSYS_APP_DIR, CONFIGSYS_SDK_DIR, CONFIGSYS_SRC_DIR
+                                       app / SDK / source-tree dirs under that base (default apps,
+                                       sdks, src); these five override the `dirs:` setting
+  CONFIGSYS_COLOR                      TUI color cap, same values as --color (NO_COLOR forces none)
+  CONFIGSYS_EFFECTS                    TUI motion: full, reduced or none (--effects)
+  CONFIGSYS_SPLASH                     always = show the startup splash even on a fast load;
+                                       linger = also hold it until a key (--splash-linger)
+  CONFIGSYS_NO_SPLASH                  set to anything to turn the startup splash off
+  CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: detected)
+  CONFIGSYS_PM                         apt or dnf: the package manager the gcc / clang drivers use
+  CONFIGSYS_GITHUB_TOKEN               GitHub API token for release lookups (GITHUB_TOKEN also works)
+  CONFIGSYS_GIT_TOKEN                  token for cloning private github: / gitlab: plugin repos
 '''
 
 
 def build_parser():
     p = argparse.ArgumentParser(
         prog='configsys',
-        description='Provision OS-native software from a profile: one config, one tool, across '
-                    'apt/dnf/pacman/zypper/apk/xbps/brew, plus flatpak, tarballs, language toolchains, '
-                    'and more. With no command, the interactive TUI opens.',
+        description="Install and manage the software on each of your machines from one config.\n"
+                    "Each machine installs its own picks (the `picks:` section of your config) through "
+                    "this OS's\npackage manager (apt, dnf, pacman, zypper, apk, xbps, brew) or flatpak, "
+                    'snap, AppImages,\ntarballs, source builds, language toolchains and more. Profiles '
+                    'are read-only lists to browse\nand pick from. With no command, the interactive TUI '
+                    'opens.',
         epilog=_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--pretend', action='store_true',
-                   help='print commands instead of executing them (dry run)')
-    p.add_argument('--os', help='override detected OS routes block (e.g. pop_os!)')
-    p.add_argument('--home', help='override HOME base for all paths (sandboxing)')
+                   help='dry run: print the commands an operation would run instead of running them')
+    p.add_argument('--os', metavar='BLOCK',
+                   help='use this OS block instead of the detected one (e.g. pop_os!, fedora, arch); '
+                        'same as CONFIGSYS_OS')
+    p.add_argument('--home', metavar='DIR',
+                   help='use DIR in place of $HOME for every path configsys reads or writes (config, '
+                        'state, user-scope installs), for sandboxed runs; same as CONFIGSYS_HOME')
     p.add_argument('--machine', metavar='NAME',
-                   help='curate/plan a specific machine\'s set (overrides this box\'s `machine:` for '
-                        'the run); install/execute still act on the local machine only')
-    p.add_argument('--config', help='override the per-machine selector file path')
+                   help="work on machine NAME's picks for this run instead of this box's `machine:` "
+                        '(to view or curate another machine from here); installs still happen on '
+                        'this box')
+    p.add_argument('--config', metavar='FILE',
+                   help='your user config file (default ~/.config/configsys/configsys.hu); same as '
+                        'CONFIGSYS_CONFIG')
     p.add_argument('--color', choices=['auto', '24bit', '256', '16', '8', 'none'], default=None,
-                   help='cap the TUI color depth (clamps DOWN, except 24bit: forces direct RGB via the '
-                        '-direct terminfo even without COLORTERM) — for testing degradation or a '
-                        'plainer look; overrides the theme. 16 uses the hand-tuned bright ANSI set '
-                        '(theme.colors-basic), 8 forces the base 8. Also reads CONFIGSYS_COLOR / NO_COLOR')
+                   help='cap the TUI color depth (default auto: detect it). Lower values only clamp '
+                        'down, 24bit forces direct RGB even without COLORTERM, 16 uses the theme\'s '
+                        '`colors-basic` ANSI set and 8 only the base eight; CONFIGSYS_COLOR sets the '
+                        'same, and NO_COLOR forces none')
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
-                   help='monochrome TUI (= --color none): no colors or gradient, splash skipped; '
-                        'reverse-video + bold still mark the cursor and headers')
+                   help='monochrome TUI, the same as --color none: no colors or gradient, and only the '
+                        'plain built-in startup progress bar; reverse video and bold still mark the '
+                        'cursor and headers')
     p.add_argument('--effects', choices=['full', 'reduced', 'none'], default=None,
-                   help='TUI motion: full (gradient + splash), reduced (no gradient, calmer splash), '
-                        'none (neither). Overrides the `effects:` setting; unset auto-picks reduced '
-                        'over SSH, else full')
+                   help='TUI motion: full (background gradient + any splash), reduced (no gradient, a '
+                        'calmer splash), none (no gradient, only the plain built-in progress bar). '
+                        'Overrides the `effects:` setting; unset picks reduced over SSH, else full')
     p.add_argument('--probe', action='store_true',
-                   help='print the resolved TUI color mode + motion (effects) and why, then exit '
-                        '(honors --color/--effects/--nocolor) — for debugging what your terminal gets')
+                   help='print the TUI color mode and motion level this terminal gets, and why, then '
+                        'exit (honors --color, --nocolor and --effects)')
     p.add_argument('--splash-linger', action='store_true',
-                   help='keep the startup splash animating after load, until you press a key '
-                        '(forces it to show even on a fast run) — for enjoying a splash')
+                   help='always show the startup splash, even on a fast load, and keep it animating '
+                        'until you press a key; same as CONFIGSYS_SPLASH=linger')
     p.add_argument('-v', '--verbose', action='count', default=0,
-                   help='stream load detail to stderr: -v layers/overrides/per-unit state, '
-                        '-vv full route/binding/why (errors + progress already show by default)')
+                   help='print load detail to stderr: -v adds the layer stack, route overrides and '
+                        "per-unit state; -vv adds each component's winning binding and why (errors and "
+                        'progress always show)')
     p.add_argument('-q', '--silent', action='store_true',
-                   help='no console output during load at all — only the TUI ! page')
+                   help='print nothing to the console while loading, not even errors (they still '
+                        "appear on the TUI `!` page and in `inspect`'s issue list)")
 
     sub = p.add_subparsers(dest='command')
-    sub.add_parser('inspect', help="show install state of this machine's tracked (picked) components")
+    sub.add_parser('inspect', help="show the install state of this machine's picks (status, installed "
+                                   'and latest versions) and any issues')
 
-    # install/upgrade carry an extra sentence on rebuild semantics + --no-deps (surfaced in the
-    # generated man page, which uses each command's description).
-    _rebuild_note = (' Not skipped when already present: package drivers re-run (a no-op if current) '
-                     'and a via:source component REBUILDS from a pristine checkout, so re-running '
-                     'install picks up a recipe change even at an unchanged version. --no-deps runs '
-                     'the op on only the named component(s), skipping the dependency-install fan-out '
-                     '(rebuild one thing, not its whole dependency tree). --force lets a dotfiles '
-                     'install overwrite an un-adopted on-system file (backed up to .pre-configsys).')
+    # each op's description carries extra notes (rebuild semantics + --no-deps, picks, stranded
+    # removal, holds) — surfaced in the generated man page, which uses each command's description.
+    _rebuild_note = (' Components already present are not skipped: a package manager re-runs (a no-op '
+                     'when current), and a `via: source` component rebuilds from a clean checkout, so '
+                     're-running install picks up a recipe change even at the same version. --no-deps '
+                     'acts on only the named components, without installing their dependencies. '
+                     '--force lets a dotfiles install overwrite an on-system file that was never '
+                     'captured (it is backed up to .pre-configsys first).')
+    _op_notes = {
+        'install': (_rebuild_note + ' Installing does not add a component to this machine\'s picks; '
+                    '`configsys picks add` does that.'),
+        'upgrade': (_rebuild_note + ' --system upgrades the whole machine instead and takes no '
+                    'names; see `configsys updates`.'),
+        'remove': (' Glue that only the removed components needed goes with them; their dependencies '
+                   'stay. A component with no install method left on this OS is still removed when a '
+                   'stranded install of it remains, through the method that made it. Removing does '
+                   'not unpick a component; `configsys picks rm` does that.'),
+        'lock': (' The hold is the package manager\'s own where it has one (apt-mark hold, dnf '
+                 'versionlock, …), else a record in configsys\' ledger; managers that cannot hold a '
+                 'version, such as pacman and apk, decline.'),
+    }
     for name, help_ in (('install', 'install components'),
                         ('remove', 'uninstall components'),
-                        ('upgrade', 'upgrade components to latest'),
-                        ('lock', 'version-lock components'),
-                        ('unlock', 'remove version lock')):
+                        ('upgrade', 'upgrade components to their latest version, or the whole system '
+                                    'with --system'),
+                        ('lock', 'hold components at their installed version'),
+                        ('unlock', 'release the version hold on components')):
         desc = (f'{help_.capitalize()}. A name is a component; '
                 'profile:<name> expands to that profile\'s components.')
-        if name in ('install', 'upgrade'):
-            desc += _rebuild_note
+        desc += _op_notes.get(name, '')
         sp = sub.add_parser(name, help=help_, description=desc)
         # upgrade takes NO names with --system (the whole-machine lane), so it allows zero.
         sp.add_argument('names', nargs=('*' if name == 'upgrade' else '+'),
                         help='component names, and/or profile:<name> to expand a whole profile')
         if name in ('install', 'upgrade'):
             sp.add_argument('--force', action='store_true',
-                            help='dotfiles: overwrite an un-adopted on-system file (backed up to '
-                                 '.pre-configsys). Prefer `configsys dotfiles capture` first.')
+                            help='let a dotfiles install overwrite an on-system file that was never '
+                                 'captured (backed up to .pre-configsys); `configsys dotfiles capture` '
+                                 'first is usually better')
             sp.add_argument('--no-deps', action='store_true',
-                            help='run the op on ONLY the named component(s) — skip dependency '
-                                 'installs. A source component rebuilds unconditionally, so this '
-                                 'force-rebuilds just it (e.g. to pick up a recipe change) without '
-                                 'rebuilding its already-built deps.')
+                            help='act on only the named components, without installing their '
+                                 'dependencies. A source component always rebuilds, so this rebuilds '
+                                 'just it (e.g. to pick up a recipe change), not its dependencies')
         if name == 'upgrade':
             sp.add_argument('--system', action='store_true',
-                            help='upgrade the WHOLE system — everything each package manager (apt / '
-                                 'flatpak / snap) reports upgradable outside your picks, via the '
-                                 "manager's own bulk upgrade. Within-release only; see `configsys updates`.")
+                            help='upgrade the whole system: preview the System Updates list, confirm, '
+                                 "then run each package manager's own bulk upgrade (this OS's manager, "
+                                 'flatpak, snap), which also updates anything else it manages; held '
+                                 'packages stay held. Within-release only; see `configsys updates`')
             sp.add_argument('--yes', action='store_true',
                             help='with --system: skip the confirmation prompt')
 
-    fs = sub.add_parser('fix-scope', help='reconcile installed units whose actual scope differs '
-                                          'from the declared scope (moves the install, not config)')
-    fs.add_argument('names', nargs='*', help='component names (default: all mismatched)')
+    fs = sub.add_parser('fix-scope', help='move installs whose scope (user / system) differs from the '
+                                          'configured scope, so they match the config (the config is '
+                                          'not changed)')
+    fs.add_argument('names', nargs='*', help='component names (default: every mismatched install)')
 
-    sv = sub.add_parser('set-version', help='pin a component to a specific version')
-    sv.add_argument('name')
-    sv.add_argument('version')
+    sv = sub.add_parser('set-version', help='install a specific version of a component, where its '
+                                            'install method can target one')
+    sv.add_argument('name', help='component name')
+    sv.add_argument('version', help='version to install (for flatpak, a commit id)')
 
-    mp = sub.add_parser('machine', help='view or edit the machine registry — the columns of `picks:`, '
-                                        'each machine with its own tracked set')
+    mp = sub.add_parser('machine', help='list, add, remove or switch machines (the columns of '
+                                        '`picks:`)')
     mpsub = mp.add_subparsers(dest='machine_command')
-    mpsub.add_parser('list', help='defined machines + which one this box is (default)')
-    mps = mpsub.add_parser('show', help="one machine's tracked components (its picks)")
-    mps.add_argument('name')
-    for _n, _h in (('add', 'create a new, empty machine entry'),
-                   ('rm', 'delete a machine entry')):
+    mpsub.add_parser('list', help='list machines and how many components each tracks, marking which '
+                                  'one this box is (default)')
+    mps = mpsub.add_parser('show', help="show one machine's picks")
+    mps.add_argument('name', help='machine name')
+    for _n, _h in (('add', 'add a machine (a new, empty picks column)'),
+                   ('rm', 'remove a machine and its picks (from your top config and your primary '
+                          'plugin)')):
         _sp = mpsub.add_parser(_n, help=_h)
-        _sp.add_argument('name')
-    mpu = mpsub.add_parser('use', help="set THIS box's machine (the `machine:` setting); no name clears it")
-    mpu.add_argument('name', nargs='?')
+        _sp.add_argument('name', help='machine name')
+    mpu = mpsub.add_parser('use', help="set which machine this box is (the `machine:` setting); no "
+                                       'name clears it')
+    mpu.add_argument('name', nargs='?', help='machine name (omit to clear)')
 
-    dp = sub.add_parser('disp', help='component triage marks for browsing: seen / interesting / '
-                                     'new (the install set is `picks:`, not these)')
+    dp = sub.add_parser('disp', help='view or set dispositions: your seen / interesting triage marks on '
+                                     'catalog components (they never install anything)')
     dpsub = dp.add_subparsers(dest='disp_command')
-    dpl = dpsub.add_parser('list', help='dispositioned components + a NEW count (default); '
-                                        '--new lists every NEW (undispositioned) component')
-    dpl.add_argument('--new', action='store_true', help='list all NEW components')
-    dpg = dpsub.add_parser('get', help="a component's effective disposition")
-    dpg.add_argument('name')
-    dps = dpsub.add_parser('set', help='set a disposition')
-    dps.add_argument('name')
+    dpl = dpsub.add_parser('list', help='list your seen / interesting components and how many are NEW '
+                                        '(not yet triaged) (default)')
+    dpl.add_argument('--new', action='store_true', help='list every NEW component instead')
+    dpg = dpsub.add_parser('get', help="print a component's disposition")
+    dpg.add_argument('name', help='component name')
+    dps = dpsub.add_parser('set', help="set a component's disposition (kept per machine)")
+    dps.add_argument('name', help='component name')
     dps.add_argument('state', choices=['seen', 'interesting', 'new'], help="'new' clears it")
 
-    pk = sub.add_parser('picks', help='the matrix Included set: components picked for a machine '
-                                      '(what it installs). Edit here or in the TUI Profiles screen')
+    pk = sub.add_parser('picks', help="list or edit a machine's picks: the components it installs "
+                                      '(also editable in the TUI Profiles screen)')
     pksub = pk.add_subparsers(dest='picks_command')
-    pkl = pksub.add_parser('list', help="a machine's picked components (default: this machine)")
-    pkl.add_argument('--machine', help='which machine (default: the current one)')
-    for _n, _h in (('add', 'pick a component (Include it)'), ('rm', 'unpick a component (Exclude it)')):
+    pkl = pksub.add_parser('list', help="list a machine's picks (default)")
+    pkl.add_argument('--machine', metavar='NAME', help="which machine (default: this box's)")
+    for _n, _h in (('add', "track a component: add it to a machine's picks (kept in your primary "
+                           'plugin when you have one)'),
+                   ('rm', "untrack a component: remove it from a machine's picks (it is not "
+                          'uninstalled)')):
         _sp = pksub.add_parser(_n, help=_h)
-        _sp.add_argument('component')
-        _sp.add_argument('--machine', action='append', dest='machines',
-                         help='target machine (repeat for several; default: the current one)')
+        _sp.add_argument('component', help='component name')
+        _sp.add_argument('--machine', action='append', dest='machines', metavar='NAME',
+                         help="target machine (repeat for several; default: this box's)")
     pksub.add_parser('to-primary', help="move this box's local picks into the primary plugin so they "
                                         'travel to your other machines (dispositions stay local)')
 
@@ -3137,135 +3185,153 @@ def build_parser():
                                       'it resolves on this machine')
     wh.add_argument('name', help='component name (or a profile name with -p)')
     wh.add_argument('-p', '--profile', action='store_true',
-                    help='treat NAME as a profile: show its per-layer definition, layer '
-                         'relation, and member/declined counts')
+                    help='treat NAME as a profile: show its definition in each layer, how the layers '
+                         'relate, and its member / declined counts')
 
-    lo = sub.add_parser('location', help="print a component's absolute install location "
-                                         '(honoring scope + pin), for shell snippets')
+    lo = sub.add_parser('location', help="print a component's absolute install location as it "
+                                         'resolves here (honoring scope, pins and `locations:`), for '
+                                         'shell snippets')
     lo.add_argument('name', nargs='?', help='component name')
     lo.add_argument('--all', action='store_true', dest='all',
-                    help='bulk: print `<comp>\\t<path>` for every requested component that manages a '
-                         'location (one process for the whole set — the shell glue caches it)')
+                    help='print `<component>\\t<path>` for every picked component with a managed '
+                         'install location, and refresh the cache the shell glue reads')
 
     ve = sub.add_parser('versions', help='show the version each install method would install for a '
-                                         'component (native vs tarball/source/…), with the tip lag')
+                                         'component (native vs tarball/source/…), and which lag the '
+                                         'newest')
     ve.add_argument('name', help='component name')
     ve.add_argument('--min', dest='min_version', metavar='VERSION',
                     help='mark which methods meet this minimum version (and how to pin one)')
     ve.add_argument('--refresh', action='store_true',
                     help='bypass the cache and re-query each method now')
 
-    sub.add_parser('check', help='lint the merged config (repo + your config + includes) without '
-                                 'installing')
+    sub.add_parser('check', help='lint the merged config (repo, plugins, your config and its '
+                                 'includes) without installing anything')
 
     pn = sub.add_parser('pin', help='view or change install-method / provider pins '
                                     '(local, or portable via a primary plugin)')
     pnsub = pn.add_subparsers(dest='pin_command')
-    pnsub.add_parser('list', help='effective pins and where each came from (default)')
-    ps = pnsub.add_parser('set', help='pin a component to an install method '
-                                      '(or a capability to a provider component)')
-    ps.add_argument('component')
+    pnsub.add_parser('list', help='list the effective pins and where each came from (default)')
+    ps = pnsub.add_parser('set', help='pin a component to an install method (or a capability to a '
+                                      "provider component) in your top config; the next install "
+                                      'swaps out an install made by another method')
+    ps.add_argument('component', help='component (or capability) name')
     ps.add_argument('via', help='a via/driver (binding-pin), or a provider component (provider-pin)')
     pnu = pnsub.add_parser('unset', help='remove a pin from your top config')
-    pnu.add_argument('component')
+    pnu.add_argument('component', help='component (or capability) name')
     pnp = pnsub.add_parser('promote', help='move a top-config pin into your primary plugin '
                                            '(portable to your other machines)')
-    pnp.add_argument('component')
+    pnp.add_argument('component', help='component (or capability) name')
 
-    pr = sub.add_parser('profile', help='browse the shipped profile catalog (read-only lenses over '
-                                        'the repo/plugin components; install from picks:)')
+    pr = sub.add_parser('profile', help='browse profiles: read-only component lists shipped by the '
+                                        'repo and plugins (installs come from picks)')
     prsub = pr.add_subparsers(dest='profile_command')
-    prsub.add_parser('list', help='every profile and its components (default)')
-    prs = prsub.add_parser('show', help="one profile's structure and where it is defined")
-    prs.add_argument('profile')
+    prsub.add_parser('list', help='list every profile and its components (default)')
+    prs = prsub.add_parser('show', help="show one profile's terms, where it is defined, and what it "
+                                        'expands to')
+    prs.add_argument('profile', help='profile name')
 
-    cfp = sub.add_parser('config', help='view or edit machine settings (scope, driver-preference, '
-                                        'auto-tighten)')
+    cfp = sub.add_parser('config', help='view or edit machine settings (`config show` lists them all)')
     cfsub = cfp.add_subparsers(dest='config_command')
-    cfsub.add_parser('show', help='every machine setting, its value, and what it does (default)')
+    cfsub.add_parser('show', help='list every machine setting: its value, where it is set, and what it '
+                                  'does (default)')
     cfg_get = cfsub.add_parser('get', help="print one setting's effective value")
-    cfg_get.add_argument('key')
-    cfg_set = cfsub.add_parser('set', help='set a machine setting')
-    cfg_set.add_argument('key')
+    cfg_get.add_argument('key', help='setting name (see `config show`)')
+    cfg_set = cfsub.add_parser('set', help='set a machine setting where it already lives, else in your '
+                                           "primary plugin (uniform settings) or your top config "
+                                           '(machine-local ones)')
+    cfg_set.add_argument('key', help='setting name (see `config show`)')
     cfg_set.add_argument('value', nargs='+', help='the value (list settings take several tokens)')
     cfg_set.add_argument('--local', action='store_true',
                          help="write to this machine's top config, not the primary plugin")
-    cfg_unset = cfsub.add_parser('unset', help='clear a machine setting')
-    cfg_unset.add_argument('key')
+    cfg_unset = cfsub.add_parser('unset', help='clear a machine setting where it is set')
+    cfg_unset.add_argument('key', help='setting name (see `config show`)')
     cfg_unset.add_argument('--local', action='store_true',
                            help="write to this machine's top config, not the primary plugin")
     cfg_move = cfsub.add_parser('move', help='move a setting between local (top config) and the '
                                              'primary plugin, carrying its value')
-    cfg_move.add_argument('key')
+    cfg_move.add_argument('key', help='setting name (see `config show`)')
 
     thp = sub.add_parser('theme', help='view or edit the TUI theme; save/load shareable themes')
     thsub = thp.add_subparsers(dest='theme_command')
-    thsub.add_parser('show', help='the theme overrides currently in effect (default)')
-    thsub.add_parser('list', help='saved/available theme plugins')
+    thsub.add_parser('show', help='show the theme overrides currently in effect (default)')
+    thsub.add_parser('list', help='list the theme plugins on disk')
     th_set = thsub.add_parser('set', help='set a theme value, e.g. theme set colors.accent "#c88cf0"')
-    th_set.add_argument('key', help='colors.<name> | '
+    th_set.add_argument('key', help='colors.<name> | colors-basic.<name> | '
                                     'pages.<page>.<role>.<fg|bg|bold|underline|reverse> | '
                                     'pages.<page>.gradient.<from|to|enabled>  '
                                     '(fg/bg = a color-map name or #rrggbb)')
-    th_set.add_argument('value')
+    th_set.add_argument('value', help='a color (#rrggbb or a color-map name), or true / false for '
+                                      'bold, underline, reverse and enabled')
     th_set.add_argument('--local', action='store_true',
                         help="write to this machine's top config, not the primary plugin")
     th_unset = thsub.add_parser('unset', help='remove a theme value')
-    th_unset.add_argument('key')
-    th_unset.add_argument('--local', action='store_true')
+    th_unset.add_argument('key', help='the dotted key, as for `theme set`')
+    th_unset.add_argument('--local', action='store_true',
+                          help="write to this machine's top config, not the primary plugin")
     th_save = thsub.add_parser('save', help='snapshot your theme into a shareable theme plugin')
-    th_save.add_argument('name')
+    th_save.add_argument('name', help='theme plugin name')
     th_save.add_argument('--force', action='store_true',
                          help='overwrite an existing theme plugin of that name')
-    th_load = thsub.add_parser('load', help='apply a saved theme plugin')
-    th_load.add_argument('name')
-    th_load.add_argument('--local', action='store_true')
+    th_load = thsub.add_parser('load', help='apply a saved theme plugin (it replaces your current '
+                                            'theme overrides)')
+    th_load.add_argument('name', help='theme plugin name (see `theme list`)')
+    th_load.add_argument('--local', action='store_true',
+                         help="write to this machine's top config, not the primary plugin")
 
-    pl = sub.add_parser('plugin', help='manage plugins: declare/sync, bless or init a personal '
-                                       'primary plugin, trust code plugins')
+    pl = sub.add_parser('plugin', help='manage plugins: declare and sync them, bless or init your '
+                                       'primary plugin, trust plugins that run code')
     plsub = pl.add_subparsers(dest='plugin_command')
-    plsub.add_parser('list', help='declared plugins + their sync/ABI status')
-    plsub.add_parser('sync', help='clone/fetch declared plugins to their pinned refs')
+    plsub.add_parser('list', help='list declared plugins with their sync, ABI and trust status '
+                                  '(default)')
+    plsub.add_parser('sync', help='clone or fetch every declared plugin at its `ref:`')
     pb = plsub.add_parser('bless', help='designate your primary personal-config plugin '
                                         '(register + sync it; its machine settings then apply)')
     pb.add_argument('source', help='<provider>:<user>/<name> (or a declared plugin name), or '
                                    '"none" to clear')
     plsub.add_parser('unbless', help='clear the primary designation')
-    pa = plsub.add_parser('add', help='declare a plugin and sync it')
+    pa = plsub.add_parser('add', help='sync a plugin and declare it (nothing is declared if the sync '
+                                      'fails)')
     pa.add_argument('source', help='github:owner/repo | gitlab:owner/repo | git URL | local path')
-    pa.add_argument('--ref', help='pin to a tag / commit / branch')
+    pa.add_argument('--ref', help='use this tag / commit / branch (saved as the plugin\'s `ref:`)')
     pa.add_argument('--pin', action='store_true',
-                    help='also lock the plugin to the synced content hash (sha256)')
+                    help='also record the synced content\'s sha256; content that later differs is '
+                         'quarantined')
     pa.add_argument('--local', action='store_true',
-                    help='add to this machine\'s top config even if a primary plugin is set '
-                         '(default: a new plugin rides the primary, portable to all machines)')
+                    help='add to this machine\'s top config even if a primary plugin is set, so it '
+                         'applies only here, e.g. a project checkout (default: a new plugin rides the '
+                         'primary, portable to all machines)')
     pa.add_argument('--replace', action='store_true',
                     help='if a plugin of the same name is already declared from another source, '
                          'drop that one and use this source instead')
     pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
     pr.add_argument('name', help='plugin name, source, or dir')
     pu = plsub.add_parser('update',
-                          help="re-sync a plugin, or all of them (move pins with --ref/--latest)")
+                          help="re-sync a plugin, or all of them (--ref / --latest move its `ref:`)")
     pu.add_argument('name', nargs='?',
-                    help='plugin name, source, or dir — OMIT to update every declared plugin (like sync)')
+                    help='plugin name, source, or dir; omit it to update every declared plugin')
     pu.add_argument('--all', action='store_true', dest='all',
                     help="update every declared plugin (the same as omitting the name)")
-    pu.add_argument('--ref', help='new tag / commit / branch to pin to')
+    pu.add_argument('--ref', help='move the plugin\'s `ref:` to this tag / commit / branch')
     pu.add_argument('--latest', action='store_true',
-                    help="pin to the newest version tag on the remote (or main/master if it has none)")
-    pu.add_argument('--pin', action='store_true', help='re-lock to the new synced content hash')
-    pt = plsub.add_parser('trust', help="approve a code plugin's current content to run during installs")
+                    help="move `ref:` to the newest version tag on the remote (or main/master if it "
+                         'has none)')
+    pu.add_argument('--pin', action='store_true',
+                    help='re-record the sha256 of the newly synced content')
+    pt = plsub.add_parser('trust', help="approve a plugin's current content (its code and command-"
+                                        'carrying data: script / source / glue recipes) so it can run')
     pt.add_argument('name', nargs='?', help='plugin name, source, or dir (omit, or use --all, to '
-                                            'trust every currently-untrusted code plugin)')
+                                            'trust every plugin that needs it)')
     pt.add_argument('--all', action='store_true',
-                    help='trust every code plugin that is currently untrusted or changed')
-    pun = plsub.add_parser('untrust', help="revoke a code plugin's trust")
+                    help='trust every plugin that is currently untrusted or changed since trusted')
+    pun = plsub.add_parser('untrust', help="revoke a plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
-    pin = plsub.add_parser('init', help='assemble a personal primary plugin from local bits '
-                                        '(captured dotfiles + profiles/components), or merge into '
-                                        'your existing primary')
+    pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
+                                        "dotfiles, your own glue, your config's component "
+                                        'definitions), or merge that into your existing primary')
     pin.add_argument('name', nargs='?', help='plugin name (default: configsys-<user>)')
-    pin.add_argument('--force', action='store_true', help='overwrite dotfiles already in the store')
+    pin.add_argument('--force', action='store_true',
+                     help='overwrite dotfiles and glue already in the plugin')
     pin.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
     pss = plsub.add_parser('set-source', help='swap a plugin\'s source (e.g. local path -> '
                                               'github:you/name after you push it)')
@@ -3274,26 +3340,31 @@ def build_parser():
 
     rp = sub.add_parser('report', help='assemble an install-failure report (OS + route + driver '
                                        'output) and file it upstream — you approve the full text first')
-    rp.add_argument('name', nargs='?', help='component (defaults to the last failed op)')
-    rp.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rp.add_argument('name', nargs='?', help='component to report (default: the failures saved from '
+                                            'the last run)')
+    rp.add_argument('--yes', action='store_true',
+                    help='file without asking (the full text is still printed first)')
     rp.add_argument('--print', dest='print_only', action='store_true',
                     help='print the report and exit; never send')
 
-    rq = sub.add_parser('request', help='ask upstream for a full cross-platform story for a '
-                                        'component — shows a coverage matrix; you approve before filing')
+    rq = sub.add_parser('request', help='ask upstream to support a component on more platforms — '
+                                        'shows a coverage matrix of where it installs today; you '
+                                        'approve before filing')
     rq.add_argument('name', help='component to request full support for')
-    rq.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rq.add_argument('--yes', action='store_true',
+                    help='file without asking (the full text is still printed first)')
     rq.add_argument('--print', dest='print_only', action='store_true',
                     help='print the request and exit; never send')
 
     rqo = sub.add_parser('request-os', help='suggest THIS OS for inclusion, or report that a system '
                                             'update broke it — captures os-release; you approve before filing')
-    rqo.add_argument('--yes', action='store_true', help='skip the send confirmation (still shows it)')
+    rqo.add_argument('--yes', action='store_true',
+                     help='file without asking (the full text is still printed first)')
     rqo.add_argument('--print', dest='print_only', action='store_true',
                      help='print the OS request and exit; never send')
 
-    orp = sub.add_parser('orphans', help='list installed software that none of your picks / profiles account '
-                                         'for — adopt, remove, or ignore candidates')
+    orp = sub.add_parser('orphans', help="list installed software this machine's picks don't account "
+                                         'for; adopt (track), remove or ignore it')
     orp.add_argument('--driver', help='only this driver (apt, flatpak, …)')
     orp.add_argument('--foreign', action='store_true',
                      help='also list recipe-less packages from native managers (noisy; off by default)')
@@ -3307,20 +3378,24 @@ def build_parser():
     orp.add_argument('--adopt', metavar='NAME',
                      help='adopt a known orphan (a component): track it in picks: on the target '
                           'machine(s) so it becomes managed')
-    orp.add_argument('--machine', action='append', dest='machines',
-                     help='machine(s) to adopt onto (repeat for several; default: the current one)')
-    orp.add_argument('--remove', metavar='NAME', help='uninstall a known orphan via its driver')
+    orp.add_argument('--machine', action='append', dest='machines', metavar='NAME',
+                     help="machine to adopt onto (repeat for several; default: this box's)")
+    orp.add_argument('--remove', metavar='NAME',
+                     help='uninstall a known orphan via its driver (asks first unless --yes)')
     orp.add_argument('--ignore', metavar='PATTERN', nargs='+',
                      help='silence orphans matching these name/key globs (adds to orphans-ignore)')
     orp.add_argument('--yes', action='store_true', help='skip the confirmation for --remove')
 
-    dfp = sub.add_parser('dotfiles', help='inspect (status) and adopt (capture) your dotfiles')
+    dfp = sub.add_parser('dotfiles', help='show and capture your dotfiles; review glue the '
+                                          'shell-writes guard staged')
     dfsub = dfp.add_subparsers(dest='dotfiles_command')
-    dfsub.add_parser('status', help='per-target state of every managed dotfile: '
-                                    'linked / adopted / unmanaged / template / empty')
+    dfsub.add_parser('status', help="show every dotfiles target for this machine's picks: config "
+                                    '(managed / unmanaged / no config) and glue (active / changed / '
+                                    'available / inactive) (default)')
     cap = dfsub.add_parser('capture', help='adopt existing on-system dotfiles into your content '
                                            'store (read-only on the system side)')
-    cap.add_argument('names', nargs='*', help='limit to these components (default: all active)')
+    cap.add_argument('names', nargs='*', help="limit to these components (default: every one in this "
+                                              "machine's picks)")
     cap.add_argument('--force', action='store_true', help='overwrite content already in the store')
     cap.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
     cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
@@ -3332,8 +3407,9 @@ def build_parser():
     disc = dfsub.add_parser('discard', help='delete a staged glue candidate without activating it')
     disc.add_argument('names', nargs='+', help='component(s) whose staged glue to drop')
 
-    glp = sub.add_parser('glue', help='manage your OWN shell-startup snippets (aliases/env/functions) '
-                                      'in the user-glue namespace, portable via your primary plugin')
+    glp = sub.add_parser('glue', help='add your own shell-startup snippets (aliases / env / functions), '
+                                      "or override a component's shipped glue; kept in your primary "
+                                      'plugin when you have one')
     glsub = glp.add_subparsers(dest='glue_command')
     gla = glsub.add_parser('add', help='create your own startup snippet and open it in $EDITOR '
                                        '(linked into ~/.config/<shell>/conf.d/, loads after component glue)')
@@ -3342,8 +3418,9 @@ def build_parser():
     gla.add_argument('--local', action='store_true',
                      help="write to this machine's store even if a primary plugin is set "
                           '(default: the primary, so it travels to your other machines)')
-    glo = glsub.add_parser('override', help="fork a component's SHIPPED glue into your layer and edit "
-                                            'it (yours then shadows the repo; `check` flags drift)')
+    glo = glsub.add_parser('override', help="copy a component's shipped glue into your layer and edit "
+                                            'it (yours then shadows the shipped one; `check` flags '
+                                            'when the shipped one changes)')
     glo.add_argument('comp', help='component (tool or its -glue companion) whose glue to override')
     glo.add_argument('--shell', help='only this shell (default: every installed shell it ships)')
     glo.add_argument('--local', action='store_true',
@@ -3352,24 +3429,30 @@ def build_parser():
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
     mpsub = mp.add_subparsers(dest='manpages_command')
-    for mname, mhelp in (('install', 'copy the man pages into a man directory (default: ~/.local)'),
-                         ('status', 'report whether the installed pages are present and current')):
+    for mname, mhelp in (('install', 'copy the man pages into a man directory (default: '
+                                     '~/.local/share/man)'),
+                         ('status', 'report whether the installed pages are present and current '
+                                    '(default)')):
         msp = mpsub.add_parser(mname, help=mhelp)
-        msp.add_argument('--prefix',
+        msp.add_argument('--prefix', metavar='DIR',
                          help='man-dir prefix; pages go under <prefix>/share/man (default: ~/.local)')
 
-    sub.add_parser('updates', help='list packages upgradable OUTSIDE your picks — the whole-system '
-                                   'update lane (apt / flatpak / snap); apply with `upgrade --system`')
+    sub.add_parser('updates', help="list System Updates: pending updates from this OS's package "
+                                   "manager, flatpak and snap for packages that aren't configsys "
+                                   'components, grouped by tier; apply with `upgrade --system`')
 
-    sub.add_parser('refresh', help='re-query latest versions from their sources')
-    sh = sub.add_parser('show', help='print a shipped base data file (routes/config) or its path')
+    sub.add_parser('refresh', help="re-check upstream versions for this machine's picks and refresh the "
+                                   'OS package index (sudo may prompt; on Arch it offers a full '
+                                   '`pacman -Syu` instead)')
+    sh = sub.add_parser('show', help='print the shipped routes.hu or config.hu template, or its path')
     sh.add_argument('what', nargs='?', choices=list(_SHOW_TARGETS),
                     help='which base file to show (omit to list them)')
     sh.add_argument('--path', action='store_true',
                     help="print the file's resolved location instead of its contents")
 
     sub.add_parser('keys', help='show the effective TUI keybindings (the merged `keys:` section)')
-    sub.add_parser('tui', help='interactive TUI (default)')
+    sub.add_parser('tui', help='open the interactive TUI (the default; prints `inspect` output when '
+                               'not on a terminal)')
     return p
 
 
@@ -3786,7 +3869,7 @@ def cmd_profile(ctx, args):
                 body = f'(error: {e})'
             print(f'  {name}\n      {body}')
         print('\n  Profiles are read-only browse lenses. Track components with '
-              '`configsys picks add <machine> <component>`.')
+              '`configsys picks add <component> [--machine <name>]`.')
         return 0
 
     if sub == 'show':

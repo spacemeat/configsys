@@ -19,7 +19,7 @@ Two halves:
   checked the way the driver resolves them — latest, then recent releases incl. prereleases,
   case-insensitive; Flathub published/end-of-life/renamed; AUR missing/promoted-to-`[extra]`/
   orphaned/out-of-date; crates/PyPI/npm missing/deprecated; and a static check for x86-64-only
-  downloads with no `cpu:` gate). ~40 s for the whole catalog. A per-unit **ledger** makes
+  downloads with neither a `cpu-names:` map nor a `cpu:` gate). ~40 s for the whole catalog. A per-unit **ledger** makes
   routine `*` runs incremental.
 - **Judgment** — audit subagents, one per batch of units, doing the web research the probes can't.
   They are READ-ONLY on the routes; they write findings files. You aggregate, the user decides,
@@ -68,7 +68,7 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
      has `"github_token": "none"` for a degraded run) — that's where the user is reading when
      they're done.
 3. For `*`/`--full`, state the scale before fanning out: "N units due → M subagents". A first full
-   base run is ~640 units / ~43 agents at batch 15; later runs are incremental. Proceed without
+   base run is ~660 units / ~44 agents at batch 15; later runs are incremental. Proceed without
    waiting unless the user has said to confirm large runs.
 
 ## Phase 1 — mechanical scan
@@ -260,6 +260,6 @@ Same gates as add-component §7–9, with one twist for the golden:
   `arch-unguarded` = an x86-64-only download with no cpu gate (wrong binary on aarch64) — fix with
   `$ARCH` + `cpu-names:` (docs/routing-model.md §7), `{ x86_64: … }` alone if there's no arm64 build.
 - Cost: a trial audit of 5 units took one agent ~7 min and ~110k tokens, so a first `--full` base
-  run (~640 units, ~43 agents) is large — tell the user before fanning out. Routine `*` runs are
+  run (~660 units, ~44 agents) is large — tell the user before fanning out. Routine `*` runs are
   much smaller: the ledger skips units audited within `--due-days` whose definition hasn't
   changed and that no probe flags.

@@ -136,7 +136,7 @@ per-binding `prefer:` rank". Code (resolve.py:123-146 `_standing`) and routing-m
 107), TUI **Glue** screen (menu.py SCREENS key `4`; keys `a/A/x`), `dotfiles staged|activate|discard`
 (shell-writes guard → staged glue), `disabled-drivers` ("dotfiles / glue to manage your own shell
 config"). Not in README (Concepts, Dotfiles, driver list), config-format.md (Drivers, dotfiles
-section), theming.md (pages list). Only docs/dotfiles-glue-split-plan.md describes it. Fix: add a
+section), theming.md (pages list). Only docs/todo/dotfiles-glue-split-plan.md describes it. Fix: add a
 short "Dotfiles vs glue" subsection to README + config-format.md: dotfiles = an app's own config
 (`.cfs` marker dir + manifest, linked from your store); glue = per-shell conf.d enablement snippets
 configsys ships, activated per installed shell; add `glue`, `snap`, `native-pkg-file`, `pyenv`,
@@ -239,11 +239,11 @@ README:149-151 "Machine-level plugins", config-format.md:301-315 "Machine-level 
 --local`") and use it everywhere.
 
 ### [MED] dead/superseded plan docs lacking a supersession banner
-- docs/profiles-disposition-plan.md — no Status line; body reads as the current model.
-- docs/profiles-derive-plan.md:3 "DESIGN, not built" — it was built then ripped out (memory).
-- docs/dotfiles-redesign.md:3 "DESIGN AGREED, not built" vs body ":197-228 DONE".
-- docs/startup-perf-plan.md:3 "fixes NOT built" — all built.
-- docs/routing-overhaul-plan.md:3 "Planning only — no code yet" — standing/detection tier built.
+- docs/done/profiles-disposition-plan.md — no Status line; body reads as the current model.
+- docs/done/profiles-derive-plan.md:3 "DESIGN, not built" — it was built then ripped out (memory).
+- docs/done/dotfiles-redesign.md:3 "DESIGN AGREED, not built" vs body ":197-228 DONE".
+- docs/done/startup-perf-plan.md:3 "fixes NOT built" — all built.
+- docs/todo/routing-overhaul-plan.md:3 "Planning only — no code yet" — standing/detection tier built.
 - docs/versioned-requires.md:3 "design / exploration" — fully shipped.
 Fix: uniform first line `Status: HISTORICAL — <built|superseded by docs/X.md>` (or move to docs/history/).
 

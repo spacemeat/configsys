@@ -1,8 +1,8 @@
 # Routing model + TUI overhaul — plan
 
-> **Status: HISTORICAL — SHIPPED: `standing:`, version-scoped providers, and the detection tier (`adopt-installed`) are built. Live reference: docs/routing-model.md §8a.**
+> **Status: IN PROGRESS** — phases 0–2 + 4 done and phase 3's `standing` consolidation done (2026-08-11, 63b3823…9d3b791, 020da4f, 8018f77); phase 3 follow-ons (`choices:` section, `driver-preference` → via-scope `standing`, `when:`-scopable `standing`) not started; phase 5 deferred.
 
-Status: **decisions locked 2026-08-11; since BUILT** (see banner). Derived from a six-facet
+Decisions locked 2026-08-11. Derived from a six-facet
 parallel audit (control taxonomy, resolution semantics, TUI coverage, install-situation catalogue,
 evolution cruft, forward design). Verdict: **targeted overhaul, not a rewrite.**
 
@@ -143,7 +143,7 @@ mechanisms that change *what resolves* (small, individually gate-able), then the
 (build-beside/prove-equivalent/flip — the playbook this project already ran for v1→v2), then the TUI
 which depends on the earlier phases' provenance.
 
-### Phase 0 — Free wins & truth (no design; land first)
+### ✅ Phase 0 — Free wins & truth (no design; land first)
 - **D3 (bug):** `routecheck` binding-level requires must go through `cap_names` (today `_as_list` →
   `TypeError` on a versioned entry). Latent — component-level is already safe.
 - **D1 (bug):** a provider-pin must beat inventory-reuse — consult the pin before the reuse
@@ -166,7 +166,7 @@ which depends on the earlier phases' provenance.
 - **Doc drifts:** `~/configsys.hu` → `~/.config/configsys/configsys.hu`; guarded-`not` (enforce or
   delete the doctrine); §13 "open questions" (settled); `Layer` role list.
 
-### Phase 1 — Detection tier
+### ✅ Phase 1 — Detection tier
 - Build `detected = {component: (via, version)}` from the batched enumeration `detect_coexisting`
   already runs (cached off the refresh stamp; no per-candidate probing).
 - Inject as a **soft** precedence tier in `_select`/`_satisfy` via the `extra_pins` second-pass shape,
@@ -177,7 +177,7 @@ which depends on the earlier phases' provenance.
 - **Golden:** empty detection ⇒ byte-identical.
 - Delivers: no more "pushed toward -12 when -11 is already installed."
 
-### Phase 2 — Version-scoped providers
+### ✅ Phase 2 — Version-scoped providers
 - Inventory → multi-resident; `_satisfy` filters residents by constraint (from `prov_versions`).
 - Migrate `cuda-toolkit-11/-12` to `provides: { cuda-toolkit: N }`; move consumers from by-name to
   constraints (by-name stays as sugar = "= that identity"). Same for other versioned lines as they
@@ -186,7 +186,7 @@ which depends on the earlier phases' provenance.
 - `routecheck`: lint unsatisfiable constraint combinations.
 - **Golden:** regen for the intended cuda/gcc/clang changes; verify only those move.
 
-### Phase 3 — `standing` consolidation + `choices:`
+### ⏳ Phase 3 — `standing` consolidation + `choices:`
 - Introduce `standing`; translate existing `prefer:`/`candidate-only`/`opt-in` into it and **prove
   byte-equivalent**, then flip; delete the old flags and the `candidate_only` frozenset threaded
   through the load→Resolver→resolve signatures.
@@ -196,7 +196,7 @@ which depends on the earlier phases' provenance.
 - Rewrite the model docs to the single precedence story (validity → standing → pin, with detection).
 - **Golden:** stable through the flip (semantics preserved).
 
-### Phase 4 — TUI: per-row "where" detail + unified picker
+### ✅ Phase 4 — TUI: per-row "where" detail + unified picker
 - One per-row detail overlay (reuse `cmd_where` logic): capability edges
   (requires/provides/suggests/parts, visually distinct), candidate methods + why-invalid, standing/pin
   state **with unpin**, floors, detected-state; machine facets shown in the header.
@@ -205,7 +205,7 @@ which depends on the earlier phases' provenance.
 - `also present:` becomes an **adoptable** row, not a passive footnote.
 - No golden impact.
 
-### Phase 5 — deferred
+### ✗ Phase 5 — deferred
 Variant-aware identity / same-driver multi-version instances, only on a concrete case.
 
 ## Risks & mitigations

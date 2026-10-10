@@ -1,6 +1,8 @@
 # D2 — TUI MVVM rewrite (build_vm / draw / handle + screen router)
 
-Status: ACTIVE. The last big item from the Sept-2026 review ([[code-review-2026-09]]). The TUI is one
+> **Status: DONE** — finished 2026-09-20 (commit 5641778). Lives on in: docs/tui-architecture.md
+
+The last big item from the Sept-2026 review ([[code-review-2026-09]]). The TUI is one
 6.3k-line `configsys/tui/menu.py`: state classes (`MenuState`, `ProfileScreen`, `ConfigScreen`,
 `ThemeScreen`, `PluginScreen`, `DotfilesScreen`, `GlueScreen`) mixed with module-level
 `_draw_*(stdscr, pal, state, ctx, note, screen)` painters and one ~800-line `run()` dispatch loop.
@@ -15,7 +17,7 @@ the way to a shipped SDK — a CLI already exists — but the flexibility has va
   shared draw primitives that don't belong to one screen.
 - **Fidelity bar:** STRICT pixel-preservation. Every screen renders identically (same char + resolved
   color/flags per cell) before vs after each step, enforced by a render-equivalence harness. Any
-  rendering bug spotted is logged to `docs/d2-mvvm-findings.md` for a SEPARATE follow-up — never fixed
+  rendering bug spotted is logged to `docs/done/d2-mvvm-findings.md` for a SEPARATE follow-up — never fixed
   mid-refactor (keeps the refactor provably behavior-neutral).
 
 ## Architecture
@@ -33,7 +35,7 @@ the way to a shipped SDK — a CLI already exists — but the flexibility has va
 - **Router** (`tui/router.py`): `{id: Screen}` + the slim loop: build_vm → draw → getch → handle →
   route. Overlays (where/diagnostics/help) and the global keys stay router-level.
 
-## Render-equivalence harness (Phase 0 — the safety net, built FIRST) — BUILT
+## ✅ Render-equivalence harness (Phase 0 — the safety net, built FIRST) — BUILT
 - No curses / no PTY. `RecordingPalette` (test/_render_harness.py) mimics the Palette public API
   deterministically, returning an `Attr(token, flags)` value object (painters OR the result with
   curses flag ints — never AND-mask, verified — so `Attr.__or__` accumulates flags losslessly). It
@@ -79,7 +81,7 @@ routes-reading screens assert only routes-independent chrome). `test/_legacy_ren
 `*_equivalent` tests are DELETED; `_render_harness._render` and the Theme preview both render through
 the real screens. menu.py holds only the models + shared helpers + `_sample_*` generators + `run()`.
 
-## Sequencing (incremental, one screen at a time, each behind the harness) — DONE
+## ✅ Sequencing (incremental, one screen at a time, each behind the harness) — DONE
 0. Surface + BufferSurface + `Palette.describe` + the equivalence harness with golden grids for ALL
    screens captured from current code. Commit.
 1. Router + Screen protocol + ViewModel base; wire `run()` to the router with every screen still

@@ -1,4 +1,4 @@
-'''System Updates lane (docs/system-update-coverage-plan.md, P0): each manager's upgradable_index /
+'''System Updates lane (docs/done/system-update-coverage-plan.md, P0): each manager's upgradable_index /
 held_keys / upgrade_all, and sysupdates.gather aggregating upgradable − managed picks across
 apt + flatpak + snap. Fake runner returns canned manager output.'''
 

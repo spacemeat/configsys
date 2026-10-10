@@ -1,9 +1,9 @@
 # Driver resilience plan — isolate, diagnose, and self-heal external stumbles
 
-> **Status: HISTORICAL — ALL PHASES BUILT.**
+> **Status: DONE** — finished 2026-08-26 (269817d; status flipped 7aa96b3). Lives on in: README.md (`refresh`); configsys/failures.py
 
-Status: **ALL PHASES BUILT** (commits dd04d9b, eacaac9, 90dd3a8, a41fe9b, 8b30745, 6d8cdaf,
-269817d). Phase 3 shipped as ROUTE-DERIVED reconciliation, NOT a persisted manifest — honoring
+Built in commits dd04d9b, eacaac9, 90dd3a8, a41fe9b, 8b30745, 6d8cdaf,
+269817d. Phase 3 shipped as ROUTE-DERIVED reconciliation, NOT a persisted manifest — honoring
 Q2 (the routes already record what's ours, so no new state file earns its keep yet). Phase 4's
 transactional guards cover apt/dnf (rollback) + tarball/appImage (atomic swap); flatpak is atomic
 + idempotent and source/script failures surface via the P0 taxonomy, so they need no new guard.
@@ -134,17 +134,17 @@ reinvent: `shellguard` (transactional system-file handling), the orphans/`!unins
 
 ## Phasing (highest-pain / lowest-risk first)
 
-- **Phase 0 — taxonomy foundation.** `Result` gains `category` + `remediation`; `reportgen`
+- ✅ **Phase 0 — taxonomy foundation.** `Result` gains `category` + `remediation`; `reportgen`
   renders them. Additive; unblocks the rest.
-- **Phase 1 — index-refresh diagnosis.** Capture + classify + attribute the native index
+- ✅ **Phase 1 — index-refresh diagnosis.** Capture + classify + attribute the native index
   refresh; print culprit + cause + fix. Non-destructive. *Directly fixes the Jenkins-visibility
   pain.*
-- **Phase 2 — validate-then-commit + rotation re-fetch for apt/dnf vendor repos.** Verify the
+- ✅ **Phase 2 — validate-then-commit + rotation re-fetch for apt/dnf vendor repos.** Verify the
   key before writing the source; on a detected signature failure, re-fetch the route's key
   overwriting the stale one. *Prevents the poison pill and self-heals rotation.*
-- **Phase 3 — managed-artifacts manifest + reconciliation.** Disk-vs-route reconcile at
+- ✅ **Phase 3 — managed-artifacts manifest + reconciliation.** Disk-vs-route reconcile at
   `refresh`: re-materialize changed, offer-remove orphaned. Ties into orphans/`!uninstall`.
-- **Phase 4 — generalise transactional cleanup + pre-flight across the remaining drivers**
+- ✅ **Phase 4 — generalise transactional cleanup + pre-flight across the remaining drivers**
   (flatpak remote, tarball/appImage partial extract, source build, script) using the taxonomy.
 
 ---

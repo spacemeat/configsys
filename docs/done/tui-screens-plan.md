@@ -1,9 +1,6 @@
 # TUI screens plan
 
-> **Status: HISTORICAL — largely BUILT; pre-dates the Glue (key 4) and Theme (key 7) screens. Live reference: README §The TUI.**
-
-Status: **Decisions locked 2026-08-03** — ready to build in the order at the bottom. One item parked:
-making install directories editable (C1) — read-only for v1, revisit later.
+> **Status: DONE** — finished 2026-08-03 (dad4f31). Lives on in: docs/tui-architecture.md; README.md §The TUI
 
 The TUI is a **skin over the CLI**: every screen shows live state and turns key-presses into calls
 on the *same* functions the CLI uses. We do not erase or bypass any CLI command. Where a screen needs
@@ -28,7 +25,7 @@ Grounding (from the code map):
 
 ## Foundation (prerequisite for all screens)
 
-### F1 — Screen router + nav bar
+### ✅ F1 — Screen router + nav bar
 Replace the `show_diag` bool with a `screen` value and a small router: a dict `{screen: (draw_fn,
 handle_key_fn)}`, each screen owning its own view-state object (like today's `MenuState`). The main
 loop draws shared chrome (nav bar + status/help footer), then dispatches draw+input to the current
@@ -38,7 +35,7 @@ Nav bar: a chip row under the title — `[1]Components [2]Profiles [3]Plugins [4
 current highlighted; switch by **number key (1–5)** only. `Tab` is reserved for in-screen panel focus,
 so it deliberately does NOT cycle screens (LOCKED N1).
 
-### F2 — Rendering primitives
+### ✅ F2 — Rendering primitives
 - `panel(rect, title, focused)` — a bordered box (generalize the inline box in `_popup_choose`
   `menu.py:788`), with a focused/unfocused border style.
 - `listpanel` — a scrollable, cursor-tracking list inside a panel (reused by every new screen).
@@ -46,7 +43,7 @@ so it deliberately does NOT cycle screens (LOCKED N1).
 - `input_box(prompt, initial)` — a single-line text-input modal. **New**: the TUI has no text input
   today (only `_popup_choose`). Needed for plugin source entry, profile rename, config values, RGB.
 
-### F3 — Shared action layer (the spine, LOCKED A1)
+### ✅ F3 — Shared action layer (the spine, LOCKED A1)
 New reusable functions, each also exposed as a CLI subcommand (symmetry). The CLI subcommands are
 **first-class** — precise args, real `--help`, man coverage — not thin shims; the CLI stays a fully
 valid way to drive configsys.
@@ -73,7 +70,7 @@ The screen surfaces this provenance so the toggle is legible, not magic.
 
 ---
 
-## Screen 1 — Profiles
+## ✅ Screen 1 — Profiles
 
 **Goal:** see, without opening several `.hu` files, what's in which profile and where to change it.
 
@@ -99,7 +96,7 @@ top config. Shown in the footer; a key toggles target. (Fork P1.)
 
 ---
 
-## Screen 2 — Plugins
+## ✅ Screen 2 — Plugins
 
 **Goal:** add/remove/sync plugins and see the layer stack visually; manage local-config vs primary.
 
@@ -123,7 +120,7 @@ Links to the **Dotfiles** screen (`4`) since dotfiles live in the primary plugin
 
 ---
 
-## Screen 3 — Dotfiles  *(recommended: its own screen — Fork D1)*
+## ✅ Screen 3 — Dotfiles  *(recommended: its own screen — Fork D1)*
 
 **Why separate:** dotfiles are a per-file *link-state* domain, distinct from the plugin screen's
 *layer-source* domain. The connection (they live in the primary plugin) is a link between screens, not
@@ -142,7 +139,7 @@ primary plugin / defining-layer template) + rel path · link target (`~/…`) ·
 
 ---
 
-## Screen 4 — Config (machine settings + theme)
+## ✅ Screen 4 — Config (machine settings + theme)
 
 **Layout — a settings form** (field · current value · provenance layer):
 - `default_scope` (user/system) — toggle → `set_scope`.

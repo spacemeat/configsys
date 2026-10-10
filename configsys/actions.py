@@ -3,7 +3,7 @@
 Reusable read+write operations that BOTH the CLI subcommands and the TUI screens call, so the two
 stay in lockstep (the TUI is a skin over these, never a parallel implementation). Each takes the app
 `Context`, edits config surgically via the `plugins.set_*` writers, and `ctx.invalidate()`s the
-cached config so the change takes effect on the next read. See docs/tui-screens-plan.md (F3).
+cached config so the change takes effect on the next read. See docs/done/tui-screens-plan.md (F3).
 '''
 
 from pathlib import Path
@@ -506,7 +506,7 @@ def set_machine_active(ctx, name):
 
 # -- machine settings (`configsys config` + the TUI Config screen) --------------------------------
 # key -> (kind, one-line descriptor, man page). The single source of truth the CLI and the TUI
-# Config screen both read, so both describe each setting identically (docs/tui-screens-plan.md C1).
+# Config screen both read, so both describe each setting identically (docs/done/tui-screens-plan.md C1).
 CONFIG_SETTINGS = {
     'scope':             ('scalar', 'Default install scope: user (~, the default when unset) or '
                                     'system (/opt, needs sudo).', 'configsys(1)'),
@@ -525,7 +525,7 @@ CONFIG_SETTINGS = {
                                     "ops: 'auto' (default, when the batch has a native install/"
                                     "upgrade), 'always', or 'never'.", 'configsys(1)'),
     'install-overlay':   ('bool',   'Open TUI::Profiles with the install-state overlay on (installed '
-                                    'underlined, orphans coloured). On by default; O toggles it.',
+                                    'underlined, installed-but-unpicked ⊙ coloured). On by default; O toggles it.',
                           'configsys(1)'),
     'reboot-advice':     ('bool',   'After an op (and as a TUI chip), advise when a reboot is needed / '
                                     'services want a restart, via each distro\'s native check. On by '
@@ -725,7 +725,7 @@ def move_config_setting(ctx, key):
 
 # -- theme (`configsys theme` + the TUI theme editor) ---------------------------------------------
 # The theme lives in the `theme:` section (colors / elements.<el>.<attr> / gradient); saving a theme
-# writes a theme-only PLUGIN (portable/shareable), per docs/tui-screens-plan.md (T1).
+# writes a theme-only PLUGIN (portable/shareable), per docs/done/tui-screens-plan.md (T1).
 
 _THEME_BOOL_ATTRS = ('bold', 'underline', 'reverse')
 
@@ -889,7 +889,7 @@ def save_theme_to_primary(ctx):
 
 # -- plugins (`configsys plugin` + the TUI Plugins screen) ----------------------------------------
 # Orchestration extracted from cmd_plugin so the CLI and the TUI Plugins screen share one path
-# (docs/tui-screens-plan.md, F3 slice 4). Each returns structured results (ok/message/sync-actions);
+# (docs/done/tui-screens-plan.md, F3 slice 4). Each returns structured results (ok/message/sync-actions);
 # the caller prints (CLI) or shows a note (TUI).
 
 def _locate_decl(ctx, ident):

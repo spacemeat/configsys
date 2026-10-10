@@ -5,7 +5,7 @@ Scope: `configsys/drivers/glue.py`, `configsys/drivers/dotfiles.py`, `configsys/
 `test_shellguard.py` / `test_coexistence.py`. Read-only; every claim below was verified by reading
 (and, for the `re.sub` bug, by running the real shipped snippet through the exact expression).
 
-Terminology used here, per docs/dotfiles-glue-split-plan.md: **dotfiles** = an app's own config
+Terminology used here, per docs/todo/dotfiles-glue-split-plan.md: **dotfiles** = an app's own config
 under `<comp>.cfs/` + `manifest.hu` (`via: dotfiles`, `dotfiles/` roots); **glue** = shell
 snippets in `~/.config/<shell>/conf.d/` (`via: glue`, `glue/` roots); **inline/gestalt shells** =
 elvish + nu, whose rc marker block inlines the concatenated conf.d.
@@ -59,7 +59,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 ### [HIGH] security/data-loss — glue `install` clobbers a real file at the conf.d target
 - `configsys/drivers/glue.py:636-640` — the generated script is `if [ -e src ]; then mkdir -p …;
   ln -sfn src tgt; …` with no check on `tgt`. `-f` replaces a regular file silently.
-- Why: fish's `~/.config/fish/conf.d/` is communal (docs/dotfiles-redesign.md:64-66 says so
+- Why: fish's `~/.config/fish/conf.d/` is communal (docs/done/dotfiles-redesign.md:64-66 says so
   explicitly); a user who hand-wrote `~/.config/fish/conf.d/fzf.fish` loses it the moment
   `fzf-glue` is activated (TUI `a`/`A`, or transitively via `suggests:` on a normal install). The
   dotfiles driver refuses/backs up in the same situation (`dotfiles.py:586-600, 632`); glue has no
@@ -109,7 +109,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
   works. (3) With a primary plugin configured, staged blocks (installer boilerplate, possibly with
   absolute paths/tokens) land in `<plugin>/dotfiles/staged-glue/`, i.e. get git-committed into the
   user's portable config, contradicting the design that glue is machine-local and stays out of git
-  (docs/dotfiles-redesign.md:44-47).
+  (docs/done/dotfiles-redesign.md:44-47).
 - Recommend: stage under `paths.user_glue_dir/staged/`, activate through `Glue._materialize_to` +
   `_glue_store` with `_SHELL_EXT[shell]`, and move the CLI to `configsys glue staged|activate|discard`
   (keep `dotfiles …` as deprecated aliases for one release). Tests: activate a zsh block and assert
@@ -149,7 +149,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - Why: `~/.config/<app>/` commonly contains symlinks (stow, `-> ~/.ssh/…`, `-> ~/secrets`). The
   secret-glob suggestion (`dotfiles.py:62-63`, `.ssh`) matches basenames only, so a link named
   `keys -> ~/.ssh` is dereferenced and its contents copied into `<plugin>/dotfiles/<comp>.cfs/`,
-  which the CLI then offers to commit. Contradicts docs/dotfiles-redesign.md:102-112 ("secrets
+  which the CLI then offers to commit. Contradicts docs/done/dotfiles-redesign.md:102-112 ("secrets
   never sync").
 - Recommend: `symlinks=True` (preserve links) and skip links resolving outside `tgt`; report them in
   the capture preview. Test: capture a dir with a symlink to an outside file, assert it is not copied.
@@ -159,7 +159,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
   install after the user restored a real file). If `t` is a *directory* and the backup dir exists,
   `mv` nests it inside (`t.pre-configsys/<name>`), and `uninstall` (`dotfiles.py:660`) then restores
   the *older* backup. `glue.py:450` `dst.rename(dst.with_name(dst.name + BACKUP_SUFFIX))` —
-  `Path.rename` replaces an existing backup unconditionally. docs/dotfiles-capture-plan.md:12-14
+  `Path.rename` replaces an existing backup unconditionally. docs/done/dotfiles-capture-plan.md:12-14
   names exactly this hazard as a motivation, and it is still present.
 - Recommend: never overwrite a backup — suffix with a timestamp/counter when the target exists, or
   refuse with an advisory. One shared `_backup(path)` helper on the base driver.
@@ -178,7 +178,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - Why: puts the current working directory on every Python invocation's import path — running any
   Python tool inside an untrusted checkout imports that checkout's `os.py`/`site.py`-shaped modules.
   Also unrelated to loading conf.d (the "purify the bash loader" item in
-  docs/dotfiles-glue-split-plan.md:133-137 is still open) and only bash gets it (zsh/fish don't).
+  docs/todo/dotfiles-glue-split-plan.md:133-137 is still open) and only bash gets it (zsh/fish don't).
 - Recommend: drop it from the loader (move to an opt-in `python-dev-glue` snippet if wanted).
 
 ### [MED] performance — `_installed_shells()` recomputed per spec, per unit, per call
@@ -205,7 +205,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - `app.py:3213-3286` `cmd_dotfiles_status` prints a "glue — shell integration" section; docstring
   says "every via:dotfiles target". `actions.py:956-964` `dotfiles_units` returns both drivers with
   the comment "(Phase 2 splits these into separate glue/dotfiles pages)" — Phase 2 is DONE
-  (docs/dotfiles-glue-split-plan.md:160-176), the comment is stale. `GlueScreen.reload`
+  (docs/todo/dotfiles-glue-split-plan.md:160-176), the comment is stale. `GlueScreen.reload`
   (`menu.py:4827`) calls `actions.dotfiles_units`. `shellguard.py:132` and `app.py:3169-3170` tell
   the user to run `configsys dotfiles activate` for glue. There is no `configsys glue` command at all
   (`app.py` grep). `config.hu:17` documents `disabled-drivers: [ dotfiles ]` only, while
@@ -215,7 +215,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
   `disabled-drivers` doc string.
 
 ### [MED] comment-vs-code drift — docs and headers still describe the pre-split world
-- `docs/dotfiles-redesign.md:3` "DESIGN AGREED, not built" while phases 1a-3 are marked DONE;
+- `docs/done/dotfiles-redesign.md:3` "DESIGN AGREED, not built" while phases 1a-3 are marked DONE;
   `:44, :73, :158` glue store is `dotfiles/shell/<shell>/` (now `glue/<shell>/conf.d/`, see
   `paths.py:104-108`, `glue.py:285-296`); `:80-82` opt-out = "hobble the `-dotfiles` component"
   (glue components are `-glue`); `:189, :233-239` `zsh-glue`/`fish-glue` (collapsed into `shell-glue`).
@@ -227,7 +227,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
   is the glue driver's); `glue.py:414` `# fish / nu: dir is the whole job` — nu is in `_SHELL_RC`
   and inline now, only fish takes this branch; `glue.py:88-90` an "Elvish: [nomatch-ok] …" comment
   inside `_RC_SOURCE` with no elvish entry (orphaned by the gestalt switch);
-  `docs/shell-writes-switch.md:31` still says staged glue goes to `<store>/shell/<shell>/`.
+  `docs/done/shell-writes-switch.md:31` still says staged glue goes to `<store>/shell/<shell>/`.
 - Recommend: one docs pass; add a "Status" line to dotfiles-redesign.md pointing at the split plan.
 
 ### [MED] test gaps
@@ -303,7 +303,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 ### [LOW] CLI/TUI parity
 - TUI Glue has per-shell `activate`/`deactivate`/`activate-group` (`keyspec.py:168`,
   `menu.py:5657-5685`); CLI `install X-glue` activates all shells with no `--shell` scoping and
-  there is no CLI deactivate-per-shell. Staged glue is CLI-only (docs/shell-writes-switch.md:9 says
+  there is no CLI deactivate-per-shell. Staged glue is CLI-only (docs/done/shell-writes-switch.md:9 says
   the TUI surfacing is "not yet added"; no `staged` on the Glue page). Drift (`drifted`/"changed") is
   only pulled by re-`install`; `configsys refresh` does not re-materialise glue and `upgrade` never
   fires because `get_latest` is None (`glue.py:579`). No per-shell opt-out except the
@@ -317,7 +317,7 @@ elvish + nu, whose rc marker block inlines the concatenated conf.d.
 - `glue.py:623` re-implements `_shell_of` (`glue.py:588-590`) inline three lines below its use.
 - `dotfiles.py:616, 648` `import shlex` inside function bodies (module already imports `re`, `os`).
 - `test/test_dotfiles.py:19-24` `CONFIGSYS_GLUE_SHELLS` in the dotfiles fixture — unused by that driver.
-- `docs/dotfiles-capture-plan.md:154-155` "Only functional plumbing still ships in `dotfiles/`
+- `docs/done/dotfiles-capture-plan.md:154-155` "Only functional plumbing still ships in `dotfiles/`
   (the `bash.d/*.sh` loaders + `bash_aliases` + `gdbinit`)" — today `dotfiles/` holds only `gdbinit`;
   the loaders moved to `glue/`.
 

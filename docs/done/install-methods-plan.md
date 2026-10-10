@@ -1,8 +1,8 @@
 # Install-method selection — plan
 
-> **Status: HISTORICAL — SHIPPED. The per-binding `prefer:` it describes became `standing:` (docs/routing-model.md §8a).**
+> **Status: DONE** — finished 2026-07-29 (2711a3e; phases 0–4 = b7062ec, e427636, a82b55e, 960ed56+69140bb, 2711a3e). Lives on in: docs/routing-model.md
 
-Fleshes out `docs/many-installs-including-src.md`: let a component expose *multiple*
+Fleshes out `docs/done/many-installs-including-src.md`: let a component expose *multiple*
 install methods per context, let the user **see and pick** one, store that choice as a pin
 (local or portable), and (later) make build-from-source a first-class declarative driver.
 
@@ -107,13 +107,13 @@ per-component-feasible and unsafe to generalize — later explicit opt-in, must 
 
 Each phase is independently shippable and golden-gated.
 
-### Phase 0 — enabling, invisible
+### ✅ Phase 0 — enabling, invisible
 - Extract a `set_section(path, section, text)` primitive from `plugins.set_declared`
   (plugins.py:395) so the *only* new "TUI writes config" surface is one audited span-replace.
 - Change `Config.pins()` (config.py:108) from `merge_scalar` to a per-key merge across
   `_MACHINE_ROLES`. Fixes the pin-wipe bug. Safe: zero populated `pins:` blocks in the tree today.
 
-### Phase 1 — multi-method engine
+### ✅ Phase 1 — multi-method engine
 - `resolve.py`: add `candidate_bindings(comp, ctx)` (all `when:`-valid bindings = the honest
   candidate set); default selection = the total preorder (most-specific → `driver-preference`
   → `prefer:`), returning the deciding rule alongside the winner (for introspection).
@@ -126,13 +126,13 @@ Each phase is independently shippable and golden-gated.
   rule (validates the *Invariant* holds — that routes read as data).
 - Golden gate must reproduce today's picks exactly.
 
-### Phase 2 — additive component merge
+### ✅ Phase 2 — additive component merge
 - `routes.py:143` (`merge_named` for components): union bindings across layers with `(via, when)`
   override + the `drop` marker; keep `{}` = whole-component removal.
 - routecheck runs the ambiguity/tiebreak gate on the **unioned** set.
 - Now base/plugins/user *add* alternatives (source, flatpak, appImage) without redefining.
 
-### Phase 3 — TUI picker + pins
+### ✅ Phase 3 — TUI picker + pins
 - Per component: show the current `via:` and a picker of `candidate_bindings` (with each method's
   resolved version where cheap). The TUI currently shows only the *resolved concrete driver* in
   the DRIVER column — the picker is new UI.
@@ -144,7 +144,7 @@ Each phase is independently shippable and golden-gated.
   as every plugin-repo workflow) and optional `pin localize` (primary → local one-off; per-key
   merge already lets a local pin override without demoting, so this is convenience only).
 
-### Phase 4 — declarative source driver
+### ✅ Phase 4 — declarative source driver
 - A `source` driver = the `script` driver's declarative lifecycle (install-cmd / version-cmd /
   version-re / uninstall-cmd / upgrade-cmd / set-version-cmd / location — all route data, no
   per-app Python) **plus** a fetch/checkout step, a prefix/scope model, and an artifacts/alias

@@ -1,4 +1,4 @@
-'''Render-regression for the Glue screen (docs/d2-mvvm-plan.md), in the post-oracle style: the two
+'''Render-regression for the Glue screen (docs/done/d2-mvvm-plan.md), in the post-oracle style: the two
 MVVM seams are pinned against HAND-BUILT data — build_vm fed a fake model, draw fed a fake ViewModel —
 so nothing reads routes.hu and nothing drifts. Plus handle() behaviour and an integration check that
 build_vm works on the real sample.'''

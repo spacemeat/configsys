@@ -64,9 +64,11 @@ set, and reasonable defaults on the rest.
 
 Record outcomes as you go so they survive context loss and become the source of truth:
 
-- Write a planning/decisions doc (e.g. `docs/PLAN.md`) with sections: **Locked** (decided +
-  rationale), **Parked** (deferred on purpose + why), **Open/defaults** (proposed, awaiting
-  ratification), and an **open-questions backlog** for future rounds.
+- Write a planning/decisions doc with sections: **Locked** (decided + rationale), **Parked**
+  (deferred on purpose + why), **Open/defaults** (proposed, awaiting ratification), and an
+  **open-questions backlog** for future rounds. In configsys a new plan goes in `docs/todo/`
+  (e.g. `docs/todo/<topic>-plan.md`) with a `> **Status: PLAN**` header; it moves to `docs/done/`
+  once every phase ships (the update-docs skill owns that lifecycle).
 - Commit it. Reference it from later work.
 - Park what can't be decided yet rather than forcing a premature answer (e.g. don't design a
   model before you have data to design it against).

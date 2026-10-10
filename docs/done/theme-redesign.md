@@ -1,6 +1,6 @@
 # Theme redesign — shared color map + per-page role styles
 
-> **Status: HISTORICAL — SHIPPED. Live reference: docs/theming.md (the Theme screen is nav key 7; pages cycle with F1–F7).**
+> **Status: DONE** — finished 2026-08-04 (cadaaa7). Lives on in: docs/theming.md
 
 Reworks the `theme:` model to two tiers: a shared **color map** (`colors:` — name → #rrggbb) and
 **per-page role styles** (`pages.<page>.<role>` → `{ fg, bg, effects }`, fg/bg referencing a map

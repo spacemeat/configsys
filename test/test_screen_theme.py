@@ -1,4 +1,4 @@
-'''Render-regression for the Theme screen (docs/d2-mvvm-plan.md), post-oracle style. build_vm runs on
+'''Render-regression for the Theme screen (docs/done/d2-mvvm-plan.md), post-oracle style. build_vm runs on
 the REAL (deterministic) theme model; draw is pinned against a HAND-BUILT ThemeVM (with the inner
 sample slot suppressed, so no ctx/sub-screens are needed). Plus handle() navigation.'''
 

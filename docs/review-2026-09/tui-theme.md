@@ -153,7 +153,7 @@ color (`ink`) that no role references.
 `Palette.style_at(role, y, x)`-style helper that paints over the gradient) and list them under a
 pseudo-page `overlays` in `PAGE_ROLES` so the editor can reach them.
 
-### [MED] docs drift — `docs/theming.md` and `docs/theme-redesign.md` describe a prior TUI
+### [MED] docs drift — `docs/theming.md` and `docs/done/theme-redesign.md` describe a prior TUI
 - key `6` → Theme is now `7` (`config.hu:178`, `menu.py:1196-1198`): `theming.md:6,115`;
   `theme-redesign.md:6,31,60`.
 - `a`–`e` page cycle → `F1`–`F7` (`config.hu:292-298`): `theming.md:23,124`; `theme-redesign.md:64`.
@@ -194,7 +194,7 @@ range from `len(theme.ALL_PAGES)`.
   `deadline` kwarg (`:131`) is never passed by the only caller (`menu.py:5074`).
 - `menu.py:1200` `KEY_TO_SCREEN` (superseded by `Keymap.screen_for`) — other agent's file, noted only.
 - `config.hu:181-182` "per-screen enforcement is rolling out screen by screen" — all wired.
-- `docs/keybindings-plan.md:26-29` "six screens", "F1-F6", "57 references"; §1 still promises a Python
+- `docs/done/keybindings-plan.md:26-29` "six screens", "F1-F6", "57 references"; §1 still promises a Python
   `DEFAULT_KEYMAP`, contradicting locked decision #1.
 
 ### [LOW] code reuse — the role-overlay and off-token logic is triplicated

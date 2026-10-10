@@ -46,7 +46,7 @@ SYSTEM_PREFIX = Path('/opt')
 # is network input, not author text. Covers v-prefixed, dotted, epoch (1:2.3), +build, ~pre forms.
 _SAFE_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+~:-]*$')
 
-# Coarse, universal update tiers for the System Updates lane (docs/system-update-coverage-plan.md).
+# Coarse, universal update tiers for the System Updates lane (docs/system-updates.md).
 # A FIXED set so grouping stays consistent across managers; each driver maps its native notion (apt
 # Priority, flatpak runtime/app split) into these via classify_index, degrading to a name heuristic
 # where it has none. Ordered most-fundamental first — how the grouped CLI list reads top to bottom.
@@ -394,7 +394,7 @@ class Driver:
         index (kept fresh by `configsys refresh`); never refreshes on its own. None when the driver
         has no bulk-manager notion (path/build/language drivers) OR the enumeration failed (fall back
         to claiming nothing, never a wrong list). This feeds the System Updates lane
-        (upgradable − managed picks), NOT the picks pipeline — see docs/system-update-coverage-plan.md.'''
+        (upgradable − managed picks), NOT the picks pipeline — see docs/system-updates.md.'''
         return None
 
     def update_dedup_key(self, key):

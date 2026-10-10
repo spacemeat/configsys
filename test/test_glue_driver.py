@@ -406,7 +406,7 @@ def test_install_backs_up_a_real_file_in_a_communal_confd(tmp_path):
     assert '.pre-configsys' in joined and 'mv -n' in joined and '! -L' in joined
 
 
-# -- user-glue namespace (user.d/) + 99-user home (docs/glue-customization-plan.md P0) --------------
+# -- user-glue namespace (user.d/) + 99-user home (docs/done/glue-customization-plan.md P0) --------------
 
 def test_user_glue_scaffolds_home_and_links(tmp_path):
     # On shell hookup the user.d namespace deploys: a blessed 99-user home is scaffolded (dest = local

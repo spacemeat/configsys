@@ -1,6 +1,6 @@
 ---
 name: humon-python
-description: Read, navigate, and serialize Humon (.hu) data from Python using the Cython `humon` package. Use whenever code parses .hu files, reads resume-data.hu / generate.hu, walks Humon nodes, reads metatags/annotations, or writes Humon back out.
+description: Read, navigate, and serialize Humon (.hu) data from Python using the Cython `humon` package. Use whenever code parses .hu files (routes.hu, config.hu, the user config, plugin data, the ledger), walks Humon nodes, reads metatags/annotations, or writes Humon back out.
 ---
 
 # Using Humon from Python
@@ -19,22 +19,29 @@ The authoritative API reference is the Cython source shipped with the package:
 `.venv/lib/python3.10/site-packages/humon/humon.pyx`. Read it when in doubt — the
 GitHub README is partly stale (see "Stale README" below).
 
+**In configsys, go through `configsys/troveio.py`** rather than calling humon directly:
+`troveio.load(path)` / `load_string(text)` parse (turning `DeserializeError` into a friendly
+`ConfigError`; `load` decodes UTF-8 itself and uses `from_string`, because `h.from_file` sniffs the
+byte encoding and rejects very short files such as a `{}` ledger with `BADENCODING`), and
+`troveio.emit_hu(obj)` serializes plain Python dicts/lists/scalars back to Humon text (troves are
+read-only — see Serialization).
+
 ## Loading a trove
 
 ```python
 import humon as h
 
-trove = h.from_file('resume-data.hu')          # encoding=Encoding.UNKNOWN, tab_size=4
+trove = h.from_file('routes.hu')               # encoding=Encoding.UNKNOWN, tab_size=4
 trove = h.from_string('{foo: [a b c]}')
 ```
 
 Parse failures raise `humon.DeserializeError` (subclass of `humon.HumonError`). The
 message embeds a list of `Error` objects (`.error_code`, `.line`, `.col`). Always be
-ready to catch it — `resume-data.hu` in this repo currently does **not** parse cleanly.
+ready to catch it — user-edited files (the user config, plugin data) can be malformed.
 
 ```python
 try:
-    trove = h.from_file('resume-data.hu')
+    trove = h.from_file('config.hu')
 except h.DeserializeError as e:
     print(e)   # "Trove has syntax errors:\n[line 12, column 13: SYNTAXERROR, ...]"
 ```
@@ -62,8 +69,8 @@ root['jobs'][0]           # child by list index      -> Node
 root['title', 1]          # Nth child with that key  -> Node  (for duplicate keys)
 ```
 
-Duplicate keys are legal in Humon and common in `resume-data.hu` (e.g. two `title:`
-entries tagged with different `@focus:`). Use the `(key, n)` tuple form to disambiguate.
+Duplicate keys are legal in Humon (e.g. two `title:` entries tagged with different
+`@focus:` metatags). Use the `(key, n)` tuple form to disambiguate.
 
 `get_node` takes an **address** (string) or, on a node, a relative address or child index:
 
@@ -139,9 +146,9 @@ against the installed parser, 0.1.0):
   - `` `…` `` (backtick) may contain **both** `'` and `"` — only a backtick closes it.
 - There is **no** heredoc / triple-quote syntax.
 
-**Use a backtick string for any value that mixes quote characters** — e.g. an LLM prompt with
-apostrophes *and* a JSON example like `{"outlook": 0}`. This repo stores such prompts inline
-in `.hu` (see `components/feely/src/feely/resources/prompts.hu`):
+**Use a backtick string for any value that mixes quote characters** — e.g. a shell command with
+both quote styles (a `script` binding's `install-cmd:`), or a prompt with apostrophes *and* a JSON
+example like `{"outlook": 0}`:
 
 ```humon
 {
@@ -163,8 +170,9 @@ root['skills']['langs'].metatags  # {'group': 'languages'}
 trove.metatags                # trove-level (file-scope) metatags
 ```
 
-This is the mechanism this project uses to drive output variants — read
-`@focus:` / `@skills:` via `.metatags` rather than hard-coding which entries to include.
+Use metatags to drive variants of the same data — read e.g. `@focus:` via `.metatags`
+rather than hard-coding which entries to include. (configsys's own config/routes files don't
+use metatags today.)
 
 ## Serialization (writing Humon back out)
 

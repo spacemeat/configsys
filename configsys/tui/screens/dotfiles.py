@@ -1,6 +1,6 @@
 '''dotfiles.py — the Dotfiles screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/d2-mvvm-plan.md), mirroring the Plugins
+Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring the Plugins
 pattern-setter. The model is the existing `menu.DotfilesScreen` (link-state table over the
 via:dotfiles CONFIG units + the driver ops), composed unchanged; this adds the three MVVM seams:
 

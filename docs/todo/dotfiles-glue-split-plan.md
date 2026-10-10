@@ -1,6 +1,6 @@
 # Glue / dotfiles separation
 
-> **Status: HISTORICAL — Phases 1–2 SHIPPED (the `via: glue` driver, segregated `glue/` roots, the Glue TUI screen); Phase 3 (orphan homes) pending. Live reference: docs/config-format.md §glue.**
+> **Status: IN PROGRESS** — phases 1–2 done (06db74e, 39b3f28, 568eec9; c25a146 2026-09-16); phase 3 partly: apod's real home landed (72aeb71, `apod-glue`), best-ps1's home + purifying the bash loader not started.
 
 Split the conflated `via: dotfiles` mechanism into two first-class, separately-modeled concerns:
 
@@ -138,7 +138,7 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
   file becomes just the conf.d shim; the aliases/env move to a small glue snippet (or drop). Kept
   as-is in Phase 1 to stay behavior-preserving.
 
-## Status (Phase 1)
+## ✅ Status (Phase 1)
 
 - **DONE — commit 1 (`06db74e`):** `via: glue` driver added (additive), wired (`_VIA_ATTR`,
   resolve, registry) + driver tests.
@@ -159,7 +159,7 @@ desired: exclude `glue`+`dotfiles` attrs from the NEW count.
 
 **Phase 1 is COMPLETE** (main repo committed; configsys-user committed by the user).
 
-## Status (Phase 2 — TUI page split) — DONE
+## ✅ Status (Phase 2 — TUI page split) — DONE
 
 - New **Glue page at F4** (before Dotfiles: `Components/Profiles/Plugins/Glue/Dotfiles/Config/Theme`
   = F1–F7; keyspec/SCREENS/config.hu/theme sampler renumbered). `GlueScreen` is a **shell-grouped**

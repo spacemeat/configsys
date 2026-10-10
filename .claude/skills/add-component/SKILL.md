@@ -28,7 +28,7 @@ the steps below** (they're kept separate so this playbook stays about routing a 
   `conf.d` loader wired the way bash/zsh/fish are. It's an ordinary component PLUS glue-driver +
   content wiring. → read **`add-shell.md`** (it points back here for the component's own routing).
 
-Anything else — a CLI tool, GUI app, library, font, service, dotfiles companion — is this file.
+Anything else — a CLI tool, GUI app, library, font, service, `-dotfiles`/`-glue` companion — is this file.
 
 ---
 
@@ -38,13 +38,14 @@ Base OS families (atoms) and their native package manager:
 
 | family        | atoms (examples)                                   | native mgr | notes |
 |---------------|----------------------------------------------------|------------|-------|
-| debian        | `debian` `ubuntu` `pop_os!` `elementary` `linuxmint` `kali` | apt  | Ubuntu extras live in `repo-component: universe` |
-| redhat        | `redhat` = `fedora` + `rhel`(EL)                    | dnf        | Fedora ≠ EL. EL (`rhel` `rocky` `almalinux` `centos`) needs `requires: epel` / `rpmfusion` for many pkgs |
-| arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda`   | pacman     | community pkgs via `via: aur when: "arch"` |
+| debian        | `debian` `ubuntu` `pop_os!` `elementary` `linuxmint` `zorin` `lmde` `mx` `kali` `pikaos` `pios` | apt  | Ubuntu extras live in `repo-component: universe`. `elementary`/`linuxmint`/`zorin`/`lmde`/`mx`/`pikaos` are scale-roots (own numbering — Zorin's VERSION_ID is the major only: 17 = Ubuntu 22.04, 18 = 24.04), so a versioned parent atom (`ubuntu >= 24.04`, `debian >= 12`) doesn't reach them; list them explicitly in a versioned `when:` |
+| redhat        | `redhat` = `fedora` (+`nobara`) + `rhel`(EL) + `amzn` | dnf        | Fedora ≠ EL. EL (`rhel` `rocky` `almalinux` `centos` `ol` `scientific`) needs `requires: epel` / `rpmfusion` for many pkgs. `amzn` (Amazon Linux 2023) sits under `redhat`, not `rhel` — own version line, **no EPEL** |
+| arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda` `omarchy` | pacman | community pkgs via `via: aur when: "arch"` |
 | opensuse      | `opensuse` `opensuse_leap` `opensuse_tumbleweed`    | zypper     | |
 | alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here; needs a musl asset or native |
 | void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl. Nonfree pkgs `requires: void-repo-nonfree` |
 | atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable: prefer flatpak + brew; no system pkg installs |
+| native-less   | `kde_linux` (glibc, immutable) · `chimera` (musl)   | —          | no `native:`, so `via: native` declines: only portable methods route (flatpak, tarball, cargo, pipx, …). `kde_linux` `provides:` flatpak/curl/git/unzip/xz, has no libfuse2 (AppImages decline); `chimera` uses apk-tools but not Alpine's package names |
 
 A "comprehensive row" = a `native` binding wherever the tool is in-repo + fallbacks covering the
 rest. Verify the final routing with the per-OS resolve check (below) — the target is *every* OS
@@ -80,11 +81,13 @@ torbrowser-launcher).
 Match the house style. Good exemplars in `routes.hu`:
 - native everywhere, EL via EPEL, Ubuntu universe → `htop`, `btop`, `mc`
 - native + cargo/tarball fallback for EL → `bottom`, `micro`, `nushell`
-- vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave`, `vivaldi`, `tor-browser`
-- upstream `.deb`/`.rpm` release file → `yazi` (`via: native-pkg-file`)
+- vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave`, `vivaldi`; distro launcher
+  package + AUR + flatpak → `tor-browser`
+- upstream `.deb`/`.rpm` release file → `yazi`, `fastfetch` (`via: native-pkg-file`); both formats in
+  one binding (`asset: { deb: {…}  rpm: {…} }`) → `bruno`, `insomnia`
 - Void name map + Void-only native binding → `fish` (`name: { xbps: fish-shell }`), `doas`
   (`{ via: native  when: "void or void_musl"  name: opendoas }`); nonfree repo → `nmap`; native only
-  on musl where the glibc binary declines → `neovim` (`when: "void_musl"`)
+  on musl where the glibc binary declines → `neovim` (`when: "void_musl or alpine"`)
 - name differs per distro → `iproute2`, `cython`, `python3-pip` (`name:` maps)
 - AppImage fallback for a musl/arch gap → `ghostty`
 - install script → `zed`
@@ -114,16 +117,17 @@ editors, browsers, file-managers, …). Rules:
 - Write a **one-line comment** explaining any non-obvious gating (why a `when:`, why EPEL, why a
   tarball) — every existing component does.
 - **`attrs:` is expected on every real component** (an end-user tool/app/lib — not the `-dotfiles`/
-  `-service` companions, which self-tag). It's a free-form multi-tag list for cross-cutting filtering,
-  ORTHOGONAL to profiles. Assign tags across the axes (full vocabulary + case rules in
-  `docs/component-attrs.md`): **interface** `CLI`/`TUI`/`GUI`/`daemon`/`web`; **role**
-  `lib`/`SDK`/`app`/`toolchain`/`runtime`/`driver`/`font`/`theme`/`plugin`/`game`; **license** (combine
-  all that apply) `FOSS`/`FOSSish`/`proprietary`/`source-available`/`GNU`/`copyleft`/`permissive`;
-  **data** `tele`/`tele-optin`/`account`/`cloud`/`online`/`ads`/`paid`; **pedigree** `electron`/
-  `patent`/`legacy`. Case: ALL-CAPS acronyms (`CLI FOSS SDK GNU`), lowercase words. Interface/role you
-  can read off the tool; **the license + data axes you MUST research per tool** (does it phone home?
-  what license?) — only a human knows. `via: dotfiles`/`service`/`font` auto-derive `dotfiles`/
-  `service`/`font`, so companions need no `attrs:`. Example: ``mpv: { … attrs: [ CLI GUI FOSS GPL ] … }``.
+  `-glue`/`-service`/`-group` companions, which self-tag). It's a free-form multi-tag list for
+  cross-cutting filtering, ORTHOGONAL to profiles. Assign tags across the axes (full vocabulary + case
+  rules in `docs/component-attrs.md`): **interface** `CLI`/`TUI`/`GUI`/`daemon`/`web`/`headless`;
+  **role** `lib`/`SDK`/`app`/`toolchain`/`runtime`/`driver`/`font`/`theme`/`plugin`/`game`; **license**
+  (combine all that apply) `FOSS`/`FOSSish`/`proprietary`/`source-available`/`freeware`/`GNU`/
+  `copyleft`/`permissive`; **data** `tele`/`tele-optin`/`account`/`cloud`/`online`/`ads`/`paid`/
+  `freemium`; **pedigree** `electron`/`patent`/`legacy`/`beta`. Case: ALL-CAPS acronyms (`CLI FOSS SDK
+  GNU`), lowercase words. Interface/role you can read off the tool; **the license + data axes you MUST
+  research per tool** (does it phone home? what license?) — only a human knows. `via: dotfiles`/`glue`/
+  `service`/`group`/`font` auto-derive `dotfiles`/`glue`/`service`/`group`/`font` (`routes._VIA_ATTR`),
+  so companions need no `attrs:`. Example: ``mpv: { … attrs: [ CLI GUI app FOSS copyleft ] … }``.
 
 ### 3. Fill the fallbacks (pick the right driver — see catalog below)
 Order native-first, then fallbacks. Typical comprehensive rows:
@@ -134,45 +138,56 @@ Order native-first, then fallbacks. Typical comprehensive rows:
 - **GUI app / browser** (tor-browser): vendor `native` where it exists + `via: aur when: "arch"` +
   `via: flatpak hub: flathub app: <id>` (flatpak is the universal + atomic-only method).
 - **Upstream ships a .deb/.rpm** but not in-repo (fastfetch, yazi): `via: native-pkg-file when:
-  "debian"` with `asset: { x86_64: …deb  aarch64: …deb }`.
+  "debian"` with `asset: { x86_64: …deb  aarch64: …deb }` (or format-keyed `asset: { deb: { x86_64: … }
+  rpm: { x86_64: … } }` with `when: "debian or redhat"` to cover both in one binding).
+- **Raw binary download** (no archive — kubectl/bazelisk style): `via: tarball  archive: none  binary:
+  <name>` (a single gzip-compressed binary is `archive: gz`).
 - Language-ecosystem tools: `cargo`/`pip`/`pipx`/`npm`/`gem`/`opam`/`luarocks`/`cabal`/`go-install`/
   `sdkman` — each takes `name:` (the crate/pkg/candidate) and often `requires: <toolchain>`.
 
-### 4. Add a `-dotfiles` companion whenever the tool has config (implied — don't skip)
-If a new component stores configuration (reads `$XDG_CONFIG_HOME/<name>`, a `~/.<name>rc`, …) OR
-needs shell integration (PATH for a `~/apps` tarball/appImage install, aliases, env, completions),
-give it a `<name>-dotfiles` companion and add `suggests: <name>-dotfiles` to the parent. Two shapes:
+### 4. Add `-glue` / `-dotfiles` companions whenever the tool needs shell setup or has config (implied — don't skip)
+Two kinds of companion, kept apart (glue is SHIPPED shell integration; dotfiles are the user's own
+app config, captured). Give the parent a soft `suggests:` for each one you add.
 
-- **Shell glue** — the tool needs PATH/aliases/env to work (a `~/apps` install that isn't on PATH,
-  like yazi/superfile aliasing `yazi`/`spf`; a completions or env line). **You author and ship it**
-  in the base repo at `glue/shell/bash/<glue>.sh`, then declare a `glue:` NAME (the driver
-  expands it to a per-shell spec — `shell/<shell>/<glue>.<ext>` → `~/.config/<shell>/conf.d/
-  <glue>.<ext>` — for every shell that ships a variant; bash today):
+- **Shell glue → `<name>-glue`** — the tool needs PATH/aliases/env/init to work (a `~/apps`
+  tarball/appImage install that isn't on PATH, like yazi/superfile aliasing `yazi`/`spf`; a
+  completions or `init` line). **You author and ship it** in the base repo as
+  `glue/shell/<shell>/<name>.<ext>` — one variant per shell: `bash/<name>.sh`, `zsh/<name>.zsh`,
+  `fish/<name>.fish`, `nu/<name>.nu`, `elvish/<name>.elv` (start from an existing snippet; find an
+  off-PATH install with the substrate's cached `cs_loc <component>` helper, never a per-snippet
+  `configsys location`). Then declare the companion with a `glue:` NAME:
   ```
-  <name>-dotfiles: { install: [ { via: dotfiles  requires: bash-dotfiles  glue: <name> } ] }
+  <name>-glue: { description: "<name> shell setup, linked into place."
+      install: [ { via: glue  requires: shell-glue  glue: <name> } ] }
   ```
-  Add a `glue/shell/fish/<glue>.fish` later and fish users light up with ZERO component edits.
-  (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file —
-  is its own playbook: **`add-shell.md`**.)
-  For a tool that needs BOTH a config dir AND glue, mix them — the config as a named spec, the glue
-  nested: `{ via: dotfiles  requires: bash-dotfiles  config: { src: <name>  dst: … }  aliases: { glue: <name> } }`.
-- **App config** — the tool reads its own config dir/file:
+  and add `suggests: <name>-glue` to the parent. The glue driver emits one spec per INSTALLED shell
+  that ships a variant (materialized into the machine glue store, linked into
+  `~/.config/<shell>/conf.d/<name>.<ext>`); a shell with no variant is a clean no-op, so adding a
+  variant file later lights that shell up with ZERO component edits. nushell and elvish inline every
+  snippet into one rc block, so their variants must self-guard (`add-shell.md` Part B has the idioms).
+  (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file — is
+  its own playbook: **`add-shell.md`**.)
+- **App config → `<name>-dotfiles`** — the tool reads its own config dir/file:
   ```
-  <name>-dotfiles: { install: [ { via: dotfiles  config: { src: <name>  dst: $XDG_CONFIG_HOME/<name> } } ] }
+  <name>-dotfiles: { description: "<name> config, linked into place."
+      install: [ { via: dotfiles  config: { src: <name>  dst: $XDG_CONFIG_HOME/<name> } } ] }
   ```
-  `config:` is one named spec; add more named specs for stray files, each with its own `dst`. The
-  content usually **isn't shipped** — it lives in the user's personal layer, captured with `configsys
-  dotfiles capture <name>` (which stores it under a `<name>-dotfiles.cfs/` marker dir + `manifest.hu`
-  in the capture root, auto-excluding secret-shaped paths). Installing a config `-dotfiles` stamps
-  that `.cfs` marker even with no content yet, so the location reads as *managed*. `dotfiles/` content
-  resolves relative to the .hu that *defined* the component (base repo, else a plugin/user layer), so
-  a package can offer a config that simply doesn't attach where the content is absent.
+  `config:` is one named spec; add more named specs for stray files, each with its own `dst`
+  (`micro-dotfiles` has four). The content usually **isn't shipped** — it lives in the user's content
+  store, captured with `configsys dotfiles capture <name>` (which stores it under a
+  `<name>-dotfiles.cfs/` marker dir + `manifest.hu`, auto-excluding secret-shaped paths). Installing a
+  config `-dotfiles` stamps that `.cfs` marker even with no content yet, so the location reads as
+  *managed*. Content resolves from the user's store first, then the primary plugin, then a `dotfiles/`
+  dir next to the .hu that *defined* the component (base repo, else a plugin/user layer), so a package
+  can offer a config that simply doesn't attach where the content is absent.
+- **Both** (a tool with config AND shell setup — `neovim`, `zellij`): two separate companions,
+  `suggests: [ <name>-dotfiles  <name>-glue ]`.
 
-`suggests:` is SOFT: the parent installs fine whether or not the `-dotfiles` content exists, and the
-user can opt the whole mechanism out with `disabled-drivers: [ dotfiles ]`. Links are edit-through
-and back up any pre-existing real file to `<dst>.pre-configsys`. **Rule of thumb:** if installing the
-tool leaves a config it would read or a PATH/alias it needs to be useful, add the `-dotfiles` — a
-shell snippet you write and ship, or an app-config spec you scaffold for capture.
+`suggests:` is SOFT: the parent installs fine whether or not the companion resolves, and the user can
+opt a whole mechanism out with `disabled-drivers: [ dotfiles ]` (or `glue`). Links back up any
+pre-existing real file to `<dst>.pre-configsys`. **Rule of thumb:** if installing the tool leaves a
+PATH/alias/init it needs to be useful, add a `-glue` you write and ship; if it reads a config, add a
+`-dotfiles` spec the user can capture into.
 
 ### 5. (Optional) build-from-source in the configsys-source plugin
 `~/src/configsys-source` (a data plugin, its own repo) adds ADDITIVE `via: source` bindings to core
@@ -193,10 +208,9 @@ Versions section).
 profile list — `<name> [profile1, profile2]` (from step 0) — those are **base profiles the component
 MUST be added to.** This is a direct instruction that overrides the default caution below. Add the
 component as a member of each named profile: append it to that profile's list in `config.hu` (for a
-base component) — e.g. `ripgrep [dev-tools]` → add `ripgrep` to the `dev-tools:` list. The named
-profiles are expected to **already exist**; if a bracketed name matches NO existing base profile,
-treat it as a typo and ask rather than inventing one. Still call out when a named profile
-auto-installs (below), but place it as instructed.
+base component) — e.g. `ripgrep [dev-tools]` → add `ripgrep` to the `dev-tools:` list in its
+`profiles:` section. The named profiles are expected to **already exist**; if a bracketed name matches
+NO existing base profile, treat it as a typo and ask rather than inventing one.
 
 **Where the placement lives — base vs plugin.** A profile edit goes in the layer that DEFINES the
 component, so base never references a plugin-only component:
@@ -207,11 +221,12 @@ component, so base never references a plugin-only component:
   NOT in base `config.hu`. (`profiles:` must be a MAP `{ name: [ … ] }`, never an array
   `[ name: … ]`, which is a humon syntax error.)
 
-**No bracket → judgment, default out.** Without an explicit list, components install by name
-regardless of profiles — add to one only for a natural fit: `tor-browser` → the `web-browsers`
-**catalog** (pick-one lists that aren't auto-installed — safe to extend). Be cautious adding to role
-profiles that auto-install (e.g. `terminal`, which `user` pulls in) — that changes what everyone
-gets. When unsure and unbracketed, leave it out and mention it.
+**No bracket → judgment, default out.** Profiles are read-only browse lenses: membership never
+installs anything (each machine installs exactly its `picks:`), so a profile edit only changes what
+users see and can track from it. Add to one only for a natural fit: `tor-browser` → the
+`web-browsers` list. Be deliberate with widely-used ROLE profiles (`user`, which folds in `+terminal`,
+…): a user tracking that profile wholesale (TUI Profiles `T`) picks up everything in it. When unsure
+and unbracketed, leave it out and mention it.
 
 ### 7. Validate (always, before committing)
 ```
@@ -234,7 +249,7 @@ for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic','voi
         row.append(f'{c}={via}')
     print(f'{os:14} ' + '  '.join(row))
 ```
-Run with `CONFIGSYS_NO_DISCOVER=1 .venv/bin/python reschk.py`. Also handy: `configsys --os <os>
+Run with `.venv/bin/python reschk.py`. Also handy: `configsys --os <os>
 where <component>` (source layer + resolution) and `configsys --os <os> request <component>`.
 
 ### 8. Regenerate the golden gate + run the suite
@@ -274,7 +289,8 @@ These need **podman** and are NOT part of pytest (slow, networked, container-onl
   coverage.
 
 ### 10. Commit
-Commit **locally** (the user pushes). Base identity + trailer:
+Commit **locally** (the user pushes). Base identity + trailer (use the attribution line the system
+currently provides; this is today's):
 ```
 git -c user.name="Trevor Schrock" -c user.email="spacemeat@gmail.com" commit -m "components: add <names>
 
@@ -282,7 +298,7 @@ git -c user.name="Trevor Schrock" -c user.email="spacemeat@gmail.com" commit -m 
 
 Golden regenerated — purely additive. check: 0 errors across <OSes>.
 
-Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
 routes.hu/config.hu live immediately; `configsys-source` (plugin) changes are a separate repo/commit
 and need re-sync+re-trust to load.
@@ -291,44 +307,64 @@ and need re-sync+re-trust to load.
 
 ## Driver catalog (`via:` → when to reach for it)
 
-**OS package managers** (`via: native` resolves to the right one; only name via a driver when
-pinning): `apt` `dnf` `pacman` `zypper` `apk` `xbps` `brew`. Plus `aur` (Arch community, `when: "arch"`),
-`rpm-ostree` (atomic layering — rarely; prefer flatpak/brew there).
+**OS package managers** (`via: native` resolves to the right one; name a manager directly only to
+pin it, or for a binding valid on just one, e.g. `{ via: apk  when: "alpine" }`): `apt` `dnf` `pacman`
+`zypper` `apk` `xbps` `brew`. Plus `aur` (Arch community, `when: "arch"`), `rpm-ostree` (atomic
+layering — rarely; prefer flatpak/brew there).
 
 **Upstream distribution:**
 - `native-pkg-file` — install an upstream release `.deb`/`.rpm`/`pkg` with the OS tool (rides
   neither the repo nor `apt upgrade`). Fields: `when:`, `version: { github: owner/repo }`,
-  `asset: { x86_64: <name>.deb  aarch64: <name>.deb }`.
-- `tarball` — a release archive unpacked under a scoped dir + PATH. Fields: `installDir:
-  "$CONFIGSYS_APP_DIR/<x>"`, `requires:` (`glibc`, `unzip`), `version: { github: … strip-v: …
-  asset: "…$ARCH…tar.gz" }`. Provide a **musl** asset (or gate `not alpine`) for Alpine / void_musl.
-- `appImage` — `name:`, `scope:`, `version: {…}`, `path: ~/apps/<x>.appimage` (needs libfuse2).
-- `flatpak` — `hub: flathub  app: <exact.app.id>`. The universal GUI method + only method on atomic.
-- `snap` — `name: <snap>` (Ubuntu-centric; Chromium's real method there).
-- `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `uninstall-cmd`,
-  `location`.
-- `source` — build from a git checkout/archive (lives in the configsys-source plugin, §5).
+  `asset: { x86_64: <name>.deb  aarch64: <name>.deb }` or format-keyed `asset: { deb: { x86_64: … }
+  rpm: { x86_64: … } }` (the driver picks this machine's format), or a fixed `url:`.
+- `tarball` — a release archive unpacked into its own `installDir:` (never a shared base — the dir is
+  replaced on every (re)install). Fields: `installDir: "$CONFIGSYS_APP_DIR/<x>"`, `requires:` (`glibc`,
+  `unzip`), `version: { github: … strip-v: … asset: "…$ARCH…tar.gz" }` or a `url:` template
+  (`$VERSION`/`$ARCH`), `strip:` (drop leading tar path components), `archive: none` + `binary:` for a
+  raw executable, `archive: gz` for a single gzipped binary. Provide a **musl** asset (or gate `not
+  alpine`) for Alpine / void_musl.
+- `appImage` — `name:` (menu label), `scope:`, `version: {…}` or `url:`, `path: ~/apps/<x>.appimage`,
+  optional `icon:` and `desktop-id:` (the app's Wayland app_id, so its menu entry and dock icon match)
+  (needs libfuse2).
+- `flatpak` — `hub: flathub  app: <exact.app.id>` (`hub-url:` for a non-built-in remote). The
+  universal GUI method + only method on atomic.
+- `snap` — `name: <snap>`, optional `classic: true`, `channel:` (Ubuntu-centric; Chromium's real
+  method there).
+- `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `latest-cmd`,
+  `uninstall-cmd`, `upgrade-cmd`, `set-version-cmd`, `location`.
+- `font` — a downloadable font archive into the fonts dir + `fc-cache` (`name:`, `url:`/`version:`;
+  requires fontconfig + unzip).
+- `source` — build from a git checkout/archive (`repo:`/`url:`, `build:`, `tag-prefix:`; recipes live
+  in the configsys-source plugin, §5).
 
 **Language toolchains & their module installers** (take `name:` = crate/pkg/candidate, often
 `requires: <toolchain>`): `cargo` `pip` `pipx` `npm` `gem` `opam` `luarocks` `cabal` `go-install`
 `sdkman`. Toolchains themselves: `gcc` `gcc-toolset` `clang` `pyenv`.
 
-**Post-install primitives:** `service` (systemd unit — `<name>-service` components), `group`
-(usermod — `<name>-group`, opt-in, `requires:` the group the pkg creates), `dotfiles`
-(`suggests: <name>-dotfiles`; `config: { src: dst: }` or `src:`/`dst:`, `requires: bash-dotfiles`).
+**Post-install primitives:** `service` (`<name>-service` components — systemd `unit:`, or runit
+`runit:` on Void; `start: false` enables without starting), `group` (usermod — `<name>-group`,
+opt-in, `requires:` the group the pkg creates).
+
+**Config:** `dotfiles` (`<name>-dotfiles`; named specs `config: { src: dst: }` or a top-level
+`src:`/`dst:`), `glue` (`<name>-glue`: `{ via: glue  requires: shell-glue  glue: <name> }`; the
+`shell-glue` substrate itself is `{ via: glue  loader: all }`). See §4.
 
 **Aggregator:** `parts` — a component that is the union of its `parts:` (no unit of its own). Prefer
 a **profile** over a parts-component for user-facing bundles.
 
-## `version:` sources (for tarball / native-pkg-file / appImage / source / latest-check)
-`{ github: owner/repo  strip-v: true  asset: "<glob with $ARCH>" tag-prefix: "v" }` |
-`{ url: "<page>"  regex: "<ver-capture>" }` | `{ static: "<pinned>" }` |
-`{ crates: <crate> }` | `{ pypi: <pkg> }` | `{ aur: <pkg> }` | `tag-re:` for odd tag schemes.
-`asset` is a glob resolved against the GitHub release (no hand-templated URL); `$ARCH` expands.
+## `version:` sources (for tarball / native-pkg-file / appImage / font / source / `latest-check:`)
+`{ github: owner/repo  strip-v: true  asset: "<glob with $ARCH>" }` (+ `tag-re: "<regex>"` to pull the
+version out of a decorated/monorepo tag like `core@1.2.3`, `pick: highest` for repos whose newest tag
+isn't the highest) | `{ url: "<page>"  regex: "<ver-capture>" }` | `{ static: "<pinned>" }` |
+`{ crates: <crate> }` | `{ pypi: <pkg> }` (+ `python:`) | `{ aur: <pkg> }` | `{ hackage: <pkg> }` |
+`{ goproxy: <module> }`. `asset` is a glob resolved against the GitHub release (no hand-templated
+URL); `$ARCH` expands (through `cpu-names:`). `tag-prefix:` is a `via: source` BINDING field (the git
+tag = prefix + version), not a `version:` key. A `static:` pin can add a binding-level `latest-check:`
+(a github or `url:`+`regex:` source) so `refresh`/`check` advise when upstream moves past the pin.
 
 ## Versions — visibility, version-scoped providers, floors
-Three distinct things (full model in `docs/versioned-requires.md` — but note that doc predates the
-`standing` rename: where it says `opt-in:`, the current keyword is **`standing: never-auto`**):
+Three distinct things (the live reference is `docs/config-format.md` — "Choosing among methods" and
+"Versions"; the full model, including floors and version-scoped providers, is `docs/versioned-requires.md`):
 - **`configsys versions <name> [--min VERSION] [--refresh]`** — shows, per install method, what
   version it *would* install (native-vs-upstream-tip lag called out), marks which meet `--min`, and
   how to pin one. Use it to confirm a new component's methods aren't shipping something ancient, and
@@ -368,8 +404,9 @@ Three distinct things (full model in `docs/versioned-requires.md` — but note t
   often has WITHOUT (Debian/Ubuntu/Pop ship LibreOffice as `libreoffice-core`/`-calc`/… without the
   `libreoffice` meta), probing the meta falsely reports "missing". Add `installed-name: <a-part>` to
   the native binding — apt READS state from it while `name` still installs the meta (`libreoffice`
-  detects via `libreoffice-core`). Honored by every native manager (as is `packages: [...]`, a set
-  installed/removed together, detected via `installed-name:` else its first member).
+  detects via `libreoffice-core`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
+  (as is `packages: [...]`, a set installed/removed together, detected via `installed-name:` else its
+  first member) — NOT by `brew`.
 - **CPU (aarch64).** A download that names a cpu (`amd64`, `x86_64`, `x64`, `linux64`, `64bit`)
   must say which cpus it covers: `$ARCH` + `cpu-names: { x86_64: <token>  aarch64: <token> }` (the
   tokens upstream actually uses — check the release assets), or `cpu-names: { x86_64: <token> }`

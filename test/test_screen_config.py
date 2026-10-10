@@ -1,4 +1,4 @@
-'''Render-regression for the Config (machine settings) screen (docs/d2-mvvm-plan.md), in the
+'''Render-regression for the Config (machine settings) screen (docs/done/d2-mvvm-plan.md), in the
 post-oracle style: the two MVVM seams are pinned against HAND-BUILT data — build_vm fed a fake
 model (a tiny settings catalog), draw fed a fake ViewModel — so nothing reads routes.hu and nothing
 drifts. Plus handle() behaviour and an integration check that build_vm works on the real sample.'''

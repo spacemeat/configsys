@@ -4,7 +4,7 @@ The complement of the detection tier: detection asks "what's installed that I sh
 method for a component I'm resolving?"; this asks "what's installed that this machine's picks don't
 account for at all?" — so the user can track it, remove it, or dismiss it.
 
-An orphan has two orthogonal fields (see docs/managed-orphans-plan.md):
+An orphan has two orthogonal fields (see docs/orphans.md):
   * kind   — WHAT it is, one of KINDS, chosen by a priority ladder (most-actionable first):
                lurking   — installed, has a recipe, lives in some profile, but isn't tracked here.
                forgotten — installed, has a recipe, but sits in no profile at all.

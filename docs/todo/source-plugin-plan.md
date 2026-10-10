@@ -1,8 +1,8 @@
 # configsys-source — a build-from-source plugin (plan)
 
-> **Status: HISTORICAL — pilot batch DONE (configsys-source plugin); further batches pending.**
+> **Status: IN PROGRESS** — pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.
 
-Status: **in progress** (pilot batch). Goal: give (most) genuinely-buildable components a
+Goal: give (most) genuinely-buildable components a
 selectable `via: source` install method, so that (1) a contributor can build any tool from source
 on any OS, and (2) an OS lacking a binary method for a tool can still install it. Discussed and
 scoped 2026-08-02.

@@ -1470,7 +1470,7 @@
         // --- ecosystem module tools + a sample module each (validated in a podman run) ---
         // opam (OCaml package manager). NOTE: `opam install` needs a one-time `opam init` on a
         // fresh system — the opam driver is validated against opam 2.1.5's CLI, but first use on
-        // an uninitialized machine may need `opam init` (tracked; see docs/expansion-plan.md).
+        // an uninitialized machine may need `opam init` (tracked; see docs/done/expansion-plan.md).
         opam:  { attrs: [ CLI FOSS copyleft ] suggests: opam-glue  description: "opam — the OCaml package manager." install: [ { via: native  when: "not amzn"  repo-component: universe } ] }
         dune:  { attrs: [ CLI FOSS permissive ] description: "Dune — the build system for OCaml projects." install: [ { via: opam  name: dune } ] }
         // luarocks (Lua package manager; the native package pulls lua) + a sample rock

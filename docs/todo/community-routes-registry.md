@@ -1,6 +1,8 @@
 # Community routes registry — design note
 
-**Status:** design only, NOT scheduled. Captures the analysis of "let anyone contribute routes so
+> **Status: DEFERRED** — design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).
+
+Captures the analysis of "let anyone contribute routes so
 configsys covers far more than we could ever route by hand." The conclusion is a *curated + federated*
 design, explicitly **not** a live central registry. Written 2026-09-23.
 
@@ -54,7 +56,7 @@ an operational/funding/governance commitment of a completely different species t
 
 **Do build (if demand proves out), in increasing commitment:**
 
-### Phase 0 — plugin catalog / index (near-zero liability, tests demand)
+### ✗ Phase 0 — plugin catalog / index (near-zero liability, tests demand)
 A directory of known route **plugins**: what each covers, who maintains it, its ABI, trust status.
 Ships as data (a `.hu` index in-repo or a small static site generated from it) + `configsys plugin
 search`/`browse`. No new hosting, no moderation of *content* (just a curated list of *sources*). This
@@ -62,7 +64,7 @@ is the existing "known plugins list" open item, promoted to a feature. **It answ
 real?" before any heavier commitment**, and it already delivers discoverability — the main thing a
 central registry would add over today's federation.
 
-### Phase 1 — a curated `configsys-community-routes` repo (the homebrew-core model)
+### ✗ Phase 1 — a curated `configsys-community-routes` repo (the homebrew-core model)
 A single community routes repo, contributions by **PR**, with **CI = your existing validation** run
 automatically:
 - **auto-reject** on: doesn't parse / `check` errors / names a nonexistent native package (namesweep)
@@ -78,7 +80,7 @@ security gating is automatable.** A crowdsourced *code* registry (AUR) can't do 
 *route* registry can. The excitement belongs here — not to "crowdsourcing" but to "crowdsourcing a
 format a machine can largely vet."
 
-### Phase 2 — federation stays the long tail
+### ✗ Phase 2 — federation stays the long tail
 Niche / personal / experimental / T3 routes stay as ordinary **plugins**, explicitly per-source
 trusted, exactly as now. The curated repo is the reviewed core; plugins are the taps.
 

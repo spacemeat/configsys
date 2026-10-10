@@ -1,6 +1,6 @@
 '''theme.py — the Theme editor screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/d2-mvvm-plan.md), mirroring the Plugins
+Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring the Plugins
 pattern-setter. The model is the existing `menu.ThemeScreen` (the color map + per-page role state,
 cursors, preview cache), composed unchanged as `_ThemeModel`; this adds the three MVVM seams:
 

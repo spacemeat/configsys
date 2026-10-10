@@ -106,11 +106,14 @@ def cli_tree():
 
 
 def env_vars():
-    '''CONFIGSYS_* names the code reads (configsys/ + tools/).'''
+    '''CONFIGSYS_* names configsys itself reads (configsys/). Maintainer-tool variables (tools/, e.g.
+    CONFIGSYS_PLUGIN_SRC for compaudit) are documented with their skill, not in the user docs.'''
     names = set()
-    for base in (ROOT / 'configsys', ROOT / 'tools'):
+    for base in (ROOT / 'configsys',):
         for p in base.rglob('*.py'):
-            names.update(re.findall(r'CONFIGSYS_[A-Z0-9_]+', p.read_text(encoding='utf-8', errors='replace')))
+            # quoted literals only — a docstring abbreviation ("CONFIGSYS_USER/SYSTEM…") isn't a read
+            names.update(re.findall(r'''['"](CONFIGSYS_[A-Z0-9_]+)['"]''',
+                                    p.read_text(encoding='utf-8', errors='replace')))
     return sorted(n for n in names if not n.endswith('_'))
 
 
@@ -417,7 +420,11 @@ def check(paths=None):
     from configsys.app import build_parser
     terms, retired = load_glossary()
     findings = []
-    files = [Path(p).resolve() for p in paths] if paths else markdown_files()
+    files = []
+    for p in (paths or []):
+        p = Path(p).resolve()
+        files += sorted(p.rglob('*.md')) if p.is_dir() else [p]
+    files = files if paths else markdown_files()
     parser = build_parser()
     for p in files:
         lines = p.read_text(encoding='utf-8', errors='replace').splitlines()
@@ -475,10 +482,12 @@ def _check_cli_coverage():
     for n, cmd in _command_mentions(readme):
         words = [w for w in cmd.split()[1:]]
         sub = next((w for w in words if not w.startswith('-')), None)
-        if sub and re.match(r'^[a-z][\w-]*$', sub):
-            mentioned.add(sub)
-            if sub not in known:
-                out.append(_fd('error', 'cli-unknown', 'README.md', n, f'`configsys {sub}` is not a subcommand'))
+        # synopsis forms: `configsys [tui]` (optional) and `configsys lock|unlock` (alternatives)
+        for alt in (sub or '').strip('[]').split('|'):
+            if alt and re.match(r'^[a-z][\w-]*$', alt):
+                mentioned.add(alt)
+                if alt not in known:
+                    out.append(_fd('error', 'cli-unknown', 'README.md', n, f'`configsys {alt}` is not a subcommand'))
         for f in re.findall(r'(?<![\w-])(--[a-z][\w-]+)', cmd):
             if f not in flags:
                 out.append(_fd('warn', 'cli-unknown-flag', 'README.md', n, f'flag {f} is not a configsys option'))
@@ -506,9 +515,15 @@ def _check_settings_coverage():
     return out
 
 
+MAN_SOURCES = {'docs/config-format.md'}
+NO_STATUS = MAN_SOURCES | {'docs/INDEX.md'}             # the index itself has no lifecycle
+
+
 def _check_status_headers():
     out = []
     for d in inventory():
+        if d['path'] in NO_STATUS:
+            continue                                   # man-page source (a Status line would reach man 5) / the index
         if d['class'] in ('reference', 'todo', 'done', 'todo?', 'done?') and not d['status']:
             out.append(_fd('warn', 'no-status', d['path'], 1, 'docs/ file has no Status header'))
         if d['class'] in ('todo?', 'done?'):

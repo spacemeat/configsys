@@ -1,6 +1,6 @@
 # configsys
 
-Configsys is a single tool for setting up a new operating system installation and account from a config and TUI application. The notion is that not only are dotfiles able to be synchronized across systems (via a remote git repository) but that, whether the system is linux, unix, or macos, we are able to, from a TUI tool and bash, select a user profile and quickly sync os-native packages, appImages, flatpaks, SDKs, distributed binaries, or other means of software distribution. We want total control over updating, version locking, and removal of any such component, and to be able to easily modify the config and routes files to further refine the (relatively) uniform setup.
+Configsys is a single tool for setting up a new operating system installation and account from a config and TUI application. The notion is that not only are dotfiles able to be synchronized across systems (via a remote git repository) but that, whether the system is linux, unix, or macos, we are able to, from a TUI tool and bash, choose per machine which components to install and quickly sync os-native packages, appImages, flatpaks, SDKs, distributed binaries, or other means of software distribution. We want total control over updating, version locking, and removal of any such component, and to be able to easily modify the config and routes files to further refine the (relatively) uniform setup. (As built, only Linux is modeled: every `os:` block descends from `linux`.)
 
 ## Architecture
 
@@ -13,128 +13,234 @@ Every system we care about either comes with a version of python3, or that must 
 
 The application should be python3, and so python3 and humon must be the first to synchronize; this can be done via bash, since we need these components for the rest of the app. The app should be an interactive TUI, and slick looking on a 24-bit RGB terminal. It should be menu-driven, with single-key actions and menu navigation via VIM-like controls.
 
-On start, the user config file (~/.config/configsys/configsys.hu; a legacy ~/configsys.hu is migrated there) should be present. If it is not, one must be generated from a template config from the repo. What a machine installs is its **picks**: the top config's `picks:` section is a component × machine matrix (`{ <machine>: [ components ] }`) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (repo/plugin-defined; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on the CLI). The old `configs:` and user-authored `profiles:` are RETIRED (both emit `check` warnings). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ `--machine`) edit the matrix; `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
+On start, the user config file (`~/.config/configsys/configsys.hu`, i.e. `$XDG_CONFIG_HOME/configsys/` — the state dir that also holds the ledger `state.hu` and the synced `plugins/`; `CONFIGSYS_CONFIG` / `CONFIGSYS_STATE_DIR` / `CONFIGSYS_HOME` override) must be present: `Context._migrate_user_config` moves a legacy `~/configsys.hu` there, and if it is still absent `Context.ensure_user_config` writes one from `app.USER_CONFIG_TEMPLATE` (an interactive first run also offers to bless a primary plugin). What a machine installs is its **picks**: `picks:` is a component × machine matrix (`{ <machine>: [ components ] }`, merged repo < primary < user, a higher layer replacing a machine's whole list) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (repo/plugin-defined, `+include` / `~remove` / `+self` term algebra; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on CLI ops). The old `configs:` (also `machines:`, `orphans-adopt-target:`) and user-authored `profiles:` are RETIRED (each emits a `check` warning — `layers.unknown_section_warnings`). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ the global `--machine` working-target flag) edit the matrix; `picks` is uniform-nature, so edits land in the primary plugin when one is blessed, else the top config. `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
 
 - view the install state of each component
 - interactively mark installed components for an operation (upgrade, remove, etc)
 - quickly mark all components for an operation (select all)
 
-In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
-the full spec). Its three sections:
-- `os:` — the OS layer: `using` inheritance (pop_os! -> ubuntu -> debian -> linux; fedora/rhel
-  -> redhat -> linux; void -> glibc_linux, void_musl -> linux — siblings, so a Void-wide gate is
-  `void or void_musl`), which package manager each block declares `native:` (apt/dnf/pacman/
-  zypper/apk/xbps/brew),
-  version `scale-root:` markers, and `provides:` (capabilities baseline in that environment).
-- `drivers:` — per-driver config, currently just each driver's inherent
-  `requires:` (appImage->libfuse2, flatpak->flatpak, cargo->cargo, pipx->pipx, aur->[base-devel,
-  git], tarball->curl, pip->python3-pip, font->[fontconfig,unzip]).
-- `components:` — each component is a named **capability** plus a list of context-selected
-  **bindings**. A binding is `{ via: <driver>  when: "<expr>"  ...details }`. `via: native`
-  resolves to the OS's declared package manager (name defaults to the component name, override
-  with a `name:` map keyed by driver). `when:` is a boolean DSL over OS atoms (bare = subtree
-  membership; versioned e.g. `ubuntu < 23.04`, scale-bound) and `cpu:`, with and/or/guarded-not.
-  `when:` states VALIDITY ONLY (does this method work here), never preference. Among the valid
-  ("candidate") bindings, the default is: most-specific comparable `when:` -> per-binding `standing:`
-  (a NARROW author signal, so it outranks the broad machine order below) -> global
-  `driver-preference` (a machine setting, overridable per OS block); a
-  remaining tie is an error naming the preference channel (never `when:`), a user binding-pin
-  overrides. **`standing:`** is the ONE preference knob: `standing: never-auto` = valid+listed+pinnable but
-  never the auto-default (on a binding/driver) or never auto-pulled to satisfy a `requires:` (on a
-  component-provider); an INTEGER = a preference rank (higher wins). (`standing` replaced the old
-  `prefer:`/`candidate-only:`/`opt-in:` trio — those names are gone.) A versioned capability adds
-  `provides: { cap: N }` + `requires: { cap: ">=N" }` (constraint selects a resident by version; a
-  constraint ENABLES a `never-auto` provider) — an installed provider/method is also adopted over the
-  default by the detection tier (`adopt-installed`, precedence: pin > detected > standing default). Two bindings of the SAME `via:` that overlap incomparably are a load-time ambiguity
-  error (routecheck); different-`via:` overlap is a legal multi-method choice decided by
-  preference (a genuine tie there is a resolve-time error + a `check` warning). A component may
-  also declare `provides:`/`requires:`/`suggests:`
-  (capabilities), and `parts:` (a `via: parts` binding is a pure aggregator = the union of its
-  parts, no unit of its own). `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled
-  in if resolvable in the loaded layers, skipped silently if not (both work at component and
-  binding level). Dotfiles are just ordinary components with a `via: dotfiles` binding (so they
-  can carry `when:` too); a package that ships config `suggests:` its `<name>-dotfiles` component
-  (soft, so the config can live only in a user's plugin layer and simply doesn't attach where
-  it's absent) — there is no special dotfiles field.
+**TUI (configsys/tui/).** Seven screens on keys 1–7: Components (this machine's picks as a tree
+with state/versions, plus the System Updates group), Profiles (the component × machine matrix:
+track `t`/`T`, claim `C`, dispositions, stage uninstall `x`), Plugins, Glue, Dotfiles, Config
+(settings; `m` moves one local ⇄ primary), Theme. vim navigation (`j/k/h/l`, `g/G`), `/` find,
+`F` filter, `!` issues, `?` help; on Components stage `i`/`u`/`x` (`I`/`U` for all, `a` select-all,
+`v` pick method, `L` lock), then `X` runs everything staged after a confirmation. Each screen is a
+`Screen` (build_vm / draw / handle in configsys/tui/screens/) painting through a `Surface`
+(`BufferSurface` = headless render tests). Keys are rebindable via `keys:` (tui/keyspec.py); color
+depth (direct 24-bit via a `-direct` terminfo; `--color`, `NO_COLOR`) and motion (`effects:`,
+auto-reduced over SSH) degrade gracefully; the startup splash is a pluggable provider (`splash:`).
 
-Resolution (resolve.py) is a worklist to a fixpoint over one fixed machine context: seed the
-explicitly-wanted components + what they provide, then close `requires` (and pull resolvable
-`suggests`) reusing existing/env-provided providers; no backtracking (unmet HARD require /
-ambiguous = error; an unmet suggest is skipped); dedup by unit key. A suggested component's own
-`requires` stay hard once it is pulled.
-Per-machine `pins` (binding-pin component->via, provider-pin capability->provider) sit at top
-precedence — set in `~/.config/configsys/configsys.hu`'s `pins:` section (the light reroute that doesn't require
-redefining a component). The result is `{unit_key: ResolvedComponent}` (`driver\comp`), which
-the drivers consume unchanged.
+**CLI (`app.build_parser`).** No command = the TUI. Ops `inspect` / `install` / `remove` / `upgrade`
+(`--system` = System Updates) / `lock` / `unlock` / `set-version` / `fix-scope`; the matrix `picks` /
+`machine` / `profile` / `disp`; `pin`, `where`, `check`, `versions`, `location`, `show`; `config` /
+`theme` / `keys`; `plugin …`; `dotfiles …`, `glue add|override`; `orphans`; `updates`, `refresh`;
+`report` / `request` / `request-os`; `manpages`. Global `--pretend` (dry run), `--os`, `--home`
+(sandbox), `--machine`, `--config`.
+
+In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
+the full spec). Its sections:
+- `os:` — the OS layer: `using` inheritance (pop_os! -> ubuntu -> debian -> glibc_linux -> linux;
+  fedora/rhel -> redhat -> glibc_linux; arch, opensuse, void, fedora_atomic, kde_linux ->
+  glibc_linux; the musl blocks alpine, chimera, void_musl -> linux directly — so `void` and
+  `void_musl` are siblings and a Void-wide gate is `void or void_musl`), which package manager each
+  block declares `native:` (apt/dnf/pacman/zypper/apk/xbps/brew — brew is fedora_atomic's CLI
+  native; the **native-less** blocks kde_linux and chimera declare none, so `via: native` bindings
+  aren't candidates there and components fall through to flatpak/tarball/cargo/…), version
+  `scale-root:` markers, `provides:` (capabilities baseline in that environment: `linux` provides
+  python3, `glibc_linux` provides glibc), optional `detect:` (id + on-disk marker refinement,
+  osdetect.py), and an optional per-OS `driver-preference:`.
+- `drivers:` — per-driver config: each driver's inherent `requires:`, closed for every binding of
+  that via (e.g. appImage->[libfuse2, glibc], flatpak->flatpak, cargo->cargo, tarball->curl,
+  source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
+  python-build-deps]), and an optional driver-wide `standing:` (snap ships `standing: never-auto`).
+  Merged repo < plugins < primary.
+- `facets:` — detected machine traits beyond OS/cpu, usable as `when:` atoms (`gpu:nvidia`;
+  `docs/facets.md`). A `detect:` probe is command-carrying data, so a plugin's facets merge only
+  when that plugin is trusted.
+- `components:` — each component is a named **capability** plus an `install:` list of
+  context-selected **bindings**. A binding is `{ via: <driver>  when: "<expr>"  ...details }`.
+  `via: native` resolves to the OS's declared package manager (name defaults to the component
+  name, override with a `name:` map keyed by driver, plus `default:`). `when:` is a boolean DSL
+  (predicate.py) over OS atoms (bare = subtree membership; versioned e.g. `ubuntu < 23.04`,
+  scale-bound), `cpu:` and facets, with `and`/`or`/`not` (negation is general, over any atom).
+  `when:` states VALIDITY ONLY (does this method work here), never preference. A binding is a
+  **candidate** (`resolve._matching`) when its `when:` holds, its driver isn't in
+  `disabled-drivers:`, it covers this cpu, and it isn't `via: native` on a native-less OS. CPU
+  coverage of a download is stated with `cpu-names: { <cpu>: <upstream token> }` (or a cpu-keyed
+  `asset:` map): its keys are the cpus upstream ships and `$ARCH` expands through it — this gates
+  validity WITHOUT adding specificity, unlike a `when: cpu:` clause (routing-model §7). Among the
+  candidates, the default (`resolve._select`) is: drop `standing: never-auto` methods unless every
+  candidate is one -> most-specific comparable `when:` -> per-binding `standing:` rank (a NARROW
+  author signal, so it outranks the broad machine order below) -> `driver-preference` (a machine
+  setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, flatpak, snap, native-pkg-file,
+  appImage, tarball, source, script; overridable per OS block); a remaining tie is an error naming
+  the preference channel (never `when:`), a user binding-pin overrides. **`standing:`** is the ONE
+  preference knob (on a binding, a `drivers:` block, or a component): `standing: never-auto` =
+  valid+listed+pinnable but never the auto-default (on a binding/driver; it still wins when it is
+  the only valid method) or never auto-pulled to satisfy a `requires:` (on a component-provider);
+  an INTEGER = a preference rank (higher wins). (History: `standing` replaced the old
+  `prefer:`/`candidate-only:`/`opt-in:` trio — those names are gone.) A versioned capability adds
+  `provides: { cap: N }` + `requires: { cap: ">=N" }` (a constraint selects a resident by version
+  and ENABLES a `never-auto` provider; on a cap whose providers carry no component-level version —
+  go, ghc — it is a soft floor surfaced as an advisory, auto-picked only under `auto-tighten:`;
+  routing-model §11). An installed provider/method is also adopted over the default by
+  the detection tier (`detection.detect_pins` -> soft pins for a second resolve pass;
+  `adopt-installed:`, default on; precedence: pin > detected > standing default). Two bindings of
+  the SAME `via:` that overlap incomparably are a load-time ambiguity error
+  (`routecheck.check_component`; disjoint `cpu-names:` sets never overlap); different-`via:`
+  overlap is a legal multi-method choice decided by preference (a genuine tie there is a
+  resolve-time error + a `check` warning). A component may also declare
+  `provides:`/`requires:`/`suggests:` (capabilities), `parts:` (a `via: parts` binding is a pure
+  aggregator = the union of its parts, no unit of its own), `standing:`, `description:` and
+  `attrs:` (kind tags, unioned across layers; docs/component-attrs.md) — any other key is a load
+  error. `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled in if resolvable in the
+  loaded layers, skipped silently if not (both work at component and binding level). Dotfiles are
+  just ordinary components with a `via: dotfiles` binding (so they can carry `when:` too); a
+  component that ships config `suggests:` its `<name>-dotfiles` companion (soft, so the config can
+  live only in a user's plugin layer and simply doesn't attach where it's absent; its shell setup
+  is likewise a `<name>-glue` companion) — there is no special dotfiles field.
+
+Any layer may also patch without redefining a component: `component-names: { <driver>: { <comp>:
+<pkg> | {} } }` (per-driver package-name patch, `{}` = no package there; routing-model §10a) and
+`version-floors:` (tightens an existing `requires:`, never adds one).
+
+Resolution (resolve.py; the app runs `resolve_resilient`) is a worklist to a fixpoint over one
+fixed machine context: seed the explicitly-wanted components + what they provide, then close
+`requires` (component-level + the driver's `drivers:` requires + binding-level) and pull resolvable
+`suggests`, reusing existing/env-provided providers; no backtracking (unmet HARD require /
+ambiguous providers = error; an unmet suggest is skipped); dedup by unit key; a provider never
+satisfies its own requirement. A `never-auto` provider is used only when explicitly wanted,
+required by its own name, version-constrained, or provider-pinned. A suggested component's own
+`requires` stay hard once it is pulled. `resolve_resilient` collects per-pick errors (surfaced as
+`Context.resolve_errors`) and prunes units whose hard requirement failed, so one bad pick is an
+error row, not a brick.
+Per-machine `pins` (binding-pin component->via, provider-pin capability->provider; one flat
+namespace — a value naming a via is a binding-pin, `resolve.pin_via_names`) are a filter, not a
+suggestion (an unrealizable pin is an error, never silently ignored) — merged
+per key repo < primary < user, edited with `configsys pin set|unset|list|promote` (the light
+reroute that doesn't require redefining a component). The app's second resolve pass
+(`Resolver.resolve_resilient`) adds two machine-derived pin sets: effective order opt-in
+`auto-tighten:` floor pins > user pins > detected-installed soft pins > reuse > auto default
+(routing-model §10). The result is `{unit_key: Unit}` (`driver\comp`), mapped by
+`adapt.to_resolved_components` onto `{unit_key: ResolvedComponent}`, which the drivers consume
+unchanged.
 
 The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: machine
-settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/… — the registry is
-`actions.CONFIG_SETTINGS` + `layers._KNOWN_TOP_KEYS`, each with a `SETTING_NATURE` of uniform→primary
-or machine→local), `components:` (route overrides — bindings
-merge ADDITIVELY across layers by `(via, when)` identity: a higher layer adds an install method,
-overrides a matching binding, `drop:`s one, or `{}` removes the whole component; to merely pick an
-existing method, use a `pins:` entry), and the cosmetic `theme:`/`keys:` (merged from every
-layer). `configsys where <component>` explains
-a component's source layer + resolution; `configsys check` lints the whole merged config.
+settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/`disabled-drivers:`/`dirs:`/… —
+the registry is `actions.CONFIG_SETTINGS` + `layers._KNOWN_TOP_KEYS`; read only from the
+repo/primary/user layers, `config._MACHINE_ROLES`; `actions.SETTING_NATURE` routes an edit:
+uniform → the primary plugin when blessed, machine → the local top config, and `configsys config
+move` / TUI Config `m` carries one across), `components:` (route overrides — bindings
+merge ADDITIVELY across layers by `(via, when)` identity, `routes._merge_component_chain`: a higher
+layer adds an install method, overrides a matching binding, `drop:`s one, or `{}` removes the whole
+component; the other fields override with inheritance; to merely pick an existing method, use a
+`pins:` entry), and the cosmetic `theme:`/`keys:` (merged from every layer). `configsys where
+<component>` explains a component's source layer + resolution (every candidate, the default, and
+the rule that decided it); `configsys check` lints the whole merged config.
 
-**Layer stack (configsys/layers.py).** Every config/routes file is a LAYER; a file may
-`include:` others (paths relative to the including file's directory). Layers overlay
-lowest-first — repo (routes.hu + config.hu) < the top user file, with includes sitting below
-the file that includes them — merging by section and, for components/profiles, by name.
-Includes are DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but
-`picks:`/`scope:`/`pins:` (machine settings) and `os:`/`drivers:` (code-adjacent) are ignored
-(a `check` warning). Layer precedence is repo < plugins < primary < user. Cycles/missing files
-error clearly; provenance (`Component.source`, `Config.profile_source`) flows through so
-`where`/`check` attribute to the right file. This is the shared substrate the plugin model
-will reuse — a plugin is just another source in the stack.
+**Layer stack (configsys/layers.py).** Every config/routes file is a LAYER (role repo / plugin /
+primary / user / include); a file may `include:` others (paths relative to the including file's
+directory). Layers overlay lowest-first — repo (routes.hu + config.hu, the shipped profile catalog
++ default `keys:`) < plugins < primary < the top user file, with includes sitting below the file
+that includes them — merging by section and, for components/profiles, by name. Includes are
+DEFINITIONS-ONLY: their `components:`/`profiles:` merge in, but `picks:`/`scope:`/`pins:` (machine
+settings) and `os:`/`drivers:` (code-adjacent) are ignored (a `check` warning). Cycles/missing
+files error clearly (a bad plugin/primary file is skipped with a warning; a bad repo/user file is
+loud — `layers.expand_tolerant`); provenance (`Component.source`, `Config.profile_source`) flows
+through so `where`/`check` attribute to the right file. The plugin model reuses this substrate — a
+plugin is just another source in the stack.
 
-**Data plugins (configsys/plugins.py — P1).** `plugins: [ { source: "github:x/y"  ref: v1 } ]`
-in the user config, then `configsys plugin sync` clones each to `~/.config/configsys/plugins/
-<name>/` at the pinned ref (git via the runner). Its `.hu` data files become `plugin`-role
-layers (repo < plugins < user); a plugin may add components AND os blocks
-(derivative distros — `merge_dict_section` unions os/drivers from repo+plugin). Loading uses
-what's on disk; unsynced / ABI-incompatible (manifest `requires-abi` vs `ABI_VERSION`/
-`ABI_SUPPORTED`) / malformed plugins are skipped, never fatal. `configsys plugin list` shows
-status. Code plugins (Python `Driver` subclasses) + trust are P2 — see docs/plugins.md.
+**Plugins (configsys/plugins.py; docs/plugins.md — fully built).** `plugins: [ { source:
+"github:x/y"  ref: v1 } ]` (also `gitlab:`, a git URL, a local path / `file:`; optional `sha256:`)
+in the top config, then `configsys plugin sync` clones each to `~/.config/configsys/plugins/
+<name>/` at the pinned ref (git via the runner); a plugin's manifest (`plugin.hu`) may declare
+further `plugins:`, synced transitively. Its `.hu` data files become `plugin`-role layers; a plugin
+may add components, profiles AND os blocks (derivative distros — `merge_dict_section` unions
+os/drivers from repo+plugins). Loading uses what's on disk; unsynced / ABI-incompatible (manifest
+`requires-abi` vs `ABI_VERSION`/`ABI_SUPPORTED`) / sha256-mismatched (quarantined) / malformed
+plugins are skipped, never fatal. Only the top config may grant `primary: true` (`configsys plugin
+bless`): the **primary plugin** is the user's portable personal layer — it sorts last among plugins
+and may set machine settings; `plugin add` writes to it by default. **Code plugins** (a manifest
+`code:` module exporting `DRIVERS = [Driver subclasses]` / `SPLASHES`, plus
+`register_version_source` / `register_transport`) load only when trusted at their exact content
+hash (`configsys plugin trust`; `plugin_identity`, `plugin-trust.hu`); command-carrying DATA
+(script/source recipes, glue `#!cs-eval`, apt `source-line`, `facets:` probes) is gated by the same
+trust (`command_source_trusted`). `configsys plugin list` (and the TUI Plugins screen) shows status.
 
-**Machine-level plugins (was: project discovery).** The old CWD-walk-up scan for
-`.configsys.hu`/`.configsys-*.hu` (auto-activating `discover`-role layers) was REMOVED. A source
-repo or app install now contributes components to a machine by being declared as a **plugin** in
-the top user config — `configsys plugin add <source> --local` writes a non-`primary` entry to
+**Machine-level plugins (was: project discovery).** (History: the old CWD-walk-up scan for
+`.configsys.hu`/`.configsys-*.hu`, which auto-activated layers, was REMOVED.) A source repo or app
+install now contributes components to a machine by being declared as a **plugin** in the top user
+config — `configsys plugin add <source> --local` writes a non-`primary` entry to
 `~/.config/configsys/configsys.hu`'s `plugins:`, so it applies here (a `plugin`-role layer:
-components/os/drivers, synced + content-trusted, no machine-setting authority) without traveling
-to the user's other machines the way a `primary` plugin does. `inspect` still resolves the active
-set resiliently (Context.resolve_errors) so one bad entry is an error row, not a brick.
+components/os/drivers, synced and trust-gated like any plugin, no machine-setting authority)
+without traveling to the user's other machines the way a `primary` plugin does. `inspect` still
+resolves this machine's picks resiliently (`Context.resolve_errors`) so one bad entry is an error
+row, not a brick.
 
 **Stranded installs (configsys/stranded.py).** When routes stop offering a component's installed
 method (binding removed/gated, driver disabled), the component reads `switch` — nothing staged;
-installing it (`i`; `v` to choose another method first) runs the method-swap, removing the old install; no method left on this OS = `dangling` (never
-removed for you); only a disabled driver's method = `unmet`. Installs stay findable via an install
-RECEIPT the ledger records on every successful install (+ a `pacman -Qm` `<comp>-<variant>`
-heuristic for pre-receipt AUR installs). See `docs/stranded-installs.md`.
+installing it (`i`; `v` to choose another method first) runs the method-swap, removing the old
+install; no method left on this OS = `dangling` (never removed for you); only a disabled driver's
+method = `unmet`. Installs stay findable via an install RECEIPT the ledger (`state.hu`) records on
+every successful install/upgrade/set-version (cleared on remove; none for dotfiles/glue) + a
+`pacman -Qm` `<comp>-<variant>` heuristic for pre-receipt AUR installs. See
+`docs/stranded-installs.md`.
 
-Drivers are defined in code (configsys/drivers/) behind a uniform op set: get_version,
-get_latest, is_locked, install, uninstall, upgrade, set_version, lock, unlock, location. apt
-has various commands for these; as does flatpak, etc. Each `via:` value names a Driver 1:1
-(the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew, rpm-ostree; tarball,
-native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS package tool — a
-distinct `standing: never-auto` method from repo `native`, since it doesn't ride `apt upgrade`],
-flatpak, snap, appImage, font, script [declared install/version/uninstall commands],
-`source` [declarative build-from-a-git-checkout-or-archive]; the config drivers dotfiles [an
-app's own config: `.cfs` marker dir + manifest in the user's content store, linked into place]
-and glue [per-shell `conf.d` enablement snippets, shipped not captured, its own `glue/` roots —
-see the Glue/dotfiles segregation memory]; the language toolchains and their
-module/version installers cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv,
-sdkman, gcc, gcc-toolset, clang; and the post-install primitives service [systemd or runit] and group
-[usermod]) — except `via: native` (resolves to the OS's package-manager driver) and `via: parts`
-(a pure aggregator, no driver of its own). More drivers can be added as needed.
+**System Updates (configsys/sysupdates.py).** Everything the OS reports upgradable OUTSIDE the
+picks, from each manager's own `upgradable_index` (apt/dnf/pacman/zypper/apk/xbps/brew +
+flatpak/snap; rpm-ostree omitted), grouped into tiers kernel/core/standard/apps
+(`classify_index`): `configsys updates`, `upgrade --system`, and the TUI Components "System
+Updates" group, applied via each manager's own `upgrade_all`. Within-release only; never modeled
+as components (docs/principles.md).
+
+Drivers are defined in code (configsys/drivers/, base class configsys/driver.py — the frozen
+plugin ABI) behind a uniform op set: get_version, get_latest, is_locked, install, uninstall,
+upgrade, set_version, lock, unlock, location (plus batched `installed_index` for detection and the
+System Updates hooks). apt has various commands for these; as does flatpak, etc. Each `via:` value
+names a Driver 1:1 (the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew,
+rpm-ostree; tarball, native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS
+package tool — its own via, distinct from repo `native`, because it doesn't ride `apt upgrade`;
+ranked after native in driver-preference], flatpak, snap, appImage [`desktop-id:` names its menu
+entry after the app's own desktop id, so the compositor matches the window], font, script
+[declared install/version/uninstall commands], `source` [declarative build from a git checkout or
+archive]; the config drivers dotfiles [an app's own config: `.cfs` marker dir + manifest in the
+user's content store, linked into place] and glue [per-shell `conf.d` enablement snippets, shipped
+not captured, its own `glue/` roots; plus the user-glue namespace — `configsys glue add`
+(`user.d/`, a scaffolded `99-user`) and `glue override` (fork a component's shipped glue; `check`
+flags drift) — see docs/shell-glue.md]; the language toolchains and their module/version installers
+cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman, gcc, gcc-toolset,
+clang; and the post-install primitives service [systemd or runit] and group [usermod]) — except
+`via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure aggregator, no
+driver of its own). More drivers can be added in core or by a trusted code plugin
+(`register_driver`).
 
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
 resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built
 in parallel and proven byte-equivalent before the flip; the old resolver/data are deleted.
 `test/routing_golden.json` freezes the proven resolution as a regression gate.)
 
-The bash bootstrap must be minimal; ensure an adequate python3 version is installed globally (3.10 is a fine choice), and a virtual environment exists (.venv) in the repo directory, and humon is installed. From there, the rest of the app should be in python.
+The bash bootstrap (configsys.sh) is minimal: require python3 >= 3.10 (it stops with a message
+rather than installing one — the one exception is apt's `pythonX.Y-venv` when venv/ensurepip is
+missing), create/repair the repo `.venv`, install `humon` + `packaging` into it, then `exec
+.venv/bin/python -m configsys`. Everything else is python. (pyproject.toml can build a
+`configsys-cli` wheel — PyPI's `configsys` is taken — but it is unpublished; the project runs
+clone-first.)
+
+## Docs and maintenance tooling
+
+- `docs/` holds living reference specs (routing-model.md, config-format.md [the source of
+  configsys.hu(5)], plugins.md, principles.md, facets.md, shell-glue.md, stranded-installs.md,
+  theming.md, component-attrs.md, system-updates.md, orphans.md, tui-architecture.md,
+  versioned-requires.md, …); `docs/todo/` = unfinished plans; `docs/done/` = finished or
+  superseded plans (dated header, historical body); `docs/history/` = a separate archive;
+  `docs/INDEX.md` records every doc's location, status and dates.
+- `docs/glossary.hu` is the canonical vocabulary (it generates README's Glossary; its `retired:`
+  terms are flagged by `tools/docaudit.py check`). The `/update-docs` skill + `tools/docaudit.py`
+  keep every doc true; man pages are generated by `tools/gen_manpages.py` (configsys.1 from
+  argparse, configsys.hu.5 from docs/config-format.md).
+- `/add-component` and `/update-component` (+ `tools/compaudit.py`, cached upstream probes) are the
+  playbooks for adding and auditing components; `tools/namesweep.py` (+
+  `test/run-name-sweep-in-podman.sh`) checks native package names exist per distro.
 
 ## Some considerations
 
@@ -142,5 +248,4 @@ The load-bearing, cross-cutting principles (safety rules, routing invariants lik
 validity not preference", the "no surprises" posture, what we deliberately don't model) live in
 `docs/principles.md` — read it before making a decision that touches those axes.
 
-User should have control of what each machine picks; profiles are a browse aid, not the install set. Components that are wanted from several directions (picks, requires, suggests) shouldn't be doubled up; if there are driver conflicts between components, user should be notified to fix the conflict before other things can proceed. In general, take a posture of 'no surprises'; user should know what's installed, what's going to be when they do an operation, and what's not. However, user does not need all details about package dependencies in apt, for example.
-
+User should have control of what each machine picks; profiles are a browse aid, not the install set. Components that are wanted from several directions (picks, requires, suggests) shouldn't be doubled up; a conflict (ambiguous providers, equally-preferred methods) is an error the user is told to fix — an error row plus a `check` / `!` issue, never a silent guess — while the rest of the picks still resolve. In general, take a posture of 'no surprises'; user should know what's installed, what's going to be when they do an operation, and what's not. However, user does not need all details about package dependencies in apt, for example.

@@ -1,6 +1,6 @@
 # Offer every working method — a `when:`-is-validity audit
 
-> **Status: HISTORICAL — Phase 1 DONE; Phase 2 (registry-existence sweep for missing universal methods) pending.**
+> **Status: IN PROGRESS** — Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.
 
 Status: **PHASE 1 DONE** (commit follows this doc). Phase 2 (add *missing* universal methods per a
 registry-existence sweep) is still pending. Phase-1 result: the 18 gap-gated bindings below were
@@ -69,7 +69,7 @@ NOT in the list. Consequences:
 | native | the OS's package manager | per-OS `name:` map; genuinely OS-specific |
 | **aur** | **Arch only** | GENUINELY restricted — aur *is* Arch. LEAVE gated `when: "arch"`. |
 
-## Phase 1 — broaden EXISTING gap-gated methods (mechanical, low-risk)
+## ✅ Phase 1 — broaden EXISTING gap-gated methods (mechanical, low-risk)
 
 Widen each of these from `when: "not (…)"` (or a narrow single-OS gate) to universal validity, keeping
 any real `requires:`. Native/listed methods stay the default; the module-installer becomes pinnable
@@ -102,7 +102,7 @@ python-version pin, `python3.13`, not an artificial OS gate; and it already offe
   validity floor (a feature/dep threshold), not an OS gate. Keep.
 - `aur` bindings — Arch-only by nature.
 
-## Phase 2 — ADD missing universal methods (research-heavy; later batches)
+## ⏳ Phase 2 — ADD missing universal methods (research-heavy; later batches)
 
 Scale: ~370 components have a single `via: native` binding. Many could also offer a universal method
 they simply don't list yet. Per component, check the registry and add if present:
@@ -165,7 +165,7 @@ Regression test added (`test_validate_no_method_tie_when_one_is_never_auto`).
 upstream repo, but they're third-party binary-wrapper wheels, not proper Python apps —
 pipx-installing a wrapped Rust binary is fragile. Only add pipx for genuine Python applications.
 
-### Phase 2b backlog — human-verify then add (regsweep put these in `probable`)
+### ⏳ Phase 2b backlog — human-verify then add (regsweep put these in `probable`)
 Real candidates the tool couldn't auto-confirm (no GitHub upstream recorded, or crate/app-id name
 differs). **Flatpak app-ids need a human's eyes — a wrong id fails silently.** Likely-correct ids to
 confirm on Flathub, then add `{ via: flatpak hub: flathub app: <id> }` (flatpak is in the preference

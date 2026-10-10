@@ -1,5 +1,5 @@
 '''Managed-orphans scan: classify installed software this machine doesn't track into
-lurking / forgotten / foreign (see docs/managed-orphans-plan.md). The classification is unit-tested
+lurking / forgotten / foreign (see docs/done/managed-orphans-plan.md). The classification is unit-tested
 against a hand-built Config; the full scan is exercised against a real routes context with a
 fabricated installed-index cache (so it's deterministic — no real subprocess enumeration).'''
 

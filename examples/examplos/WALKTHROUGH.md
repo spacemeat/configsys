@@ -7,8 +7,9 @@ This is on purpose — a fictional distro can't rename a package out from under 
 we get to focus entirely on the *shape* of a plugin. Everything you write here is exactly what a
 real plugin (Void, Proxmox, your homegrown distro) is made of; only the distro is pretend.
 
-By the end you'll have four files. We'll write them in the order they actually earn their keep,
-and at each stage you'll be able to *see the thing work* before adding the next piece.
+By the end you'll have three files. We'll write them in the order they actually earn their keep,
+and at each stage you'll be able to *see the thing work* before adding the next piece. (Run the
+`./configsys.sh` commands from your configsys checkout.)
 
 ---
 
@@ -29,7 +30,8 @@ little that takes.
 
 ## Stage 1 — the OS block (one line does a shocking amount)
 
-Make a file `routes.hu` and declare the OS:
+Make a directory for the plugin — say `~/configsys-examplos` — and in it a file `routes.hu` that
+declares the OS:
 
 ```hu
 {
@@ -47,6 +49,18 @@ That's the whole first stage. Two claims:
 - **`native: toybox`** — when a component says "install me the native way," the native way here is
   `toybox`.
 
+That file is already a plugin — a data-only one. configsys fetches plugins with git, so make the
+directory a repository and add it:
+
+```console
+$ cd ~/configsys-examplos && git init -q && git add -A && git commit -qm "OS block" && cd -
+$ ./configsys.sh --os examplos plugin add ~/configsys-examplos --local
+```
+
+(`--local` keeps the plugin on this machine even if you have a primary plugin that travels to your
+others.) From here on, after each change, commit it and run `./configsys.sh plugin sync` — the
+sync picks up whatever you've committed.
+
 Here's the part that surprises people. configsys already has hundreds of components that route
 `via: native` — `btop`, `git`, `ripgrep`, `tmux`, on and on. Because of that one `native: toybox`,
 **all of them now route through toybox on ExamplOS**, with zero per-component work:
@@ -55,13 +69,15 @@ Here's the part that surprises people. configsys already has hundreds of compone
 $ ./configsys.sh --os examplos where btop
   ...
   on examplos (x86_64):
+    ...
     toybox\btop  pkg btop
 ```
 
 Note we haven't written a single line of Python yet. Resolution is pure data — it picks *which*
 driver and *what* package name, and doesn't care whether the driver's code exists. (We used
-`--os examplos` because ExamplOS is fictional and won't be auto-detected. A real distro would
-announce itself in `/etc/os-release`, or drop a `detect:` marker — see the Proxmox plugin.)
+`--os examplos` because ExamplOS is fictional and won't be auto-detected. A real distro announces
+itself in `/etc/os-release`; one that doesn't have its own ID there can name a `detect:` marker
+file in its OS block — see the `pios` block in the shipped `routes.hu`.)
 
 ---
 
@@ -82,8 +98,18 @@ Two habits worth forming:
   the base catalog can keep using `via: native`; you only reach for the direct form when *you*
   own the component.
 - **`when: "examplos"`** guards the binding to your OS. A binding for `via: toybox` only makes
-  sense where toybox exists, so we gate it. (configsys won't offer a component on an OS whose
-  driver isn't even loaded.)
+  sense where toybox exists, so we gate it.
+
+Commit, sync, and ask configsys about it:
+
+```console
+$ ./configsys.sh --os examplos where toychest
+  ...
+  bindings
+    - via toybox   when: examplos  <- default here
+  on examplos (x86_64):
+    toybox\toychest  pkg toychest
+```
 
 Everything so far is data. If `toybox` were a package manager configsys already shipped, **you'd
 be done** — no code at all. It isn't, so we teach configsys how to drive it.
@@ -126,8 +152,8 @@ The rules, and there are only a few:
 
 The commands themselves are the *only* part that's fictional. Swap `toybox add` for `apt-get
 install`, `dnf install`, `pacman -S`, `nix-env -i`, whatever your real manager wants. The shape
-doesn't change. (In fact, configsys's own Alpine and openSUSE drivers began life as plugins shaped
-exactly like this one, then graduated into the base tool.)
+doesn't change. (In fact, configsys's own Alpine, openSUSE and Void drivers began life as plugins
+shaped exactly like this one, then graduated into the base tool.)
 
 The full `driver.py` in this directory has a couple of nice touches worth a look — a parser that
 refuses to let `widget-extras` answer a query for `widget`, and a real `lock`/`unlock` — but the
@@ -142,7 +168,6 @@ skeleton above is the whole idea.
 ```hu
 {
     name: examplos
-    version: 0.1.0
     requires-abi: 1                 // the ABI your code targets; the loader checks it
     provides: {
         os: examplos
@@ -163,28 +188,26 @@ driver (`toybox`, real but not yet trusted) apart from a genuine typo, so an unt
 ## Stage 5 — trust (because code runs as you)
 
 Here's the thing about `code:` — that driver runs **with your privileges** during an install. So
-configsys refuses to run it until you've explicitly blessed its exact contents. Add the plugin and
-you'll see it sitting there, inert:
+configsys refuses to run it until you've explicitly approved its exact contents. Commit the driver
+and manifest, sync, and you'll see the plugin sitting there, inert:
 
 ```console
-$ ./configsys.sh --os examplos plugin add examples/examplos
+$ ./configsys.sh --os examplos plugin sync
 $ ./configsys.sh --os examplos plugin list
-  examplos   examples/examplos
-             ok  [ships code — untrusted; run: configsys plugin trust examplos]
+  examplos               /home/you/configsys-examplos
+                         ok  [ships code — untrusted; run: configsys plugin trust examplos]
 ```
 
-The *data* has already loaded — the `examplos` OS block and `toychest` are live. But `via: toybox`
-is an unknown driver, so anything needing it degrades to a reported error (never a crash). Bless
-it and the code registers:
+The *data* still loads — the `examplos` OS block and `toychest` resolve exactly as before. But the
+`toybox` driver isn't registered yet, so anything installed through it shows the `untrusted` status
+(never a crash), and `check` nudges you to trust the plugin. Trust it and the code registers:
 
 ```console
 $ ./configsys.sh --os examplos plugin trust examplos
-$ ./configsys.sh --os examplos where toychest
-  ...
-  bindings
-    - via toybox   when: examplos  <- selected here
-  on examplos (x86_64):
-    toybox\toychest  pkg toychest
+configsys: trusted examplos @ bd14ddac0922 — its code will run
+$ ./configsys.sh --os examplos plugin list
+  examplos               /home/you/configsys-examplos
+                         ok  [code trusted]
 ```
 
 Trust binds to a **content hash**, not a version tag. Change one byte of `driver.py` and the trust
@@ -213,8 +236,8 @@ changes. What we actually want is to *patch a name*, not adopt a component. That
 ```
 
 Keyed by **driver**. A string renames the package; `{}` (empty) means "toybox has no package for
-this," so the component is quietly dropped on ExamplOS — not an error, just not offered, exactly
-like a package that was never in a profile. The base `ripgrep` and `nmap` components stay
+this," so the component is quietly dropped on ExamplOS — not an error, just not offered there.
+The base `ripgrep` and `nmap` components stay
 untouched and keep updating; we've only leaned a correction against them for our driver.
 
 ```console
@@ -238,19 +261,22 @@ tiny map is hand-written for illustration.
 
 ## That's the whole thing
 
-Four files:
+Three files:
 
 ```
-examplos/
+configsys-examplos/
 ├── plugin.hu    manifest
 ├── routes.hu    OS block + component + name map
-├── driver.py    the toybox driver
-└── README.md
+└── driver.py    the toybox driver
 ```
 
-To make it real, you'd `git init` this directory, push it somewhere, and others would
-`plugin add github:you/configsys-examplos`. If your driver turns out to be broadly useful, it can
-graduate into base configsys — which is precisely the path Alpine and openSUSE took.
+(The copy in `examples/examplos/` adds a README and this walkthrough.)
+
+To share it, push the repository somewhere and swap your own declaration over to the published
+copy with `./configsys.sh plugin add github:you/configsys-examplos --replace`; others run
+`./configsys.sh plugin add github:you/configsys-examplos`. (Trust re-arms if the content differs.)
+If your driver turns out to be broadly useful, it can graduate into base configsys — which is
+precisely the path Alpine, openSUSE and Void took.
 
 Now go teach configsys about *your* OS. Swap the toybox commands for your real package manager,
 point `using:` at the closest base family, and let the sweep keep your names honest.

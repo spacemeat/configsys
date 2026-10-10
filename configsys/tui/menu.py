@@ -926,22 +926,39 @@ def _wordwrap(s, width):
 # (Keybindings are generated from the live keymap; these are the reminders that aren't keys.)
 _HELP = {
     'components': {
-        'desc': "Your active profiles' components, as a tree. Each row is a component (or a unit under "
-                "it) with its install driver, scope, current state, and installed/latest versions. Mark "
-                "rows for an operation, then run them with the execute key.",
+        'desc': "This machine's picks, as a tree. Each row is a component (or a unit under it) with its "
+                "install driver, scope, status, and installed/latest versions. Stage operations on rows, "
+                "then run them with the execute key.",
         'glossary': [
-            ('status', 'installed · outdated (newer available) · missing · locked (version-pinned) · '
-                       'partial (some units installed) · unsupported (no route on this OS) · untrusted '
-                       '(from a not-yet-trusted plugin)'),
-            ('op badges', '[i] install · [u] upgrade · [x] remove · [L] lock — staged, run with execute. '
-                          'i/I make current (install if missing, else upgrade); i is the cursor/set, '
-                          'I is every tracked component. u/U upgrade outdated only (u the cursor/set, U all)'),
-            ('tree', '▾/▸ expand/collapse; a profile groups the components it pulls in'),
+            ('view (M)', 'to-do (the default: tracked components missing or outdated, plus installed '
+                         'ones staged for uninstall) · tracked (all of this machine\'s picks) · '
+                         'installed+tracked (also installed components you haven\'t tracked)'),
+            ('status', 'installed · outdated (newer available) · missing · locked (version held) · '
+                       'partial (some units installed) · unsupported (no driver for its method here) · '
+                       'untrusted (its driver comes from a plugin you haven\'t trusted) · error (a probe '
+                       'or op failed)'),
+            ('routing status', 'shown instead of the version status: switch (installed via a method '
+                               'routes no longer offer here; i swaps it out) · unmet (only a disabled '
+                               'driver could install it) · dangling (no install method on this OS)'),
+            ('op badges', 'I install · U upgrade · X remove · L lock · l unlock · * mixed — staged, run '
+                          'with execute. ✗ marks a failed op; » a selected row'),
+            ('make current (i / I)', 'install if missing, upgrade if outdated, swap out a switch row\'s '
+                                     'stranded install. i is the cursor/selection, I every tracked '
+                                     'component. u/U upgrade outdated only'),
+            ('tree', '▾/▸ expand/collapse. Components group under the profile that defines them '
+                     '((other) = none); a component opens to its units — itself plus what it requires'),
+            ('System Updates', 'OS packages with pending updates outside your picks, by tier (kernel, '
+                               'core, standard, apps); auto-pulled ones are dimmed. i/u stages them all, '
+                               'the execute key applies them in bulk'),
+            ('header', 'view mode · package-index age (refresh with R) · ⚠ reboot advised · ⟳ N '
+                       'system updates · ⚠ N issues (! to view)'),
             ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
-            ('[R] recipe pin', 'LATEST shows what the method BUILDS — a version its recipe pins (a '
-                               'from-source build). [R]: upstream has released newer. That is NOT an '
-                               'upgrade: u rebuilds the same pin; reaching the new release needs a new '
-                               'recipe (routes, possibly a new toolchain). The detail line names both.'),
+            ('[L]', 'beside an installed version: the version is locked'),
+            ('also present', 'on the detail line: another install of this component via a different '
+                             'method — pin it (v) to adopt it, or swap it out'),
+            ('[R] recipe pin', 'beside LATEST: the method builds a version its route pins, and '
+                               'upstream has released newer. u rebuilds the same pin; the new release '
+                               'needs a route change. The detail line names both versions.'),
         ],
     },
     'profiles': {
@@ -951,13 +968,13 @@ _HELP = {
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
                         "from (origin: repo / plugin / local) · inst'd (● installed+tracked / "
-                        '⊙ installed+untracked / ◐ some parts / ○ none / ⮾ staged for uninstall / '
-                        '⊘ no install method on this OS) · '
+                        '⊙ installed+untracked / ◐ partial: some parts, or a required component '
+                        'missing / ○ none / ⮾ staged for uninstall / ⊘ no install method on this OS) · '
                         'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
                         '(● tracked / ○ not)'),
             ('track (T / t)', 'T toggles TRACKING of the multi-select set / the whole selected profile; '
-                              't toggles just the HIGHLIGHTED component. Tracking = Included on the TARGET '
-                              'machines (see M), and also marks the component seen.'),
+                              't (or ⏎) toggles just the HIGHLIGHTED component. Tracking = Included on the '
+                              'TARGET machines (see M), and also marks the component seen.'),
             ('machines (M)', 'choose the TARGET machines (plural) T/t fan out to — toggle each; the modal '
                              'also adds / renames / removes machines. Target headers are highlighted.'),
             ('multi-select', 'space toggles a component into the set (#); a (select-all) takes every row '
@@ -969,26 +986,31 @@ _HELP = {
                               'requires:) with each’s resolved method, so you see the composition first.'),
             ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
-            ('interesting / seen', 'i toggles INTERESTING (☆, flagged, not installed) on the highlighted '
-                                   'component; s toggles NEW ↔ SEEN (·) — never clears a flag. I / S do the '
-                                   'same across the multi-select set / whole profile. Tracking (T/t) also '
-                                   'marks seen. Global (all machines).'),
+            ('interesting / seen', 'i toggles INTERESTING (☆, a flag) on the highlighted component; s '
+                                   'toggles NEW ↔ SEEN (·) — never clears a flag. I / S set them across the '
+                                   'multi-select set / whole profile. Tracking (T/t) also marks seen. Kept '
+                                   'for this box, not per machine column.'),
             ('mark all seen (E)', 'acknowledge every remaining NEW component at once (confirms first) — '
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
             ('claim (C)', 'track every component already INSTALLED on this box onto the target machine(s) '
                           '— adopt an existing system into a fresh configsys (confirms first)'),
-            ('!all', 'the top browse profile lists EVERY component — rummage the whole catalog there; '
-                     'any other profile scopes the table to its own members (▸ marks the shown one)'),
+            ('!all / !uninstall', '!all (top) lists EVERY component — the whole catalog; !uninstall '
+                                  '(last) lists what x staged for removal; any other profile scopes the '
+                                  'table to its own members (▸ marks the shown one)'),
             ('⁺N / ☆N / ⊙N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members · '
                              '⊙N = installed-here-but-UNTRACKED members (claimable) — the profile’s triage signal'),
             ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
                             'the link colour · SEEN dimmed · unavailable-here greyed · installed UNDERLINED'),
+            ('install overlay (O)', "toggles the install axis: the inst'd column and the installed "
+                                    "underline (off, inst'd reads ○). On by default (the install-overlay "
+                                    'setting). . ignores / un-ignores the cursor orphan'),
             ('attr-filter (f)', 'faceted kind filter over the catalog (F = live substring filter)'),
             ('via (v) / machines (m)', 'v pins the selected component’s install method; m opens a '
                                        'machines dialog for JUST the cursor component (toggle its '
                                        'tracking per machine) · x stages it for uninstall'),
             ('detail box', 'on a browse profile (left): its raw .hu definition. On a component '
-                           '(right): description · attrs · required-by · in-profiles'),
+                           '(right): description · ⊘ where it installs, if not here · parts or requires '
+                           '(each with its method) · attrs · required-by · in-profiles'),
         ],
     },
     'plugins': {
@@ -996,10 +1018,14 @@ _HELP = {
                 "what updating the selected plugin to its remote ref would change. Sync, bless, trust, "
                 "and update from here.",
         'glossary': [
-            ('columns', 'name · source · ref (pinned) · remote-ref (upstream) · abi · code · provides'),
-            ('abi', "the plugin's declared ABI vs configsys's — a mismatch is skipped, not loaded"),
-            ('code', 'ships Python drivers? + its trust: trusted / untrusted / quarantined (bad checksum)'),
-            ('★ primary', 'your primary plugin — may set machine settings and travels to your machines'),
+            ('columns', 'name · source · ref (pinned) · remote-ref (upstream: green = current, amber = '
+                        'update available) · abi · code · provides'),
+            ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
+            ('code', 'trust for its Python code or command-carrying recipes: trusted · untrusted · '
+                     'changed (content moved; trust again) · unsynced · — (nothing to trust)'),
+            ('dimmed row', 'not synced, ABI-incompatible, or quarantined (content fails its sha256)'),
+            ('★ primary', 'your primary plugin (b blesses one, B clears it) — may set machine settings '
+                          'and travels to your machines'),
             ('tree', '├─ a transitive plugin (declared by another plugin, not your top config)'),
         ],
     },
@@ -1009,29 +1035,31 @@ _HELP = {
                 "A ship→activate toggle — glue is shipped, never captured.",
         'glossary': [
             ('active', 'linked into ~/.config/<shell>/conf.d and sourced by the shell — done.'),
+            ('changed', 'active, but the shipped snippet has changed since — A re-activates it.'),
             ('available', 'shipped but not linked yet — activate (a) to enable it.'),
-            ('inactive', "not linked, or the shell's conf.d loader isn't wired."),
-            ('shell groups', 'each installed shell heads a group; the header says whether its conf.d '
-                             'loader is wired (bash rides ~/.bash_aliases, zsh an ~/.zshrc block, fish '
-                             'sources conf.d natively).'),
+            ('empty', 'no snippet source found for this shell — nothing to activate.'),
+            ('shell groups', "each installed shell heads a group; its header shows the conf.d loader: "
+                             "active, inactive, or not wired (bash rides ~/.bash_aliases, zsh an "
+                             "~/.zshrc block, fish sources conf.d natively, elvish/nushell inline a "
+                             "block into their rc file)."),
             ('activate (a / A)', "a enables the current snippet for ITS shell (the group it's under); A "
-                                 "(re)activates the WHOLE shell group — enabling inactive snippets AND "
-                                 "refreshing active-but-drifted ones from source. Activating also wires "
-                                 "the loader. x deactivates this shell's link."),
+                                 "(re)activates the WHOLE shell group — enabling available snippets AND "
+                                 "refreshing changed ones from source. Activating also wires the "
+                                 "loader. x deactivates this shell's link."),
         ],
     },
     'dotfiles': {
         'desc': "Your via:dotfiles CONFIG — the files configsys links into place and syncs to your "
                 "store. Each row: the component, its state, the ~/ location, and where the managed "
-                "content lives. Capture on-system config, then link it.",
+                "content lives. Manage (m) captures on-system config and links it in one step.",
         'glossary': [
             ('managed', 'configsys manages this config — the symlink is live and your edits sync to '
-                        'your store. Nothing to do (x unlinks it).'),
-            ('unmanaged', 'not managed yet: either a real on-system file to CAPTURE (c), or content '
-                          'already stored/shipped that just needs LINKING (⏎). The source column shows '
-                          'which — a store/repo path is ready to link; a → path is where a capture lands.'),
+                        'your store. Nothing to do (u unmanages it).'),
+            ('unmanaged', 'not managed yet: either a real on-system file to capture, or content already '
+                          'stored/shipped that just needs linking — manage (m or ⏎) does either. The '
+                          'source column shows where the content lives or will land.'),
             ('no config', "nothing here yet — no stored content and no on-system file (a personal "
-                          "dotfile you haven't made or adopted). Capture your config once you have one."),
+                          "dotfile you haven't made or adopted). Manage it once you have one."),
             ('! at risk', 'a real on-system file configsys does NOT manage yet (e.g. your existing '
                           '~/.config/nvim). Managing it adopts + backs it up; until then a plain link '
                           'would refuse to overwrite it.'),
@@ -1051,23 +1079,28 @@ _HELP = {
     },
     'config': {
         'desc': "Machine settings. Each row: the setting, its value, whether it's the built-in default, "
-                "and where it's stored (edits land there). Enter to edit; some open a picker.",
+                "and where it's stored (edits land there), with what it does below. Enter to edit; some "
+                "open a picker.",
         'glossary': [
             ('default', 'default (built-in) · custom (you set it) · env (an environment variable wins)'),
-            ('store', "<plugin> (primary plugin — travels to your machines) · a path (machine-local — "
-                      "this box only). Highlighted when moved off the setting's natural home."),
+            ('store', "a plugin name (primary plugin — travels to your machines) · a path (machine-local "
+                      "— this box only) · an env var (env override). Highlighted when not the setting's "
+                      "natural home."),
             ('move', 'relocate a setting between machine-local and your primary plugin'),
             ('scope', 'user (~) vs system (/opt) — the default install location'),
         ],
     },
     'theme': {
         'desc': "Live theme editor. Left: the shared color map (name → #rrggbb), then the focused "
-                "page's role styles. Right: a live sample of the selected page. Edits apply instantly.",
+                "page's role styles. Right: a live sample of the selected page. Edits apply and save "
+                "instantly; s exports a theme pack or promotes the full look to your primary plugin.",
         'glossary': [
             ('map', 'shared colors; a role references one by name, or uses a literal #rrggbb'),
             ('fx', 'per-role bold / underline / reverse'),
-            ('sample', 'F1-F7 cycle which page the sample previews'),
-            ('gradient', "each page's diagonal background; toggle per page"),
+            ('sample', 'F1-F7 pick which page the sample previews'),
+            ('gradient', "each page's diagonal background; toggle per page. Its colors are the "
+                         "gradient from / to rows at the end of the role list"),
+            ('*', 'a color, role or gradient end you changed from the default (reset restores it)'),
         ],
     },
 }
@@ -2601,7 +2634,7 @@ class ProfileScreen:
         self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
-                                         # installed underlined, orphans coloured, ignored orphans dimmed
+                                         # installed underlined, installed-but-unpicked ⊙ coloured
         self._scan_caches = None         # retained per-driver enumeration (installed/explicit/origin);
                                          # survives membership edits (reality is stable on this page) —
                                          # dropped only on an install/uninstall execute (invalidate_overlay)

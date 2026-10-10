@@ -1,6 +1,6 @@
 # Managed orphans — finding installed things that aren't in your active profiles
 
-> **Status: HISTORICAL — complete. Its "active profiles" framing predates the picks model: adopting an orphan now means picking it (`configsys orphans --adopt`).**
+> **Status: DONE** — finished 2026-08-25 (34ec1b8, last phase-4 fix; f36b9b8 marks the design complete). Lives on in: docs/orphans.md; docs/config-format.md
 
 **Goal.** Surface software on the machine that configsys **could manage** (a known component, or an
 install via a package manager cf drives) but that **isn't in any active profile** — so the user can
@@ -116,7 +116,7 @@ subprocess.
 
 Two surfaces, CLI first (cheap, scriptable), TUI later.
 
-### `configsys orphans` (CLI, phase 1)
+### ✅ `configsys orphans` (CLI, phase 1)
 
 Grouped by driver, e.g.:
 ```
@@ -138,7 +138,7 @@ Flags: `--driver X` (one driver), `--foreign` (include foreign for native too, o
 - `configsys orphans --remove <name>` → uninstall via the owning driver (confirm; reuses the remove op).
 - `configsys orphans --ignore <name|glob>` → append to the ignore list so it stops surfacing.
 
-### TUI (phase 4 — the design)
+### ✅ TUI (phase 4 — the design)
 
 **Decided: the known kinds live on TUI::Profiles; foreign gets a read-only node in the same tree.**
 The catalog scan + CLI verbs (phases 1–3) ship. This is the finalized TUI design.

@@ -1,4 +1,4 @@
-'''base.py — the Screen protocol the MVVM TUI is built from (docs/d2-mvvm-plan.md).
+'''base.py — the Screen protocol the MVVM TUI is built from (docs/tui-architecture.md).
 
 A Screen owns its model (the existing state classes — MenuState, ProfileScreen, … — move in as-is)
 and exposes three seams:

@@ -320,8 +320,8 @@ class Config:
         return v if v in ('auto', 'always', 'never') else 'auto'
 
     def install_overlay_default(self):
-        '''Whether TUI::Profiles opens with the install-state overlay ON (installed underlined, orphans
-        coloured, ignored orphans dimmed) — `O` toggles it either way. `install-overlay: false` starts
+        '''Whether TUI::Profiles opens with the install-state overlay ON (installed underlined,
+        installed-but-unpicked ⊙ coloured) — `O` toggles it either way. `install-overlay: false` starts
         it off. On by default. Machine setting (repo<primary<user).'''
         v = layers.merge_scalar(self._layers, 'install-overlay', _MACHINE_ROLES)
         return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
@@ -430,8 +430,7 @@ class Config:
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(
-                f'profile "{profile}" is selected but not defined '
-                f'(add it under `profiles:` in config.hu, ~/.config/configsys/configsys.hu, or an included file)')
+                f'no profile named "{profile}" (see `configsys profile list`)')
         top = self._top_at(profile, ceiling)             # top def, or the highest at/below `ceiling`
         if top is None:
             return []

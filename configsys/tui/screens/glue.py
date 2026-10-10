@@ -1,6 +1,6 @@
 '''glue.py — the Glue screen as a Screen (build_vm/draw/handle).
 
-Second screen migrated off the monolithic menu.py painter (docs/d2-mvvm-plan.md), mirroring
+Second screen migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring
 screens/plugins.py. The model is the existing `menu.GlueScreen` (state + the glue driver ops),
 composed unchanged; this adds the three MVVM seams:
 

@@ -1,6 +1,6 @@
 '''theme.py — color for the TUI, 24-bit when the terminal allows it.
 
-The model is two tiers (see docs/theme-redesign.md):
+The model is two tiers (see docs/done/theme-redesign.md):
 
 - a shared **color map** — a name -> #rrggbb dict (`theme.colors`); and
 - **pages** — each screen's ROLES carry a style `{ fg, bg, bold, underline, reverse }` where fg/bg

@@ -1,5 +1,7 @@
 # Glue customization & user startup — plan
 
+> **Status: DONE** — finished 2026-09-24 (commit d597377). Lives on in: docs/shell-glue.md
+
 Shipped glue is cfs's *opinion* of what a component needs at shell startup (a PATH line, an alias,
 an env var, completions). Three things the current model doesn't serve well:
 

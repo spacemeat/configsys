@@ -1,10 +1,10 @@
 # Profiles v2 — the disposition model (replaces `^derive`)
 
-> **Status: HISTORICAL — SUPERSEDED by docs/profiles-matrix-plan.md (the picks matrix; profiles are read-only browse lenses). Preserved at tag `profiles-disposition-model`.**
+> **Status: SUPERSEDED** — by docs/done/profiles-matrix-plan.md (the picks matrix), 2026-09-10.
 
 ## Context
 
-The `^derive` run (docs/profiles-derive-plan.md) produced good scaffolding but the `^` primitive itself
+The `^derive` run (docs/done/profiles-derive-plan.md) produced good scaffolding but the `^` primitive itself
 never stopped being confusing: a `^sub` term that *looks* like `+sub` but resolves oppositely, treated
 differently per level, hard to track and reason about in a disjoint hierarchy. This plan **replaces
 `^`** with a clearer, more controllable model, keeping everything good the run produced (layering,
@@ -92,16 +92,16 @@ attrs, `!uninstall`, dotfiles, `where -p` (layers + relation only).
 
 ## Phased build
 
-- **Phase 1 — remove `^`.** Strip the derive machinery above; simplify the pane back to plain
+- ✅ **Phase 1 — remove `^`.** Strip the derive machinery above; simplify the pane back to plain
   profiles + `+include` children; keep green. (Big, mechanical; regen golden, man.)
-- **Phase 2 — dispositions store.** `dispositions:` section (read/merge/write, local), `Config`
+- ✅ **Phase 2 — dispositions store.** `dispositions:` section (read/merge/write, local), `Config`
   accessors (`disposition(comp)`, `set` via a writer), NEW computation, `configsys disp` CLI
   (get/set/list) for testing.
-- **Phase 3 — per-layer pane + system/user browse.** `visible_pnodes` renders per-layer (no dedup); a
+- ✅ **Phase 3 — per-layer pane + system/user browse.** `visible_pnodes` renders per-layer (no dedup); a
   system-profile node reads its own-layer members; catalog markers = selected membership + global disp.
-- **Phase 4 — the catalog workflow.** Multi-select in the catalog; `A` (add-to-user-profile modal +
+- ✅ **Phase 4 — the catalog workflow.** Multi-select in the catalog; `A` (add-to-user-profile modal +
   smart default + whole-subprofile clone), `I`/`S`/`X`; the `*` mode.
-- **Phase 5 — clone.** `configsys profile clone <system> [target]` + TUI action: deep-clone hierarchy
+- ✅ **Phase 5 — clone.** `configsys profile clone <system> [target]` + TUI action: deep-clone hierarchy
   + components into user profiles (smart default target).
 
 ## Open / defaults (veto in review)

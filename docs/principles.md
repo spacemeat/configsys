@@ -1,5 +1,7 @@
 # configsys — principles
 
+> **Status: REFERENCE** — deliberate policy; maintained.
+
 The load-bearing, cross-cutting rules this project keeps returning to. They outrank convenience;
 break one only with a deliberate, recorded reason. (The routing spec proper is
 `docs/routing-model.md`; this is the shorter "why we decide things this way" list.)
@@ -10,9 +12,9 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   gets emptied by a driver's uninstall is how the tarball `rm -rf $HOME` bug happened (fixed
   fcafb84). Use literal scratchpad paths; pass an explicit inline `HOME` to sandboxed subprocesses
   rather than trusting the ambient one.
-- **Validate before you commit an OS-level change.** A vendor apt source / key is written, then
-  verified, and rolled back if it broke `apt-get update` — never leave a poison pill that bricks
-  every later op. Same posture for any driver mutation: no half-applied state that wedges the next run.
+- **Validate before you commit an OS-level change.** A vendor apt source / key (or a dnf `.repo`)
+  is written, then verified, and rolled back if it broke the index refresh — never leave a poison
+  pill that bricks every later op. Same posture for any driver mutation: no half-applied state that wedges the next run.
 - **Read the target before deleting or overwriting it**, and confirm hard-to-reverse or
   outward-facing actions unless already authorized.
 
@@ -42,13 +44,19 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **Specificity first, then the one knob.** A more-specific `when:` beats a broader one before any
   preference is consulted. `standing` is the *only* preference control (it replaced
   `prefer:`/`candidate-only:`/`opt-in:`).
+- **Gate availability without touching specificity.** Because a `when:` clause makes a binding *more
+  specific*, using one merely to say "this download only exists for x86_64" would silently make it
+  out-rank broader methods on x86. An artifact's cpu coverage is stated with `cpu-names:` (or a
+  cpu-keyed `asset:` map) instead: its keys are the cpus upstream ships, so the binding is simply not a
+  candidate elsewhere, and the default choice is unchanged where it is (docs/routing-model.md §7).
 - **Offer every working method; auto-pick conservatively.** Broadening the *listed* methods (so the
   user can pin any that works here) is safe when the added ones aren't in the default
   driver-preference — validity ≠ becoming the default.
 - **Detection-first for what's already installed.** An installed provider/method is adopted over the
   bare default (precedence: pin > detected > standing default), so we manage reality, not fight it.
 - **Switching a method removes the old install first** — never double up the same capability across
-  two mechanisms.
+  two mechanisms (`installState.plan_with_swaps`; the old method's glue companions go with it, via
+  `plan_companion_cleanup`, so a stale snippet can't keep the old install on PATH).
 - **A route change never strands an install silently — and never acts on it silently.** When routes
   stop offering a component's installed method (an AUR package promoted to `[extra]`, an AppImage
   dropped or gated, a driver disabled), the component reads `switch`; with no method left on this OS
@@ -56,8 +64,11 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   and nothing is ever removed for you — the user installs it (`i`, optionally repinning with `v`
   first) and the method swap removes the stranded install. An install
   receipt in the ledger keeps the old install findable. See docs/stranded-installs.md.
+  This check runs always (not behind a setting): a safety check, not a preference.
 - **Requires is HARD, suggests is SOFT.** An unmet require is an error; an unmet suggest is skipped
-  silently. Version floors are *floors only*, surfaced-and-chosen, not silently auto-bumped.
+  silently. Version floors are *floors only*, surfaced-and-chosen, not silently auto-bumped (the
+  opt-in `auto-tighten:` only picks a floor-satisfying *method*, and never replaces an installed
+  provider).
 
 ## What we deliberately do NOT model
 
@@ -70,9 +81,12 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   the display (hides things cfs already knows as an installed component), and the bulk `apt upgrade`
   patches them regardless. So "should X be a component?" is answered by "would a user deliberately
   manage X?", never by whether updates already cover it.
-- **"Data, not script" is not a security boundary.** Route/plugin *data* can still drive shell
-  (source builds, scripts), so trust is gated by content-hash + risk tier by driver, not by
-  file extension. Never a live-central registry.
+- **"Data, not script" is not a security boundary.** Route/plugin *data* can still drive shell, so
+  a plugin's data is gated exactly like its code — by trusting that plugin's exact content (hash),
+  never by file extension. Command-carrying data = `via: script`/`source` bindings, apt
+  `source-line`/`ppa`, glue `#!cs-eval` generators, and `facets:` `detect:` probes
+  (`plugins.command_source_trusted`, `plugins.ships_executable_data`). Never a live-central
+  registry (docs/todo/community-routes-registry.md sketches per-driver risk tiers for one, unbuilt).
 
 ## Hard-won implementation lessons
 

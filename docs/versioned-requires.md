@@ -1,8 +1,8 @@
 # Versioned requirements & per-method version visibility (design)
 
-> **Status: HISTORICAL — SHIPPED (min-version `requires:`, `version-floors:`, per-method `configsys versions`). Live reference: docs/config-format.md (Choosing among methods / Versions).**
+> **Status: REFERENCE** — the version-floor model (min-version `requires:`, `version-floors:`, floor advisory, `auto-tighten`, `configsys versions`); every roadmap stage shipped by 2026-08-02 (09579c7); written before the `standing:` rename (its preference wording now reads `standing:`) and the version-scoped-provider resolver (66b764b), which "Python interpreters as versioned providers" below documents as built; maintained.
 
-Status: **SHIPPED** (originally design / exploration). Captures the model, the data/caching story, and a staged plan
+Captures the model, the data/caching story, and a staged plan
 for two linked capabilities that share one substrate:
 
 1. **User-facing version visibility** — see, per install method (native/tarball/source/flatpak/…),
@@ -96,8 +96,8 @@ version — only which methods can promise the floor.
 
 **Selection = filter, then the existing preference machinery.** When a requirement carries a floor,
 filter the provider's candidate bindings to those whose (declared or derived) version satisfies it,
-then apply the normal `driver-preference`/`prefer:` selection among survivors. If none satisfy →
-a clear error naming the channel, never a silent wrong pick.
+then apply the normal selection among survivors (specificity, `standing:`, `driver-preference`).
+If none satisfy → a clear error naming the channel, never a silent wrong pick.
 
 **Cascade is nearly free.** The worklist already closes `requires` transitively. Make each
 provider-selection step version-aware and the constraint propagates: A needs `cargo≥1.96` → the
@@ -213,6 +213,119 @@ matters, extend `version-floors:` to nest by via — `version-floors: { foo: { t
 ">=2.35" } } }` — applied to just that binding. Not built until a real case appears; component→cap
 stays the common form.
 
+## Python interpreters as versioned providers
+
+The version-scoped-provider resolver's most complete worked instance (the same mechanism as
+`jdk-17/21/25` → `jdk` and `cuda-toolkit-11/12` → `cuda-toolkit`; built 2026-08, history in
+`docs/done/python-versions-plan.md`). Each supported CPython line is its own component and a
+**version-scoped provider** of one shared `python3` capability:
+
+| component | `provides:` | `standing:` | role |
+| --- | --- | --- | --- |
+| `python3.10` | `{ python3: "3.10" }` | `never-auto` | configsys's minimum line |
+| `python3.11` | `{ python3: "3.11" }` | `never-auto` | |
+| `python3.12` | `{ python3: "3.12" }` | `never-auto` | |
+| `python3.13` | `{ python3: "3.13" }` | (ordinary) | the modern default |
+| `python3.14` | `{ python3: "3.14" }` | `never-auto` | newest stable; held back until the ecosystem catches up |
+
+The fixed **component-level** version is what makes the cap version-scoped
+(`Resolver._version_scoped`: some provider of the cap declares `prov_versions[cap]`), and that flips
+two behaviors relative to a toolchain cap like `go`, whose version lives on a binding: a constraint
+**selects** a provider by its declared version, and an unsatisfiable constraint is a **hard error**
+(`nothing provides "python3 >=3.15" here`) rather than a soft floor that falls back to the default
+provider and becomes an advisory.
+
+**Methods.** Every line has the same three bindings:
+
+- `{ via: native  when: "debian"  packages: [ python3.X, python3.X-venv, python3.X-dev ]
+  ppa: deadsnakes/ppa  requires: software-properties-common }` — Ubuntu's non-default lines come
+  from the deadsnakes PPA (apt's `ppa:` field runs `add-apt-repository`); harmless where the line is
+  the base version. (`python3.10` also lists `python3.10-minimal`.)
+- `{ via: native  when: "fedora or redhat"  packages: [ python3.X ] }` — Fedora/EL ship the lines
+  directly.
+- `{ via: pyenv  version: "3.X" }` — unconditional: `drivers/pyenv.Pyenv` compiles the line's latest
+  patch user-scope under `~/.pyenv/versions/` (driver `requires: [ pyenv, python-build-deps ]`);
+  `get_version` reports the newest installed patch on the line.
+
+On debian/fedora/EL lineages the gated native binding is the default by specificity; choose pyenv
+with a binding-pin, `pins: { python3.13: pyenv }`. That pin is classified as a binding-pin because
+its value is a via — even though `pyenv` is also a component name (`Resolver._satisfy` checks
+`pin_via_names` first, matching `app._validate_pin` and routecheck). Everywhere else only pyenv is
+valid, so it is the default — and where `python-build-deps` has no route (`fedora_atomic`, §6a of
+`docs/routing-model.md`) the interpreter components are unroutable. Each method installs a distinct
+`python3.X` binary, so several lines coexist as ordinary residents. **configsys never repoints the
+system `python3`** (apt and distro tools depend on it); a tool selects a line by calling `python3.X`
+or a venv built from it.
+
+**The unversioned baseline.** `linux: { provides: python3 }` in routes.hu `os:` — the bootstrap
+guarantees a system python3 ≥ 3.10 everywhere, so a bare `requires: python3` (e.g. `cython`) is
+environment-satisfied and installs nothing. That baseline carries **no version**, and
+`versionsweep.meets` treats an unknown version as not meeting a floor, so ANY constrained
+`requires: { python3: … }` pulls a `python3.X` component even when the system interpreter would
+qualify. Constraints never consult the live `python3 -V` — resolution stays offline and
+deterministic. Installed reality enters only through the detection tier (`adopt-installed`,
+`detection.detect_pins`): when the resolved line isn't installed but another `python3` provider
+is, it soft-pins `python3` to the installed one — below user pins, and still subject to the
+constraint check in step 3 below.
+
+**Selection — `Resolver._satisfy_constrained`, in order:**
+
+1. reuse the cap's default resident if its provided version meets the constraint (for `python3`
+   the default is the versionless baseline, so this never fires);
+2. reuse a resident already pulled for the same `(cap, constraint)` (`Resolver.constrained`);
+3. otherwise filter providers to those whose declared version meets the constraint. A provider-pin
+   (`pins: { python3: python3.12 }`) wins if it is among them, and is a hard error if not. Unpinned,
+   the pool is the ordinary (non-`never-auto`) survivors, else all survivors — **a constraint
+   enables `never-auto` providers**, because it is itself an explicit selection. One survivor wins;
+   several on a version-scoped cap resolve to the **highest provided version**
+   (`osversion.parse_version`, name as the final tiebreak) — the newest interpreter meeting the bound
+   is the unsurprising choice, and it keeps a plain range pin-free and deterministic.
+
+So, on ubuntu 24.04: `">=3.11"` → `python3.13` (the only ordinary survivor), `">=3.14"` →
+`python3.14` (enabled by the constraint), `"<3.12"` → `python3.11` (the highest of the two
+`never-auto` survivors), bare `python3` → the baseline. Two consumers with different constraints
+get two coexisting residents. Requiring a line **by name** (`requires: python3.14`) also bypasses
+`never-auto` — the required cap is the provider's own name (`p == cap` in `Resolver._satisfy`).
+
+```humon
+{ components: {
+    my-tool: { requires: { python3: ">=3.11" }       // resolves python3.13; ">=3.14" would enable python3.14
+               install: [ { via: pipx  name: my-tool } ] }
+} }
+```
+
+**The interpreter pin — the `python:` binding field.** A `via: pip` or `via: pipx` binding may name
+the interpreter to install with:
+
+- **pip** (`drivers/pip.Pip._pip`) runs `<python> -m pip install --user`, so the package lands in
+  that interpreter's user site; `get_version` probes that interpreter directly (`<python> -m pip
+  show`) because the batched index enumerates only the default `python3`.
+- **pipx** (`drivers/pipx.Pipx._py_flag`) adds `--python <python>` to the venv-creating ops (install,
+  `set_version`). `upgrade` becomes `pipx reinstall --python …`, the only pipx op that rebuilds a
+  venv on a new interpreter (`pipx upgrade` keeps the venv's interpreter and `install --force`
+  ignores `--python`), so an interpreter bump also picks up the latest release. `get_latest` scopes
+  PyPI's latest to the release that interpreter can run (`_target_python`: the pin's `X.Y`, else the
+  installed venv's interpreter), so a python-capped package doesn't read as outdated with no way
+  forward; `configsys versions` adds a one-line `version_advisory` naming the capping interpreter and
+  a pin that lifts it.
+
+`python:` is a static string handed to the driver; it is not a resolver key and installs nothing.
+Pair it with a **by-name** `requires:` on the matching line so the binary exists — the shipped
+consumers do exactly that (`pywal16`/`mitmproxy` on debian: `python: "/usr/bin/python3.13"
+requires: python3.13`; `home-assistant`: `requires: [ python3.14, … ]` + `python: python3.14`).
+By name, not by constraint: a constraint picks *some* line at resolve time, while `python:` must
+name one binary, and a by-name require is what keeps the two in agreement. A full `/usr/bin/…` path
+guards against `PATH` resolving the bare name to a pyenv/uv build — and correspondingly assumes the
+native method (a `pins: { python3.13: pyenv }` leaves `/usr/bin/python3.13` absent).
+
+**`configsys check`.** Two related lints: (1) the **python floor warning** — when the interpreter
+configsys itself runs on (the system python the `.venv` inherits) is at the 3.10 minimum, `check`
+warns to upgrade the system python before it ages out, noting that a `python3.X` component installs
+a newer interpreter *alongside* and doesn't change the one configsys runs on; (2)
+`routecheck.pin_constraint_conflicts` flags a provider-pin whose provided version fails a
+component-level constraint on the same cap (`pins: { python3: python3.12 }` against a
+`requires: { python3: ">=3.13" }`), which could never resolve for that consumer.
+
 ## Roadmap (each stage is useful alone and de-risks the next)
 
 1. **Visibility — SHIPPED.** `configsys versions <component> [--min V] [--refresh]` lists each
@@ -270,7 +383,7 @@ stays the common form.
    auto-tighten yields `{}` and the advisory still fires; the tighten path is unit-tested for the
    fresh case (`{rust: tarball}`).
 
-## 3c — the source build finds a floor-pinned toolchain (SHIPPED)
+## ✅ 3c — the source build finds a floor-pinned toolchain (SHIPPED)
 
 The advisory/tighten machinery selects the right toolchain, but a source build runs in a fresh
 non-interactive shell, so a NON-native toolchain (rustup's cargo in `~/.cargo/bin`) wouldn't be

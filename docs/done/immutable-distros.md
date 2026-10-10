@@ -1,8 +1,8 @@
 # Immutable / atomic distro support — design
 
-> **Status: HISTORICAL — SHIPPED (not hardware-validated).**
+> **Status: DONE** — finished 2026-07-22 (7feec73); rollout step 5 (container/hardware validation) never done. Lives on in: docs/routing-model.md §6a
 
-Status: **SHIPPED** (not hardware-validated). Triggered by the Bazzite request. Bazzite is not
+Triggered by the Bazzite request. Bazzite is not
 one distro but the visible tip of a *class* — atomic/image-based systems with a read-only root
 where packages are not installed the traditional way. The `rpm-ostree` and `brew` drivers, the
 `fedora_atomic` OS block, and the component routing described here are all in the tree (the
@@ -66,7 +66,7 @@ binding won't fire on Bazzite; it falls to the generic `via: native` → `brew i
 
 ## What gets built
 
-### 1. `brew` driver (Homebrew) — high value, reusable beyond atomic
+### ✅ 1. `brew` driver (Homebrew) — high value, reusable beyond atomic
 Full op set maps cleanly, and this **also unblocks macOS** (currently parked) since Homebrew is
 the same tool there:
 
@@ -85,7 +85,7 @@ the same tool there:
 `privileged = False`, `default_scope = user` (brew is per-prefix, no sudo). Name maps key on
 `brew:` where a formula name differs.
 
-### 2. `rpm-ostree` driver — explicit layering only
+### ✅ 2. `rpm-ostree` driver — explicit layering only
 | op | command |
 |---|---|
 | get_version | `rpm -q <pkg>` (merged view is queryable read-only) |
@@ -99,7 +99,7 @@ the same tool there:
 `privileged = True`. **Reboot messaging is first-class**: install must tell the user it's staged
 and how to activate (`systemctl reboot`, or the `--apply-live` we ran).
 
-### 3. OS blocks — DONE (one block, not per-image)
+### ✅ 3. OS blocks — DONE (one block, not per-image)
 Research (ublue-os/bazzite#1249) killed the per-image plan: Silverblue/Kinoite report
 `ID=fedora` + `VARIANT_ID=silverblue|kinoite`, and the uBlue images (Bazzite/Bluefin/Aurora)
 report `ID=fedora` with `VARIANT_ID` = *fedora or kinoite* — they do **not** cleanly
@@ -160,12 +160,12 @@ docker, AppImages → distrobox/podman/rpm-ostree). `--os`-forcing a non-atomic 
 
 ## Rollout sketch
 
-1. `brew` driver + tests (mocked runner), registered. *Independently shippable* — usable on any
+1. ✅ `brew` driver + tests (mocked runner), registered. *Independently shippable* — usable on any
    Linux with Homebrew, and the macOS foundation.
-2. `rpm-ostree` driver + tests (reboot/apply-live messaging, image-managed latest).
-3. `glibc_atomic` + the Fedora Atomic / uBlue blocks; osdetect IDs verified against real images.
-4. Component audit (D3): add atomic bindings where a component has no brew/flatpak path.
-5. Container validation where possible (a Bazzite/Silverblue image in podman for read-only
+2. ✅ `rpm-ostree` driver + tests (reboot/apply-live messaging, image-managed latest).
+3. ✅ `glibc_atomic` + the Fedora Atomic / uBlue blocks; osdetect IDs verified against real images.
+4. ✅ Component audit (D3): add atomic bindings where a component has no brew/flatpak path.
+5. ⏳ Container validation where possible (a Bazzite/Silverblue image in podman for read-only
    query paths; layering/reboot can only be smoke-tested).
 
 Related: [[routing-model.md]] (binding selection this leans on), the `native:`-per-OS mechanism,

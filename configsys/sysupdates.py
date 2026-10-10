@@ -1,4 +1,4 @@
-'''sysupdates.py — the System Updates lane (docs/system-update-coverage-plan.md, P0).
+'''sysupdates.py — the System Updates lane (spec: docs/system-updates.md; history: docs/done/system-update-coverage-plan.md).
 
 cfs's normal pipeline tracks a machine's PICKS. Everything else the OS reports upgradable — base
 packages, dependencies, flatpak runtimes, snaps — is invisible, so the user still reaches for

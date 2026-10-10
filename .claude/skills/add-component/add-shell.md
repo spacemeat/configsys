@@ -19,6 +19,8 @@ Never conflate these. Getting the seam wrong re-creates the fish whole-dir/glue 
    under `~/.config/<sh>/conf.d/`, plus the per-shell LOADER that makes the shell source that dir.
    Storage is the **`glue/` root** (segregated from dotfiles): authoring `glue/shell/<sh>/<name>.<ext>`
    → machine store `<state>/glue/<sh>/conf.d/<name>.<ext>` → symlinked into `~/.config/<sh>/conf.d/`.
+   (The authoring dir is the shell's KEY — `nu` for nushell — while the conf.d/store dir follows
+   `_SHELL_CONFD`: `~/.config/nushell/conf.d/`.)
    Shared across tools — one `fzf-glue` ships a bash/zsh/fish/… variant each.
 3. **Config** (`via: dotfiles`, the `<sh>-dotfiles` companion) — the USER's own shell config, captured
    into their layer (their primary plugin, else local), stored as `dotfiles/<sh>-dotfiles.cfs/`.
@@ -35,12 +37,17 @@ glue gestalt block (glue-owned, regenerated — see class 5; capturing it would 
 
 ## Part A — register the shell in the glue driver (`configsys/drivers/glue.py`)
 
-Three module-level constants, all required (a missing one is a `KeyError` in `_glue_specs`/`_confd`):
+Three module-level constants, all required (a missing one is a `KeyError` in `_glue_variants`/
+`_glue_specs`/`_confd`), plus one optional:
 
 - `_SHELL_EXT['<sh>'] = '<ext>'` — the snippet file extension (bash `sh`, zsh `zsh`, fish `fish`).
 - `_SHELL_CONFD['<sh>'] = '~/.config/<sh>/conf.d'` — its conf.d dir (keep the uniform shape).
-- add `'<sh>'` to the **`_GLUE_SHELLS`** tuple — the set `_installed_shells()` iterates and probes
-  with `shutil.which('<sh>')`. (Only shells on PATH get glue; bash is the floor if none are found.)
+- add `'<sh>'` to the **`_GLUE_SHELLS`** tuple — the set `_installed_shells()` iterates. A shell
+  counts as installed when `shutil.which('<sh>')` finds it OR configsys manages it (`_managed_shells`:
+  its binary sits in the component's managed install dir, per the glue-locations cache). Only
+  installed shells get glue; bash is the floor if none are found.
+- (optional) `_SHELL_COMPONENT['<sh>'] = '<component>'` when the component that installs the shell
+  isn't named like its key (`nu` → `nushell`) — the managed-install check looks it up by component.
 
 Then pick the shell's **loader class** — how it comes to run its conf.d. Five kinds:
 
@@ -106,9 +113,16 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
 3. **Port the glue snippets** into the shell's language. A `glue: <name>` snippet lights up on `<sh>`
    the moment `glue/shell/<sh>/<name>.<ext>` exists — the driver's `_glue_variants` discovers it,
    **zero component edits**. So authoring content is the whole job:
-   - **Start with the substrate**: `glue/shell/<sh>/00-configsys.<ext>` — the `CONFIGSYS_*_DIR`
-     exports that must run first (the `00-` prefix orders it first in the conf.d sweep), translated
-     to `<sh>` syntax. Plus, for loader class (2), whatever the `_RC_SOURCE` block sources.
+   - **Start with the substrate**: `glue/shell/<sh>/00-configsys.<ext>` — the helpers every other
+     snippet relies on, so it must run first (the `00-` prefix orders it first in the conf.d sweep),
+     translated from `glue/shell/bash/00-configsys.sh`: a `configsys` wrapper function (defers to a
+     real `configsys` on PATH, else the clone's launcher), the `cf` shortcut, and `cs_loc
+     <component>` — a component's managed install location read from the `glue-locations.tsv` cache
+     (refreshed by ONE `configsys location --all` only when cold/stale; a per-snippet `configsys
+     location` costs a whole process and made startup take most of a minute). bash/zsh/fish also
+     define `cs_cached` (caches a slow init command's output until the tool's binary changes); nushell
+     names its helpers `cs-loc`/`cs-bash-env`/`cs-prepend`. Plus, for loader class (2), whatever the
+     `_RC_SOURCE` block sources.
    - Then port the specific snippets you want on `<sh>` (aliases/env/init) from their
      `glue/shell/bash/<name>.sh` originals — only the ones that make sense there.
    - Snippets you don't port simply don't attach on `<sh>` (a glue component with no `<sh>` variant
@@ -151,10 +165,12 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
      as NATIVE nu keybindings: append records to `$env.config.keybindings` (APPEND — `($env.config.keybindings? | default []) | append [...]` — never overwrite the user's), each an
      `event: { send: executehostcommand cmd: '<nu that runs the tool and calls commandline edit>' }`.
      `glue/shell/nu/fzf.nu` is the worked example. This is hand-authored, not generated.
-4. **If the shell installs off-PATH (a tarball), add a PATH glue** so `which <sh>` finds it — the
-   `_installed_shells()` detection is `shutil.which`, and a shell that isn't detected gets NO glue at
-   all (chicken-and-egg). Add `<sh>-glue` (`glue: <sh>`) with bash/zsh/fish variants that prepend
-   `configsys location <sh>` to PATH (a shell must be ON PATH, not aliased), and `suggests: <sh>-glue`.
+4. **If the shell installs off-PATH (a tarball), add a PATH glue** so `<sh>` execs and `which <sh>`
+   finds it. `_installed_shells()` also counts a configsys-managed install (the glue-locations cache),
+   but that cache can be cold, so don't rely on it alone. Add `<sh>-glue`
+   (`{ via: glue  requires: shell-glue  glue: <sh> }`) with bash/zsh/fish variants that prepend
+   `cs_loc <sh>` to PATH (a shell must be ON PATH, not aliased — see `glue/shell/bash/elvish.sh`), and
+   `suggests: <sh>-glue`.
    For a tarball whose upstream ships via its own server (not GitHub assets), use a `url:` template,
    not an `asset:` glob (elvish: `dl.elv.sh`, GitHub releases are empty).
 
@@ -165,7 +181,7 @@ Drive with `CONFIGSYS_GLUE_SHELLS='<sh>'` to force the installed-shell set. Asse
   `~/.config/<sh>/conf.d/`;
 - the loader wires for `<sh>` — the rc marker block appears (class 2), the dir exists (class 1), or
   the block INLINES the snippet content (class 5; assert a snippet's code is in the rc block and that
-  deactivating one regenerates the block without it — see `test_elvish_gestalt_loader_inlines_snippets`),
+  deactivating one regenerates the block without it — see `test_elvish_gestalt_loader_inlines_snippets_into_rc`),
   and `get_version` reads `linked`;
 - `uninstall` removes the hookup (rc block / link) and leaves content alone.
 Then a routes `check` + golden regen for the new `<sh>` component (purely additive).
@@ -191,7 +207,8 @@ Then a routes `check` + golden regen for the new `<sh>` component (purely additi
   — a valid empty answer, message on stderr). So a location snippet just checks for empty output; no
   exit-swallowing needed. Unroutable still exits 1.
 - **Editing a shipped snippet? re-activate it.** The deployed conf.d file is a store COPY; an authoring
-  edit only lands after a re-activate (drift-refresh). Glue-page `A` re-installs the whole group
-  (refreshing drifted-but-active snippets), so use `A` after editing several — single `a` for one.
-- **Login shell ≠ installed.** Glue targets every INSTALLED shell (`which`), not `$SHELL` — a user
+  edit only lands after a re-activate (drift-refresh). Glue-page `A` re-installs every snippet in the
+  cursor's shell group (refreshing drifted-but-active ones too), so use `A` after editing several —
+  single `a` for one.
+- **Login shell ≠ installed.** Glue targets every INSTALLED shell (`which`, or configsys-managed), not `$SHELL` — a user
   with fish as login but bash present gets both wired. Don't gate on `$SHELL`.

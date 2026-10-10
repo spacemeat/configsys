@@ -1,8 +1,8 @@
 # Dotfiles redesign — two kinds, user-owned links, managed-even-when-empty
 
-> **Status: HISTORICAL — BUILT (phases 1a/1b/2/3), then evolved by docs/dotfiles-glue-split-plan.md (glue became its own driver). Live reference: docs/config-format.md §dotfiles / §glue.**
+> **Status: DONE** — finished 2026-08-17 (a4e081e); glue half later superseded by docs/todo/dotfiles-glue-split-plan.md (`via: glue` + `shell-glue`, 39b3f28, 2026-09-15) and `dotfiles migrate` removed (2584731, 2026-08-27). Lives on in: docs/config-format.md
 
-Status: **BUILT** (all phases; originally "design agreed"). Captures the decisions from the design discussion so
+Captures the decisions from the design discussion so
 implementation can follow without re-litigating. Supersedes the ad-hoc parts of the current
 `drivers/dotfiles.py` model (search-path + symlink-to-whatever-root).
 
@@ -196,12 +196,12 @@ moves.
   binding shape changes; regen golden accordingly.
 
 ## Phasing
-1a. **#4 fix + migrate — DONE** (commit `b90fb7a`): the driver materializes any repo `template` into
+1a. ✅ **#4 fix + migrate — DONE** (commit `b90fb7a`): the driver materializes any repo `template` into
    the machine-local store (`~/.config/configsys/dotfiles/`, same relative path) and links the store
    copy, never the repo; a symlink we made (incl. a legacy repo-link) counts as ours so re-pointing
    isn't a clobber. `configsys dotfiles migrate` re-points existing repo-links with an itemized
    preview+confirm, flags orphans without deleting. (Kept `~/.bash.d`; no convention yet.)
-1b. **rename + glue: convention — DONE**: active loader dir is `~/.config/<shell>/conf.d/`; the 68
+1b. ✅ **rename + glue: convention — DONE**: active loader dir is `~/.config/<shell>/conf.d/`; the 68
    glue `-dotfiles` carry a single `glue: <name>` field (the driver expands it at runtime to a
    per-shell spec — `shell/<shell>/<name>.<ext>` → `~/.config/<shell>/conf.d/<name>.<ext>` — for every
    shell that has content, with a `bash.d/<name>.sh` fallback so an un-reshaped primary-plugin snippet
@@ -212,7 +212,7 @@ moves.
    dropping the old one — but leaving a `~/.bash.d` link a STILL-ACTIVE component owns, e.g. a
    plugin-only snippet not yet reshaped) and **remove** a dead `~/.bash.d` link stranded pointing into
    the repo's now-gone `bash.d/`. Only golden change: the 68 glue units' fields `{src,dst}`→`{glue}`.
-2. **#5 `.cfs` + manifest + managed state — DONE**: config content now lives under a
+2. ✅ **#5 `.cfs` + manifest + managed state — DONE**: config content now lives under a
    `<component>.cfs/` marker dir in the capture root (primary plugin else local store), keyed by each
    spec's `src`, with a `manifest.hu` (src→dst layout + `exclude:` globs) and a generated
    `.gitignore`; a legacy bare `<root>/<src>` read-fallback keeps pre-`.cfs` captures linking.
@@ -227,7 +227,7 @@ moves.
    mixed config+glue components wasn't expanded by `_specs` (they'd silently lost their shell snippet)
    — `_specs` now expands glue at top level AND inside a named spec. Routes/golden unchanged
    (driver/storage only). NOT yet run on the user's live machine (installs will stamp markers there).
-3. **Multi-shell — DONE**: glue now activates per-INSTALLED shell — the driver's `_glue_variants`
+3. ✅ **Multi-shell — DONE**: glue now activates per-INSTALLED shell — the driver's `_glue_variants`
    gates each shell on its binary being on PATH (`_installed_shells`, overridable via
    `CONFIGSYS_GLUE_SHELLS` for tests). Per-shell GLUE LOADERS via a `loader: <shell>` dotfiles field:
    `fish-glue` ensures `~/.config/fish/conf.d/` (fish auto-sources it natively — no rc edit);

@@ -1,4 +1,4 @@
-'''Phase A of the v3 matrix model (docs/profiles-matrix-plan.md): the per-machine `picks:` store —
+'''Phase A of the v3 matrix model (docs/done/profiles-matrix-plan.md): the per-machine `picks:` store —
 each machine's Included component set. Writer round-trip, Config accessors, and the plural fan-out
 `set_included` action.'''
 

@@ -93,7 +93,7 @@ class Tarball(Driver):
 
         # Build into a SIBLING staging dir, then atomically swap into place (rm old && mv stage) —
         # so a failed download/extract (or a failed upgrade) leaves the EXISTING install untouched
-        # instead of a partial/bricked dir. See docs/driver-resilience-plan.md (P4 transactional).
+        # instead of a partial/bricked dir. See docs/done/driver-resilience-plan.md (P4 transactional).
         stage = str(d) + MARKER_PREFIX + 'stage'
         dq = shlex.quote(str(d))
         sq = shlex.quote(stage)

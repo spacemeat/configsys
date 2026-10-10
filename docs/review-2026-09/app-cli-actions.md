@@ -16,7 +16,7 @@ All line numbers are against the working tree at HEAD `7c0c04d`.
   execution loop** (`_dispatch_op` vs `menu.execute_plan`), **pin writes** (`_pin_set`/`_pin_unset`/
   `_pin_promote` vs `menu._apply_method_pin`/`_apply_provider_pin`), and **plugin trust/untrust**
   (`cmd_plugin` re-implements `actions.plugin_trust*`). Each divergence has already produced a
-  behavioral gap (see HIGH/MED below). `docs/tui-screens-plan.md:57` planned a `pin_promote`
+  behavioral gap (see HIGH/MED below). `docs/done/tui-screens-plan.md:57` planned a `pin_promote`
   extraction that never happened.
 - **Two real correctness bugs in the CLI op path**: `_dispatch_op` and `cmd_location` skip
   `apply_locations`, so a per-component `locations:` override is honored by `inspect`/TUI but
@@ -171,7 +171,7 @@ un-ignore, theme copy-page / promote-to-primary, dotfiles manage/unmanage/move-s
   picker only offers candidates) and the cache invalidation (above). `_pin_promote` duplicates the
   primary-data-file lookup that `actions._primary_data_file` :631 already centralizes — and its
   own docstring says "Mirrors the edit_target / _pin_promote idiom", i.e. the duplication is
-  acknowledged. `docs/tui-screens-plan.md:57,118` planned a `pin_promote` extraction.
+  acknowledged. `docs/done/tui-screens-plan.md:57,118` planned a `pin_promote` extraction.
 - **Recommendation:** `actions.set_pin(ctx, name, value, *, validate=True) -> (changed, label,
   note)`, `actions.unset_pin`, `actions.promote_pin` (using `_primary_data_file`); `_pin_*` and
   the TUI helpers become callers. Then add `unpin` + `promote` rows to the TUI picker (parity

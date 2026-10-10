@@ -2,21 +2,35 @@
 .SH NAME
 configsys.hu \- the configsys configuration and routing format
 .PP
-configsys reads Humon (\fB.hu\fR) files. This is the reference for their structure: how your per-machine config selects what to install, how \fBroutes.hu\fR describes where each component comes from on any OS, and how the two combine. It is the source for the \fBconfigsys.hu(5)\fR man page and is linked from the README.
+configsys reads Humon (\fB.hu\fR) files. This page is the reference for their structure: how your per-machine config chooses what to install, how routes describe where each component comes from on any OS, and how the two combine.
 .SH LAYERS
 .PP
-Every \fB.hu\fR file is a \fBlayer\fR. Layers overlay section-by-section, lowest precedence first, and the highest-precedence definition of a thing wins:
+Every \fB.hu\fR file is a \fBlayer\fR. Layers overlay section by section, lowest precedence first, and the highest-precedence definition of a thing wins:
 .PP
 .RS 4
 .nf
-repo (routes.hu + config.hu)  <  plugins  <  primary  <  your config
+repo (routes.hu + config.hu)  <  plugins  <  primary plugin  <  your config
 .fi
 .RE
 .PP
-Your machine's own config (\fB~/.config/configsys/configsys.hu\fR) always wins. The \fBprimary\fR layer is one plugin you designate as trusted to carry machine settings (see docs/plugins.md) — it sits above the ordinary plugins but below your config. A file may \fBinclude:\fR other files (paths relative to the including file's directory), which sit just below it. Includes are definitions-only: their \fBcomponents:\fR and \fBprofiles:\fR merge in, but machine settings (\fBpicks:\fR, \fBmachine:\fR, \fBpins:\fR, \fBscope:\fR, … — see the settings table) and code-adjacent sections (\fBos:\fR, \fBdrivers:\fR) are ignored. The cosmetic/UI sections \fBtheme:\fR and \fBkeys:\fR are the exception: they are merged from every layer (see docs/theming.md).
+Your machine's own config, the \fBtop config\fR (\fB~/.config/configsys/configsys.hu\fR), always wins. The \fBprimary plugin\fR is the one plugin your top config marks \fBprimary: true\fR (see "Plugins and includes"): your personal configuration as a plugin, which travels with you and may set machine settings. It sits above the ordinary plugins and below your top config. A file may \fBinclude:\fR other files, which sit just below the file that includes them.
+.PP
+What each layer may contribute:
+.IP \(bu 2
+\fBThe repo\fR (\fBroutes.hu\fR and \fBconfig.hu\fR): everything; it is the baseline.
+.IP \(bu 2
+\fBAn ordinary plugin\fR: \fBcomponents:\fR, \fBprofiles:\fR, \fBcomponent-names:\fR, \fBversion-floors:\fR, \fBos:\fR, \fBdrivers:\fR, \fBtheme:\fR, \fBkeys:\fR, and \fBfacets:\fR probes (only once you trust the plugin). Its machine settings are ignored.
+.IP \(bu 2
+\fBYour primary plugin\fR: everything an ordinary plugin may, plus machine settings (\fBpicks:\fR, \fBscope:\fR, \fBpins:\fR, \fBdriver-preference:\fR, and the rest below).
+.IP \(bu 2
+\fBYour top config\fR: machine settings, \fBplugins:\fR, \fBinclude:\fR, \fBcomponents:\fR overrides, \fBcomponent-names:\fR, \fBversion-floors:\fR, declared \fBfacets:\fR values, \fBtheme:\fR and \fBkeys:\fR. It does not read \fBos:\fR or \fBdrivers:\fR; put those in a plugin.
+.IP \(bu 2
+\fBAn included file\fR: definitions only (\fBcomponents:\fR, \fBprofiles:\fR, \fBcomponent-names:\fR, \fBversion-floors:\fR, \fBtheme:\fR, \fBkeys:\fR). Its machine settings, \fBplugins:\fR, \fBos:\fR, \fBdrivers:\fR and \fBfacets:\fR are ignored.
+.PP
+\fBcomponents:\fR and \fBprofiles:\fR merge by name (a component merges its bindings additively; see "Overriding a component"). \fBtheme:\fR and \fBkeys:\fR are cosmetic, so they merge per key from every layer. \fBconfigsys check\fR warns about a key configsys doesn't recognize, a retired key, and a section a layer isn't allowed to set.
 .SH YOUR CONFIG FILE
 .PP
-Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys.hu\fR); a legacy \fB~/configsys.hu\fR is migrated automatically on first run. Every section is optional:
+Your top config is \fB$XDG_CONFIG_HOME/configsys/configsys.hu\fR (by default \fB~/.config/configsys/configsys.hu\fR); \fBCONFIGSYS_CONFIG\fR or \fB--config\fR names a different file. If it doesn't exist, the first command that needs it generates it from a commented template. A legacy \fB~/configsys.hu\fR is moved there automatically. Every section is optional:
 .PP
 .RS 4
 .nf
@@ -34,7 +48,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
 
-    pins: { steam: flatpak }         // force a driver (binding-pin) or a provider
+    pins: { steam: flatpak }         // force a method (binding-pin) or a provider (provider-pin)
 
     driver-preference: [ native, flatpak, appImage ]   // tiebreak among valid methods
 
@@ -46,7 +60,7 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     reboot-advice: true              // post-op "reboot advised" via the distro's native check (default on)
 
-    splash: ocean                    // startup wait-screen animation (name / random / off / unset=default)
+    splash: ocean                    // startup wait-screen (a splash name / random / off; unset = built-in)
 
     effects: reduced                 // TUI motion: full / reduced / none (unset: reduced over SSH)
 
@@ -56,49 +70,88 @@ Lives under \fB$XDG_CONFIG_HOME\fR (defaults to \fB~/.config/configsys/configsys
 
     detect-coexisting: false         // skip the "also present (unmanaged)" pass (default on)
 
+    facets: { gpu: nvidia }          // declare a machine fact for when: (overrides detection)
+
     keys: { components: { method: p } }   // rebind TUI keys (see `configsys keys`)
 }
 .fi
 .RE
-.SS Machine settings
+.SH MACHINE SETTINGS
 .PP
-Each setting has a \fBkind\fR and a \fBnature\fR (where a fresh edit lands — see the next section). \fBconfigsys config show\fR prints the same table with live values and sources.
+A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\fR, which decides where an edit lands by default (see "Where a machine-setting edit lands"): a \fBuniform\fR setting belongs in your primary plugin, a \fBmachine\fR setting in your top config. Machine settings are read from the repo, your primary plugin and your top config; an ordinary plugin or an included file can't set them. \fBconfigsys config show\fR lists the settings \fBconfig set\fR manages, with their values and where each one lives.
+.SS Settings you change with config set
+.IP \(bu 2
+\fB\fBmachine\fR\fR (scalar, machine; default \fBthis-machine\fR): this box's machine name, i.e. which \fBpicks:\fR column is "this machine". \fBconfigsys machine use <name>\fR sets it.
+.IP \(bu 2
+\fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs sudo).
+.IP \(bu 2
+\fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, flatpak, snap, native-pkg-file, appImage, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that declares its own \fBdriver-preference:\fR takes precedence on that OS.
+.IP \(bu 2
+\fB\fBdisabled-drivers\fR\fR (list of via names, machine; default none): turns install methods off on this machine. Their bindings stop matching, like a false \fBwhen:\fR, so a \fBsuggests:\fR that needs one is skipped and a \fBrequires:\fR that needs one is an error. Use \fBdotfiles\fR and \fBglue\fR to manage your own shell config, or for example \fBsnap\fR.
+.IP \(bu 2
+\fB\fBauto-tighten\fR\fR (bool, uniform; default off): when a component's default method can't meet a version floor, pick a method that can, instead of only advising. An already-installed provider is never replaced automatically.
+.IP \(bu 2
+\fB\fBadopt-installed\fR\fR (bool, uniform; default on): prefer a method or provider that is already installed over the computed default (detection).
+.IP \(bu 2
+\fB\fBrefresh-before-execute\fR\fR (scalar, uniform; default \fBauto\fR): refresh the OS package index once before running staged operations: \fBauto\fR (when the batch includes a native install or upgrade), \fBalways\fR, or \fBnever\fR.
+.IP \(bu 2
+\fB\fBinstall-overlay\fR\fR (bool, uniform; default on): open the TUI Profiles screen with the install-state overlay on (\fBO\fR toggles it).
+.IP \(bu 2
+\fB\fBreboot-advice\fR\fR (bool, uniform; default on): after an operation, and as a TUI header chip, advise when a reboot or a service restart is needed, using the distro's own check.
+.IP \(bu 2
+\fB\fBsplash\fR\fR (scalar, uniform; default unset): the startup wait-screen. A splash name (or the name of the plugin that ships it), \fBrandom\fR for a different one each run, or \fBoff\fR. Unset uses the built-in \fBbraille-bar\fR.
+.IP \(bu 2
+\fB\fBeffects\fR\fR (scalar, machine; default unset): TUI motion. \fBfull\fR (gradient and splash), \fBreduced\fR (no gradient, a calmer splash) or \fBnone\fR (no gradient; only the plain built-in progress bar). Unset picks \fBreduced\fR over SSH, else \fBfull\fR. \fB--effects\fR overrides it.
+.IP \(bu 2
+\fB\fBorphans-ignore\fR\fR (list of name-or-glob patterns, machine; default none): orphans whose component name or installed package matches stay quiet in \fBconfigsys orphans\fR. \fBorphans --ignore\fR adds patterns.
+.IP \(bu 2
+\fB\fBdirs\fR\fR (map; default \fB{ user: ~  system: /opt  app: apps  sdk: sdks  src: src }\fR): the install-layout directories, set one key at a time (\fBconfigsys config set dirs.sdk ~/toolchains\fR). \fBdirs.user\fR and \fBdirs.system\fR are machine; \fBdirs.app\fR, \fBdirs.sdk\fR and \fBdirs.src\fR are uniform.
+.SS Settings you edit by hand
 .PP
-| setting | kind | nature | default | what it does | | --- | --- | --- | --- | --- | | \fBmachine\fR | scalar | machine | \fBthis-machine\fR | This box's machine name — which \fBpicks:\fR column is "this machine". | | \fBpicks\fR | map | uniform | \fB{}\fR | \fB{ <machine>: [ components ] }\fR — the install set per machine (the matrix). | | \fBuninstall\fR | list | machine | \fB[]\fR | Components staged for removal (the TUI \fBx\fR queue; runs at execute). | | \fBdispositions\fR | map | machine | \fB{}\fR | \fB{ component: seen \e| interesting }\fR triage marks; unlisted = NEW. | | \fBscope\fR | scalar | machine | \fBuser\fR | Default install scope for scope-honoring drivers: \fBuser\fR (\fB~\fR) or \fBsystem\fR (\fB/opt\fR, sudo). | | \fBpins\fR | map | machine | \fB{}\fR | Binding-pins (\fBcomponent: via\fR) and provider-pins (\fBcapability: component\fR). | | \fBdriver-preference\fR | list | uniform | built-in | Order ties between equally-valid install methods break in; replaces the whole list per layer. | | \fBdisabled-drivers\fR | list | machine | \fB[]\fR | Vias to turn OFF here — their bindings stop matching (a soft \fBsuggests:\fR is skipped, a hard \fBrequires:\fR errors). E.g. \fBdotfiles\fR/\fBglue\fR to manage your own shell config, or \fBsnap\fR. | | \fBauto-tighten\fR | bool | uniform | off | Auto-pick a floor-satisfying install method (versioned \fBrequires:\fR) instead of only advising. | | \fBadopt-installed\fR | bool | uniform | on | Prefer an already-installed method/provider over the default (the detection tier). | | \fBrefresh-before-execute\fR | scalar | uniform | \fBauto\fR | Refresh the OS package index once before staged ops: \fBauto\fR (when the batch has a native install/upgrade), \fBalways\fR, \fBnever\fR. | | \fBinstall-overlay\fR | bool | uniform | on | Open TUI Profiles with the install-state overlay on (\fBO\fR toggles). | | \fBreboot-advice\fR | bool | uniform | on | After an op (and as a TUI chip), advise when a reboot / service restart is needed, via the distro's native check. | | \fBsplash\fR | scalar | uniform | \fBbraille-bar\fR | Startup wait-screen: a splash-provider name, \fBrandom\fR, \fBoff\fR, or unset for the built-in default. | | \fBeffects\fR | scalar | machine | auto | TUI motion: \fBfull\fR (gradient + splash), \fBreduced\fR, \fBnone\fR. Unset auto-picks \fBreduced\fR over SSH. | | \fBorphans-ignore\fR | list | machine | \fB[]\fR | Name-or-glob patterns whose orphans stay quiet in \fBconfigsys orphans\fR. | | \fBdirs\fR | map | mixed | see below | Install-layout dirs: \fBuser\fR/\fBsystem\fR (machine), \fBapp\fR/\fBsdk\fR/\fBsrc\fR (uniform). | | \fBlocations\fR | map | hand-edited | \fB{}\fR | Per-component absolute install-location override (\fBcomponent: path\fR). | | \fBdetect-coexisting\fR | bool | hand-edited | on | Probe each component's OTHER install methods after inspect and surface "also present (unmanaged)". | | \fBinstaller-shell-writes\fR | scalar | hand-edited | \fBblock\fR | \fBblock\fR: snapshot/revert rc files an installer scribbles in, staging the removed block as inactive glue; \fBallow\fR turns the guard off. | | \fBinstaller-shell-writes-allow\fR | list | hand-edited | \fB[]\fR | Components exempt from the shell-writes guard. | | \fBversion-floors\fR | map | hand-edited | \fB{}\fR | Maintainer-authored minimum-version \fBrequires:\fR tightening (\fB{ component: { cap: ">=X" } }\fR). | | \fBfacets\fR | map | hand-edited | \fB{}\fR | Declared detected-environment atoms usable in \fBwhen:\fR (docs/facets.md). | | \fBkeys\fR | map | cosmetic | built-in | TUI keybinding overrides, merged from every layer (\fBconfigsys keys\fR shows the result). | | \fBtheme\fR | map | cosmetic | built-in | TUI palette/roles/gradients, merged from every layer (docs/theming.md). |
+These are read the same way (repo < primary plugin < top config), but \fBconfig set\fR and the TUI Config screen don't offer them; edit the file.
+.IP \(bu 2
+\fB\fBlocations\fR\fR (map of component to path; default empty): "find and manage this component's install here". An absolute path, regardless of scope, that the path-based drivers (\fBsource\fR, \fBappImage\fR, \fBtarball\fR, \fBfont\fR, and plugin build drivers) use instead of the directory they would compute. Unlike \fBdirs:\fR, it moves one component, not a whole category.
+.IP \(bu 2
+\fB\fBdetect-coexisting\fR\fR (bool; default on): after inspecting, look for each component installed through its other methods and show those installs as "also present (unmanaged)". Package managers are listed once per run, so the cost is a handful of calls, not one per component. \fBconfigsys versions <name>\fR shows every method's state either way.
+.IP \(bu 2
+\fB\fBinstaller-shell-writes\fR\fR (\fBblock\fR or \fBallow\fR; default \fBblock\fR): the shell-writes guard. With \fBblock\fR, when an installer edits \fB~/.bashrc\fR, \fB~/.bash_profile\fR, \fB~/.profile\fR, \fB~/.zshrc\fR or \fB~/.zprofile\fR during an install or upgrade, configsys restores the file and keeps the removed lines as an inactive glue candidate (see "glue"). \fBallow\fR turns the guard off.
+.IP \(bu 2
+\fB\fBinstaller-shell-writes-allow\fR\fR (list of components; default none): components whose rc-file edits are wanted and left alone.
+.SS How settings merge
+.IP \(bu 2
+A scalar or bool: the highest layer that sets it wins.
+.IP \(bu 2
+A list (\fBdriver-preference\fR, \fBdisabled-drivers\fR, \fBorphans-ignore\fR, \fBinstaller-shell-writes-allow\fR, \fBuninstall\fR): the highest layer's whole list wins; lists from different layers are not combined.
+.IP \(bu 2
+A map merges per key: \fBpins\fR, \fBdispositions\fR, \fBlocations\fR and \fBdirs\fR. Your top config can override one entry of your primary plugin's map without restating the rest.
+.IP \(bu 2
+\fBpicks:\fR merges per machine: a higher layer's list for a machine replaces that machine's list.
 .PP
-A \fBhand-edited\fR setting is merged like the others (repo < primary < your config, later wins) but is not offered by \fBconfigsys config set\fR / the Config screen — edit the file.
-.PP
-Notes on a few:
+Notes:
 .IP \(bu 2
-\fB\fBdirs:\fR\fR relocates the install-layout directories without a shell env var. Keys: \fBuser\fR (user-scope base, default \fB~\fR), \fBsystem\fR (system-scope base, default \fB/opt\fR), and the category dirs \fBapp\fR/\fBsdk\fR/\fBsrc\fR (defaults \fBapps\fR/\fBsdks\fR/\fBsrc\fR, referenced in routes as \fB$CONFIGSYS_APP_DIR\fR etc.). Precedence is \fBdefault < \fBdirs:\fR < env\fR — the \fBCONFIGSYS_USERSCOPE_DIR\fR / \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR / \fBCONFIGSYS_APP_DIR\fR / \fBCONFIGSYS_SDK_DIR\fR / \fBCONFIGSYS_SRC_DIR\fR env vars still win, so \fBdirs:\fR is the durable setting and the env var the per-invocation override. (Bootstrap paths — where the config/state/repo live — stay env-only; they're needed before the config loads.)
+\fB\fBdirs:\fR\fR keys are \fBuser\fR (the user-scope base, default \fB~\fR), \fBsystem\fR (the system-scope base, default \fB/opt\fR), and the category directories \fBapp\fR, \fBsdk\fR and \fBsrc\fR (defaults \fBapps\fR, \fBsdks\fR, \fBsrc\fR), which routes reference as \fB$CONFIGSYS_APP_DIR\fR, \fB$CONFIGSYS_SDK_DIR\fR and \fB$CONFIGSYS_SRC_DIR\fR. A relative category directory sits under the scope base; an absolute or \fB~\fR one is used as is. Precedence is built-in default < \fBdirs:\fR < environment variable (\fBCONFIGSYS_USERSCOPE_DIR\fR, \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR, \fBCONFIGSYS_APP_DIR\fR, \fBCONFIGSYS_SDK_DIR\fR, \fBCONFIGSYS_SRC_DIR\fR), so \fBdirs:\fR is the durable setting and the variable a per-run override. The paths configsys needs before it can read your config (its state directory, your top config, the repo) are set only by environment variables.
 .IP \(bu 2
-\fB\fBlocations:\fR\fR is "find/manage THIS component's install here": an absolute, scope-bypassing path honored by the path-based drivers (source builds, appImage, tarball, font, and the build plugins) over their computed dir. Distinct from \fBdirs:\fR, which relocates a whole category.
-.IP \(bu 2
-\fB\fBdetect-coexisting:\fR\fR — package managers are enumerated once (batched), so the cost is a handful of "list installed" calls, not one per component. \fBconfigsys versions <name>\fR shows per-method state regardless.
-.IP \(bu 2
-\fB\fBpins:\fR\fR reroutes without redefining: a binding-pin forces a component's driver, a provider-pin forces which component satisfies a capability. \fBconfigsys pin set|unset|promote\fR.
-.IP \(bu 2
-\fB\fBsplash:\fR\fR — fancier splashes are shipped by code plugins (\fBSPLASHES\fR export — e.g. \fBconfigsys-splash-ocean\fR; see docs/plugins.md) and must be trusted before they load; \fBCONFIGSYS_NO_SPLASH\fR, \fB--nocolor\fR, \fB--effects none\fR and \fB--verbose\fR also suppress the splash.
-.IP \(bu 2
-\fB\fBcomponents:\fR\fR \fIamends\fR a route: bindings merge \fBadditively\fR across layers by \fB(via, when)\fR identity — a higher layer adds an install method, overrides a matching binding, retracts one with a \fBdrop:\fR binding, or removes the whole component with \fB{}\fR.
+\fB\fBsplash:\fR\fR splashes other than the built-in come from code plugins (for example \fBconfigsys-splash-ocean\fR; see docs/plugins.md), which you must trust before they load; a name that isn't available falls back to the built-in with a note. \fBCONFIGSYS_NO_SPLASH\fR and \fB--verbose\fR turn the splash off; \fB--effects none\fR and \fB--nocolor\fR swap any plugin splash for the plain built-in bar.
 .SH WHERE A MACHINE-SETTING EDIT LANDS
 .PP
-\fBconfigsys config set …\fR and the TUI \fBConfig\fR screen route each setting by its \fBnature\fR (the table above):
+\fBconfigsys config set …\fR and the TUI \fBConfig\fR screen route each setting by its \fBnature\fR:
 .IP \(bu 2
-\fBuniform\fR settings are the same on every machine, so an edit defaults into your \fBprimary plugin\fR (portable — commit + push + re-tag the primary + \fBplugin sync\fR to propagate; it's effective on this machine immediately). \fBpicks:\fR is uniform too — the install set is meant to travel (\fBconfigsys picks to-primary\fR moves this box's local picks there).
+\fBuniform\fR settings are the same on every machine, so an edit defaults to your \fBprimary plugin\fR (portable: commit, push and re-tag the primary, then \fBplugin sync\fR elsewhere; it takes effect on this machine immediately). \fBpicks:\fR is uniform too, because the install set is meant to travel (\fBconfigsys picks to-primary\fR moves this box's local picks there).
 .IP \(bu 2
-\fBmachine\fR settings are a truth about \fIthis\fR box, so an edit defaults to your \fBtop config\fR (\fB~/.config/configsys/configsys.hu\fR), local and unshared. \fBdispositions:\fR (your NEW/seen triage) and \fBuninstall:\fR are machine-local too.
+\fBmachine\fR settings are a fact about \fIthis\fR box, so an edit defaults to your \fBtop config\fR, local and unshared. \fBdispositions:\fR (your seen/interesting triage) is machine too, and the \fBuninstall:\fR queue and \fBpins:\fR (\fBconfigsys pin set\fR) are written to your top config.
 .PP
-When no primary is blessed, everything lands local. An edit to a setting you've \fIalready\fR set goes to the layer it lives in (so a lower layer can't silently shadow it). The Config screen shows each setting's current home (\fBlocal\fR / \fBprimary: <name>\fR / \fBbuilt-in default\fR) and its nature, and \fBconfig show\fR prints the same.
+When you have no primary plugin (or it isn't synced), everything lands in your top config. An edit to a setting you've \fIalready\fR set goes to the layer it lives in, so a lower layer can't silently shadow it. The Config screen shows, for each setting, whether it is at its built-in default, set by you, or overridden by an environment variable, and its store (your primary plugin or your top config), which is where an edit lands; \fBconfig show\fR prints the same.
 .IP \(bu 2
-\fBconfig set <key> <value> --local\fR forces this-machine-only (bypasses the uniform default).
+\fBconfig set <key> <value> --local\fR writes to your top config, bypassing the uniform default.
 .IP \(bu 2
-\fBconfig move <key>\fR (TUI: \fB\fBm\fR\fR) carries a setting the other way — \fBlocal ↔ primary\fR — writing its value at the destination and clearing the source. Direction is inferred from where it lives now; a setting still at its built-in default has nothing to move.
+\fBconfig move <key>\fR (TUI: \fB\fBm\fR\fR) carries a setting the other way, between your top config and your primary plugin: it writes the value at the destination and clears the source. The direction follows from where the setting lives now; a setting at its built-in default has nothing to move.
+.IP \(bu 2
+\fBconfigsys pin promote <name>\fR does the same for one pin.
 .PP
-An \fBenv var always wins\fR over both (the per-invocation escape hatch), and is surfaced as the source when set.
-.SH PICKS — WHAT A MACHINE INSTALLS
+An environment variable always wins over both (the per-run escape hatch), and is shown as the source when set.
+.SH PICKS: WHAT A MACHINE INSTALLS
 .PP
-The install set is the \fBcomponent × machine matrix\fR: \fBpicks:\fR holds one component list per machine, and \fBmachine:\fR says which column \fIthis\fR box is. A machine installs exactly the components picked for it — nothing is inferred from profiles.
+The install set is the \fBcomponent × machine matrix\fR: \fBpicks:\fR holds one component list per machine, and \fBmachine:\fR says which column \fIthis\fR box is. A machine installs exactly the components picked for it; nothing is inferred from profiles.
 .PP
 .RS 4
 .nf
@@ -113,45 +166,92 @@ picks: {
 .IP \(bu 2
 \fBconfigsys picks list|add|rm [--machine M]\fR edits a column (default: this box's); \fBpicks to-primary\fR moves this box's local picks into the primary plugin so they travel.
 .IP \(bu 2
-\fBconfigsys machine list|show|add|rm|use\fR manages the columns; \fBmachine use <name>\fR sets this box's \fBmachine:\fR (no name clears it). \fB--machine NAME\fR on any command curates/plans another machine's set for the run; install/execute still act on the local machine only.
+\fBconfigsys machine list|show|add|rm|use\fR manages the columns; \fBmachine use <name>\fR sets this box's \fBmachine:\fR (no name clears it). \fB--machine NAME\fR on any command curates or plans another machine's set for that run; install and execute still act on the local machine only.
 .IP \(bu 2
-The TUI \fBProfiles\fR screen is the same matrix interactively (\fBt\fR/\fBT\fR toggle picks, \fBm\fR/\fBM\fR choose machines); the \fBComponents\fR screen shows this machine's picks with their state.
+The TUI \fBProfiles\fR screen is the same matrix, interactively (\fBt\fR/\fBT\fR track, \fBm\fR/\fBM\fR choose machines); the \fBComponents\fR screen shows this machine's picks with their state.
 .IP \(bu 2
-\fB\fBdispositions:\fR\fR is a side-store of triage marks (\fBseen\fR / \fBinteresting\fR; unlisted = NEW) so the catalog can be worked through once — \fBconfigsys disp list|get|set\fR. \fB\fBuninstall:\fR\fR is the queue of components staged for removal (TUI \fBx\fR), run at execute.
+\fB\fBdispositions:\fR\fR (a map of component to \fBseen\fR or \fBinteresting\fR; an unlisted component is NEW) is a side-store of triage marks, so you can work through the catalog once; it never installs anything. \fBconfigsys disp list|get|set\fR.
 .IP \(bu 2
-\fBconfigsys orphans\fR lists installed software no pick accounts for; \fB--adopt\fR picks it.
+\fB\fBuninstall:\fR\fR (a list) is the queue of removals you stage on the TUI Profiles screen (\fBx\fR), shown as its \fB!uninstall\fR lens; they run when you execute.
+.IP \(bu 2
+\fBconfigsys orphans\fR lists installed software no pick accounts for; \fB--adopt NAME\fR picks it.
 .PP
-The retired \fBconfigs:\fR and user-authored \fBprofiles:\fR sections now only produce \fBcheck\fR warnings.
-.SH PROFILES — READ-ONLY BROWSE LENSES
+The retired \fBconfigs:\fR section is ignored, and \fBcheck\fR warns about it. A \fBprofiles:\fR section in your top config or primary plugin still loads for browsing, but \fBcheck\fR flags it as retired; ship profiles in an ordinary plugin instead.
+.SH PINS
 .PP
-A profile is a named list of components — defined in the repo's \fBconfig.hu\fR or by a plugin — used to \fBbrowse\fR the catalog (\fBconfigsys profile list|show\fR, the TUI Profiles screen). Browsing a profile never changes your system; you pick from it. On the command line, \fBprofile:<name>\fR expands to a profile's members (\fBconfigsys install profile:dev\fR).
+\fBpins:\fR reroutes a component without redefining it, at the top of the precedence order:
+.IP \(bu 2
+a \fBbinding-pin\fR (\fBcomponent: via\fR) forces a component's install method, for example \fBpins: { steam: flatpak }\fR. The component must have a binding with that \fBvia:\fR that is valid here, or resolving it is an error.
+.IP \(bu 2
+a \fBprovider-pin\fR (\fBcapability: component\fR) forces which component satisfies a capability, for example \fBpins: { jdk: jdk-17 }\fR. It may name a \fBstanding: never-auto\fR provider.
 .PP
-For repo/plugin authors, a profile's value is a list of \fBterms\fR, applied left-to-right:
+A pin whose value names a via (a driver, \fBnative\fR or \fBparts\fR) is a binding-pin; any other value is a provider-pin. \fBpins:\fR merges per key. \fBconfigsys pin list|set|unset|promote\fR manages them: \fBset\fR and \fBunset\fR edit your top config, and \fBpromote\fR moves a pin into your primary plugin. In the TUI, \fBv\fR picks a component's method or provider.
+.SH PLUGINS AND INCLUDES
+.SS plugins:
+.PP
+A \fBplugin\fR is a git repository (or a local directory) that adds components, OS blocks, profiles, drivers or splash screens. Your top config declares them; \fBconfigsys plugin sync\fR fetches each one into \fB~/.config/configsys/plugins/<name>/\fR at its pinned ref:
+.PP
+.RS 4
+.nf
+plugins: [
+    { source: "github:someone/configsys-mydistro"  ref: v1.2.0 }
+    { source: "github:me/configsys-me"  primary: true }
+    { source: /home/me/src/configsys-local }
+]
+.fi
+.RE
+.IP \(bu 2
+\fB\fBsource:\fR\fR is \fBgithub:owner/repo\fR, \fBgitlab:owner/repo\fR, any git URL, an ssh source, a \fBfile:\fR URL, or a local path (which must be a git repository; configsys clones it). A source containing a colon must be quoted.
+.IP \(bu 2
+\fB\fBref:\fR\fR is a tag, commit or branch. A tag or commit checks out exactly that; a branch follows the remote tip; no \fBref:\fR follows the default branch.
+.IP \(bu 2
+\fB\fBsha256:\fR\fR (optional) pins the plugin's exact content; a mismatch quarantines it.
+.IP \(bu 2
+\fB\fBprimary: true\fR\fR makes it your primary plugin (only one; \fBconfigsys plugin bless <source>\fR writes it for you).
+.PP
+Only your top config's \fBplugins:\fR list is read. A plugin's own manifest may list further plugins, which are fetched with it but are never primary. An unsynced, incompatible or malformed plugin is skipped, never fatal. A plugin that runs code or commands must be trusted first (\fBconfigsys plugin trust\fR). \fBconfigsys plugin add <source>\fR declares and syncs one: with a primary plugin it goes into the primary's manifest so it travels; with \fB--local\fR it goes into your top config, so it applies to this machine only (handy for a source tree or an app install that ships its own \fB.hu\fR files). See docs/plugins.md.
+.SS include:
+.PP
+\fBinclude:\fR is a path or a list of paths to more \fB.hu\fR files. A relative path resolves against the including file's directory, and \fB~\fR against your home. An included file sits just below the file that includes it and contributes definitions only (see "Layers"). A missing include or an include cycle is an error.
+.SH PROFILES: READ-ONLY BROWSE LENSES
+.PP
+A profile is a named list of components, defined in the repo's \fBconfig.hu\fR, by a plugin, or in a file you include. Profiles exist to \fBbrowse\fR the catalog (\fBconfigsys profile list|show\fR, the TUI Profiles screen); browsing a profile never changes your system, you pick from it. On the command line, \fBprofile:<name>\fR expands to a profile's members (\fBconfigsys install profile:dev\fR).
+.PP
+For plugin authors, a profile's value is a list of \fBterms\fR, applied left to right:
 .IP \(bu 2
 a bare \fBname\fR adds a component;
 .IP \(bu 2
 \fB+name\fR splices in another profile's members (recursively);
 .IP \(bu 2
-\fB~name\fR removes a component (or a whole spliced sub-profile) added so far;
+\fB~name\fR removes a component added so far, or every member of a profile named \fBname\fR;
 .IP \(bu 2
-\fB+self\fR means "the same profile from the next layer down", so a higher layer \fBamends\fR a profile in place instead of replacing it wholesale.
+\fB+<the profile's own name>\fR means "the same profile from the next layer down", so a higher layer \fBamends\fR a profile in place instead of replacing it.
 .PP
 .RS 4
 .nf
 profiles: {
     base: [ btop, git, curl ]
     dev:  [ +base, neovim, gcc-15, ~curl ]   // base, plus tools, minus curl
-    dev:  [ +self, valgrind ]                // (higher plugin layer) amend dev in place
 }
 .fi
 .RE
 .PP
-Order matters: a \fB~\fR after a \fB+\fR drops what the include brought in; a later add re-adds it.
+and in a higher layer (a plugin that loads later):
 .PP
-\fB\fBall\fR\fR is a built-in synthetic profile — every defined component. You don't declare it; use it as \fBconfigsys install profile:all\fR, or cycle the Components screen's view mode (\fBM\fR) to see the full installed+tracked picture.
+.RS 4
+.nf
+profiles: {
+    dev:  [ +dev, valgrind ]                  // amend dev in place: everything above, plus valgrind
+}
+.fi
+.RE
+.PP
+Order matters: a \fB~\fR after a \fB+\fR drops what the splice brought in; a later add re-adds it. A redefinition without the self term replaces the lower profile wholesale.
+.PP
+\fB\fB!all\fR\fR is a built-in browse lens listing every defined component; it heads the TUI Profiles screen, and you don't declare it. To see everything installed or tracked on the Components screen, cycle its view mode (\fBM\fR).
 .SH COMPONENTS AND BINDINGS
 .PP
-\fBroutes.hu\fR's \fBcomponents:\fR section defines each component as a capability plus a list of context-selected \fBbindings\fR. A binding names its \fBdriver\fR with \fBvia:\fR, guards itself with an optional \fBwhen:\fR expression, and carries driver-specific details:
+\fBroutes.hu\fR's \fBcomponents:\fR section defines each component as a capability plus a list of context-selected \fBbindings\fR (its \fBinstall:\fR list). A binding names its \fBdriver\fR with \fBvia:\fR, guards itself with an optional \fBwhen:\fR expression, and carries driver-specific fields:
 .PP
 .RS 4
 .nf
@@ -169,83 +269,201 @@ components: {
 }
 .fi
 .RE
-.IP \(bu 2
-\fB\fBvia: native\fR\fR resolves to whatever the OS uses (apt / dnf / pacman / zypper / apk / brew) — one route covers every distro. \fBname:\fR maps the package name per driver.
-.IP \(bu 2
-\fB\fBvia: parts\fR\fR is a pure aggregator: a component that is just the union of its parts, with no unit of its own.
-.IP \(bu 2
-\fB\fBrequires:\fR\fR pulls in capabilities (another component, or a driver's prerequisites) first, dependency-ordered — a hard dependency (unmet is an error). \fB\fBsuggests:\fR\fR is soft (pulled in if resolvable here, skipped otherwise). \fB\fBprovides:\fR\fR declares extra capabilities a component satisfies; a versioned capability is \fBprovides: { cap: N }\fR matched by \fBrequires: { cap: ">=N" }\fR.
-.IP \(bu 2
-\fB\fBstanding:\fR\fR is the one preference knob, on a binding, a driver, or a component: \fBnever-auto\fR keeps a method valid, listed and pinnable but never the auto-default (on a component, never auto-pulled to satisfy a \fBrequires:\fR); an \fBinteger\fR is a preference rank (higher wins). See "Choosing among methods".
-.IP \(bu 2
-\fB\fBscope: user|system\fR\fR sets the install scope. Scope-honoring drivers (appImage, flatpak, tarball, source, font, npm, gem, luarocks) default to \fBuser\fR; fixed-scope drivers (apt/dnf/pacman = system, cargo/pipx/dotfiles/glue = user) ignore it.
-.IP \(bu 2
-\fB\fBdescription:\fR\fR (one line) and \fB\fBattrs:\fR\fR (kind tags — CLI/TUI/GUI/FOSS/…; see docs/component-attrs.md) describe a component for the catalog and its filters.
 .PP
-Bindings \fBmerge additively\fR across layers. A binding's identity is its \fB(via, when)\fR pair, so a higher layer (a plugin or your config) can \fIadd\fR a new install method, \fIoverride\fR a matching binding, \fIretract\fR an inherited one with a \fBdrop:\fR binding (\fB{ via: X  when: Y  drop }\fR), or clear the whole component with \fB{}\fR — none of which requires redefining the component.
-.PP
-Among the bindings that are \fBvalid\fR here (their \fBwhen:\fR matches), one is chosen — see "Choosing among methods" below. Run \fBconfigsys where <name>\fR to see a component's bindings, which are valid here, and which one resolves.
-.SH THE \FBWHEN:\FR EXPRESSION
-.PP
-\fBwhen:\fR is a boolean expression that selects a binding by machine context. Its atoms are:
+A component may carry these keys (an unrecognized key is an error):
 .IP \(bu 2
-an \fBOS name\fR — bare (\fBubuntu\fR, \fBredhat\fR) matches that block and everything that inherits from it; versioned (\fBubuntu < 23.04\fR) matches a version range on a scale;
+\fB\fBinstall:\fR\fR the bindings.
 .IP \(bu 2
-a \fBCPU\fR atom (\fBcpu: aarch64\fR);
+\fB\fBrequires:\fR\fR capabilities it needs, installed first and dependency-ordered. A hard dependency: if nothing can provide one here, the component is an error.
 .IP \(bu 2
-a declared \fBfacet\fR atom — any other detected fact about the machine (a GPU vendor, a tool's version), declared in a \fBfacets:\fR section; see docs/facets.md.
+\fB\fBsuggests:\fR\fR soft dependencies: pulled in when they can be installed here, skipped silently otherwise. A suggested component's own \fBrequires:\fR stay hard once it is pulled in.
+.IP \(bu 2
+\fB\fBprovides:\fR\fR extra capabilities it satisfies (a component always provides its own name).
+.IP \(bu 2
+\fB\fBstanding:\fR\fR \fBnever-auto\fR keeps the component from being pulled in automatically to satisfy a \fBrequires:\fR; it is used only when you pick it, require it by name, provider-pin it, or a version constraint selects it.
+.IP \(bu 2
+\fB\fBdescription:\fR\fR (one line) and \fB\fBattrs:\fR\fR (kind tags such as CLI, TUI, GUI, FOSS; see docs/component-attrs.md) describe it for the catalog and its filters.
 .PP
-Combine atoms with \fBand\fR, \fBor\fR, and a guarded \fBnot\fR. OS blocks form a lineage via \fBusing:\fR (\fBpop_os! -> ubuntu -> debian -> linux\fR), detected from \fB/etc/os-release\fR (\fBID=pop\fR -> \fBpop_os!\fR), so a route written on \fBdebian\fR applies to the whole family. \fBwhen:\fR expresses \fBvalidity only\fR — whether a method works here — never which method to prefer. Two bindings of the \fBsame driver\fR whose match-sets overlap must be comparable (one more specific than the other) or configsys reports a load-time ambiguity; overlapping bindings of \fIdifferent\fR drivers are legal alternatives, decided by preference (see below).
+A capability may be versioned: a provider declares \fBprovides: { jdk: 21 }\fR and a consumer \fBrequires: { jdk: ">=21" }\fR. A constraint uses \fB>=\fR, \fB>\fR, \fB<=\fR, \fB<\fR or \fB=\fR, and a comma joins clauses (\fB">=3.10,<3.13"\fR). It selects a provider whose version meets it (and may select a \fBnever-auto\fR one); for a capability whose version lives on the install method instead, it is a floor that configsys surfaces when it isn't met (see \fBauto-tighten\fR). \fBrequires:\fR, \fBsuggests:\fR and \fBprovides:\fR may also sit on a single binding, applying only when that binding is chosen.
+.SS Binding fields
+.PP
+Every binding may use:
+.IP \(bu 2
+\fB\fBvia:\fR\fR (required) the driver; see "Drivers". \fB\fBvia: native\fR\fR resolves to this OS's package manager (apt, dnf, pacman, zypper, apk, xbps or brew), so one binding covers every distro; on an OS with no package manager, native bindings aren't candidates. \fB\fBvia: parts\fR\fR is a pure aggregator: its \fB\fBparts:\fR\fR list is installed and it has no install of its own.
+.IP \(bu 2
+\fB\fBwhen:\fR\fR the validity condition (see "The when: expression"); absent means always valid.
+.IP \(bu 2
+\fB\fBstanding:\fR\fR the one preference knob. \fBnever-auto\fR keeps the binding valid, listed and pinnable but never the automatic default (unless every valid method is \fBnever-auto\fR); an \fBinteger\fR is a preference rank, higher wins (see "Choosing among methods").
+.IP \(bu 2
+\fB\fBname:\fR\fR the package or distribution name, defaulting to the component name. On a \fBvia: native\fR binding it may be a map keyed by package manager, with an optional \fBdefault:\fR (\fBname: { apt: fd-find  default: fd }\fR).
+.IP \(bu 2
+\fB\fBscope:\fR\fR \fBuser\fR or \fBsystem\fR, for scope-honoring drivers (\fBappImage\fR, \fBflatpak\fR, \fBtarball\fR, \fBsource\fR, \fBfont\fR, \fBnpm\fR, \fBgem\fR, \fBluarocks\fR); it beats the \fBscope:\fR setting. Other drivers have a fixed scope (OS package managers are system; \fBcargo\fR, \fBpipx\fR, \fBdotfiles\fR, \fBglue\fR are user) and ignore it.
+.IP \(bu 2
+\fB\fBpackages:\fR\fR (native, and the versioned \fBgcc\fR/\fBclang\fR drivers) a list of packages installed and removed together as one unit; install state is read from the first.
+.IP \(bu 2
+\fB\fBinstalled-name:\fR\fR (native) the one package to read install state and version from, when it differs from what is installed (a metapackage a system often lacks).
+.IP \(bu 2
+\fB\fBcpu-names:\fR\fR a map from CPU to upstream's spelling (\fB{ x86_64: amd64  aarch64: arm64 }\fR). \fB$ARCH\fR expands through it, and its keys are the CPUs the download exists for: on any other CPU the binding isn't valid, without making it more specific.
+.IP \(bu 2
+\fB\fBversion:\fR\fR, \fB\fBurl:\fR\fR, \fB\fBasset:\fR\fR and \fB\fBlatest-check:\fR\fR for download-based drivers (see "Versions").
+.PP
+Driver-specific fields include:
+.IP \(bu 2
+\fBapt\fR (\fBvia: native\fR on Debian-family): \fBrepo-component:\fR (an archive component such as \fBuniverse\fR), \fBppa:\fR, \fBforeign-arch:\fR (for example \fBi386\fR), \fBpubkey-url:\fR + \fBpubkey-path:\fR (a signing key), \fBsource-url:\fR or \fBsource-line:\fR + \fBsource-path:\fR (a vendor source list; \fB$CODENAME\fR in a source line becomes the release codename), and \fBdebconf:\fR (preseeded answers). A vendor source that breaks the package index is rolled back.
+.IP \(bu 2
+\fBdnf\fR (\fBvia: native\fR on the Red Hat family): \fBenable-repo:\fR (turn on a repo that ships disabled, such as \fBcrb\fR), \fBrepo-id:\fR + \fBrepo-name:\fR + \fBrepo-url:\fR (a vendor \fB.repo\fR file, verified with \fBpubkey-url:\fR).
+.IP \(bu 2
+\fBflatpak\fR: \fBhub:\fR (the remote, such as \fBflathub\fR), \fBapp:\fR (the application ID), \fBhub-url:\fR (a remote configsys doesn't know).
+.IP \(bu 2
+\fBsnap\fR: \fBname:\fR, \fBclassic: true\fR, \fBchannel:\fR.
+.IP \(bu 2
+\fBappImage\fR: \fBpath:\fR (the target file), \fBurl:\fR and/or \fBversion:\fR, \fBname:\fR (the menu label), \fBdesktop-id:\fR (the app's desktop ID, so its menu entry and dock icon share one \fB.desktop\fR file).
+.IP \(bu 2
+\fBtarball\fR: \fBinstallDir:\fR (required; it is replaced on every install), \fBurl:\fR and/or \fBversion:\fR, \fBarchive:\fR (\fBnone\fR for a bare executable, \fBgz\fR for a single gzipped binary, \fBzip\fR), \fBbinary:\fR (the file name for \fBnone\fR/\fBgz\fR), \fBstrip:\fR (leading path components to drop).
+.IP \(bu 2
+\fBnative-pkg-file\fR: \fBversion:\fR plus \fBasset:\fR (CPU-keyed, or format-then-CPU-keyed such as \fB{ deb: { x86_64: … }  rpm: { x86_64: … } }\fR), or \fBurl:\fR.
+.IP \(bu 2
+\fBsource\fR: \fBbuild:\fR (required; a command or list, run in the tree with \fB$PREFIX\fR, \fB$SRC\fR, \fB$VERSION\fR, \fB$ARCH\fR), \fBrepo:\fR (a git URL) or \fBurl:\fR/\fBversion:\fR (a source archive), \fBref:\fR, \fBtag-prefix:\fR, \fBstrip:\fR, \fBinstallDir:\fR, \fBprefix:\fR, \fBuninstall-cmd:\fR.
+.IP \(bu 2
+\fBscript\fR: \fBinstall-cmd:\fR (required), \fBversion-cmd:\fR + \fBversion-re:\fR, \fBlatest-cmd:\fR, \fBuninstall-cmd:\fR, \fBupgrade-cmd:\fR, \fBset-version-cmd:\fR, \fBlocation:\fR.
+.IP \(bu 2
+\fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR.
+.IP \(bu 2
+\fBservice\fR: \fBunit:\fR, \fBstart: false\fR, \fBrunit:\fR (the runit service name or names, where they differ). \fBgroup\fR: \fBname:\fR (the group).
+.IP \(bu 2
+\fBdotfiles\fR and \fBglue\fR: see their sections.
+.PP
+See docs/routing-model.md for the complete binding model.
+.SS Overriding a component
+.PP
+Components \fBmerge additively\fR across layers. A binding's identity is its \fB(via, when)\fR pair, with \fBwhen:\fR compared as written, so a higher layer (a plugin or your config) can:
+.IP \(bu 2
+\fBadd\fR an install method: a binding whose \fB(via, when)\fR is new joins the list;
+.IP \(bu 2
+\fBoverride\fR one: a binding with the same \fB(via, when)\fR replaces the inherited one (restate all its fields);
+.IP \(bu 2
+\fBretract\fR one: \fB{ via: X  when: "Y"  drop: true }\fR removes the inherited binding with that identity;
+.IP \(bu 2
+\fBremove the whole component\fR: \fB{}\fR as its value discards everything below it.
+.PP
+The component's other keys override with inheritance: a layer that sets \fBrequires:\fR replaces it, a layer that omits it keeps the lower one. \fBattrs:\fR combine across layers. To merely choose among existing methods, use a pin instead.
+.PP
+.RS 4
+.nf
+components: {
+    btop: { install: [
+        { via: tarball  drop: true }                                    // retract the shipped tarball method
+        { via: flatpak  hub: flathub  app: io.github.aristocratos.btop } // add a method
+    ] }
+    apod: {}                                                            // remove apod entirely
+}
+.fi
+.RE
+.PP
+Among the bindings that are \fBvalid\fR here, one is chosen (see "Choosing among methods"). \fBconfigsys where <name>\fR shows a component's source layer, its bindings, which are valid here, and which one resolves.
+.SH THE WHEN: EXPRESSION
+.PP
+\fBwhen:\fR is a boolean expression over the machine's context. It states \fBvalidity only\fR (whether a method works here), never which method to prefer. Its atoms are:
+.IP \(bu 2
+an \fBOS block name\fR, bare or versioned. Bare (\fBubuntu\fR, \fBredhat\fR) matches that block and every block that inherits from it. Versioned (\fBubuntu < 23.04\fR, \fBdebian >= 12\fR, with \fB<\fR, \fB<=\fR, \fB>\fR, \fB>=\fR, \fB=\fR or \fB==\fR) additionally requires the machine to be on that block's version scale and the comparison to hold, so \fBdebian < 12\fR never matches Ubuntu, which numbers its own releases.
+.IP \(bu 2
+a \fBCPU\fR atom: \fBcpu: aarch64\fR, or \fBcpu: [ x86_64, aarch64 ]\fR.
+.IP \(bu 2
+a \fBfacet\fR: a detected fact declared in a \fBfacets:\fR section. Categorical facets read like CPU (\fBgpu:nvidia\fR, \fBgpu:[nvidia, amd]\fR); version facets like a versioned OS (\fBcuda >= 12\fR). An undetected facet makes its atom false. See docs/facets.md.
+.PP
+Combine atoms with \fBand\fR, \fBor\fR, \fBnot\fR and parentheses (\fBnot\fR binds tightest, then \fBand\fR, then \fBor\fR); \fBnot\fR applies to any atom, for example \fB"ubuntu and not pop_os!"\fR.
+.PP
+OS blocks form a lineage through \fBusing:\fR (\fBpop_os!\fR -> \fBubuntu\fR -> \fBdebian\fR -> \fBlinux\fR), so a binding written for \fBdebian\fR applies to the whole family. The machine's block comes from \fB/etc/os-release\fR's \fBID\fR; a few IDs map to a differently named block, because block names can't contain \fB-\fR (\fBID=pop\fR -> \fBpop_os!\fR, \fBID=opensuse-leap\fR -> \fBopensuse_leap\fR). A \fBwhen:\fR naming an unknown OS block is a \fBcheck\fR warning, since it would never match. Two bindings of the \fBsame driver\fR whose conditions overlap must be comparable (one more specific than the other), or configsys reports a load-time ambiguity; overlapping bindings of \fIdifferent\fR drivers are legal alternatives.
 .SH CHOOSING AMONG METHODS
 .PP
-A component can have several valid install methods in one context (e.g. \fBnative\fR and \fBflatpak\fR both work on Ubuntu). configsys picks one default deterministically, in this order:
+A component can have several valid install methods in one context (for example \fBnative\fR and \fBflatpak\fR both work on Ubuntu). configsys picks one default deterministically:
+.IP \(bu 2
+bindings and drivers marked \fB\fBstanding: never-auto\fR\fR are set aside (unless every valid method is);
+.IP \(bu 2
+then the \fBmost specific\fR valid binding wins (a narrower \fBwhen:\fR beats a broader one), across drivers;
+.IP \(bu 2
+then a binding's \fB\fBstanding:\fR\fR integer rank (a narrow, per-package author signal, so it outranks the blanket order below);
+.IP \(bu 2
+then \fB\fBdriver-preference\fR\fR, the global tiebreak list (a machine setting, overridable per OS block).
 .PP
-0. bindings marked \fB\fBstanding: never-auto\fR\fR are set aside (unless every valid method is); 1. \fBmost specific\fR among comparable valid bindings (a narrower \fBwhen:\fR beats a broader one); 2. a per-binding \fB\fBstanding:\fR\fR integer rank — a narrow, per-package author signal, so it outranks the blanket order below; 3. \fB\fBdriver-preference\fR\fR — the global tiebreak list (a machine setting, overridable per OS block).
+If that still ties, it is an error that names the preference channel, never a request to narrow a validity \fBwhen:\fR. Above the default sit two overrides: with \fBadopt-installed\fR on (the default), a method that is \fBalready installed\fR is adopted over the computed default; and a \fBpin\fR beats everything (\fBconfigsys pin set <name> <via>\fR, or edit \fBpins:\fR). Precedence: \fBpin > installed > default\fR. \fBconfigsys where <name>\fR shows all candidates and which rule decided.
+.SH OS BLOCKS AND DRIVERS
 .PP
-If that still ties, it is an error that names the preference channel — never a prompt to narrow a validity \fBwhen:\fR. Above the default sit two overrides: with \fBadopt-installed\fR on (the default), a method that is \fBalready installed\fR is adopted over the computed default; and a \fBpin\fR beats everything (\fBconfigsys pin set <name> <driver>\fR writes a binding-pin, or edit \fBpins:\fR directly). Precedence: \fBpin > installed > standing default\fR. \fBconfigsys where <name>\fR shows all candidates and which rule decided.
+Plugins (and the repo) may add \fBos:\fR blocks and \fBdrivers:\fR settings; your top config and includes can't.
 .PP
-A derivative distro that does not rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR) can still be detected by a \fBmarker\fR: an os block declares \fBdetect: { id: <base>  marker: <path> }\fR (marker may be a list). When the detected block is that base — or a descendant — and every marker exists on disk, configsys routes to the more-specific block. This is the data-driven form of the built-in Fedora-Atomic ostree-marker detection, so a plugin can add a detectable OS with no code (the \fBconfigsys-proxmox\fR plugin does exactly this).
-.SH VERSIONS — DISCOVERED, NOT HARDCODED
+An \fBos:\fR block describes one distro:
+.IP \(bu 2
+\fB\fBusing:\fR\fR its parent block (the lineage);
+.IP \(bu 2
+\fB\fBnative:\fR\fR its package manager (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBxbps\fR, \fBbrew\fR), inherited when absent;
+.IP \(bu 2
+\fB\fBscale-root: true\fR\fR marks a block that numbers its own releases, so versioned atoms on a parent don't misread its version;
+.IP \(bu 2
+\fB\fBprovides:\fR\fR capabilities the OS has out of the box;
+.IP \(bu 2
+\fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order that overrides the machine setting there;
+.IP \(bu 2
+\fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this.
+.PP
+A \fBdrivers:\fR entry configures one driver: \fB\fBrequires:\fR\fR capabilities every binding of that driver needs (\fBappImage\fR requires \fBlibfuse2\fR; \fBcargo\fR requires \fBcargo\fR), and \fB\fBstanding: never-auto\fR\fR to make every binding of that driver a listed, pinnable alternative that never wins by default (the shipped \fBsnap\fR entry does this).
+.SH VERSIONS: DISCOVERED, NOT HARDCODED
 .PP
 Download-based bindings declare \fIhow\fR to find the latest version rather than pinning one:
 .PP
 .RS 4
 .nf
 neovim: {
-    install: [ { via: appImage  name: Neovim  scope: user
+    install: [ { via: appImage  name: Neovim  scope: user  path: ~/apps/nvim.appimage
+                 cpu-names: { x86_64: x86_64  aarch64: arm64 }
                  version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                  url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage" } ]
 }
 .fi
 .RE
-.IP \(bu 2
-\fB\fB{ github: owner/repo }\fR\fR — the latest release tag (pre-release tags skipped); optional \fBstrip-v\fR; optional \fBasset: <glob>\fR also resolves the exact download URL from the release assets.
-.IP \(bu 2
-\fB\fB{ url: "..."  regex: "..." }\fR\fR — fetch a page and extract the version.
-.IP \(bu 2
-\fB\fB{ static: "..." }\fR\fR — a deliberate pin.
 .PP
-\fB$VERSION\fR and \fB$ARCH\fR are filled into the URL at install time. When a \fBgithub\fR asset name is literal (no glob), configsys can fall back to the API-free \fBreleases/latest/download/<asset>\fR URL, so installs keep working when the GitHub API is unreachable. Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24h TTL); \fBconfigsys refresh\fR re-queries (and also refreshes the native package index); \fBconfigsys versions <name>\fR shows what every method would install; and \fB--pretend\fR never touches the network (cache-only). Set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) to lift GitHub's unauthenticated rate limit.
+A \fBversion:\fR is a discovery source, or a literal version string:
+.IP \(bu 2
+\fB\fB{ github: owner/repo }\fR\fR: the newest stable release tag (pre-releases skipped). Options: \fBstrip-v: true\fR drops a leading \fBv\fR; \fBtag-re: "<regex>"\fR keeps only matching tags and extracts the version from the first capture group (for monorepo or decorated tags); \fBpick: highest\fR takes the highest version rather than the newest; \fBasset: "<glob>"\fR also finds the download URL among the release's assets.
+.IP \(bu 2
+\fB\fB{ crates: <crate> }\fR\fR, \fB\fB{ pypi: <dist> }\fR\fR (optionally with \fBpython:\fR, to find the newest release that supports that interpreter), \fB\fB{ aur: <package> }\fR\fR, \fB\fB{ hackage: <package> }\fR\fR, \fB\fB{ goproxy: <package path> }\fR\fR: the registry's latest version.
+.IP \(bu 2
+\fB\fB{ url: "..."  regex: "..." }\fR\fR: fetch a page and extract the version (the first capture group if the regex has one).
+.IP \(bu 2
+\fB\fB{ static: "..." }\fR\fR: a deliberate pin. Add \fB\fBlatest-check:\fR\fR (any discovery source) so \fBconfigsys refresh\fR notices when upstream moves past it and \fBcheck\fR reminds you.
+.PP
+Plugins may register further sources.
+.PP
+An \fB\fBasset:\fR\fR may also sit directly on the binding as a CPU-keyed map (\fB{ x86_64: foo-amd64.tar.gz  aarch64: foo-arm64.tar.gz }\fR); its keys gate validity like \fBcpu-names:\fR. \fB$VERSION\fR and \fB$ARCH\fR are filled into \fBurl:\fR and asset globs at install time. When a \fBgithub\fR asset name is literal (no glob), configsys can fall back to the API-free \fBreleases/latest/download/<asset>\fR URL, so installs keep working when the GitHub API is unreachable.
+.PP
+Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24-hour lifetime); \fBconfigsys refresh\fR re-queries them (and refreshes the native package index); \fBconfigsys versions <name>\fR shows what every method would install; and \fB--pretend\fR never touches the network (cache only). Release tags come from GitHub's public feeds; a release asset's URL needs the GitHub API, so set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) if you hit its unauthenticated rate limit.
 .SH DOTFILES
 .PP
-A \fBvia: dotfiles\fR component manages an application's \fBown config\fR. It maps link specs \fB{ src, dst }\fR: \fBdst\fR is where the config belongs (env-var and \fB~\fR expanded), and \fBsrc\fR is resolved through a content \fBsearch-path\fR — the first of these that has it wins:
+A \fBvia: dotfiles\fR component manages an application's \fBown config\fR. Its binding lists link specs, either top-level \fBsrc:\fR/\fBdst:\fR or named specs (\fB<name>: { src  dst }\fR):
+.PP
+.RS 4
+.nf
+btop-dotfiles: { install: [ { via: dotfiles  config: { src: btop  dst: $XDG_CONFIG_HOME/btop } } ] }
+.fi
+.RE
+.PP
+\fBdst\fR is where the config belongs (environment variables and \fB~\fR expanded), and \fBsrc\fR is resolved through a content \fBsearch path\fR; the first of these that has it wins:
 .IP \(bu 2
-\fB~/.config/configsys/dotfiles/<component>.cfs/<src>\fR — your machine-local store
+\fB~/.config/configsys/dotfiles/<component>.cfs/<src>\fR, your machine-local store;
 .IP \(bu 2
-\fB<primary plugin>/dotfiles/<component>.cfs/<src>\fR — your portable, git-tracked config
+\fB<primary plugin>/dotfiles/<component>.cfs/<src>\fR, your portable, git-tracked config;
 .IP \(bu 2
-\fB<defining layer>/dotfiles/<component>.cfs/<src>\fR — a template, only if some layer ships one
+\fB<defining layer>/dotfiles/<component>.cfs/<src>\fR, a template, only if some layer ships one.
 .PP
-The \fB\fB<component>.cfs/\fR marker dir\fR is what makes a config \fImanaged\fR: it holds the content plus a \fBmanifest.hu\fR recording the src→dst layout and any \fBexclude:\fR globs (secret-shaped files are suggested into it on first capture). A managed config with no files yet is still managed — the marker, not the content, is the state.
+The \fB\fB<component>.cfs/\fR\fR marker directory is what makes a config \fImanaged\fR: it holds the content plus a \fBmanifest.hu\fR recording the src-to-dst layout and any \fBexclude:\fR globs (secret-looking files are suggested on first capture and kept out of git). A managed config with no files yet is still managed; the marker, not the content, is the state.
 .PP
-configsys ships \fBno personal config templates\fR: a component may declare \fBsrc\fR/\fBdst\fR with no content anywhere, in which case it is simply not linked (a no-op) until you supply content. Install symlinks \fBdst -> src\fR so edits flow back to git; links never point into the repo.
+configsys ships \fBno personal config templates\fR: a component may declare \fBsrc\fR/\fBdst\fR with no content anywhere, in which case it is not linked (a no-op) until you supply content. Install symlinks \fBdst\fR to your copy of the content, so edits land in your store or primary plugin; links never point into the configsys repo.
 .PP
-Because your existing config is precious, install \fBrefuses\fR to symlink over a real on-system file that resolves only to an un-adopted template, printing how to adopt it (\fBconfigsys dotfiles capture\fR) — or \fBinstall --force\fR to back it up to \fB<name>.pre-configsys\fR and replace. Adopted content (in your store) links freely; an \fBabsorb-into\fR spec relocates a pre-existing file into a loader dir instead of backing it up (e.g. a stray \fB~/.bash_aliases\fR). \fBuninstall\fR removes the symlink and restores any backup.
+Because your existing config is precious, install \fBrefuses\fR to replace a real file with an un-adopted template and tells you how to adopt it (\fBconfigsys dotfiles capture\fR), or to run \fBinstall --force\fR, which backs the file up to \fB<name>.pre-configsys\fR and replaces it. Content you have captured links freely (backing up whatever was there); an \fBabsorb-into:\fR path on a spec moves a pre-existing file into a loader directory instead of backing it up (for example a stray \fB~/.bash_aliases\fR). \fBuninstall\fR removes the symlink and restores any backup.
 .PP
-\fBconfigsys dotfiles status\fR reports each dotfile's state — \fBlinked\fR / \fBadopted\fR / \fBunmanaged\fR / \fBtemplate\fR / \fBempty\fR — and where its managed content lives; \fBconfigsys dotfiles capture\fR copies your existing on-system dotfiles into your store (read-only on the system side). The TUI \fBDotfiles\fR screen does the same per row (\fBm\fR/\fBu\fR manage/unmanage, \fBM\fR/\fBU\fR all, \fBs\fR/\fBS\fR move between the local and primary stores). A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
+\fBconfigsys dotfiles status\fR reports each config as \fBmanaged\fR, \fBunmanaged\fR (an on-system file to capture, or stored content ready to link) or \fBno config\fR, with where its content lives, and lists glue rows separately. \fBconfigsys dotfiles capture\fR copies your existing on-system dotfiles into your store (read-only on the system side). The TUI \fBDotfiles\fR screen does the same per row (\fBm\fR/\fBu\fR manage/unmanage, \fBM\fR/\fBU\fR all, \fBs\fR/\fBS\fR move between the local and primary stores). A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
 .SH GLUE
 .PP
-A \fBvia: glue\fR component is the \fBshell integration\fR a tool needs to be usable — PATH, an alias (\fBfdfind\fR→\fBfd\fR, \fBbatcat\fR→\fBbat\fR), an init hook (\fBzoxide init\fR), completions — as a small snippet per shell:
+A \fBvia: glue\fR component is the \fBshell integration\fR a tool needs to be usable (PATH, an alias such as \fBfdfind\fR for \fBfd\fR, an init hook such as \fBzoxide init\fR, completions), as a small snippet per shell:
 .PP
 .RS 4
 .nf
@@ -253,18 +471,20 @@ zoxide-glue: { install: [ { via: glue  requires: shell-glue  glue: zoxide } ] }
 .fi
 .RE
 .IP \(bu 2
-Glue is \fBshipped, never captured\fR: a snippet is authored at \fBglue/shell/<shell>/<name>.<ext>\fR in the repo or a plugin, materialized into the machine-local glue store (\fB~/.config/configsys/glue/<shell>/conf.d/\fR), and linked into the uniform \fB~/.config/<shell>/conf.d/\fR for each \fBinstalled\fR shell that has a variant. elvish and nushell can't source a directory, so their snippets are inlined into the rc file instead.
+Glue is \fBshipped, never captured\fR: a snippet is authored at \fBglue/shell/<shell>/<name>.<ext>\fR in the repo or a plugin, copied into the machine-local glue store (\fB~/.config/configsys/glue/<shell>/conf.d/\fR), and linked into \fB~/.config/<shell>/conf.d/\fR for each \fBinstalled\fR shell that has a variant. elvish and nushell can't source a directory, so their snippets are inlined into the rc file instead.
 .IP \(bu 2
-\fB\fBshell-glue\fR\fR is the one loader component: it wires every installed shell to source its \fBconf.d\fR (bash via \fB~/.bash_aliases\fR, zsh via an rc marker block, fish natively). Every snippet \fBrequires:\fR it.
+\fB\fBshell-glue\fR\fR is the loader component: its \fBloader: <shell>\fR bindings wire every installed shell to read its \fBconf.d\fR (bash through \fB~/.bash_aliases\fR, zsh through a marked block in \fB~/.zshrc\fR, fish natively). Every snippet \fBrequires:\fR it.
 .IP \(bu 2
-A tool \fBsuggests:\fR its \fB<name>-glue\fR companion, so the snippet attaches only where the tool is picked. Glue is "active" or not — it has no version — and lives on its own TUI \fBGlue\fR screen (\fBa\fR/\fBA\fR activate, \fBx\fR deactivate), grouped per shell. \fBCONFIGSYS_GLUE_SHELLS\fR overrides which shells count as installed.
+A tool \fBsuggests:\fR its \fB<name>-glue\fR companion, so the snippet attaches only where the tool is picked. Glue is active or not (it has no version) and has its own TUI \fBGlue\fR screen (\fBa\fR/\fBA\fR activate, \fBx\fR deactivate), grouped per shell. \fBCONFIGSYS_GLUE_SHELLS\fR (comma-separated) overrides which shells count as installed.
 .IP \(bu 2
-Opt out per machine with \fBdisabled-drivers: [ glue ]\fR (and/or \fBdotfiles\fR) to manage your own shell config; the guard below keeps installers from scribbling in it.
+Your own startup snippets live in a \fBuser.d\fR folder and load after component glue: \fBconfigsys glue add\fR creates one, and \fBconfigsys glue override <name>\fR copies a shipped snippet into your layer to customize it.
+.IP \(bu 2
+Opt out on a machine with \fBdisabled-drivers: [ glue ]\fR (and/or \fBdotfiles\fR) to manage your own shell config; the shell-writes guard still keeps installers from editing it.
 .PP
-\fBInstaller shell writes.\fR With \fBinstaller-shell-writes: block\fR (the default), an installer that appends to \fB~/.bashrc\fR / \fB~/.zshrc\fR / \fB~/.profile\fR (sdkman, nvm, rustup, conda, …) has the file reverted to its prior bytes and the removed block \fBstaged\fR as an inactive glue candidate: \fBconfigsys dotfiles staged\fR lists them, \fBactivate\fR links one into \fBconf.d\fR, \fBdiscard\fR drops it. \fBinstaller-shell-writes-allow\fR exempts named components.
+\fBInstaller shell writes.\fR With \fBinstaller-shell-writes: block\fR (the default), an installer that appends to your shell startup files (sdkman, nvm, rustup, conda, …) has the file restored to its prior contents and the removed lines \fBstaged\fR as an inactive glue candidate: \fBconfigsys dotfiles staged\fR lists them, \fBactivate\fR links one into \fBconf.d\fR, \fBdiscard\fR drops it. \fBinstaller-shell-writes-allow\fR exempts named components.
 .SH COMPONENT-NAMES
 .PP
-A higher layer (typically a plugin) can patch the package name a component maps to under a given driver — or drop it where that driver has no package — without redefining the whole component:
+A higher layer (typically a plugin) can patch the package name a component maps to under a given driver, or drop it where that driver has no package, without redefining the component:
 .PP
 .RS 4
 .nf
@@ -274,21 +494,347 @@ component-names: {
 .fi
 .RE
 .PP
-Keyed by driver and overlaid across the layer stack (later wins): a string replaces the resolved package name; \fB{}\fR (or null) means "not available via this driver," so the component isn't offered there. See the routing model (docs/routing-model.md §10a) for the full rules.
-.SH DRIVERS
+It is keyed by driver and overlaid across the layer stack (later wins per driver and component): a string replaces the resolved package name; \fB{}\fR (or an empty value) means "not available through this driver", so the component isn't offered there. See docs/routing-model.md for the full rules.
+.SH VERSION-FLOORS
 .PP
-Each \fBvia:\fR value names a driver: the OS package managers (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBaur\fR, \fBbrew\fR, \fBrpm-ostree\fR), the distribution drivers \fBflatpak\fR, \fBsnap\fR, \fBappImage\fR, \fBtarball\fR (also bare-binary and \fB.zip\fR archives), \fBnative-pkg-file\fR (an upstream release's \fB.deb\fR/\fB.rpm\fR installed with the OS package tool — distinct from repo \fBnative\fR, since it doesn't ride \fBapt upgrade\fR), \fBsource\fR (build from a git checkout or source archive with declared \fBbuild:\fR commands), \fBfont\fR, \fBscript\fR (declared install/version/uninstall commands); the config drivers \fBdotfiles\fR and \fBglue\fR; the language toolchains and their module/version installers (\fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBpyenv\fR, \fBsdkman\fR, \fBgcc\fR, \fBclang\fR, \fBgcc-toolset\fR); and the post-install primitives \fBservice\fR (systemd) and \fBgroup\fR (usermod). Two \fBvia:\fR values are special: \fBnative\fR (resolves to the OS's package manager) and \fBparts\fR (a pure aggregator). Plugins may add drivers.
-.SH LOCAL PLUGINS
-.PP
-To let a source repo or an app install contribute components (or os/driver blocks) to \fIthis\fR machine only, declare it as a \fBlocal plugin\fR in your top config rather than your portable primary:
+\fBversion-floors:\fR tightens version requirements without redefining components:
 .PP
 .RS 4
 .nf
-configsys plugin add github:owner/their-configsys-plugin --local
+version-floors: {
+    goimports: { go: ">=1.22" }
+}
 .fi
 .RE
 .PP
-\fB--local\fR writes the entry to \fB~/.config/configsys/configsys.hu\fR's \fBplugins:\fR list, so it applies here and doesn't travel to your other machines the way a \fBprimary\fR plugin does. It loads as a \fBplugin\fR-role layer: it may add \fBcomponents:\fR/\fBprofiles:\fR/\fBos:\fR/\fBdrivers:\fR, but not machine settings (those stay \fBprimary\fR/top-config only), and code plugins still require an explicit \fBconfigsys plugin trust\fR. Without \fB--local\fR, \fBplugin add\fR rides your primary plugin when one is set. See docs/plugins.md for the plugin model.
+A floor applies only where the component already \fBrequires:\fR that capability (at the component level or on a binding); a floor for a capability it doesn't require is ignored, so this section never adds a dependency. Later layers win per component and capability.
+.SH FACETS
+.PP
+A \fBfacet\fR is a detected fact about the machine (a GPU vendor, a tool's version) that \fBwhen:\fR can test. The repo and plugins declare facets with probes:
+.PP
+.RS 4
+.nf
+facets: {
+    gpu:  { kind: categorical  detect: "lspci"  match: { nvidia: "NVIDIA"  amd: "AMD/ATI" } }
+    cuda: { kind: version  detect: "nvcc --version"  version-re: "release ([0-9.]+)" }
+}
+.fi
+.RE
+.PP
+A \fBcategorical\fR facet's value is the set of \fBmatch:\fR tags whose regex matches the probe's output; a \fBversion\fR facet's value is the first capture group of \fBversion-re:\fR. A probe that fails leaves the facet undetected. A plugin's probes run only once you trust the plugin.
+.PP
+In your top config, \fBfacets:\fR instead \fBdeclares\fR values for facets the repo or a plugin declares, overriding their probes: a version (\fBcuda: 12\fR), or for a categorical facet a tag, or several separated by spaces or commas (\fBgpu: nvidia\fR). Use it to target hardware or a toolkit that isn't installed yet. \fBCONFIGSYS_FACET_<name>\fR overrides both. See docs/facets.md.
+.SH THEME AND KEYS
+.PP
+\fBtheme:\fR sets the TUI palette: a shared \fBcolors:\fR map of names to \fB#rrggbb\fR, per-page role styles and background gradients under \fBpages:\fR, and \fBcolors-basic:\fR for 8- and 16-color terminals. Edit it live on the Theme screen or with \fBconfigsys theme\fR; see docs/theming.md.
+.PP
+\fBkeys:\fR rebinds TUI keys by action: \fBkeys: { <key scope>: { <action>: <key or [ keys ]> } }\fR, where the key scope (unrelated to the install \fBscope:\fR setting) is \fBglobal\fR, \fBscreens\fR (the number keys that switch screens) or a screen name (\fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR, \fBtheme\fR). A key is a character (case matters), a named key (\fBenter\fR, \fBtab\fR, \fBesc\fR, \fBspace\fR, arrows, \fBpgup\fR, \fBpgdn\fR, \fBhome\fR, \fBend\fR, \fBdel\fR, \fBshift-tab\fR, \fBf1\fR to \fBf12\fR) or \fBctrl-<x>\fR. The on-screen hints follow your bindings, and \fBconfigsys keys\fR prints the effective map. The subsections below are the full reference.
+.PP
+Both are cosmetic, so every layer may contribute them; they merge per key, and your top config has the last word.
+.SS Where \fBkeys:\fR goes and how it merges
+.PP
+The \fBkeys:\fR section of the repo's \fBconfig.hu\fR is the complete default map: configsys has no other built-in bindings. Any layer may add a \fBkeys:\fR section: an ordinary plugin, your primary plugin, a file you \fBinclude:\fR, and your top config. They merge lowest-first (repo \fBconfig.hu\fR < plugins < primary plugin < your top config, with an included file just below the file that includes it), per key scope and per action:
+.IP \(bu 2
+A layer overrides only the actions it names; every other action keeps its binding from below.
+.IP \(bu 2
+The value replaces the lower one whole; it is not appended to. \fBdown: J\fR leaves \fBdown\fR on \fBJ\fR alone (no \fBj\fR, no Down arrow). To add a key, list the old ones too: \fBdown: [ j  down  J ]\fR.
+.IP \(bu 2
+An empty list unbinds the action: \fBquit: []\fR.
+.IP \(bu 2
+Giving an action a new key doesn't take that key away from another action in the same key scope that already has it; move or unbind that action too (see "Conflicts and validation").
+.PP
+For example, in your top config or primary plugin:
+.PP
+.RS 4
+.nf
+keys: {
+    global: {
+        down: [ j  down  ctrl-n ]    // add emacs-style keys; keep j and the arrow
+        up: [ k  up  ctrl-p ]
+        quit: []                     // no confirm-quit key; quit-force (Q) still works
+    }
+    components: {
+        method: p                    // was v
+        refresh: ctrl-r              // was R
+    }
+    screens: { components: "0" }     // the screen chip bar shows the new key
+}
+.fi
+.RE
+.SS Key scopes and dispatch
+.IP \(bu 2
+\fB\fBscreens\fR\fR: one entry per screen, \fB<screen>: <key>\fR, which switches to that screen from anywhere. The names are \fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR and \fBtheme\fR (keys \fB1\fR to \fB7\fR, in that order).
+.IP \(bu 2
+\fB\fBglobal\fR\fR: the actions every screen shares (navigation, find, filter, help, quit).
+.IP \(bu 2
+\fBOne key scope per screen\fR (\fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR, \fBtheme\fR): that screen's own actions, which work only there.
+.PP
+How the TUI resolves a key:
+.IP \(bu 2
+\fBquit\fR, \fBquit-force\fR, \fBissues\fR, \fBhelp\fR and the \fBscreens\fR keys are read from \fBglobal\fR and \fBscreens\fR first, on every screen, before the screen sees the key. A screen's own binding can't use those keys, and binding these four actions in a screen's key scope has no effect: bind them in \fBglobal\fR.
+.IP \(bu 2
+Any other key is looked up in the current screen's key scope first, then in \fBglobal\fR. A screen key therefore shadows the same key's global action on that screen: Components binds \fBtab\fR to \fBexpand-all\fR, so \fBswitch-pane\fR (\fBtab\fR in \fBglobal\fR) doesn't apply there.
+.IP \(bu 2
+A screen's key scope may also bind a \fBglobal\fR action, which adds keys for it on that screen only: \fBprofiles: { down: ctrl-n }\fR makes Ctrl-N move down on Profiles, while \fBj\fR and the Down arrow still work there through \fBglobal\fR.
+.IP \(bu 2
+The where and issues overlays scroll with the navigation actions as the \fBcomponents\fR key scope resolves them (so your \fBglobal\fR keys, unless you rebound them under \fBcomponents\fR); the issues overlay's \fBr\fR, \fBf\fR and \fBs\fR (file a report, request or OS request) are fixed. Pop-up choosers keep fixed keys (\fBj\fR/\fBk\fR or the arrows to move, Enter to choose, Esc or \fBq\fR to cancel), and text prompts such as find and filter take what you type.
+.SS Actions and default keys
+.PP
+The defaults below are the shipped \fBconfig.hu\fR bindings; where an action has several keys, each one works.
+.PP
+\fBglobal\fR (every screen):
+.IP \(bu 2
+\fBdown\fR (\fBj\fR, \fBdown\fR) and \fBup\fR (\fBk\fR, \fBup\fR): move the cursor.
+.IP \(bu 2
+\fBleft\fR (\fBh\fR, \fBleft\fR) and \fBright\fR (\fBl\fR, \fBright\fR): collapse or expand a tree row, or scroll columns, depending on the pane.
+.IP \(bu 2
+\fBtop\fR (\fBg\fR) and \fBbottom\fR (\fBG\fR): jump to the first or last row.
+.IP \(bu 2
+\fBpage-down\fR (\fBpgdn\fR, \fBctrl-j\fR) and \fBpage-up\fR (\fBpgup\fR, \fBctrl-k\fR): move a page, in every pane and overlay.
+.IP \(bu 2
+\fBselect\fR (\fBspace\fR): select or mark the current row.
+.IP \(bu 2
+\fBconfirm\fR (\fBenter\fR, \fBkpenter\fR): activate, open or apply. Return and Ctrl-J are different keys.
+.IP \(bu 2
+\fBswitch-pane\fR (\fBtab\fR) and \fBswitch-pane-back\fR (\fBshift-tab\fR): move focus between the panes of a two-pane screen.
+.IP \(bu 2
+\fBfind\fR (\fB/\fR): jump the cursor to a match.
+.IP \(bu 2
+\fBfilter\fR (\fBF\fR): a live substring filter that narrows the list.
+.IP \(bu 2
+\fBissues\fR (\fB!\fR): open the issues overlay.
+.IP \(bu 2
+\fBhelp\fR (\fB?\fR): this screen's help.
+.IP \(bu 2
+\fBquit\fR (\fBq\fR): leave the TUI, after a confirmation.
+.IP \(bu 2
+\fBquit-force\fR (\fBQ\fR): leave at once, without asking.
+.PP
+\fBscreens\fR: \fBcomponents\fR (\fB1\fR), \fBprofiles\fR (\fB2\fR), \fBplugins\fR (\fB3\fR), \fBglue\fR (\fB4\fR), \fBdotfiles\fR (\fB5\fR), \fBconfig\fR (\fB6\fR), \fBtheme\fR (\fB7\fR).
+.PP
+\fBcomponents\fR:
+.IP \(bu 2
+\fBwhere\fR (\fBw\fR): explain the current component, as \fBconfigsys where\fR does.
+.IP \(bu 2
+\fBlock\fR (\fBL\fR): lock or unlock the version of every selected row, or of the current row if none is selected.
+.IP \(bu 2
+\fBexpand-all\fR (\fBtab\fR): expand or collapse the whole tree.
+.IP \(bu 2
+\fBselect-all\fR (\fBa\fR): select every row in view.
+.IP \(bu 2
+\fBclear\fR (\fBc\fR): unstage the current or selected rows (and drop them from the uninstall queue), then clear the selection and errors.
+.IP \(bu 2
+\fBmethod\fR (\fBv\fR): pick an install method or provider; writes a pin.
+.IP \(bu 2
+\fBop-install\fR (\fBi\fR): stage making the current row or selection current: install if missing, else upgrade.
+.IP \(bu 2
+\fBop-upgrade\fR (\fBu\fR): stage an upgrade of the current row or selection (outdated only).
+.IP \(bu 2
+\fBop-install-all\fR (\fBI\fR): stage making every tracked component current.
+.IP \(bu 2
+\fBop-upgrade-all\fR (\fBU\fR): stage an upgrade of every outdated component.
+.IP \(bu 2
+\fBop-remove\fR (\fBx\fR): stage a removal.
+.IP \(bu 2
+\fBexecute\fR (\fBX\fR): run the staged operations, after a confirmation.
+.IP \(bu 2
+\fBrefresh\fR (\fBR\fR): re-query version sources and the native package index.
+.IP \(bu 2
+\fBmode\fR (\fBM\fR): cycle the view mode: to-do, tracked, installed+tracked.
+.PP
+\fBprofiles\fR:
+.IP \(bu 2
+\fBtrack-all\fR (\fBT\fR): toggle tracking of the multi-select set, or of every component in the selected profile, on the target machines.
+.IP \(bu 2
+\fBtrack-one\fR (\fBt\fR): toggle tracking of the highlighted component.
+.IP \(bu 2
+\fBdisp-seen\fR (\fBs\fR): toggle the highlighted component between new and seen.
+.IP \(bu 2
+\fBdisp-interesting\fR (\fBi\fR): toggle interesting on the highlighted component.
+.IP \(bu 2
+\fBdisp-seen-all\fR (\fBS\fR) and \fBdisp-interesting-all\fR (\fBI\fR): mark the multi-select set, or the whole selected profile, seen or interesting.
+.IP \(bu 2
+\fBselect-all\fR (\fBa\fR): add every component in view to the multi-select set.
+.IP \(bu 2
+\fBmethod\fR (\fBv\fR): pin the highlighted component's install method.
+.IP \(bu 2
+\fBcomp-machines\fR (\fBm\fR): choose which machines track just the highlighted component.
+.IP \(bu 2
+\fBmachine-target\fR (\fBM\fR): choose the target machines that \fBtrack-all\fR and \fBtrack-one\fR edit.
+.IP \(bu 2
+\fBattr-filter\fR (\fBf\fR): filter the catalog by attrs.
+.IP \(bu 2
+\fBtoggle-install\fR (\fBO\fR): turn the install overlay on or off.
+.IP \(bu 2
+\fBstage-uninstall\fR (\fBx\fR): stage the highlighted component in the uninstall queue.
+.IP \(bu 2
+\fBmark-all-seen\fR (\fBE\fR): mark every new component seen, after a confirmation.
+.IP \(bu 2
+\fBclaim\fR (\fBC\fR): track every installed component, after a confirmation.
+.IP \(bu 2
+\fBorphan-ignore\fR (\fB.\fR): add the highlighted component to \fBorphans-ignore:\fR, or remove it.
+.PP
+\fBplugins\fR:
+.IP \(bu 2
+\fBadd\fR (\fBa\fR): add a plugin.
+.IP \(bu 2
+\fBremove\fR (\fBx\fR): remove the current plugin.
+.IP \(bu 2
+\fBsync\fR (\fBs\fR) and \fBsync-all\fR (\fBS\fR): sync the current plugin, or all of them.
+.IP \(bu 2
+\fBbless\fR (\fBb\fR): make the current plugin your primary plugin (syncing it first).
+.IP \(bu 2
+\fBunbless\fR (\fBB\fR): clear the primary plugin.
+.IP \(bu 2
+\fBupdate\fR (\fBu\fR) and \fBupdate-all\fR (\fBU\fR): update to the newest stable tag (else \fBmain\fR/\fBmaster\fR) and re-sync.
+.IP \(bu 2
+\fBtrust\fR (\fBt\fR): trust or untrust the current plugin's code or recipes.
+.IP \(bu 2
+\fBtrust-all\fR (\fBT\fR): trust every untrusted or changed plugin.
+.IP \(bu 2
+\fBset-ref\fR (\fBv\fR): pin a tag, branch or commit and re-sync.
+.PP
+\fBglue\fR:
+.IP \(bu 2
+\fBactivate\fR (\fBa\fR): activate the current snippet for its row's shell.
+.IP \(bu 2
+\fBactivate-group\fR (\fBA\fR): (re)activate every snippet in the cursor's shell group, refreshing changed ones.
+.IP \(bu 2
+\fBdeactivate\fR (\fBx\fR): deactivate the current snippet for its row's shell.
+.PP
+\fBdotfiles\fR:
+.IP \(bu 2
+\fBmanage\fR (\fBm\fR): manage the current config (capture it, then link it); \fBconfirm\fR does the same.
+.IP \(bu 2
+\fBmanage-all\fR (\fBM\fR): manage every unmanaged config.
+.IP \(bu 2
+\fBunmanage\fR (\fBu\fR): unmanage (unlink) the current config, after a confirmation.
+.IP \(bu 2
+\fBunmanage-all\fR (\fBU\fR): unmanage every managed config, after a confirmation.
+.IP \(bu 2
+\fBmove-store\fR (\fBs\fR): move the current config between stores (local or your primary plugin).
+.IP \(bu 2
+\fBmove-store-all\fR (\fBS\fR): move every config to a store you choose.
+.PP
+\fBconfig\fR (\fBconfirm\fR or \fBselect\fR edits the current setting):
+.IP \(bu 2
+\fBtheme\fR (\fBt\fR): open the theme editor.
+.IP \(bu 2
+\fBmove\fR (\fBm\fR): move the current setting between your top config and your primary plugin.
+.PP
+\fBtheme\fR:
+.IP \(bu 2
+\fBpage-1\fR to \fBpage-7\fR (\fBf1\fR to \fBf7\fR): choose the sample page the editor previews (components, profiles, plugins, glue, dotfiles, config, theme).
+.IP \(bu 2
+\fBnew\fR (\fBn\fR): add a color to the map.
+.IP \(bu 2
+\fBreset\fR (\fBr\fR, \fBx\fR): reset the current color, role or gradient end to its default (a color you added is removed).
+.IP \(bu 2
+\fBedit-bg\fR (\fBB\fR): edit a role's background.
+.IP \(bu 2
+\fBeffect-bold\fR (\fBo\fR), \fBeffect-underline\fR (\fBu\fR) and \fBeffect-reverse\fR (\fBv\fR): toggle that effect on a role.
+.IP \(bu 2
+\fBgradient-toggle\fR (\fBp\fR): toggle this page's background gradient.
+.IP \(bu 2
+\fBcopy-page\fR (\fBD\fR): copy this page's look onto another.
+.IP \(bu 2
+\fBsave\fR (\fBs\fR): export a theme pack, or promote the theme to your primary plugin.
+.IP \(bu 2
+\fBload\fR (\fBL\fR): load a saved theme pack.
+.SS Key names
+.IP \(bu 2
+A single character is that key, case-sensitive: \fBg\fR and \fBG\fR are different keys. Quote punctuation and digits (\fB"/"\fR, \fB"?"\fR, \fB"1"\fR): Humon gives some characters a meaning, and a quoted key is always read literally.
+.IP \(bu 2
+Named keys, in any case: \fBenter\fR (also \fBreturn\fR, \fBret\fR, \fBcr\fR: the Return key), \fBkpenter\fR (also \fBkp-enter\fR: keypad Enter), \fBtab\fR, \fBshift-tab\fR (also \fBbtab\fR), \fBesc\fR (also \fBescape\fR), \fBspace\fR (also \fBspc\fR), \fBup\fR, \fBdown\fR, \fBleft\fR, \fBright\fR, \fBpgup\fR (also \fBpageup\fR), \fBpgdn\fR (also \fBpagedown\fR), \fBhome\fR, \fBend\fR, \fBbackspace\fR (also \fBbs\fR), \fBdel\fR (also \fBdelete\fR), \fBins\fR (also \fBinsert\fR), and \fBf1\fR to \fBf12\fR.
+.IP \(bu 2
+\fBctrl-<letter>\fR (also \fBc-<letter>\fR or \fB^<letter>\fR): a control key. Only letters are accepted. Return and Ctrl-J are different keys, but \fBctrl-i\fR is the same key as \fBtab\fR and \fBctrl-m\fR the same as \fBenter\fR.
+.IP \(bu 2
+A list binds alternates: \fBdown: [ j  down ]\fR. The first key is the one the hints show.
+.SS Conflicts and validation
+.PP
+\fBconfigsys check\fR lints every layer's \fBkeys:\fR section and prints a \fBwarn\fR line, starting with the file's name, for:
+.IP \(bu 2
+an unknown key scope (\fBunknown key scope 'componets'\fR);
+.IP \(bu 2
+an action its key scope doesn't have (\fBunknown action 'keys.components.lokc'\fR); a screen's key scope accepts its own actions plus the \fBglobal\fR ones, and \fBscreens\fR accepts the screen names;
+.IP \(bu 2
+a key name it can't parse (\fBkeys.components.mode: unparseable key 'bogus-key'\fR);
+.IP \(bu 2
+one key bound to two actions in the same key scope of the same file (\fBkeys.profiles: 'z' bound to both 'track-one' and 'track-all'\fR);
+.IP \(bu 2
+a key scope whose value isn't a map.
+.PP
+It doesn't report:
+.IP \(bu 2
+a screen key that shadows a \fBglobal\fR one: that is the intended override;
+.IP \(bu 2
+a conflict between layers. Binding \fBcomponents: { where: i }\fR in your config leaves the shipped \fBop-install: i\fR in place, so \fBi\fR is bound twice; the TUI runs whichever action comes first in the shipped order (here \fBwhere\fR), and the other action loses the key. \fBconfigsys keys\fR shows both actions on the key;
+.IP \(bu 2
+a screen key that collides with a \fBscreens\fR, \fBquit\fR, \fBquit-force\fR, \fBissues\fR or \fBhelp\fR key, which always wins (see "Key scopes and dispatch").
+.PP
+None of these stop the TUI: an unknown key scope or action is ignored, an unparseable key drops out of its list (the others still bind), and if the merged map has no \fBglobal\fR key scope at all (a missing or broken repo \fBconfig.hu\fR), a minimal built-in map keeps \fBq\fR, \fBQ\fR, \fB!\fR and the screen keys \fB1\fR to \fB7\fR working.
+.PP
+\fBconfigsys keys\fR prints the effective, merged map: each key scope (screens, global, components, profiles, plugins, dotfiles, config, theme, then glue and any other key scope a layer names), its actions in alphabetical order, and each action's keys as the TUI draws them (\fB⏎\fR for Enter, arrows, \fB^r\fR for Ctrl-R, \fBF1\fR), joined by \fB / \fR. It doesn't validate: an unknown action or key scope prints as given, and an action you unbound with \fB[]\fR is absent. Run \fBconfigsys check\fR for the warnings.
+.SS Help and hints
+.PP
+The TUI reads the same merged map it dispatches on, so what it shows matches what the keys do:
+.IP \(bu 2
+Each screen's footer hints and the screen chip bar show an action's first key.
+.IP \(bu 2
+The \fB?\fR overlay lists the live bindings: the \fBglobal\fR actions first (down, up, left, right, top, bottom, select, confirm, switch-pane, switch-pane-back, find, filter, issues, help, quit, quit-force; \fBpage-down\fR and \fBpage-up\fR aren't listed), then the screen's own actions in alphabetical order, each with up to two keys joined by \fB/\fR and a short label. The Theme screen's \fBpage-1\fR to \fBpage-7\fR collapse to one row, "preview sample page". The overlay scrolls with your navigation keys and closes on Esc, \fBq\fR, or your \fBquit\fR or \fBhelp\fR key.
+.SH DRIVERS
+.PP
+Each \fBvia:\fR value names a driver:
+.IP \(bu 2
+the OS package managers: \fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBaur\fR, \fBzypper\fR, \fBapk\fR, \fBxbps\fR, \fBbrew\fR, \fBrpm-ostree\fR;
+.IP \(bu 2
+the distribution drivers: \fBflatpak\fR, \fBsnap\fR, \fBappImage\fR, \fBtarball\fR (also bare executables and \fB.zip\fR archives), \fBnative-pkg-file\fR (an upstream release's \fB.deb\fR/\fB.rpm\fR/pacman package installed with the OS package tool; distinct from repo \fBnative\fR, since it doesn't ride system updates), \fBsource\fR (build from a git checkout or source archive with declared \fBbuild:\fR commands), \fBfont\fR, and \fBscript\fR (declared install/version/uninstall commands);
+.IP \(bu 2
+the config drivers: \fBdotfiles\fR and \fBglue\fR;
+.IP \(bu 2
+the language toolchains and their module or version installers: \fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBpyenv\fR, \fBsdkman\fR, \fBgcc\fR, \fBgcc-toolset\fR, \fBclang\fR;
+.IP \(bu 2
+the post-install primitives: \fBservice\fR (enable a systemd or runit service) and \fBgroup\fR (add you to a group).
+.PP
+Two \fBvia:\fR values are special: \fBnative\fR (this OS's package manager) and \fBparts\fR (a pure aggregator). Plugins may add drivers.
+.SH RETIRED AND RESERVED KEYS
+.PP
+These still parse, but \fBcheck\fR warns about them:
+.IP \(bu 2
+\fBconfigs:\fR is retired; the install set is \fBpicks:\fR.
+.IP \(bu 2
+\fBmachines:\fR is retired; each \fBpicks:\fR key is a machine.
+.IP \(bu 2
+\fBorphans-adopt-target:\fR is retired; adopting an orphan picks it.
+.IP \(bu 2
+\fBprofiles:\fR in your top config or primary plugin is retired; profiles ship in plugins.
+.PP
+On a binding, \fBprefer:\fR became \fBstanding: <integer>\fR, and \fBopt-in:\fR and \fBcandidate-only:\fR became \fBstanding: never-auto\fR; the old names are no longer read. \fBlast-refresh:\fR is reserved: configsys accepts it without a warning but doesn't read it from a config file (it keeps the last refresh time in its state directory).
+.SH ENVIRONMENT
+.IP \(bu 2
+\fBCONFIGSYS_CONFIG\fR (or \fB--config\fR): the top config's path.
+.IP \(bu 2
+\fBCONFIGSYS_HOME\fR (or \fB--home\fR): the base for \fB~\fR paths and for the state directory (\fB<home>/.config/configsys\fR), to sandbox a run.
+.IP \(bu 2
+\fBXDG_CONFIG_HOME\fR: the base of the state directory when \fBCONFIGSYS_HOME\fR isn't set.
+.IP \(bu 2
+\fBCONFIGSYS_STATE_DIR\fR: the state directory itself (plugins, caches, the ledger, and by default your top config).
+.IP \(bu 2
+\fBCONFIGSYS_USERSCOPE_DIR\fR, \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR, \fBCONFIGSYS_APP_DIR\fR, \fBCONFIGSYS_SDK_DIR\fR, \fBCONFIGSYS_SRC_DIR\fR: override the matching \fBdirs:\fR key.
+.IP \(bu 2
+\fBCONFIGSYS_OS\fR, \fBCONFIGSYS_OS_VERSION\fR, \fBCONFIGSYS_ARCH\fR: evaluate routes as this OS block, version and CPU instead of the detected ones (\fB--os\fR sets the block).
+.IP \(bu 2
+\fBCONFIGSYS_FACET_<name>\fR: a facet's value, overriding detection and your \fBfacets:\fR.
+.IP \(bu 2
+\fBCONFIGSYS_EFFECTS\fR: overrides \fBeffects:\fR (\fB--effects\fR sets it).
+.IP \(bu 2
+\fBCONFIGSYS_NO_SPLASH\fR: no startup splash; \fBCONFIGSYS_SPLASH=always\fR shows it even on a fast start.
+.IP \(bu 2
+\fBCONFIGSYS_GLUE_SHELLS\fR: which shells glue treats as installed.
+.IP \(bu 2
+\fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR): authenticates GitHub API calls.
+.IP \(bu 2
+\fBCONFIGSYS_GIT_TOKEN\fR: lets \fBplugin sync\fR clone a private \fBgithub:\fR/\fBgitlab:\fR plugin.
 .SH SEE ALSO
 .PP
-\fBconfigsys(1)\fR for the command-line interface; the README for a narrative overview.
+\fBconfigsys(1)\fR for the command-line interface; the README for a narrative overview; docs/routing-model.md, docs/plugins.md, docs/facets.md and docs/theming.md for the details.

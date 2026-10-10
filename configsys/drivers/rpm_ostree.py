@@ -2,7 +2,7 @@
 
 For Fedora Atomic / uBlue (Silverblue, Kinoite, Bazzite, Bluefin, Aurora) and kin, where
 the root is a read-only ostree image. This driver is the LAST-RESORT path (see
-docs/immutable-distros.md): apps go via flatpak and CLI tools via brew (the atomic OS's
+docs/done/immutable-distros.md): apps go via flatpak and CLI tools via brew (the atomic OS's
 `native:`); rpm-ostree is only for what genuinely must be layered into the image — kernel
 modules, hardware enablement, system integration.
 

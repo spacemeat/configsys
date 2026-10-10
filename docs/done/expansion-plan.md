@@ -1,9 +1,6 @@
 # Expansion plan — languages, tools, DEs, and `configsys request`
 
-> **Status: HISTORICAL — SHIPPED. Note: a dedicated `sdkman` driver (drivers/sdkman.py) now exists alongside the general `script` driver described below.**
-
-Status: **SHIPPED** — every track below landed (language toolchains + module drivers, editors/
-shells, the DE catalog, and `configsys request`). Kept as the record of what was built and why.
+> **Status: DONE** — finished 2026-07-24 (0be7bcc; docs cb15134). Lives on in: docs/config-format.md
 
 Discovery + grill outcome (2026-07-24). Source of truth for the smart-commit sequence below.
 Each **data** commit regenerates the golden gate (`CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m
@@ -39,7 +36,7 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
 
 ## Smart-commit sequence
 
-### Track A — languages & module drivers  (one cohesive commit per ecosystem)
+### ✅ Track A — languages & module drivers  (one cohesive commit per ecosystem)
 - **A1  rust, explicit.** `rust` component (native `rustup`/`rust`; provides `rust` + `cargo`
   capabilities); rewire the `cargo` driver-dep onto it. Foundational — proves the native-first
   toolchain + `provides:`-a-capability pattern.
@@ -74,7 +71,7 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   warning + at uninstall, never blocked. Ships sdkman as the demonstrator; validated end-to-end in
   a container (`test/integration_script.sh`). Nothing left deferred.
 
-### Track C — desktop environments  (DONE, all five families)
+### ✅ Track C — desktop environments  (DONE, all five families)
 - Podman sweep of apt/dnf/pacman/zypper/apk + this Pop host for cosmic confirmed every
   metapackage name. Shipped: gnome/kde/xfce/lxqt/mate/sway (all five families); cinnamon/budgie
   (all but Alpine); hyprland (all but stock Ubuntu); cosmic (Pop `cosmic-session` verified
@@ -89,7 +86,7 @@ pytest test/test_golden.py`, review the diff) and runs the full suite before lan
   - `julia` — official binaries aren't github release assets (S3 URLs); needs a bespoke url/
     version story.
 
-### Track B — editors & shells
+### ✅ Track B — editors & shells
 - **B1  tmux + zsh + fish + nushell.** native everywhere.
 - **B2  jetbrains-toolbox.** tarball app (unityhub/kicad pattern).
 
@@ -104,7 +101,7 @@ This was the earlier "defer to a validated pass" scoping; the DE track was subse
   @gnome-desktop; plasma-desktop vs plasma-meta vs @kde-desktop; COSMIC packaging in flux) — which
   is exactly why the shipped names were podman-sweep verified before landing.
 
-### Track D — `configsys request`  (DONE)
+### ✅ Track D — `configsys request`  (DONE)
 - **D1  reportgen coverage matrix.** ✅ `coverage()` probes a representative machine per package
   manager (reusing the loaded layered components); `request_payload`/`render_request`/
   `request_title`; `<!-- configsys-request v1 -->` marker + `component-request` label.

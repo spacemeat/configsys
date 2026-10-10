@@ -54,7 +54,7 @@ _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 # The component-INDEPENDENT user-glue namespace: snippets under `<glue-root>/shell/<shell>/user.d/`
 # that the driver ALWAYS deploys into conf.d — the user's OWN startup, linked from the layer and
 # edited in the layer (portable when the layer is the primary plugin). `99-user` is the auto-scaffolded
-# home; the `99-` prefix loads it AFTER component glue so the user's aliases win. (docs/glue-customization-plan.md P0)
+# home; the `99-` prefix loads it AFTER component glue so the user's aliases win. (docs/done/glue-customization-plan.md P0)
 _USER_GLUE_HEADER = (
     '# Your own shell startup. configsys links this into conf.d but NEVER edits its contents.\n'
     '# Add aliases / env / functions below — they load after component glue, so yours win.\n'
@@ -248,7 +248,7 @@ class Glue(Driver):
         roots.append((self._defining_root(rc), 'template'))
         return roots
 
-    # -- user-glue namespace (component-independent; docs/glue-customization-plan.md P0) ------------
+    # -- user-glue namespace (component-independent; docs/done/glue-customization-plan.md P0) ------------
 
     def _user_glue_roots(self):
         '''Glue roots that can hold the user.d namespace, HIGHEST precedence first: the machine-local
@@ -306,7 +306,7 @@ class Glue(Driver):
         just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.'''
         return self._ensure_shell_loader(shell)
 
-    # -- override a component's shipped glue (docs/glue-customization-plan.md P2) -------------------
+    # -- override a component's shipped glue (docs/done/glue-customization-plan.md P2) -------------------
 
     def _glue_names(self, rc):
         '''The glue name(s) a component ships (`glue:` top-level + nested).'''

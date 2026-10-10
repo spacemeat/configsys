@@ -1,4 +1,4 @@
-'''Render-regression for the Components screen (docs/d2-mvvm-plan.md), post-oracle style. The model
+'''Render-regression for the Components screen (docs/done/d2-mvvm-plan.md), post-oracle style. The model
 is a MenuState; `_sample_components_state()` is a HAND-BUILT synthetic tree (no routes.hu), so it IS
 the fake data — the draw assertions read stable, sample-defined content. build_vm is a thin pass of
 the frame inputs (note + diagnostics). Plus handle() behaviour.'''

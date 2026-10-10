@@ -1,6 +1,6 @@
 '''profiles.py — the Profiles browse/matrix screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/d2-mvvm-plan.md), after the Plugins / Config /
+Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), after the Plugins / Config /
 Dotfiles / Glue pattern-setters. The model is the existing `menu.ProfileScreen` (profile tree +
 component catalog + matrix state, the overlay/probe machinery), composed unchanged; this adds the
 three MVVM seams:
@@ -528,11 +528,11 @@ class ProfilesScreen(Screen):
                     ps.focus = 'left'          # at the left edge -> back to the browse pane
         elif pfact == 'toggle-install':
             ps.show_install = 0 if ps.show_install else 1   # off <-> on (installed underlined,
-            # orphans coloured, ignored orphans revealed dimmed). NOTE: don't invalidate the
+            # installed-but-unpicked ⊙ coloured). NOTE: don't invalidate the
             # overlay cache here — the data is identical on/off (only the rendering differs).
             note = ('install overlay off',
-                    'install overlay ON — installed underlined, orphans coloured '
-                    '(ignored dimmed)')[ps.show_install]
+                    'install overlay ON — installed underlined, installed-but-unpicked ⊙ '
+                    'coloured')[ps.show_install]
         elif pfact == 'stage-uninstall' and ps.focus == 'right':
             _targets = ps.action_targets()         # stage the set (else the cursor) for uninstall
             if _targets:                           # (idempotent — like Components `x`; unstage there)

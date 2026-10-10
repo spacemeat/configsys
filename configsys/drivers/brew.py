@@ -4,7 +4,7 @@ Entirely user-space (no sudo): modern Homebrew installs into a user-owned prefix
 (/opt/homebrew on Apple Silicon, /home/linuxbrew/.linuxbrew on Linux, /usr/local on
 Intel macOS) and every op runs as the invoking user. This is the blessed CLI path on
 atomic/immutable distros (Bazzite/Bluefin/Aurora ship brew pre-configured) — see
-docs/immutable-distros.md — and the same tool on macOS, so this driver is also the
+docs/done/immutable-distros.md — and the same tool on macOS, so this driver is also the
 foundation for eventual macOS support.
 
 Version state: `brew list --versions` (installed) and `brew info --json` (latest

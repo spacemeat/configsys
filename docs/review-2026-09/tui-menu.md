@@ -25,7 +25,7 @@ that module's implementation: `app.py:292-332`, `config.py:132-733`, `routes.py:
    (only `_help_modal` honors the keymap), five text-entry loops, three near-identical table renderers
    (plugins/glue/dotfiles), seven copies of the page-chrome prologue/epilogue plus a second, effectively-dead
    hardcoded legend string per screen, and cursor-nav `if` ladders repeated for six screens inside a 1300-line `run()`.
-   The F1 "screen router" from `docs/tui-screens-plan.md` was never built; `run()` is the router.
+   The F1 "screen router" from `docs/done/tui-screens-plan.md` was never built; `run()` is the router.
 4. **Comment/docstring drift from retired models.** Several docstrings still describe the pre-matrix profile editor
    (`space toggles membership`, `A/D fan out`, `m`/`P` keys), `_describe` still justifies itself with a
    "ctx.routes re-parses on every access" claim that `app.py:292` memoization made false, and the install-overlay
@@ -130,7 +130,7 @@ Samples then construct VMs directly, no proxies, no threads.
 ### [HIGH] architecture — `run()` is a 1300-line monolithic router; the planned F1 screen router was never built
 `5030-6334`. All seven screens' key ladders live inline, each with its own copy of down/up/page/top/bottom
 (`5260-5279`, `5429-5435`, `5539-5554`, `5641-5656`, `5716-5755`, `5836-5847`, `5978-6004`), its own `try/except
-Exception -> note` wrapper, and its own lazy construction (`5129-5150`). `docs/tui-screens-plan.md:29-33` locked a
+Exception -> note` wrapper, and its own lazy construction (`5129-5150`). `docs/done/tui-screens-plan.md:29-33` locked a
 `{screen: (draw_fn, handle_key_fn)}` router with each screen owning its state; only the state-object half happened.
 **Recommend:** a `Screen` protocol (`draw(stdscr, pal, note)`, `handle(ch, action) -> note|None`, `reload()`,
 `on_enter()`, `dirty`) with a `ListNav` helper (cursor attr + length fn) that collapses the six nav ladders. The

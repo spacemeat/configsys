@@ -123,8 +123,8 @@
             see: [ plugin  primary-plugin ]
         }
         plugin: {
-            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. Code plugins must be trusted."
-            see: [ layer  primary-plugin  trust ]
+            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Code — and data that runs shell commands, like build recipes — loads only after you trust it."
+            see: [ layer  primary-plugin  trust  transitive-plugin ]
         }
         primary-plugin: {
             short: "`primary: true`"
@@ -147,7 +147,7 @@
             avoid: [ distro-profile ]
         }
         lineage: {
-            def: "An OS block's chain of parents (`pop_os!` → ubuntu → debian → linux). A bare `when:` atom matches a block and all its descendants."
+            def: "An OS block's chain of parents (`pop_os!` → ubuntu → debian → glibc_linux → linux). A bare `when:` atom matches a block and all its descendants."
             see: [ OS-block ]
         }
         scale-root: {
@@ -218,7 +218,7 @@
         }
         routing-status: {
             def: "A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS)."
-            see: [ stranded ]
+            see: [ stranded  status ]
         }
         ledger: {
             short: "`state.hu`"
@@ -231,9 +231,12 @@
         }
         staged: {
             def: "In the TUI, an operation marked to run (install, upgrade, remove, …) but not yet executed; `X` runs everything staged after a confirmation."
+            see: [ staged-glue ]
         }
         system-updates: {
+            short: "`configsys updates`, `upgrade --system`"
             def: "The OS packages with pending updates that aren't configsys components — shown and applied in bulk, so configsys can be your one updater."
+            see: [ tier ]
         }
         disposition: {
             short: "`dispositions:`"
@@ -256,6 +259,93 @@
         refresh: {
             short: "`configsys refresh`"
             def: "Re-checking upstream versions and refreshing the OS package index."
+        }
+        status: {
+            def: "A component row's state (TUI and `configsys inspect`): `installed`, `outdated` (newer available), `missing`, `locked`, `partial` (some of its units installed), `unsupported` (configsys has no driver for its method here), `untrusted` (needs a plugin you haven't trusted), `error`, or a routing status."
+            see: [ routing-status  lock  recipe-pin ]
+        }
+        track: {
+            def: "Adding a component to a machine's picks (TUI Profiles `T` / `t`, or `configsys picks add`). Tracked components are that machine's install set."
+            see: [ picks  claim ]
+        }
+        claim: {
+            def: "Tracking every component already installed on this box onto a machine's picks in one step — adopting an existing system into configsys (TUI Profiles `C`)."
+            see: [ track  picks ]
+        }
+        issues: {
+            def: "The diagnostics list — the TUI `!` page, `configsys check`, and the end of `configsys inspect`: config warnings, picks that can't route, routing statuses, scope drift, version-floor advisories."
+            see: [ routing-status ]
+        }
+        recipe-pin: {
+            short: "`[R]`"
+            def: "A method that builds a fixed version its route pins (for example a from-source build). `[R]` means upstream has released something newer; upgrading rebuilds the same pinned version — reaching the new release takes a route change."
+            see: [ status ]
+        }
+        tier: {
+            def: "How System Updates groups pending OS updates, most fundamental first: kernel, core, standard, apps."
+            see: [ system-updates ]
+        }
+        user-glue: {
+            short: "`configsys glue add`"
+            def: "Your own shell startup snippets, not tied to any component, kept in a `user.d` folder and loaded like other glue; a `99-user` snippet is scaffolded for you."
+            see: [ glue  conf.d ]
+        }
+        conf.d: {
+            def: "The per-shell folder (`~/.config/<shell>/conf.d/`) every glue snippet is linked into; shell-glue makes each installed shell load it."
+            see: [ glue  shell-glue ]
+        }
+        ABI: {
+            short: "`requires-abi:`"
+            def: "The plugin interface version. A plugin declares the ABI it needs; configsys skips (never loads) a plugin it isn't compatible with."
+            see: [ plugin ]
+        }
+        uninstall-queue: {
+            short: "`uninstall:`"
+            def: "Removals you've staged on this machine for installs outside its picks (the TUI's `!uninstall` view); kept machine-local until you run them."
+            see: [ orphan  picks ]
+        }
+        install-dirs: {
+            short: "`dirs:`"
+            def: "Where user-space installs land — the `user`, `system`, `app`, `sdk` and `src` directories; set in your config (environment variables override)."
+            see: [ scope ]
+        }
+        shell-writes-guard: {
+            short: "`installer-shell-writes:`"
+            def: "Protection against installers that edit your shell startup files: by default configsys reverts such edits and keeps the removed lines as inactive glue you can review."
+            see: [ glue ]
+        }
+        parts: {
+            short: "`via: parts`"
+            def: "A component that is just the union of other components (an aggregate): installing it installs its parts; it has no install of its own."
+            see: [ component  via ]
+        }
+        top-config: {
+            short: "`~/.config/configsys/configsys.hu`"
+            def: "This machine's own config file — the highest layer, never shared. Machine-local settings and `--local` edits land here."
+            see: [ layer  setting-nature  primary-plugin ]
+        }
+        transitive-plugin: {
+            def: "A plugin declared inside another plugin's manifest; it is synced and loaded along with the plugin that declares it."
+            see: [ plugin ]
+        }
+        bless: {
+            short: "`configsys plugin bless`"
+            def: "Making a declared plugin your primary plugin (TUI Plugins `b`); unbless clears it."
+            see: [ primary-plugin ]
+        }
+        staged-glue: {
+            short: "`configsys dotfiles staged`"
+            def: "Shell startup lines an installer tried to add, reverted by the shell-writes guard and held as inactive glue until you activate or discard them. Not the same as a staged TUI operation."
+            see: [ shell-writes-guard  glue  staged ]
+        }
+        view-mode: {
+            def: "The Components screen's filter, cycled with `M`: to-do (what needs action — the default), tracked (every pick), installed+tracked (also installed components you haven't picked)."
+            see: [ picks  track ]
+        }
+        install-overlay: {
+            short: "`install-overlay:`"
+            def: "The Profiles screen's installed-state layer (an installed column, underlines, orphan colors); `O` toggles it."
+            see: [ orphan ]
         }
         golden: {
             short: "test/routing_golden.json"

@@ -1,4 +1,4 @@
-'''Render-regression for the Profiles screen (docs/d2-mvvm-plan.md), post-oracle style. Profiles'
+'''Render-regression for the Profiles screen (docs/done/d2-mvvm-plan.md), post-oracle style. Profiles'
 build_vm is light (titles/status/legends/nav) and its draw reads the model + the live catalog, so the
 assertions here pin the ROUTES-INDEPENDENT chrome (panel titles, status prefix, the footers, the note)
 rather than specific catalog rows — nothing drifts when routes.hu changes. The fixture is the hermetic
@@ -82,7 +82,7 @@ def test_handle_select_toggles_and_notes(ctx):
 
 
 def test_res_cache_drops_when_ctx_routes_rebuilt(ctx):
-    # docs/d2-mvvm-findings.md: a components-side method pin calls ctx.invalidate() (new ctx.routes),
+    # docs/done/d2-mvvm-findings.md: a components-side method pin calls ctx.invalidate() (new ctx.routes),
     # and Profiles' resolved-method cache must drop so it doesn't show a stale [via]. Keyed on
     # id(ctx.routes): a pin/route/plugin edit rebuilds it (clears _res); a membership edit does not.
     # (the SAMPLE freezes its answers for deterministic renders, so exercise the class's real _resolve)

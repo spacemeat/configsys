@@ -373,7 +373,7 @@ def test_install_expands_profile_arg(tmp_path, capsys):
 def test_install_unknown_profile_errors(tmp_path, capsys):
     rc = main(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'install', 'profile:nope'])
     assert rc == 1
-    assert 'not defined' in capsys.readouterr().out
+    assert 'no profile named' in capsys.readouterr().out
 
 
 def test_bare_name_is_still_a_component_not_a_profile(tmp_path, capsys):

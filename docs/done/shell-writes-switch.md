@@ -1,15 +1,6 @@
 # Shell-writes switch — installers must not scribble in your rc files
 
-> **Status: HISTORICAL — BUILT (configsys/shellguard.py; `installer-shell-writes` setting).**
-
-Status: **BUILT (2026-08-18).** The rc-writes guard + staged-glue review loop ships in
-`configsys/shellguard.py` (snapshot/revert/capture/stage/activate/discard), wired into BOTH op
-paths (`app._dispatch_op`, `tui/menu.execute_plan`) via `shellguard.arm()`/`finish()`, with the
-`installer-shell-writes` (default block) + `installer-shell-writes-allow` machine settings in
-`config.py` and `configsys dotfiles staged | activate | discard` CLI. Remaining from the design:
-the per-recipe non-interactive fixes (quicklisp) are a SEPARATE mechanism (below), and TUI
-surfacing of staged candidates on the Dotfiles page is a nice-to-have not yet added. Original
-decisions kept below for reference.
+> **Status: DONE** — finished 2026-08-18 (58c8c4b). Lives on in: docs/shell-glue.md (The shell-writes guard); docs/config-format.md
 
 ## Problem
 Some installers (sdkman, nvm, rustup, conda, …) append to `~/.bashrc`/`.zshrc`/`.profile` on install —

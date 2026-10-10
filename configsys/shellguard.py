@@ -7,7 +7,7 @@ block) wraps each component install: SNAPSHOT the guarded rc files, run the inst
 the files to exactly their prior bytes — and hand back what was removed so the op loop can STAGE
 it as an inactive glue candidate the user reviews and promotes (never silently activated).
 
-Design (docs/shell-writes-switch.md): snapshot-revert-ALWAYS rather than passing each installer's
+Design (docs/done/shell-writes-switch.md): snapshot-revert-ALWAYS rather than passing each installer's
 opaque "--no-modify-path" flag — we can't tell what such a flag suppressed, but a byte-diff of the
 rc files tells us exactly what the install added. Reverting = writing the snapshot back verbatim,
 so any edit (append OR in-place) lands the file exactly as it was; the captured block is the

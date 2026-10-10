@@ -128,8 +128,8 @@ class Keymap:
     def help_rows(self, scope):
         '''[(keys, label)] for the `?` overlay: the shared global keys first, then this page's own
         actions. page-1..page-7 collapse to one row; up to two alternate keys are shown per action.'''
-        order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'select', 'confirm', 'switch-pane',
-                 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force']
+        order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up', 'select',
+                 'confirm', 'switch-pane', 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force']
         rows, seen_page = [], False
 
         def keyglyph(sc, action):
@@ -181,31 +181,41 @@ KNOWN_ACTIONS = {
 # wants to describe a binding). An action absent here falls back to its id.
 ACTION_LABELS = {
     'down': 'move down', 'up': 'move up', 'left': 'left / collapse', 'right': 'right / expand',
-    'top': 'jump to top', 'bottom': 'jump to bottom', 'select': 'select / mark', 'confirm': 'activate / open',
+    'top': 'jump to top', 'bottom': 'jump to bottom', 'page-down': 'page down', 'page-up': 'page up',
+    'select': 'select / mark', 'confirm': 'activate / open',
     'switch-pane': 'switch pane', 'switch-pane-back': 'switch pane (back)', 'find': 'find (jump cursor)',
     'filter': 'filter (narrow the list)', 'issues': 'show issues (!)', 'help': 'this help',
     'quit': 'quit (asks to confirm)', 'quit-force': 'quit now (no prompt)',
     'where': 'explain component (where)', 'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
-    'select-all': 'select all', 'clear': 'clear selection + staged', 'method': 'pick install method / provider',
-    'op-install': 'stage install', 'op-upgrade': 'stage upgrade', 'op-remove': 'stage remove',
+    'clear': 'unstage cursor/selection, clear selection', 'method': 'pick install method / provider',
+    'op-install': 'make current: install if missing, else upgrade',
+    'op-install-all': 'make every tracked component current',
+    'op-upgrade': 'stage upgrade (outdated only)', 'op-upgrade-all': 'upgrade every outdated component',
+    'op-remove': 'stage remove',
     'execute': 'run staged ops', 'refresh': 'refresh versions + package index',
     'mode': 'cycle view: to-do / tracked / installed+tracked',
     'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
-    'unlink': 'unlink', 'capture': 'capture on-system config',
-    'capture-all': 'capture all', 'link-all': 'link all captured',
+    'manage': 'manage: capture + link', 'manage-all': 'manage every unmanaged config',
+    'unmanage': 'unmanage (unlink; confirms)', 'unmanage-all': 'unmanage every managed config',
+    'move-store': 'move store: local ⇄ primary', 'move-store-all': 'move all configs to a store',
+    'activate': 'activate for this shell', 'activate-group': "(re)activate this shell's group",
+    'deactivate': 'deactivate for this shell',
     'add': 'add a plugin', 'remove': 'remove plugin', 'sync': 'sync plugin', 'sync-all': 'sync all',
-    'bless': 'bless (trust content)', 'unbless': 'unbless', 'update': 'update plugin', 'update-all': 'update all',
-    'trust': 'trust code plugin', 'trust-all': 'trust all code', 'set-ref': 'set git ref',
+    'bless': 'bless: make it your primary plugin', 'unbless': 'clear the primary plugin',
+    'update': 'update plugin to its latest ref', 'update-all': 'update all to latest',
+    'trust': 'trust / untrust plugin', 'trust-all': 'trust every untrusted plugin',
+    'set-ref': 'set git ref + re-sync',
     'attr-filter': 'filter by attrs',
-    'track-all': 'track set / whole profile', 'track-one': 'track the highlighted component',
+    'track-all': 'toggle tracking: set / whole profile', 'track-one': 'toggle tracking: highlighted',
     'select-all': 'select all in view', 'machine-target': 'choose target machines',
     'comp-machines': 'machines for this component',
-    'disp-interesting': 'mark interesting', 'disp-seen': 'mark seen',
-    'disp-interesting-all': 'mark set interesting', 'disp-seen-all': 'mark set seen',
+    'disp-interesting': 'toggle interesting', 'disp-seen': 'toggle new / seen',
+    'disp-interesting-all': 'mark set / profile interesting', 'disp-seen-all': 'mark set / profile seen',
     'mark-all-seen': 'mark all NEW seen', 'claim': 'track all installed',
-    'toggle-install': 'install overlay on/off (default on)',
+    'toggle-install': 'install overlay on/off',
     'stage-uninstall': 'stage uninstall (→ !uninstall)',
     'orphan-ignore': 'ignore / un-ignore this orphan',
+    'new': 'add a color to the map',
     'reset': 'reset to default', 'edit-bg': 'edit background', 'effect-bold': 'toggle bold',
     'effect-underline': 'toggle underline', 'effect-reverse': 'toggle reverse', 'gradient-toggle': 'toggle gradient',
     'copy-page': 'copy this page onto another', 'save': 'save / export', 'load': 'load a theme pack',

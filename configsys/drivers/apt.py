@@ -98,7 +98,7 @@ class Apt(NativePkgManager):
         a PRE-EXISTING, unrelated broken source, whose "E: The list of sources could not be read"
         names nothing): re-check with our source disabled, and if it still fails, restore our valid
         source and report the real, pre-existing breakage instead. Returns None on success, or a
-        classified failing Result. See docs/driver-resilience-plan.md (P2 validate-then-commit).'''
+        classified failing Result. See docs/done/driver-resilience-plan.md (P2 validate-then-commit).'''
         sp = shlex.quote(src_path)
         existed = self.runner.run(f'test -f {sp}', capture=True).ok
         res = self.runner.run(write_cmd, capture=True)
@@ -322,7 +322,7 @@ class Apt(NativePkgManager):
         '''Map each upgradable key to an UPDATE_TIER via Debian Priority (required/important -> core,
         standard -> standard, optional/extra -> apps) with kernel packages split off by name. Reuses
         origin_index (one dpkg-query); a key not in it, or with no priority, falls back to the name
-        heuristic. See docs/system-update-coverage-plan.md (tier taxonomy).'''
+        heuristic. See docs/system-updates.md (tier taxonomy).'''
         prio = self.origin_index() or {}
         out = {}
         for k in keys:
