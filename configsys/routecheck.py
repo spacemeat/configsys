@@ -19,6 +19,17 @@ class AmbiguityError(ConfigsysError):
     '''Two overlapping-but-incomparable candidates — a load-time config error.'''
 
 
+def gated(binding, cascade):
+    '''`binding`'s `when:` intersected with the driver gate it is subject to (OsCascade.gate_pred —
+    its via's `drivers:` `when:`, or for `via: native` the gate of each OS's manager): its TRUE
+    candidate set, the same one resolve._matching filters by. Used to judge OVERLAP only —
+    specificity stays on the raw `when:`, because resolution ranks raw `when:`s (the gate adds no
+    specificity), so a same-via pair overlapping inside the gate must still be raw-comparable.'''
+    gp = getattr(cascade, 'gate_pred', None)
+    g = gp(binding.via) if gp is not None else None
+    return binding.pred if g is None else predicate.And([binding.pred, g])
+
+
 def check_component(name, component, cascade):
     '''Verify a component's bindings resolve unambiguously. Two bindings of the SAME `via:` that
     overlap must be comparable (one `when:` ⊆ the other) — else which variant of that one method
@@ -38,10 +49,11 @@ def check_component(name, component, cascade):
         ma, mb = cpu_names(a.details), cpu_names(b.details)
         if ma and mb and not (set(ma) & set(mb)):
             continue                                   # disjoint cpu sets (cpu-names): never both valid
-        if predicate.overlap(a.pred, b.pred, cascade) and not predicate.comparable(a.pred, b.pred, cascade):
+        ga, gb = gated(a, cascade), gated(b, cascade)   # overlap on the gated candidate set
+        if predicate.overlap(ga, gb, cascade) and not predicate.comparable(a.pred, b.pred, cascade):
             raise AmbiguityError(
                 f'component {name!r}: two via:{a.via} bindings (#{i} and #{j}) overlap but neither '
-                f'is more specific (e.g. on {predicate.witness(a.pred, b.pred, cascade)}) — make '
+                f'is more specific (e.g. on {predicate.witness(ga, gb, cascade)}) — make '
                 f'their when: comparable (one a subset of the other) or disjoint')
 
 
@@ -69,16 +81,20 @@ def _method_tie_warnings(name, component, cascade, candidate_only=None):
     for (i, a), (j, b) in combinations(eligible, 2):
         if a.via == b.via or rank(a) != rank(b):
             continue
-        if not predicate.overlap(a.pred, b.pred, cascade):
+        # both must be CANDIDATES somewhere at once: overlap on the driver-gated sets (a gated-out
+        # driver's binding never competes — the same filter resolve._matching applies)
+        ga, gb = gated(a, cascade), gated(b, cascade)
+        if not predicate.overlap(ga, gb, cascade):
             continue
         # a STRICT subset one way means most-specific resolves the default (no tie). A tie needs
         # equal or incomparable preds where they overlap — i.e. no strict subset either way.
+        # (Specificity is on the RAW `when:` — resolution ignores the gate there.)
         sa = predicate.subset(a.pred, b.pred, cascade)
         sb = predicate.subset(b.pred, a.pred, cascade)
         if sa != sb:
             continue
         out.append(f'methods via:{a.via} and via:{b.via} overlap (e.g. on '
-                   f'{predicate.witness(a.pred, b.pred, cascade)}) and are equally preferred '
+                   f'{predicate.witness(ga, gb, cascade)}) and are equally preferred '
                    f'by default — add a `driver-preference` order or a `standing:` rank to pick one')
     return out
 
@@ -283,6 +299,12 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_o
                 add('unsatisfiable-constraint', f'requires {cap} {con!r} but no provider satisfies '
                     f'it (have: {have})', comp, 'warning')
 
+    for drv, (text, gate) in sorted((getattr(cascade, 'driver_gates', None) or {}).items()):
+        src = (getattr(cascade, 'driver_sources', None) or {}).get(drv)
+        for os_name in predicate.os_names(gate):
+            if os_name not in cascade.blocks and os_name not in cascade.facet_specs:
+                issues.append(Issue('unknown-os', f'driver {drv!r}: when: names unknown OS '
+                                    f'{os_name!r}', None, src, 'warning'))
     for msg, src in retired_driver_key_warnings(cascade):
         issues.append(Issue('retired-key', msg, None, src, 'warning'))
     for drv, reqs in drivers.items():

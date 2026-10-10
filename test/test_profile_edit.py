@@ -110,8 +110,8 @@ def test_install_probe_underlines_nonenumerable(tmp_path):
     from configsys.drivers import get_driver
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
-    units, _ = ctx.routes.resolve_resilient(['ollama'])          # ollama installs via tarball
-    u = next(v for v in units.values() if v.name == 'ollama')
+    units, _ = ctx.routes.resolve_resilient(['adguardhome'])          # adguardhome installs via tarball
+    u = next(v for v in units.values() if v.name == 'adguardhome')
     assert u.driver == 'tarball'
     drv = get_driver(u.driver, ctx.runner, ctx.paths)
     d = drv._install_dir(u); d.mkdir(parents=True, exist_ok=True)
@@ -119,13 +119,13 @@ def test_install_probe_underlines_nonenumerable(tmp_path):
 
     ps = menu.ProfileScreen(ctx)
     ps.show_install = 1
-    ps._overlay = (frozenset(), {}, frozenset())                 # batch overlay ran; ollama not in it
-    ps.ensure_probes(['ollama', 'fzf'])                          # fzf is native -> enumerable -> skipped
+    ps._overlay = (frozenset(), {}, frozenset())                 # batch overlay ran; adguardhome not in it
+    ps.ensure_probes(['adguardhome', 'fzf'])                          # fzf is native -> enumerable -> skipped
     for _ in range(50):
         if not ps.probe_busy():
             break
         time.sleep(0.1)
-    assert ps._probe_installed.get('ollama') is True             # probe found it -> will underline
+    assert ps._probe_installed.get('adguardhome') is True             # probe found it -> will underline
     assert 'fzf' not in ps._probe_installed                      # enumerable driver, not probed
 
 

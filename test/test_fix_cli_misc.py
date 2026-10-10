@@ -210,7 +210,7 @@ def test_os_advisories_tell_the_truth(tmp_path, capsys):
     main(['--home', str(tmp_path), '--os', 'kde_linux', '--pretend', 'inspect'])
     out = capsys.readouterr()
     text = (out.out + out.err).replace('\n', ' ')
-    assert 'pip/pipx components decline' in text
+    assert "pipx tools come through Homebrew" in text and '`via: pip` packages' in text
     assert 'cargo, pipx' not in text
 
 

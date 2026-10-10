@@ -277,12 +277,16 @@ def merge_scalar_map(layers, section, roles):
 
 def merge_dict_section(layers, section, roles):
     '''Union a dict section (os / drivers — {name: spec}) across layers whose role is in
-    `roles`; a later layer's entry wins per name. Lets a plugin add os blocks (derivative
-    distros) while the rest stay from the repo.'''
+    `roles`. A later layer's entry overlays the lower one FIELD BY FIELD, so a top-config
+    `drivers: { snap: { standing: never-auto } }` adds standing without dropping snap's shipped
+    `requires:` (no surprises); a field it restates replaces that field whole. Lets a plugin add
+    os blocks (derivative distros) while the rest stay from the repo.'''
     out = {}
     for layer in layers:
         if layer.role in roles and isinstance(layer.data.get(section), dict):
-            out.update(layer.data[section])
+            for name, spec in layer.data[section].items():
+                prev = out.get(name)
+                out[name] = {**prev, **spec} if isinstance(prev, dict) and isinstance(spec, dict) else spec
     return out
 
 

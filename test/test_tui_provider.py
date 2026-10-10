@@ -120,8 +120,8 @@ def test_capability_choices_surface_the_winning_bindings_requires(tmp_path, monk
 
 
 def test_choices_with_no_axis_is_a_noop(tmp_path):
-    ctx = _ctx(tmp_path)                                          # zsh: one method, no cap -> nothing
-    changed, note, _d = menu._pick_choices(_Scr([]), _Pal(), _row('zsh'), ctx)
+    ctx = _ctx(tmp_path)                                          # curl: one method, no cap -> nothing
+    changed, note, _d = menu._pick_choices(_Scr([]), _Pal(), _row('curl'), ctx)
     assert not changed and 'nothing to choose' in note
 
 

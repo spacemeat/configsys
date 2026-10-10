@@ -191,6 +191,12 @@ class OsCascade:
         self.driver_sources = {}               # {driver: file whose block wins} (provenance)
         self.os_sources = {}                   # {os block: file whose block wins} (provenance)
         self.candidate_only = frozenset()      # vias whose driver block is `standing: never-auto`
+        # driver-wide VALIDITY gates: {driver: (when-text, Predicate)} from a `drivers:` block's
+        # `when:` (set by load). A binding whose driver's gate is false here is not a candidate —
+        # like a false binding `when:` — but the gate adds NO specificity (validity-only, like
+        # `cpu-names:`). Applies to a `via: native` binding that reaches that manager too.
+        self.driver_gates = {}
+        self._gate_pred_cache = {}
 
     def provides(self, block):
         '''Capabilities baseline in this environment (union over the lineage's blocks).'''
@@ -222,9 +228,49 @@ class OsCascade:
         return y in self.lineage(x)
 
     def context(self, block, version=None, cpu=None, disabled=()):
-        return predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
-                                 facets_cat=self.facets_cat, facets_ver=self.facets_ver,
-                                 disabled=disabled, has_native=self.native(block) is not None)
+        native = self.native(block)
+        ctx = predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
+                                facets_cat=self.facets_cat, facets_ver=self.facets_ver,
+                                disabled=disabled, has_native=native is not None)
+        # the driver gates evaluated ONCE for this machine: resolve._matching drops every binding
+        # of a gated-out driver (and a `via: native` binding when this OS's manager is gated out)
+        ctx.native_driver = native
+        ctx.gated_drivers = frozenset(d for d, (_t, p) in self.driver_gates.items()
+                                      if not p.eval(ctx))
+        return ctx
+
+    def gate_pred(self, via):
+        '''The driver gate a binding of `via` is subject to, as a predicate over machines — None when
+        ungated. For `via: native` it is the conjunction, over every gated manager M, of "this OS's
+        native manager isn't M, or M's gate holds" (exact per OS leaf: a descendant that overrides
+        `native:` is carved out). routecheck intersects a binding's `when:` with this to judge
+        OVERLAP on the true candidate set; specificity stays on the raw `when:` (the gate adds none).
+        Cached — gates are fixed once load() sets them.'''
+        if via in self._gate_pred_cache:
+            return self._gate_pred_cache[via]
+        out = None
+        if via == 'native':
+            terms = []
+            for mgr, (_t, gate) in sorted(self.driver_gates.items()):
+                is_mgr = self._native_is(mgr)
+                if is_mgr is not None:
+                    terms.append(predicate.Or([predicate.Not(is_mgr), gate]))
+            out = predicate.And(terms) if terms else None
+        elif via in self.driver_gates:
+            out = self.driver_gates[via][1]
+        self._gate_pred_cache[via] = out
+        return out
+
+    def _native_is(self, mgr):
+        '''A predicate true exactly on the OS leaves whose nearest `native:` is `mgr` (None if none).'''
+        terms = []
+        for n in self.blocks:
+            if self.native(n) != mgr:
+                continue
+            carve = [predicate.Not(predicate.Os(d)) for d in self.blocks
+                     if d != n and self.is_descendant(d, n) and self.native(d) != mgr]
+            terms.append(predicate.And([predicate.Os(n)] + carve))
+        return predicate.Or(terms) if terms else None
 
 
 def _pf(entry):
@@ -314,6 +360,7 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     cascade.driver_specs = drvs                      # raw `drivers:` blocks (routecheck lints them)
     cascade.driver_sources = layers.dict_section_sources(layer_list, 'drivers')
     forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
+    cascade.driver_gates = _driver_gates(drvs, cascade.driver_sources, forgiving, warnings_out)
     from . import routecheck
     components = {}
     for name, chain in layers.collect_named(layer_list, 'components').items():
@@ -349,6 +396,28 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     cascade.candidate_only = candidate_only          # so routecheck.validate mirrors resolve._select
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
     return cascade, components, drivers, candidate_only
+
+
+def _driver_gates(drvs, sources, forgiving, warnings_out=None):
+    '''{driver: (when-text, Predicate)} for every merged `drivers:` block carrying a `when:` — the
+    driver-wide VALIDITY gate (e.g. `brew: { when: "glibc_linux" }`: Linuxbrew bottles are glibc
+    builds). A malformed gate from a plugin file is dropped with a warning (never bricks the rest);
+    from the repo or your own config it is a loud, attributed ConfigError.'''
+    gates = {}
+    for name, spec in drvs.items():
+        if not isinstance(spec, dict) or spec.get('when') is None:
+            continue
+        text = str(spec['when']).strip()
+        try:
+            gates[name] = (text, predicate.parse(text))
+        except predicate.PredicateError as e:
+            src = sources.get(name) or 'routes'
+            if src and os.path.normpath(src) in forgiving:
+                if warnings_out is not None:
+                    warnings_out.append(f'{src}: driver {name!r}: bad `when:` gate ignored — {e}')
+                continue
+            raise ConfigError(f'{src}: driver {name!r}: bad `when:` — {e}')
+    return gates
 
 
 def _apply_version_floors(components, floors):

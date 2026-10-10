@@ -101,7 +101,10 @@ class Unit:
 # OS block may override it (`driver-preference:` in the os: layer). Native-first is conventional;
 # drivers absent from the list are least-preferred and tie among themselves (a tie is an error,
 # not a silent guess). snap/source are listed ahead of their drivers existing — harmless.
-DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage', 'tarball', 'source', 'script']
+# brew ranks just ahead of tarball: an ordinary method (gated to glibc by its `drivers:` block) that
+# beats a hand-rolled download, never a native/flatpak/snap/.deb/AppImage one.
+DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage', 'brew',
+                             'tarball', 'source', 'script']
 
 
 def _matching(component, context, pins):
@@ -123,7 +126,37 @@ def _matching(component, context, pins):
     no_native = not getattr(context, 'has_native', True)
     return [b for b in bindings
             if b.via not in disabled and not (no_native and b.via == 'native')
+            and driver_gated(b, context) is None
             and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
+
+
+def driver_gated(binding, context):
+    '''The driver whose `drivers:` `when:` gate is FALSE in this context and so makes `binding` not a
+    candidate — its own via, or (for `via: native`) this OS's native manager — else None. A
+    validity-only filter, like a false `when:` / `cpu-names:`: it never adds specificity, so it
+    never shifts which method is the default where the driver IS valid. (The gates are evaluated
+    once per context by OsCascade.context into `gated_drivers`; a hand-built Context has none.)'''
+    gated = getattr(context, 'gated_drivers', None)
+    if not gated:
+        return None
+    if binding.via in gated:
+        return binding.via
+    if binding.via == 'native':
+        native = getattr(context, 'native_driver', None)
+        if native in gated:
+            return native
+    return None
+
+
+def driver_gate_reason(binding, cascade, context):
+    '''Human text for why `binding` is not a candidate because of a driver gate — e.g. "the brew
+    driver isn't valid here (drivers: brew when: glibc_linux)" — or None (not gated out here).'''
+    drv = driver_gated(binding, context)
+    if drv is None:
+        return None
+    text = (getattr(cascade, 'driver_gates', None) or {}).get(drv, ('?',))[0]
+    via_note = f' — this OS\'s native manager' if binding.via == 'native' else ''
+    return f"the {drv} driver{via_note} isn't valid here (drivers: {drv} when: {text})"
 
 
 def cpu_names(details):

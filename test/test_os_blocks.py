@@ -203,10 +203,10 @@ def test_no_native_manager_blocks_route_around_native():
     assert r.cascade.native('kde_linux') is None
     assert 'flatpak\\gimp' in r.resolve_names(['gimp'])
     with pytest.raises(ResolveError):
-        r.resolve_names(['bonnie++'])
+        r.resolve_names(['bzip2'])
     # its provides (flatpak + the image's curl/git/unzip/xz) let tarballs route with nothing installed
-    units = r.resolve_names(['lazygit'])
-    assert 'tarball\\lazygit' in units and not any(k.endswith('\\curl') for k in units)
+    units = r.resolve_names(['dnspeep'])
+    assert 'tarball\\dnspeep' in units and not any(k.endswith('\\curl') for k in units)
 
 
 def test_chimera_is_musl_with_no_native_yet():

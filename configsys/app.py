@@ -201,11 +201,11 @@ class Context:
         if _blk == 'kde_linux':
             add('warn', 'immutable',
                 'KDE Linux detected (alpha, immutable, NO system package manager) — configsys installs '
-                'apps via Flatpak and CLI tools via userland methods (tarballs, `via: script` '
-                'installers, cargo once rust is in); pip/pipx components decline here (pipx and '
-                'python3-pip have only distro-package routes), as does anything offered only as a '
-                'distro package. KDE Linux routing is NEW and not validated on real hardware — review '
-                'plans before running them.')
+                'apps via Flatpak and CLI tools via userland methods (Homebrew, which configsys '
+                'installs first when a pick needs it; tarballs; `via: script` installers; cargo once '
+                'rust is in). pipx tools come through Homebrew\'s pipx; `via: pip` packages and '
+                'anything offered only as a distro package decline here. KDE Linux routing is NEW and '
+                'not validated on real hardware — review plans before running them.')
         elif _blk == 'chimera':
             add('warn', 'partial-os',
                 'Chimera Linux detected — configsys does not route its apk packages yet (Chimera\'s '
@@ -1513,10 +1513,12 @@ def _fmt_val(v):
     return s if len(s) <= 60 else s[:57] + '...'
 
 
-def _fmt_binding(b, selected, reachable=False, shadowed=False):
+def _fmt_binding(b, selected, reachable=False, shadowed=False, invalid=None):
     when = b.when if b.when else 'always'
     details = '  '.join(f'{k}={_fmt_val(v)}' for k, v in b.details.items())
-    if selected:
+    if invalid:                         # not a candidate for a reason `when:` doesn't show (a driver gate)
+        mark = f'  (not a candidate: {invalid})'
+    elif selected:
         mark = '  <- default here'
     elif shadowed:
         mark = f'  (shadowed — pinning via:{b.via} resolves a more-specific binding above)'
@@ -1550,7 +1552,8 @@ def _source_label(comp, paths):
 def where_report(ctx, name):
     '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
     (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
-    from .resolve import ResolveError, _select, candidate_bindings, via_representatives
+    from .resolve import (ResolveError, _select, candidate_bindings, via_representatives,
+                          driver_gate_reason)
     r = ctx.routes
     comp = r.components.get(name)
     if comp is None:
@@ -1568,7 +1571,8 @@ def where_report(ctx, name):
         # how each required capability's provider was decided, when a rule other than "the only
         # one" did it (e.g. `standing: 5`) — recorded by the last resilient resolve
         rules = getattr(r, 'provider_rules', None) or {}
-        decided = [f'{c} by {rules[c]}' for c in comp.requires if c in rules]
+        decided = [f'{c} by {rules[c]}' for c in comp.requires
+                   if c in rules and rules[c] != 'only provider here']
         if decided:
             out.append(f'  providers   {", ".join(decided)}')
     pinned = r.pins.get(name)
@@ -1589,7 +1593,8 @@ def where_report(ctx, name):
         for b in comp.bindings:
             valid = b in candidates
             out.append(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
-                                    shadowed=(valid and b not in reps)))
+                                    shadowed=(valid and b not in reps),
+                                    invalid=None if valid else driver_gate_reason(b, r.cascade, cx)))
         if selected is not None and len(candidates) > 1:
             out.append(f'    default: via {selected.via}  (by {reason})')
 

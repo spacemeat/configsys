@@ -159,7 +159,7 @@ def _steam_home(tmp_path):
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
     (d / 'configsys.hu').write_text(
-        '{ picks: { this-machine: [ steam, btop, zsh ] } }')
+        '{ picks: { this-machine: [ steam, btop, curl ] } }')
     return d
 
 
@@ -236,7 +236,7 @@ def test_pick_method_popup_esc_cancels(tmp_path):
 def test_pick_method_single_method_is_a_noop(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
-    ms = _menu_on(ctx, 'zsh')                         # native-only here: no popup, no getch
+    ms = _menu_on(ctx, 'curl')                         # native-only here: no popup, no getch
     changed, note, _d = menu._pick_method(_Scr([]), _Pal(), ms, ctx)
     assert not changed and 'only one install method' in note
 
@@ -338,7 +338,7 @@ def test_method_tags_flags_the_auto_default_only_when_you_are_off_it():
 def test_methods_line_names_the_method_even_with_one_option(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
-    line = menu._methods_line(_menu_on(ctx, 'zsh'), ctx)         # native-only: still name the method
+    line = menu._methods_line(_menu_on(ctx, 'curl'), ctx)         # native-only: still name the method
     assert 'native' in line and '*' not in line                 # named, but no choice marker...
     assert '(v to change)' not in line                          # ...and no change hint
 

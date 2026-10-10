@@ -86,7 +86,7 @@ def test_pretend_install_has_no_not_detected_warning(tmp_path, capsys):
 # -- 1(d)+(e) offline version placeholder, no failure capture ------------------------------------
 
 def test_pretend_unresolved_download_is_a_placeholder_not_a_failure(tmp_path, capsys):
-    rc = _cs(tmp_path, '--pretend', 'install', 'lazygit')
+    rc = _cs(tmp_path, '--pretend', 'install', 'geekbench', 'cliamp')   # geekbench: version-templated asset; cliamp: has a -dotfiles companion
     out = capsys.readouterr().out
     assert rc == 0
     assert 'FAILED' not in out and 'configsys report' not in out

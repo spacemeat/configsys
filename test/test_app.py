@@ -529,12 +529,12 @@ def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
     # a marker at the SYSTEM scope base -> location reports the system path, not the user default
     sysbase = tmp_path / 'opt'
     monkeypatch.setenv('CONFIGSYS_SYSTEMSCOPE_DIR', str(sysbase))
-    lg = sysbase / 'apps' / 'lazygit'
+    lg = sysbase / 'apps' / 'dnspeep'
     lg.mkdir(parents=True)
-    (lg / '.configsys-lazygit.version').write_text('0.42')
-    rc = main(base_args(tmp_path) + ['location', 'lazygit'])
+    (lg / '.configsys-dnspeep.version').write_text('0.42')
+    rc = main(base_args(tmp_path) + ['location', 'dnspeep'])
     out = capsys.readouterr().out.strip()
-    assert rc == 0 and out == str(lg)   # detected system install, not ~/apps/lazygit
+    assert rc == 0 and out == str(lg)   # detected system install, not ~/apps/dnspeep
 
 
 def test_installed_despite_failure_downgrades_present_package():
