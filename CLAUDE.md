@@ -111,8 +111,10 @@ the full spec). Its sections:
   candidate is one -> most-specific comparable `when:` -> per-binding `standing:` rank (a NARROW
   author signal, so it outranks the broad machine order below) -> `driver-preference` (a machine
   setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, aur, flatpak, snap, native-pkg-file,
-  appImage, brew, tarball, source, script — drivers absent from it are least preferred and tie;
-  overridable per OS block; aur sits right after native, so an aur binding needs no `when: "arch"`
+  appImage, brew, tarball, source, script; overridable per OS block; a FALLBACK CHAIN —
+  `resolve._effective_preference`: OS-block lists, then the setting, then the default, each adding
+  only the drivers the earlier ones don't name, so a stale list still ranks a new driver; only
+  drivers named in no list are least preferred and tie; aur sits right after native, so an aur binding needs no `when: "arch"`
   of its own (the aur gate covers validity) except where a competitor valid on Arch has a narrower
   `when:` that would win on specificity first (a version-gated AppImage, a cpu-gated tarball); brew sits just ahead of tarball so it beats tarball/script/
   cargo/pipx/npm/sdkman but never a native/flatpak/snap/.deb/AppImage default; CLI tools,

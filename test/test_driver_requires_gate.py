@@ -206,3 +206,28 @@ def test_disabling_a_drivers_prerequisite_reads_unmet_not_dangling():
     assert status == 'unmet' and 'snap' in detail and 'aur' in detail
     r = Resolver(ROUTES, 'opensuse_tumbleweed', None, 'x86_64')
     assert classify_unroutable(SimpleNamespace(routes=r), ['nextcloud'])['nextcloud'][0] == 'dangling'
+
+
+# -- driver-preference is a fallback chain: unlisted drivers follow, in the default order ------------
+
+def test_preference_list_without_a_driver_still_ranks_it_by_the_default():
+    # a user's copy of the OLD default (no brew): brew used to rank last and tie with sdkman/pipx/
+    # cargo/opam/go-install/cabal ("equally valid AND equally preferred"); now it follows the list
+    stale = ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage', 'tarball', 'source', 'script']
+    r = Resolver(ROUTES, 'pop_os!', '22.04', 'x86_64', preference=stale)
+    names = ['ant', 'conan', 'detekt', 'dune', 'dysk', 'goimports', 'gping', 'groovy', 'hlint',
+             'jbang', 'jmeter']
+    units, errs = r.resolve_resilient(names)
+    assert errs == {}
+    assert 'brew\\dysk' in units and 'brew\\ant' in units
+
+
+def test_effective_preference_chain_order():
+    from types import SimpleNamespace
+    from configsys.resolve import _effective_preference
+    casc = SimpleNamespace(blocks={'leaf': {'driver-preference': ['flatpak']}, 'root': {}})
+    ctx = SimpleNamespace(lineage=['leaf', 'root'])
+    order = _effective_preference(casc, ctx, ['tarball', 'native'])
+    assert order[:3] == ['flatpak', 'tarball', 'native']             # OS block, then the setting
+    assert order[3:] == [d for d in DEFAULT_DRIVER_PREFERENCE if d not in ('flatpak', 'tarball', 'native')]
+    assert 'sdkman' not in order                                       # named nowhere -> ties last

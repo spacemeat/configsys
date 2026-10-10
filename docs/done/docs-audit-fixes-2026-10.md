@@ -53,6 +53,11 @@ questions to be grilled. This records the decisions so later work doesn't re-lit
   specificity). With the rank + the aur gate those clauses were dropped; aur keeps `when: "arch"`
   only where a competitor valid on Arch has a narrower `when:` (13 ArtCraft apps, dbx, tmog,
   wl-screenrec, signal-cli). Net default change: signal-cli on x86_64 Arch, brew → aur.
+- **`driver-preference` is a fallback chain:** OS-block lists, then the setting, then the built-in
+  default, each adding only the drivers the earlier ones don't name. *Why:* the user's primary
+  plugin carried a copy of the old default without brew; once brew became an ordinary method it
+  tied last with sdkman/pipx/cargo/opam/go-install/cabal and 11 picks errored. A list still fully
+  decides every driver it names; only drivers named in no list tie.
 - **Optional driver hooks frozen** into the plugin ABI (no ABI bump — a new promise about existing
   members): the batching, orphan-scan, System Updates and version-signal hooks, `holds_version`,
   `native_backed`, and the helpers `arch_token`, `location_override`, `command_trusted`,

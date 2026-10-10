@@ -669,10 +669,15 @@ the deciding rule — `configsys where <comp>` prints it):
 3. **`standing:` rank** — an integer, higher wins (default 0). A NARROW per-binding author signal,
    so it **outranks** the broad `driver-preference` below: a targeted per-package decision beats a
    blanket order (the machine owner still overrides any case with a **pin**).
-4. **`driver-preference`** — the nearest OS block's `driver-preference:` walking the lineage, else
-   the `driver-preference:` setting, else the built-in `DEFAULT_DRIVER_PREFERENCE` (`native, aur,
-   flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script`). It matches `via:` names
-   (`native`, not `apt`); vias absent from the order rank last and tie among themselves. `aur` sits
+4. **`driver-preference`** — a FALLBACK CHAIN (`resolve._effective_preference`): the OS blocks'
+   `driver-preference:` lists walking the lineage (nearest first), then the `driver-preference:`
+   setting, then the built-in `DEFAULT_DRIVER_PREFERENCE` (`native, aur, flatpak, snap,
+   native-pkg-file, appImage, brew, tarball, source, script`); each later list contributes only the
+   vias the earlier ones don't name, in its own order. So a list fully decides every via it names,
+   and one written before a driver existed (a user's copy of the old default without `brew`) still
+   ranks that driver by the default instead of leaving it tied last with sdkman/pipx/cargo. It
+   matches `via:` names (`native`, not `apt`); only vias named in no list rank last and tie among
+   themselves. `aur` sits
    right after `native`: on Arch an AUR package beats a flatpak/AppImage/brew/tarball fallback by
    preference, so an aur binding needs no `when: "arch"` of its own (its driver gate states validity).
    The exception is a competitor valid on Arch whose `when:` is narrower (a glibc-version-gated

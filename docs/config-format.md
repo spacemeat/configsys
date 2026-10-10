@@ -114,7 +114,9 @@ effective value and where it lives.
 - **`driver-preference`** (list, uniform; default `[ native, aur, flatpak, snap, native-pkg-file,
   appImage, brew, tarball, source, script ]`): the order that breaks ties between equally valid install
   methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that
-  declares its own `driver-preference:` takes precedence on that OS.
+  declares its own `driver-preference:` takes precedence on that OS. Drivers your list doesn't name
+  aren't dropped: they follow the ones it names, in the default order, so a list written before a
+  new driver existed still ranks it. Only drivers named in no list tie, and a tie is an error.
 - **`disabled-drivers`** (list of via names, machine; default none): turns install methods off on
   this machine. Their bindings stop matching, like a false `when:`, so a `suggests:` that needs one
   is skipped and a `requires:` that needs one is an error. Use `dotfiles` and `glue` to manage your

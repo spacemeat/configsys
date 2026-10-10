@@ -591,7 +591,8 @@ def set_machine_active(ctx, name):
 CONFIG_SETTINGS = {
     'scope':             ('scalar', 'Default install scope: user (~, the default when unset) or '
                                     'system (/opt, needs sudo).', 'configsys(1)'),
-    'driver-preference': ('list',   'Order ties between equally-valid install methods break in.',
+    'driver-preference': ('list',   'Order ties between equally-valid install methods break in '
+                                    '(unlisted drivers follow, in the default order).',
                           'configsys(1)'),
     'disabled-drivers':  ('list',   'Install methods (via names) to turn OFF on this machine — their '
                                     'bindings stop matching, like a false when:, so a soft suggests is '

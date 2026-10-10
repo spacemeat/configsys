@@ -315,13 +315,21 @@ def _binding_candidate_only(binding):
 
 
 def _effective_preference(cascade, context, preference):
-    '''The driver-preference order for this context: the nearest OS block's `driver-preference:`
-    (walking the lineage) wins, else the passed-in global (config) list, else the built-in.'''
-    for name in context.lineage:
-        pref = (cascade.blocks.get(name) or {}).get('driver-preference')
-        if pref:
-            return _as_list(pref)
-    return list(preference) if preference else list(DEFAULT_DRIVER_PREFERENCE)
+    '''The driver-preference order for this context, as a FALLBACK CHAIN: the OS blocks'
+    `driver-preference:` lists walking the lineage (nearest first), then the passed-in global
+    (config) list, then the built-in DEFAULT_DRIVER_PREFERENCE. Each later list contributes only the
+    drivers the earlier ones don't name, in its own order — so a list fully decides every driver it
+    names, and one written before a driver existed still ranks that driver (by the default) instead
+    of leaving it tied last with every other unlisted one. Only drivers named in NO list tie.'''
+    chain = [_as_list(pref) for name in context.lineage
+             if (pref := (cascade.blocks.get(name) or {}).get('driver-preference'))]
+    if preference:
+        chain.append(list(preference))
+    chain.append(DEFAULT_DRIVER_PREFERENCE)
+    order = []
+    for lst in chain:
+        order += [d for d in lst if d not in order]
+    return order
 
 
 def _most_specific_binding(matching, cascade):
