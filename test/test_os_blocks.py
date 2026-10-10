@@ -88,23 +88,27 @@ def test_glibc_provided_by_glibc_families_not_alpine(cascade):
 
 
 def test_appimage_routes_on_glibc_declines_on_alpine():
-    # ghostty (an ungated appImage, requires glibc via the driver; no Alpine package) resolves on
-    # ubuntu (glibc env-provided, no extra unit) but declines on Alpine by default — a clean
-    # diagnostic, not a broken install.
+    # ghostty (an AppImage; no Alpine package) resolves on ubuntu (glibc env-provided, no extra unit)
+    # but is simply unavailable on Alpine: the appImage driver gate keeps AppImage methods off musl
+    # (test_appimage_gate.py), so it's "no binding here", not an unmet-glibc error.
     ubu = Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['ghostty'])
     assert 'appImage\\ghostty' in ubu
     with pytest.raises(ResolveError) as e:
         Resolver(ROUTES, 'alpine').resolve_names(['ghostty'])
-    assert 'glibc' in str(e.value) and 'gcompat' in str(e.value)   # error names the opt-in
+    assert 'no binding' in str(e.value)
 
 
 def test_gcompat_opt_in_enables_glibc_binaries_on_alpine():
-    # provider-pin the shim -> the glibc appImage routes AND gcompat is pulled.
-    pinned = Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['ghostty'])
-    assert 'appImage\\ghostty' in pinned and 'apk\\gcompat' in pinned
-    # ...but gcompat is NEVER auto-pulled without opting in
-    with pytest.raises(ResolveError):
+    # a glibc TARBALL declines on Alpine with an error naming the opt-in...
+    with pytest.raises(ResolveError) as e:
         Resolver(ROUTES, 'alpine').resolve_names(['android-studio'])
+    assert 'glibc' in str(e.value) and 'gcompat' in str(e.value)
+    # ...and provider-pinning the shim routes it AND pulls gcompat (never auto-pulled otherwise)
+    pinned = Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['android-studio'])
+    assert 'tarball\\android-studio' in pinned and 'apk\\gcompat' in pinned
+    # the pin alone doesn't revive an AppImage: that also needs the driver gate widened
+    with pytest.raises(ResolveError):
+        Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['ghostty'])
 
 
 # -- the 2026 descendant blocks (cachyos/garuda/nobara/kali/pikaos) ---------

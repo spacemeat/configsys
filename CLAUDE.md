@@ -71,7 +71,9 @@ the full spec). Its sections:
   source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
   python-build-deps], brew->homebrew), an optional driver-wide `standing:` (snap ships `standing:
   never-auto`), and an optional driver-wide **validity gate** `when:` (brew ships `when:
-  "glibc_linux"` — Linuxbrew bottles are glibc builds). Driver `requires:`/`standing:`/`when:` also
+  "glibc_linux"` — Linuxbrew bottles are glibc builds; appImage ships `when: "glibc_linux and not
+  (fedora_atomic or kde_linux)"` — glibc builds, and those images have no libfuse2; its `glibc`
+  require stays so widening the gate + `pins: { glibc: gcompat }` is the explicit Alpine gamble). Driver `requires:`/`standing:`/`when:` also
   apply to a `via: native` binding that resolves to that manager. The gate is validity-only, like
   `cpu-names:`: `routes._driver_gates` parses it into `OsCascade.driver_gates`,
   `OsCascade.context` evaluates it once into `ctx.gated_drivers`, `resolve.driver_gated` drops the

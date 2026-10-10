@@ -581,14 +581,26 @@ this OS's package manager is that driver:
 - **`when:`** a validity gate for the whole driver, in the same expression language as a binding's
   `when:`. Where it is false, no binding of that driver is valid. Unlike a binding's `when:`, it
   never makes a binding more specific, so it can't change which method is the default where the
-  driver works. The shipped `brew` entry is `when: "glibc_linux"`, because Homebrew's Linux bottles
-  need glibc: brew methods are valid on every glibc distro and on none of the musl ones (Alpine,
-  Void musl, Chimera).
+  driver works. Two entries ship one. `brew` has `when: "glibc_linux"`, because Homebrew's Linux
+  bottles need glibc: brew methods are valid on every glibc distro and on none of the musl ones
+  (Alpine, Void musl, Chimera). `appImage` has `when: "glibc_linux and not (fedora_atomic or
+  kde_linux)"`: AppImages are glibc builds, and those two image-based systems ship no libfuse2.
+  `configsys where` names the gate when it rules a method out.
 
 ```hu
 drivers: {
-    brew: { requires: homebrew  when: "glibc_linux" }
+    brew:     { requires: homebrew  when: "glibc_linux" }
+    appImage: { requires: [ libfuse2, glibc ]  when: "glibc_linux and not (fedora_atomic or kde_linux)" }
 }
+```
+
+A `drivers:` entry in your config merges field by field over the shipped one, so you can change one
+field and keep the rest. For example, to try AppImages on Alpine through the gcompat shim, widen the
+gate and opt in to the shim:
+
+```hu
+drivers: { appImage: { when: "glibc_linux or alpine" } }
+pins:    { glibc: gcompat }
 ```
 
 ## Versions: discovered, not hardcoded

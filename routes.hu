@@ -124,7 +124,7 @@
     drivers: {
         snap:        { standing: never-auto  requires: [ snapd-socket, snapd-snap-link ] }   // never-auto = valid + listed + pinnable, never the auto-default (native/flatpak win); a pin forces it. `requires` pulls in snapd + its socket + the /snap symlink, so a snap works on any distro where snapd is installable (a no-op on Ubuntu, which ships snapd). Snaps are now offered everywhere, not just Ubuntu. A user's primary plugin can add `flatpak: { standing: never-auto }` the same way.
         flatpak:     { requires: flatpak }
-        appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc-built: decline on musl
+        appImage:    { requires: [ libfuse2, glibc ]  when: "glibc_linux and not (fedora_atomic or kde_linux)" }   // a driver-wide VALIDITY gate (like brew's): AppImages are glibc builds, so no AppImage method is a candidate on musl (alpine/chimera/void_musl) — `where` says why instead of offering a pin that can only fail; and the image-based fedora_atomic and kde_linux ship no libfuse2 (fuse3 only; see their advisories), so they decline there too. Validity only, no specificity. To gamble on gcompat on Alpine, widen it in your top config — drivers: { appImage: { when: "glibc_linux or alpine" } } — and provider-pin glibc: gcompat (the `glibc` require stays for exactly that).
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         npm:         { requires: npm }                // a global CLI needs the npm tool (-> node)
         go-install:  { requires: go }                 // `go install` needs the go toolchain
@@ -248,8 +248,9 @@
         xtools:     { attrs: [ CLI FOSS permissive ] description: "xtools — Void's opinionated XBPS helper scripts (`xi`, `xcheckrestart`, `xlocate`, …)." install: [ { via: native  when: "void or void_musl" } ] }   // Void-only
 
         // gcompat: Alpine's glibc-compat shim. It `provides: glibc`, so it can re-enable the
-        // glibc-only bindings (AppImages, glibc tarballs) that otherwise decline on musl. It is
-        // marked `opt-in` — NEVER auto-pulled to satisfy a `requires: glibc`, because the shim
+        // glibc-only bindings (glibc tarballs; AppImages too once you widen the appImage driver
+        // gate — see drivers:) that otherwise decline on musl. It is
+        // marked `never-auto` — NEVER auto-pulled to satisfy a `requires: glibc`, because the shim
         // is BEST-EFFORT: it maps many glibc binaries onto musl but not all (symbol-version
         // gaps, NSS, TLS quirks). Silently installing it, then maybe still failing to run the
         // binary, is exactly the surprise configsys avoids. So a musl box declines glibc
@@ -937,7 +938,7 @@
         ghostty: { attrs: [ GUI FOSS permissive ] suggests: [ ghostty-dotfiles  ghostty-glue ]  description: "Fast, native GPU-accelerated terminal emulator."
             install: [
                 { via: native  when: "arch or void or void_musl" }
-                { via: appImage  when: "not fedora_atomic"  name: Ghostty  scope: user
+                { via: appImage  name: Ghostty  scope: user
                   version: { github: pkgforge-dev/ghostty-appimage  strip-v: true  asset: "Ghostty-*-$ARCH.AppImage" }
                   path: ~/apps/ghostty.appimage }
             ]
@@ -2257,10 +2258,10 @@
                 { via: native  when: "arch"  name: signal-desktop }   // [extra]
                 { via: flatpak  hub: flathub  app: org.signal.Signal }
                 // community AppImage (karo-solutions — rebuilt from each Signal release within a day,
-                // x86_64 + aarch64); glibc, so not on musl Alpine. Signal itself ships no AppImage.
-                // never-auto: its `not alpine` gate would out-specific the ungated flatpak and take
-                // the default; it's a pinnable alternative (`configsys pin set signal appImage`).
-                { via: appImage  when: "not alpine"  standing: never-auto  name: Signal  scope: user
+                // x86_64 + aarch64); the appImage driver gate keeps it off musl. Signal itself ships no
+                // AppImage. flatpak outranks it by driver-preference, so it's a pinnable alternative
+                // (`configsys pin set signal appImage`).
+                { via: appImage  name: Signal  scope: user
                   version: { github: karo-solutions/Signal-Desktop-AppImage  strip-v: true  asset: "Signal-v*-$ARCH.AppImage" }
                   path: ~/apps/signal.appimage }
                 { via: snap  name: signal-desktop  standing: never-auto } ]
@@ -2367,19 +2368,19 @@
         lap:        { attrs: [ GUI app FOSS GNU copyleft tele ] description: "Lap — an offline-first photo manager for large local libraries (`Lap`; local AI search, faces, dedupe)."
             install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"
                          version: { github: julyx10/lap  strip-v: true }  asset: { x86_64: "Lap_*_amd64.deb"  aarch64: "Lap_*_arm64.deb" } }
-                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
+                       { via: appImage  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
                          version: { github: julyx10/lap  strip-v: true  asset: "Lap_*_$ARCH.AppImage" }  path: ~/apps/lap.appimage } ] }   // Tauri app, not in any distro; the .deb needs webkit2gtk-4.1 (Ubuntu 22.04+/Debian 12+). Aptabase usage stats are ON by default (tele)
         allusion:   { attrs: [ GUI app FOSS GNU copyleft electron ] description: "Allusion — a visual reference/image library for artists (the maintained RafaUC fork)."
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: allusion-appimage-rafauc }
-                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: Allusion  scope: user
+                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: Allusion  scope: user
                          version: { github: RafaUC/Allusion  strip-v: true  asset: "Allusion-*-ruc.AppImage" }  path: ~/apps/allusion.appimage } ] }   // upstream allusion-app is dormant since 2023; the fork keeps the same appId/config. x86_64 only
         mediachips: { attrs: [ GUI app FOSS GNU copyleft electron freemium ] description: 'MediaChips — a local media library (video/images/audio) with custom metadata "chips" and tags.'
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: mediachips-bin }
-                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: MediaChips  scope: user
+                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: MediaChips  scope: user
                          version: { github: fupdec/MediaChips  strip-v: true  asset: "MediaChips.v*.Linux.AppImage" }  path: ~/apps/mediachips.appimage } ] }   // x86_64-only AppImage; an optional paid activation key exists (freemium)
         video-hub-app: { attrs: [ GUI app FOSS permissive electron paid ] description: "Video Hub App — browse/search/preview local video like YouTube (Linux build is the 2023 DEMO, 50 videos per hub)."
             install: [ { via: aur  when: "arch and cpu: x86_64"  name: video-hub-app-bin }
-                       { via: appImage  when: "not fedora_atomic"  cpu-names: { x86_64: x86_64 }  name: VideoHubApp  scope: user  version: { static: "3.2.0" }
+                       { via: appImage  cpu-names: { x86_64: x86_64 }  name: VideoHubApp  scope: user  version: { static: "3.2.0" }
                          url: "https://github.com/whyboris/Video-Hub-App/releases/download/v3.2.0/Video.Hub.App.3.Demo-3.2.0.AppImage"  path: ~/apps/video-hub-app.appimage } ] }   // v3.3.0 dropped the Linux asset; the full version is a paid ($10) download — pinned to the last Linux demo
 
         // --- video editors (NLEs): native in the big repos + Flathub (universal / atomic / the gaps) ---
@@ -2400,7 +2401,8 @@
         //     glibc <= 2.34 -> decline honestly)
         //   - x86_64 Arch -> alerque's AUR package (current, built from source; the PKGBUILD is
         //     x86_64-only, so ARM Arch takes the AppImage)
-        //   - Void-glibc and atomic -> the AppImage; musl (Alpine, void_musl) declines.
+        //   - Void-glibc -> the AppImage; musl (Alpine, void_musl, Chimera) and atomic decline (the
+        //     appImage driver gate).
         // The AppImage binding names its menu entry by the app's desktop id (`desktop-id:`), which is
         // the Wayland app_id: the dock icon resolves, and apps whose AppImage self-integrates on
         // launch (photocraft's AppRun, effectcraft) share that one entry instead of duplicating it.

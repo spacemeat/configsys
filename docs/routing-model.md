@@ -255,16 +255,20 @@ requiring one is free there and pulls a provider (or declines) elsewhere:
         glibc_linux: { using: linux  provides: glibc }     // every glibc family inherits `glibc`
         alpine:      { using: linux  native: apk }         // musl: no `glibc`
     }
-    drivers: { appImage: { requires: [ libfuse2, glibc ] } }
     components: {
         gcompat: { provides: glibc  standing: never-auto  install: [ { via: apk  when: "alpine" } ] }
+        tool:    { install: [ { via: native  when: "not alpine" }
+                              { via: tarball  requires: glibc  url: "https://…/tool-linux-gnu.tgz" } ] }
     }
 }
 ```
 
-An AppImage method's `glibc` need is free on a glibc distro; on Alpine it fails ("nothing
+A glibc tarball's `glibc` need is free on a glibc distro; on Alpine it fails ("nothing
 auto-provides glibc … e.g. pins: { glibc: gcompat }") because the only provider there is the
-best-effort `gcompat` shim, which is `never-auto` — opt in with that provider-pin. Repo enablement uses the same shape:
+best-effort `gcompat` shim, which is `never-auto` — opt in with that provider-pin. (The appImage
+driver also `requires: [ libfuse2, glibc ]`, but it carries a driver gate — §8a — that already keeps
+AppImages off musl, so for them the shim additionally needs that gate widened in your top config:
+`drivers: { appImage: { when: "glibc_linux or alpine" } }`.) Repo enablement uses the same shape:
 EL-only bindings carry a binding-level `requires: epel`, satisfied by the `epel-release`
 component (`provides: epel`).
 
@@ -427,10 +431,10 @@ on inspect and the TUI `!` page: atomic routing is new and not hardware-validate
 Homebrew, apps via Flatpak, `via: rpm-ostree` is reboot-gated; dev toolchains, the GPU/Vulkan stack,
 docker and AppImages are not managed here (use distrobox, podman or rpm-ostree). Those exclusions
 are routing facts, not just text — e.g. `python-build-deps` has no route there, so the `python3.X`
-components (pyenv-only on this block) are unroutable; and `libfuse2` is gated
-`when: "not fedora_atomic"` (the image ships fuse3, and brew has no libfuse2 formula), so the
-appImage driver's `requires: libfuse2` is unmet and **AppImage-only components decline** there
-instead of resolving to a brew install that can't exist. Where a brew formula's name differs from
+components (pyenv-only on this block) are unroutable; and the image ships fuse3 only (brew has no
+libfuse2 formula, so `libfuse2` is gated `when: "not fedora_atomic"`), so the appImage driver gate
+excludes this block (§8a) and **AppImage methods are not candidates** — an AppImage-only component
+declines instead of resolving to a brew install that can't exist. Where a brew formula's name differs from
 the tool's, the binding's `name:` map says so (`tshark` is brew's `wireshark` formula, the CLI-only
 build; `netcat` is brew's GNU `netcat`).
 
@@ -479,8 +483,8 @@ an error about a missing driver. With no `native:` there is also no native index
   `via: brew` binding resolves to it (pulling `homebrew`, whose `curl`/`git` the image provides),
   which is how the `pipx` tool — and with it every `via: pipx` component — routes. `python3-pip`
   has only a native route, so `via: pip` components decline. It ships fuse3 only and libfuse2 has
-  no non-native route, so the appImage driver's `requires: libfuse2` is unmet and **AppImages
-  decline**. VERSION_ID is a build timestamp
+  no non-native route, so the appImage driver gate excludes it (§8a) and **AppImage methods are not
+  candidates**. VERSION_ID is a build timestamp
   (YYYYMMDDHHMM); `scale-root: true` keeps any parent's versioned atom from misreading it.
   Diagnostics add an `immutable` warning (alpha, no system package manager, Flatpak + userland
   methods only).
@@ -609,8 +613,9 @@ passes all of:
   a pick errors — classified as `unmet` routing status, docs/stranded-installs.md);
 - **not `via: native` on a native-less OS** (§3);
 - **not gated out by its driver** (`resolve.driver_gated`) — a `drivers:` block may carry a
-  driver-wide `when:` (`drivers: { brew: { when: "glibc_linux" } }`: Linuxbrew bottles are glibc
-  builds). Where that gate is false, every binding of that via is a non-candidate, and so is a
+  driver-wide `when:`. Two ship: `brew: { when: "glibc_linux" }` (Linuxbrew bottles are glibc
+  builds) and `appImage: { when: "glibc_linux and not (fedora_atomic or kde_linux)" }` (AppImages
+  are glibc builds, and those two image-based OSes ship no libfuse2). Where that gate is false, every binding of that via is a non-candidate, and so is a
   `via: native` binding whose OS manager is that driver. `OsCascade.context` evaluates each gate
   once per machine into `Context.gated_drivers` (`routes._driver_gates` parses them at load; a
   malformed gate from a plugin is dropped with a warning, from the repo or your own config it is an
@@ -623,7 +628,11 @@ it adds no specificity and cannot shift which method is the default where the dr
 is why it is a separate field rather than a `when:` clause copied onto every brew binding — the
 clause would make each brew binding narrower than a broad native one and hijack the default on
 every glibc box. `configsys where` labels a gated-out binding "not a candidate: the brew driver
-isn't valid here (drivers: brew when: glibc_linux)" (`resolve.driver_gate_reason`).
+isn't valid here (drivers: brew when: glibc_linux)" (`resolve.driver_gate_reason`). A gate also turns
+"this method can't work here" into plain unavailability: an AppImage-only component on Alpine reads
+"no binding … in this context" (an OS-availability fact `check` doesn't flag, and `profile:` expansion
+skips with a notice) instead of an unmet-`glibc` error, and `where` no longer offers it as "pin to
+use".
 
 One candidate is chosen as the default, deterministically (`resolve._select`, which also returns
 the deciding rule — `configsys where <comp>` prints it):
