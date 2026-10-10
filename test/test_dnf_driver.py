@@ -176,7 +176,7 @@ def test_batch_index_batches_get_version_across_units():
     batch = d.batch_index(rcs)
     assert batch == {'installed': {'btop': '1.4.0', 'htop': '3.3.0'}}
     fr.calls.clear()
-    d._batch = batch
+    d.batch = batch
     assert d.get_version(pkg('btop')) == '1.4.0'
     assert d.get_version(pkg('htop')) == '3.3.0'
     assert d.get_version(pkg('mc')) is None          # not in the index -> not installed

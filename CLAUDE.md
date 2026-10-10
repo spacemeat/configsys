@@ -70,14 +70,21 @@ the full spec). Its sections:
   that via (e.g. appImage->[libfuse2, glibc], flatpak->flatpak, cargo->cargo, tarball->curl,
   source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
   python-build-deps], brew->homebrew), an optional driver-wide `standing:` (snap ships `standing:
-  never-auto`), and an optional driver-wide **validity gate** `when:` (brew ships `when:
-  "glibc_linux"` — Linuxbrew bottles are glibc builds; appImage ships `when: "glibc_linux and not
-  (fedora_atomic or kde_linux)"` — glibc builds, and those images have no libfuse2; its `glibc`
-  require stays so widening the gate + `pins: { glibc: gcompat }` is the explicit Alpine gamble). Driver `requires:`/`standing:`/`when:` also
-  apply to a `via: native` binding that resolves to that manager. The gate is validity-only, like
-  `cpu-names:`: `routes._driver_gates` parses it into `OsCascade.driver_gates`,
-  `OsCascade.context` evaluates it once into `ctx.gated_drivers`, `resolve.driver_gated` drops the
-  bindings in `_matching`, and it adds NO specificity — `routecheck.gated` intersects it with
+  never-auto`), and two kinds of **driver gate** (validity-only — a gated driver's bindings are not
+  candidates). The DERIVED gate: **a driver is valid only where its own `requires:` can be met**
+  (`resolve.gated_context` — a greatest fixpoint that tries each driver's requires with the real
+  `_State` and gates the failures; it reads your HARD pins, never soft ones, so `pins: { glibc:
+  gcompat }` opens appImage on Alpine; reasons in `ctx.derived_gates`). So snap isn't offered where
+  snapd has no method, appImage on musl (no glibc) or fedora_atomic/kde_linux (no libfuse2), pyenv
+  where python-build-deps has no route — no hand-written expression. The explicit gate `when:` is
+  for facts that aren't requirements: brew ships `when: "glibc_linux"` (Linuxbrew refuses musl even
+  with gcompat), aur ships `when: "arch"` (Void has base-devel too). Driver `requires:`/`standing:`/
+  gates also apply to a `via: native` binding that resolves to that manager. `routes._driver_gates`
+  parses the explicit gate into `OsCascade.driver_gates`, `OsCascade.context` evaluates it into
+  `ctx.gated_drivers`, `gated_context` adds the derived ones (cached per load × context × pins;
+  `Resolver.context()` and both resolve entry points go through it, so `where`/the picker/resolution
+  agree), `resolve.driver_gated` drops the bindings in `_matching`, a "no binding" error appends
+  each gated method's reason (`_gate_note`), and a gate adds NO specificity — `routecheck.gated` intersects it with
   `when:` to judge OVERLAP only (specificity stays on the raw `when:`); `where` names the reason
   (`resolve.driver_gate_reason`). Merged across every layer (`layers.merge_dict_section` over
   `ALL_ROLES`), the top config last.
@@ -94,7 +101,8 @@ the full spec). Its sections:
   scale-bound), `cpu:` and facets, with `and`/`or`/`not` (negation is general, over any atom).
   `when:` states VALIDITY ONLY (does this method work here), never preference. A binding is a
   **candidate** (`resolve._matching`) when its `when:` holds, its driver isn't in
-  `disabled-drivers:` or gated out by its `drivers:` `when:`, it covers this cpu, and it isn't
+  `disabled-drivers:` or gated out (explicit `drivers:` `when:`, or derived: its requires can't be
+  met here), it covers this cpu, and it isn't
   `via: native` on a native-less OS. CPU
   coverage of a download is stated with `cpu-names: { <cpu>: <upstream token> }` (or a cpu-keyed
   `asset:` map): its keys are the cpus upstream ships and `$ARCH` expands through it — this gates
@@ -102,9 +110,11 @@ the full spec). Its sections:
   candidates, the default (`resolve._select`) is: drop `standing: never-auto` methods unless every
   candidate is one -> most-specific comparable `when:` -> per-binding `standing:` rank (a NARROW
   author signal, so it outranks the broad machine order below) -> `driver-preference` (a machine
-  setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, flatpak, snap, native-pkg-file,
+  setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, aur, flatpak, snap, native-pkg-file,
   appImage, brew, tarball, source, script — drivers absent from it are least preferred and tie;
-  overridable per OS block; brew sits just ahead of tarball so it beats tarball/script/
+  overridable per OS block; aur sits right after native, so an aur binding needs no `when: "arch"`
+  of its own (the aur gate covers validity) except where a competitor valid on Arch has a narrower
+  `when:` that would win on specificity first (a version-gated AppImage, a cpu-gated tarball); brew sits just ahead of tarball so it beats tarball/script/
   cargo/pipx/npm/sdkman but never a native/flatpak/snap/.deb/AppImage default; CLI tools,
   toolchains and servers carry a `{ via: brew  name: <formula> }` binding — libs, keg-only
   formulae and curl/git, which `homebrew` itself requires, don't); a remaining tie is an error naming
@@ -249,8 +259,10 @@ as components (docs/principles.md).
 
 Drivers are defined in code (configsys/drivers/, base class configsys/driver.py — the frozen
 plugin ABI) behind a uniform op set: get_version, get_latest, is_locked, install, uninstall,
-upgrade, set_version, lock, unlock, location (plus batched `installed_index` for detection and the
-System Updates hooks). apt has various commands for these; as does flatpak, etc. Each `via:` value
+upgrade, set_version, lock, unlock, location (plus the optional hooks — batched `installed_index`/
+`batch_index` with the public `batch` attribute + `batched_version(rc)`, the orphan-scan and System
+Updates hooks, `outdated_signal` — all in the FROZEN list of the `driver.py` docstring since
+2026-10-10, pinned by test/test_abi_surface.py; underscore members stay internal). apt has various commands for these; as does flatpak, etc. Each `via:` value
 names a Driver 1:1 (the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew,
 rpm-ostree; tarball, native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS
 package tool — its own via, distinct from repo `native`, because it doesn't ride `apt upgrade`;

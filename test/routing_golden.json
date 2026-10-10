@@ -126,6 +126,9 @@
    "aur\\allusion": {
     "driver": "aur",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "name": "allusion-appimage-rafauc"
     },
     "name": "allusion-appimage-rafauc"
@@ -8502,6 +8505,9 @@
    "aur\\mediachips": {
     "driver": "aur",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "name": "mediachips-bin"
     },
     "name": "mediachips-bin"
@@ -11714,6 +11720,9 @@
    "aur\\raddebugger": {
     "driver": "aur",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "name": "raddebugger"
     },
     "name": "raddebugger"
@@ -12562,8 +12571,8 @@
    }
   },
   "signal-cli": {
-   "brew\\signal-cli": {
-    "driver": "brew",
+   "aur\\signal-cli": {
+    "driver": "aur",
     "fields": {
      "name": "signal-cli"
     },
@@ -12593,12 +12602,12 @@
     },
     "name": "signal-cli-glue"
    },
-   "pacman\\curl": {
+   "pacman\\base-devel": {
     "driver": "pacman",
     "fields": {
-     "name": "curl"
+     "name": "base-devel"
     },
-    "name": "curl"
+    "name": "base-devel"
    },
    "pacman\\git": {
     "driver": "pacman",
@@ -12606,22 +12615,6 @@
      "name": "git"
     },
     "name": "git"
-   },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
    }
   },
   "signal-cli-glue": {
@@ -14186,6 +14179,9 @@
    "aur\\video-hub-app": {
     "driver": "aur",
     "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
      "name": "video-hub-app-bin"
     },
     "name": "video-hub-app-bin"

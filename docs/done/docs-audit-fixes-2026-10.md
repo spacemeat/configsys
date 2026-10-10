@@ -1,6 +1,6 @@
 # Docs-audit bug batch + decisions (2026-10)
 
-> **Status: DONE** — finished 2026-10-10 (bug batch 2a577c0; Homebrew sweep in the following commit). Lives on in: docs/routing-model.md, docs/config-format.md, docs/shell-glue.md, docs/plugins.md, docs/tui-architecture.md
+> **Status: DONE** — finished 2026-10-10 (bug batch 2a577c0; Homebrew sweep in the following commit; driver-gate follow-ups after). Lives on in: docs/routing-model.md, docs/config-format.md, docs/shell-glue.md, docs/plugins.md, docs/tui-architecture.md
 
 The first full `/update-docs` run (d958cf9, 2026-10-09) reported ~60 places where the code, not the
 doc, was wrong. The user asked for every one to be fixed, with regression tests, and for the open
@@ -37,13 +37,27 @@ questions to be grilled. This records the decisions so later work doesn't re-lit
   keg-only formulae (not on PATH), or homebrew's own prerequisites (curl, git — a cycle on
   native-less OSes).
 
-- **AppImage gate (follow-up, same day):** `drivers: { appImage: { when: "glibc_linux and not
-  (fedora_atomic or kde_linux)" } }`. On musl and the two libfuse2-less image OSes an AppImage
-  method is no longer offered as "pin to use" only to fail on an unmet `glibc`/`libfuse2`; the
-  component reads as unavailable there. The `glibc` require stays, so the gcompat shim remains an
-  explicit opt-in (widen the gate in the top config + `pins: { glibc: gcompat }`). The per-binding
-  `not fedora_atomic` / `not alpine` clauses it made redundant were dropped (no glibc-distro
-  resolution changed).
+- **Driver gates (follow-ups, same day).** First an explicit AppImage `when:` gate (9e9fc68); then,
+  after discussion, it was replaced by the general rule **a driver is valid only where its own
+  `requires:` can be met** (the derived gate, `resolve.gated_context`). *Why:* hand-written gates
+  duplicate what the routes already know (the AppImage gate had to copy libfuse2's coverage, a snap
+  gate would copy snapd's) and go stale; the derived rule fixes snap (not offered where snapd has no
+  method), AppImage (musl, atomic, kde_linux), pyenv and any future case with nothing to maintain,
+  and makes gcompat a one-step opt-in (`pins: { glibc: gcompat }` — gates read HARD pins only, so an
+  opt-in stays explicit). Explicit `when:` gates remain only for facts that aren't requirements:
+  brew (glibc; Homebrew refuses musl even with gcompat) and aur (Arch; Void has base-devel too).
+  Native managers get no gate: `via: native` already resolves to the OS block's manager, and every
+  explicit manager binding was audited as correctly gated.
+- **aur ranks right after native** in `DEFAULT_DRIVER_PREFERENCE`. *Why:* the `when: "arch"` on ~60
+  aur bindings was a preference hiding in a validity clause (it won 50 Arch defaults by
+  specificity). With the rank + the aur gate those clauses were dropped; aur keeps `when: "arch"`
+  only where a competitor valid on Arch has a narrower `when:` (13 ArtCraft apps, dbx, tmog,
+  wl-screenrec, signal-cli). Net default change: signal-cli on x86_64 Arch, brew → aur.
+- **Optional driver hooks frozen** into the plugin ABI (no ABI bump — a new promise about existing
+  members): the batching, orphan-scan, System Updates and version-signal hooks, `holds_version`,
+  `native_backed`, and the helpers `arch_token`, `location_override`, `command_trusted`,
+  `untrusted_command_result`. The batch members a batching driver needs were promoted from
+  `_batch` / `_batched_version` to `batch` / `batched_version`.
 
 **Glue**
 - **conf.d bands:** 00-configsys, 50-<component glue>, 90-<user glue>, 99-user. *Why:* the loader
@@ -76,5 +90,4 @@ questions to be grilled. This records the decisions so later work doesn't re-lit
 - `CONFIGSYS_PM` / `CONFIGSYS_GLUE_SHELLS` stay documented in configsys(1) as forcing/testing hooks.
 
 ## Parked
-- Freezing the optional driver hooks (installed_index, upgradable_index, …) into the plugin ABI list.
 - Podman name-existence sweep for the new brew formula names.

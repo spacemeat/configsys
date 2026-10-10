@@ -91,7 +91,7 @@ def test_preference_order_brew_just_before_tarball():
     order = DEFAULT_DRIVER_PREFERENCE
     assert order.index('brew') == order.index('tarball') - 1
     assert order.index('appImage') < order.index('brew')
-    assert order[:5] == ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage']
+    assert order[:6] == ['native', 'aur', 'flatpak', 'snap', 'native-pkg-file', 'appImage']
 
 
 def test_bad_gate_in_repo_is_a_loud_config_error(tmp_path):

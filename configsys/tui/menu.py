@@ -855,7 +855,7 @@ def _why(ctx, name):
     comp = r.components.get(name)
     if comp is None or not comp.bindings:
         return ''
-    cx = r.cascade.context(r.block, r.version, r.cpu)
+    cx = r.context()
     try:
         return _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[2]
     except ResolveError:
@@ -878,7 +878,7 @@ def _edges_text(ctx, name):
     try:
         from ..resolve import ResolveError, _select, cap_constraints, cap_names
         r = ctx.routes
-        cx = r.cascade.context(r.block, r.version, r.cpu)
+        cx = r.context()
         won = _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[0]
         for cap in cap_names(won.details.get('requires')):
             if cap not in req_names:
@@ -1730,7 +1730,7 @@ def _capability_choices(routes, name):
     caps = set(getattr(comp, 'provides', ())) | set(getattr(comp, 'requires', ()))
     try:                                                 # + the winning binding's requires (mirrors _edges_text)
         from ..resolve import ResolveError, _select, cap_names
-        cx = routes.cascade.context(routes.block, routes.version, routes.cpu)
+        cx = routes.context()
         won = _select(comp, routes.cascade, cx, routes.pins, routes.preference, routes.candidate_only)[0]
         caps.update(cap_names(won.details.get('requires')))
     except ResolveError:
@@ -2860,7 +2860,7 @@ class ProfileScreen:
         from ..adapt import to_resolved_component
         from ..resolve import candidate_bindings, unit_for_binding, via_representatives
         r = self.ctx.routes
-        cx = r.cascade.context(r.block, r.version, r.cpu)
+        cx = r.context()
 
         def installed_any(name):
             comp = r.components.get(name)
@@ -3136,7 +3136,7 @@ class ProfileScreen:
         r = self.ctx.routes
         try:
             from ..resolve import candidate_bindings
-            cx = r.cascade.context(r.block, r.version, r.cpu)
+            cx = r.context()
             binds = candidate_bindings(comp, r.cascade, cx, self.ctx.config.pins())
         except Exception:                            # noqa: BLE001 — fall back to all bindings
             binds = comp.bindings
@@ -3212,7 +3212,7 @@ class ProfileScreen:
         from ..adapt import to_resolved_component
         from ..resolve import candidate_bindings, unit_for_binding, via_representatives
         ctx, r = self.ctx, self.ctx.routes
-        cx = r.cascade.context(r.block, r.version, r.cpu)
+        cx = r.context()
         try:
             units, _e = r.resolve_resilient(list(ctx.config.requested()))
             inst, _o, _c = _orph.install_overlay(ctx, units, caches=self._scan_caches)

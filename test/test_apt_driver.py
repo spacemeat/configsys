@@ -72,7 +72,7 @@ def test_installed_name_probes_a_different_package_than_install():
         ('apt-mark showhold', 0, ''),
     ])
     apt = Apt(fr)
-    apt._batch = apt.batch_index([lo])
+    apt.batch = apt.batch_index([lo])
     assert apt.get_version(lo) == '1:7.3.7'        # detected via libreoffice-core (meta is absent)
     assert apt.get_latest(lo) == '1:7.3.7'
     # mutation still targets the install name (the meta)
@@ -439,9 +439,9 @@ def test_multi_package_binding_locks_pins_and_checks_the_whole_set():
 
     class _Held:                                     # only two of three held -> NOT fully locked
         def __init__(s, held): s.held = held
-    d._batch = {'held': {'python3.12', 'python3.12-venv'}}
+    d.batch = {'held': {'python3.12', 'python3.12-venv'}}
     assert d.is_locked(u) is False
-    d._batch = {'held': {'python3.12', 'python3.12-venv', 'python3.12-dev'}}
+    d.batch = {'held': {'python3.12', 'python3.12-venv', 'python3.12-dev'}}
     assert d.is_locked(u) is True
 
 

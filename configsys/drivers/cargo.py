@@ -38,7 +38,7 @@ class Cargo(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # one `cargo install --list` for the whole batch
+        ver, hit = self.batched_version(rc)          # one `cargo install --list` for the whole batch
         if hit:
             return ver
         idx = self.installed_index()                  # unbatched: enumerate (still one call, per crate)

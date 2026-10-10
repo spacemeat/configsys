@@ -46,7 +46,7 @@ def test_gem_installed_index_omits_default_only():
 
 def test_gem_get_version_uses_batch_no_per_pkg_call():
     d = Gem(FakeRunner())
-    d._batch = {'installed': {'rails': '7.1.3'}}
+    d.batch = {'installed': {'rails': '7.1.3'}}
     assert d.get_version(rc('gem', 'rails')) == '7.1.3'
     assert d.get_version(rc('gem', 'bundler')) is None      # absent from batch = not installed
     assert d.runner.calls == []                             # answered entirely from the batch
@@ -67,7 +67,7 @@ def test_opam_installed_index():
 
 def test_opam_get_version_uses_batch():
     d = Opam(FakeRunner())
-    d._batch = {'installed': {'dune': '3.6.1'}}
+    d.batch = {'installed': {'dune': '3.6.1'}}
     assert d.get_version(rc('opam', 'dune')) == '3.6.1'
     assert d.get_version(rc('opam', 'menhir')) is None
     assert d.runner.calls == []
@@ -83,7 +83,7 @@ def test_luarocks_installed_index_tab_separated():
 
 def test_luarocks_get_version_uses_batch():
     d = LuaRocks(FakeRunner())
-    d._batch = {'installed': {'busted': '2.0.0'}}
+    d.batch = {'installed': {'busted': '2.0.0'}}
     assert d.get_version(rc('luarocks', 'busted')) == '2.0.0'
     assert d.get_version(rc('luarocks', 'penlight')) is None
     assert d.runner.calls == []
@@ -111,7 +111,7 @@ def test_go_install_index_keyed_by_install_path():
 
 def test_go_install_get_version_uses_batch_via_install_path():
     d = GoInstall(FakeRunner())
-    d._batch = {'installed': {'golang.org/x/tools/cmd/goimports': '0.18.0'}}
+    d.batch = {'installed': {'golang.org/x/tools/cmd/goimports': '0.18.0'}}
     # route name may even carry an @version — index_key strips it to match the embedded path
     goimports = ResolvedComponent(key='go-install\\goimports', driver='go-install', comp='goimports',
                                   fields={'name': 'golang.org/x/tools/cmd/goimports@v0.18.0'})

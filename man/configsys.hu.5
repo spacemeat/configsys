@@ -85,7 +85,7 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 .IP \(bu 2
 \fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs sudo).
 .IP \(bu 2
-\fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that declares its own \fBdriver-preference:\fR takes precedence on that OS.
+\fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that declares its own \fBdriver-preference:\fR takes precedence on that OS.
 .IP \(bu 2
 \fB\fBdisabled-drivers\fR\fR (list of via names, machine; default none): turns install methods off on this machine. Their bindings stop matching, like a false \fBwhen:\fR, so a \fBsuggests:\fR that needs one is skipped and a \fBrequires:\fR that needs one is an error. Use \fBdotfiles\fR and \fBglue\fR to manage your own shell config, or for example \fBsnap\fR.
 .IP \(bu 2
@@ -387,7 +387,7 @@ then the \fBmost specific\fR valid binding wins (a narrower \fBwhen:\fR beats a 
 .IP \(bu 2
 then a binding's \fB\fBstanding:\fR\fR integer rank (a narrow, per-package author signal, so it outranks the blanket order below);
 .IP \(bu 2
-then \fB\fBdriver-preference\fR\fR, the global tiebreak list (a machine setting, overridable per OS block). The default order is \fBnative, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script\fR, so on a glibc distro a Homebrew formula beats a plain download but never a distro package, flatpak, snap, release \fB.deb\fR/\fB.rpm\fR or AppImage.
+then \fB\fBdriver-preference\fR\fR, the global tiebreak list (a machine setting, overridable per OS block). The default order is \fBnative, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script\fR, so on Arch an AUR package beats a flatpak or a download, and on a glibc distro a Homebrew formula beats a plain download but never a distro package, flatpak, snap, release \fB.deb\fR/\fB.rpm\fR or AppImage.
 .PP
 If that still ties, it is an error that names the preference channel, never a request to narrow a validity \fBwhen:\fR. Above the default sit three overrides, highest first:
 .IP \(bu 2
@@ -418,29 +418,25 @@ An \fBos:\fR block describes one distro:
 .PP
 A \fBdrivers:\fR entry configures one driver. Each field also applies to a \fBvia: native\fR binding when this OS's package manager is that driver:
 .IP \(bu 2
-\fB\fBrequires:\fR\fR capabilities every binding of that driver needs (\fBappImage\fR requires \fBlibfuse2\fR and \fBglibc\fR; \fBcargo\fR requires \fBcargo\fR; \fBbrew\fR requires \fBhomebrew\fR, which configsys installs with Homebrew's official installer).
+\fB\fBrequires:\fR\fR capabilities every binding of that driver needs (\fBappImage\fR requires \fBlibfuse2\fR and \fBglibc\fR; \fBcargo\fR requires \fBcargo\fR; \fBbrew\fR requires \fBhomebrew\fR, which configsys installs with Homebrew's official installer). They also decide where the driver works at all: \fBa driver is valid only where its own requirements can be met.\fR Where one can't be installed, none of that driver's methods is offered. Snap methods don't appear where snapd has no install method, and AppImage methods don't appear on musl systems (no glibc) or on Fedora Atomic and KDE Linux (no libfuse2). Your provider pins count: on Alpine, \fBpins: { glibc: gcompat }\fR opts in to the gcompat shim and makes AppImage methods valid there.
 .IP \(bu 2
 \fB\fBstanding: never-auto\fR\fR makes every binding of that driver a listed, pinnable alternative that never wins by default (the shipped \fBsnap\fR entry does this).
 .IP \(bu 2
-\fB\fBwhen:\fR\fR a validity gate for the whole driver, in the same expression language as a binding's \fBwhen:\fR. Where it is false, no binding of that driver is valid. Unlike a binding's \fBwhen:\fR, it never makes a binding more specific, so it can't change which method is the default where the driver works. Two entries ship one. \fBbrew\fR has \fBwhen: "glibc_linux"\fR, because Homebrew's Linux bottles need glibc: brew methods are valid on every glibc distro and on none of the musl ones (Alpine, Void musl, Chimera). \fBappImage\fR has \fBwhen: "glibc_linux and not (fedora_atomic or kde_linux)"\fR: AppImages are glibc builds, and those two image-based systems ship no libfuse2. \fBconfigsys where\fR names the gate when it rules a method out.
+\fB\fBwhen:\fR\fR a validity gate for the whole driver, in the same expression language as a binding's \fBwhen:\fR, for a fact that isn't a requirement. Where it is false, no binding of that driver is valid. Unlike a binding's \fBwhen:\fR, it never makes a binding more specific, so it can't change which method is the default where the driver works. Two entries ship one: \fBbrew\fR has \fBwhen: "glibc_linux"\fR (Homebrew's Linux bottles need glibc, so brew methods are valid on every glibc distro and on none of the musl ones), and \fBaur\fR has \fBwhen: "arch"\fR (the AUR is Arch's).
+.PP
+\fBconfigsys where\fR names the reason whenever a driver is ruled out, for example "the snap driver can't work here: nothing provides "snapd" here".
 .PP
 .RS 4
 .nf
 drivers: {
     brew:     { requires: homebrew  when: "glibc_linux" }
-    appImage: { requires: [ libfuse2, glibc ]  when: "glibc_linux and not (fedora_atomic or kde_linux)" }
+    aur:      { requires: [ base-devel, git ]  when: "arch" }
+    appImage: { requires: [ libfuse2, glibc ] }
 }
 .fi
 .RE
 .PP
-A \fBdrivers:\fR entry in your config merges field by field over the shipped one, so you can change one field and keep the rest. For example, to try AppImages on Alpine through the gcompat shim, widen the gate and opt in to the shim:
-.PP
-.RS 4
-.nf
-drivers: { appImage: { when: "glibc_linux or alpine" } }
-pins:    { glibc: gcompat }
-.fi
-.RE
+A \fBdrivers:\fR entry in your config merges field by field over the shipped one, so you can change one field and keep the rest — for example \fBdrivers: { flatpak: { standing: never-auto } }\fR keeps flatpak methods available but stops them winning by default.
 .SH VERSIONS: DISCOVERED, NOT HARDCODED
 .PP
 Download-based bindings declare \fIhow\fR to find the latest version rather than pinning one:

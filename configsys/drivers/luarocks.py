@@ -45,7 +45,7 @@ class LuaRocks(Driver):
         return idx
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one porcelain listing when batched
+        ver, hit = self.batched_version(rc)          # answer from the one porcelain listing when batched
         if hit:
             return ver
         r = self.runner.run(f'luarocks list --porcelain {shlex.quote(self._rock(rc))}')

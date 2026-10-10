@@ -218,8 +218,8 @@ class Flatpak(Driver):
         return {app: (v[0] if isinstance(v, tuple) else v) for app, v in inst.items()}   # drop the scope
 
     def get_version(self, rc):
-        if self._batch is not None:                    # batched: from the one `flatpak list`
-            v = self._batch['installed'].get(self._appid(rc))
+        if self.batch is not None:                    # batched: from the one `flatpak list`
+            v = self.batch['installed'].get(self._appid(rc))
             return v[0] if v else None
         # no --user/--system flag: find the app in EITHER installation. (Otherwise a
         # system-installed app looks "missing" under the default user scope.)
@@ -232,8 +232,8 @@ class Flatpak(Driver):
                 or 'installed')
 
     def get_installed(self, rc):
-        if self._batch is not None:                    # batched: version + which installation
-            v = self._batch['installed'].get(self._appid(rc))
+        if self.batch is not None:                    # batched: version + which installation
+            v = self.batch['installed'].get(self._appid(rc))
             return v if v else (None, None)
         # which installation actually has it — so the menu shows the real scope, not the target
         app = shlex.quote(self._appid(rc))
@@ -248,8 +248,8 @@ class Flatpak(Driver):
         hub = rc.fields.get('hub')
         if not hub:
             return None
-        if self._batch is not None:                    # batched: from the one remote-ls per hub
-            return (self._batch['candidate'].get(hub) or {}).get(self._appid(rc)) or None
+        if self.batch is not None:                    # batched: from the one remote-ls per hub
+            return (self.batch['candidate'].get(hub) or {}).get(self._appid(rc)) or None
         # The remote's available version, from `flatpak remote-info` — read from flatpak's LOCAL
         # appstream metadata (refreshed on `flatpak update`/`flatpak remote-ls`), NOT a live network
         # fetch. The remote can exist in BOTH the user and system installations, which makes a bare
@@ -269,8 +269,8 @@ class Flatpak(Driver):
         commits — shows the update. `flatpak remote-ls --updates` is that same pending-update set, so
         membership = outdated. Returns None only when flatpak couldn't be queried (fall back to strings).'''
         appid = self._appid(rc)
-        if self._batch is not None:                    # batched: the one --updates set per sweep
-            return appid in self._batch.get('updates', ())
+        if self.batch is not None:                    # batched: the one --updates set per sweep
+            return appid in self.batch.get('updates', ())
         seen_ok = False                                # per-unit: ask flatpak directly, both scopes
         for flag in ('--user', '--system'):
             r = self.runner.run(f'flatpak remote-ls {flag} --updates --columns=application')
@@ -353,8 +353,8 @@ class Flatpak(Driver):
 
     def is_locked(self, rc):
         appid = self._appid(rc)
-        if self._batch is not None:                    # batched: membership in the mask set
-            return appid in self._batch['masked']
+        if self.batch is not None:                    # batched: membership in the mask set
+            return appid in self.batch['masked']
         for flag in ('--user', '--system'):
             r = self.runner.run(f'flatpak mask {flag}')
             if r.ok and any(appid in line for line in r.stdout.splitlines()):

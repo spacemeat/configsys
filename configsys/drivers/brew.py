@@ -59,7 +59,7 @@ class Brew(Driver):
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one brew list when batched
+        ver, hit = self.batched_version(rc)          # answer from the one brew list when batched
         if hit:
             return ver
         f = self._formula(rc)

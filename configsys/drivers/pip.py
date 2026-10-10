@@ -100,7 +100,7 @@ class Pip(Driver):
                 return None
             m = _VERSION_RE.search(r.stdout)
             return m.group(1).strip() if m else None
-        idx = self._batch if self._batch is not None else self.installed_index()
+        idx = self.batch if self.batch is not None else self.installed_index()
         return idx.get(_norm(self._dist(rc))) if idx else None
 
     # -- mutate -----------------------------------------------------------

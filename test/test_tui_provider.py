@@ -114,6 +114,7 @@ def test_capability_choices_surface_the_winning_bindings_requires(tmp_path, monk
     import configsys.resolve as resolve
     ctx = _ctx(tmp_path)
     won = types.SimpleNamespace(details={'requires': ['cuda-toolkit']})
+    ctx.routes.context()                      # compute (and cache) the driver gates before faking _select
     monkeypatch.setattr(resolve, '_select', lambda *a, **k: (won, None, ''))
     caps = dict(menu._capability_choices(ctx.routes, 'git'))   # git has no component-level requires
     assert caps.get('cuda-toolkit') == ['cuda-toolkit-11', 'cuda-toolkit-12', 'cuda-toolkit-12.8']

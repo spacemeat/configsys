@@ -214,11 +214,16 @@ def classify_unroutable(ctx, names):
                 out[name] = ('unmet', 'a dependency needs a disabled driver ('
                              + ', '.join(sorted(disabled)) + ')')
             continue
-        ctx_on = r.cascade.context(r.block, r.version, r.cpu, ())
-        would = [b for b in candidate_bindings(comp, r.cascade, ctx_on) if b.via in disabled]
+        # nothing valid now; with no driver disabled, is there? Then disabling is the cause — either
+        # the method's own driver is disabled, or its driver's requires need one (snap on Arch needs
+        # snapd, which only installs via aur: disable aur and snap can't work either)
+        would = candidate_bindings(comp, r.cascade, r.context(disabled=())) if disabled else []
         if would:
             vias = sorted({b.via for b in would})
-            out[name] = ('unmet', f'only installable via disabled driver(s): {", ".join(vias)}')
+            direct = [v for v in vias if v in disabled]
+            out[name] = ('unmet', f'only installable via disabled driver(s): {", ".join(direct)}' if direct
+                         else f'only installable via {", ".join(vias)}, which needs a disabled driver '
+                              f'({", ".join(sorted(disabled))})')
         else:
             out[name] = ('dangling', 'no install method on this OS any more')
     return out

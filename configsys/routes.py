@@ -557,13 +557,21 @@ class Resolver:
         '''The OS lineage leaf-first (e.g. rhel -> redhat -> linux), for display/tests.'''
         return self.cascade.lineage(self.block)
 
-    def context(self):
+    def context(self, block=None, version=None, disabled=None):
         '''This machine's predicate context — block + version + cpu + the DISABLED vias. Every caller
         that evaluates `when:` / lists candidate bindings must use this (not a hand-built
         `cascade.context(block, version, cpu)`), or a `disabled-drivers:` via leaks back in — e.g.
         detection would soft-pin a disabled driver, producing a phantom "no binding … pinned to …"
-        error row for a component that resolved fine.'''
-        return self.cascade.context(self.block, self.version, self.cpu, self.disabled)
+        error row for a component that resolved fine. It also carries every driver gate — the
+        explicit `drivers:` `when:` ones and the DERIVED ones (a driver whose own `requires:` can't be
+        met here under your pins; resolve.gated_context) — so `where`, the picker and detection see
+        exactly the candidates resolution does. `block`/`version`/`disabled` default to this
+        machine's (pass `disabled=()` to ask what WOULD be valid with no driver disabled).'''
+        from .resolve import gated_context
+        return gated_context(self.cascade, self.components, self.drivers,
+                             block or self.block, self.version if block is None else version,
+                             self.cpu, self.disabled if disabled is None else disabled, self.pins,
+                             self.overrides, self.preference, self.candidate_only)
 
     def _resolve(self, names):
         from .resolve import resolve_roots

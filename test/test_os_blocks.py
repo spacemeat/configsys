@@ -89,8 +89,9 @@ def test_glibc_provided_by_glibc_families_not_alpine(cascade):
 
 def test_appimage_routes_on_glibc_declines_on_alpine():
     # ghostty (an AppImage; no Alpine package) resolves on ubuntu (glibc env-provided, no extra unit)
-    # but is simply unavailable on Alpine: the appImage driver gate keeps AppImage methods off musl
-    # (test_appimage_gate.py), so it's "no binding here", not an unmet-glibc error.
+    # but is simply unavailable on Alpine: with no glibc provider the appImage driver can't work there
+    # (the derived driver gate, test_driver_requires_gate.py), so it's "no binding here", not an
+    # unmet-glibc error.
     ubu = Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['ghostty'])
     assert 'appImage\\ghostty' in ubu
     with pytest.raises(ResolveError) as e:
@@ -106,9 +107,9 @@ def test_gcompat_opt_in_enables_glibc_binaries_on_alpine():
     # ...and provider-pinning the shim routes it AND pulls gcompat (never auto-pulled otherwise)
     pinned = Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['android-studio'])
     assert 'tarball\\android-studio' in pinned and 'apk\\gcompat' in pinned
-    # the pin alone doesn't revive an AppImage: that also needs the driver gate widened
-    with pytest.raises(ResolveError):
-        Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['ghostty'])
+    # the same pin opens the appImage driver too (a driver is valid where its requires can be met)
+    app = Resolver(ROUTES, 'alpine', pins={'glibc': 'gcompat'}).resolve_names(['ghostty'])
+    assert 'appImage\\ghostty' in app and 'apk\\gcompat' in app
 
 
 # -- the 2026 descendant blocks (cachyos/garuda/nobara/kali/pikaos) ---------

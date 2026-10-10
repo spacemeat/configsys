@@ -50,7 +50,7 @@ def test_batch_answers_reads_without_more_spawns():
     r = FakeRunner([('xbps-query -l', 0, INSTALLED), ('xbps-query -Rs', 0, REMOTE),
                     ('xbps-query -H', 0, 'curl-8.20.0_1\n')])
     d = Xbps(r)
-    d._batch = d.batch_index([rc('curl'), rc('0ad')])
+    d.batch = d.batch_index([rc('curl'), rc('0ad')])
     n = len(r.calls)
     assert d.get_version(rc('curl')) == '8.20.0_1'
     assert d.get_latest(rc('curl')) == '8.22.0_1'

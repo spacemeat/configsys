@@ -103,8 +103,8 @@ class Unit:
 # not a silent guess). snap/source are listed ahead of their drivers existing — harmless.
 # brew ranks just ahead of tarball: an ordinary method (gated to glibc by its `drivers:` block) that
 # beats a hand-rolled download, never a native/flatpak/snap/.deb/AppImage one.
-DEFAULT_DRIVER_PREFERENCE = ['native', 'flatpak', 'snap', 'native-pkg-file', 'appImage', 'brew',
-                             'tarball', 'source', 'script']
+DEFAULT_DRIVER_PREFERENCE = ['native', 'aur', 'flatpak', 'snap', 'native-pkg-file', 'appImage',
+                             'brew', 'tarball', 'source', 'script']
 
 
 def _matching(component, context, pins):
@@ -150,13 +150,87 @@ def driver_gated(binding, context):
 
 def driver_gate_reason(binding, cascade, context):
     '''Human text for why `binding` is not a candidate because of a driver gate — e.g. "the brew
-    driver isn't valid here (drivers: brew when: glibc_linux)" — or None (not gated out here).'''
+    driver isn't valid here (drivers: brew when: glibc_linux)", or for a DERIVED gate "the snap
+    driver can't work here: nothing provides "snapd" here (required by snapd-socket)" — or None (not
+    gated out here).'''
     drv = driver_gated(binding, context)
     if drv is None:
         return None
-    text = (getattr(cascade, 'driver_gates', None) or {}).get(drv, ('?',))[0]
     via_note = f' — this OS\'s native manager' if binding.via == 'native' else ''
+    derived = (getattr(context, 'derived_gates', None) or {}).get(drv)
+    if derived is not None:
+        return f"the {drv} driver{via_note} can't work here: {derived}"
+    text = (getattr(cascade, 'driver_gates', None) or {}).get(drv, ('?',))[0]
     return f"the {drv} driver{via_note} isn't valid here (drivers: {drv} when: {text})"
+
+
+# -- derived driver gates: a driver is valid only where its own `requires:` can be met ----------
+
+def gated_context(cascade, components, drivers, block, version=None, cpu=None, disabled=(),
+                  pins=None, overrides=None, preference=None, candidate_only=None):
+    '''This machine's predicate context with EVERY driver gate applied: the explicit `drivers:`
+    `when:` gates (OsCascade.context) plus the DERIVED ones — a driver whose own `requires:` can't be
+    met here is not valid here, so none of its bindings is a candidate (snap where snapd has no
+    method, appImage on musl without a `glibc` provider, flatpak where flatpak can't install).
+
+    Computed as a greatest fixpoint with the real resolver: start with every non-explicitly-gated
+    driver valid, try to satisfy each driver's requires in a scratch _State, gate the ones that fail,
+    and repeat until nothing changes (gating a driver can only make more requirements fail, so it
+    terminates). `pins` are honored, so a provider-pin enables a never-auto provider — e.g.
+    `pins: { glibc: gcompat }` makes appImage valid on Alpine. Callers pass only the HARD pins (yours
+    + auto-tighten), never the detection tier's soft ones, so an opt-in stays explicit. The reasons
+    land in `ctx.derived_gates` ({driver: why}) for `where`. Cached on the cascade per (components,
+    drivers, context, pins, …); a context is never mutated after it's returned.'''
+    pins = dict(pins or {})
+    key = (id(components), id(drivers), id(overrides), block, version, cpu,
+           frozenset(disabled or ()), frozenset((k, str(v)) for k, v in pins.items()),
+           tuple(preference or ()), frozenset(candidate_only or ()))
+    cache = cascade.__dict__.setdefault('_gated_ctx_cache', {})
+    if key in cache:
+        return cache[key]
+    ctx = cascade.context(block, version, cpu, disabled or ())
+    explicit = frozenset(getattr(ctx, 'gated_drivers', ()) or ())
+    derived = {}
+    shared = None                      # the per-load indexes every scratch _State would rebuild
+    while True:
+        ctx.gated_drivers = explicit | frozenset(derived)
+        new = {}
+        for drv in sorted(drivers):
+            caps = drivers[drv]
+            if not caps or drv in ctx.gated_drivers or drv in getattr(ctx, 'disabled', ()):
+                continue
+            st = _State(cascade, components, drivers, ctx, pins, overrides or {}, preference,
+                        candidate_only, shared=shared)
+            shared = shared or (st.providers, st.optin)
+            try:
+                for cap in caps:
+                    st._satisfy(cap, None, f'the {drv} driver', f'the {drv} driver')
+                st.drain()
+            except ResolveError as e:
+                new[drv] = str(e)
+        if not new:
+            break
+        derived.update(new)
+    ctx.derived_gates = derived
+    cache[key] = ctx
+    return ctx
+
+
+def _gate_note(component, context, pin):
+    '''" — <via>: <why>" for each of `component`'s bindings a driver gate removed here (the bindings
+    otherwise valid), so "no binding here" names the reason instead of leaving you to guess.'''
+    cpu = getattr(context, 'cpu', None)
+    notes = {}
+    for b in component.bindings:
+        if pin is not None and b.via != pin:
+            continue
+        drv = driver_gated(b, context)
+        if drv is None or b.via in notes or not (arch_ok(b.details, cpu) and b.pred.eval(context)):
+            continue
+        why = (getattr(context, 'derived_gates', None) or {}).get(drv)
+        notes[b.via] = (f'the {drv} driver can\'t work here ({why})' if why is not None
+                        else f'the {drv} driver isn\'t valid here')
+    return ''.join(f'; {v}: {n}' for v, n in notes.items())
 
 
 def cpu_names(details):
@@ -255,9 +329,16 @@ def _most_specific_binding(matching, cascade):
     candidates are incomparable OR several share the most-specific `when:` (genuine alternatives —
     the preference channel decides those). Operates over bindings, not deduped predicates, so two
     same-`when:` different-`via:` bindings are correctly seen as a tie, not silently collapsed.'''
-    mins = [b for b in matching
-            if all(predicate.subset(b.pred, o.pred, cascade) for o in matching)]
-    return mins[0] if len(mins) == 1 else None
+    # memoized per load: the answer depends only on the bindings' `when:`s and the OS tree, never on
+    # the machine context — and the same pools recur across every resolve (and gated_context's
+    # scratch resolutions), each costing a pairwise predicate.subset sweep
+    key = tuple(matching)
+    cache = cascade.__dict__.setdefault('_most_specific_cache', {})
+    if key not in cache:
+        mins = [b for b in matching
+                if all(predicate.subset(b.pred, o.pred, cascade) for o in matching)]
+        cache[key] = mins[0] if len(mins) == 1 else None
+    return cache[key]
 
 
 def via_representatives(matching, cascade):
@@ -312,7 +393,8 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
     matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
-        raise ResolveError(f'no binding for {component.name} in this context{extra}')
+        raise ResolveError(f'no binding for {component.name} in this context{extra}'
+                           f'{_gate_note(component, context, pin)}')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
     excluded = candidate_only or frozenset()
@@ -436,8 +518,10 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
     are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
-                pins or {}, overrides or {}, preference, candidate_only)
+    ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, pins,
+                        overrides, preference, candidate_only)
+    st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
+                candidate_only)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -460,9 +544,11 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     its method/provider isn't valid here) is DROPPED for that edge and normal selection proceeds —
     never an error. `dropped_out` (a dict) collects {pin key: why it was dropped};
     `provider_rules_out` (a dict) collects {cap: the rule that picked its auto provider}.'''
-    st = _State(cascade, components, drivers, cascade.context(block, version, cpu, disabled or ()),
-                pins or {}, overrides or {}, preference, candidate_only, soft=soft,
-                dropped=dropped_out)
+    hard = {k: v for k, v in (pins or {}).items() if k not in (soft or ())}   # soft pins never open a gate
+    ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, hard,
+                        overrides, preference, candidate_only)
+    st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
+                candidate_only, soft=soft, dropped=dropped_out)
     errors = {}
     root_keys = {}
     for name in names:
@@ -525,7 +611,7 @@ def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=Non
 
 class _State:
     def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None,
-                 candidate_only=None, soft=None, dropped=None):
+                 candidate_only=None, soft=None, dropped=None, shared=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
@@ -553,11 +639,14 @@ class _State:
         # unconstrained path is byte-identical (the golden).
         self.resident_version = {}                 # cap -> provided version of the default resident
         self.constrained = {}                      # (cap, constraint) -> frozenset(keys)
-        self.providers = self._provider_index()
+        # `shared` = (providers, optin) from a sibling _State over the same components (gated_context
+        # runs many scratch resolutions) — both depend only on `components`, so reuse them
+        self.providers = shared[0] if shared else self._provider_index()
         # never-auto providers are never AUTO-pulled to close a requirement — only used when the
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
-        self.optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
+        self.optin = shared[1] if shared else {n for n, c in components.items()
+                                                if getattr(c, 'opt_in', False)}
         self.via_names = pin_via_names()           # for binding-vs-provider pin classification
         self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
 

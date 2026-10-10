@@ -44,7 +44,7 @@
             see: [ binding  standing  specificity ]
         }
         candidate: {
-            def: "A binding whose `when:` holds on this machine, whose driver isn't disabled or gated out here (a `drivers:` block's own `when:`), and that covers this CPU. Among the candidates, configsys picks the default; the rest stay pinnable."
+            def: "A binding whose `when:` holds on this machine, whose driver isn't disabled or gated out here (its own prerequisites can't be installed here, or a `drivers:` block's own `when:` excludes this machine), and that covers this CPU. Among the candidates, configsys picks the default; the rest stay pinnable."
             see: [ binding  specificity  standing  pin ]
         }
         specificity: {
@@ -63,7 +63,7 @@
         }
         driver-preference: {
             short: "`driver-preference:`"
-            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script)."
+            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script)."
             see: [ standing  specificity ]
         }
         capability: {

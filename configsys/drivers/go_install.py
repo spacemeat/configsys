@@ -70,7 +70,7 @@ class GoInstall(Driver):
         return idx
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one `go version -m` when batched
+        ver, hit = self.batched_version(rc)          # answer from the one `go version -m` when batched
         if hit:
             return ver
         r = self.runner.run(f'PATH="{_GO_PATH}:$PATH" go version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')

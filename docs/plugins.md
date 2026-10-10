@@ -246,15 +246,19 @@ authoritative contract; in summary:
 - **Ops to implement:** `get_version(rc)`, `get_latest(rc)`, `is_locked(rc)` (reads; no root),
   and `install(rc)`, `uninstall(rc)`, `upgrade(rc)`, `set_version(rc, version)`, `lock(rc)`,
   `unlock(rc)` (mutations; return a `Result`). Implement what your manager supports.
-- **Optional overrides:** `location(rc)`, `scope(rc)`. More optional hooks — batched enumeration, System Updates, version
+- **Optional overrides:** `location(rc)`, `scope(rc)`, `get_installed(rc)`, `reconcile_scope(rc, detected, target)`. More optional hooks — batched enumeration, System Updates, version
   signals — are listed under [Optional hooks](#optional-hooks) below.
 - **Helpers you may call:**
   - *resolve and fetch an artifact* — `resolve_version(rc, *, refresh=False)`,
     `download_url(rc, version)`, `download_target(rc, version=None)` (returns `(version, url)`:
     the URL plus the version of the release it actually fetches — record that one),
-    `upstream_version(rc)`, `arch()`;
+    `upstream_version(rc)`, `arch()`, `arch_token(rc)` (what `$ARCH` expands to for this unit,
+    through its `cpu-names:`);
   - *install location and privilege* — `scoped_dir(raw, rc)`, `sudo(rc)`, `scope(rc)`,
-    `display_path(p)`.
+    `location_override(rc)` (the user's `locations:` path for this component, or `None` — a
+    path-based driver should prefer it over its computed target), `display_path(p)`;
+  - *command trust* — `command_trusted(rc)` (whether this binding's layer may run declared shell)
+    and `untrusted_command_result(rc)` (the failure to return when it may not).
 - **Construction:** `__init__(self, runner, paths=None)`. `runner.run(cmd, *, sudo=False,
   capture=True)` returns a `Result` (`.ok`, `.returncode`, `.stdout`) and honors `--pretend`.
   `paths` offers `.home`, `.env`, `.expand(path)`, and friends.
@@ -272,10 +276,9 @@ class, so a driver that overrides none of them still works — every unit is jus
 and the driver stays out of the bulk features (System Updates, the orphan scan's package
 enumeration). Override the ones your manager can answer.
 
-The `Driver` docstring's frozen list names only some of these (the class attributes `privileged`,
-`default_scope`, `honors_scope` and `targets_version`, plus `sudo(rc)`, `scope(rc)` and
-`upstream_version(rc)`). The rest are public methods of the base class the core
-calls today, but they are not yet in that list, so the ABI guarantee above does not cover them.
+Every hook and attribute in this section is part of the frozen surface: the `Driver` docstring's
+frozen list names each one, and `test/test_abi_surface.py` pins the names and the defaults below.
+Within one `ABI_VERSION` they keep their names, signatures and default behavior.
 
 **Class attributes**
 
@@ -318,18 +321,17 @@ startup-time win; any driver whose manager can list what it has installed should
 - **`batch_index(rcs) -> context | None`** — the inspection prepass. Once per inspection, for each
   driver, the core passes the list of that driver's `ResolvedComponent`s it is about to probe; the
   drivers' prepasses run in parallel. Whatever you return is set on your driver instance as
-  `self._batch` before `get_installed`/`get_latest`/`is_locked` run for each unit, so they can answer
+  `self.batch` before `get_installed`/`get_latest`/`is_locked` run for each unit, so they can answer
   from memory. `None` or an exception = no batch, and each unit is probed on its own. Default:
   `{'installed': self.installed_index()}` (or `None`); a `get_version` can read it through
-  `self._batched_version(rc)`, which returns `(version, hit)`. Override to fetch more in the same pass
+  `self.batched_version(rc)`, which returns `(version, hit)`. Override to fetch more in the same pass
   (apt adds its held and candidate sets; flatpak its remotes) — and if your context isn't the default
   shape, override `batch_installed_index` to match.
 - **`batch_installed_index(batch) -> {key: version} | None`** — pulls the plain installed map back out
   of your batch context. After the prepass the core collects these per driver and seeds the TUI
   install overlay with them, so the overlay doesn't enumerate again. Default: `batch['installed']`.
 
-`self._batch` and `_batched_version` are underscore members — internal by the rule above — even
-though a batching driver needs them.
+(`self.batch` and `batched_version` were `_batch` / `_batched_version` before they were frozen.)
 
 **Orphan scan**
 

@@ -148,7 +148,8 @@ def test_appimage_only_apps_have_no_method_on_fedora_atomic(comp):
     assert 'appImage' not in {m['via'] for m in r.candidates(comp)}
     with pytest.raises(ResolveError) as e:
         r.resolve_names([comp])
-    assert 'libfuse2' not in str(e.value)
+    # declines as unavailable, not an unmet-libfuse2 error row (any note names the driver gate)
+    assert str(e.value).startswith(f'no binding for {comp} in this context')
     # ...and the AppImage is still the method on an ordinary glibc desktop
     u = Resolver(ROUTES, 'fedora', '41', 'x86_64').resolve_names([comp])
     assert any(rc.comp == comp for rc in u.values())

@@ -237,7 +237,7 @@ class InstallState:
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
                 managed=managed, untrusted=untrusted, error=msg)
 
-        drv._batch = batch                        # per-inspect batch context (None -> per-unit probes)
+        drv.batch = batch                        # per-inspect batch context (None -> per-unit probes)
         try:
             version, detected_scope = drv.get_installed(rc)   # reality: version + where installed
             latest = drv.get_latest(rc)

@@ -54,7 +54,7 @@ class Snap(Driver):
         return self._snap(rc)
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one snap list when batched
+        ver, hit = self.batched_version(rc)          # answer from the one snap list when batched
         if hit:
             return ver
         # `snap list <name>` -> header + one row: Name Version Rev Tracking Publisher Notes

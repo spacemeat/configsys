@@ -87,7 +87,7 @@ def test_batch_index_answers_get_version_without_a_subprocess():
     fr = FR('vim 9.1\ngit 2.44\n')
     d = Zypper(fr)
     def u(n): return ResolvedComponent(key=f'zypper\\{n}', driver='zypper', comp=n, fields={'name': n})
-    d._batch = d.batch_index([u('vim')])
+    d.batch = d.batch_index([u('vim')])
     fr.calls.clear()
     assert d.get_version(u('vim')) == '9.1' and d.get_version(u('git')) == '2.44'
     assert fr.calls == []

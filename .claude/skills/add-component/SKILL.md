@@ -40,7 +40,7 @@ Base OS families (atoms) and their native package manager:
 |---------------|----------------------------------------------------|------------|-------|
 | debian        | `debian` `ubuntu` `pop_os!` `elementary` `linuxmint` `zorin` `lmde` `mx` `kali` `pikaos` `pios` | apt  | Ubuntu extras live in `repo-component: universe`. `elementary`/`linuxmint`/`zorin`/`lmde`/`mx`/`pikaos` are scale-roots (own numbering — Zorin's VERSION_ID is the major only: 17 = Ubuntu 22.04, 18 = 24.04), so a versioned parent atom (`ubuntu >= 24.04`, `debian >= 12`) doesn't reach them; list them explicitly in a versioned `when:` |
 | redhat        | `redhat` = `fedora` (+`nobara`) + `rhel`(EL) + `amzn` | dnf        | Fedora ≠ EL. EL (`rhel` `rocky` `almalinux` `centos` `ol` `scientific`) needs `requires: epel` / `rpmfusion` for many pkgs. `amzn` (Amazon Linux 2023) sits under `redhat`, not `rhel` — own version line, **no EPEL** |
-| arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda` `omarchy` | pacman | community pkgs via `via: aur when: "arch"` |
+| arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda` `omarchy` | pacman | community pkgs via `{ via: aur }` (the aur driver gate is Arch-only; aur ranks right after native) |
 | opensuse      | `opensuse` `opensuse_leap` `opensuse_tumbleweed`    | zypper     | |
 | alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here; needs a musl asset or native |
 | void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl. Nonfree pkgs `requires: void-repo-nonfree` |
@@ -109,6 +109,12 @@ editors, browsers, file-managers, …). Rules:
   load-time ambiguity error (routecheck catches it). Two bindings of the SAME via where one has a
   narrower `when:` (e.g. `when: "rhel"`) and the other is unconditional is fine — the narrow one wins
   on that OS (that's the EPEL pattern).
+- **AUR bindings need no `when: "arch"`**: the `aur` driver carries its own Arch-only gate and
+  ranks right after native in driver-preference. Add `when: "arch"` only when another binding valid
+  on Arch has a narrower `when:` (a glibc-version-gated AppImage listing `arch`, a `cpu:`-gated
+  tarball) — that one would otherwise win on specificity before preference. Likewise don't gate
+  snap/AppImage/flatpak bindings by OS: a driver whose own `requires:` can't be met somewhere (no
+  snapd, no glibc, no libfuse2) is automatically not offered there.
 - **`requires:`** is HARD (`epel`, `rpmfusion`, `glibc`, a toolchain like `go`/`cargo`, or another
   component). **`suggests:`** is SOFT (pulled if resolvable, else skipped — the mechanism for
   attaching `<name>-dotfiles`).
@@ -135,7 +141,7 @@ Order native-first, then fallbacks. Typical comprehensive rows:
   with `requires: glibc`, plus a musl asset for alpine) for the rest.
 - **Go tool** (micro, superfile, lazygit): `native` + release `tarball` (nested `bin/` is fine — the
   driver finds the binary).
-- **GUI app / browser** (tor-browser): vendor `native` where it exists + `via: aur when: "arch"` +
+- **GUI app / browser** (tor-browser): vendor `native` where it exists + `{ via: aur }` +
   `via: flatpak hub: flathub app: <id>` (flatpak is the universal + atomic-only method).
 - **Upstream ships a .deb/.rpm** but not in-repo (fastfetch, yazi): `via: native-pkg-file when:
   "debian"` with `asset: { x86_64: …deb  aarch64: …deb }` (or format-keyed `asset: { deb: { x86_64: … }

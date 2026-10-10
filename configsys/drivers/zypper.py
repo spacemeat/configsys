@@ -48,7 +48,7 @@ class Zypper(NativePkgManager):
         return idx
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
+        ver, hit = self.batched_version(rc)          # answer from the one rpm -qa when batched
         if hit:
             return ver
         pkg = shlex.quote(self._probe_name(rc))

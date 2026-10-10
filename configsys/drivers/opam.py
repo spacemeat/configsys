@@ -40,7 +40,7 @@ class Opam(Driver):
         return idx
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one `opam list` when batched
+        ver, hit = self.batched_version(rc)          # answer from the one `opam list` when batched
         if hit:
             return ver
         # --safe never mutates and never errors on an uninitialized opam (which otherwise

@@ -51,7 +51,7 @@ class Dnf(NativePkgManager):
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one rpm -qa when batched
+        ver, hit = self.batched_version(rc)          # answer from the one rpm -qa when batched
         if hit:
             return ver
         pkg = shlex.quote(self._probe_name(rc))

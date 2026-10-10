@@ -100,7 +100,7 @@ class Apk(NativePkgManager):
 
     def get_version(self, rc):
         '''Installed version, or None if the package isn't installed.'''
-        ver, hit = self._batched_version(rc)        # answer from the one `apk list --installed`
+        ver, hit = self.batched_version(rc)        # answer from the one `apk list --installed`
         if hit:
             return ver
         name = self._probe_name(rc)

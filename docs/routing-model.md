@@ -265,10 +265,12 @@ requiring one is free there and pulls a provider (or declines) elsewhere:
 
 A glibc tarball's `glibc` need is free on a glibc distro; on Alpine it fails ("nothing
 auto-provides glibc … e.g. pins: { glibc: gcompat }") because the only provider there is the
-best-effort `gcompat` shim, which is `never-auto` — opt in with that provider-pin. (The appImage
-driver also `requires: [ libfuse2, glibc ]`, but it carries a driver gate — §8a — that already keeps
-AppImages off musl, so for them the shim additionally needs that gate widened in your top config:
-`drivers: { appImage: { when: "glibc_linux or alpine" } }`.) Repo enablement uses the same shape:
+best-effort `gcompat` shim, which is `never-auto` — opt in with that provider-pin. The appImage
+driver also `requires: [ libfuse2, glibc ]`, which makes the whole driver invalid on musl by the
+derived driver gate (§8a); the same pin satisfies it, so `pins: { glibc: gcompat }` opens AppImage
+methods on Alpine too. (Driver gates read only hard pins, so picking `gcompat` without pinning
+satisfies a tarball's binding-level `requires: glibc` but doesn't open the appImage driver.) Repo
+enablement uses the same shape:
 EL-only bindings carry a binding-level `requires: epel`, satisfied by the `epel-release`
 component (`provides: epel`).
 
@@ -308,7 +310,7 @@ checker both accept `not`/`or` over any atom.) It is exactly enough to carve sub
 
 ```humon
 { snapd: { install: [ { via: native  when: "(debian or redhat) and not amzn"  name: snapd }   // apt/dnf snapd, not Amazon Linux
-                      { via: aur     when: "arch"  name: snapd } ] } }
+                      { via: aur  name: snapd } ] } }                                    // the aur driver's own gate: Arch only
 ```
 
 Examples:
@@ -432,8 +434,8 @@ Homebrew, apps via Flatpak, `via: rpm-ostree` is reboot-gated; dev toolchains, t
 docker and AppImages are not managed here (use distrobox, podman or rpm-ostree). Those exclusions
 are routing facts, not just text — e.g. `python-build-deps` has no route there, so the `python3.X`
 components (pyenv-only on this block) are unroutable; and the image ships fuse3 only (brew has no
-libfuse2 formula, so `libfuse2` is gated `when: "not fedora_atomic"`), so the appImage driver gate
-excludes this block (§8a) and **AppImage methods are not candidates** — an AppImage-only component
+libfuse2 formula, so `libfuse2` is gated `when: "not fedora_atomic"`), so the appImage driver
+can't work here (the derived gate, §8a) and **AppImage methods are not candidates** — an AppImage-only component
 declines instead of resolving to a brew install that can't exist. Where a brew formula's name differs from
 the tool's, the binding's `name:` map says so (`tshark` is brew's `wireshark` formula, the CLI-only
 build; `netcat` is brew's GNU `netcat`).
@@ -483,7 +485,7 @@ an error about a missing driver. With no `native:` there is also no native index
   `via: brew` binding resolves to it (pulling `homebrew`, whose `curl`/`git` the image provides),
   which is how the `pipx` tool — and with it every `via: pipx` component — routes. `python3-pip`
   has only a native route, so `via: pip` components decline. It ships fuse3 only and libfuse2 has
-  no non-native route, so the appImage driver gate excludes it (§8a) and **AppImage methods are not
+  no non-native route, so the appImage driver can't work here (the derived gate, §8a) and **AppImage methods are not
   candidates**. VERSION_ID is a build timestamp
   (YYYYMMDDHHMM); `scale-root: true` keeps any parent's versioned atom from misreading it.
   Diagnostics add an `immutable` warning (alpha, no system package manager, Flatpak + userland
@@ -612,10 +614,26 @@ passes all of:
   non-matching, exactly like a false `when:` (a `suggests:` then skips silently; a hard require or
   a pick errors — classified as `unmet` routing status, docs/stranded-installs.md);
 - **not `via: native` on a native-less OS** (§3);
-- **not gated out by its driver** (`resolve.driver_gated`) — a `drivers:` block may carry a
-  driver-wide `when:`. Two ship: `brew: { when: "glibc_linux" }` (Linuxbrew bottles are glibc
-  builds) and `appImage: { when: "glibc_linux and not (fedora_atomic or kde_linux)" }` (AppImages
-  are glibc builds, and those two image-based OSes ship no libfuse2). Where that gate is false, every binding of that via is a non-candidate, and so is a
+- **not gated out by its driver** (`resolve.driver_gated`). Two kinds of gate, both applying also
+  to a `via: native` binding whose OS manager is that driver:
+  - **derived: a driver is valid only where its own `requires:` can be met.**
+    `resolve.gated_context` computes it per machine as a greatest fixpoint with the real resolver:
+    start with every driver valid, try to satisfy each driver's `requires:` in a scratch `_State`,
+    gate the ones that fail, repeat until nothing changes (gating a driver can only make more
+    requirements fail, so it terminates; a requirement whose only route is through a gated driver
+    fails transitively). It honors your **hard** pins — your config's, and auto-tighten's — but never
+    the detection tier's soft ones, so an opt-in stays explicit: `pins: { glibc: gcompat }` makes the
+    appImage driver valid on Alpine. Shipped effects, with no hand-written expression: snap isn't
+    offered where snapd has no method (openSUSE, Void, Alpine, Chimera, atomic, kde_linux, Amazon
+    Linux); appImage isn't offered on musl (no `glibc`) or on fedora_atomic/kde_linux (no
+    `libfuse2` route); pyenv isn't offered where `python-build-deps` has none. The reasons land in
+    `Context.derived_gates`. Cached per load × context × pins (`Resolver.context()` and both resolve
+    entry points use it, so `where`, the picker, detection and resolution see one candidate set).
+  - **explicit: a driver-wide `when:`** in its `drivers:` block, for a fact that isn't a
+    requirement. Two ship: `brew: { when: "glibc_linux" }` (Linuxbrew refuses musl even with
+    gcompat) and `aur: { when: "arch" }` (the AUR is Arch's; Void has `base-devel` too, so the
+    derived gate alone wouldn't exclude it). Evaluated once per machine into
+    `Context.gated_drivers`. Where that gate is false, every binding of that via is a non-candidate, and so is a
   `via: native` binding whose OS manager is that driver. `OsCascade.context` evaluates each gate
   once per machine into `Context.gated_drivers` (`routes._driver_gates` parses them at load; a
   malformed gate from a plugin is dropped with a warning, from the repo or your own config it is an
@@ -623,16 +641,18 @@ passes all of:
 - **`arch_ok`** — the cpu is among those a `cpu-names:`/cpu-keyed `asset:` declares (§7);
 - its **`when:`** holds.
 
-The driver gate is **validity only**, like `cpu-names:`: it never enters a binding's match-set, so
-it adds no specificity and cannot shift which method is the default where the driver IS valid. That
-is why it is a separate field rather than a `when:` clause copied onto every brew binding — the
-clause would make each brew binding narrower than a broad native one and hijack the default on
-every glibc box. `configsys where` labels a gated-out binding "not a candidate: the brew driver
-isn't valid here (drivers: brew when: glibc_linux)" (`resolve.driver_gate_reason`). A gate also turns
-"this method can't work here" into plain unavailability: an AppImage-only component on Alpine reads
-"no binding … in this context" (an OS-availability fact `check` doesn't flag, and `profile:` expansion
-skips with a notice) instead of an unmet-`glibc` error, and `where` no longer offers it as "pin to
-use".
+Both gates are **validity only**, like `cpu-names:`: they never enter a binding's match-set, so they
+add no specificity and cannot shift which method is the default where the driver IS valid. That is
+why they aren't `when:` clauses copied onto every brew or aur binding — the clause would make each
+binding narrower than a broad one and hijack the default by specificity. `configsys where` labels a
+gated-out binding "not a candidate: the brew driver isn't valid here (drivers: brew when:
+glibc_linux)" or, for a derived gate, "not a candidate: the snap driver can't work here: nothing
+provides "snapd" here (required by snapd-socket)" (`resolve.driver_gate_reason`). A gate also turns
+"this method can't work here" into plain unavailability: a snap-only or AppImage-only component
+reads "no binding for X in this context; snap: the snap driver can't work here (…)" (an
+OS-availability fact `check` doesn't flag, and `profile:` expansion skips with a notice) instead of
+an unmet-requirement error, `where` no longer offers it as "pin to use", and a component whose
+preferred method's driver can't work here falls through to one that can.
 
 One candidate is chosen as the default, deterministically (`resolve._select`, which also returns
 the deciding rule — `configsys where <comp>` prints it):
@@ -650,11 +670,16 @@ the deciding rule — `configsys where <comp>` prints it):
    so it **outranks** the broad `driver-preference` below: a targeted per-package decision beats a
    blanket order (the machine owner still overrides any case with a **pin**).
 4. **`driver-preference`** — the nearest OS block's `driver-preference:` walking the lineage, else
-   the `driver-preference:` setting, else the built-in `DEFAULT_DRIVER_PREFERENCE` (`native, flatpak,
-   snap, native-pkg-file, appImage, brew, tarball, source, script`). It matches `via:` names
-   (`native`, not `apt`); vias absent from the order rank last and tie among themselves. `brew`
-   sits just ahead of `tarball`: a managed, upgradable package beats a hand-rolled download, but
-   never a native, flatpak, snap, `.deb`/`.rpm` or AppImage method (§6a).
+   the `driver-preference:` setting, else the built-in `DEFAULT_DRIVER_PREFERENCE` (`native, aur,
+   flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script`). It matches `via:` names
+   (`native`, not `apt`); vias absent from the order rank last and tie among themselves. `aur` sits
+   right after `native`: on Arch an AUR package beats a flatpak/AppImage/brew/tarball fallback by
+   preference, so an aur binding needs no `when: "arch"` of its own (its driver gate states validity).
+   The exception is a competitor valid on Arch whose `when:` is narrower (a glibc-version-gated
+   AppImage that lists `arch`, a `cpu:`-gated tarball): it would win at step 2 before preference is
+   consulted, so there the aur binding keeps `when: "arch"`. `brew` sits just ahead of `tarball`: a
+   managed, upgradable package beats a hand-rolled download, but never a native, flatpak, snap,
+   `.deb`/`.rpm` or AppImage method (§6a).
 
 If steps 3–4 still tie, `_by_preference` raises an error naming the preference channel (set a
 `driver-preference` order or a `standing:` rank) — never `when:`. A user **binding-pin** (§10)

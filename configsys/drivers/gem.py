@@ -62,7 +62,7 @@ class Gem(Driver):
         return idx
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one `gem list` when batched
+        ver, hit = self.batched_version(rc)          # answer from the one `gem list` when batched
         if hit:
             return ver
         r = self.runner.run(f'gem list -e {shlex.quote(self._gem(rc))}')

@@ -151,7 +151,7 @@ def test_apk_explicit_keys_reads_world(tmp_path, monkeypatch):
 def test_apk_batched_get_version_answers_from_index():
     r = FakeRunner([('apk list --installed', 0, APK_LIST_INSTALLED)])
     d = Apk(r)
-    d._batch = d.batch_index([])
+    d.batch = d.batch_index([])
     n = len(r.calls)
     rc = ResolvedComponent(key='apk\\curl', driver='apk', comp='curl', fields={})
     assert d.get_version(rc) == '8.11.1-r0'

@@ -111,7 +111,7 @@ effective value and where it lives.
 - **`scope`** (`user` or `system`, machine; default `user`): the install scope for scope-honoring
   drivers when a binding doesn't set one. `user` installs under `~`, `system` under `/opt` (needs
   sudo).
-- **`driver-preference`** (list, uniform; default `[ native, flatpak, snap, native-pkg-file,
+- **`driver-preference`** (list, uniform; default `[ native, aur, flatpak, snap, native-pkg-file,
   appImage, brew, tarball, source, script ]`): the order that breaks ties between equally valid install
   methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that
   declares its own `driver-preference:` takes precedence on that OS.
@@ -534,9 +534,10 @@ with no package manager. Among the valid ones, configsys picks one default deter
 - then a binding's **`standing:`** integer rank (a narrow, per-package author signal, so it
   outranks the blanket order below);
 - then **`driver-preference`**, the global tiebreak list (a machine setting, overridable per OS
-  block). The default order is `native, flatpak, snap, native-pkg-file, appImage, brew, tarball,
-  source, script`, so on a glibc distro a Homebrew formula beats a plain download but never a
-  distro package, flatpak, snap, release `.deb`/`.rpm` or AppImage.
+  block). The default order is `native, aur, flatpak, snap, native-pkg-file, appImage, brew,
+  tarball, source, script`, so on Arch an AUR package beats a flatpak or a download, and on a glibc
+  distro a Homebrew formula beats a plain download but never a distro package, flatpak, snap,
+  release `.deb`/`.rpm` or AppImage.
 
 If that still ties, it is an error that names the preference channel, never a request to narrow a
 validity `when:`. Above the default sit three overrides, highest first:
@@ -575,33 +576,35 @@ this OS's package manager is that driver:
 
 - **`requires:`** capabilities every binding of that driver needs (`appImage` requires `libfuse2`
   and `glibc`; `cargo` requires `cargo`; `brew` requires `homebrew`, which configsys installs with
-  Homebrew's official installer).
+  Homebrew's official installer). They also decide where the driver works at all: **a driver is
+  valid only where its own requirements can be met.** Where one can't be installed, none of that
+  driver's methods is offered. Snap methods don't appear where snapd has no install method, and
+  AppImage methods don't appear on musl systems (no glibc) or on Fedora Atomic and KDE Linux (no
+  libfuse2). Your provider pins count: on Alpine, `pins: { glibc: gcompat }` opts in to the gcompat
+  shim and makes AppImage methods valid there.
 - **`standing: never-auto`** makes every binding of that driver a listed, pinnable alternative that
   never wins by default (the shipped `snap` entry does this).
 - **`when:`** a validity gate for the whole driver, in the same expression language as a binding's
-  `when:`. Where it is false, no binding of that driver is valid. Unlike a binding's `when:`, it
-  never makes a binding more specific, so it can't change which method is the default where the
-  driver works. Two entries ship one. `brew` has `when: "glibc_linux"`, because Homebrew's Linux
-  bottles need glibc: brew methods are valid on every glibc distro and on none of the musl ones
-  (Alpine, Void musl, Chimera). `appImage` has `when: "glibc_linux and not (fedora_atomic or
-  kde_linux)"`: AppImages are glibc builds, and those two image-based systems ship no libfuse2.
-  `configsys where` names the gate when it rules a method out.
+  `when:`, for a fact that isn't a requirement. Where it is false, no binding of that driver is
+  valid. Unlike a binding's `when:`, it never makes a binding more specific, so it can't change
+  which method is the default where the driver works. Two entries ship one: `brew` has `when:
+  "glibc_linux"` (Homebrew's Linux bottles need glibc, so brew methods are valid on every glibc
+  distro and on none of the musl ones), and `aur` has `when: "arch"` (the AUR is Arch's).
+
+`configsys where` names the reason whenever a driver is ruled out, for example "the snap driver
+can't work here: nothing provides "snapd" here".
 
 ```hu
 drivers: {
     brew:     { requires: homebrew  when: "glibc_linux" }
-    appImage: { requires: [ libfuse2, glibc ]  when: "glibc_linux and not (fedora_atomic or kde_linux)" }
+    aur:      { requires: [ base-devel, git ]  when: "arch" }
+    appImage: { requires: [ libfuse2, glibc ] }
 }
 ```
 
 A `drivers:` entry in your config merges field by field over the shipped one, so you can change one
-field and keep the rest. For example, to try AppImages on Alpine through the gcompat shim, widen the
-gate and opt in to the shim:
-
-```hu
-drivers: { appImage: { when: "glibc_linux or alpine" } }
-pins:    { glibc: gcompat }
-```
+field and keep the rest — for example `drivers: { flatpak: { standing: never-auto } }` keeps flatpak
+methods available but stops them winning by default.
 
 ## Versions: discovered, not hardcoded
 

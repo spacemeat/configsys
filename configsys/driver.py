@@ -10,25 +10,39 @@ This class IS the contract a code plugin subclasses. A plugin's code module impo
 `from configsys.plugins import Driver` and lists its subclasses in a module-level
 `DRIVERS = [SubclassOfDriver, ...]` export; the trusted loader registers each (a
 plugin may also call `register_driver` directly for dynamic cases). The frozen,
-ABI-stable surface (stable within a given plugins.ABI_VERSION) is:
+ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md §7, §7a) is:
 
   Class attributes to set : name, privileged, default_scope, honors_scope, targets_version
                             (False = set_version can't reach a requested version; the op
-                            loop refuses set-version instead of calling it)
+                            loop refuses set-version instead of calling it), holds_version
+                            (False = a rolling manager that can't hold/downgrade), native_backed
+                            (True = installs register in the OS package database)
   Ops to implement        : get_version, get_latest, is_locked, install, uninstall,
                             upgrade, set_version, lock, unlock
-  Overridable (optional)  : location(rc), scope(rc)
-  Helpers a subclass MAY call, in two clusters:
+  Overridable (optional)  : location(rc), scope(rc), get_installed(rc),
+                            reconcile_scope(rc, detected, target)
+  Optional hooks (each has a working default; override what your manager can answer):
+    batched installed state : installed_index(), index_key(rc), batch_index(rcs),
+                              batch_installed_index(batch) — plus the `batch` attribute the core
+                              sets to batch_index's result before the per-unit reads, and the
+                              batched_version(rc) helper that reads the default shape
+    orphan scan             : explicit_keys(), origin_index()
+    System Updates          : upgradable_index(), update_dedup_key(key), held_keys(),
+                              classify_index(keys) (tiers from UPDATE_TIERS), upgrade_all()
+    version signals         : outdated_signal(rc), upstream_version(rc), and an optional
+                              version_advisory(rc) the core looks up with getattr
+  Helpers a subclass MAY call, in three clusters:
     resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
                                   download_url(rc, version), download_target(rc, version=None),
-                                  upstream_version(rc), arch()
+                                  upstream_version(rc), arch(), arch_token(rc)
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
-                                  display_path(p)
+                                  location_override(rc), display_path(p)
+    command trust               : command_trusted(rc), untrusted_command_result(rc)
   Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
               -> Result(.ok/.returncode/.stdout) (also importable from configsys.plugins);
               paths.home/.env/.expand(p)/...
 
-Underscore members (_scope, _apply_placeholders, _disco_spec) are internal and may
+Underscore members (_scope, _apply_placeholders, _disco_spec, …) are internal and may
 change without an ABI bump — subclasses must not rely on them.
 '''
 
@@ -80,8 +94,9 @@ class Driver:
     # probe data ONCE (via the driver's `batch_index(names)`) and sets it here on each per-unit
     # instance, so read ops (get_version/get_latest/is_locked) can answer from it instead of a
     # subprocess per unit. None = no batch available -> the per-unit fallback path runs. Opaque:
-    # only the driver that produced it reads it.
-    _batch = None
+    # only the driver that produced it reads it. Part of the frozen surface (a batching plugin
+    # driver reads it, or calls batched_version).
+    batch = None
 
     # Whether a specific version can be HELD or PINNED for this driver's packages — a native hold
     # (apt-mark/dnf versionlock/zypper addlock/brew pin), or a version configsys itself installs and
@@ -367,12 +382,12 @@ class Driver:
         `{'installed': …}` shape; drivers whose context isn't that override.'''
         return batch.get('installed') if isinstance(batch, dict) else None
 
-    def _batched_version(self, rc):
+    def batched_version(self, rc):
         '''(version_or_None, hit): the installed version from the batch context when this inspect is
         batched, so a native driver's `get_version` answers from the one enumeration. `hit` is False
         when there is no batch (the driver then runs its own per-unit probe).'''
-        if isinstance(self._batch, dict) and 'installed' in self._batch:
-            return self._batch['installed'].get(self.index_key(rc)), True
+        if isinstance(self.batch, dict) and 'installed' in self.batch:
+            return self.batch['installed'].get(self.index_key(rc)), True
         return None, False
 
     def explicit_keys(self):

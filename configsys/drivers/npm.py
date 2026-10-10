@@ -95,8 +95,8 @@ class Npm(Driver):
         return flat or None
 
     def get_version(self, rc):
-        if self._batch is not None:               # batched: the scope's pre-listed index
-            return self._batch.get(self._scope(rc), {}).get(self._pkg(rc))
+        if self.batch is not None:               # batched: the scope's pre-listed index
+            return self.batch.get(self._scope(rc), {}).get(self._pkg(rc))
         # `npm ls -g` often exits non-zero (unmet peer deps, extraneous pkgs) while still
         # emitting valid JSON, so parse stdout rather than gating on returncode.
         r = self.runner.run(f'npm ls -g {self._prefix_flag(rc)}--depth=0 --json')

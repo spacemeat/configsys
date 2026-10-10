@@ -209,7 +209,7 @@ def test_batch_index_collapses_probes_and_read_ops_use_it():
         ('flatpak remote-ls', 0, 'org.blender.Blender\t5.2\norg.gimp.GIMP\t3.2\n'),
     ])
     d = Flatpak(r)
-    d._batch = d.batch_index([fp('org.blender.Blender'), fp('org.gimp.GIMP')])   # both flathub
+    d.batch = d.batch_index([fp('org.blender.Blender'), fp('org.gimp.GIMP')])   # both flathub
     assert sum('remote-ls' in c and '--updates' not in c for c in r.calls) == 1  # one per shared hub, not per app
     assert sum('--updates' in c for c in r.calls) == 2             # one pending-update sweep per scope
     assert sum('flatpak list --app' in c for c in r.calls) == 1
@@ -243,7 +243,7 @@ def test_remote_versions_cached_until_the_appstream_checkout_changes(tmp_path):
     def latest():
         r = FakeRunner([listing])
         d = Flatpak(r, paths)
-        d._batch = d.batch_index([fp('org.gimp.GIMP')])
+        d.batch = d.batch_index([fp('org.gimp.GIMP')])
         return d.get_latest(fp('org.gimp.GIMP')), sum('remote-ls --system flathub' in c for c in r.calls)
 
     assert latest() == ('3.2', 1)                  # cold: queried, then cached
@@ -258,7 +258,7 @@ def test_remote_versions_cached_until_the_appstream_checkout_changes(tmp_path):
 def test_outdated_signal_per_unit_fallback():
     # no batch context: ask flatpak directly (both scopes); membership in --updates = outdated
     r = FakeRunner([('--updates', 0, 'org.a.A\n')])
-    d = Flatpak(r)                                                 # d._batch stays None
+    d = Flatpak(r)                                                 # d.batch stays None
     assert d.outdated_signal(fp('org.a.A')) is True               # in the pending-update set
     assert d.outdated_signal(fp('org.b.B')) is False              # queried OK but absent -> current
 

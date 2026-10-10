@@ -55,7 +55,7 @@ class Pacman(NativePkgManager):
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)          # answer from the one pacman -Q index when batched
+        ver, hit = self.batched_version(rc)          # answer from the one pacman -Q index when batched
         if hit:
             if ver is not None:
                 return ver

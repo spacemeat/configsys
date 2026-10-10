@@ -158,14 +158,16 @@ Key ideas:
   (`"rhel"`, `"ubuntu < 23.04"`), CPU arch (`cpu: aarch64`), and any declared **facet**
   (`gpu:nvidia`; see [docs/facets.md](docs/facets.md)). It never expresses preference. Three more
   things decide validity: a binding's `cpu-names:` map lists the CPUs its download exists for; a
-  driver can carry its own `when:` in the `drivers:` section, covering every binding that uses it
-  (`brew` is valid only on glibc systems); and a driver you turn off with `disabled-drivers:`
-  takes its bindings out of the running.
+  driver is valid only where its own prerequisites can be installed (no snap methods where snapd
+  can't be installed, no AppImages on musl systems), and it can also carry its own `when:` in the
+  `drivers:` section (`brew` is valid only on glibc systems, `aur` only on Arch); and a driver you
+  turn off with `disabled-drivers:` takes its bindings out of the running. `configsys where`
+  names the reason whenever one of these rules out a method.
 - **Choosing among valid methods** is a separate, deterministic order: the most specific
   `when:` wins; then a binding's **`standing:`** rank (an integer; `standing: never-auto`
   keeps a method listed and pinnable but never the auto-default); then the machine's
-  **`driver-preference`** list (by default: native, flatpak, snap, native-pkg-file, appImage,
-  brew, tarball, source, script). An already-installed method is adopted over the default, and a
+  **`driver-preference`** list (by default: native, aur, flatpak, snap, native-pkg-file,
+  appImage, brew, tarball, source, script). An already-installed method is adopted over the default, and a
   **pin** beats everything.
 - **Homebrew** (`via: brew`) is an ordinary method on glibc distros. It never replaces a native
   package, Flatpak, snap or AppImage, but it usually beats a tarball, an install script or a
@@ -745,7 +747,7 @@ edit that file, not this section -->
 - **band** (`00-` / `50-` / `90-` / `99-`) — The load-order prefix on each conf.d link: shells load conf.d in name order, so configsys's own setup (`00-`) comes first, then component glue (`50-`), then your user glue (`90-`), then your `99-user` snippet. A snippet already named `NN-…` keeps its prefix. *See also:* **conf.d**, **glue**, **user-glue**.
 - **binding** (an entry in a component's `install:` list) — One way to install a component on some set of machines: `{ via: <driver>  when: "…"  …fields }`. A component usually has several; configsys picks one per machine. *See also:* **via**, **when**, **standing**, **candidate**.
 - **bless** (`configsys plugin bless`) — Making a declared plugin your primary plugin (TUI Plugins `b`); unbless clears it. *See also:* **primary-plugin**.
-- **candidate** — A binding whose `when:` holds on this machine, whose driver isn't disabled or gated out here (a `drivers:` block's own `when:`), and that covers this CPU. Among the candidates, configsys picks the default; the rest stay pinnable. *See also:* **binding**, **specificity**, **standing**, **pin**.
+- **candidate** — A binding whose `when:` holds on this machine, whose driver isn't disabled or gated out here (its own prerequisites can't be installed here, or a `drivers:` block's own `when:` excludes this machine), and that covers this CPU. Among the candidates, configsys picks the default; the rest stay pinnable. *See also:* **binding**, **specificity**, **standing**, **pin**.
 - **capability** — A named feature a component offers or needs (`provides:` / `requires:`), optionally versioned (`provides: { jdk: 21 }`). Resolution satisfies a `requires:` with a component that provides it. *See also:* **requires**, **suggests**, **provider**.
 - **capture** (`configsys dotfiles capture`) — Adopting config files that already exist on your machine into your content store, so configsys manages and syncs them from then on. *See also:* **dotfiles**, **content-store**.
 - **claim** — Tracking every component already installed on this box onto a machine's picks in one step — adopting an existing system into configsys (TUI Profiles `C`). *See also:* **track**, **picks**.
@@ -758,7 +760,7 @@ edit that file, not this section -->
 - **disposition** (`dispositions:`) — Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything. *See also:* **picks**.
 - **dotfiles** (`via: dotfiles`) — An app's own configuration (its `~/.config/<app>` files), kept in your content store and linked into place. Usually captured from your machine, not shipped. *See also:* **glue**, **capture**, **content-store**, **companion**. *Not:* “shell config”.
 - **driver** — The code that performs one install mechanism behind a uniform set of operations (install, uninstall, upgrade, version, lock, …). Each `via:` value names one driver; plugins can add more. *See also:* **via**. *Not:* “backend”, “provider”.
-- **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). *See also:* **standing**, **specificity**.
+- **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). *See also:* **standing**, **specificity**.
 - **facet** — A detected machine trait beyond the OS — CPU, GPU, and so on — usable in `when:` (`cpu: x86_64`). *See also:* **when**.
 - **glue** (`via: glue`) — A small shipped shell snippet that wires a tool into your shells (PATH, aliases, init hooks), installed into each shell's `conf.d`. Distinct from dotfiles: glue is shipped, not captured. *See also:* **dotfiles**, **shell-glue**.
 - **golden** (test/routing_golden.json) — A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly.

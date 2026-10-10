@@ -93,7 +93,7 @@ class Xbps(NativePkgManager):
         return out
 
     def get_version(self, rc):
-        ver, hit = self._batched_version(rc)            # answer from the one xbps-query -l when batched
+        ver, hit = self.batched_version(rc)            # answer from the one xbps-query -l when batched
         if hit:
             return ver
         name = self._probe_name(rc)
@@ -101,15 +101,15 @@ class Xbps(NativePkgManager):
         return _version_from_pkgver(r.stdout, name) if r.ok else None
 
     def get_latest(self, rc):
-        if isinstance(self._batch, dict) and 'candidate' in self._batch:
-            return self._batch['candidate'].get(self._probe_name(rc))
+        if isinstance(self.batch, dict) and 'candidate' in self.batch:
+            return self.batch['candidate'].get(self._probe_name(rc))
         name = self._probe_name(rc)
         r = self.runner.run(f'xbps-query -R -p pkgver {shlex.quote(name)}')   # -R: the repos
         return _version_from_pkgver(r.stdout, name) if r.ok else None
 
     def is_locked(self, rc):
-        if isinstance(self._batch, dict) and isinstance(self._batch.get('held'), set):
-            return self._probe_name(rc) in self._batch['held']
+        if isinstance(self.batch, dict) and isinstance(self.batch.get('held'), set):
+            return self._probe_name(rc) in self.batch['held']
         # the `hold` property prints "yes" when the package is held back from upgrades.
         r = self.runner.run(f'xbps-query -p hold {shlex.quote(self._probe_name(rc))}')
         return bool(r.ok and r.stdout.strip() == 'yes')

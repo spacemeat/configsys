@@ -351,7 +351,7 @@ class Apt(NativePkgManager):
         '''Pre-fetch the three inspect probes for these units in THREE calls (not three per package):
         the installed-version index (dpkg-query -W, all packages), the held set (apt-mark showhold,
         which ignores its arg and lists them all anyway), and candidate versions (one `apt-cache
-        policy pkg...`). Returned as a dict the read ops below consult via self._batch. None on the
+        policy pkg...`). Returned as a dict the read ops below consult via self.batch. None on the
         rare total failure -> the caller falls back to per-unit probes.'''
         names = sorted({self._probe_name(rc) for rc in rcs})
         installed = self.installed_index()
@@ -379,8 +379,8 @@ class Apt(NativePkgManager):
         return batch.get('installed') if isinstance(batch, dict) else None
 
     def get_version(self, rc):
-        if self._batch is not None:               # batched: answer from the one dpkg-query index
-            return self._batch['installed'].get(self._probe_name(rc))
+        if self.batch is not None:               # batched: answer from the one dpkg-query index
+            return self.batch['installed'].get(self._probe_name(rc))
         pkg = shlex.quote(self._probe_name(rc))
         # `\n`-terminate the format: a multiarch package (e.g. libvulkan1:amd64 + :i386,
         # once i386 is enabled for Steam) prints one row per installed instance. Without a
@@ -404,8 +404,8 @@ class Apt(NativePkgManager):
     # native-pkg-file — see drivers/native_pkg_file.py. apt is just the distro repos.)
 
     def get_latest(self, rc):
-        if self._batch is not None:               # batched: answer from the one apt-cache policy call
-            return self._batch['candidate'].get(self._probe_name(rc))
+        if self.batch is not None:               # batched: answer from the one apt-cache policy call
+            return self.batch['candidate'].get(self._probe_name(rc))
         pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(f'apt-cache policy {pkg}')
         if not r.ok:
@@ -419,8 +419,8 @@ class Apt(NativePkgManager):
 
     def is_locked(self, rc):
         want = set(self._pkg_list(rc))            # a multi-package binding is locked iff ALL are held
-        if self._batch is not None:               # batched: membership in the one showhold list
-            return bool(want) and want <= set(self._batch['held'])
+        if self.batch is not None:               # batched: membership in the one showhold list
+            return bool(want) and want <= set(self.batch['held'])
         r = self.runner.run('apt-mark showhold')
         return bool(r.ok and want and want <= set(r.stdout.split()))
 

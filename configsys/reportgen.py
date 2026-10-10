@@ -362,7 +362,7 @@ def _parts_targets(r, name, block, version):
     comp = r.components.get(name)
     if comp is None or not comp.bindings:
         return None
-    cx = r.cascade.context(block, version or None, r.cpu, r.disabled)
+    cx = r.context(block, version or None)
     try:
         b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)
     except ResolveError:
