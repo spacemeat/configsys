@@ -546,6 +546,7 @@ class Resolver:
         self.version = version
         self.cpu = cpu
         self.pins = pins or {}
+        self.tighten_pins = {}                       # the last resilient resolve's auto-tighten pins
         self.preference = preference or None   # driver-preference order; None = built-in default
         self.disabled = frozenset(disabled or ())   # vias disabled on this machine (`disabled-drivers:`)
         self._dep_index = None                       # lazy cap -> {dependent components} reverse index
@@ -566,11 +567,14 @@ class Resolver:
         explicit `drivers:` `when:` ones and the DERIVED ones (a driver whose own `requires:` can't be
         met here under your pins; resolve.gated_context) — so `where`, the picker and detection see
         exactly the candidates resolution does. `block`/`version`/`disabled` default to this
-        machine's (pass `disabled=()` to ask what WOULD be valid with no driver disabled).'''
+        machine's (pass `disabled=()` to ask what WOULD be valid with no driver disabled). The derived
+        gates read the same HARD pins resolution does: yours over the last resolve's auto-tighten
+        floor pins (`tighten_pins`), so a floor pin that opens a driver opens it here too.'''
         from .resolve import gated_context
         return gated_context(self.cascade, self.components, self.drivers,
                              block or self.block, self.version if block is None else version,
-                             self.cpu, self.disabled if disabled is None else disabled, self.pins,
+                             self.cpu, self.disabled if disabled is None else disabled,
+                             {**self.tighten_pins, **self.pins},
                              self.overrides, self.preference, self.candidate_only)
 
     def _resolve(self, names):
@@ -592,10 +596,12 @@ class Resolver:
         page) instead of overriding you. Detected pins are SOFT: one that can't be honored here (it
         fails a version constraint, or names a method/provider not valid here) is dropped for this
         resolution — never an error; the dropped ones are recorded in `self.dropped_soft_pins`.
-        Applied to THIS resolve only (the Resolver's own pins aren't mutated).'''
+        Applied to THIS resolve only (the Resolver's own pins aren't mutated; the extra pins are kept as
+        `tighten_pins` so context() gates drivers the way this resolve did).'''
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
         soft_pins, extra_pins = dict(soft_pins or {}), dict(extra_pins or {})
+        self.tighten_pins = extra_pins                 # context() gates drivers under these too
         pins = ({**soft_pins, **extra_pins, **self.pins}
                 if (extra_pins or soft_pins) else self.pins)
         soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)

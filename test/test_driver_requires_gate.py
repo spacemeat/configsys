@@ -260,3 +260,14 @@ def test_real_where_names_a_disabled_driver(tmp_path):
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'alpine', 'inspect']))
     line = next(ln for ln in where_report(ctx, 'btop') if 'via tarball' in ln)
     assert 'not a candidate: the tarball driver is disabled here (disabled-drivers:)' in line
+
+
+def test_context_gates_under_the_last_resolves_auto_tighten_pins(tmp_path):
+    # where/the picker/detection (Resolver.context) must see the hard pins resolution used — an
+    # auto-tighten floor pin (extra_pins) that opens a driver opens it in context() too
+    r = _res(tmp_path, 'musly')
+    assert 'appImage' in r.context().gated_drivers                 # no glibc provider by default
+    r.resolve_resilient(['app'], extra_pins={'glibc': 'shim'})
+    assert 'appImage' not in r.context().gated_drivers
+    r.resolve_resilient(['app'])                                    # a pass without them resets it
+    assert 'appImage' in r.context().gated_drivers
