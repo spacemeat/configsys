@@ -75,9 +75,10 @@ Why the filters: native managers and language installers carry hundreds of depen
 so for them only the **known** intersection is listed by default; flatpak/snap installs are
 deliberate user apps and few, so their recipe-less installs are shown. `explicit_keys` (apt-mark
 showmanual, dnf `--userinstalled`, pacman `-Qe`, apk's `/etc/apk/world` (every `apk add`ed atom,
-`!conflict` entries skipped), brew leaves, xbps `-m`, pip `INSTALLER=pip` +
+`!conflict` entries skipped), zypper's installed set minus libzypp's
+`/var/lib/zypp/AutoInstalled`, brew leaves, xbps `-m`, pip `INSTALLER=pip` +
 `--not-required`, npm minus node-bundled) keeps the thousands of packages nobody chose out; a
-driver returning `None` (zypper, flatpak, snap, pipx, …) counts every key as chosen. Base-tier
+driver returning `None` (flatpak, snap, pipx, …) counts every key as chosen. Base-tier
 foreign packages are hidden but the tier rides on every orphan, so a user can still opt to manage
 even systemd.
 

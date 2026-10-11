@@ -111,8 +111,9 @@ two overlap harmlessly (docs/principles.md): the bulk command still patches excl
 ## Explicit vs auto-pulled
 
 `UpdateRow.explicit` is membership in the manager's `explicit_keys()` (apt-mark showmanual,
-dnf `--userinstalled`, pacman `-Qe`, brew leaves, xbps `-m`). A manager with no notion (`None`:
-flatpak, snap, zypper, apk) reads every row as explicit. The TUI dims auto-pulled rows in the
+dnf `--userinstalled`, pacman `-Qe`, zypper minus libzypp's AutoInstalled, apk's
+`/etc/apk/world`, brew leaves, xbps `-m`). A manager with no notion (`None`: flatpak, snap) reads
+every row as explicit. The TUI dims auto-pulled rows in the
 standard/apps tiers only; kernel/core are never dimmed. This is emphasis only — everything is
 still listed and still upgraded.
 

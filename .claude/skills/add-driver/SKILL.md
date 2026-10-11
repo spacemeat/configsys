@@ -134,9 +134,13 @@ Everything in §2–3, plus:
 - The OS block (`native: <name>`) — add-component's `os-block.md`; the add-component matrix table.
 - **Required hooks** (the inventory test checks them): `installed_index`, `upgradable_index`,
   `upgrade_all`, `explicit_keys`. A gap you accept goes in `KNOWN_GAPS` there, with why.
-- `app._NATIVE_REFRESH` — the index-refresh command (pacman is deliberately absent: only a full
-  `-Syu` is safe). `app._INDEX_SRC_DIRS` if it has third-party source files whose failures
-  `refresh` should diagnose (apt/dnf/zypper).
+- **A refresh style — exactly one of:** `app._NATIVE_REFRESH`, an index-only refresh that is safe
+  before a single-package install (apt-get update, xbps-install -S, …; it also runs automatically
+  before an execute batch); or `app._FULL_UPGRADE_REFRESH`, for a manager where an index-only sync
+  breaks the next install, so the only safe refresh is the full system upgrade (pacman: a bare
+  `-Sy` is a partial upgrade; `configsys refresh` asks first, nothing runs it automatically). Being
+  rolling doesn't decide it — Void and Tumbleweed sync safely. `app._INDEX_SRC_DIRS` if it has
+  third-party source files whose failures `refresh` should diagnose (apt/dnf/zypper).
 - `rebootcheck._reboot` / `_services` — the native reboot-required + restart-needed check.
 - System Updates picks up the OS's native manager automatically (`sysupdates.machine_managers`);
   a CROSS-distro app manager (like flatpak/snap) goes in `sysupdates._APP_MANAGERS`.
@@ -191,7 +195,7 @@ Everything in §2–3, plus:
 | `routes._VIA_ATTR` | every binding implies a component kind (§3) |
 | `plugins._scan_executable_data` | its binding fields carry shell commands (§3) |
 | `versions._BUILTIN_KINDS` | it comes with a new `version:` source kind |
-| `app._NATIVE_REFRESH` / `app._INDEX_SRC_DIRS` / `rebootcheck._reboot` | native manager (§4) |
+| `app._NATIVE_REFRESH` / `app._FULL_UPGRADE_REFRESH` / `app._INDEX_SRC_DIRS` / `rebootcheck._reboot` | native manager (§4) |
 | `tui.menu._DRIVER_ABBR` | ranked in `DEFAULT_DRIVER_PREFERENCE` (§3) |
 | `shellguard` | nothing to add: install / upgrade / set-version of every driver run inside the rc-file guard (`installer-shell-writes`), so an installer that edits rc files (sdkman, rustup) is caught there |
 

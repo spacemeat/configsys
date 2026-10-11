@@ -1322,19 +1322,25 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
     return removed
 
 
-# OS package-manager index-refresh command per native driver. pacman is absent on purpose: a bare
-# `pacman -Sy` leaves a partial-sync state that breaks the next single-package install, so the only
-# safe refresh there is a full `-Syu` (cmd_refresh does that interactively, not the auto path).
+# How each native manager refreshes its package index — every native manager is in exactly one map
+# (test_driver_inventory). _NATIVE_REFRESH: an index-only refresh, safe before a single-package
+# install, so it also runs automatically ahead of an execute batch. _FULL_UPGRADE_REFRESH: managers
+# where an index-only sync is NOT safe — Arch's rolling model forbids partial upgrades, so a bare
+# `pacman -Sy` leaves the DB newer than the system and the next `pacman -S` breaks it; the only safe
+# refresh is the full system upgrade, which `configsys refresh` asks before running and nothing
+# runs automatically. (Rolling alone doesn't decide it: Void and Tumbleweed sync safely.)
 _NATIVE_REFRESH = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
                    'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update', 'xbps': 'xbps-install -S',
                    'brew': 'brew update'}
+_FULL_UPGRADE_REFRESH = {'pacman': 'pacman -Syu --noconfirm'}
 
 
 def refresh_native_index(ctx):
     '''Refresh the OS package index ONCE, resiliently (retry a transient stumble) and NON-fatally —
     a failure is reported by the caller, never blocks the batch. Returns (ran, ok): ran=False when
-    there's nothing safe to do (pacman/unknown pm). Used before an execute batch so upgrades see
-    current candidates and a broken vendor source is caught up front, not per-package.'''
+    there's nothing safe to do automatically (a _FULL_UPGRADE_REFRESH manager, or an unknown pm).
+    Used before an execute batch so upgrades see current candidates and a broken vendor source is
+    caught up front, not per-package.'''
     pm = ctx.routes.cascade.native(ctx.os_info.block)
     cmd = _NATIVE_REFRESH.get(pm)
     if not cmd:
@@ -1344,7 +1350,7 @@ def refresh_native_index(ctx):
     return True, res.ok
 
 
-_NATIVE_PMS = frozenset(_NATIVE_REFRESH)   # index benefits from a pre-batch refresh (not pacman)
+_NATIVE_PMS = frozenset(_NATIVE_REFRESH)   # index benefits from a pre-batch refresh (not a full-upgrade one)
 
 
 def maybe_refresh_before_plan(ctx, plan):
@@ -1464,21 +1470,22 @@ def cmd_refresh(ctx, args):
             ok = res.ok
             if res.output and not ok:
                 print(res.output)
-    elif pm == 'pacman':
-        # Arch has no safe index-only refresh: a bare `pacman -Sy` leaves the DB newer than the
-        # installed system, so the next single-package install (`pacman -S`, exactly how this driver
-        # installs) is a partial upgrade -> breakage. The only safe refresh is a full `-Syu`. Confirm
-        # first, then run it to completion (--noconfirm) so we never leave that partial-sync state.
-        print('\nOn Arch a safe refresh is a FULL SYSTEM UPGRADE (pacman -Syu) — a bare `pacman -Sy`\n'
+    elif pm in _FULL_UPGRADE_REFRESH:
+        # No safe index-only refresh here (see _FULL_UPGRADE_REFRESH): on Arch a bare `pacman -Sy`
+        # makes the next single-package install (`pacman -S`, exactly how this driver installs) a
+        # partial upgrade -> breakage. Confirm first, then run the full upgrade to completion
+        # (--noconfirm) so we never leave that partial-sync state.
+        full = _FULL_UPGRADE_REFRESH[pm]
+        print(f'\nOn {pm} a safe refresh is a FULL SYSTEM UPGRADE (`{full}`) — an index-only sync\n'
               'leaves a partial-sync state that breaks the next install, so configsys never does one.')
         try:
-            go = input('Run `pacman -Syu` now (upgrades ALL installed packages)? [y/N] ').strip().lower() == 'y'
+            go = input(f'Run `{full}` now (upgrades ALL installed packages)? [y/N] ').strip().lower() == 'y'
         except EOFError:
             go = False
         if go:
-            ok = ctx.runner.run('pacman -Syu --noconfirm', sudo=True, capture=False).ok
+            ok = ctx.runner.run(full, sudo=True, capture=False).ok
         else:
-            print('Skipped — pacman DB left unchanged.')
+            print(f'Skipped — {pm} DB left unchanged.')
             ok = False                                 # nothing refreshed -> don't stamp
     if ok:
         refreshstate.record(ctx.paths)                # stamp only a successful index refresh

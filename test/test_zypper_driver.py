@@ -91,3 +91,25 @@ def test_batch_index_answers_get_version_without_a_subprocess():
     fr.calls.clear()
     assert d.get_version(u('vim')) == '9.1' and d.get_version(u('git')) == '2.44'
     assert fr.calls == []
+
+
+def test_explicit_keys_is_installed_minus_libzypp_auto_installed(tmp_path, monkeypatch):
+    # the real file shape (Tumbleweed): a `#` header, then one auto-installed name per line
+    auto = tmp_path / 'AutoInstalled'
+    auto.write_text('# AutoInstalled generated Sun Jul 19 06:59:08 2026\n#\nbash-sh\nlibcurl4\n\n')
+    monkeypatch.setattr(Zypper, 'AUTO_INSTALLED', str(auto))
+    fr = FakeRunner([('rpm -qa', 0, 'bash 5.2\nbash-sh 5.2\nlibcurl4 8.9\nhtop 3.3\ngpg-pubkey 1\n')])
+    assert Zypper(fr).explicit_keys() == {'bash', 'htop'}       # gpg-pubkey: never a user install
+
+
+def test_explicit_keys_reuses_the_batch_and_is_unknown_when_unreadable(tmp_path, monkeypatch):
+    auto = tmp_path / 'AutoInstalled'
+    auto.write_text('libcurl4\n')
+    monkeypatch.setattr(Zypper, 'AUTO_INSTALLED', str(auto))
+    fr = FakeRunner()
+    d = Zypper(fr)
+    d.batch = {'installed': {'libcurl4': '8.9', 'vim': '9.1'}}
+    assert d.explicit_keys() == {'vim'} and fr.calls == []      # no second rpm -qa
+    assert Zypper(FakeRunner([('rpm -qa', 1, '')])).explicit_keys() is None
+    monkeypatch.setattr(Zypper, 'AUTO_INSTALLED', str(tmp_path / 'absent'))
+    assert Zypper(FakeRunner()).explicit_keys() is None

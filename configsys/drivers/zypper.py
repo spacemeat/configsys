@@ -13,6 +13,7 @@ box is deferred — there is no testbed yet (like macOS/brew).
 '''
 
 import shlex
+from pathlib import Path
 
 from ._native import NativePkgManager
 
@@ -32,6 +33,8 @@ class Zypper(NativePkgManager):
     INSTALL = 'zypper --non-interactive install {pkgs}'
     REMOVE = 'zypper --non-interactive remove {pkgs}'
     UPGRADE = 'zypper --non-interactive update {pkgs}'
+    # libzypp's record of dependency-pulled packages (one name per line, `#` header; world-readable)
+    AUTO_INSTALLED = '/var/lib/zypp/AutoInstalled'
 
     # -- read (no root needed) -------------------------------------------
 
@@ -46,6 +49,23 @@ class Zypper(NativePkgManager):
             if name:
                 idx[name] = ver.strip() or 'installed'
         return idx
+
+    def explicit_keys(self):
+        '''Installed packages the user asked for: everything rpm reports MINUS the names libzypp
+        marks auto-installed — the same set `zypper packages --userinstalled` prints, without loading
+        the repos. gpg-pubkey (rpm's pseudo-package per imported key) is never a user install. None
+        when either side can't be read.'''
+        try:
+            text = Path(self.AUTO_INSTALLED).read_text()
+        except (OSError, UnicodeDecodeError):
+            return None
+        auto = {ln.strip() for ln in text.splitlines() if ln.strip() and not ln.startswith('#')}
+        idx = self.batch.get('installed') if isinstance(self.batch, dict) else None
+        if idx is None:
+            idx = self.installed_index()
+        if idx is None:
+            return None
+        return set(idx) - auto - {'gpg-pubkey'}
 
     def get_version(self, rc):
         ver, hit = self.batched_version(rc)          # answer from the one rpm -qa when batched

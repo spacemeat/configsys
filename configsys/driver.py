@@ -394,8 +394,9 @@ class Driver:
         '''The set of installed_index keys the user EXPLICITLY installed (manual / on-request), as
         opposed to those pulled in automatically as dependencies — or None when this driver draws no
         such distinction (then callers treat every installed key as explicit). Native managers
-        override (apt-mark showmanual, pacman -Qe, dnf --userinstalled, brew leaves). Lets the orphan
-        scan ignore the thousands of dependency packages nobody chose. None on command failure too.'''
+        override (apt-mark showmanual, pacman -Qe, dnf --userinstalled, zypper's AutoInstalled, brew
+        leaves). Lets the orphan scan ignore the thousands of dependency packages nobody chose. None
+        on command failure too.'''
         return None
 
     # True for a driver that installs into the OS package database (so its packages appear in the

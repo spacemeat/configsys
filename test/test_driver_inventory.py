@@ -55,11 +55,8 @@ UNRANKED = {
 
 # Hooks a native manager should implement but one doesn't yet — a known, accepted gap (each degrades
 # to the hook's default). Remove an entry when the hook lands; never add one to dodge the test.
-KNOWN_GAPS = {
-    ('zypper', 'explicit_keys'): 'no user-installed query wired (libzypp records auto-installed '
-                                 'packages in /var/lib/zypp/AutoInstalled) — the orphan scan '
-                                 'cannot hide auto-pulled dependencies on openSUSE',
-}
+KNOWN_GAPS = {}
+# (e.g. ('zypper', 'explicit_keys'): 'why it can't be done yet' — the last one closed 2026-10-10)
 
 # Code symbols the skill tells you to visit. Each must still exist AND be named in the skill.
 TOUCHPOINTS = [
@@ -81,6 +78,7 @@ TOUCHPOINTS = [
     ('configsys.sysupdates', '_APP_MANAGERS'),
     ('configsys.rebootcheck', '_reboot'),
     ('configsys.app', '_NATIVE_REFRESH'),
+    ('configsys.app', '_FULL_UPGRADE_REFRESH'),
     ('configsys.app', '_INDEX_SRC_DIRS'),
     ('configsys.installState', 'InstallState'),
     ('configsys.versions', '_BUILTIN_KINDS'),
@@ -160,8 +158,8 @@ def test_native_managers_are_wired_everywhere_a_manager_must_be(native_managers)
         for hook in ('installed_index', 'upgradable_index', 'upgrade_all', 'explicit_keys'):
             assert getattr(cls, hook) is not getattr(Driver, hook) or (pm, hook) in KNOWN_GAPS, \
                 f'{pm} lacks {hook} {_see("4")}'
-        assert pm in app._NATIVE_REFRESH or pm == 'pacman', \
-            f'{pm} has no index refresh (pacman alone is exempt: no safe -Sy) {_see("4")}'
+        styles = [m for m in ('_NATIVE_REFRESH', '_FULL_UPGRADE_REFRESH') if pm in getattr(app, m)]
+        assert len(styles) == 1, f'{pm} must declare exactly one refresh style, has {styles} {_see("4")}'
         assert f"'{pm}'" in reboot_src or pm == 'brew', f'{pm} has no reboot check {_see("4")}'
         assert pm in swept or pm == 'brew', \
             f'{pm} is not in the namesweep (brew formulae are compaudit-probed instead) {_see("4")}'
