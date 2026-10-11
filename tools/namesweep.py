@@ -30,13 +30,15 @@ ROUTES = os.path.join(ROOT, 'routes.hu')
 ALLOWLIST = os.path.join(ROOT, 'test', 'namesweep-allowlist.hu')
 
 # A representative machine per manager. Resolution applies each component's when:/name: maps, so
-# what we collect is the REAL per-distro package name — exactly what to check exists there.
+# what we collect is the REAL per-distro package name — exactly what to check exists there. A
+# versioned entry's verifier image is tagged with that SAME version (`{ver}` in _VERIFIERS), so a
+# version-gated name map is checked against the release it was resolved for.
 MANAGERS = [
     ('apt', 'ubuntu', '24.04'),
-    ('dnf', 'fedora', '42'),
-    ('pacman', 'arch', '20260101'),
+    ('dnf', 'fedora', '44'),
+    ('pacman', 'arch', ''),
     ('zypper', 'opensuse', ''),
-    ('apk', 'alpine', '3.20'),
+    ('apk', 'alpine', '3.24'),
     ('xbps', 'void', ''),
 ]
 # Native managers deliberately not swept here, and what checks their names instead. Every native
@@ -100,15 +102,16 @@ _CHECK = {
     'xbps':   'xbps-query -R "$p" >/dev/null 2>&1',
 }
 
-# (image, repo-setup) for the core families. Setup output is silenced; the read-loop is appended
-# by _build_snippet so stdout is exactly the missing names.
+# (image, repo-setup) for the core families; `{ver}` in an image is the MANAGERS version (rolling
+# entries use :latest). Setup output is silenced; the read-loop is appended by _build_snippet so
+# stdout is exactly the missing names.
 _VERIFIERS = {
-    'apt': ('docker.io/library/ubuntu:24.04', r'''
+    'apt': ('docker.io/library/ubuntu:{ver}', r'''
         export DEBIAN_FRONTEND=noninteractive
         sed -i 's/^Components: main$/Components: main restricted universe multiverse/' \
             /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
         apt-get update -qq >/dev/null 2>&1'''),
-    'dnf': ('docker.io/library/fedora:41', r'''
+    'dnf': ('docker.io/library/fedora:{ver}', r'''
         dnf -q -y install \
           "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
           "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
@@ -116,7 +119,7 @@ _VERIFIERS = {
     'pacman': ('docker.io/library/archlinux:latest', 'pacman -Sy --noconfirm >/dev/null 2>&1'),
     'zypper': ('docker.io/opensuse/tumbleweed:latest',
                'zypper -n --gpg-auto-import-keys ref >/dev/null 2>&1'),
-    'apk': ('docker.io/library/alpine:latest', r'''
+    'apk': ('docker.io/library/alpine:{ver}', r'''
         ver=$(cut -d. -f1,2 /etc/alpine-release)
         echo "https://dl-cdn.alpinelinux.org/alpine/v$ver/community" >> /etc/apk/repositories
         apk update >/dev/null 2>&1'''),
@@ -170,7 +173,9 @@ def sweep(only=None):
     allow = _load_allowlist()
     targets = only or set(_DEFAULT_MANAGERS)
     drift, stale = {}, {}
+    versions = {m: v for m, _b, v in MANAGERS}
     for mgr, (image, setup) in _VERIFIERS.items():
+        image = image.format(ver=versions.get(mgr, ''))
         if mgr not in targets:
             continue
         names = sorted(data.get(mgr, {}))

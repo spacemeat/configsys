@@ -27,7 +27,7 @@ real breakage.
 ### 1. Extractor (`tools/namesweep.py`)
 
 Resolves every component in a representative context per manager (`namesweep.MANAGERS`: ubuntu
-24.04=apt, fedora 42=dnf, arch=pacman, opensuse=zypper, alpine 3.20=apk, void=xbps) and collects
+24.04=apt, fedora 44=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps) and collects
 the **native** package names each maps to (`_native_names`, `Resolver.resolve_names` per component,
 so its `requires:` closure's native units count too) — respecting `when:` (only what routes there)
 and `name:` (the real per-distro name). A multi-package unit contributes each of its real
@@ -39,7 +39,7 @@ exist after that setup.
 Current volume: **~320–420 packages per manager** (~2,300 across the six).
 
 ```
-$ python3 tools/namesweep.py                 # count per manager (apt 401 / dnf 392 / pacman 417 / zypper 344 / apk 320 / xbps 408)
+$ python3 tools/namesweep.py                 # count per manager (apt 401 / dnf 393 / pacman 418 / zypper 344 / apk 321 / xbps 408)
 $ python3 tools/namesweep.py --manager apt   # one name per line -> feed a container
 $ python3 tools/namesweep.py --json          # {manager: {pkg: [components]}}
 ```
@@ -58,18 +58,21 @@ a new swept manager joins the gate without a second edit.
 
 One throwaway container per manager, from a stock upstream image (`podman run --rm`, no image
 build): enable the repos configsys itself uses, refresh metadata once, then check each name. All
-names for a manager go through one container run, which prints the **missing** ones. The images
-and query verbs (all read-only, nothing installed):
+names for a manager go through one container run, which prints the **missing** ones. A versioned
+`MANAGERS` entry's image is tagged with that same version (`{ver}` in `_VERIFIERS`, enforced by
+test_driver_inventory), so a version-gated `name:` map is checked against the release it was
+resolved for; rolling entries carry no version and use `:latest`. The images and query verbs (all
+read-only, nothing installed):
 
 - **apt** — `ubuntu:24.04`; `apt-cache show "$p"` (enables `restricted universe multiverse`;
   `apt-get update`)
-- **dnf** — `fedora:41`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
+- **dnf** — `fedora:44`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
   nonfree)
 - **pacman** — `archlinux:latest`; `pacman -Si "$p" || pacman -Sg "$p"` (groups like `xfce4`;
   `pacman -Sy`)
 - **zypper** — `opensuse/tumbleweed:latest`; `zypper -n se -x "$p"`, requiring a package row
   (`zypper -n ref`)
-- **apk** — `alpine:latest`; `apk search -x "$p"` (adds the `community` repo; `apk update`)
+- **apk** — `alpine:3.24`; `apk search -x "$p"` (adds the `community` repo; `apk update`)
 - **xbps** — `void-linux/void-glibc:latest`; `xbps-query -R "$p"` (enables `void-repo-nonfree`,
   which components there `requires:`; xbps names are the same on musl)
 

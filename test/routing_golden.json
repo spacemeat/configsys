@@ -87558,12 +87558,39 @@
    }
   },
   "jdk-17": {
-   "dnf\\jdk-17": {
-    "driver": "dnf",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "java-17-openjdk-devel"
+     "glue": "sdkman"
     },
-    "name": "java-17-openjdk-devel"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk-17": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "17.0.20-tem"
+    },
+    "name": "java"
    }
   },
   "jdk-21": {

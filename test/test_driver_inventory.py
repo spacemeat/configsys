@@ -169,6 +169,9 @@ def test_native_managers_are_wired_everywhere_a_manager_must_be(native_managers)
         if pm in swept:
             assert pm in namesweep._CHECK and pm in namesweep._VERIFIERS, \
                 f'{pm} is swept but has no namesweep _CHECK/_VERIFIERS container {_see("4")}'
+            ver = next(v for m, _b, v in namesweep.MANAGERS if m == pm)
+            assert not ver or '{ver}' in namesweep._VERIFIERS[pm][0], \
+                f'{pm}: names resolve for {ver} — tag its verifier image with {{ver}} {_see("4")}'
 
 
 # -- docs and skills enumerate every driver ---------------------------------------------------------

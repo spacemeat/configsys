@@ -1278,15 +1278,17 @@
         // On fedora_atomic brew is the native manager, but brew's openjdk@N formulae are keg-only (not
         // linked onto PATH), so the atomic route is a pinned SDKMAN Temurin build instead — also the
         // only route on the native-less kde_linux, and a pinnable alternative everywhere glibc.
+        // Fedora keeps only the newest OpenJDK lines: java-17-openjdk is gone from 42, java-21 from 44
+        // (the name sweep checks the current release) — there the SDKMAN Temurin binding takes over.
         // To bump the default LTS: move the native bindings + `provides:` onto `jdk`, turn the OLD
         // default's `jdk-NN` alias into a real `never-auto` line, and repoint `jdk-NN` at the new line.
         jdk: { attrs: [ toolchain runtime FOSS copyleft ] description: "Java Development Kit — the current LTS default (OpenJDK 21)."
             provides: { jdk: 21 }
-            install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openjdk21 apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel } }
+            install: [ { via: native  when: "not fedora_atomic and not (fedora >= 44)"  name: { xbps: openjdk21 apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel } }
                        { via: sdkman  name: java  version: "21.0.12+1.1-tem"  requires: glibc }   // Temurin; bump the SDKMAN id as releases roll
                        { via: native  when: "amzn"  name: java-21-amazon-corretto-devel } ] }   // Amazon ships Corretto, not OpenJDK
         jdk-17: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 17 — LTS (2021)." standing: never-auto  provides: { jdk: 17 }
-            install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openjdk17 apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel } }
+            install: [ { via: native  when: "not fedora_atomic and not (fedora >= 42)"  name: { xbps: openjdk17 apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel } }
                        { via: sdkman  name: java  version: "17.0.20-tem"  requires: glibc }   // Temurin; bump the SDKMAN id as releases roll
                        { via: native  when: "amzn"  name: java-17-amazon-corretto-devel } ] }
         jdk-21: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 21 — LTS (2023); the current default (alias for `jdk`)." standing: never-auto
@@ -2729,7 +2731,7 @@
         hydrogen:      { attrs: [ GUI app FOSS copyleft ] description: "Hydrogen — a pattern-based drum machine." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.hydrogenmusic.Hydrogen } ] }
         carla:         { attrs: [ GUI app FOSS copyleft ] description: "Carla — an audio plugin host (LV2/VST/…)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: flatpak  hub: flathub  app: studio.kx.carla } ] }
         sonic-pi:      { attrs: [ GUI app FOSS permissive ] description: "Sonic Pi — a live-coding music synth for everyone." install: [ { via: native  when: "debian"  repo-component: universe }  { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi } ] }
-        supercollider: { attrs: [ GUI app FOSS copyleft ] description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic or void or void_musl" } ] }   // brew formula `supercollider`
+        supercollider: { attrs: [ GUI app FOSS copyleft ] description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or redhat or arch or opensuse) and not amzn and not (fedora >= 44)"  repo-component: universe }  { via: native  when: "fedora_atomic or void or void_musl" } ] }   // brew formula `supercollider`; retired from Fedora 44
         qjackctl:      { attrs: [ GUI app FOSS copyleft ] description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  when: "not amzn"   repo-component: universe } ] }
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
@@ -2863,7 +2865,7 @@
         sway:     { attrs: [ GUI FOSS permissive ] suggests: sway-dotfiles  description: "Sway — an i3-compatible tiling Wayland compositor." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn" } ] }   // same package name in every family
         cinnamon: { attrs: [ GUI FOSS copyleft ] description: "Cinnamon — a modern desktop with a traditional layout." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { apt: cinnamon-desktop-environment  dnf: cinnamon  pacman: cinnamon  zypper: cinnamon } } ] }   // not packaged for Alpine
         budgie:   { attrs: [ GUI FOSS copyleft ] description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "void or void_musl"  name: budgie-desktop }  { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
-        hyprland: { attrs: [ GUI FOSS permissive ] suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "(redhat or arch or opensuse or alpine) and not amzn"  name: { default: hyprland } } ] }                                                                          // not in stock Ubuntu
+        hyprland: { attrs: [ GUI FOSS permissive ] suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "(redhat or arch or opensuse or alpine) and not amzn and not (fedora >= 43)"  name: { default: hyprland } } ] }   // not in stock Ubuntu; retired from Fedora 43 (COPR only)
         cosmic:   { attrs: [ GUI FOSS copyleft ] description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "(pop_os! or redhat or arch or opensuse or alpine) and not amzn"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
         // Bare compositors (no full desktop): niri, plus GNOME's mutter / KDE's kwin on their own (usually
         // pulled in by the gnome/kde metapackages — listed so a session can be assembled piecemeal).
@@ -3790,7 +3792,7 @@
                          name: { xbps: abseil-cpp-devel apt: libabsl-dev  dnf: abseil-cpp-devel  pacman: abseil-cpp  apk: abseil-cpp-dev } } ]
         }
         folly: { attrs: [ lib FOSS permissive ] description: "Folly — Facebook's C++ utility library (dev)."
-            install: [ { via: native  when: "fedora"  name: folly-devel }        // Fedora repos (not EL)
+            install: [ { via: native  when: "fedora < 44"  name: folly-devel }   // Fedora repos (not EL); retired in 44
                        { via: aur  name: folly } ]             // Arch: AUR
         }
         eastl: { attrs: [ lib FOSS permissive ] description: "EASTL — Electronic Arts' STL implementation (dev)."
