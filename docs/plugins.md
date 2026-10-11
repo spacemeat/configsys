@@ -79,9 +79,12 @@ layer may **define** things (the sections below); only your top config and your 
   by `(via, when)`, so a plugin can add an install method to a shipped component without restating
   the rest.
 - **`os:`** and **`drivers:`** — new OS blocks (derivative distros) and driver settings. A
-  `drivers:` entry's `requires:` and `standing:` apply to every binding that driver installs,
-  including `via: native` bindings that resolve to it on an OS whose `native:` it is (on Fedora
-  Atomic, `brew`'s requires cover every `via: native` component).
+  `drivers:` entry's `requires:`, `standing:` and `when:` apply to every binding that driver
+  installs, including `via: native` bindings that resolve to it on an OS whose `native:` it is (on
+  Fedora Atomic, `brew`'s requires cover every `via: native` component). Its `requires:` also
+  decides where the driver is valid at all: where they can't be met, none of its bindings is a
+  candidate (the derived driver gate); `when:` is the explicit gate for a fact that isn't a
+  requirement ([routing-model.md §8a](routing-model.md#8a-choosing-among-valid-methods)).
 - **`component-names:`** — per-driver package-name patches for components it doesn't own
   (`{ toybox: { ripgrep: rg  nmap: {} } }`: a string renames, `{}` means "not packaged here").
 - **`profiles:`** — browse-only profiles. A profile with the same name as a lower layer's replaces
@@ -154,8 +157,8 @@ so you can push a plugin you author without a token.
 
 The TUI **Plugins** screen (key `3`) shows the same tree, with a diff of what updating the
 selected plugin to its remote ref would change — review it before you trust. Keys: `a` add, `x`
-remove, `s`/`S` sync one/all, `u`/`U` update one/all, `v` set the ref, `t`/`T` trust one/all,
-`b`/`B` bless/unbless.
+remove, `s`/`S` sync one/all, `u`/`U` update one/all, `v` set the ref, `t` trust/untrust one, `T`
+trust every untrusted or changed one, `b`/`B` bless/unbless.
 
 ## 5. When a plugin fails
 
@@ -265,6 +268,14 @@ authoritative contract; in summary:
 - **What a driver reads — `ResolvedComponent`:** `.key` (`driver\comp`), `.driver`, `.comp`,
   `.name` (`fields['name']` or the component name), `.fields` (the binding's fields),
   `.requested_as`, `.deps`.
+- **Routing it:** the driver's `drivers:` block (`requires:`, optional `standing:` / `when:`) is
+  data in the plugin's layer files, not code, and its `requires:` doubles as the driver's validity
+  gate (§3). A plugin driver is in no built-in preference list (`DEFAULT_DRIVER_PREFERENCE`), so
+  when one of its bindings competes with another method at equal specificity it ranks after every
+  listed driver, and against another unlisted driver it ties — a resolve error. Rank it with a
+  `driver-preference:` that names it (an OS block's, which the plugin may ship, or the user's
+  setting) or a per-binding `standing:`, or make it an OS block's `native:` so `via: native`
+  bindings reach it (as ExamplOS does).
 
 Underscore members of `Driver` are internal and may change without an ABI bump.
 

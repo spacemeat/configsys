@@ -102,7 +102,7 @@ component (it's in the `user` profile), run `./configsys.sh` instead; once insta
   (discovered versions, last refresh, …). A version lock uses the package manager's own hold
   where it has one (`apt-mark hold`, `dnf versionlock`, `zypper addlock`, `xbps-pkgdb -m hold`,
   `brew pin`, `snap refresh --hold`, `flatpak mask`) and the ledger otherwise; pacman and apk
-  can't hold one package back on a rolling distro, so there configsys declines to lock.
+  upgrade everything together with no per-package hold, so there configsys declines to lock.
 - **Status** — each component reads `installed`, `outdated`, `missing`, `locked`, `partial`, … or a
   **routing status** about its install method: `switch` when routes no longer offer the method it
   was installed with (a **stranded** install — installing it swaps methods; configsys never
@@ -159,21 +159,25 @@ Key ideas:
   (`gpu:nvidia`; see [docs/facets.md](docs/facets.md)). It never expresses preference. Three more
   things decide validity: a binding's `cpu-names:` map lists the CPUs its download exists for; a
   driver is valid only where its own prerequisites can be installed (no snap methods where snapd
-  can't be installed, no AppImages on musl systems), and it can also carry its own `when:` in the
-  `drivers:` section (`brew` is valid only on glibc systems, `aur` only on Arch); and a driver you
-  turn off with `disabled-drivers:` takes its bindings out of the running. `configsys where`
-  names the reason whenever one of these rules out a method.
-- **Choosing among valid methods** is a separate, deterministic order: the most specific
-  `when:` wins; then a binding's **`standing:`** rank (an integer; `standing: never-auto`
-  keeps a method listed and pinnable but never the auto-default); then the machine's
+  can't be installed, no AppImages on musl systems or where FUSE 2 can't be installed, such as
+  Fedora Atomic and KDE Linux), and it can also carry its own `when:` in the `drivers:` section
+  (`brew` is valid only on glibc systems, `aur` only on Arch); and a driver you turn off with
+  `disabled-drivers:` takes its bindings out of the running. When a driver rule takes out a
+  method, `configsys where` says which one and why.
+- **Choosing among valid methods** is a separate, deterministic order. A method marked
+  **`standing: never-auto`** stays listed and pinnable but is never the automatic choice while any
+  other method works here (snap methods are marked this way). Among the rest, the most specific
+  `when:` wins; then a binding's **`standing:`** rank (an integer, higher wins); then the machine's
   **`driver-preference`** list (by default: native, aur, flatpak, snap, native-pkg-file,
-  appImage, brew, tarball, source, script). An already-installed method is adopted over the default, and a
-  **pin** beats everything.
-- **Homebrew** (`via: brew`) is an ordinary method on glibc distros. It never replaces a native
-  package, Flatpak, snap or AppImage, but it usually beats a tarball, an install script or a
-  language toolchain (cargo, pipx, npm, …). The first time a brew method is chosen, configsys
-  installs Homebrew itself (the `homebrew` component); a component you already installed another
-  way keeps that method.
+  appImage, brew, tarball, source, script). Your own `driver-preference` only needs the drivers you
+  care about — the ones it leaves out follow in the default order. An already-installed method is
+  adopted over the default, and a **pin** beats everything.
+- **Homebrew** (`via: brew`) is an ordinary method on glibc distros, and on Fedora Atomic it is the
+  native package manager. It ranks after a native package, the AUR, a Flatpak, an upstream
+  `.deb`/`.rpm` and an AppImage, but ahead of a tarball, an install script or a language toolchain
+  (cargo, pipx, npm, …); since a snap is never the automatic choice, brew wins over a snap too. The
+  first time a brew method is chosen, configsys installs Homebrew itself (the `homebrew`
+  component); a component you already installed another way keeps that method.
 - **`requires:`** is a hard dependency on a capability — another component, a version floor
   (`requires: { go: ">=1.21" }`), or a driver's own prerequisite (a `cargo` binding needs
   `cargo`). It installs first, in dependency order; if it can't resolve here, the component errors.
@@ -297,11 +301,11 @@ $ ./configsys.sh plugin init            # or: plugin init <name>   (default: con
 ```
 
 With no primary plugin yet it **creates** one in `~/.config/configsys/plugins/<name>/`: it moves
-in your captured dotfiles, your own glue snippets and glue overrides, and your `components:`
-section (removing it from configsys.hu), lists your other declared plugins in its manifest so
-they come along, `git init`s it, and makes it your primary plugin. If you already have a
-primary, it moves your captured dotfiles and glue into it instead; your `components:` section
-stays where it is (move it by hand). Picks, pins and settings move separately:
+in your captured dotfiles, your own glue snippets and glue overrides, and your `components:` and
+`profiles:` sections (removing them from configsys.hu), lists your other declared plugins in its
+manifest so they come along, `git init`s it, and makes it your primary plugin. If you already have
+a primary, it moves your captured dotfiles and glue into it instead; your `components:` and
+`profiles:` sections stay where they are (move them by hand). Picks, pins and settings move separately:
 `configsys picks to-primary`, `configsys pin promote <name>`, `configsys config move <key>`. It's a real git repo you author in place; when you're ready to
 share it, push it and repoint the source:
 
@@ -335,7 +339,7 @@ configsys fix-scope [<name>...]    # reconcile user/system scope mismatches (mov
 
 configsys picks   <list|add|rm|to-primary>   # this machine's picks — the install set [--machine]
 configsys machine <list|show|add|rm|use>     # the picks matrix columns; `use` sets this box's machine
-configsys profile <list|show>      # browse the shipped profile catalog (read-only lenses)
+configsys profile <list|show>      # browse profiles — the repo's, your plugins', your own (read-only)
 configsys disp    <list|get|set>   # component dispositions: seen / interesting / new
 configsys orphans                  # installed software your picks don't cover [--adopt|--remove NAME] [--ignore GLOB]
 
@@ -395,7 +399,8 @@ Profiles screen (`T`) or with `configsys picks add`.
 package index (`apt-get update`, `dnf makecache`, …; sudo may prompt). On Arch the only safe
 refresh is a full `pacman -Syu`, so `refresh` asks before running it. Every install or upgrade
 batch — from the CLI or the TUI — also refreshes the index once up front when it includes a native
-install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`).
+install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`). Arch is the
+exception: there a refresh means a full upgrade, so a batch never runs one for you.
 
 When the index refresh fails, configsys tells you why instead of leaving you with a raw apt or dnf
 error. It names the likely cause (a missing or rotated signing key, a dead repository URL, …) and the
@@ -409,7 +414,8 @@ shown in brackets after the error, and as **Likely cause** in `configsys report`
 
 **System updates.** `configsys updates` lists the packages your package managers (the OS's own,
 flatpak, snap) report upgradable that aren't configsys components, grouped by tier — kernel, core,
-standard, apps. `configsys upgrade --system` refreshes the index, shows that list, asks, then runs
+standard, apps. `configsys upgrade --system` refreshes the index (on Arch the list reflects your
+last full `pacman -Syu`), shows that list, asks, then runs
 each manager's own bulk upgrade (`--yes` skips the question). Held packages stay held, and it never
 moves you to a new OS release. The TUI shows the same list as its **System Updates** group.
 
@@ -423,8 +429,8 @@ another OS block, with another home directory or config file — together they s
 on this box), `--color {auto,24bit,256,16,8,none}` / `--nocolor` (cap the TUI color depth),
 `--effects {full,reduced,none}` (TUI motion), `--probe` (print the resolved color and motion mode,
 and why, then exit), `--splash-linger` (keep the startup splash up until you press a key), `-v` /
-`-vv` (stream load detail to stderr), `-q` / `--silent` (print nothing while loading; problems show
-only on the TUI `!` page).
+`-vv` (stream load detail to stderr), `-q` / `--silent` (print nothing while loading, not even
+errors; they still show on the TUI `!` page and in `inspect`'s issue list).
 
 Environment variables (a flag in parentheses sets the same thing for one run):
 
@@ -486,9 +492,9 @@ Seven screens; press a number key (shown in the top chip bar) to switch:
    already there), `u` upgrade, `x` remove, `L` lock/unlock, and `I` / `U` for every tracked
    component. `X` shows the plan and runs it after you confirm. `v` picks an install method
    (writes a pin), `w` shows the full `where` explanation, `R` refreshes versions and the package
-   index, and `c` clears the selection and staged ops. `M` cycles the view: `to-do` (only what
-   needs action — the default) / `tracked` (every pick) / `installed+tracked` (plus installed
-   components you haven't picked).
+   index, and `c` unstages the current row (or the selection) and clears the selection. `M`
+   cycles the view: `to-do` (only what needs action — the default) / `tracked` (every pick) /
+   `installed+tracked` (plus installed components you haven't picked).
 2. **Profiles** — the component × machine matrix. Browse the catalog by profile on the left
    (`!all` lists every component); the right side shows each component with a column per
    machine. Track a component (`t`, or `T` for the selection or the whole profile) on the target
@@ -519,12 +525,12 @@ The badge at the left edge shows what's staged: `I` install, `U` upgrade, `X` re
 `l` unlock, `*` mixed (its rows differ); `✗` marks a row whose last run failed.
 
 **Header.** The Components header shows the OS block, `[PRETEND]` on a dry run, the view mode, how
-long ago the package index was refreshed (in the warning color after 30 days), `⚠ reboot advised`,
+long ago you last ran `refresh` (in the warning color after 30 days, or if never), `⚠ reboot advised`,
 `⟳ N system updates`, and `⚠ N issues — press ! to view`.
 
 **System Updates.** The last group in the tree lists what your package managers report upgradable
-that isn't a configsys component, by tier (kernel, core, standard, apps; automatically pulled-in
-dependencies are dimmed). It applies in bulk: `i` or `u` anywhere in it stages the whole group,
+that isn't a configsys component, by tier (kernel, core, standard, apps; in the standard and apps
+tiers, packages pulled in only as dependencies are dimmed). It applies in bulk: `i` or `u` anywhere in it stages the whole group,
 and `X` runs each manager's own upgrade before your other staged ops.
 
 **Issues (`!`).** From any screen, `!` lists every issue — config warnings, picks that can't route,
@@ -571,7 +577,7 @@ not overwrite anything it didn't create. Two drivers share the work:
   setup (`00-`), then each tool's glue (`50-`), then your user glue (`90-`), then your `99-user`
   snippet last. A tool `suggests:` its `<name>-glue` companion, and each companion requires
   `shell-glue`, which makes every installed shell load its `conf.d/`. Opt out per machine with
-  `disabled-drivers: [ glue ]` (or `dotfiles`) to manage your own shell config.
+  `disabled-drivers: [ glue ]` (or `dotfiles`) to manage your shell startup files yourself.
 
 Dotfiles commands:
 
@@ -718,7 +724,8 @@ $ bash test/run-flatpak-in-podman.sh # gated: real flatpak --user lifecycle (slo
 dnf, pacman (with AUR), zypper, xbps, clang and the language toolchains, plus
 `run-name-sweep-in-podman.sh` — a container sweep that checks every native package name configsys
 maps to still exists in a representative distro for each package manager (apt, dnf, pacman,
-zypper, apk, xbps), catching upstream renames and removals. The design docs cover routing
+zypper, apk, xbps), catching upstream renames and removals; Homebrew formula names are checked by
+`tools/compaudit.py` instead. The design docs cover routing
 ([routing-model.md](docs/routing-model.md)), the plugin system ([plugins.md](docs/plugins.md)), and
 the name sweep ([name-sweep-test.md](docs/name-sweep-test.md)).
 
@@ -731,10 +738,12 @@ $ CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q
 
 Maintenance tools live in `tools/`: `gen_manpages.py` regenerates the man pages (`--check` is run
 by the test suite), `namesweep.py` and `versionsweep.py` are the networked package-name and
-version-floor sweeps, `compaudit.py` probes components for upstream drift, and `docaudit.py`
+version-floor sweeps, `regsweep.py` finds crates.io / PyPI / npm / Flathub methods a component
+could add, `compaudit.py` probes components for upstream drift, and `docaudit.py`
 checks the docs against the code and renders the Glossary below from `docs/glossary.hu`. If you
 use Claude Code, `.claude/skills/` has playbooks for the common jobs: `/add-component`,
-`/update-component` and `/update-docs`.
+`/update-component`, `/add-driver` and `/update-docs`; `test/test_driver_inventory.py` fails until a
+new driver is wired through everything `/add-driver` lists.
 
 ## Glossary
 
@@ -760,7 +769,7 @@ edit that file, not this section -->
 - **disposition** (`dispositions:`) — Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything. *See also:* **picks**.
 - **dotfiles** (`via: dotfiles`) — An app's own configuration (its `~/.config/<app>` files), kept in your content store and linked into place. Usually captured from your machine, not shipped. *See also:* **glue**, **capture**, **content-store**, **companion**. *Not:* “shell config”.
 - **driver** — The code that performs one install mechanism behind a uniform set of operations (install, uninstall, upgrade, version, lock, …). Each `via:` value names one driver; plugins can add more. *See also:* **via**. *Not:* “backend”, “provider”.
-- **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). *See also:* **standing**, **specificity**.
+- **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). Your list only needs the drivers you care about — the ones it leaves out follow in the default order. *See also:* **standing**, **specificity**.
 - **facet** — A detected machine trait beyond the OS — CPU, GPU, and so on — usable in `when:` (`cpu: x86_64`). *See also:* **when**.
 - **glue** (`via: glue`) — A small shipped shell snippet that wires a tool into your shells (PATH, aliases, init hooks), installed into each shell's `conf.d`. Distinct from dotfiles: glue is shipped, not captured. *See also:* **dotfiles**, **shell-glue**.
 - **golden** (test/routing_golden.json) — A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly.
@@ -786,12 +795,12 @@ edit that file, not this section -->
 - **provider** — A component that `provides:` a capability another component `requires:` (e.g. `jdk-21` provides `jdk`). *See also:* **capability**, **pin**.
 - **receipt** — The ledger's record of each unit configsys installed (method, package name, fields), so the install stays findable and removable after routes stop offering that method. *See also:* **stranded**, **ledger**.
 - **recipe-pin** (`[R]`) — A method that builds a fixed version its route pins (for example a from-source build). `[R]` means upstream has released something newer; upgrading rebuilds the same pinned version — reaching the new release takes a route change. *See also:* **status**.
-- **refresh** (`configsys refresh`) — Re-checking upstream versions and refreshing the OS package index.
+- **refresh** (`configsys refresh`) — Re-checking upstream versions and refreshing the OS package index. Where the only safe refresh is a full system upgrade (Arch's `pacman -Syu`), configsys asks before running it.
 - **requires** (`requires:`) — A HARD dependency: the capability must resolve here or the component errors. *See also:* **suggests**, **capability**.
 - **resolution** — Turning wanted component names into concrete units for THIS machine: pick a binding per component, close its requires/suggests, dedupe. *See also:* **unit**, **candidate**.
 - **routing-status** — A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS). *See also:* **stranded**, **status**.
 - **scale-root** (`scale-root: true`) — Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version. *See also:* **OS-block**.
-- **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Package managers are always system.
+- **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user.
 - **setting-nature** — Whether a machine setting is uniform (belongs in your primary plugin, same everywhere) or machine-local (belongs in this box's config). `configsys config move` carries one across. *See also:* **primary-plugin**.
 - **shell-glue** — The component that makes every installed shell load its `~/.config/<shell>/conf.d/` snippets — the substrate every `-glue` companion needs. *See also:* **glue**.
 - **shell-writes-guard** (`installer-shell-writes:`) — Protection against installers that edit your shell startup files: by default configsys reverts such edits and keeps the removed lines as inactive glue you can review. *See also:* **glue**.

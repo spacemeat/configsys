@@ -26,13 +26,16 @@ real breakage.
 
 ### 1. Extractor (`tools/namesweep.py`)
 
-Resolves every component in a representative context per manager (ubuntu 24.04=apt, fedora
-42=dnf, arch=pacman, opensuse=zypper, alpine 3.20=apk, void=xbps) and collects the **native**
-package names each maps to — respecting `when:` (only what routes there) and `name:` (the real
-per-distro name). A multi-package unit contributes each of its real `packages:`. Skipped:
+Resolves every component in a representative context per manager (`namesweep.MANAGERS`: ubuntu
+24.04=apt, fedora 42=dnf, arch=pacman, opensuse=zypper, alpine 3.20=apk, void=xbps) and collects
+the **native** package names each maps to (`_native_names`, `Resolver.resolve_names` per component,
+so its `requires:` closure's native units count too) — respecting `when:` (only what routes there)
+and `name:` (the real per-distro name). A multi-package unit contributes each of its real
+`packages:`. Skipped:
 non-native units (flatpak app-ids, pipx/npm/cargo dists, tarball URLs, `script`) — a different
 verification — and native units that first wire a third-party repo or fetch a package file
-(`source-line:`, `ppa:`, `deb-source:`, `repo-url:`, …), whose names only exist after that setup.
+(`_NON_REPO_FIELDS`: `source-line:`, `ppa:`, `deb-source:`, `repo-url:`, …), whose names only
+exist after that setup.
 Current volume: **~320–420 packages per manager** (~2,300 across the six).
 
 ```
@@ -42,6 +45,14 @@ $ python3 tools/namesweep.py --json          # {manager: {pkg: [components]}}
 ```
 
 It already reflects known drift: `apt=redis-server`, `dnf=valkey`, `pacman=valkey`.
+
+**Which managers are swept.** Every OS block's `native:` manager sits in exactly one of
+`namesweep.MANAGERS` (swept; it then also needs a `_CHECK` verb and a `_VERIFIERS` image + setup
+entry) or `namesweep.UNSWEPT` (`{manager: what checks its names instead}`) —
+test/test_driver_inventory.py enforces both. Today `UNSWEPT` holds only brew: there is no container
+repo to query, so its formulae are checked by `tools/compaudit.py` (`probe_brew`, against the
+formulae.brew.sh index). The default sweep set (`_DEFAULT_MANAGERS`) is derived from `MANAGERS`, so
+a new swept manager joins the gate without a second edit.
 
 ### 2. Verifier — per-manager existence query (the container half)
 
@@ -66,7 +77,8 @@ and query verbs (all read-only, nothing installed):
 
 Missing names → the components that map to them (the extractor's reverse map), printed as
 `DRIFT  dnf: package "sagemath" NOT FOUND  (component: sagemath)`. Exit 1 if any survive the
-allowlist; exit 2 if podman is missing.
+allowlist; `namesweep.py --sweep` exits 2 if podman is missing (the wrapper script checks first and
+exits 127).
 
 ## The allowlist (avoid false alarms)
 
@@ -85,8 +97,8 @@ remove the entry.
 
 ## Scope, and what it has caught
 
-The default sweep gates on **all six families** (apt/dnf/pacman/zypper/apk/xbps). Its first runs
-caught, among others:
+The default sweep gates on **every `MANAGERS` entry** — today the six families apt/dnf/pacman/
+zypper/apk/xbps. Its first runs caught, among others:
 
 - **nim** and **lazygit** aren't in Fedora repos → gated / retargeted to the tarball.
 - **gcc-cpp** lacked apt/pacman names → gated redhat; **gst-libav** is `gstreamer1-plugin-libav` on
@@ -145,7 +157,8 @@ core just provides the mode. Two plugins use it:
 - Check flatpak app-ids, npm/pipx/cargo/gem dist names, tarball URLs, or `script` endpoints —
   each is a separate, lighter check (an HTTP HEAD for URLs; `flatpak remote-info` for app-ids;
   a registry API for dist names). Worth their own sketch later; the native sweep is the first win.
-- Cover managers/OSes without a verifier image (rpm-ostree/brew, macOS, Windows).
+- Cover managers/OSes without a verifier image: brew (`UNSWEPT` — compaudit's `probe_brew` checks
+  formulae instead), rpm-ostree (no OS block's `native:`), macOS, Windows.
 
 ## Not yet done
 

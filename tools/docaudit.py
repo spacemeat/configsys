@@ -365,7 +365,8 @@ def _check_retired(path, lines, retired):
 
 
 _RETIREMENT_WORDS = re.compile(r'\b(retired|formerly|replaced|replaces|gone|renamed|deleted|removed|'
-                               r'superseded|predates|no longer|instead of|used to|was |were |old )')
+                               r'superseded|predates|no longer|instead of|used to|was |were |old |'
+                               r'avoid|must not)')         # ... or cites it as a counter-example
 
 
 def _check_examples(path, lines, parser):

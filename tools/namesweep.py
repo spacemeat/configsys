@@ -6,8 +6,9 @@ every component in a representative context per manager and collects the native 
 maps to — the exact set a container-side verifier then checks for existence, catching renames/
 removals (redis->valkey, Fedora dropping sagemath, ...) automatically.
 
-Only NATIVE units are collected (apt/dnf/pacman/zypper/apk). Flatpak app-ids, pipx/npm/cargo dist
-names, tarball URLs and script installers are a different verification and are skipped here.
+Only NATIVE units are collected (every MANAGERS entry; brew is UNSWEPT). Flatpak app-ids,
+pipx/npm/cargo dist names, tarball URLs and script installers are a different verification and are
+skipped here.
 
 Usage:
   python3 tools/namesweep.py                 # summary: package count per manager

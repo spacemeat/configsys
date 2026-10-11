@@ -7,12 +7,14 @@ real account. Nothing here reads or writes; it only computes locations.
 Env overrides:
   CONFIGSYS_HOME       base for ~-relative paths            (default: $HOME)
   CONFIGSYS_REPO       data root holding config.hu/routes.hu (default: auto — see _locate_data_root)
-  CONFIGSYS_CONFIG     per-machine selector file            (default: <home>/configsys.hu)
-  CONFIGSYS_STATE_DIR  ledger directory                     (default: <config>/configsys)
+  CONFIGSYS_CONFIG     the top user config                  (default: <state dir>/configsys.hu;
+                       a legacy <home>/configsys.hu is only migrated from)
+  CONFIGSYS_STATE_DIR  state dir: config, ledger, plugins   (default: $XDG_CONFIG_HOME/configsys;
+                       under CONFIGSYS_HOME, <home>/.config/configsys)
   XDG_CONFIG_HOME      base for the default state dir        (default: <home>/.config)
 
 Install-layout overrides (the "config for configsys" — also settable from the shipped
-dotfiles/bash.d/00-configsys.sh so your shell and configsys agree). A driver install location is
+glue/shell/bash/00-configsys.sh so your shell and configsys agree). A driver install location is
 <scope base>/<category>/<name>; each part is env-overridable with a sensible default:
   CONFIGSYS_USERSCOPE_DIR   base for user-scope installs         (default: ~ = configsys home)
   CONFIGSYS_SYSTEMSCOPE_DIR base for system-scope installs       (default: /opt)

@@ -98,9 +98,10 @@ class Unit:
 
 # Default order for choosing among genuinely-alternative install methods (same context, no
 # most-specific winner). A machine may replace this globally (config `driver-preference:`) or an
-# OS block may override it (`driver-preference:` in the os: layer). Native-first is conventional;
-# drivers absent from the list are least-preferred and tie among themselves (a tie is an error,
-# not a silent guess). snap/source are listed ahead of their drivers existing — harmless.
+# OS block may override it (`driver-preference:` in the os: layer). Native-first is conventional.
+# The lists form a fallback chain (_effective_preference): OS-block lists, then the setting, then
+# this default, each adding only the drivers the earlier ones don't name — so only a driver named in
+# NO list is least-preferred, and those tie among themselves (a tie is an error, not a guess).
 # brew ranks just ahead of tarball: an ordinary method (gated to glibc by its `drivers:` block) that
 # beats a hand-rolled download, never a native/flatpak/snap/.deb/AppImage one.
 DEFAULT_DRIVER_PREFERENCE = ['native', 'aur', 'flatpak', 'snap', 'native-pkg-file', 'appImage',
@@ -131,11 +132,12 @@ def _matching(component, context, pins):
 
 
 def driver_gated(binding, context):
-    '''The driver whose `drivers:` `when:` gate is FALSE in this context and so makes `binding` not a
+    '''The driver whose gate is closed in this context and so makes `binding` not a
     candidate — its own via, or (for `via: native`) this OS's native manager — else None. A
     validity-only filter, like a false `when:` / `cpu-names:`: it never adds specificity, so it
-    never shifts which method is the default where the driver IS valid. (The gates are evaluated
-    once per context by OsCascade.context into `gated_drivers`; a hand-built Context has none.)'''
+    never shifts which method is the default where the driver IS valid. (`gated_drivers` holds the
+    explicit gates OsCascade.context evaluates plus the derived ones gated_context adds — a driver
+    whose own requires: can't be met here; a hand-built Context has none.)'''
     gated = getattr(context, 'gated_drivers', None)
     if not gated:
         return None

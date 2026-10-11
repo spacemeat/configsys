@@ -35,7 +35,8 @@ FAMILIES = {
 }
 
 # Drivers deliberately NOT in DEFAULT_DRIVER_PREFERENCE: when several of these are valid for one
-# component they tie, and the author settles it with a `when:` / `standing:` (routing-model §8).
+# component they tie, and the author settles it with a per-binding `standing:` rank (never a `when:`,
+# which states validity only; routing-model §8a).
 UNRANKED = {
     'rpm-ostree': 'atomic layering, a reboot-gated last resort — bindings carry standing: never-auto',
     'font': 'the only method for a font component; never competes',
@@ -177,10 +178,10 @@ def _all_named(text, where):
     assert not missing, f'{where} does not name {missing} {_see("6")}'
 
 
-def test_readme_glossary_names_every_driver_and_the_count():
-    # README's Glossary is generated from docs/glossary.hu (test_docs keeps them in sync)
+def test_readme_concepts_names_every_driver_and_the_count():
+    # README's hand-written Concepts bullet (the generated Glossary entry enumerates nothing)
     entry = _between(_read('README.md'), '**Driver**', '**Unit**')
-    _all_named(entry, 'README Glossary "Driver" (edit docs/glossary.hu)')
+    _all_named(entry, 'README Concepts "Driver" bullet (edit README.md)')
     m = re.search(r'ships (\d+)', entry)
     assert m and int(m.group(1)) == len(BUILTIN_DRIVERS), \
         f'README says "ships {m and m.group(1)}", the registry has {len(BUILTIN_DRIVERS)} {_see("6")}'

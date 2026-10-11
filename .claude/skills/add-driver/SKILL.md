@@ -6,15 +6,16 @@ description: Playbook for adding (or renaming/removing) a configsys install driv
 # add-driver — a new install mechanism, wired everywhere it must be
 
 A driver is rare work with a wide blast radius: the class itself is small, but the app has a dozen
-places that branch on driver names, four docs that enumerate every driver, two skills that teach
+places that branch on driver names, three docs that enumerate every driver, two skills that teach
 authors when to use each one, and a preference order that decides defaults for ~800 components.
 This playbook is the checklist; **`test/test_driver_inventory.py` is the alarm** — it fails until a
 new built-in driver is classified, ranked (or deliberately unranked), documented in every list and
 tested, and it fails when a code symbol named here is renamed. Its failures point at the § below.
 
 Read first: the `driver.py` module docstring (THE contract — the frozen surface), `docs/plugins.md`
-§7a (the same contract for plugin authors), `docs/routing-model.md` §8 (selection) and §8a (driver
-gates), `docs/principles.md` (no surprises; safety rules).
+§7a (the same contract for plugin authors), `docs/routing-model.md` §8 (specificity) and §8a (the
+candidate set — driver gates — and selection by `standing:` / driver-preference),
+`docs/principles.md` (no surprises; safety rules).
 
 ---
 
@@ -46,8 +47,9 @@ Subclass `Driver` (or `drivers._native.NativePkgManager` for an OS package manag
 `name` (= the `via:` value), and register it in `configsys/drivers/__init__.py` (`_REGISTRY` — the
 import + the dict entry; `BUILTIN_DRIVERS` snapshots it).
 
-**Class attributes** — each is documented in the `driver.py` docstring, and three are mirrored in
-docs the inventory test compares against the code:
+**Class attributes** — each is documented in the `driver.py` docstring, and two are mirrored in
+docs the inventory test compares against the code (as is the `installed_index` hook — Batching,
+below):
 - `privileged` (mutations need sudo) and `default_scope` (`user`/`system`).
 - `honors_scope` — user/system selectable per binding → also listed in docs/config-format.md's
   `scope:` field bullet.
@@ -91,7 +93,8 @@ cheaply; `installState.InstallState` drives them):
 - **System Updates** — `upgradable_index()`, `held_keys()`, `classify_index(keys)` (tiers from
   `UPDATE_TIERS`), `update_dedup_key`, `upgrade_all()`; docs/system-updates.md "Coverage".
 - **Version signals** — `outdated_signal(rc)` (updates that don't change the version string —
-  flatpak commits), `upstream_version(rc)`, `version_advisory(rc)`.
+  flatpak commits), `upstream_version(rc)`; plus `version_advisory(rc)`, which has no base default
+  — the core looks it up with `getattr` (pipx).
 - **Download helpers** for artifact drivers: `resolve_version`, `download_url`, `download_target`,
   `arch_token` (with `cpu-names:` — routing-model §7).
 
@@ -109,12 +112,15 @@ hook. Underscore members are internal.
   Linuxbrew refuses musl even with gcompat; `aur: when: "arch"` — Void has base-devel too). It adds
   no specificity (routing-model §8a).
 - **`standing: never-auto`** driver-wide if it must never be an automatic default (snap).
-- **Preference** — either a slot in `DEFAULT_DRIVER_PREFERENCE` (then also a two-letter tag in
+- **Preference** — either a slot in `DEFAULT_DRIVER_PREFERENCE` (then also a short tag in
   `tui.menu._DRIVER_ABBR`, the Config-screen display), or deliberately unranked (add it to
   `UNRANKED` in the inventory test, with the reason). A new rank changes defaults across the
-  catalog: regenerate the golden and read the diff per OS before accepting it (§9). Unranked drivers
-  tie with each other, so authors settle overlaps with `when:`/`standing:`. Remember specificity is
-  decided BEFORE preference (the aur `when: "arch"` exceptions).
+  catalog: regenerate the golden and read the diff per OS before accepting it (§9). A user's or OS
+  block's stale `driver-preference:` list still ranks a new driver: `resolve._effective_preference`
+  chains the lists and the default, each adding only the drivers the earlier ones don't name.
+  Unranked drivers tie with each other (and sit below every ranked one), so authors settle an
+  overlap with a per-binding `standing:` rank — never a `when:`, which states validity only.
+  Remember specificity is decided BEFORE preference (the aur `when: "arch"` exceptions).
 - **Fields** — the binding fields the driver reads. `resolve._package` decides the package /
   display name per via (`name:`, `app:` for flatpak, nothing for config drivers); a new naming
   field goes there. Load-time checks for a via's required fields live in `routecheck.validate`
@@ -135,12 +141,13 @@ Everything in §2–3, plus:
 - **Required hooks** (the inventory test checks them): `installed_index`, `upgradable_index`,
   `upgrade_all`, `explicit_keys`. A gap you accept goes in `KNOWN_GAPS` there, with why.
 - **A refresh style — exactly one of:** `app._NATIVE_REFRESH`, an index-only refresh that is safe
-  before a single-package install (apt-get update, xbps-install -S, …; it also runs automatically
-  before an execute batch); or `app._FULL_UPGRADE_REFRESH`, for a manager where an index-only sync
-  breaks the next install, so the only safe refresh is the full system upgrade (pacman: a bare
-  `-Sy` is a partial upgrade; `configsys refresh` asks first, nothing runs it automatically). Being
-  rolling doesn't decide it — Void and Tumbleweed sync safely. `app._INDEX_SRC_DIRS` if it has
-  third-party source files whose failures `refresh` should diagnose (apt/dnf/zypper).
+  before a single-package install (apt-get update, xbps-install -S, …; it is also what the
+  `refresh-before-execute` setting runs before an execute batch); or `app._FULL_UPGRADE_REFRESH`,
+  for a manager where an index-only sync breaks the next install, so the only safe refresh is the
+  full system upgrade (pacman: a bare `-Sy` is a partial upgrade; `configsys refresh` asks first,
+  nothing runs it automatically). Being rolling doesn't decide it — Void and Tumbleweed sync safely.
+  `app._INDEX_SRC_DIRS` if it has third-party source files whose failures `refresh` should diagnose
+  (apt/dnf/zypper).
 - **A reboot entry — exactly one of:** `rebootcheck._REBOOT_CHECKS` (the native reboot-required
   check: a flag file, a `needs-rebooting` exit code, or `_kernel_heuristic`), or
   `rebootcheck._NO_REBOOT_CHECK` with why there is none (brew). `_services` for restart-needed
@@ -169,8 +176,10 @@ Everything in §2–3, plus:
 
 ## 6. Docs and skills that enumerate drivers (the inventory test checks each)
 
-- **docs/glossary.hu** "Driver" entry → regenerates README's Glossary (`tools/docaudit.py glossary
-  --write`); keep its family grouping and the **"ships N"** count right.
+- **README.md** "Concepts" → the hand-written **Driver** bullet: name the driver in its family group
+  and bump the **"configsys ships N"** count (the inventory test reads this bullet). The
+  docs/glossary.hu `driver` entry (→ README's generated Glossary, `tools/docaudit.py glossary
+  --write`) doesn't enumerate drivers — touch it only if the definition itself changes.
 - **CLAUDE.md** — the "Drivers are defined in code" paragraph (and the `set-version` sentence if
   `targets_version = False`, the architecture `drivers:` summary if it has a gate/requires worth
   stating).

@@ -4,8 +4,8 @@ Keymap, so bindings and their on-screen hints can never drift. No curses call at
 module's KEY_* int constants, which are available without initscr).
 
 The base bindings live as humon in the repo's config.hu `keys:` section and merge up the layer stack
-(repo < plugins < primary < user) via Config.keys() — so a primary plugin's configsys.hu, or the top
-user config, overlays them per action. There is deliberately no Python default map; the humon file IS
+(repo < plugins < primary < user) via Config.keys() — so a `keys:` block in any plugin's data file, or
+the top user config, overlays them per action. There is deliberately no Python default map; the humon file IS
 the default. A tiny FALLBACK here only guards against a missing/broken repo section bricking the TUI.'''
 
 import curses

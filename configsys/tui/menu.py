@@ -989,8 +989,9 @@ _HELP = {
                        'untrusted (its driver comes from a plugin you haven\'t trusted) · error (a probe '
                        'or op failed)'),
             ('routing status', 'shown instead of the version status: switch (installed via a method '
-                               'routes no longer offer here; i swaps it out) · unmet (only a disabled '
-                               'driver could install it) · dangling (no install method on this OS)'),
+                               'routes no longer offer here; i swaps it out) · unmet (installable only '
+                               'with a driver you disabled, directly or through what it needs) · '
+                               'dangling (no install method on this OS)'),
             ('op badges', 'I install · U upgrade · X remove · L lock · l unlock · * mixed — staged, run '
                           'with execute. ✗ marks a failed op; » a selected row'),
             ('make current (i / I)', 'install if missing, upgrade if outdated, swap out a switch row\'s '
@@ -999,8 +1000,9 @@ _HELP = {
                                      '— is left as is). u/U upgrade outdated only'),
             ('tree', '▾/▸ expand/collapse. Components group under the profile that defines them '
                      '((other) = none); a component opens to its units — itself plus what it requires'),
-            ('System Updates', 'OS packages with pending updates outside your picks, by tier (kernel, '
-                               'core, standard, apps); auto-pulled ones are dimmed. i/u stages them all, '
+            ('System Updates', 'packages with pending updates outside your picks — from this OS\'s '
+                               'package manager, flatpak and snap — by tier (kernel, core, standard, '
+                               'apps); auto-pulled ones are dimmed. i/u stages them all, '
                                'c on any of them unstages them all (all or nothing), the execute key '
                                'applies them in bulk. R rescans them'),
             ('header', 'view mode · package-index age (refresh with R) · ⚠ reboot advised · ⟳ N '

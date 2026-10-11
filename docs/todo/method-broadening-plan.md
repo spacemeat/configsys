@@ -1,9 +1,8 @@
 # Offer every working method — a `when:`-is-validity audit
 
-> **Status: IN PROGRESS** — Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.
+> **Status: IN PROGRESS** — Phase 1 done (8a15ff5, 2026-08-27); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d, 2026-08-27); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started. Some routing reasoning below predates the 2026-10-10 routing changes (derived driver gates, aur after native, Homebrew as a ranked method) — see the dated notes.
 
-Status: **PHASE 1 DONE** (commit follows this doc). Phase 2 (add *missing* universal methods per a
-registry-existence sweep) is still pending. Phase-1 result: the 18 gap-gated bindings below were
+**Phase-1 result (8a15ff5):** the 18 gap-gated bindings below were
 broadened to universal validity — golden moved by exactly ONE new resolution (`qtile` now resolves on
 `fedora_atomic` via pipx, a newly-covered gap); NO existing default moved; 0 check errors / no ties
 across pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/amzn; full suite green. The real wins live
@@ -52,6 +51,18 @@ NOT in the list. Consequences:
 - Golden: the *resolved unit* is unchanged (native still wins), so `routing_golden.json` should be
   untouched by pure broadening — verify per batch; a change there means a default actually moved.
 
+> **Note (2026-10-10) — the preference mechanics above are partly superseded.** The quoted list is
+> stale: since da0a7ac and ec59455 the default is `native, aur, flatpak, snap, native-pkg-file,
+> appImage, brew, tarball, source, script` (`resolve.DEFAULT_DRIVER_PREFERENCE`), and since a3c2060 a
+> `driver-preference:` list is a fallback chain — drivers it doesn't name follow in the default
+> order, and only drivers named in no list tie. The module installers (cargo, pipx, npm,
+> go-install, gem, opam, luarocks, cabal) are still in no list, so the tie invariant stands and
+> broadening one still never moves a default. What changed is the gap: brew now outranks every
+> module installer and ~266 components carry a `{ via: brew }` binding, so on glibc distros a
+> native gap usually defaults to brew rather than to its cargo/pipx/npm method (zoxide on Amazon
+> Linux now defaults to brew; its cargo method stays pinnable). On musl, where the brew driver is
+> gated off, the reasoning above holds unchanged.
+
 ## Method-validity reference (the CORRECT `when:` domain for each)
 
 | via | Valid where | Notes for `when:` |
@@ -68,6 +79,16 @@ NOT in the list. Consequences:
 | native-pkg-file | the .deb/.rpm/pkg families | deb/rpm/arch only |
 | native | the OS's package manager | per-OS `name:` map; genuinely OS-specific |
 | **aur** | **Arch only** | GENUINELY restricted — aur *is* Arch. LEAVE gated `when: "arch"`. |
+
+> **Note (2026-10-10) — the appImage and aur rows are superseded.** A driver is now valid only
+> where its own `requires:` can be met (the derived driver gate, da0a7ac). The appImage driver
+> requires `[libfuse2, glibc]`, so AppImage methods are already off musl and the libfuse2-less
+> image OSes: an appImage binding needs no `not alpine` of its own (`pins: { glibc: gcompat }`
+> opens it on Alpine). The same gate keeps snap off wherever snapd has no method. The aur driver
+> carries its own `when: "arch"` gate in `drivers:` and ranks right after native, so an aur
+> binding drops its `when: "arch"` — keeping it only where a competitor valid on Arch has a
+> narrower `when:` that would win on specificity first. flatpak's "rank 1" is now third, after
+> native and aur.
 
 ## ✅ Phase 1 — broaden EXISTING gap-gated methods (mechanical, low-risk)
 
@@ -100,7 +121,8 @@ python-version pin, `python3.13`, not an artificial OS gate; and it already offe
   brew on atomic (preference via `when:` specificity, intentional).
 - Any `when:` with a **version bound** (e.g. `ubuntu < 24.04`, `debian < 13`) — that's a genuine
   validity floor (a feature/dep threshold), not an OS gate. Keep.
-- `aur` bindings — Arch-only by nature.
+- `aur` bindings — Arch-only by nature. (Superseded 2026-10-10: the aur driver's own gate covers
+  this, so the bindings no longer carry `when: "arch"` — see the note under the table.)
 
 ## ⏳ Phase 2 — ADD missing universal methods (research-heavy; later batches)
 

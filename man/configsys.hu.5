@@ -85,15 +85,15 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 .IP \(bu 2
 \fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs sudo).
 .IP \(bu 2
-\fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that declares its own \fBdriver-preference:\fR takes precedence on that OS. Drivers your list doesn't name aren't dropped: they follow the ones it names, in the default order, so a list written before a new driver existed still ranks it. Only drivers named in no list tie, and a tie is an error.
+\fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. Your list needn't name every driver: the drivers it leaves out follow the ones it names, in the default order, so a list written before a new driver existed still ranks it. An OS block's own \fBdriver-preference:\fR (on this machine's block or a parent of it) ranks ahead of this setting on that OS. Drivers that no list names rank last and tie with each other, and a choice that comes down to such a tie is an error.
 .IP \(bu 2
-\fB\fBdisabled-drivers\fR\fR (list of via names, machine; default none): turns install methods off on this machine. Their bindings stop matching, like a false \fBwhen:\fR, so a \fBsuggests:\fR that needs one is skipped and a \fBrequires:\fR that needs one is an error. Use \fBdotfiles\fR and \fBglue\fR to manage your own shell config, or for example \fBsnap\fR.
+\fB\fBdisabled-drivers\fR\fR (list of via names, machine; default none): turns install methods off on this machine. Their bindings stop matching, like a false \fBwhen:\fR, so a \fBsuggests:\fR that needs one is skipped and a \fBrequires:\fR that needs one is an error. A driver whose own requirements only a disabled driver could install stops working too (see "OS blocks and drivers"). Typical entries: \fBdotfiles\fR and \fBglue\fR, to manage your shell startup files yourself, or \fBsnap\fR.
 .IP \(bu 2
 \fB\fBauto-tighten\fR\fR (bool, uniform; default off): when a component's default method can't meet a version floor, pick a method that can, instead of only advising. An already-installed provider is never replaced automatically.
 .IP \(bu 2
 \fB\fBadopt-installed\fR\fR (bool, uniform; default on): prefer a method or provider that is already installed over the computed default (detection).
 .IP \(bu 2
-\fB\fBrefresh-before-execute\fR\fR (scalar, uniform; default \fBauto\fR): refresh the OS package index once before running staged operations: \fBauto\fR (when the batch includes a native install or upgrade), \fBalways\fR, or \fBnever\fR.
+\fB\fBrefresh-before-execute\fR\fR (scalar, uniform; default \fBauto\fR): refresh the OS package index once before running staged operations: \fBauto\fR (when the batch includes a native install or upgrade), \fBalways\fR, or \fBnever\fR. On Arch, where the only safe refresh is a full system upgrade, nothing is refreshed automatically; \fBconfigsys refresh\fR offers the upgrade.
 .IP \(bu 2
 \fB\fBinstall-overlay\fR\fR (bool, uniform; default on): open the TUI Profiles screen with the install-state overlay on (\fBO\fR toggles it).
 .IP \(bu 2
@@ -107,7 +107,7 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 .IP \(bu 2
 \fB\fBdetect-coexisting\fR\fR (bool, uniform; default on): after inspecting, look for each component installed through its other methods and show those installs as "also present (unmanaged)". Package managers are listed once per run, so the cost is a handful of calls, not one per component. \fBconfigsys versions <name>\fR shows every method's state either way.
 .IP \(bu 2
-\fB\fBinstaller-shell-writes\fR\fR (\fBblock\fR or \fBallow\fR, uniform; default \fBblock\fR): the shell-writes guard. With \fBblock\fR, when an installer edits \fB~/.bashrc\fR, \fB~/.bash_profile\fR, \fB~/.profile\fR, \fB~/.zshrc\fR or \fB~/.zprofile\fR during an install or upgrade, configsys restores the file and keeps the removed lines as an inactive glue candidate (see "glue"). \fBallow\fR turns the guard off.
+\fB\fBinstaller-shell-writes\fR\fR (\fBblock\fR or \fBallow\fR, uniform; default \fBblock\fR): the shell-writes guard. With \fBblock\fR, when an installer edits \fB~/.bashrc\fR, \fB~/.bash_profile\fR, \fB~/.profile\fR, \fB~/.zshrc\fR or \fB~/.zprofile\fR during an install, upgrade or version change, configsys restores the file and keeps the removed lines as an inactive glue candidate (see "glue"). \fBallow\fR turns the guard off.
 .IP \(bu 2
 \fB\fBinstaller-shell-writes-allow\fR\fR (list of components, uniform; default none): components whose rc-file edits are wanted and left alone.
 .IP \(bu 2
@@ -300,7 +300,7 @@ Every binding may use:
 .IP \(bu 2
 \fB\fBname:\fR\fR the package or distribution name, defaulting to the component name. On a \fBvia: native\fR binding it may be a map keyed by package manager, with an optional \fBdefault:\fR (\fBname: { apt: fd-find  default: fd }\fR).
 .IP \(bu 2
-\fB\fBscope:\fR\fR \fBuser\fR or \fBsystem\fR, for scope-honoring drivers (\fBappImage\fR, \fBflatpak\fR, \fBtarball\fR, \fBsource\fR, \fBfont\fR, \fBnpm\fR, \fBgem\fR, \fBluarocks\fR); it beats the \fBscope:\fR setting. Other drivers have a fixed scope (OS package managers are system; \fBcargo\fR, \fBpipx\fR, \fBdotfiles\fR, \fBglue\fR are user) and ignore it.
+\fB\fBscope:\fR\fR \fBuser\fR or \fBsystem\fR, for scope-honoring drivers (\fBappImage\fR, \fBflatpak\fR, \fBtarball\fR, \fBsource\fR, \fBfont\fR, \fBnpm\fR, \fBgem\fR, \fBluarocks\fR); it beats the \fBscope:\fR setting. Other drivers have a fixed scope (the distro package managers are system; \fBbrew\fR, \fBcargo\fR, \fBpipx\fR, \fBdotfiles\fR and \fBglue\fR are user) and ignore it.
 .IP \(bu 2
 \fB\fBpackages:\fR\fR (native, and the versioned \fBgcc\fR/\fBclang\fR drivers) a list of packages installed and removed together as one unit; install state is read from the first.
 .IP \(bu 2
@@ -330,7 +330,13 @@ Driver-specific fields include:
 .IP \(bu 2
 \fBscript\fR: \fBinstall-cmd:\fR (required), \fBversion-cmd:\fR + \fBversion-re:\fR, \fBlatest-cmd:\fR, \fBuninstall-cmd:\fR, \fBupgrade-cmd:\fR, \fBset-version-cmd:\fR, \fBlocation:\fR.
 .IP \(bu 2
+\fBbrew\fR: \fBname:\fR (the formula). On Fedora Atomic, where brew is the native package manager, a \fBvia: native\fR binding's \fBname:\fR map takes a \fBbrew:\fR key.
+.IP \(bu 2
+\fBrpm-ostree\fR: \fBapply-live: true\fR also applies the layered package to the running system, instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
+.IP \(bu 2
 \fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR.
+.IP \(bu 2
+\fBsdkman\fR: \fBname:\fR (the SDKMAN candidate, such as \fBjava\fR), and optionally \fBversion:\fR, an exact SDKMAN version identifier (\fB21.0.12+1.1-tem\fR). A binding with a \fBversion:\fR installs and reads only that version, so several components can share one candidate, and upgrading it installs the identifier the route names rather than moving SDKMAN's default.
 .IP \(bu 2
 \fBservice\fR: \fBunit:\fR, \fBstart: false\fR, \fBrunit:\fR (the runit service name or names, where they differ). \fBgroup\fR: \fBname:\fR (the group).
 .IP \(bu 2
@@ -376,10 +382,10 @@ a \fBfacet\fR: a detected fact declared in a \fBfacets:\fR section. Categorical 
 .PP
 Combine atoms with \fBand\fR, \fBor\fR, \fBnot\fR and parentheses (\fBnot\fR binds tightest, then \fBand\fR, then \fBor\fR); \fBnot\fR applies to any atom, for example \fB"ubuntu and not pop_os!"\fR.
 .PP
-OS blocks form a lineage through \fBusing:\fR (\fBpop_os!\fR -> \fBubuntu\fR -> \fBdebian\fR -> \fBlinux\fR), so a binding written for \fBdebian\fR applies to the whole family. The machine's block comes from \fB/etc/os-release\fR's \fBID\fR; a few IDs map to a differently named block, because block names can't contain \fB-\fR (\fBID=pop\fR -> \fBpop_os!\fR, \fBID=opensuse-leap\fR -> \fBopensuse_leap\fR). A \fBwhen:\fR naming an unknown OS block is a \fBcheck\fR warning, since it would never match. Two bindings of the \fBsame driver\fR whose conditions overlap must be comparable (one more specific than the other), or configsys reports a load-time ambiguity; overlapping bindings of \fIdifferent\fR drivers are legal alternatives.
+OS blocks form a lineage through \fBusing:\fR (\fBpop_os!\fR -> \fBubuntu\fR -> \fBdebian\fR -> \fBglibc_linux\fR -> \fBlinux\fR), so a binding written for \fBdebian\fR applies to the whole family. The machine's block comes from \fB/etc/os-release\fR's \fBID\fR; a few IDs map to a differently named block, because block names can't contain \fB-\fR (\fBID=pop\fR -> \fBpop_os!\fR, \fBID=opensuse-leap\fR -> \fBopensuse_leap\fR). A \fBwhen:\fR naming an unknown OS block is a \fBcheck\fR warning, since it would never match. Two bindings of the \fBsame driver\fR whose conditions overlap must be comparable (one more specific than the other), or configsys reports a load-time ambiguity; overlapping bindings of \fIdifferent\fR drivers are legal alternatives.
 .SH CHOOSING AMONG METHODS
 .PP
-A component can have several valid install methods in one context (for example \fBnative\fR and \fBflatpak\fR both work on Ubuntu). A binding is \fBvalid\fR here when its \fBwhen:\fR holds, its CPU is covered (\fBcpu-names:\fR or a CPU-keyed \fBasset:\fR), its driver isn't in \fBdisabled-drivers:\fR, its driver's own \fBwhen:\fR gate holds (see "OS blocks and drivers"), and it isn't \fBvia: native\fR on an OS with no package manager. Among the valid ones, configsys picks one default deterministically:
+A component can have several valid install methods in one context (for example \fBnative\fR and \fBflatpak\fR both work on Ubuntu). A binding is \fBvalid\fR here, a \fBcandidate\fR, when its \fBwhen:\fR holds, its CPU is covered (\fBcpu-names:\fR or a CPU-keyed \fBasset:\fR), its driver isn't in \fBdisabled-drivers:\fR, its driver can work here (the driver's own requirements can be met, and its \fBwhen:\fR gate, if it has one, holds; see "OS blocks and drivers"), and it isn't \fBvia: native\fR on an OS with no package manager. Among the valid ones, configsys picks one default deterministically:
 .IP \(bu 2
 bindings and drivers marked \fB\fBstanding: never-auto\fR\fR are set aside (unless every valid method is);
 .IP \(bu 2
@@ -387,7 +393,7 @@ then the \fBmost specific\fR valid binding wins (a narrower \fBwhen:\fR beats a 
 .IP \(bu 2
 then a binding's \fB\fBstanding:\fR\fR integer rank (a narrow, per-package author signal, so it outranks the blanket order below);
 .IP \(bu 2
-then \fB\fBdriver-preference\fR\fR, the global tiebreak list (a machine setting, overridable per OS block). The default order is \fBnative, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script\fR, so on Arch an AUR package beats a flatpak or a download, and on a glibc distro a Homebrew formula beats a plain download but never a distro package, flatpak, snap, release \fB.deb\fR/\fB.rpm\fR or AppImage.
+then \fB\fBdriver-preference\fR\fR, the tiebreak list (a machine setting; an OS block's own list ranks ahead of it, and drivers a list leaves out follow in the default order). The default order is \fBnative, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script\fR, so on Arch an AUR package beats a flatpak or a download, and on a glibc distro a Homebrew formula beats a plain download or a language-toolchain install (\fBcargo\fR, \fBpipx\fR, \fBnpm\fR, …) but never a distro package, flatpak, snap, release \fB.deb\fR/\fB.rpm\fR or AppImage. Drivers that no list names, such as the language toolchains, rank after every listed one and tie with each other.
 .PP
 If that still ties, it is an error that names the preference channel, never a request to narrow a validity \fBwhen:\fR. Above the default sit three overrides, highest first:
 .IP \(bu 2
@@ -412,7 +418,7 @@ An \fBos:\fR block describes one distro:
 .IP \(bu 2
 \fB\fBprovides:\fR\fR capabilities the OS has out of the box;
 .IP \(bu 2
-\fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order that overrides the machine setting there;
+\fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order, consulted before the machine setting on this block and the blocks that inherit from it (the nearest block's list first); drivers it doesn't name fall back to the setting, then to the default order;
 .IP \(bu 2
 \fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this.
 .PP
@@ -420,11 +426,11 @@ A \fBdrivers:\fR entry configures one driver. Each field also applies to a \fBvi
 .IP \(bu 2
 \fB\fBrequires:\fR\fR capabilities every binding of that driver needs (\fBappImage\fR requires \fBlibfuse2\fR and \fBglibc\fR; \fBcargo\fR requires \fBcargo\fR; \fBbrew\fR requires \fBhomebrew\fR, which configsys installs with Homebrew's official installer). They also decide where the driver works at all: \fBa driver is valid only where its own requirements can be met.\fR Where one can't be installed, none of that driver's methods is offered. Snap methods don't appear where snapd has no install method, and AppImage methods don't appear on musl systems (no glibc) or on Fedora Atomic and KDE Linux (no libfuse2). Your provider pins count: on Alpine, \fBpins: { glibc: gcompat }\fR opts in to the gcompat shim and makes AppImage methods valid there.
 .IP \(bu 2
-\fB\fBstanding: never-auto\fR\fR makes every binding of that driver a listed, pinnable alternative that never wins by default (the shipped \fBsnap\fR entry does this).
+\fB\fBstanding: never-auto\fR\fR makes every binding of that driver a listed, pinnable alternative that never wins by default while an ordinary method is valid (the shipped \fBsnap\fR entry does this).
 .IP \(bu 2
 \fB\fBwhen:\fR\fR a validity gate for the whole driver, in the same expression language as a binding's \fBwhen:\fR, for a fact that isn't a requirement. Where it is false, no binding of that driver is valid. Unlike a binding's \fBwhen:\fR, it never makes a binding more specific, so it can't change which method is the default where the driver works. Two entries ship one: \fBbrew\fR has \fBwhen: "glibc_linux"\fR (Homebrew's Linux bottles need glibc, so brew methods are valid on every glibc distro and on none of the musl ones), and \fBaur\fR has \fBwhen: "arch"\fR (the AUR is Arch's).
 .PP
-\fBconfigsys where\fR names the reason whenever a driver is ruled out, for example "the snap driver can't work here: nothing provides "snapd" here".
+\fBconfigsys where\fR names the reason whenever a driver is ruled out, for example "the snap driver can't work here: nothing provides "snapd" here (required by snapd-socket)".
 .PP
 .RS 4
 .nf
@@ -466,7 +472,7 @@ Plugins may register further sources.
 .PP
 An \fB\fBasset:\fR\fR may also sit directly on the binding as a CPU-keyed map (\fB{ x86_64: foo-amd64.tar.gz  aarch64: foo-arm64.tar.gz }\fR); its keys gate validity like \fBcpu-names:\fR. \fB$VERSION\fR and \fB$ARCH\fR are filled into \fBurl:\fR and asset globs at install time. When a \fBgithub\fR asset name is literal (no glob), configsys can fall back to the API-free \fBreleases/latest/download/<asset>\fR URL, so installs keep working when the GitHub API is unreachable.
 .PP
-Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24-hour lifetime); \fBconfigsys refresh\fR re-queries them (and refreshes the native package index); \fBconfigsys versions <name>\fR shows what every method would install; and \fB--pretend\fR never touches the network (cache only). Release tags come from GitHub's public feeds; a release asset's URL needs the GitHub API, so set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) if you hit its unauthenticated rate limit.
+Discovered versions are cached (\fB~/.config/configsys/versions.hu\fR, 24-hour lifetime). \fBconfigsys refresh\fR re-queries them and refreshes the native package index (on Arch, where the only safe refresh is a full system upgrade, it asks before running \fBpacman -Syu\fR); \fBconfigsys versions <name>\fR shows what every method would install; and \fB--pretend\fR never touches the network (cache only). Release tags come from GitHub's public feeds; a release asset's URL needs the GitHub API, so set \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR) if you hit its unauthenticated rate limit.
 .SH DOTFILES
 .PP
 A \fBvia: dotfiles\fR component manages an application's \fBown config\fR. Its binding lists link specs, either top-level \fBsrc:\fR/\fBdst:\fR or named specs (\fB<name>: { src  dst }\fR):
@@ -489,7 +495,7 @@ The \fB\fB<component>.cfs/\fR\fR marker directory is what makes a config \fImana
 .PP
 configsys ships \fBno personal config templates\fR: a component may declare \fBsrc\fR/\fBdst\fR with no content anywhere, in which case it is not linked (a no-op) until you supply content. Install symlinks \fBdst\fR to your copy of the content, so edits land in your store or primary plugin; links never point into the configsys repo.
 .PP
-Because your existing config is precious, install \fBrefuses\fR to replace a real file with an un-adopted template and tells you how to adopt it (\fBconfigsys dotfiles capture\fR), or to run \fBinstall --force\fR, which backs the file up to \fB<name>.pre-configsys\fR and replaces it. Content you have captured links freely (backing up whatever was there); an \fBabsorb-into:\fR path on a spec moves a pre-existing file into a loader directory instead of backing it up (for example a stray \fB~/.bash_aliases\fR). \fBuninstall\fR removes the symlink and restores any backup.
+Because your existing config is precious, install \fBrefuses\fR to replace a real file with an un-adopted template and tells you how to adopt it (\fBconfigsys dotfiles capture\fR), or to run \fBinstall --force\fR, which backs the file up to \fB<name>.pre-configsys\fR and replaces it (an earlier backup is never overwritten: a later one goes to \fB<name>.pre-configsys.1\fR, \fB.2\fR, …). Content you have captured links freely (backing up whatever was there); an \fBabsorb-into:\fR path on a spec moves a pre-existing file into a loader directory instead of backing it up (for example a stray \fB~/.bash_aliases\fR). \fBuninstall\fR removes the symlink and restores any backup.
 .PP
 \fBconfigsys dotfiles status\fR reports each config as \fBmanaged\fR, \fBunmanaged\fR (an on-system file to capture, or stored content ready to link) or \fBno config\fR, with where its content lives, and lists glue rows separately. \fBconfigsys dotfiles capture\fR copies your existing on-system dotfiles into your store (read-only on the system side). The TUI \fBDotfiles\fR screen does the same per row (\fBm\fR/\fBu\fR manage/unmanage, \fBM\fR/\fBU\fR all, \fBs\fR/\fBS\fR move between the local and primary stores). A package that ships config \fBsuggests:\fR its \fB<name>-dotfiles\fR component (soft, so it attaches only where that config exists).
 .SH GLUE
@@ -855,17 +861,23 @@ On a binding or a \fBdrivers:\fR entry, \fBprefer:\fR became \fBstanding: <integ
 .IP \(bu 2
 \fBCONFIGSYS_STATE_DIR\fR: the state directory itself (plugins, caches, the ledger, and by default your top config).
 .IP \(bu 2
+\fBCONFIGSYS_REPO\fR: the directory holding the shipped \fBroutes.hu\fR and \fBconfig.hu\fR, instead of the ones beside the configsys program.
+.IP \(bu 2
 \fBCONFIGSYS_USERSCOPE_DIR\fR, \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR, \fBCONFIGSYS_APP_DIR\fR, \fBCONFIGSYS_SDK_DIR\fR, \fBCONFIGSYS_SRC_DIR\fR: override the matching \fBdirs:\fR key.
 .IP \(bu 2
 \fBCONFIGSYS_OS\fR, \fBCONFIGSYS_OS_VERSION\fR, \fBCONFIGSYS_ARCH\fR: evaluate routes as this OS block, version and CPU instead of the detected ones (\fB--os\fR sets the block).
 .IP \(bu 2
 \fBCONFIGSYS_FACET_<name>\fR: a facet's value, overriding detection and your \fBfacets:\fR.
 .IP \(bu 2
+\fBCONFIGSYS_COLOR\fR: caps the TUI color depth, with the same values as \fB--color\fR; \fBNO_COLOR\fR (any non-empty value) forces monochrome.
+.IP \(bu 2
 \fBCONFIGSYS_EFFECTS\fR: overrides \fBeffects:\fR (\fB--effects\fR sets it).
 .IP \(bu 2
-\fBCONFIGSYS_NO_SPLASH\fR: no startup splash; \fBCONFIGSYS_SPLASH=always\fR shows it even on a fast start.
+\fBCONFIGSYS_NO_SPLASH\fR: no startup splash; \fBCONFIGSYS_SPLASH=always\fR shows it even on a fast start, and \fBCONFIGSYS_SPLASH=linger\fR also holds it until you press a key (\fB--splash-linger\fR).
 .IP \(bu 2
 \fBCONFIGSYS_GLUE_SHELLS\fR: which shells glue treats as installed.
+.IP \(bu 2
+\fBCONFIGSYS_PM\fR: \fBapt\fR or \fBdnf\fR, the package manager the \fBgcc\fR and \fBclang\fR drivers use instead of the detected one.
 .IP \(bu 2
 \fBCONFIGSYS_GITHUB_TOKEN\fR (or \fBGITHUB_TOKEN\fR): authenticates GitHub API calls.
 .IP \(bu 2

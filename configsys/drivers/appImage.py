@@ -6,7 +6,7 @@ write a best-effort .desktop entry so it shows up in application menus. User-spa
 by default (no sudo); `scope: system` switches file ops to sudo for system paths.
 
 Route fields: `url` (download, may be $VERSION-templated), `path` (target file),
-optional `version`, `name` (menu label), `icon`, and `desktop-id` — the app's desktop id
+optional `version`, `name` (menu label), and `desktop-id` — the app's desktop id
 (its Wayland app_id, e.g. `ai.storyteller.photocraft`). With it, the menu entry is written as
 `<desktop-id>.desktop` instead of `configsys-<comp>.desktop`: the compositor resolves the window's
 dock icon by that name, and an AppImage that self-integrates on launch (writes its own

@@ -18,7 +18,7 @@ status and distinct from `outdated`:
 | status | meaning | what happens |
 |---|---|---|
 | `switch` | installed via a method that isn't a candidate here any more (removed from routes, gated out, or its driver disabled), while another valid method exists | nothing automatic. Installing the component (TUI `i`, or `configsys install <comp>`) runs the method swap: the stranded install is removed first, then the current method installs (a no-op if it's already there). `menu.OPS['install']` deliberately allows `i` on a `switch` row even when the current method is already present ("make current"). To choose a *different* method first, press `v` (or `configsys pin set <comp> <via>`); the method-swap offer (`_offer_method_swap`) then stages the same remove-and-reinstall. |
-| `unmet` | no install method enabled, but one would be valid if a `disabled-drivers:` driver were on (for the component itself, or somewhere in its requires-closure) | not dangling. Re-enable the driver, or leave it. `i` is never offered. |
+| `unmet` | no install method enabled, but one would be valid if a `disabled-drivers:` driver were on — the method's own driver, a driver its driver's `requires:` need (the derived driver gate: on Arch snapd installs only via aur, so disabling aur gates snap too), or one somewhere in the component's requires-closure | not dangling. Re-enable the driver, or leave it. `i` is never offered. |
 | `dangling` | no install method valid on this OS at all | never staged for removal; `i` is never offered. An existing install keeps working and shows in the row; removing it is the user's call (TUI `x` on the row, or `configsys remove <comp>` — both remove the stranded install). |
 
 Each status also gets a `warn` line on the `!` page and in `configsys inspect`
@@ -78,6 +78,10 @@ examples:
   the previous verdict.
 - `classify_unroutable` turns resolve errors of the dangling/unmet kind into `Context.route_classes`
   (removed from `resolve_errors`; other failures — ambiguity, unknown component — stay errors).
+  With no candidate, it re-asks `candidate_bindings` under `r.context(disabled=())`: a hit is
+  `unmet` (naming the disabled driver directly, or "needs a disabled driver" when the hit's driver
+  is only derived-gated), no hit is `dangling`. With a candidate, it compares `resolve_resilient`
+  with and without `disabled-drivers:` to catch a requires-closure broken by a disabled driver.
   `unroutable_states` then adds placeholder rows: the stranded install's unit if one is found, else
   a `—\<comp>` row that `run_plan` skips with "no install method here".
 - `installState.superseded_installs` also returns stranded installs, so `plan_with_swaps` removes

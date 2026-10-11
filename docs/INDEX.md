@@ -1,6 +1,7 @@
 # Docs index
 
 Last full audit: 2026-10-09 at f25cb60 (`/update-docs`, committed as d958cf9); bug batch + decisions 2026-10-10.
+Last scoped audit: 2026-10-10, `/update-docs --since da0a7ac` at 53512a6 (driver gates, brew, /add-driver, refresh/reboot/sweep declarations).
 
 Where every doc lives and what state it's in. Created = first git commit of the file; finished = the commit that landed the last phase (from the doc's Status header). Maintained by the `/update-docs` skill.
 

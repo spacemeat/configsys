@@ -16,9 +16,18 @@
     // a false `when:`), so a component's `suggests:` for something that only installs that way is
     // silently skipped — e.g. if you manage your own dotfiles, `disabled-drivers: [ dotfiles ]`
     // installs every app WITHOUT pulling its `<app>-dotfiles` (likewise `glue` for shell setup).
-    // Generalizes ("no snaps here" -> add `snap`). A HARD requires / an explicit pick of a
-    // now-unroutable component still errors honestly (its row reads `unmet`). A machine setting —
-    // set per box in ~/.config/configsys/configsys.hu.
+    // Generalizes ("no snaps here" -> add `snap`). Disabling a driver also turns off any driver
+    // whose own requirements can only be installed through it. A HARD requires / an explicit pick
+    // of a now-unroutable component still errors honestly (its row reads `unmet`). A machine
+    // setting — set per box in ~/.config/configsys/configsys.hu.
+
+    // OPTIONAL: the order that breaks the remaining tie when a component has several install
+    // methods that work here (after a narrower `when:` and any `standing:` rank have had their say)
+    // — e.g. `driver-preference: [ native  flatpak  appImage ]`. A pin overrides it. Drivers your
+    // list doesn't name follow in the built-in order (native, aur, flatpak, snap, native-pkg-file,
+    // appImage, brew, tarball, source, script); an OS block's own `driver-preference:` comes first
+    // on that OS. A uniform setting — `configsys config set driver-preference …` keeps it in your
+    // primary plugin when you have one, so it travels to your other machines.
 
     // A profile is a named, read-only list of components for BROWSING (the TUI Profiles screen,
     // `configsys profile list|show`). It never installs anything: you pick from it into this
@@ -26,8 +35,9 @@
     // component or a whole subprofile. A name with no install method on this OS shows as
     // unavailable (⊘), not an error. The design is two-tier: small composable LEAF bundles
     // (terminal, net-tools, cloud, …) and ROLE profiles that compose them. See
-    // docs/done/profiles-plan.md for the rationale. Plugins may add profiles or shadow these by name;
-    // a `profiles:` section in your own config is retired (a `check` warning).
+    // docs/done/profiles-plan.md for the rationale. Plugins, your primary plugin and your own
+    // config may add profiles (your own browse categories) or redefine these by name; a term naming
+    // the profile itself (`dev: [ +dev  valgrind ]`) amends it in place instead of replacing it.
 profiles: {
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
@@ -173,13 +183,13 @@ profiles: {
 }
 
     // TUI keybindings. Merged section-by-section up the layer stack (this repo base < plugins <
-    // primary < your top config) — exactly like `theme:` — so a `keys:` block in your PRIMARY
-    // plugin's configsys.hu or in ~/.config/configsys/configsys.hu overlays these per action. A
-    // value is one key or a list of alternates. Key names: a literal character (case-SENSITIVE, so
-    // `g` != `G`), a named key (enter kpenter tab esc space up down left right pgup pgdn home end
-    // del ins backspace shift-tab f1…f12), or `ctrl-<x>`. Dispatch is by ACTION, and the on-screen
-    // legends and `?` help read this same map, so a rebind updates the hints too (`configsys check`
-    // flags unknown actions and clashes). A key you bind in a higher layer is TAKEN from whatever
+    // primary < your top config) — exactly like `theme:` — so a `keys:` block in any plugin's data
+    // file (your primary plugin's, say) or in ~/.config/configsys/configsys.hu overlays these per
+    // action. A value is one key or a list of alternates. Key names: a literal character
+    // (case-SENSITIVE, so `g` != `G`), a named key (enter kpenter tab esc space up down left right
+    // pgup pgdn home end del ins backspace shift-tab f1…f12), or `ctrl-<x>`. Dispatch is by ACTION,
+    // and the on-screen legends and `?` help read this same map, so a rebind updates the hints too
+    // (`configsys check` flags unknown actions and clashes). A key you bind in a higher layer is TAKEN from whatever
     // action a lower layer gave it in the same section (so your rebind wins; check names the action
     // that lost it). Override just what you want:
     //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: t } }
@@ -229,7 +239,7 @@ profiles: {
             op-upgrade-all: U       // stage: upgrade EVERY outdated component
             op-remove: x            // stage: remove
             execute: X              // run the staged ops (asks to confirm)
-            refresh: R              // re-query version sources + the native package index
+            refresh: R              // = `configsys refresh`: version sources + the package index
             mode: M                 // cycle the view: to-do / tracked / installed+tracked
         }
 

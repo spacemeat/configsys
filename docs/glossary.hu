@@ -63,7 +63,7 @@
         }
         driver-preference: {
             short: "`driver-preference:`"
-            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script)."
+            def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). Your list only needs the drivers you care about — the ones it leaves out follow in the default order."
             see: [ standing  specificity ]
         }
         capability: {
@@ -166,7 +166,7 @@
         }
         scope: {
             short: "`scope:`"
-            def: "Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Package managers are always system."
+            def: "Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user."
         }
         companion: {
             def: "A small helper component named after its parent — `<name>-dotfiles` (its config), `<name>-glue` (its shell setup), `<name>-service` (start its daemon), `<name>-group` (add you to its group)."
@@ -258,7 +258,7 @@
         }
         refresh: {
             short: "`configsys refresh`"
-            def: "Re-checking upstream versions and refreshing the OS package index."
+            def: "Re-checking upstream versions and refreshing the OS package index. Where the only safe refresh is a full system upgrade (Arch's `pacman -Syu`), configsys asks before running it."
         }
         status: {
             def: "A component row's state (TUI and `configsys inspect`): `installed`, `outdated` (newer available), `missing`, `locked`, `partial` (some of its units installed), `unsupported` (configsys has no driver for its method here), `untrusted` (needs a plugin you haven't trusted), `error`, or a routing status."

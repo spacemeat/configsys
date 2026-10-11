@@ -7,7 +7,7 @@ every routes.hu component across every OS context, the full resolved closure as
 against future regressions in the resolver/data with no dependency on the old engine.
 
 Regenerate after an intentional data/resolver change:
-    CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_v2_golden.py -q
+    CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q
 and review the git diff of test/routing_golden.json before committing.
 '''
 

@@ -28,7 +28,8 @@ upstream name before integrating** — names that haven't been verified came fro
 ### Parked until a macOS OS block exists
 - **brew casks.** Linux Homebrew has no casks, so every GUI cask the researcher listed (firefox, vlc,
   gimp, krita, blender, vscode, kitty, ghostty, zed, steam, libreoffice, virtualbox, wireshark-GUI,
-  paraview, …) is macOS-only. Today `brew` is the declared `native:` only on `fedora_atomic`.
+  paraview, …) is macOS-only. Today `brew` is the declared `native:` only on `fedora_atomic`; on
+  every other glibc distro it is an ordinary `via: brew` method (ec59455), formulae too.
   `configsys/drivers/brew.py` is formulae-only; casks are a future `cask:` field (the driver's op
   structure is already cask-ready). Revisit ALL casks only when a `macos`/`darwin` OS block is added.
 
@@ -55,8 +56,10 @@ upstream name before integrating** — names that haven't been verified came fro
   exclude amzn). Still missing:
   - **openSUSE** names. Its dev packages are split/renamed (e.g. `libqt6-qtbase-devel`,
     `libboost_headers-devel`), and none of the five carries a `zypper:` name yet.
-  - **brew** (`boost`, `abseil`, `qt`, `gtk4`, `gtkmm4`, …). All five decline on fedora_atomic
-    today; add `{ via: native  when: "fedora_atomic" }` bindings once the names are verified.
+  - **brew** (`boost`, `abseil`, `qt`, `gtk4`, `gtkmm4`). All five still decline on fedora_atomic.
+    The names are verified: each is a homebrew/core formula with a Linux bottle, not keg-only
+    (formulae.brew.sh index, 2026-10-10). Add `{ via: native  when: "fedora_atomic" }` bindings
+    with those names — libraries get no `via: brew` binding elsewhere (the add-component rule).
   - **gtkmm on alpine** (name unconfirmed, possibly `gtkmm4-dev`).
 
 ### Desktop environments / window managers
@@ -70,26 +73,20 @@ upstream name before integrating** — names that haven't been verified came fro
   (or nothing). No `fvwm3` component exists. Add it as its own component if wanted.
 
 ### Homebrew (brew) on fedora_atomic — names still to verify
-A component's brew coverage is a `brew: <formula>` entry in its `via: native` `name:` map, or a
-`{ via: native  when: "fedora_atomic" }` binding where the native binding doesn't already reach
-fedora_atomic (see rust/node/openjdk/r/dig for the shape). On fedora_atomic, a native binding with
-no `brew:`/`default:` name installs the *component name*. Watch out: a `default:` name meant for the
-Linux distros also lands on brew. Brew names are **not** covered by `tools/namesweep.py`, which
-checks only apt/dnf/pacman/zypper/apk/xbps.
-- **Suspect default-name resolutions (verify, likely fix).** These resolve on fedora_atomic today
-  (golden `fedora_atomic@41`), but the formula names look wrong:
-  - `lldb` → `brew\lldb` and `tshark` → `brew\tshark`. The researcher noted both ship *inside*
-    `llvm` / `wireshark`, with no standalone formula.
-  - `netcat` → `brew\netcat-openbsd`, from its `default:` name. Homebrew's formula is `netcat`.
-- **postgresql** — declines on fedora_atomic. Brew ships versioned `postgresql@NN` (the bare name is
-  deprecated), so pick a version first.
-- **unrar** — declines on fedora_atomic. Confirm the formula exists (it was removed then re-added)
-  before adding a binding.
-- **kubectl** — resolves to `brew install kubectl`, a stable alias for `kubernetes-cli`. It works
-  as-is. Optionally pin `name: kubernetes-cli` for explicitness.
-- **Researcher's M-confidence formulae still unverified:** iftop, nethogs, nload, vnstat, mtr. Each
-  resolves to `brew\<component>` via its universal native binding. (valgrind was verified, and
-  wxmaxima resolves to its flatpak there; see Done.)
+On fedora_atomic, brew is the `native:` manager. A component reaches it through a `brew: <formula>`
+entry in its `via: native` `name:` map, a `{ via: native  when: "fedora_atomic" }` binding where the
+native binding doesn't already reach fedora_atomic (see rust/node/openjdk/r/dig for the shape), or
+the `{ via: brew  name: <formula> }` binding that CLI tools, toolchains and servers now carry on
+every glibc distro (ec59455). A native binding with no `brew:`/`default:` name installs the
+*component name* there. Watch out: a `default:` name meant for the Linux distros also lands on brew.
+`tools/namesweep.py` doesn't check brew names; `tools/compaudit.py`'s brew probe (2df25e5) checks
+every `via: brew` formula and every explicit `brew:` name against the formulae.brew.sh index, but
+not a native binding's default-name resolution on fedora_atomic.
+- **postgresql** — declines on fedora_atomic. Homebrew ships only versioned `postgresql@NN`
+  formulae (the bare name is now an alias of `postgresql@18`), and they are keg-only, so the
+  no-brew-binding-for-keg-only rule keeps it declined; a route there would need another method.
+- **unrar** — declines on fedora_atomic, correctly: it is not in the homebrew/core index
+  (formulae.brew.sh, 2026-10-10). Add a binding only if the formula returns.
 
 ### Nushell glue — more init-evals on demand
 Every shipped elvish snippet now has a nu path (see Done). The personal snippets (citybanner, ps1,
@@ -106,6 +103,12 @@ exists today).
 
 ## Done since deferral
 
+- **brew names on fedora_atomic** (from Still deferred) — RESOLVED 2026-10-10: tshark → the
+  CLI-only `wireshark` formula and netcat → `netcat` (2a577c0); kubectl → `kubernetes-cli` (ec59455);
+  lldb is its own formula (keg-only only on macOS) with a `{ via: brew  name: lldb }` binding
+  (ec59455); iftop, nethogs, nload, vnstat and mtr are formulae with Linux bottles (formulae.brew.sh
+  index, 2026-10-10).
+
 - **`ProfileScreen._warm_cache` thread-safety** (from docs/done/d2-mvvm-findings.md) — FIXED
   2026-10-10 (2a577c0): `_resolve`'s cache read/mutate runs under a per-instance `_res_lock`, and
   `routes.candidates()` under the module-level `menu._ROUTES_LOCK`, so two profile views over one
@@ -116,12 +119,16 @@ exists today).
   (org.gnu.emacs), `octave` (org.octave.Octave), `zed` (dev.zed.Zed).
 - **2026-08-08, b57c108 — snap driver** (`configsys/drivers/snap.py`). It started Ubuntu-only; see
   the snap entries below.
-- **2026-08-08, b6cf9df — snap bindings + driver-level gate.** Originally the driver flag
+- **2026-08-08, b6cf9df — snap bindings + driver-wide `standing:`.** Originally the driver flag
   `candidate-only`. Since the routing overhaul (d284b7f / f199137 / 9d3b791, 2026-08-11) it is
   `drivers: { snap: { standing: never-auto } }`. A snap binding is valid, listed and pinnable, but
   never the automatic choice while another method is valid. A binding-pin still forces it, and where
-  snap is the only method it wins. See docs/routing-model.md §8a. The gate overlays repo → plugin →
-  primary, so a primary plugin can add `flatpak: { standing: never-auto }` the same way.
+  snap is the only method it wins. See docs/routing-model.md §8a. The `drivers:` block overlays
+  every layer (repo → plugins → primary → top config), so a primary plugin can add
+  `flatpak: { standing: never-auto }` the same way. Since da0a7ac (2026-10-10) the snap driver is
+  also gated off wherever its own requires (snapd) have no method — openSUSE, Void (glibc and
+  musl), Alpine, Chimera, fedora_atomic, kde_linux, Amazon Linux — so no snap method is offered
+  there.
   - Bindings, names verified on snapcraft.io: vscode (`code`, classic), slack, discord, postman,
     obs-studio, blender (classic), node (classic), kubectl (classic), helm (classic), firefox,
     chromium, plus a new **spotify** component (Flathub `com.spotify.Client` + `spotify` snap).
@@ -201,7 +208,8 @@ exists today).
 - **"Minimize install options" stance** — reversed 2026-08-10 in favour of full choice.
 - **Judgment call on cargo → tarball default flips** (xh, websocat, tree-sitter-cli) — decided in
   1c1a5d5 / a77177d: xh and websocat flipped; tree-sitter-cli keeps cargo via `standing: 1`.
-- **Snap-vs-native for `code`** — moot, because the snap gate is `standing: never-auto`.
+- **Snap-vs-native for `code`** — moot, because snap's driver-wide `standing: never-auto` keeps it
+  from ever being the automatic choice.
 - **brew for clang-tidy / texlive-full / opencv-python** — no standalone formula (they ship inside
   `llvm` / `texlive` / `opencv`). All three decline on fedora_atomic by design, and `clang` already
   maps `brew: llvm`.

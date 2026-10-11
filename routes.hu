@@ -68,8 +68,8 @@
         // packages, but pacman is REMOVED from the image, so no `ID_LIKE=arch`). There is NO system
         // package manager: no `native:`, so `via: native` bindings aren't candidates here and
         // components fall through to Flatpak (preinstalled -> `provides: flatpak`) and userland
-        // methods (tarballs, `via: script` installers, cargo via rustup, go-install via the go tarball);
-        // NOT pipx/pip — pipx and python3-pip route only through native bindings here, so PyPI CLIs decline —
+        // methods (brew, tarballs, `via: script` installers, cargo via rustup, go-install via the go
+        // tarball; pipx through its brew formula, so PyPI CLIs route too — python3-pip stays native-only)
         // and distro-package-only components decline honestly. No
         // libfuse2 either (fuse3 only), so AppImages decline. VERSION_ID is a build timestamp
         // (YYYYMMDDHHMM): scale-root so no parent's versioned atom misreads it. Alpha. `provides:` =
@@ -463,7 +463,7 @@
         jrnl:       { attrs: [ CLI FOSS GNU copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora_atomic" }  { via: brew  name: jrnl } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
         newsboat:   { attrs: [ TUI FOSS permissive ] suggests: newsboat-dotfiles  description: "Newsboat — an RSS/Atom feed reader for the terminal."
                       install: [ { via: native  when: "not ((ubuntu >= 24.04) and (ubuntu < 25.04))"  repo-component: universe }   // Rust; packaged on every family (no installable crate) — EXCEPT Ubuntu 24.x (dropped from noble; back in 25.04)
-                                 { via: snap  name: newsboat  standing: never-auto }  { via: brew  name: newsboat } ] }   // the maintainer's snap: never the default where native works; on 24.x it's the ONLY method, so it's used there (pulls in snapd — shown in the plan)
+                                 { via: snap  name: newsboat  standing: never-auto }  { via: brew  name: newsboat } ] }   // the maintainer's snap: never-auto, so brew is the default where native isn't valid (24.x); pin the snap to use it
         lynx:  { attrs: [ CLI app FOSS copyleft ] description: "Lynx — the classic text-mode web browser."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                             { via: native  when: "rhel"  requires: epel }  { via: brew  name: lynx } ] }   // EL: EPEL

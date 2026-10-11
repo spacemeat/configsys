@@ -18,7 +18,10 @@ Never conflate these. Getting the seam wrong re-creates the fish whole-dir/glue 
    INTEGRATION that configsys ships and owns: PATH/aliases/env/completions/init snippets that live
    under `~/.config/<sh>/conf.d/`, plus the per-shell LOADER that makes the shell source that dir.
    Storage is the **`glue/` root** (segregated from dotfiles): authoring `glue/shell/<sh>/<name>.<ext>`
-   → machine store `<state>/glue/<sh>/conf.d/<name>.<ext>` → symlinked into `~/.config/<sh>/conf.d/`.
+   → machine store `<state>/glue/<sh>/conf.d/50-<name>.<ext>` → symlinked into
+   `~/.config/<sh>/conf.d/50-<name>.<ext>` (load-order bands: `00-configsys`, `50-` component glue —
+   `glue.component_link_stem`, `90-` user glue, `99-user`; a name that already has an `NN-` prefix
+   keeps it).
    (The authoring dir is the shell's KEY — `nu` for nushell — while the conf.d/store dir follows
    `_SHELL_CONFD`: `~/.config/nushell/conf.d/`.)
    Shared across tools — one `fzf-glue` ships a bash/zsh/fish/… variant each.
@@ -116,7 +119,9 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
    - **Start with the substrate**: `glue/shell/<sh>/00-configsys.<ext>` — the helpers every other
      snippet relies on, so it must run first (the `00-` prefix orders it first in the conf.d sweep),
      translated from `glue/shell/bash/00-configsys.sh`: a `configsys` wrapper function (defers to a
-     real `configsys` on PATH, else the clone's launcher), the `cf` shortcut, and `cs_loc
+     real `configsys` on PATH, else the clone's launcher — `$CONFIGSYS_LAUNCHER`, then the
+     `<state>/launcher` path the glue driver records on hookup, then
+     `$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh`), the `cfs` alias, and `cs_loc
      <component>` — a component's managed install location read from the `glue-locations.tsv` cache
      (refreshed by ONE `configsys location --all` only when cold/stale; a per-snippet `configsys
      location` costs a whole process and made startup take most of a minute). bash/zsh/fish also
@@ -177,7 +182,7 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
 ## Tests (mirror `test/test_glue_driver.py`)
 
 Drive with `CONFIGSYS_GLUE_SHELLS='<sh>'` to force the installed-shell set. Assert:
-- a snippet materializes to `<store>/<sh>/conf.d/<name>.<ext>` (executable) and links into
+- a snippet materializes to `<store>/<sh>/conf.d/50-<name>.<ext>` (executable) and links into
   `~/.config/<sh>/conf.d/`;
 - the loader wires for `<sh>` — the rc marker block appears (class 2), the dir exists (class 1), or
   the block INLINES the snippet content (class 5; assert a snippet's code is in the rc block and that

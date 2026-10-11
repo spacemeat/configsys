@@ -38,20 +38,23 @@ target). The authoritative model is `docs/routing-model.md` + the routing sectio
 ## The libc axis (orthogonal to family)
 
 glibc distros hang off **`glibc_linux`** (inherit the `glibc` capability). musl distros (Alpine, a
-musl Void) hang off **`linux`** directly — so glibc-only bindings (`requires: glibc` on
-appImage/most tarballs) cleanly DECLINE there instead of installing a binary that can't run. If the
-new OS is musl, do NOT put it under `glibc_linux`.
+musl Void) hang off **`linux`** directly — so glibc-only methods cleanly DECLINE there instead of
+installing a binary that can't run: a tarball's `requires: glibc`, the appImage driver's own
+`requires: [ libfuse2, glibc ]` (the derived driver gate), and brew's explicit `when: "glibc_linux"`
+gate. If the new OS is musl, do NOT put it under `glibc_linux`.
 
 ## Native-less blocks
 
 An environment whose package manager configsys can't use declares no `native:` (and hangs off a
 parent that has none — `glibc_linux` or `linux`), so every `via: native` binding declines there and
-only portable methods route (flatpak, musl/glibc tarballs, cargo, pipx, …). Two shapes today:
+only portable methods route (flatpak, brew on glibc, musl/glibc tarballs, scripts, cargo, …) — and
+only where their prerequisites are met (`provides:`, or a portable route to them). Two shapes today:
 `kde_linux` (immutable, no package manager for users; `provides:` the tools its image ships, so
 tarball/source prerequisites are met) and `chimera` (musl; apk-tools v3 but NOT Alpine's package
 names, so the `apk:` names in routes would be wrong — no `native:` until Chimera-named
-`via: apk  when: "chimera"` bindings are verified by a name sweep). Prefer this to inheriting a
-manager whose names don't fit.
+`via: apk  when: "chimera"` bindings are verified by a name sweep; it provides no curl, so tarball
+and cargo can't work there and practically only dotfiles/glue and self-contained scripts route).
+Prefer this to inheriting a manager whose names don't fit.
 
 ## Runtime detection — how a machine maps to your block (osdetect.py)
 
@@ -104,9 +107,10 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
    alias, not a block.
 5. **Native package names.** `via: native` defaults to the component name; if this manager names
    packages differently, existing components may need `name: { <mgr>: … }` maps — the name-sweep
-   (below) catches these. A brand-new manager also needs a driver (see `configsys/drivers/`), but
-   the seven listed above already exist. If the OS's manager exists but its package names don't
-   match the existing maps, go native-less (above) rather than inheriting broken names.
+   (below) catches these. A brand-new manager also needs a driver — the **`/add-driver`** playbook
+   (`.claude/skills/add-driver/SKILL.md`, §4 for a native manager) — but the seven listed above
+   already exist. If the OS's manager exists but its package names don't match the existing maps,
+   go native-less (above) rather than inheriting broken names.
 6. **Validate:**
    - `.venv/bin/python -m configsys --os <block> check` → 0 errors; also run the existing spread
      (SKILL.md step 7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl) so a
@@ -140,8 +144,10 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
   Don't cross them.
 - **Atomic/immutable** environments model as their own block off `glibc_linux` (like `fedora_atomic`),
   NOT under the mutable family — keeps dnf/EPEL/repo-component bindings from misfiring; prefer
-  flatpak + brew, `provides: flatpak` (or native-less, like `kde_linux`). Add a brew/rpm-ostree-style
-  atomic block to `ATOMIC_BLOCKS` in osdetect.py for the not-hardware-validated advisory.
+  flatpak + brew, `provides: flatpak` (or native-less, like `kde_linux`). Don't hand-gate AppImage
+  or snap off it: with no libfuse2 / snapd route those drivers are already not offered (derived
+  gates). Add a brew/rpm-ostree-style atomic block to `ATOMIC_BLOCKS` in osdetect.py for the
+  not-hardware-validated advisory.
 - **musl under `glibc_linux`** installs binaries that can't run — put musl distros under `linux`.
 - **A shared-parent edit is global.** Editing a base block (debian/redhat/…) to fit a new child can
   change every descendant — re-run `check` + the golden diff across the family.

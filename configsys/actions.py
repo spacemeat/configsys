@@ -590,42 +590,42 @@ def set_machine_active(ctx, name):
 # Config screen both read, so both describe each setting identically (docs/done/tui-screens-plan.md C1).
 CONFIG_SETTINGS = {
     'scope':             ('scalar', 'Default install scope: user (~, the default when unset) or '
-                                    'system (/opt, needs sudo).', 'configsys(1)'),
+                                    'system (/opt, needs sudo).', 'configsys.hu(5)'),
     'driver-preference': ('list',   'Order ties between equally-valid install methods break in '
                                     '(unlisted drivers follow, in the default order).',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'disabled-drivers':  ('list',   'Install methods (via names) to turn OFF on this machine — their '
                                     'bindings stop matching, like a false when:, so a soft suggests is '
                                     'skipped (a hard requires errors). Use it to opt a mechanism out: '
                                     'dotfiles / glue to manage your own shell config, or e.g. snap.',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'auto-tighten':      ('bool',   'Auto-pick a floor-satisfying install method instead of only '
-                                    'advising.', 'configsys(1)'),
+                                    'advising.', 'configsys.hu(5)'),
     'adopt-installed':   ('bool',   'Prefer an already-installed method/provider over the default '
-                                    '(detection tier). On by default.', 'configsys(1)'),
+                                    '(detection tier). On by default.', 'configsys.hu(5)'),
     'refresh-before-execute': ('scalar', 'Refresh the OS package index once before running staged '
                                     "ops: 'auto' (default, when the batch has a native install/"
-                                    "upgrade), 'always', or 'never'.", 'configsys(1)'),
+                                    "upgrade), 'always', or 'never'.", 'configsys.hu(5)'),
     'install-overlay':   ('bool',   'Open TUI::Profiles with the install-state overlay on (installed '
                                     'underlined, installed-but-unpicked ⊙ coloured). On by default; O toggles it.',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'reboot-advice':     ('bool',   'After an op (and as a TUI chip), advise when a reboot is needed / '
                                     'services want a restart, via each distro\'s native check. On by '
-                                    'default.', 'configsys(1)'),
+                                    'default.', 'configsys.hu(5)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'effects':           ('scalar', 'TUI motion: full (gradient + splash), reduced (no gradient, '
                                     'calmer splash), or none (no gradient or splash). Unset '
                                     'auto-picks reduced over SSH, else full. --effects overrides.',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'orphans-ignore':    ('list',   'Name-or-glob patterns whose matching orphans stay quiet in '
                                     '`configsys orphans` (matches a component name OR installed key).',
-                          'configsys(1)'),
+                          'configsys.hu(5)'),
     'machine': ('scalar', 'This box\'s machine name — which `picks:` column is "this machine". Unset '
                           'defaults to `this-machine`.',
-                'configsys(1)'),
+                'configsys.hu(5)'),
     'detect-coexisting': ('bool',   'After inspect, also detect installs of a component via its OTHER '
                                     '(unmanaged) methods and show them as "also present". On by '
                                     'default.', 'configsys.hu(5)'),

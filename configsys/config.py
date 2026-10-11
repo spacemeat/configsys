@@ -349,7 +349,7 @@ class Config:
 
     def picks(self):
         '''Merged per-machine Included sets `{machine: [component, ...]}` across the machine-role
-        layers (repo < primary < machine < user; a later layer replaces a machine's list). The v3
+        layers (repo < primary < user, config._MACHINE_ROLES; a later layer replaces a machine's list). The v3
         matrix model's install source — a machine installs exactly the components picked for it.'''
         out = {}
         for role in _MACHINE_ROLES:

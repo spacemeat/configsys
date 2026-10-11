@@ -384,8 +384,11 @@ that with ONE block:
   atomic-specific data. The `drivers: { brew: … }` block applies to these native-resolved bindings
   too (§9): they require `homebrew`, and pass brew's glibc gate. Where a component's only valid method is a broad `via: native` naming
   something that has no Linux formula (a GUI app whose brew name is a macOS cask, a Linux-kernel
-  tool), the binding is gated `not fedora_atomic` and the component gets a flatpak method or
-  declines. Conversely `{ via: native  when: "fedora_atomic" }` is the idiom for "brew has it here":
+  tool) or only a keg-only one (not linked onto `PATH` — brew's `openjdk@N`), the binding is gated
+  `not fedora_atomic` and the component gets another method or declines: a flatpak for the apps;
+  for `jdk`/`jdk-17`/`jdk-25`, a pinned SDKMAN Temurin binding (`{ via: sdkman  name: java
+  version: "21.0.12+1.1-tem"  requires: glibc }`), which is also their only route on `kde_linux`
+  and a pinnable alternative on every other glibc block. Conversely `{ via: native  when: "fedora_atomic" }` is the idiom for "brew has it here":
   it is narrower than any broad binding, so it wins by specificity (§8).
 - **`provides: flatpak`.** Flatpak ships in the image, so an app's `flatpak` driver requirement is
   met by the environment instead of resolving to `brew install flatpak`.
@@ -424,8 +427,8 @@ The driver is honest about what layering can't do: `install`/`uninstall` stage a
 kernel-level changes). `get_version` reads the *running* system (`rpm -q`), so a staged-not-booted
 package reads as absent; `get_latest` is None (the image carries the version); `upgrade`,
 `set_version` and `lock` are no-ops that say why rather than upgrading the whole OS.
-`rebootcheck` runs no native reboot probe for brew — the rpm-ostree driver prints its own reboot
-line — and the System Updates lane (`sysupdates`) covers brew but omits rpm-ostree.
+`rebootcheck` runs no native reboot probe for brew (`rebootcheck._NO_REBOOT_CHECK` declares why:
+user-space formulae; the image is rpm-ostree's, whose driver prints its own reboot line), and the System Updates lane (`sysupdates`) covers brew but omits rpm-ostree.
 
 **The advisory.** `osdetect.ATOMIC_BLOCKS` (today just `fedora_atomic`; an openSUSE MicroOS block
 would join it) feeds `osdetect.is_atomic`, and `app.Context.diagnostics` emits an `atomic` warning
@@ -596,7 +599,9 @@ true candidate set — its `when:` intersected with the driver gate it is subjec
 where it can't be a candidate. SPECIFICITY stays on the raw `when:`, because resolution ranks raw
 `when:`s (the gate adds none): a same-via pair that overlaps inside the gate must still be
 raw-comparable, or `_most_specific_binding` couldn't order them. Witness contexts in the messages
-come from the gated sets.
+come from the gated sets. Only the EXPLICIT `drivers:` `when:` gates are modeled here: a derived
+gate (§8a) depends on a machine's pins and a whole resolve, so the checker can't fold it into a
+predicate — a pair that overlaps only where a derived gate removes one driver is still judged.
 
 **Checker shape:** decidable and cheap (`predicate._cells`). Enumerate a finite grid: every OS
 block as a possible leaf × each categorical namespace's mentioned values plus an "other" sentinel ×
@@ -632,12 +637,11 @@ passes all of:
   - **explicit: a driver-wide `when:`** in its `drivers:` block, for a fact that isn't a
     requirement. Two ship: `brew: { when: "glibc_linux" }` (Linuxbrew refuses musl even with
     gcompat) and `aur: { when: "arch" }` (the AUR is Arch's; Void has `base-devel` too, so the
-    derived gate alone wouldn't exclude it). Evaluated once per machine into
-    `Context.gated_drivers`. Where that gate is false, every binding of that via is a non-candidate, and so is a
-  `via: native` binding whose OS manager is that driver. `OsCascade.context` evaluates each gate
-  once per machine into `Context.gated_drivers` (`routes._driver_gates` parses them at load; a
-  malformed gate from a plugin is dropped with a warning, from the repo or your own config it is an
-  attributed `ConfigError`; an unknown OS name in one is a `check` `unknown-os` warning);
+    derived gate alone wouldn't exclude it). `routes._driver_gates` parses them at load (a
+    malformed gate from a plugin is dropped with a warning, from the repo or your own config it is
+    an attributed `ConfigError`; an unknown OS name in one is a `check` `unknown-os` warning), and
+    `OsCascade.context` evaluates each once per machine into `Context.gated_drivers`, to which
+    `gated_context` then adds the derived ones;
 - **`arch_ok`** — the cpu is among those a `cpu-names:`/cpu-keyed `asset:` declares (§7);
 - its **`when:`** holds.
 
@@ -724,12 +728,13 @@ rule decided it*.
 
 ## 9. Resolution
 
-Context is **fixed** (one machine: OS block, version, cpu, facets, disabled drivers). There is no
-context fixpoint — only a dependency one. **No backtracking:** unsatisfiable or ambiguous is an
-error, not a silent retreat. As built (`resolve._State`):
+Context is **fixed** (one machine: OS block, version, cpu, facets, disabled drivers, driver
+gates). There is no context fixpoint during resolution — only a dependency one (the derived-gate
+fixpoint of §8a runs once, before, to build the context). **No backtracking:** unsatisfiable or
+ambiguous is an error, not a silent retreat. As built (`resolve._State`):
 
 ```text
-ctx       = OsCascade.context(block, version, cpu, disabled)       // fixed
+ctx       = gated_context(block, version, cpu, disabled, hard pins) // OsCascade.context + derived driver gates (§8a); fixed
 inventory = { cap: ∅  for cap in OsCascade.provides(block) }       // env-provided: no unit needed
 
 // Phase 1 — the explicit wants (the machine's picks, Config.requested()), in order
@@ -769,7 +774,8 @@ Driver-level requires are keyed by the DRIVER that installs the unit, whichever 
 it: `drivers[via]` covers `flatpak`, `appImage`, `cargo`, `tarball`, …, and a `via: native` binding
 also takes the block of the OS manager it resolves to (`drivers: { brew: { requires: homebrew } }`
 applies to `fedora_atomic`'s native bindings). The same holds for a driver block's `standing:
-never-auto` (§8a step 1) and its `when:` gate. A `drivers: { apt: … }` block therefore applies to
+never-auto` (§8a step 1) and for both driver gates — its `when:` and the derived one its
+`requires:` imply. A `drivers: { apt: … }` block therefore applies to
 every `via: native` binding on a Debian-family box.
 
 `_pick_provider` records the deciding rule per capability (`only provider here` / `standing: N`)
@@ -799,11 +805,16 @@ Key rules:
   `_State._self_held` refuses an inventory resident or a cached `(cap, constraint)` resident that is
   the requirer's own unit and pulls another provider instead. The requirer stays the capability's
   default resident for everyone else.
-- **Requirements are not validity.** A binding's (and its driver's) `requires:` play no part in
-  choosing it: if the selected method's HARD requirement can't be met, the component errors — it
-  does not fall back to another method (no backtracking; e.g. an appImage-only component on
-  Alpine). That is deliberate for `requires: glibc`: a musl box gets a diagnostic naming the opt-in
-  pin rather than a silent method switch.
+- **Binding requirements are not validity.** A binding's (and its component's) `requires:` play no
+  part in choosing it: if the selected method's HARD requirement can't be met, the component errors
+  — it does not fall back to another method (no backtracking; e.g. a glibc tarball on Alpine, whose
+  binding-level `requires: glibc` only the `never-auto` gcompat could meet). That is deliberate for
+  `requires: glibc`: a musl box gets a diagnostic naming the opt-in pin rather than a silent method
+  switch. A DRIVER's `requires:` is the exception, and it is machine-wide rather than per choice:
+  where it can't be met the driver is gated out before selection (the derived gate, §8a), so its
+  bindings are simply not candidates — an appImage-only component on Alpine reads "no binding … in
+  this context; appImage: the appImage driver can't work here (…)", not an unmet-requirement error,
+  and a component with another valid method falls through to it.
 - **Never-auto providers** are used only when wanted directly, required by their own name
   (`requires: gcc-10`), selected by a version constraint (§11), or provider-pinned.
 - Cycles terminate naturally: a unit is built once per key, and a capability already in the

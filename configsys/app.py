@@ -1939,9 +1939,9 @@ def cmd_orphans(ctx, args):
     if base_hidden:
         print(f'({base_hidden} OS-base foreign package{"s" if base_hidden != 1 else ""} hidden '
               '[required/important/standard] — `--system` to show them)')
-    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/xbps/brew, '
-          'flatpak, snap, pip/pipx/npm/cargo/gem/go-install/luarocks/opam); not scanned: apk, '
-          'tarball/appImage/source installs (no batch enumeration) or arbitrary files.')
+    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/apk/xbps/brew, '
+          'flatpak, snap, pip/pipx/npm/cargo/gem/go-install/luarocks/opam); not scanned: '
+          'tarball/appImage/script/source installs (no batch enumeration) or arbitrary files.')
     return 0
 
 
@@ -2331,12 +2331,12 @@ def cmd_check(ctx, args):
                 removal_warnings.append(f"profile '{prof}': `~{ref}` removes nothing "
                                         f"(not a defined profile or known component)")
 
-    # a `machine:` selection that names no `machines:` entry silently resolves to nothing (shared +
-    # local only) — almost always a typo or an unsynced primary. Warn so it isn't a silent no-op.
+    # a `machine:` selection that names no column of the picks matrix installs nothing — almost
+    # always a typo or an unsynced primary. Warn so it isn't a silent no-op.
     _sel_machine = ctx.config.selected_machine()
     if _sel_machine and _sel_machine not in ctx.config.machine_names():
-        removal_warnings.append(f"machine '{_sel_machine}' is selected but not defined in any "
-                                f"`machines:` block — this box resolves shared + local profiles only")
+        removal_warnings.append(f"machine '{_sel_machine}' is selected but has no column in `picks:` "
+                                f"— this box's install set is empty (`configsys machine add` creates it)")
 
     # the `!` namespace is reserved for system workflow lenses (the synthetic !uninstall / !all
     # browse lenses). A hand-defined `!…` profile collides — warn (the UI blocks creating one).
@@ -3281,10 +3281,10 @@ def build_parser():
         prog='configsys',
         description="Install and manage the software on each of your machines from one config.\n"
                     "Each machine installs its own picks (the `picks:` section of your config) through "
-                    "this OS's\npackage manager (apt, dnf, pacman, zypper, apk, xbps, brew) or flatpak, "
-                    'snap, AppImages,\ntarballs, source builds, language toolchains and more. Profiles '
-                    'are read-only lists to browse\nand pick from. With no command, the interactive TUI '
-                    'opens.',
+                    "this OS's\npackage manager (apt, dnf, pacman, zypper, apk, xbps) or the AUR, "
+                    'Homebrew, flatpak, snap,\nAppImages, tarballs, source builds, language toolchains '
+                    'and more. Profiles are read-only lists\nto browse and pick from. With no command, '
+                    'the interactive TUI opens.',
         epilog=_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--pretend', action='store_true',
@@ -3457,8 +3457,10 @@ def build_parser():
     pksub.add_parser('to-primary', help="move this box's local picks into the primary plugin so they "
                                         'travel to your other machines (dispositions stay local)')
 
-    wh = sub.add_parser('where', help='explain a component: source layer, bindings, and how '
-                                      'it resolves on this machine')
+    wh = sub.add_parser('where', help='explain a component: the layer that defines it, each install '
+                                      'method (marking the default, the alternatives you can pin, and '
+                                      "any whose driver can't work here, with why), the rule that chose "
+                                      'the default, and what it resolves to on this machine')
     wh.add_argument('name', help='component name (or a profile name with -p)')
     wh.add_argument('-p', '--profile', action='store_true',
                     help='treat NAME as a profile: show its definition in each layer, how the layers '
@@ -3499,8 +3501,8 @@ def build_parser():
                                            '(portable to your other machines)')
     pnp.add_argument('component', help='component (or capability) name')
 
-    pr = sub.add_parser('profile', help='browse profiles: read-only component lists shipped by the '
-                                        'repo and plugins (installs come from picks)')
+    pr = sub.add_parser('profile', help='browse profiles: read-only component lists from the repo, '
+                                        'your plugins and your own config (installs come from picks)')
     prsub = pr.add_subparsers(dest='profile_command')
     prsub.add_parser('list', help='list every profile and its components (default)')
     prs = prsub.add_parser('show', help="show one profile's terms, where it is defined, and what it "
@@ -3722,8 +3724,9 @@ def build_parser():
                                    'components, grouped by tier; apply with `upgrade --system`')
 
     sub.add_parser('refresh', help="re-check upstream versions for this machine's picks and refresh the "
-                                   'OS package index (sudo may prompt; on Arch it offers a full '
-                                   '`pacman -Syu` instead)')
+                                   "package index of this OS's package manager (sudo may prompt). On "
+                                   'Arch, where only a full upgrade is safe, it asks before running '
+                                   '`pacman -Syu` instead')
     sh = sub.add_parser('show', help='print the shipped routes.hu or config.hu template, or its path')
     sh.add_argument('what', nargs='?', choices=list(_SHOW_TARGETS),
                     help='which base file to show (omit to list them)')

@@ -32,7 +32,10 @@ Invariants:
 ## Driver hooks
 
 All live on `Driver` (configsys/driver.py) with no-op defaults, so path/build/language drivers
-take no part.
+take no part. They are part of the frozen plugin ABI (the "System Updates" and "orphan scan" hook
+groups in the driver.py docstring; docs/plugins.md §7), so a code-plugin manager can join the lane
+by overriding them. test/test_driver_inventory.py requires every OS block's `native:` manager to
+implement `installed_index`, `upgradable_index`, `upgrade_all` and `explicit_keys`.
 
 | hook | returns | default |
 | --- | --- | --- |
@@ -43,9 +46,23 @@ take no part.
 | `upgrade_all()` | runner `Result` of the bulk command | `None` |
 | `explicit_keys()` | the user-installed set (shared with docs/orphans.md) | `None` (all explicit) |
 
-`upgradable_index` reads the **already-synced** native index; it never refreshes on its own
-(`configsys refresh` / `app.refresh_native_index` does that). `None` means "absent or failed";
-`{}` means "up to date". Both drop the manager.
+`upgradable_index` reads the **already-synced** native index; it never refreshes on its own.
+`None` means "absent or failed"; `{}` means "up to date". Both drop the manager.
+
+### Refresh styles
+
+Who refreshes depends on the manager's declared refresh style (every native manager is in exactly
+one map, test_driver_inventory):
+
+- `app._NATIVE_REFRESH` (apt, dnf, zypper, apk, xbps, brew) — an index-only refresh, safe before
+  any install. `app.refresh_native_index` runs it (sudo, except brew) before `upgrade --system`,
+  before a TUI bulk apply, and before an ops batch per `refresh-before-execute`; `configsys
+  refresh` runs it too.
+- `app._FULL_UPGRADE_REFRESH` (pacman) — an index-only `pacman -Sy` would leave a partial-sync
+  state that breaks the next `pacman -S`, so the only safe refresh is `pacman -Syu` itself.
+  `refresh_native_index` returns `(False, True)` and does nothing; `configsys refresh` asks before
+  running the full upgrade. Consequence: on Arch, `pacman -Qu` sees only what the last full sync
+  knew, so the lane usually lists nothing for pacman (see the Coverage notes).
 
 ## Coverage
 
@@ -55,13 +72,13 @@ manager's query fails and it is dropped.
 
 | manager | upgradable | held | bulk (`upgrade_all`) | tiers |
 | --- | --- | --- | --- | --- |
-| apt | `apt list --upgradable` | `apt-mark showhold` | `apt-get upgrade --with-new-pkgs -y` (sudo) | Priority |
+| apt | `apt list --upgradable` | `apt-mark showhold` | `apt-get upgrade --with-new-pkgs -y` (sudo, noninteractive env) | Priority |
 | dnf | `dnf -q check-update` (exit 100 = updates) | `dnf versionlock list` | `dnf upgrade -y` (sudo) | name |
 | pacman | `pacman -Qu` (exit 1 = none) | — | `pacman -Syu --noconfirm` (sudo) | name |
-| zypper | `zypper list-updates` (`LC_ALL=C`) | `zypper locks` | `zypper --non-interactive update` (sudo) | name |
+| zypper | `zypper --non-interactive -q list-updates` (`LC_ALL=C`) | `zypper locks` (`LC_ALL=C`) | `zypper --non-interactive update` (sudo) | name |
 | apk | `apk list --upgradable` | — | `apk upgrade` (sudo) | name |
 | xbps | `xbps-install -un` (`update` rows only) | `xbps-query -H` | `xbps-install -Suy` (sudo) | name |
-| brew | `brew outdated --formula --verbose` | `brew list --pinned` | `brew upgrade` (never sudo) | name |
+| brew | `brew outdated --formula --verbose` (Homebrew absent → exit 127 → `None`, dropped) | `brew list --pinned` | `brew upgrade` (never sudo) | name |
 | flatpak | `flatpak remote-ls --updates`, both scopes | `flatpak mask`, both scopes | `flatpak update -y` | runtime/app |
 | snap | `snap refresh --list` | `held` in `snap list` Notes | `snap refresh` (sudo) | name |
 
@@ -70,8 +87,15 @@ Notes on the choices:
 - **apt** `--with-new-pkgs` installs newly needed packages (a new kernel ABI) but never removes
   anything, so it matches `apt list --upgradable` without a dist-upgrade's surprise removals.
   apt hides held packages from its upgradable list, so they don't appear as rows at all.
-- **pacman / apk / xbps** are rolling: the only safe bulk is a full sync + system upgrade, and
+- **pacman / apk / xbps** are rolling: the only safe bulk is a full system upgrade (`pacman -Syu`
+  and `xbps-install -Suy` sync as they go; `apk upgrade` runs after the up-front `apk update`), and
   pacman/apk have no per-package hold (`holds_version = False`).
+- **pacman lists from a stale DB.** Because nothing safe refreshes pacman's sync DB short of the
+  full upgrade (Refresh styles, under Driver hooks), `pacman -Qu` reports against the last `-Syu`; `upgrade
+  --system` then finds no pacman rows and never runs `pacman -Syu`. The pacman half of the lane is
+  effectively blind until the sync DB moves outside configsys (a hand-run `pacman -Sy`, itself the
+  partial-sync state configsys avoids). Open gap, not a policy: a safe probe (e.g. pacman-contrib's
+  `checkupdates`, which syncs a temporary DB copy) would close it.
 - **flatpak** keys rows by normalized full ref (`id/arch/branch`, `Flatpak._norm_ref`), so a
   runtime installed at two branches stays two rows, each against its own installed version.
   `update_dedup_key` maps a ref back to the app id for dedup. Detection is commit-based: an
@@ -89,8 +113,8 @@ kernel by name (`linux-image*`/`linux-headers*`/`linux-modules*`/…, `kernel*`,
 for libc (`libc*`, `glibc`, `musl`), else apps.
 
 - **apt** (`Apt.classify_index`, reusing `origin_index` = one `dpkg-query`): kernel by name first;
-  Priority `required`/`important` → core, `standard` → standard, `optional`/`extra`/unknown → apps
-  (libc with no priority row → core).
+  Priority `required`/`important` → core, `standard` → standard, otherwise a libc-named package →
+  core, else (`optional`/`extra`/unknown) → apps.
 - **flatpak**: an id containing `.Platform` or `.Sdk` (platforms, SDKs, GL, codecs, VAAPI) → core;
   everything else → apps.
 - Every other manager: the name heuristic. Only apt has a real `standard` tier.
@@ -110,10 +134,12 @@ two overlap harmlessly (docs/principles.md): the bulk command still patches excl
 
 ## Explicit vs auto-pulled
 
-`UpdateRow.explicit` is membership in the manager's `explicit_keys()` (apt-mark showmanual,
-dnf `--userinstalled`, pacman `-Qe`, zypper minus libzypp's AutoInstalled, apk's
-`/etc/apk/world`, brew leaves, xbps `-m`). A manager with no notion (`None`: flatpak, snap) reads
-every row as explicit. The TUI dims auto-pulled rows in the
+`UpdateRow.explicit` is membership (of the key or its `update_dedup_key`) in the manager's
+`explicit_keys()` (apt-mark showmanual, dnf `--userinstalled`, pacman `-Qe`, zypper's `rpm -qa`
+minus libzypp's `/var/lib/zypp/AutoInstalled` and `gpg-pubkey`, apk's `/etc/apk/world`, brew
+`leaves --installed-on-request`, xbps `-m`) — every native manager answers, so dimming works on
+every supported OS. A manager with no notion (`None`: flatpak, snap) or a failed query reads every
+row as explicit. The TUI dims auto-pulled rows in the
 standard/apps tiers only; kernel/core are never dimmed. This is emphasis only — everything is
 still listed and still upgraded.
 
@@ -130,10 +156,13 @@ still listed and still upgraded.
   `key  installed -> candidate  [held]` line each (`_print_updates_groups`). With nothing pending it
   suggests `configsys refresh`, since the list is only as fresh as the index.
 - **`configsys upgrade --system [--yes]`** (`cmd_upgrade_system`) — takes no names. Refreshes the
-  native index first (non-fatal: on failure it warns and proceeds on the cached index), gathers,
+  native index first via `refresh_native_index` (non-fatal: on failure it warns and proceeds on the
+  cached index; a no-op on pacman, see Refresh styles), gathers,
   previews the same grouped list, confirms (`--yes` skips; a non-TTY without `--yes` exits 1),
   then runs `upgrade_all` for each manager **that has at least one listed row**, then prints the
-  reboot advisory (`reboot-advice`). Exit status is the first failing manager's return code.
+  reboot advisory (`reboot-advice`; the native manager's `rebootcheck._REBOOT_CHECKS` entry — brew is in
+  `_NO_REBOOT_CHECK`, user-space). Exit status is the
+  first failing manager's return code (1 when the confirm is declined).
 
 ## TUI (Components screen)
 
@@ -168,7 +197,7 @@ still listed and still upgraded.
   staged — a partial unstage would leave badges that misstate what `X` does.
 - **Apply.** `X` → `menu._confirm_and_execute` partitions the synthetic rows out of the per-unit plan
   (they never reach `expand_plan`/`run_plan`), shows one `sys-update` preview line per manager set,
-  and after the single confirm runs `sysupdates.apply_bulk` **first** (refresh the native index,
+  and after the single confirm runs `sysupdates.apply_bulk` **first** (`refresh_native_index`,
   `upgrade_all` per staged manager, then `invalidate` + `start_scan`), then the per-component ops
   against the fresh base. Base-first means cleaner dependency resolution everywhere and no Arch
   partial-upgrade (`pacman -S <new>` on an un-`-Syu`'d system).

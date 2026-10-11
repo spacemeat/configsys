@@ -7,9 +7,9 @@ configsys \- Install and manage the software on each of your machines from one c
 .SH DESCRIPTION
 Install and manage the software on each of your machines from one config.
 Each machine installs its own picks (the \fBpicks:\fR section of your config) through this OS's
-package manager (apt, dnf, pacman, zypper, apk, xbps, brew) or flatpak, snap, AppImages,
-tarballs, source builds, language toolchains and more. Profiles are read-only lists to browse
-and pick from. With no command, the interactive TUI opens.
+package manager (apt, dnf, pacman, zypper, apk, xbps) or the AUR, Homebrew, flatpak, snap,
+AppImages, tarballs, source builds, language toolchains and more. Profiles are read-only lists
+to browse and pick from. With no command, the interactive TUI opens.
 .SH OPTIONS
 .TP
 \fB-h\fR, \fB--help\fR
@@ -98,7 +98,7 @@ Subcommands: \fBlist\fR, \fBadd\fR, \fBrm\fR, \fBto-primary\fR.
 .RE
 .TP
 \fBwhere\fR
-explain a component: source layer, bindings, and how it resolves on this machine
+explain a component: the layer that defines it, each install method (marking the default, the alternatives you can pin, and any whose driver can't work here, with why), the rule that chose the default, and what it resolves to on this machine
 .TP
 \fBlocation\fR
 print a component's absolute install location as it resolves here (honoring scope, pins and \fBlocations:\fR), for shell snippets
@@ -117,7 +117,7 @@ Subcommands: \fBlist\fR, \fBset\fR, \fBunset\fR, \fBpromote\fR.
 .RE
 .TP
 \fBprofile\fR
-browse profiles: read-only component lists shipped by the repo and plugins (installs come from picks)
+browse profiles: read-only component lists from the repo, your plugins and your own config (installs come from picks)
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBshow\fR.
@@ -181,7 +181,7 @@ Subcommands: \fBinstall\fR, \fBstatus\fR.
 list System Updates: pending updates from this OS's package manager, flatpak and snap for packages that aren't configsys components, grouped by tier; apply with \fBupgrade --system\fR
 .TP
 \fBrefresh\fR
-re-check upstream versions for this machine's picks and refresh the OS package index (sudo may prompt; on Arch it offers a full \fBpacman -Syu\fR instead)
+re-check upstream versions for this machine's picks and refresh the package index of this OS's package manager (sudo may prompt). On Arch, where only a full upgrade is safe, it asks before running \fBpacman -Syu\fR instead
 .TP
 \fBshow\fR
 print the shipped routes.hu or config.hu template, or its path

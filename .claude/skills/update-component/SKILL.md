@@ -20,7 +20,7 @@ Two halves:
   case-insensitive; Flathub published/end-of-life/renamed; AUR missing/promoted-to-`[extra]`/
   orphaned/out-of-date; Homebrew formula missing/alias/renamed/deprecated/disabled/keg-only on
   Linux/macOS-only (one fetch of the full formulae.brew.sh index); crates/PyPI/npm
-  missing/deprecated; and a static check for x86-64-only
+  missing (npm also deprecated); and a static check for x86-64-only
   downloads with neither a `cpu-names:` map nor a `cpu:` gate). ~40 s for the whole catalog. A per-unit **ledger** makes
   routine `*` runs incremental.
 - **Judgment** — audit subagents, one per batch of units, doing the web research the probes can't.
@@ -138,7 +138,11 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
 >    prereleases-only projects).
 > 4. **Gating** — upstream's glibc floor rose (a binary now needs newer glibc → narrow `when:`)?
 >    new arch builds (aarch64)? a distro newly packages it (widen a native `when:`) or dropped it?
->    musl builds appeared/disappeared? Remember `when:` states validity only, never preference.
+>    musl builds appeared/disappeared? Remember `when:` states validity only, never preference —
+>    and never restates a driver gate: aur is Arch-only, brew glibc-only, and appImage/snap/pyenv
+>    drop out wherever their own `requires:` can't be met (musl, no libfuse2, no snapd), so a
+>    `when:` that only does that is redundant (an aur binding keeps `when: "arch"` only to out-
+>    specify a narrower competitor valid on Arch — add-component §2).
 > 5. **requires/suggests** — new runtime deps (libfuse3 vs 2, webkit2gtk-4.1), toolchain floors
 >    (MSRV for cargo/source, Go version for go-install) that should be versioned requires.
 > 6. **New or removed methods** — now packaged somewhere it isn't routed (Ubuntu universe, Debian,
@@ -237,7 +241,8 @@ Same gates as add-component §7–9, with one twist for the golden:
    `--due-days`, or whenever a probe still flags them):
    `.venv/bin/python tools/compaudit.py record <scope> <units...>`. Record AFTER applying fixes, so
    the ledger stores the fixed definition's hash. Never record units that weren't audited.
-2. Commit locally — base and each plugin repo separately — never push:
+2. Commit locally — base and each plugin repo separately — never push (use the attribution line
+   the system currently provides; this is today's):
    ```
    git -c user.name="Trevor Schrock" -c user.email="spacemeat@gmail.com" commit -m "components: update-component audit — <scope>
 
@@ -246,7 +251,7 @@ Same gates as add-component §7–9, with one twist for the golden:
    Audited N units (M probe + K deep findings; A applied, D declined). check: 0 errors across
    <OSes>. Golden: changes confined to the edited units.
 
-   Co-Authored-By: <the attribution line the system provides>"
+   Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
    ```
    Plugin commits need `configsys plugin sync` + `plugin trust` to take effect locally — say so.
 
@@ -257,7 +262,8 @@ Same gates as add-component §7–9, with one twist for the golden:
 - Repology's API refuses this client (403), so distro-presence questions are the subagents'
   (web lookups) plus the podman name sweep.
 - Probe categories: `aur-promoted` = the AUR package was deleted because Arch moved it into
-  `[extra]`/`[core]` — the fix is `{ via: native when: "arch" }`; `aur-missing` with no official
+  `[extra]`/`[core]` — the fix is `{ via: native when: "arch" }` (or widening an existing native
+  binding's `when:` to cover Arch), with a `pacman:` name if it differs; `aur-missing` with no official
   package = renamed or dropped (research it); `asset-glob-miss` = no recent release carries the
   asset (`probe_facts.latest_assets` lists what does — usually an arch-token change like
   `aarch64`→`arm64`); `asset-not-in-latest` = only an older release has it (upstream dropped it?);
@@ -265,7 +271,9 @@ Same gates as add-component §7–9, with one twist for the golden:
   can be repointed (`openssl` → `openssl@4`) — name the real formula; `brew-keg-only` = keg-only
   on Linux (a versioned formula like `openjdk@21` — not on PATH), so the brew binding (or a
   native `brew:` name on fedora_atomic) installs something unusable — drop it or route atomic
-  elsewhere; `brew-deprecated`/`brew-disabled` = on its way out / already uninstallable;
+  elsewhere; `brew-missing`/`brew-macos-only` = no such formula / no Linux bottle — drop the
+  brew binding (or fix the name); `brew-deprecated`/`brew-disabled` = on its way out / already
+  uninstallable;
   `prerelease-only` = resolves from a nightly/prerelease (rolling version, updates invisible);
   `arch-unguarded` = an x86-64-only download with no cpu gate (wrong binary on aarch64) — fix with
   `$ARCH` + `cpu-names:` (docs/routing-model.md §7), `{ x86_64: … }` alone if there's no arm64 build.

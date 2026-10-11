@@ -34,8 +34,10 @@ that case belongs to detection, the "also present" line and docs/stranded-instal
 its installed key (`_is_ignored`). Ignored orphans are filtered from default output, not dropped.
 
 **Tier** — `Driver.origin_index()`'s OS-origin class for the key (only apt implements it: Debian
-Priority; an arch-qualified key falls back to its bare name). `BASE_TIERS = ('required',
-'important', 'standard')` marks "the distro ships this".
+Priority; an arch-qualified key falls back to its bare name). `explicit_keys` and `origin_index`
+are the orphan-scan hooks of the frozen driver ABI (driver.py docstring; docs/plugins.md §7): each
+defaults to `None`, so a plugin driver takes part by overriding `installed_index` and, optionally,
+these. `BASE_TIERS = ('required', 'important', 'standard')` marks "the distro ships this".
 
 ## The reverse index (`build_reverse_index`)
 
@@ -62,8 +64,11 @@ network, no per-item subprocess.
    `USER_FACING`; each whose `installed_index()` is non-empty. Today that means apt, dnf, pacman,
    zypper, apk, xbps, brew, flatpak, snap, pip, pipx, npm, cargo, gem, go-install, luarocks, opam,
    wherever present (apk enumerates with one `apk list --installed`, falling back to `apk info -v`
-   on apk-tools without `list`). tarball, appImage, script and source have no batch enumeration and
-   are not scanned.
+   on apk-tools without `list`). An absent manager drops out either way: brew answers a true `{}`
+   when Homebrew isn't installed (`Brew._listing`, command-not-found = nothing installed via brew),
+   the others `None` ("couldn't tell"). Drivers with no `installed_index` — tarball, appImage,
+   script, source, font, cabal, sdkman, pyenv, rpm-ostree, … — are not scanned; the native-backed
+   ones (aur, native-pkg-file, gcc, clang) are covered under the native manager instead.
 3. **Per installed key**, in order: skip if an active slot; skip if `explicit_keys()` is a set and
    the key isn't in it (auto-installed dependency) unless `include_auto`; if the reverse index maps
    it, classify (`lurking`/`forgotten`, or skip when every match is picked); else `foreign` only on
@@ -75,16 +80,20 @@ Why the filters: native managers and language installers carry hundreds of depen
 so for them only the **known** intersection is listed by default; flatpak/snap installs are
 deliberate user apps and few, so their recipe-less installs are shown. `explicit_keys` (apt-mark
 showmanual, dnf `--userinstalled`, pacman `-Qe`, apk's `/etc/apk/world` (every `apk add`ed atom,
-`!conflict` entries skipped), zypper's installed set minus libzypp's
-`/var/lib/zypp/AutoInstalled`, brew leaves, xbps `-m`, pip `INSTALLER=pip` +
-`--not-required`, npm minus node-bundled) keeps the thousands of packages nobody chose out; a
-driver returning `None` (flatpak, snap, pipx, …) counts every key as chosen. Base-tier
+`!conflict` entries skipped), zypper's installed set (the batch's `rpm -qa`, reused when present)
+minus libzypp's `/var/lib/zypp/AutoInstalled` and the `gpg-pubkey` pseudo-package (the set
+`zypper packages --userinstalled` prints, without loading repos), brew `leaves
+--installed-on-request`, xbps `-m`, pip `INSTALLER=pip` + `--not-required`, npm minus
+node-bundled) keeps the thousands of packages nobody chose out. Every native manager implements it
+(test/test_driver_inventory.py). A driver returning `None` (flatpak, snap, pipx, …, or any query
+failure) counts every key as chosen. Base-tier
 foreign packages are hidden but the tier rides on every orphan, so a user can still opt to manage
 even systemd.
 
 ## `orphans-ignore:`
 
-A list of name-or-glob patterns (`Config.orphans_ignore`, merged repo < primary < top config).
+A list of name-or-glob patterns (`Config.orphans_ignore`, `layers.merge_scalar` over repo <
+primary < top config: the highest layer that sets it supplies the whole list).
 Its setting nature is **machine** (`actions.SETTING_NATURE`): acknowledged one-offs on this box
 land in the top config, not in shared config. `actions.ignore_orphan` appends (idempotent);
 `actions.unignore_orphan` removes only a literal entry (a glob must be edited by hand). See
@@ -139,7 +148,9 @@ the dim `info_dim` role instead of `orphan_lurking`, so `.` visibly takes effect
 
 **Keys on the catalog** (configurable in `keys:`, see config.hu):
 
-- `t` / `T` track — picks the component(s): the TUI way to adopt an orphan.
+- `t` / `T` track (`track-one` / `track-all`) — picks the cursor component / the selection on the
+  target machines and marks them seen: the TUI way to adopt an orphan. A toggle: when every target
+  is already tracked, it untracks.
 - `C` claim — `ProfilesState.installed_scan` (full catalog, including non-enumerable bindings and
   complete `parts` aggregates), confirm, then picks every installed component on the target
   machines and marks them seen. Adopts a whole existing system at once.

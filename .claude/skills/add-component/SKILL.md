@@ -10,7 +10,7 @@ installs the best way on every OS it can, with graceful fallbacks where the best
 The authoritative spec is `docs/routing-model.md`; this is the operational playbook.
 
 **Golden rule:** for each tool, fill the matrix — one *native* method per package manager where the
-tool is packaged, plus non-native fallbacks (tarball/appImage/flatpak/snap/aur/cargo/pip/…) for the
+tool is packaged, plus non-native fallbacks (aur/flatpak/snap/appImage/brew/tarball/cargo/pip/…) for the
 gaps — so the component *resolves* on every base OS, or declines honestly where nothing works.
 
 ---
@@ -42,10 +42,10 @@ Base OS families (atoms) and their native package manager:
 | redhat        | `redhat` = `fedora` (+`nobara`) + `rhel`(EL) + `amzn` | dnf        | Fedora ≠ EL. EL (`rhel` `rocky` `almalinux` `centos` `ol` `scientific`) needs `requires: epel` / `rpmfusion` for many pkgs. `amzn` (Amazon Linux 2023) sits under `redhat`, not `rhel` — own version line, **no EPEL** |
 | arch          | `arch` `manjaro` `endeavouros` `cachyos` `garuda` `omarchy` | pacman | community pkgs via `{ via: aur }` (the aur driver gate is Arch-only; aur ranks right after native) |
 | opensuse      | `opensuse` `opensuse_leap` `opensuse_tumbleweed`    | zypper     | |
-| alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here; needs a musl asset or native |
-| void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl. Nonfree pkgs `requires: void-repo-nonfree` |
-| atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable: prefer flatpak + brew; no system pkg installs |
-| native-less   | `kde_linux` (glibc, immutable) · `chimera` (musl)   | —          | no `native:`, so `via: native` declines: only portable methods route (flatpak, tarball, cargo, pipx, …). `kde_linux` `provides:` flatpak/curl/git/unzip/xz, has no libfuse2 (AppImages decline); `chimera` uses apk-tools but not Alpine's package names |
+| alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here: a tarball's `requires: glibc` declines it, and the appImage and brew drivers aren't offered at all (derived / explicit driver gates). Needs a musl asset or native. (`pins: { glibc: gcompat }` opts a machine in to glibc tarballs + AppImages, best-effort — never brew) |
+| void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl (where, as on Alpine, appImage/brew aren't offered). Nonfree pkgs `requires: void-repo-nonfree`. No snap (snapd has no method here) |
+| atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable, no system pkg installs: `via: native` = `brew install` (the `brew:` key of a `name:` map names the formula; gate a native binding `not fedora_atomic` where brew has no usable formula — §3 "Homebrew"); `provides: flatpak` for GUI apps; no AppImage (no libfuse2 route) or snap — derived gates; `rpm-ostree` layering only as a user-added `standing: never-auto` binding (none ship — routing-model §6a) |
+| native-less   | `kde_linux` (glibc, immutable) · `chimera` (musl)   | —          | no `native:`, so `via: native` declines: only portable methods route. `kde_linux` `provides:` flatpak/curl/git/unzip/xz, so flatpak, brew (glibc; Homebrew itself via its install script), tarball, script and cargo route; no libfuse2 (AppImages aren't offered). `chimera` uses apk-tools but not Alpine's package names, and provides nothing beyond python3 — no curl, so no tarball/cargo; musl, so no brew/appImage — practically only dotfiles/glue and self-contained scripts route |
 
 A "comprehensive row" = a `native` binding wherever the tool is in-repo + fallbacks covering the
 rest. Verify the final routing with the per-OS resolve check (below) — the target is *every* OS
@@ -57,7 +57,7 @@ resolves to *something*, and the method is the one a human would pick there.
 
 ### 0. Parse the arguments, then research each tool (do this first, don't guess)
 **Argument syntax:** each entry is a component name, **optionally followed by a bracketed list of
-base profiles** — `<name> [profile1, profile2]` (e.g. `ripgrep [dev-tools, cli-tools]`, `mpv
+base profiles** — `<name> [profile1, profile2]` (e.g. `ripgrep [dev-tools, finders]`, `mpv
 [audio-tools]`, `foo` with no bracket). Strip the `[…]` to get the name to research; **carry the
 profile list to step 6** — those are base profiles the component MUST be placed in. Entries are
 comma/space-separated: `foo [a], bar [b, c], baz`.
@@ -81,15 +81,16 @@ torbrowser-launcher).
 Match the house style. Good exemplars in `routes.hu`:
 - native everywhere, EL via EPEL, Ubuntu universe → `htop`, `btop`, `mc`
 - native + cargo/tarball fallback for EL → `bottom`, `micro`, `nushell`
-- vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave`, `vivaldi`; distro launcher
-  package + AUR + flatpak → `tor-browser`
+- vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave` (`vivaldi`: Arch's `extra`
+  native instead of AUR); distro launcher package + AUR + flatpak → `tor-browser`
 - upstream `.deb`/`.rpm` release file → `yazi`, `fastfetch` (`via: native-pkg-file`); both formats in
   one binding (`asset: { deb: {…}  rpm: {…} }`) → `bruno`, `insomnia`
 - Void name map + Void-only native binding → `fish` (`name: { xbps: fish-shell }`), `doas`
   (`{ via: native  when: "void or void_musl"  name: opendoas }`); nonfree repo → `nmap`; native only
   on musl where the glibc binary declines → `neovim` (`when: "void_musl or alpine"`)
 - name differs per distro → `iproute2`, `cython`, `python3-pip` (`name:` maps)
-- AppImage fallback for a musl/arch gap → `ghostty`
+- AppImage fallback where the distros don't package it → `ghostty` (native on Arch/Void; the
+  AppImage carries no `when:` — the appImage driver's own requires keep it off musl and atomic)
 - install script → `zed`
 
 ### 2. Write the component in routes.hu
@@ -144,7 +145,8 @@ Order native-first, then fallbacks. Typical comprehensive rows:
 - **Go tool** (micro, superfile, lazygit): `native` + release `tarball` (nested `bin/` is fine — the
   driver finds the binary).
 - **GUI app / browser** (tor-browser): vendor `native` where it exists + `{ via: aur }` +
-  `via: flatpak hub: flathub app: <id>` (flatpak is the universal + atomic-only method).
+  `via: flatpak hub: flathub app: <id>` (flatpak is the universal GUI method, and the GUI method on
+  fedora_atomic/kde_linux).
 - **Upstream ships a .deb/.rpm** but not in-repo (fastfetch, yazi): `via: native-pkg-file when:
   "debian"` with `asset: { x86_64: …deb  aarch64: …deb }` (or format-keyed `asset: { deb: { x86_64: … }
   rpm: { x86_64: … } }` with `when: "debian or redhat"` to cover both in one binding).
@@ -160,8 +162,10 @@ Order native-first, then fallbacks. Typical comprehensive rows:
   Linux), macOS-only formulae/casks (GUI apps), and `curl`/`git` (homebrew's own prerequisites — a
   cycle). On `fedora_atomic` brew is the native manager: a `via: native` binding reaches it there
   with the `brew:` key of its `name:` map, so give that key too when the formula name differs; where
-  there is no Linux formula, gate the broad native binding `not fedora_atomic` (routing-model
-  §"native: brew").
+  there is no usable Linux formula (none, or keg-only), gate the broad native binding `not
+  fedora_atomic` and route atomic another way — the jdks use a pinned SDKMAN Temurin binding,
+  `{ via: sdkman  name: java  version: "21.0.12+1.1-tem"  requires: glibc }` (routing-model §6a,
+  "`native: brew`").
 - **Raw binary download** (no archive — kubectl/bazelisk style): `via: tarball  archive: none  binary:
   <name>` (a single gzip-compressed binary is `archive: gz`).
 - Language-ecosystem tools: `cargo`/`pip`/`pipx`/`npm`/`gem`/`opam`/`luarocks`/`cabal`/`go-install`/
@@ -184,8 +188,8 @@ app config, captured). Give the parent a soft `suggests:` for each one you add.
   ```
   and add `suggests: <name>-glue` to the parent. The glue driver emits one spec per INSTALLED shell
   that ships a variant (materialized into the machine glue store, linked into
-  `~/.config/<shell>/conf.d/<name>.<ext>`); a shell with no variant is a clean no-op, so adding a
-  variant file later lights that shell up with ZERO component edits. nushell and elvish inline every
+  `~/.config/<shell>/conf.d/50-<name>.<ext>` — the component band; `glue.component_link_stem`); a
+  shell with no variant is a clean no-op, so adding a variant file later lights that shell up with ZERO component edits. nushell and elvish inline every
   snippet into one rc block, so their variants must self-guard (`add-shell.md` Part B has the idioms).
   (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file — is
   its own playbook: **`add-shell.md`**.)
@@ -299,8 +303,11 @@ These need **podman** and are NOT part of pytest (slow, networked, container-onl
   catches renames/removals like redis→valkey): `bash test/run-name-sweep-in-podman.sh [manager]`.
   Host-side extractor is `tools/namesweep.py` (`--manager apt` lists names, `--json` the full map);
   false-positives go in `test/namesweep-allowlist.hu` with a one-line reason. Gates apt/dnf/pacman/
-  zypper/apk/xbps (xbps on void-glibc with the nonfree repo enabled; for musl names, the
-  configsys-void plugin's `test/run-name-sweep.sh` sweeps both flavors). **Run this after adding native bindings** — it's the cheap 80%-of-breakage catch.
+  zypper/apk/xbps — `namesweep.MANAGERS` (xbps on void-glibc with the nonfree repo enabled; for musl
+  names, the configsys-void plugin's `test/run-name-sweep.sh` sweeps both flavors). brew formulae
+  aren't swept (`namesweep.UNSWEPT`): `tools/compaudit.py`'s brew probe checks them
+  (update-component). **Run this after adding native bindings** — it's the cheap 80%-of-breakage
+  catch.
 - **Real-install lifecycle** (actually install/upgrade/remove in a throwaway container):
   `bash test/run-in-podman.sh [PKG]` (apt), plus targeted `test/run-{dnf,pacman,zypper,xbps,flatpak,
   clang,langs,…}-in-podman.sh` and `test/Containerfile.*` per distro. Use when a new method needs
@@ -348,15 +355,19 @@ formula (`<name>@<ver>`). When to add one and when not: §3.
   replaced on every (re)install). Fields: `installDir: "$CONFIGSYS_APP_DIR/<x>"`, `requires:` (`glibc`,
   `unzip`), `version: { github: … strip-v: … asset: "…$ARCH…tar.gz" }` or a `url:` template
   (`$VERSION`/`$ARCH`), `strip:` (drop leading tar path components), `archive: none` + `binary:` for a
-  raw executable, `archive: gz` for a single gzipped binary. Provide a **musl** asset (or gate `not
-  alpine`) for Alpine / void_musl.
+  raw executable, `archive: gz` for a single gzipped binary. A glibc asset carries `requires: glibc`
+  (it then declines on musl — Alpine, void_musl, chimera — with no `when:`); a **musl** (static)
+  asset runs everywhere and covers them.
 - `appImage` — `name:` (menu label), `scope:`, `version: {…}` or `url:`, `path: ~/apps/<x>.appimage`,
-  optional `icon:` and `desktop-id:` (the app's Wayland app_id, so its menu entry and dock icon match)
-  (needs libfuse2).
+  optional `desktop-id:` (the app's Wayland app_id, so its menu entry and dock icon match; the menu
+  icon is extracted from the AppImage itself). The driver `requires: [ libfuse2, glibc ]`, so it is
+  not offered on musl or fedora_atomic/kde_linux — no `when:` needed for that (a glibc-VERSION floor
+  is still a `when:`, as on `neovim`).
 - `flatpak` — `hub: flathub  app: <exact.app.id>` (`hub-url:` for a non-built-in remote). The
-  universal GUI method + only method on atomic.
+  universal GUI method, and the GUI method on fedora_atomic/kde_linux (both `provides: flatpak`).
 - `snap` — `name: <snap>`, optional `classic: true`, `channel:` (Ubuntu-centric; Chromium's real
-  method there).
+  method there). Driver-wide `standing: never-auto`, and not offered where snapd has no method
+  (openSUSE, Void, Alpine, atomic, …) — the derived gate.
 - `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `latest-cmd`,
   `uninstall-cmd`, `upgrade-cmd`, `set-version-cmd`, `location`.
 - `font` — a downloadable font archive into the fonts dir + `fc-cache` (`name:`, `url:`/`version:`;
@@ -364,9 +375,12 @@ formula (`<name>@<ver>`). When to add one and when not: §3.
 - `source` — build from a git checkout/archive (`repo:`/`url:`, `build:`, `tag-prefix:`; recipes live
   in the configsys-source plugin, §5).
 
-**Language toolchains & their module installers** (take `name:` = crate/pkg/candidate, often
-`requires: <toolchain>`): `cargo` `pip` `pipx` `npm` `gem` `opam` `luarocks` `cabal` `go-install`
-`sdkman`. Toolchains themselves: `gcc` `gcc-toolset` `clang` `pyenv`.
+**Language toolchains & their module installers** (take `name:` = crate/pkg/candidate; the
+`drivers:` block already requires each one's tool — `cargo → cargo`, `go-install → go`): `cargo` `pip`
+`pipx` `npm` `gem` `opam` `luarocks` `cabal` `go-install` `sdkman` (a pinned `version:` — an exact
+SDKMAN id like `21.0.12+1.1-tem` — installs and reads that version's own dir), and `pyenv` (compiles a
+CPython: the `python3.X` components' version-scoped method). Toolchains themselves: `gcc`
+`gcc-toolset` `clang`.
 
 **Post-install primitives:** `service` (`<name>-service` components — systemd `unit:`, or runit
 `runit:` on Void; `start: false` enables without starting), `group` (usermod — `<name>-group`,
@@ -395,8 +409,8 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
 - **`configsys versions <name> [--min VERSION] [--refresh]`** — shows, per install method, what
   version it *would* install (native-vs-upstream-tip lag called out), marks which meet `--min`, and
   how to pin one. Use it to confirm a new component's methods aren't shipping something ancient, and
-  to help a user pick a method by version. `--refresh` bypasses the version cache
-  (`state_dir/versions.hu`) and re-queries each method's `get_latest` live.
+  to help a user pick a method by version. `--refresh` bypasses the per-method cache
+  (`state_dir/method-versions.hu`) and re-queries each method's `get_latest` live.
 - **Version-scoped providers** — a component providing a *specific version* of a capability:
   `provides: { <cap>: N }` on the provider + `requires: { <cap>: ">=N" }` on the consumer (the
   constraint selects a resident by version and can even ENABLE a `standing: never-auto` provider).
@@ -415,8 +429,9 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
   (or `rpmfusion` for media). Newer Rust/Go tools are often NOT in EPEL → use cargo/tarball for EL.
 - **Ubuntu universe.** Many tools are in `universe`, not `main` — add `repo-component: universe` to
   the native binding (harmless on non-apt).
-- **musl (Alpine, void_musl).** glibc tarballs/appImages won't run (`requires: glibc` makes them
-  decline cleanly). Give musl a native pkg, a musl asset, or let it decline.
+- **musl (Alpine, void_musl, chimera).** glibc tarballs/appImages won't run: a tarball's `requires:
+  glibc` declines it cleanly, and the appImage (and brew) drivers aren't offered at all — never add
+  a `when:` exclusion for that. Give musl a native pkg, a musl asset, or let it decline.
 - **Void flavors are siblings.** `when: "void"` does NOT match `void_musl` — write `void or void_musl`
   (or just `void` deliberately, for a glibc-only package). Extending an existing or-list
   (`"debian or fedora or arch"` → `"… or void or void_musl"`) is house style; don't extend a binding
@@ -429,9 +444,11 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
 - **Binary ≠ package name.** Note the real binary in the description (`btm`, `spf`, `nvim`, `hx`).
 - **Metapackage installed via its parts.** If a component installs an apt METAPACKAGE that a system
   often has WITHOUT (Debian/Ubuntu/Pop ship LibreOffice as `libreoffice-core`/`-calc`/… without the
-  `libreoffice` meta), probing the meta falsely reports "missing". Add `installed-name: <a-part>` to
-  the native binding — apt READS state from it while `name` still installs the meta (`libreoffice`
-  detects via `libreoffice-core`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
+  `libreoffice` meta), probing the meta falsely reports "missing". Add `installed-name:` to the
+  native binding — the manager READS state from it while `name` still installs the meta. Like
+  `name:` it may be keyed by driver (`libreoffice`: `installed-name: { apt: libreoffice-core  dnf:
+  libreoffice-core }`, so pacman/zypper/… still probe their own name); a scalar applies to every
+  manager (`_native.installed_name`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
   (as is `packages: [...]`, a set installed/removed together, detected via `installed-name:` else its
   first member) — NOT by `brew`.
 - **CPU (aarch64).** A download that names a cpu (`amd64`, `x86_64`, `x64`, `linux64`, `64bit`)

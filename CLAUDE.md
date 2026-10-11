@@ -31,11 +31,12 @@ painting through a `Surface` (`BufferSurface` = headless render tests). Keys are
 numbers (router actions `keyspec.ROUTER_ACTIONS` — quit/quit-force/issues/help — bound in a screen
 scope work there); a higher layer's rebind takes the key from the lower layer's other action in the
 same scope, and `check` reports each cross-layer steal and any page left with no quit key
-(`keyspec.lint_merged`). Color
+(`keyspec.lint_keys` — steals via `merge_layer_keys`, the lockout via `lint_merged`). Color
 depth (direct 24-bit via a `-direct` terminfo; `--color`, `NO_COLOR`) and motion (`effects:`,
 auto-reduced over SSH) degrade gracefully; the startup splash is a pluggable provider (`splash:`).
 
-**CLI (`app.build_parser`).** No command = the TUI. Ops `inspect` / `install` / `remove` / `upgrade`
+**CLI (`app.build_parser`).** No command (or `tui`) = the TUI (`inspect` output when not on a
+terminal). Ops `inspect` / `install` / `remove` / `upgrade`
 (`--system` = System Updates) / `lock` / `unlock` / `set-version` / `fix-scope`; the matrix `picks` /
 `machine` / `profile` / `disp`; `pin`, `where`, `check`, `versions`, `location`, `show`; `config` /
 `theme` / `keys`; `plugin …` (incl. `set-source`, which also retargets the synced clone's origin);
@@ -84,9 +85,9 @@ the full spec). Its sections:
   `ctx.gated_drivers`, `gated_context` adds the derived ones (cached per load × context × pins;
   `Resolver.context()` and both resolve entry points go through it, so `where`/the picker/resolution
   agree), `resolve.driver_gated` drops the bindings in `_matching`, a "no binding" error appends
-  each gated method's reason (`_gate_note`), and a gate adds NO specificity — `routecheck.gated` intersects it with
-  `when:` to judge OVERLAP only (specificity stays on the raw `when:`); `where` names the reason
-  (`resolve.driver_gate_reason`). Merged across every layer (`layers.merge_dict_section` over
+  each gated method's reason (`_gate_note`), and neither kind adds specificity — `routecheck.gated`
+  intersects the explicit gate with `when:` to judge OVERLAP only (specificity stays on the raw
+  `when:`); `where` names the reason (`resolve.driver_gate_reason`). Merged across every layer (`layers.merge_dict_section` over
   `ALL_ROLES`), the top config last.
 - `facets:` — detected machine traits beyond OS/cpu, usable as `when:` atoms (`gpu:nvidia`;
   `docs/facets.md`). A `detect:` probe is command-carrying data, so a plugin's facets merge only
@@ -246,9 +247,10 @@ row, not a brick.
 **Stranded installs (configsys/stranded.py).** When routes stop offering a component's installed
 method (binding removed/gated, driver disabled), the component reads `switch` — nothing staged;
 installing it (`i`; `v` to choose another method first) runs the method-swap, removing the old
-install; no method left on this OS = `dangling` (never removed for you); only a disabled driver's
-method = `unmet`. Installs stay findable via an install RECEIPT the ledger (`state.hu`) records on
-every successful install/upgrade/set-version (cleared on remove; none for dotfiles/glue) + a
+install; no method left on this OS = `dangling` (never removed for you); routable only with a
+disabled driver back on — its own method, that driver's prerequisite (aur → snapd → snap), or a
+dependency — = `unmet` (`stranded.classify_unroutable`). Installs stay findable via an install
+RECEIPT the ledger (`state.hu`) records on every successful install/upgrade/set-version (cleared on remove; none for dotfiles/glue) + a
 `pacman -Qm` `<comp>-<variant>` heuristic for pre-receipt AUR installs. See
 `docs/stranded-installs.md`.
 
@@ -256,7 +258,8 @@ every successful install/upgrade/set-version (cleared on remove; none for dotfil
 picks, from each manager's own `upgradable_index` (apt/dnf/pacman/zypper/apk/xbps/brew +
 flatpak/snap; rpm-ostree omitted), grouped into tiers kernel/core/standard/apps
 (`classify_index`): `configsys updates`, `upgrade --system`, and the TUI Components "System
-Updates" group, applied via each manager's own `upgrade_all`. Within-release only; never modeled
+Updates" group, applied via each manager's own `upgrade_all`; a standard/apps row outside the
+manager's `explicit_keys()` (an auto-pulled dependency) is dimmed. Within-release only; never modeled
 as components (docs/principles.md).
 
 Drivers are defined in code (configsys/drivers/, base class configsys/driver.py — the frozen
@@ -264,11 +267,14 @@ plugin ABI) behind a uniform op set: get_version, get_latest, is_locked, install
 upgrade, set_version, lock, unlock, location (plus the optional hooks — batched `installed_index`/
 `batch_index` with the public `batch` attribute + `batched_version(rc)`, the orphan-scan and System
 Updates hooks, `outdated_signal` — all in the FROZEN list of the `driver.py` docstring since
-2026-10-10, pinned by test/test_abi_surface.py; underscore members stay internal). apt has various commands for these; as does flatpak, etc. Each `via:` value
+2026-10-10, pinned by test/test_abi_surface.py; underscore members stay internal. An
+`installed_index` of None means "can't tell" (the query failed → per-unit probes); a manager that
+isn't installed at all answers a true `{}`, nothing installed via it — docs/plugins.md §7a). apt
+has various commands for these; as does flatpak, etc. Each `via:` value
 names a Driver 1:1 (the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew,
 rpm-ostree; tarball, native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS
 package tool — its own via, distinct from repo `native`, because it doesn't ride `apt upgrade`;
-ranked after native in driver-preference], flatpak, snap, appImage [`desktop-id:` names its menu
+ranked after native/aur/flatpak/snap in driver-preference], flatpak, snap, appImage [`desktop-id:` names its menu
 entry after the app's own desktop id, so the compositor matches the window], font, script
 [declared install/version/uninstall commands], `source` [declarative build from a git checkout or
 archive]; the config drivers dotfiles [an app's own config: `.cfs` marker dir + manifest in the
@@ -278,16 +284,22 @@ shipped not captured, its own `glue/` roots, linked in load-order BANDS `00-conf
 glue>` (`component_link_stem`) / `90-<user glue>` (`user_link_name`) / `99-user` (an existing `NN-`
 prefix is kept; legacy links migrated); plus the user-glue namespace — `configsys glue add`
 (`user.d/`, a scaffolded `99-user`) and `glue override` (fork a component's shipped glue; `check`
-flags drift). The `configsys-glue` preludes (all five shells) define `configsys` → the real
-launcher ($CONFIGSYS_LAUNCHER, else `<state>/launcher` written on shell hookup by
-`Glue._record_launcher`, else `$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh`) and the
+flags drift). The `configsys-glue` preludes (all five shells) define `configsys`, unless one is
+already on PATH, → the real launcher ($CONFIGSYS_LAUNCHER, else `<state>/launcher` written on
+shell hookup by `Glue._record_launcher`, else `$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh`) and the
 `cfs` alias; the shared loaders carry nothing personal. The shell-writes guard (shellguard.py)
 exempts configsys's own marker blocks and stages an installer's rc edits machine-locally in
 `<state>/staged-glue/`; `dotfiles activate` turns one into user glue — see docs/shell-glue.md]; the language toolchains and their module/version installers
 cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman, gcc, gcc-toolset,
 clang; and the post-install primitives service [systemd or runit] and group [usermod]) — except
 `via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure aggregator, no
-driver of its own). More drivers can be added in core or by a trusted code plugin
+driver of its own). Each native manager (an `os:` block's `native:`) is also declared in exactly
+one map of each pair, never exempted by name: its refresh style — `app._NATIVE_REFRESH`
+(index-only, safe before one install, so also run before a batch per `refresh-before-execute`) or
+`app._FULL_UPGRADE_REFRESH` (pacman: only a full `-Syu` is safe, which `configsys refresh` asks
+before running and nothing runs automatically); its reboot check — `rebootcheck._REBOOT_CHECKS` or
+`_NO_REBOOT_CHECK` {manager: why none}; its name sweep — `namesweep.MANAGERS` or `UNSWEPT` {manager:
+what checks the names instead}. More drivers can be added in core or by a trusted code plugin
 (playbook: `/add-driver`, enforced by test/test_driver_inventory.py; `register_driver`).
 
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
@@ -318,7 +330,9 @@ clone-first.)
   playbooks for adding and auditing components; `/add-driver` is the checklist for a new `via:`
   driver (the class contract, routing placement, the hard-coded driver sets, every doc that lists
   drivers), and `test/test_driver_inventory.py` fails until a new driver is wired through it; `tools/namesweep.py` (+
-  `test/run-name-sweep-in-podman.sh`) checks native package names exist per distro.
+  `test/run-name-sweep-in-podman.sh`) checks native package names exist per distro, in podman
+  containers (brew has no container repo — `namesweep.UNSWEPT`; `compaudit`'s `probe_brew` checks
+  its formulae against formulae.brew.sh, flagging missing/alias/renamed/deprecated/keg-only).
 
 ## Some considerations
 

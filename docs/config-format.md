@@ -113,14 +113,17 @@ effective value and where it lives.
   sudo).
 - **`driver-preference`** (list, uniform; default `[ native, aur, flatpak, snap, native-pkg-file,
   appImage, brew, tarball, source, script ]`): the order that breaks ties between equally valid install
-  methods (see "Choosing among methods"). A layer's list replaces the whole list. An OS block that
-  declares its own `driver-preference:` takes precedence on that OS. Drivers your list doesn't name
-  aren't dropped: they follow the ones it names, in the default order, so a list written before a
-  new driver existed still ranks it. Only drivers named in no list tie, and a tie is an error.
+  methods (see "Choosing among methods"). A layer's list replaces the whole list. Your list needn't
+  name every driver: the drivers it leaves out follow the ones it names, in the default order, so a
+  list written before a new driver existed still ranks it. An OS block's own `driver-preference:`
+  (on this machine's block or a parent of it) ranks ahead of this setting on that OS. Drivers that
+  no list names rank last and tie with each other, and a choice that comes down to such a tie is an
+  error.
 - **`disabled-drivers`** (list of via names, machine; default none): turns install methods off on
   this machine. Their bindings stop matching, like a false `when:`, so a `suggests:` that needs one
-  is skipped and a `requires:` that needs one is an error. Use `dotfiles` and `glue` to manage your
-  own shell config, or for example `snap`.
+  is skipped and a `requires:` that needs one is an error. A driver whose own requirements only a
+  disabled driver could install stops working too (see "OS blocks and drivers"). Typical entries:
+  `dotfiles` and `glue`, to manage your shell startup files yourself, or `snap`.
 - **`auto-tighten`** (bool, uniform; default off): when a component's default method can't meet a
   version floor, pick a method that can, instead of only advising. An already-installed provider is
   never replaced automatically.
@@ -128,7 +131,8 @@ effective value and where it lives.
   installed over the computed default (detection).
 - **`refresh-before-execute`** (scalar, uniform; default `auto`): refresh the OS package index once
   before running staged operations: `auto` (when the batch includes a native install or upgrade),
-  `always`, or `never`.
+  `always`, or `never`. On Arch, where the only safe refresh is a full system upgrade, nothing is
+  refreshed automatically; `configsys refresh` offers the upgrade.
 - **`install-overlay`** (bool, uniform; default on): open the TUI Profiles screen with the
   install-state overlay on (`O` toggles it).
 - **`reboot-advice`** (bool, uniform; default on): after an operation, and as a TUI header chip,
@@ -148,8 +152,9 @@ effective value and where it lives.
   component. `configsys versions <name>` shows every method's state either way.
 - **`installer-shell-writes`** (`block` or `allow`, uniform; default `block`): the shell-writes
   guard. With `block`, when an installer edits `~/.bashrc`, `~/.bash_profile`, `~/.profile`,
-  `~/.zshrc` or `~/.zprofile` during an install or upgrade, configsys restores the file and keeps
-  the removed lines as an inactive glue candidate (see "glue"). `allow` turns the guard off.
+  `~/.zshrc` or `~/.zprofile` during an install, upgrade or version change, configsys restores the
+  file and keeps the removed lines as an inactive glue candidate (see "glue"). `allow` turns the
+  guard off.
 - **`installer-shell-writes-allow`** (list of components, uniform; default none): components whose
   rc-file edits are wanted and left alone.
 - **`locations`** (map of component to path, machine; default empty): "find and manage this
@@ -418,8 +423,8 @@ Every binding may use:
   (`name: { apt: fd-find  default: fd }`).
 - **`scope:`** `user` or `system`, for scope-honoring drivers (`appImage`, `flatpak`, `tarball`,
   `source`, `font`, `npm`, `gem`, `luarocks`); it beats the `scope:` setting. Other drivers have a
-  fixed scope (OS package managers are system; `cargo`, `pipx`, `dotfiles`, `glue` are user) and
-  ignore it.
+  fixed scope (the distro package managers are system; `brew`, `cargo`, `pipx`, `dotfiles` and
+  `glue` are user) and ignore it.
 - **`packages:`** (native, and the versioned `gcc`/`clang` drivers) a list of packages installed and
   removed together as one unit; install state is read from the first.
 - **`installed-name:`** (native) the one package to read install state and version from, when it
@@ -459,7 +464,15 @@ Driver-specific fields include:
   `tag-prefix:`, `strip:`, `installDir:`, `prefix:`, `uninstall-cmd:`.
 - **script**: `install-cmd:` (required), `version-cmd:` + `version-re:`, `latest-cmd:`,
   `uninstall-cmd:`, `upgrade-cmd:`, `set-version-cmd:`, `location:`.
+- **brew**: `name:` (the formula). On Fedora Atomic, where brew is the native package manager, a
+  `via: native` binding's `name:` map takes a `brew:` key.
+- **rpm-ostree**: `apply-live: true` also applies the layered package to the running system,
+  instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
 - **pipx** and **pip**: `name:`, `python:` (the interpreter), `version: { pypi: <dist> }`.
+- **sdkman**: `name:` (the SDKMAN candidate, such as `java`), and optionally `version:`, an exact
+  SDKMAN version identifier (`21.0.12+1.1-tem`). A binding with a `version:` installs and reads
+  only that version, so several components can share one candidate, and upgrading it installs the
+  identifier the route names rather than moving SDKMAN's default.
 - **service**: `unit:`, `start: false`, `runit:` (the runit service name or names, where they
   differ). **group**: `name:` (the group).
 - **dotfiles** and **glue**: see their sections.
@@ -513,21 +526,23 @@ method works here), never which method to prefer. Its atoms are:
 Combine atoms with `and`, `or`, `not` and parentheses (`not` binds tightest, then `and`, then
 `or`); `not` applies to any atom, for example `"ubuntu and not pop_os!"`.
 
-OS blocks form a lineage through `using:` (`pop_os!` -> `ubuntu` -> `debian` -> `linux`), so a
-binding written for `debian` applies to the whole family. The machine's block comes from
-`/etc/os-release`'s `ID`; a few IDs map to a differently named block, because block names can't
-contain `-` (`ID=pop` -> `pop_os!`, `ID=opensuse-leap` -> `opensuse_leap`). A `when:` naming an unknown OS block is a `check` warning, since it would never
-match. Two bindings of the **same driver** whose conditions overlap must be comparable (one more
-specific than the other), or configsys reports a load-time ambiguity; overlapping bindings of
-*different* drivers are legal alternatives.
+OS blocks form a lineage through `using:` (`pop_os!` -> `ubuntu` -> `debian` -> `glibc_linux` ->
+`linux`), so a binding written for `debian` applies to the whole family. The machine's block comes
+from `/etc/os-release`'s `ID`; a few IDs map to a differently named block, because block names
+can't contain `-` (`ID=pop` -> `pop_os!`, `ID=opensuse-leap` -> `opensuse_leap`). A `when:` naming
+an unknown OS block is a `check` warning, since it would never match. Two bindings of the
+**same driver** whose conditions overlap must be comparable (one more specific than the other), or
+configsys reports a load-time ambiguity; overlapping bindings of *different* drivers are legal
+alternatives.
 
 ## Choosing among methods
 
 A component can have several valid install methods in one context (for example `native` and
-`flatpak` both work on Ubuntu). A binding is **valid** here when its `when:` holds, its CPU is
-covered (`cpu-names:` or a CPU-keyed `asset:`), its driver isn't in `disabled-drivers:`, its
-driver's own `when:` gate holds (see "OS blocks and drivers"), and it isn't `via: native` on an OS
-with no package manager. Among the valid ones, configsys picks one default deterministically:
+`flatpak` both work on Ubuntu). A binding is **valid** here, a **candidate**, when its `when:`
+holds, its CPU is covered (`cpu-names:` or a CPU-keyed `asset:`), its driver isn't in
+`disabled-drivers:`, its driver can work here (the driver's own requirements can be met, and its
+`when:` gate, if it has one, holds; see "OS blocks and drivers"), and it isn't `via: native` on an
+OS with no package manager. Among the valid ones, configsys picks one default deterministically:
 
 - bindings and drivers marked **`standing: never-auto`** are set aside (unless every valid method
   is);
@@ -535,11 +550,13 @@ with no package manager. Among the valid ones, configsys picks one default deter
   drivers;
 - then a binding's **`standing:`** integer rank (a narrow, per-package author signal, so it
   outranks the blanket order below);
-- then **`driver-preference`**, the global tiebreak list (a machine setting, overridable per OS
-  block). The default order is `native, aur, flatpak, snap, native-pkg-file, appImage, brew,
-  tarball, source, script`, so on Arch an AUR package beats a flatpak or a download, and on a glibc
-  distro a Homebrew formula beats a plain download but never a distro package, flatpak, snap,
-  release `.deb`/`.rpm` or AppImage.
+- then **`driver-preference`**, the tiebreak list (a machine setting; an OS block's own list ranks
+  ahead of it, and drivers a list leaves out follow in the default order). The default order is
+  `native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script`, so on Arch
+  an AUR package beats a flatpak or a download, and on a glibc distro a Homebrew formula beats a
+  plain download or a language-toolchain install (`cargo`, `pipx`, `npm`, …) but never a distro
+  package, flatpak, snap, release `.deb`/`.rpm` or AppImage. Drivers that no list names, such as
+  the language toolchains, rank after every listed one and tie with each other.
 
 If that still ties, it is an error that names the preference channel, never a request to narrow a
 validity `when:`. Above the default sit three overrides, highest first:
@@ -566,7 +583,9 @@ An `os:` block describes one distro:
 - **`scale-root: true`** marks a block that numbers its own releases, so versioned atoms on a parent
   don't misread its version;
 - **`provides:`** capabilities the OS has out of the box;
-- **`driver-preference:`** an OS-specific tiebreak order that overrides the machine setting there;
+- **`driver-preference:`** an OS-specific tiebreak order, consulted before the machine setting on
+  this block and the blocks that inherit from it (the nearest block's list first); drivers it
+  doesn't name fall back to the setting, then to the default order;
 - **`detect: { id: <base>  marker: <path> }`** detects a derivative that doesn't rebrand
   `/etc/os-release` (Proxmox VE reports `ID=debian`). When the detected block is that base, or a
   descendant of it, and every marker exists on disk (`marker:` may be a list), configsys routes to
@@ -585,7 +604,7 @@ this OS's package manager is that driver:
   libfuse2). Your provider pins count: on Alpine, `pins: { glibc: gcompat }` opts in to the gcompat
   shim and makes AppImage methods valid there.
 - **`standing: never-auto`** makes every binding of that driver a listed, pinnable alternative that
-  never wins by default (the shipped `snap` entry does this).
+  never wins by default while an ordinary method is valid (the shipped `snap` entry does this).
 - **`when:`** a validity gate for the whole driver, in the same expression language as a binding's
   `when:`, for a fact that isn't a requirement. Where it is false, no binding of that driver is
   valid. Unlike a binding's `when:`, it never makes a binding more specific, so it can't change
@@ -594,7 +613,7 @@ this OS's package manager is that driver:
   distro and on none of the musl ones), and `aur` has `when: "arch"` (the AUR is Arch's).
 
 `configsys where` names the reason whenever a driver is ruled out, for example "the snap driver
-can't work here: nothing provides "snapd" here".
+can't work here: nothing provides "snapd" here (required by snapd-socket)".
 
 ```hu
 drivers: {
@@ -644,11 +663,13 @@ An **`asset:`** may also sit directly on the binding as a CPU-keyed map
 `github` asset name is literal (no glob), configsys can fall back to the API-free
 `releases/latest/download/<asset>` URL, so installs keep working when the GitHub API is unreachable.
 
-Discovered versions are cached (`~/.config/configsys/versions.hu`, 24-hour lifetime); `configsys
-refresh` re-queries them (and refreshes the native package index); `configsys versions <name>` shows
-what every method would install; and `--pretend` never touches the network (cache only). Release
-tags come from GitHub's public feeds; a release asset's URL needs the GitHub API, so set
-`CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`) if you hit its unauthenticated rate limit.
+Discovered versions are cached (`~/.config/configsys/versions.hu`, 24-hour lifetime).
+`configsys refresh` re-queries them and refreshes the native package index (on Arch, where the
+only safe refresh is a full system upgrade, it asks before running `pacman -Syu`);
+`configsys versions <name>` shows what every method would install; and `--pretend` never touches
+the network (cache only). Release tags come from GitHub's public feeds; a release asset's URL needs
+the GitHub API, so set `CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`) if you hit its unauthenticated
+rate limit.
 
 ## dotfiles
 
@@ -678,7 +699,8 @@ never point into the configsys repo.
 
 Because your existing config is precious, install **refuses** to replace a real file with an
 un-adopted template and tells you how to adopt it (`configsys dotfiles capture`), or to run
-`install --force`, which backs the file up to `<name>.pre-configsys` and replaces it. Content you
+`install --force`, which backs the file up to `<name>.pre-configsys` and replaces it (an earlier
+backup is never overwritten: a later one goes to `<name>.pre-configsys.1`, `.2`, …). Content you
 have captured links freely (backing up whatever was there); an `absorb-into:` path on a spec moves a
 pre-existing file into a loader directory instead of backing it up (for example a stray
 `~/.bash_aliases`). `uninstall` removes the symlink and restores any backup.
@@ -1088,15 +1110,21 @@ and `check` reports the key as unrecognized.
 - `XDG_CONFIG_HOME`: the base of the state directory when `CONFIGSYS_HOME` isn't set.
 - `CONFIGSYS_STATE_DIR`: the state directory itself (plugins, caches, the ledger, and by default
   your top config).
+- `CONFIGSYS_REPO`: the directory holding the shipped `routes.hu` and `config.hu`, instead of the
+  ones beside the configsys program.
 - `CONFIGSYS_USERSCOPE_DIR`, `CONFIGSYS_SYSTEMSCOPE_DIR`, `CONFIGSYS_APP_DIR`, `CONFIGSYS_SDK_DIR`,
   `CONFIGSYS_SRC_DIR`: override the matching `dirs:` key.
 - `CONFIGSYS_OS`, `CONFIGSYS_OS_VERSION`, `CONFIGSYS_ARCH`: evaluate routes as this OS block,
   version and CPU instead of the detected ones (`--os` sets the block).
 - `CONFIGSYS_FACET_<name>`: a facet's value, overriding detection and your `facets:`.
+- `CONFIGSYS_COLOR`: caps the TUI color depth, with the same values as `--color`; `NO_COLOR`
+  (any non-empty value) forces monochrome.
 - `CONFIGSYS_EFFECTS`: overrides `effects:` (`--effects` sets it).
 - `CONFIGSYS_NO_SPLASH`: no startup splash; `CONFIGSYS_SPLASH=always` shows it even on a fast
-  start.
+  start, and `CONFIGSYS_SPLASH=linger` also holds it until you press a key (`--splash-linger`).
 - `CONFIGSYS_GLUE_SHELLS`: which shells glue treats as installed.
+- `CONFIGSYS_PM`: `apt` or `dnf`, the package manager the `gcc` and `clang` drivers use instead
+  of the detected one.
 - `CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`): authenticates GitHub API calls.
 - `CONFIGSYS_GIT_TOKEN`: lets `plugin sync` clone a private `github:`/`gitlab:` plugin.
 
