@@ -1364,22 +1364,38 @@ def refresh_native_index(ctx):
     return True, res.ok
 
 
-_NATIVE_PMS = frozenset(_NATIVE_REFRESH)   # index benefits from a pre-batch refresh (not a full-upgrade one)
+def _uses_native_index(rc, pm):
+    '''True when installing/upgrading `rc` reads THIS OS's package index: a unit of the OS's own
+    manager (brew elsewhere on glibc is its own user-space prefix — `brew install` updates itself),
+    or a native-backed driver whose installs go through that manager (native-pkg-file's .deb/.rpm
+    dependencies, clang/gcc from an added repo).'''
+    if rc.driver == pm:
+        return True
+    drv = get_driver(rc.driver, None)
+    return bool(drv is not None and drv.native_backed)
 
 
 def maybe_refresh_before_plan(ctx, plan):
     '''Per the `refresh-before-execute` setting, refresh the OS package index ONCE before running
     `plan` — so upgrades see current candidates and a broken vendor source is caught up front instead
-    of failing per-package. 'auto' (default) refreshes only when the plan has a native install/
-    upgrade; 'always'/'never' force it. Non-fatal: a failed refresh proceeds on the cached index.'''
+    of failing per-package. 'auto' (default) refreshes only when the plan installs/upgrades something
+    that reads this OS's index (_uses_native_index); 'always'/'never' force it. A manager with no
+    index-only refresh (_FULL_UPGRADE_REFRESH) is never refreshed here; 'always' says so. Non-fatal:
+    a failed refresh proceeds on the cached index.'''
     cfg = getattr(ctx, 'config', None)
     mode = cfg.refresh_before_execute() if hasattr(cfg, 'refresh_before_execute') else 'auto'
     if mode == 'never':
         return
     if getattr(ctx, 'routes', None) is None or getattr(ctx, 'os_info', None) is None:
         return                               # not enough context to refresh (e.g. a bare test stub)
-    has_native = any(op in ('install', 'upgrade') and rc.driver in _NATIVE_PMS for op, _k, rc in plan)
-    if mode == 'auto' and not has_native:
+    pm = ctx.routes.cascade.native(ctx.os_info.block)
+    if mode == 'auto' and not any(op in ('install', 'upgrade') and _uses_native_index(rc, pm)
+                                  for op, _k, rc in plan):
+        return
+    if pm not in _NATIVE_REFRESH:
+        if mode == 'always' and pm in _FULL_UPGRADE_REFRESH:
+            print(f'\nNot refreshing the {pm} index before the batch: its only safe refresh is a full '
+                  'upgrade (run `configsys refresh` for that).', flush=True)
         return
     print('\nRefreshing the package index before the batch…', flush=True)
     ran, ok = refresh_native_index(ctx)

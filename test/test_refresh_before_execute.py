@@ -54,3 +54,27 @@ def test_pacman_is_skipped_no_safe_index_refresh():
     ctx, calls = _mkctx('always', pm='pacman')
     app.maybe_refresh_before_plan(ctx, _plan(('upgrade', 'pacman')))
     assert calls == []                      # pacman has no safe index-only refresh
+
+
+def test_auto_refreshes_only_for_this_oss_manager_not_brew_elsewhere():
+    # on Ubuntu a brew formula installs into its own prefix (and brew updates itself): no apt refresh
+    ctx, calls = _mkctx('auto')
+    app.maybe_refresh_before_plan(ctx, _plan(('install', 'brew')))
+    assert calls == []
+    # on fedora_atomic brew IS the OS manager -> `brew update`, never sudo apt
+    ctx, calls = _mkctx('auto', pm='brew')
+    app.maybe_refresh_before_plan(ctx, _plan(('install', 'brew')))
+    assert calls == ['brew update']
+
+
+def test_auto_refreshes_for_a_native_backed_install():
+    ctx, calls = _mkctx('auto')
+    app.maybe_refresh_before_plan(ctx, _plan(('install', 'native-pkg-file')))   # a .deb's deps
+    assert any('apt-get update' in c for c in calls)
+
+
+def test_always_on_pacman_says_why_and_never_claims_a_refresh(capsys):
+    ctx, calls = _mkctx('always', pm='pacman')
+    app.maybe_refresh_before_plan(ctx, _plan(('remove', 'tarball')))
+    out = capsys.readouterr().out
+    assert calls == [] and 'Refreshing' not in out and 'full upgrade' in out
