@@ -1017,8 +1017,8 @@ _HELP = {
         ],
     },
     'profiles': {
-        'desc': "The component × machine matrix. Left: repo/plugin profiles as a BROWSE LENS — page "
-                "through them to discover components. Right: a table of the components, with a column "
+        'desc': "The component × machine matrix. Left: profiles as a BROWSE LENS — the repo's, your "
+                "plugins' and your own — page through them to discover components. Right: a table of the components, with a column "
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
             ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
@@ -2948,12 +2948,11 @@ class ProfileScreen:
         if getattr(self, '_vpn_sig', None) == sig:
             return self._vpn_cache
         f = self.pfilter.lower()
-        # BROWSE LENS: only repo/plugin profiles (system, shipped). Authored user profiles (machine/
-        # primary/user) and reserved names (!uninstall, all, @picks) are irrelevant in the matrix model.
+        # BROWSE LENS: every profile from any layer — the shipped catalog, plugins', and your own
+        # (primary/top config: your browse categories, never an install set). Reserved names
+        # (!uninstall, !all, @picks) are placed explicitly instead.
         browse = ([self.ctx.config.ALL_PROFILE]      # `!all` first: the browse-everything lens
-                  + [p for p in self.profiles
-                     if not p.startswith(('!', '@'))
-                     and (self._profile_groups(p) & {'repo', 'plugin'})]
+                  + [p for p in self.profiles if not p.startswith(('!', '@'))]
                   + [self.ctx.config.UNINSTALL_PROFILE])   # `!uninstall`: the staged-removal queue, last
         roots = [p for p in browse if f in p.lower()] if f else browse
         out = []

@@ -41,7 +41,7 @@ def _rctx(tmp_path):
 
 
 def test_profile_tree_and_browse(tmp_path):
-    # v3: flat BROWSE list — `!all` first (the whole catalog), then repo/plugin profiles; the catalog
+    # v3: flat BROWSE list — `!all` first (the whole catalog), then every layer's profiles; the catalog
     # is always scoped to the selected profile's members (no `*` toggle).
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
@@ -156,8 +156,8 @@ def test_profile_multiselect_batch_targets(tmp_path):
 
 
 def test_profile_pane_is_flat_browse_only(tmp_path):
-    # v3: the left pane is a FLAT browse list of the shipped repo/plugin profiles — no layer group
-    # headers, plus the two keyword lenses.
+    # v3: the left pane is a FLAT browse list of every profile (repo, plugins, your own) — no layer
+    # group headers, plus the two keyword lenses.
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
     ps = menu.ProfileScreen(ctx)
@@ -166,6 +166,17 @@ def test_profile_pane_is_flat_browse_only(tmp_path):
     names = {nd[0] for nd in v}
     assert 'finders' in names and 'languages' in names        # repo browse profiles present
     assert '!all' in names and '!uninstall' in names          # the two keyword browse lenses show
+
+
+def test_profile_pane_lists_your_own_profiles_too(tmp_path):
+    # a top-config `profiles:` entry is your own browse category — it shows beside the catalog
+    from configsys.tui import menu
+    cfgdir = tmp_path / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text('{ profiles: { my-monitors: [ btop  htop ] } }')
+    ps = menu.ProfileScreen(_rctx(tmp_path))
+    names = [nd[0] for nd in ps.visible_pnodes()]
+    assert 'my-monitors' in names and 'finders' in names
 
 
 def test_where_profile_report(tmp_path):
