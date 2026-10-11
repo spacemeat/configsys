@@ -81,13 +81,20 @@ def managed_keys(ctx):
         return set()
 
 
-def gather(ctx):
+def gather(ctx, notes_out=None):
     '''{manager_name: [UpdateRow]} of upgradable − managed, per manager present on this machine. A
-    manager that can't enumerate (absent / query failed) or reports nothing upgradable is omitted.'''
+    manager that can't enumerate (absent / query failed) or reports nothing upgradable is omitted.
+    `notes_out` (a list) collects each manager's `upgradable_advisory()` — the optional hook a driver
+    exposes when its list may be incomplete (pacman without checkupdates reads a stale sync DB) —
+    as "<manager>: <why>", even when that manager listed nothing.'''
     managed = managed_keys(ctx)
     out = {}
     for drv in machine_managers(ctx):
         idx = drv.upgradable_index()
+        adv = getattr(drv, 'upgradable_advisory', None)
+        note = adv() if callable(adv) else None
+        if note and notes_out is not None:
+            notes_out.append(f'{drv.name}: {note}')
         if not idx:                                      # None (absent/failed) or {} (up to date)
             continue
         held = drv.held_keys() or set()
@@ -129,13 +136,15 @@ def start_scan(ctx):
     ctx._sysupd_dirty = False
 
     def run():
+        notes = []
         try:
-            g = gather(ctx)
+            g = gather(ctx, notes)
         except Exception:                                # noqa: BLE001 — never let the scan brick the TUI
             g = {}
         with _SCAN_LOCK:                                 # atomic vs invalidate()'s bump + clear
             if getattr(ctx, '_sysupd_gen', 0) != gen:
                 return                                   # superseded by an invalidate(): drop it
+            ctx._sysupd_notes = notes                    # the `!` page lists them (Context.issues)
             ctx._sysupd_groups = g
             ctx._sysupd_dirty = True
 
@@ -167,6 +176,7 @@ def invalidate(ctx):
     with _SCAN_LOCK:
         ctx._sysupd_gen = getattr(ctx, '_sysupd_gen', 0) + 1
         ctx._sysupd_groups = None
+        ctx._sysupd_notes = []
         ctx._sysupd_dirty = False
 
 

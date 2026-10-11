@@ -10250,6 +10250,15 @@
     "name": "7zip"
    }
   },
+  "pacman-contrib": {
+   "pacman\\pacman-contrib": {
+    "driver": "pacman",
+    "fields": {
+     "name": "pacman-contrib"
+    },
+    "name": "pacman-contrib"
+   }
+  },
   "pango": {
    "pacman\\pango": {
     "driver": "pacman",

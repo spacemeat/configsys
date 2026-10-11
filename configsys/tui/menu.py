@@ -4619,6 +4619,11 @@ def run(ctx):
                         ms, states = _fold_system_updates(ctx, cfg, ms)   # drawn next frame
                     except Exception as e:               # noqa: BLE001 — never crash on the fold-in
                         note = f'system-updates fold failed: {e}'
+                    # its advisories (a manager's list may be incomplete) join the `!` page here,
+                    # since diagnostics aren't recomputed for a fold
+                    diags = [d for d in diags if d.get('tag') != 'system-updates'] + [
+                        {'level': 'warn', 'tag': 'system-updates', 'text': n}
+                        for n in getattr(ctx, '_sysupd_notes', None) or ()]
                 continue
 
             oact = keymap.action_for('components', ch)   # overlays scroll via the same nav actions

@@ -61,8 +61,8 @@ one map, test_driver_inventory):
 - `app._FULL_UPGRADE_REFRESH` (pacman) — an index-only `pacman -Sy` would leave a partial-sync
   state that breaks the next `pacman -S`, so the only safe refresh is `pacman -Syu` itself.
   `refresh_native_index` returns `(False, True)` and does nothing; `configsys refresh` asks before
-  running the full upgrade. Consequence: on Arch, `pacman -Qu` sees only what the last full sync
-  knew, so the lane usually lists nothing for pacman (see the Coverage notes).
+  running the full upgrade. So the pacman lister can't rely on the real sync DB being current —
+  see the Coverage notes for how it lists anyway.
 
 ## Coverage
 
@@ -74,7 +74,7 @@ manager's query fails and it is dropped.
 | --- | --- | --- | --- | --- |
 | apt | `apt list --upgradable` | `apt-mark showhold` | `apt-get upgrade --with-new-pkgs -y` (sudo, noninteractive env) | Priority |
 | dnf | `dnf -q check-update` (exit 100 = updates) | `dnf versionlock list` | `dnf upgrade -y` (sudo) | name |
-| pacman | `pacman -Qu` (exit 1 = none) | — | `pacman -Syu --noconfirm` (sudo) | name |
+| pacman | `checkupdates` (exit 2 = none), else `pacman -Qu` (exit 1 = none) | — | `pacman -Syu --noconfirm` (sudo) | name |
 | zypper | `zypper --non-interactive -q list-updates` (`LC_ALL=C`) | `zypper locks` (`LC_ALL=C`) | `zypper --non-interactive update` (sudo) | name |
 | apk | `apk list --upgradable` | — | `apk upgrade` (sudo) | name |
 | xbps | `xbps-install -un` (`update` rows only) | `xbps-query -H` | `xbps-install -Suy` (sudo) | name |
@@ -90,12 +90,15 @@ Notes on the choices:
 - **pacman / apk / xbps** are rolling: the only safe bulk is a full system upgrade (`pacman -Syu`
   and `xbps-install -Suy` sync as they go; `apk upgrade` runs after the up-front `apk update`), and
   pacman/apk have no per-package hold (`holds_version = False`).
-- **pacman lists from a stale DB.** Because nothing safe refreshes pacman's sync DB short of the
-  full upgrade (Refresh styles, under Driver hooks), `pacman -Qu` reports against the last `-Syu`; `upgrade
-  --system` then finds no pacman rows and never runs `pacman -Syu`. The pacman half of the lane is
-  effectively blind until the sync DB moves outside configsys (a hand-run `pacman -Sy`, itself the
-  partial-sync state configsys avoids). Open gap, not a policy: a safe probe (e.g. pacman-contrib's
-  `checkupdates`, which syncs a temporary DB copy) would close it.
+- **pacman lists through `checkupdates`.** Nothing safe refreshes pacman's real sync DB short of
+  the full upgrade (Refresh styles, under Driver hooks), so `Pacman.upgradable_index` runs
+  pacman-contrib's `checkupdates`, which syncs a temporary DB copy (no root, the real DB untouched)
+  and lists what a `pacman -Syu` would bring now. Without pacman-contrib (exit 127) or when it fails,
+  it falls back to `pacman -Qu` against the last full sync and says so through the driver's
+  `upgradable_advisory()`: `sysupdates.gather(ctx, notes_out)` collects it even when the list is
+  empty, `updates` / `upgrade --system` print it under the list, and the TUI adds it to the `!` page
+  when its scan lands. The advisory names the `pacman-contrib` component (Arch-only, never pulled in
+  automatically).
 - **flatpak** keys rows by normalized full ref (`id/arch/branch`, `Flatpak._norm_ref`), so a
   runtime installed at two branches stays two rows, each against its own installed version.
   `update_dedup_key` maps a ref back to the app id for dedup. Detection is commit-based: an

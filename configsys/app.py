@@ -268,6 +268,8 @@ class Context:
             # dotfiles hygiene (warn-only): un-captured managed config + any surviving repo-link.
             for tag, text in _dotfiles_diagnostics(self):
                 add('warn', tag, text)
+        for note in getattr(self, '_sysupd_notes', None) or ():   # the TUI's System Updates scan
+            add('warn', 'system-updates', note)
         return out
 
     def ensure_plugin_code(self):
@@ -1068,17 +1070,26 @@ def cmd_updates(ctx, args):
     '''List everything the machine's package managers report upgradable OUTSIDE the tracked picks —
     the System Updates lane. Read-only; `configsys upgrade --system` applies it.'''
     from . import sysupdates
-    groups = sysupdates.gather(ctx)
+    notes = []
+    groups = sysupdates.gather(ctx, notes)
     if not groups:
         print('configsys: no system updates — every package manager reports up to date.\n'
               '(Run `configsys refresh` first if the index may be stale.)')
+        _print_update_notes(notes)
         return 0
     print('System updates — packages upgradable outside your picks '
           '(these are each manager\'s own report, not tracked components):\n')
     total = _print_updates_groups(groups)
     print(f'{total} package(s) across {len(groups)} manager(s). '
           'Apply with `configsys upgrade --system`.')
+    _print_update_notes(notes)
     return 0
+
+
+def _print_update_notes(notes):
+    '''Each manager's upgradable_advisory (a list that may be incomplete), after the update list.'''
+    for n in notes:
+        print(f'  ⚠ {n}')
 
 
 def cmd_upgrade_system(ctx, args):
@@ -1092,12 +1103,15 @@ def cmd_upgrade_system(ctx, args):
     if ran and not ok:
         print('  ⚠ index refresh hit a problem — proceeding on the cached index '
               '(run `configsys refresh` to diagnose)')
-    groups = sysupdates.gather(ctx)
+    notes = []
+    groups = sysupdates.gather(ctx, notes)
     if not groups:
         print('\nconfigsys: no system updates to apply — everything is up to date.')
+        _print_update_notes(notes)
         return 0
     print()
     total = _print_updates_groups(groups)
+    _print_update_notes(notes)
     print(f'{total} package(s) across {len(groups)} manager(s) will be upgraded via each '
           "manager's own bulk command.")
     if not getattr(args, 'yes', False):

@@ -172,11 +172,13 @@ def test_dnf_upgradable_and_bulk():
 
 
 def test_pacman_upgradable_and_bulk():
-    r = FakeRunner([('pacman -Qu', 0, 'linux 6.9.1-1 -> 6.9.2-1\nvim 9.1.0-1 -> 9.1.5-1\n')])
+    # no pacman-contrib (checkupdates -> 127): falls back to pacman -Qu on the last-synced DB
+    r = FakeRunner([('checkupdates', 127, ''),
+                    ('pacman -Qu', 0, 'linux 6.9.1-1 -> 6.9.2-1\nvim 9.1.0-1 -> 9.1.5-1\n')])
     assert Pacman(r).upgradable_index() == {'linux': ('6.9.1-1', '6.9.2-1'),
                                             'vim': ('9.1.0-1', '9.1.5-1')}
     # exit 1 with no output = nothing upgradable, NOT a failure
-    assert Pacman(FakeRunner([('pacman -Qu', 1, '')])).upgradable_index() == {}
+    assert Pacman(FakeRunner([('checkupdates', 127, ''), ('pacman -Qu', 1, '')])).upgradable_index() == {}
     r2 = FakeRunner()
     Pacman(r2).upgrade_all()
     assert r2.calls == ['sudo pacman -Syu --noconfirm']         # full upgrade — the only safe bulk
@@ -212,6 +214,22 @@ def test_brew_upgradable_held_and_bulk():
     r2 = FakeRunner()
     Brew(r2).upgrade_all()
     assert r2.calls == ['brew upgrade']                          # user-owned prefix; never sudo
+
+
+def test_pacman_lists_live_via_checkupdates_and_says_when_it_cannot():
+    d = Pacman(FakeRunner([('checkupdates', 0, 'vim 9.1.0-1 -> 9.1.5-1\n')]))
+    assert d.upgradable_index() == {'vim': ('9.1.0-1', '9.1.5-1')}
+    assert d.upgradable_advisory() is None                      # a live list: nothing to caveat
+    d = Pacman(FakeRunner([('checkupdates', 2, '')]))           # checkupdates: exit 2 = none pending
+    assert d.upgradable_index() == {} and d.upgradable_advisory() is None
+    fr = FakeRunner([('checkupdates', 127, ''), ('pacman -Qu', 1, '')])
+    d = Pacman(fr)
+    assert d.upgradable_index() == {}
+    assert 'pacman-contrib' in d.upgradable_advisory()          # stale list -> names the fix
+    assert fr.calls == ['checkupdates', 'pacman -Qu']           # never touches the real sync DB
+    d = Pacman(FakeRunner([('checkupdates', 1, ''), ('pacman -Qu', 1, '')]))
+    d.upgradable_index()
+    assert 'failed (exit 1)' in d.upgradable_advisory()
 
 
 # -- gather (aggregation + managed-picks exclusion) -----------------------
@@ -291,6 +309,15 @@ def test_gather_excludes_managed_keys_across_managers(monkeypatch):
     assert {r.key for r in groups['apt']} == {'htop'}                       # vim excluded
     assert {r.key for r in groups['flatpak']} == {'org.freedesktop.Platform/x86_64/24.08'}  # chrome excluded
     assert {r.key for r in groups['snap']} == {'hello'}
+
+
+def test_gather_collects_advisories_even_when_a_manager_lists_nothing():
+    ctx = _Ctx(FakeRunner([('checkupdates', 127, ''), ('pacman -Qu', 1, '')]))
+    ctx.routes.cascade.native = lambda block: 'pacman'
+    notes = []
+    groups = sysupdates.gather(ctx, notes)
+    assert 'pacman' not in groups
+    assert len(notes) == 1 and notes[0].startswith('pacman: ') and 'pacman-contrib' in notes[0]
 
 
 def test_gather_omits_a_manager_with_nothing_upgradable():

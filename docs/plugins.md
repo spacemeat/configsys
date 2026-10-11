@@ -381,6 +381,10 @@ one of those by name).
   --system` after its confirmation, and by the TUI after it refreshes the native index. The manager
   itself keeps held packages back. `None` (default) = no bulk command; the CLI prints that it was
   skipped.
+- **`upgradable_advisory() -> str | None`** — not on the base class; the core looks for it with
+  `getattr` right after `upgradable_index()`. Return a line when the list you just gave may be
+  incomplete (pacman without `checkupdates` lists from its last full sync); it is shown under
+  `configsys updates` and on the TUI `!` page, even when the list is empty. `None` = nothing to add.
 
 **Version signals**
 

@@ -24,6 +24,22 @@ _VER_RE = re.compile(r'^Version\s*:\s*(.+)$', re.MULTILINE)
 # installed and available "version" so a group reads as installed/up-to-date rather than missing.
 _GROUP = '(group)'
 
+_NOT_FOUND = 127     # the shell's "command not found": pacman-contrib (checkupdates) isn't installed
+_NO_CHECKUPDATES = ('listed from your last full sync (pacman -Syu), so newer updates may be '
+                    'missing — install pacman-contrib for a live list: configsys install pacman-contrib')
+
+
+def _parse_upgradable(stdout):
+    '''{name: (installed, candidate)} from `pacman -Qu` / `checkupdates` lines ("name old -> new").'''
+    idx = {}
+    for line in stdout.splitlines():
+        cols = line.split()
+        if len(cols) >= 4 and cols[2] == '->':
+            idx.setdefault(cols[0], (cols[1], cols[3]))
+        elif cols:
+            idx.setdefault(cols[0], (None, cols[-1]))
+    return idx
+
 
 class Pacman(NativePkgManager):
     name = 'pacman'
@@ -82,19 +98,31 @@ class Pacman(NativePkgManager):
         return _GROUP if g.ok and g.stdout.strip() else None
 
     def upgradable_index(self):
+        # Prefer pacman-contrib's `checkupdates`: it syncs a TEMPORARY copy of the sync DB (no root, the
+        # real DB untouched), so it lists what a `pacman -Syu` would bring right now. configsys never
+        # syncs the real DB short of a full -Syu (app._FULL_UPGRADE_REFRESH), so plain `pacman -Qu`
+        # only knows the last sync — the fallback, flagged by upgradable_advisory.
+        r = self.runner.run('checkupdates')
+        if r.returncode == 2:                          # checkupdates: nothing to upgrade
+            self._advisory = None
+            return {}
+        if r.ok:
+            self._advisory = None
+            return _parse_upgradable(r.stdout)
+        self._advisory = (_NO_CHECKUPDATES if r.returncode == _NOT_FOUND else
+                          f'`checkupdates` failed (exit {r.returncode}), so this list is from your '
+                          'last full sync (pacman -Syu)')
         # `pacman -Qu` -> "name oldver -> newver" per out-of-date package (reads the synced DB).
         # Exit 1 with no output = nothing to upgrade (not a failure).
         r = self.runner.run('pacman -Qu')
         if not r.ok:
             return {} if r.returncode == 1 else None
-        idx = {}
-        for line in r.stdout.splitlines():
-            cols = line.split()
-            if len(cols) >= 4 and cols[2] == '->':
-                idx.setdefault(cols[0], (cols[1], cols[3]))
-            elif cols:
-                idx.setdefault(cols[0], (None, cols[-1]))
-        return idx
+        return _parse_upgradable(r.stdout)
+
+    def upgradable_advisory(self):
+        '''Why the last upgradable_index may be incomplete — None when it came from a live
+        `checkupdates`. Looked up with getattr by sysupdates.gather.'''
+        return getattr(self, '_advisory', None)
 
     def upgrade_all(self):
         # Arch has no safe partial upgrade: `pacman -Syu` (full system upgrade) is the ONLY correct

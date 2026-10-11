@@ -206,6 +206,10 @@
                   upgrade-cmd:   'for b in "$(command -v brew)" /home/linuxbrew/.linuxbrew/bin/brew "$HOME/.linuxbrew/bin/brew"; do [ -x "$b" ] && { "$b" update; break; }; done'
                   uninstall-cmd: 'NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"'
                   location:      /home/linuxbrew/.linuxbrew } ] }
+        // Arch's companion scripts (checkupdates, paccache, pactree). The pacman driver lists System
+        // Updates through `checkupdates` when it's present — a temp-DB sync, no root, the real DB
+        // untouched — and otherwise from the last full sync, with an advisory naming this component.
+        pacman-contrib: { attrs: [ CLI FOSS copyleft ] description: "Arch's pacman companion scripts — `checkupdates` (pending updates without touching the sync database), `paccache`, `pactree`." install: [ { via: native  when: "arch" } ] }
         git-lfs:    { attrs: [ CLI FOSS permissive ] requires: git  description: "Git Large File Storage (`git lfs`) — version large files via lightweight pointers." install: [ { via: native }  { via: brew  name: git-lfs } ] }   // `git-lfs` on every family
         // Other version-control systems (git is above). Package name == component name except:
         // subversion's CLI is `svn`; bazaar is now Breezy (`brz`); perforce ships `helix-cli` (`p4`).

@@ -414,10 +414,11 @@ shown in brackets after the error, and as **Likely cause** in `configsys report`
 
 **System updates.** `configsys updates` lists the packages your package managers (the OS's own,
 flatpak, snap) report upgradable that aren't configsys components, grouped by tier — kernel, core,
-standard, apps. `configsys upgrade --system` refreshes the index (on Arch the list reflects your
-last full `pacman -Syu`), shows that list, asks, then runs
+standard, apps. `configsys upgrade --system` refreshes the index, shows that list, asks, then runs
 each manager's own bulk upgrade (`--yes` skips the question). Held packages stay held, and it never
-moves you to a new OS release. The TUI shows the same list as its **System Updates** group.
+moves you to a new OS release. The TUI shows the same list as its **System Updates** group. On
+Arch, install `pacman-contrib` for a live list: without its `checkupdates`, the list only knows
+your last full `pacman -Syu`, and configsys says so under the list and on the `!` page.
 
 Global flags (they go before the command): `--pretend` (dry run — prints the commands configsys
 would run, including the queries that read install state, so the plan can list things you already

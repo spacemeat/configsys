@@ -28,7 +28,8 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md Â
                               batched_version(rc) helper that reads the default shape
     orphan scan             : explicit_keys(), origin_index()
     System Updates          : upgradable_index(), update_dedup_key(key), held_keys(),
-                              classify_index(keys) (tiers from UPDATE_TIERS), upgrade_all()
+                              classify_index(keys) (tiers from UPDATE_TIERS), upgrade_all(), and
+                              an optional upgradable_advisory() the core looks up with getattr
     version signals         : outdated_signal(rc), upstream_version(rc), and an optional
                               version_advisory(rc) the core looks up with getattr
   Helpers a subclass MAY call, in three clusters:
