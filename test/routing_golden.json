@@ -97345,12 +97345,19 @@
     },
     "name": "ant"
    },
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -97367,6 +97374,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "antigravity": {
@@ -99033,12 +99060,19 @@
     },
     "name": "clojure"
    },
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -99055,6 +99089,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "cmake": {
@@ -99289,19 +99343,19 @@
     },
     "name": "coursier"
    },
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "glue\\coursier-glue": {
     "driver": "glue",
     "fields": {
      "glue": "coursier"
     },
     "name": "coursier-glue"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -99325,6 +99379,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "coursier-glue": {
@@ -99750,12 +99824,19 @@
     },
     "name": "detekt"
    },
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -99772,6 +99853,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "dig": {
@@ -102670,13 +102771,6 @@
     },
     "name": "gradle"
    },
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "dotfiles\\gradle-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -102686,6 +102780,20 @@
      }
     },
     "name": "gradle-dotfiles"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -102702,6 +102810,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "gradle-dotfiles": {
@@ -102808,12 +102936,19 @@
     },
     "name": "groovy"
    },
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -102830,6 +102965,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "grpcurl": {
@@ -103914,28 +104069,39 @@
    }
   },
   "java": {
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jbang": {
@@ -103946,12 +104112,19 @@
     },
     "name": "jbang"
    },
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -103968,116 +104141,173 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jdk": {
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jdk-17": {
-   "brew\\jdk-17": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@17"
+     "glue": "sdkman"
     },
-    "name": "openjdk@17"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk-17": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "17.0.20-tem"
+    },
+    "name": "java"
    }
   },
   "jdk-21": {
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jdk-25": {
-   "brew\\jdk-25": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@25"
+     "glue": "sdkman"
     },
-    "name": "openjdk@25"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk-25": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "25.0.4-tem"
+    },
+    "name": "java"
    }
   },
   "jenkins": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\jenkins": {
     "driver": "brew",
     "fields": {
@@ -104085,6 +104315,20 @@
     },
     "name": "jenkins"
    },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
    "script\\homebrew": {
     "driver": "script",
     "fields": {
@@ -104100,6 +104344,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jetbrains-toolbox": {
@@ -104170,12 +104434,55 @@
    }
   },
   "jmc": {
-   "brew\\jdk": {
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
+   },
+   "sdkman\\jmc": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "jmc"
+    },
+    "name": "jmc"
+   }
+  },
+  "jmeter": {
+   "brew\\jmeter": {
     "driver": "brew",
     "fields": {
-     "name": "openjdk@21"
+     "name": "jmeter"
     },
-    "name": "openjdk@21"
+    "name": "jmeter"
    },
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -104219,44 +104526,13 @@
     },
     "name": "sdkman"
    },
-   "sdkman\\jmc": {
+   "sdkman\\jdk": {
     "driver": "sdkman",
     "fields": {
-     "name": "jmc"
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
     },
-    "name": "jmc"
-   }
-  },
-  "jmeter": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
-   "brew\\jmeter": {
-    "driver": "brew",
-    "fields": {
-     "name": "jmeter"
-    },
-    "name": "jmeter"
-   },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
+    "name": "java"
    }
   },
   "jq": {
@@ -104315,19 +104591,26 @@
    }
   },
   "jreleaser": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\jreleaser": {
     "driver": "brew",
     "fields": {
      "name": "jreleaser"
     },
     "name": "jreleaser"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -104344,6 +104627,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "jrnl": {
@@ -105250,19 +105553,26 @@
    }
   },
   "leiningen": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\leiningen": {
     "driver": "brew",
     "fields": {
      "name": "leiningen"
     },
     "name": "leiningen"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -105279,6 +105589,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "libaio": {
@@ -105735,9 +106065,9 @@
    "brew\\libssl": {
     "driver": "brew",
     "fields": {
-     "name": "openssl"
+     "name": "openssl@4"
     },
-    "name": "openssl"
+    "name": "openssl@4"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -106295,19 +106625,26 @@
    }
   },
   "liquibase": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\liquibase": {
     "driver": "brew",
     "fields": {
      "name": "liquibase"
     },
     "name": "liquibase"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -106324,6 +106661,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "lldb": {
@@ -106679,13 +107036,6 @@
    }
   },
   "maven": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\maven": {
     "driver": "brew",
     "fields": {
@@ -106703,6 +107053,20 @@
     },
     "name": "maven-dotfiles"
    },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
    "script\\homebrew": {
     "driver": "script",
     "fields": {
@@ -106718,6 +107082,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "maven-dotfiles": {
@@ -107006,19 +107390,26 @@
    }
   },
   "micronaut": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\micronaut": {
     "driver": "brew",
     "fields": {
      "name": "micronaut"
     },
     "name": "micronaut"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -107035,6 +107426,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "miniforge": {
@@ -107483,13 +107894,6 @@
    }
   },
   "mvnd": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "glue\\sdkman-glue": {
     "driver": "glue",
     "fields": {
@@ -107504,22 +107908,6 @@
     },
     "name": "shell-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
-   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -107531,6 +107919,14 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    },
    "sdkman\\mvnd": {
     "driver": "sdkman",
@@ -108589,28 +108985,39 @@
    }
   },
   "openjdk": {
-   "brew\\jdk": {
-    "driver": "brew",
+   "glue\\sdkman-glue": {
+    "driver": "glue",
     "fields": {
-     "name": "openjdk@21"
+     "glue": "sdkman"
     },
-    "name": "openjdk@21"
+    "name": "sdkman-glue"
    },
-   "script\\homebrew": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
     "driver": "script",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
-    "name": "homebrew"
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "openscad": {
@@ -109652,9 +110059,9 @@
    "brew\\python3-dev": {
     "driver": "brew",
     "fields": {
-     "name": "python"
+     "name": "python@3.15"
     },
-    "name": "python"
+    "name": "python@3.15"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -109994,13 +110401,6 @@
    }
   },
   "quarkus": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "glue\\sdkman-glue": {
     "driver": "glue",
     "fields": {
@@ -110015,22 +110415,6 @@
     },
     "name": "shell-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
-   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -110042,6 +110426,14 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    },
    "sdkman\\quarkus": {
     "driver": "sdkman",
@@ -110761,13 +111153,6 @@
    }
   },
   "sbt": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\sbt": {
     "driver": "brew",
     "fields": {
@@ -110775,6 +111160,20 @@
     },
     "name": "sbt"
    },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
    "script\\homebrew": {
     "driver": "script",
     "fields": {
@@ -110790,16 +111189,29 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "scala": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\scala": {
     "driver": "brew",
     "fields": {
@@ -110807,6 +111219,20 @@
     },
     "name": "scala"
    },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
    "script\\homebrew": {
     "driver": "script",
     "fields": {
@@ -110822,16 +111248,29 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "scalacli": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "brew\\scalacli": {
     "driver": "brew",
     "fields": {
@@ -110839,6 +111278,20 @@
     },
     "name": "scala-cli"
    },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
    "script\\homebrew": {
     "driver": "script",
     "fields": {
@@ -110854,6 +111307,26 @@
      "version-re": "Homebrew ([0-9][0-9.]*)"
     },
     "name": "homebrew"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    }
   },
   "scratch": {
@@ -111282,13 +111755,6 @@
    }
   },
   "springboot": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "glue\\sdkman-glue": {
     "driver": "glue",
     "fields": {
@@ -111303,22 +111769,6 @@
     },
     "name": "shell-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
-   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -111330,6 +111780,14 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    },
    "sdkman\\springboot": {
     "driver": "sdkman",
@@ -112754,13 +113212,6 @@
    }
   },
   "visualvm": {
-   "brew\\jdk": {
-    "driver": "brew",
-    "fields": {
-     "name": "openjdk@21"
-    },
-    "name": "openjdk@21"
-   },
    "glue\\sdkman-glue": {
     "driver": "glue",
     "fields": {
@@ -112775,22 +113226,6 @@
     },
     "name": "shell-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
-   },
    "script\\sdkman": {
     "driver": "script",
     "fields": {
@@ -112802,6 +113237,14 @@
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
     "name": "sdkman"
+   },
+   "sdkman\\jdk": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "java",
+     "version": "21.0.12+1.1-tem"
+    },
+    "name": "java"
    },
    "sdkman\\visualvm": {
     "driver": "sdkman",

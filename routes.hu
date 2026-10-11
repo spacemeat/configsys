@@ -328,7 +328,7 @@
             requires: [ python3, cpp-toolchain ]
             install: [ { via: native  name: { xbps: python3-Cython apt: cython3  dnf: python3-Cython  pacman: cython  zypper: python313-Cython  apk: cython } }  { via: brew  name: cython } ] }
         python3-dev: { attrs: [ lib FOSS permissive ] description: "CPython development headers (`Python.h`) for building C extension modules."
-            install: [ { via: native  name: { xbps: python3-devel apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python313-devel  brew: python } } ] }   // zypper: openSUSE ships version-scoped python devel (no bare python3-devel); bump on the distro's default-python move
+            install: [ { via: native  name: { xbps: python3-devel apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python313-devel  brew: "python@3.15" } } ] }   // zypper: openSUSE ships version-scoped python devel (no bare python3-devel); bump on the distro's default-python move. brew: the real formula, not the `python` alias — bump when Homebrew's default python moves
         numpy: { attrs: [ lib FOSS permissive ] description: "NumPy — the fundamental array-computing package for Python."
             install: [ { via: native  when: "not opensuse"  name: { xbps: python3-numpy apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy } }
                        { via: pip  name: numpy } ] }   // openSUSE ships only version-scoped python3XY-numpy (churns) — let pip cover it
@@ -1271,19 +1271,25 @@
         // mark a future jdk-NN's description `(non-LTS)` if one is added). Native openjdk-N tracks the
         // latest patch. graalvm is GraalVM CE (native-image) via SDKMAN — another (never-auto) jdk:21
         // provider; the sdkman/graalvm components are the manual alt-distribution path.
+        // On fedora_atomic brew is the native manager, but brew's openjdk@N formulae are keg-only (not
+        // linked onto PATH), so the atomic route is a pinned SDKMAN Temurin build instead — also the
+        // only route on the native-less kde_linux, and a pinnable alternative everywhere glibc.
         // To bump the default LTS: move the native bindings + `provides:` onto `jdk`, turn the OLD
         // default's `jdk-NN` alias into a real `never-auto` line, and repoint `jdk-NN` at the new line.
         jdk: { attrs: [ toolchain runtime FOSS copyleft ] description: "Java Development Kit — the current LTS default (OpenJDK 21)."
             provides: { jdk: 21 }
-            install: [ { via: native  name: { xbps: openjdk21 apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel  brew: "openjdk@21" } }
+            install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openjdk21 apt: openjdk-21-jdk  dnf: java-21-openjdk-devel  pacman: jdk21-openjdk  apk: openjdk21  zypper: java-21-openjdk-devel } }
+                       { via: sdkman  name: java  version: "21.0.12+1.1-tem"  requires: glibc }   // Temurin; bump the SDKMAN id as releases roll
                        { via: native  when: "amzn"  name: java-21-amazon-corretto-devel } ] }   // Amazon ships Corretto, not OpenJDK
         jdk-17: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 17 — LTS (2021)." standing: never-auto  provides: { jdk: 17 }
-            install: [ { via: native  name: { xbps: openjdk17 apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel  brew: "openjdk@17" } }
+            install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openjdk17 apt: openjdk-17-jdk  dnf: java-17-openjdk-devel  pacman: jdk17-openjdk  apk: openjdk17  zypper: java-17-openjdk-devel } }
+                       { via: sdkman  name: java  version: "17.0.20-tem"  requires: glibc }   // Temurin; bump the SDKMAN id as releases roll
                        { via: native  when: "amzn"  name: java-17-amazon-corretto-devel } ] }
         jdk-21: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 21 — LTS (2023); the current default (alias for `jdk`)." standing: never-auto
             install: [ { via: parts  parts: [ jdk ] } ] }
         jdk-25: { attrs: [ toolchain runtime FOSS copyleft ] description: "OpenJDK 25 — LTS (2025)." standing: never-auto  provides: { jdk: 25 }
-            install: [ { via: native  name: { xbps: openjdk25 apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel  brew: "openjdk@25" } }
+            install: [ { via: native  when: "not fedora_atomic"  name: { xbps: openjdk25 apt: openjdk-25-jdk  dnf: java-25-openjdk-devel  pacman: jdk25-openjdk  apk: openjdk25  zypper: java-25-openjdk-devel } }
+                       { via: sdkman  name: java  version: "25.0.4-tem"  requires: glibc }   // Temurin; bump the SDKMAN id as releases roll
                        { via: native  when: "amzn"  name: java-25-amazon-corretto-devel } ] }
         graalvm: { attrs: [ CLI runtime toolchain FOSS copyleft ] description: "GraalVM CE 21 — a JDK with native-image (ahead-of-time compilation), via SDKMAN."
             standing: never-auto  provides: { jdk: 21 }
@@ -3891,7 +3897,7 @@
         libevent: { attrs: [ lib FOSS permissive ] description: "libevent — asynchronous event-notification library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libevent-dev    dnf: libevent-devel  apk: libevent-dev  zypper: libevent-devel } } ] }
         libssl:   { attrs: [ lib FOSS permissive ] description: "libssl — the OpenSSL TLS/crypto DEV library (headers + libs; distinct from the `openssl` CLI)."
-                    install: [ { via: native  name: { xbps: openssl-devel apt: libssl-dev      dnf: openssl-devel   pacman: openssl   apk: openssl-dev   zypper: libopenssl-devel   brew: openssl } } ] }   // Arch/brew ship headers in the main `openssl` package (no -dev split)
+                    install: [ { via: native  name: { xbps: openssl-devel apt: libssl-dev      dnf: openssl-devel   pacman: openssl   apk: openssl-dev   zypper: libopenssl-devel   brew: "openssl@4" } } ] }   // Arch/brew ship headers in the main `openssl` package (no -dev split); brew's `openssl` is an alias of openssl@4
         zlib:     { attrs: [ lib FOSS permissive ] description: "zlib — the DEFLATE compression library (dev headers + libs)."
                     install: [ { via: native  name: { apt: zlib1g-dev      dnf: zlib-devel      apk: zlib-dev      zypper: zlib-devel } } ] }
         asio:     { attrs: [ lib FOSS permissive ] description: "Asio — cross-platform C++ async I/O + networking library (header library; dev package)."

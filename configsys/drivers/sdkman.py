@@ -5,6 +5,10 @@ The JVM analog of the npm/pipx/luarocks module drivers. User-scope only: SDKMAN 
 `bash -c`). Installs are non-interactive via `sdkman_auto_answer=true`. The candidate name is the
 route `name` (== the component, e.g. scala/groovy/sbt); an optional `version:` field pins it.
 
+A PINNED binding is one exact install of a candidate several components may share (jdk, jdk-17,
+jdk-25 and graalvm are all SDKMAN's `java`), so its state is that version's own directory, never
+the candidate's `current` default — else installing one JDK would make every other read installed.
+
 The SDKMAN tool itself is the driver `requires: sdkman`, satisfied by the `sdkman` component. Like
 nvm/pyenv, an installed SDK is only on PATH once the user's shell sources SDKMAN (its per-candidate
 `current` symlink) — configsys installs and version-tracks it; the shell wiring is the user's.
@@ -46,7 +50,16 @@ class Sdkman(Driver):
 
     # -- read -------------------------------------------------------------
 
+    def _pinned_dir(self, rc):
+        return f'.sdkman/candidates/{self._cand(rc)}/{rc.fields["version"]}'
+
     def get_version(self, rc):
+        pinned = rc.fields.get('version')
+        if pinned:
+            if self.paths is not None:
+                return str(pinned) if (Path(self.paths.home) / self._pinned_dir(rc)).is_dir() else None
+            r = self.runner.run(f'test -d "$HOME"/{shlex.quote(self._pinned_dir(rc))}')
+            return str(pinned) if r.ok else None
         # `sdk current <c>` in a fresh shell just reports the default — the `current` symlink under the
         # candidate dir — but sourcing sdkman-init.sh first costs ~0.4 s per unit. Read the link
         # directly; spawn only when `current` exists as something else (a hand-made dir).
@@ -79,6 +92,8 @@ class Sdkman(Driver):
                          capture=False)
 
     def upgrade(self, rc):
+        if rc.fields.get('version'):       # a pin moves only when the route's id is bumped — never
+            return self.install(rc)        # `sdk upgrade`, which would retarget the shared default
         return self._sdk(f'upgrade {shlex.quote(self._cand(rc))}', capture=False)
 
     def set_version(self, rc, version):
@@ -93,4 +108,6 @@ class Sdkman(Driver):
         return Result('(sdkman: no native lock)', 0)
 
     def location(self, rc):
+        if rc.fields.get('version'):
+            return f'~/{self._pinned_dir(rc)}'
         return f'~/.sdkman/candidates/{self._cand(rc)}/current'

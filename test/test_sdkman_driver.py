@@ -92,3 +92,24 @@ def test_set_version_installs_then_defaults():
 def test_location_points_at_the_current_symlink():
     d, _ = _drv()
     assert d.location(rc('sbt')) == '~/.sdkman/candidates/sbt/current'
+
+
+def test_a_pinned_binding_reads_its_own_version_dir_not_the_shared_default(tmp_path):
+    # jdk / jdk-17 / graalvm all install SDKMAN's `java`: each pinned binding is installed only when
+    # ITS version dir exists, whatever `current` points at
+    from types import SimpleNamespace
+    java = tmp_path / '.sdkman' / 'candidates' / 'java'
+    (java / '21.0.12+1.1-tem').mkdir(parents=True)
+    (java / 'current').symlink_to('21.0.12+1.1-tem')
+    fr = FakeRunner()
+    d = get_driver('sdkman', fr, SimpleNamespace(home=tmp_path))
+    assert d.get_version(rc('java', version='21.0.12+1.1-tem')) == '21.0.12+1.1-tem'
+    assert d.get_version(rc('java', version='17.0.20-tem')) is None
+    assert d.location(rc('java', version='17.0.20-tem')) == '~/.sdkman/candidates/java/17.0.20-tem'
+    assert fr.calls == []
+
+
+def test_upgrading_a_pinned_binding_installs_the_pin_never_sdk_upgrade():
+    d, fr = _drv()
+    d.upgrade(rc('java', version='17.0.20-tem'))
+    assert 'sdk install java 17.0.20-tem' in fr.calls[-1] and 'sdk upgrade' not in fr.calls[-1]
