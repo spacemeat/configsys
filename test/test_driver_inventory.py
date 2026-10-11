@@ -5,7 +5,6 @@ checklist, this file is the alarm — and TOUCHPOINTS below also fails when a co
 points at is renamed, so the playbook can't silently rot.'''
 
 import importlib
-import inspect
 import re
 from pathlib import Path
 
@@ -76,7 +75,10 @@ TOUCHPOINTS = [
     ('configsys.stranded', '_SKIP_VIAS'),
     ('configsys.orphans', 'USER_FACING'),
     ('configsys.sysupdates', '_APP_MANAGERS'),
-    ('configsys.rebootcheck', '_reboot'),
+    ('configsys.rebootcheck', '_REBOOT_CHECKS'),
+    ('configsys.rebootcheck', '_NO_REBOOT_CHECK'),
+    ('tools.namesweep', 'MANAGERS'),
+    ('tools.namesweep', 'UNSWEPT'),
     ('configsys.app', '_NATIVE_REFRESH'),
     ('configsys.app', '_FULL_UPGRADE_REFRESH'),
     ('configsys.app', '_INDEX_SRC_DIRS'),
@@ -151,7 +153,6 @@ def test_native_managers_are_wired_everywhere_a_manager_must_be(native_managers)
     from configsys import app, rebootcheck
     import tools.namesweep as namesweep
     assert native_managers <= FAMILIES['system']
-    reboot_src = inspect.getsource(rebootcheck)
     swept = {m for m, _b, _v in namesweep.MANAGERS}
     for pm in sorted(native_managers):
         cls = _REGISTRY[pm]
@@ -160,9 +161,13 @@ def test_native_managers_are_wired_everywhere_a_manager_must_be(native_managers)
                 f'{pm} lacks {hook} {_see("4")}'
         styles = [m for m in ('_NATIVE_REFRESH', '_FULL_UPGRADE_REFRESH') if pm in getattr(app, m)]
         assert len(styles) == 1, f'{pm} must declare exactly one refresh style, has {styles} {_see("4")}'
-        assert f"'{pm}'" in reboot_src or pm == 'brew', f'{pm} has no reboot check {_see("4")}'
-        assert pm in swept or pm == 'brew', \
-            f'{pm} is not in the namesweep (brew formulae are compaudit-probed instead) {_see("4")}'
+        reboot = [m for m in ('_REBOOT_CHECKS', '_NO_REBOOT_CHECK') if pm in getattr(rebootcheck, m)]
+        assert len(reboot) == 1, f'{pm} must declare exactly one reboot entry, has {reboot} {_see("4")}'
+        sweep = [m for m, names in (('MANAGERS', swept), ('UNSWEPT', namesweep.UNSWEPT)) if pm in names]
+        assert len(sweep) == 1, f'{pm} must be in exactly one of namesweep {sweep or "MANAGERS/UNSWEPT"} {_see("4")}'
+        if pm in swept:
+            assert pm in namesweep._CHECK and pm in namesweep._VERIFIERS, \
+                f'{pm} is swept but has no namesweep _CHECK/_VERIFIERS container {_see("4")}'
 
 
 # -- docs and skills enumerate every driver ---------------------------------------------------------

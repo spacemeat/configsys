@@ -6,6 +6,7 @@ Uses each family's NATIVE check (no needrestart dependency):
   * zypper  — `zypper needs-rebooting`  (exit 102 = reboot needed) / `zypper ps -sss` (services)
   * pacman/apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel is installed than the
     running one). Conservative — compares only MAJOR.MINOR.PATCH so a distro suffix can't false-fire.
+  * brew    — none, declared in _NO_REBOOT_CHECK (user-space; rpm-ostree reports its own reboots).
 Service lists use the native tool where cheap, else `needrestart` IF it happens to be installed
 (opportunistic — never required). Everything is best-effort + non-fatal; pretend runs report nothing.'''
 
@@ -63,24 +64,29 @@ _APT_REBOOT_FLAG = Path('/run/reboot-required')          # update-notifier-commo
 _APT_REBOOT_PKGS = Path('/run/reboot-required.pkgs')
 
 
+def _apt_reboot(ctx, pm):
+    if _APT_REBOOT_FLAG.exists():
+        pkgs = _read_lines(_APT_REBOOT_PKGS)
+        return (True, ('updated ' + ', '.join(sorted(set(pkgs)))) if pkgs
+                else 'a core package was updated')
+    return (False, '')
+
+
+def _dnf_reboot(ctx, pm):
+    r = _run(ctx, 'dnf needs-restarting -r')
+    return (True, 'kernel or core libraries updated') if (r is not None and r.returncode == 1) \
+        else (False, '')
+
+
+def _zypper_reboot(ctx, pm):
+    r = _run(ctx, 'zypper needs-rebooting')
+    return (True, 'kernel or core libraries updated') if (r is not None and r.returncode == 102) \
+        else (False, '')
+
+
 def _reboot(ctx, pm):
-    if pm == 'apt':
-        if _APT_REBOOT_FLAG.exists():
-            pkgs = _read_lines(_APT_REBOOT_PKGS)
-            return (True, ('updated ' + ', '.join(sorted(set(pkgs)))) if pkgs
-                    else 'a core package was updated')
-        return (False, '')
-    if pm == 'dnf':
-        r = _run(ctx, 'dnf needs-restarting -r')
-        return (True, 'kernel or core libraries updated') if (r is not None and r.returncode == 1) \
-            else (False, '')
-    if pm == 'zypper':
-        r = _run(ctx, 'zypper needs-rebooting')
-        return (True, 'kernel or core libraries updated') if (r is not None and r.returncode == 102) \
-            else (False, '')
-    if pm in ('pacman', 'apk', 'xbps'):
-        return _kernel_heuristic(ctx, pm)
-    return (False, '')                                   # brew/atomic: rpm-ostree messages on its own
+    check = _REBOOT_CHECKS.get(pm)
+    return check(ctx, pm) if check else (False, '')
 
 
 def _read_lines(p):
@@ -134,6 +140,16 @@ def _kernel_heuristic(ctx, pm):
         return (True, f'a newer kernel is installed ({best[1]}) than the running one '
                       f'({".".join(str(x) for x in running)})')
     return (False, '')
+
+
+# Every native manager declares exactly one of these (test_driver_inventory): its reboot-required
+# check, or why it has none.
+_REBOOT_CHECKS = {'apt': _apt_reboot, 'dnf': _dnf_reboot, 'zypper': _zypper_reboot,
+                  'pacman': _kernel_heuristic, 'apk': _kernel_heuristic, 'xbps': _kernel_heuristic}
+_NO_REBOOT_CHECK = {
+    'brew': 'user-space formulae never need a reboot; on fedora_atomic (brew-native) the system '
+            'image is rpm-ostree\'s, and its driver prints its own reboot notice',
+}
 
 
 # -- services needing restart (opportunistic) ---------------------------------

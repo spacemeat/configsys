@@ -38,6 +38,12 @@ MANAGERS = [
     ('apk', 'alpine', '3.20'),
     ('xbps', 'void', ''),
 ]
+# Native managers deliberately not swept here, and what checks their names instead. Every native
+# manager is in exactly one of MANAGERS / UNSWEPT (test_driver_inventory).
+UNSWEPT = {
+    'brew': 'formulae are checked by tools/compaudit.py (probe_brew, against formulae.brew.sh) — '
+            'no container repo to query',
+}
 
 
 # A native unit carrying any of these fields isn't a plain repo package — it wires a third-party
@@ -150,7 +156,7 @@ def _run_verifier(image, snippet, names, timeout=1200):
 # The green gate: all six package families. NOTE openSUSE ships some versioned names
 # (python313-pip, ffmpeg-7, ...) that roll with Tumbleweed — the sweep will flag them when they
 # bump; just update the `name:` map (that's the sweep working, not a false alarm).
-_DEFAULT_MANAGERS = ('apt', 'dnf', 'pacman', 'zypper', 'apk', 'xbps')
+_DEFAULT_MANAGERS = tuple(m for m, _b, _v in MANAGERS)
 
 
 def sweep(only=None):

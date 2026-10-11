@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Name-existence sweep: verify every native package configsys maps to still EXISTS in its target
-# repos across apt/dnf/pacman/zypper/apk (catches renames/removals — redis→valkey, a dropped
+# repos across apt/dnf/pacman/zypper/apk/xbps (catches renames/removals — redis→valkey, a dropped
 # package, a -dev suffix change). Read-only queries in throwaway containers; nothing is installed.
 # See docs/name-sweep-test.md.
 #
-# Usage: bash test/run-name-sweep-in-podman.sh [manager[,manager...]]   # default: all five
+# Usage: bash test/run-name-sweep-in-podman.sh [manager[,manager...]]   # default: every namesweep.MANAGERS entry
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

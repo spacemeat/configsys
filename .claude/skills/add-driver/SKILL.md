@@ -141,12 +141,17 @@ Everything in §2–3, plus:
   `-Sy` is a partial upgrade; `configsys refresh` asks first, nothing runs it automatically). Being
   rolling doesn't decide it — Void and Tumbleweed sync safely. `app._INDEX_SRC_DIRS` if it has
   third-party source files whose failures `refresh` should diagnose (apt/dnf/zypper).
-- `rebootcheck._reboot` / `_services` — the native reboot-required + restart-needed check.
+- **A reboot entry — exactly one of:** `rebootcheck._REBOOT_CHECKS` (the native reboot-required
+  check: a flag file, a `needs-rebooting` exit code, or `_kernel_heuristic`), or
+  `rebootcheck._NO_REBOOT_CHECK` with why there is none (brew). `_services` for restart-needed
+  services, where the manager has a cheap native query.
 - System Updates picks up the OS's native manager automatically (`sysupdates.machine_managers`);
   a CROSS-distro app manager (like flatpak/snap) goes in `sysupdates._APP_MANAGERS`.
-- `tools/namesweep.py` `MANAGERS` + a container in `test/run-name-sweep-in-podman.sh` so package
-  names are checked per distro; a `test/Containerfile.<distro>` + `run-<mgr>-in-podman.sh` /
-  `integration_<mgr>.sh` for a real-install lifecycle.
+- **A name-sweep entry — exactly one of:** `tools/namesweep.py` `MANAGERS` (plus its `_CHECK`
+  existence verb and `_VERIFIERS` image + repo setup — `test/run-name-sweep-in-podman.sh` just runs
+  it), or `namesweep.UNSWEPT` naming what checks the names instead (brew: compaudit's `probe_brew`).
+  A `test/Containerfile.<distro>` + `run-<mgr>-in-podman.sh` / `integration_<mgr>.sh` for a
+  real-install lifecycle.
 - Stranded/orphans: `stranded._SKIP_VIAS` lists vias that are never an install method; an
   OS-specific heuristic for pre-receipt installs lives in stranded.py (the `pacman -Qm` AUR one).
 
@@ -195,7 +200,7 @@ Everything in §2–3, plus:
 | `routes._VIA_ATTR` | every binding implies a component kind (§3) |
 | `plugins._scan_executable_data` | its binding fields carry shell commands (§3) |
 | `versions._BUILTIN_KINDS` | it comes with a new `version:` source kind |
-| `app._NATIVE_REFRESH` / `app._FULL_UPGRADE_REFRESH` / `app._INDEX_SRC_DIRS` / `rebootcheck._reboot` | native manager (§4) |
+| `app._NATIVE_REFRESH` / `app._FULL_UPGRADE_REFRESH` / `app._INDEX_SRC_DIRS` / `rebootcheck._REBOOT_CHECKS` / `_NO_REBOOT_CHECK` / `namesweep.MANAGERS` / `UNSWEPT` | native manager (§4) |
 | `tui.menu._DRIVER_ABBR` | ranked in `DEFAULT_DRIVER_PREFERENCE` (§3) |
 | `shellguard` | nothing to add: install / upgrade / set-version of every driver run inside the rc-file guard (`installer-shell-writes`), so an installer that edits rc files (sdkman, rustup) is caught there |
 
