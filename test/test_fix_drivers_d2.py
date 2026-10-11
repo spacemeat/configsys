@@ -45,7 +45,7 @@ def test_invalidate_supersedes_an_in_flight_scan(monkeypatch):
     release_old = threading.Event()
     calls = []
 
-    def fake_gather(ctx):
+    def fake_gather(ctx, notes_out=None):
         n = len(calls)
         calls.append(n)
         if n == 0:
@@ -78,7 +78,7 @@ def test_start_scan_still_dedups_within_a_generation(monkeypatch):
     gate = threading.Event()
     calls = []
 
-    def fake_gather(ctx):
+    def fake_gather(ctx, notes_out=None):
         calls.append(1)
         gate.wait(5)
         return {}

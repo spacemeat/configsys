@@ -1383,7 +1383,7 @@ def _uses_native_index(rc, pm):
     if rc.driver == pm:
         return True
     drv = get_driver(rc.driver, None)
-    return bool(drv is not None and drv.native_backed)
+    return bool(getattr(drv, 'native_backed', False))
 
 
 def maybe_refresh_before_plan(ctx, plan):
