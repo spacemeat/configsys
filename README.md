@@ -386,7 +386,8 @@ recover a half-finished build, just `install` it again. **`--no-deps`** runs the
 named component(s)** — no dependency installs and no `auto-tighten` upgrades — so you rebuild that
 one thing without its whole dependency tree — e.g. `configsys install --no-deps blender-5.2`
 (from the [configsys-blender](#known-plugins) plugin) rebuilds Blender alone, leaving its compiler
-and CUDA toolkit as they are.
+and CUDA toolkit as they are. It still removes an install of the same component made by another
+method, so skipping dependencies never leaves you with two copies.
 
 Any `<name>` may be **`profile:<name>`**, which expands to that profile's components — e.g.
 `configsys install profile:finders btop`. The `profile:` prefix disambiguates from a component of

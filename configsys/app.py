@@ -753,6 +753,17 @@ def _confirm_plan(ctx, plan, *, yes=False):
     return True
 
 
+def _targeted_plan(ctx, op, base_plan, units):
+    '''The `--no-deps` plan: only the named units, but the method-switch swap still applies —
+    skipping dependencies never means doubling up an install. With no expand_plan to order it,
+    every remove (a swap's old install, its glue) runs first. Returns (plan, units).'''
+    if op in ('install', 'upgrade', 'set-version', 'remove'):
+        from .installState import plan_with_swaps
+        base_plan, units = plan_with_swaps(ctx, base_plan, units)
+    return ([s for s in base_plan if s[0] == 'remove'] +
+            [s for s in base_plan if s[0] != 'remove']), units
+
+
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, confirm=False,
                  yes=False):
     if ledger is None:
@@ -818,7 +829,7 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, co
         # targeted rebuild: run the op on ONLY the named unit(s) — no dependency folding, no
         # auto-tighten. A source component installs unconditionally, so this force-REBUILDS it
         # (e.g. to pick up a recipe change at an unchanged version) without rebuilding its deps.
-        plan = base_plan
+        plan, units = _targeted_plan(ctx, op, base_plan, units)
     else:
         # `auto-tighten`: if a consumer being installed floors a toolchain above its INSTALLED version
         # (e.g. goimports needs go>=1.21 but resident go is 1.18), schedule the provider's upgrade too.

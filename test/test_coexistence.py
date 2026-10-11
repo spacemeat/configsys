@@ -118,6 +118,18 @@ def test_plan_with_swaps_noop_when_no_other_method_installed(tmp_path):
     assert set(units2) == set(units)
 
 
+def test_no_deps_still_swaps_and_removes_the_old_method_first(tmp_path):
+    # `install --no-deps` skips dependencies, never the swap: the flatpak install goes, first
+    from configsys.app import _targeted_plan
+    comps = 'browser: { install: [ { via: native } { via: flatpak  app: org.x.Browser } ] }'
+    r = Resolver(_routes(tmp_path, comps), 'debian', '12')
+    units = r.resolve_resilient(['browser'])[0]
+    (key, target), = units.items()
+    ctx = types.SimpleNamespace(routes=r, runner=FlatpakInstalledRunner(), paths=None)
+    plan, _units = _targeted_plan(ctx, 'install', [('install', key, target)], dict(units))
+    assert [(op, k) for op, k, _rc in plan] == [('remove', 'flatpak\\browser'), ('install', key)]
+
+
 # -- companion cleanup: a removed method's / component's GLUE goes with it ----------
 
 _COMPANIONS = ('app: { suggests: [ app-glue, app-dotfiles ]  install: ['
