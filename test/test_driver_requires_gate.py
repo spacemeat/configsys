@@ -231,3 +231,32 @@ def test_effective_preference_chain_order():
     assert order[:3] == ['flatpak', 'tarball', 'native']             # OS block, then the setting
     assert order[3:] == [d for d in DEFAULT_DRIVER_PREFERENCE if d not in ('flatpak', 'tarball', 'native')]
     assert 'sdkman' not in order                                       # named nowhere -> ties last
+
+
+# -- where says why for EVERY ruled-out method, in _matching's order --------------------------------
+
+def _b(via, when=True, **details):
+    from types import SimpleNamespace
+    return SimpleNamespace(via=via, details=details, pred=SimpleNamespace(eval=lambda c: when))
+
+
+def test_not_candidate_reason_covers_every_rule():
+    from types import SimpleNamespace
+    from configsys.resolve import not_candidate_reason
+    cx = SimpleNamespace(disabled=frozenset({'snap'}), has_native=False, cpu='riscv64')
+    assert not_candidate_reason(_b('tarball'), None, cx, pin='brew') == 'you pinned via:brew'
+    assert 'disabled-drivers' in not_candidate_reason(_b('snap'), None, cx)
+    assert 'no package manager' in not_candidate_reason(_b('native'), None, cx)
+    assert "riscv64 isn't among the cpus it ships for (aarch64, x86_64)" == not_candidate_reason(
+        _b('tarball', **{'cpu-names': {'x86_64': 'x86_64', 'aarch64': 'arm64'}}), None, cx)
+    assert not_candidate_reason(_b('cargo', when=False), None, cx) == '`when:` is false here'
+    assert not_candidate_reason(_b('cargo'), None, cx) is None
+
+
+def test_real_where_names_a_disabled_driver(tmp_path):
+    cfgdir = tmp_path / '.config' / 'configsys'
+    cfgdir.mkdir(parents=True)
+    (cfgdir / 'configsys.hu').write_text('{ disabled-drivers: [ tarball ] }')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'alpine', 'inspect']))
+    line = next(ln for ln in where_report(ctx, 'btop') if 'via tarball' in ln)
+    assert 'not a candidate: the tarball driver is disabled here (disabled-drivers:)' in line

@@ -1562,7 +1562,7 @@ def _fmt_val(v):
 def _fmt_binding(b, selected, reachable=False, shadowed=False, invalid=None):
     when = b.when if b.when else 'always'
     details = '  '.join(f'{k}={_fmt_val(v)}' for k, v in b.details.items())
-    if invalid:                         # not a candidate for a reason `when:` doesn't show (a driver gate)
+    if invalid:                         # not a candidate: resolve.not_candidate_reason says why
         mark = f'  (not a candidate: {invalid})'
     elif selected:
         mark = '  <- default here'
@@ -1599,7 +1599,7 @@ def where_report(ctx, name):
     '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
     (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
     from .resolve import (ResolveError, _select, candidate_bindings, via_representatives,
-                          driver_gate_reason)
+                          not_candidate_reason)
     r = ctx.routes
     comp = r.components.get(name)
     if comp is None:
@@ -1640,7 +1640,8 @@ def where_report(ctx, name):
             valid = b in candidates
             out.append(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
                                     shadowed=(valid and b not in reps),
-                                    invalid=None if valid else driver_gate_reason(b, r.cascade, cx)))
+                                    invalid=None if valid else not_candidate_reason(
+                                        b, r.cascade, cx, pin=pinned)))
         if selected is not None and len(candidates) > 1:
             out.append(f'    default: via {selected.via}  (by {reason})')
 

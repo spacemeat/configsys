@@ -166,6 +166,30 @@ def driver_gate_reason(binding, cascade, context):
     return f"the {drv} driver{via_note} isn't valid here (drivers: {drv} when: {text})"
 
 
+def not_candidate_reason(binding, cascade, context, pin=None):
+    '''Why `binding` is NOT a candidate here, in _matching's own order — your binding-pin names
+    another method, its driver is disabled, `via: native` on an OS with no package manager, a
+    driver gate (driver_gate_reason), this cpu missing from its `cpu-names:` / cpu-keyed `asset:`,
+    or its `when:` — or None when it is a candidate. The text `where` prints, so every method it
+    rules out says why.'''
+    if pin is not None and binding.via != pin:
+        return f'you pinned via:{pin}'
+    if binding.via in (getattr(context, 'disabled', None) or ()):
+        return f'the {binding.via} driver is disabled here (disabled-drivers:)'
+    if binding.via == 'native' and not getattr(context, 'has_native', True):
+        return "this OS has no package manager, so `via: native` can't work here"
+    gate = driver_gate_reason(binding, cascade, context)
+    if gate:
+        return gate
+    cpu = getattr(context, 'cpu', None)
+    if not arch_ok(binding.details, cpu):
+        cpus = cpu_names(binding.details) or _asset_cpus(binding.details) or ()
+        return f"{cpu} isn't among the cpus it ships for ({', '.join(sorted(cpus))})"
+    if not binding.pred.eval(context):
+        return '`when:` is false here'
+    return None
+
+
 # -- derived driver gates: a driver is valid only where its own `requires:` can be met ----------
 
 def gated_context(cascade, components, drivers, block, version=None, cpu=None, disabled=(),

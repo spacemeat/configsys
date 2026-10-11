@@ -162,8 +162,9 @@ Key ideas:
   can't be installed, no AppImages on musl systems or where FUSE 2 can't be installed, such as
   Fedora Atomic and KDE Linux), and it can also carry its own `when:` in the `drivers:` section
   (`brew` is valid only on glibc systems, `aur` only on Arch); and a driver you turn off with
-  `disabled-drivers:` takes its bindings out of the running. When a driver rule takes out a
-  method, `configsys where` says which one and why.
+  `disabled-drivers:` takes its bindings out of the running. `configsys where` marks every method
+  that can't be used here and says why (a false `when:`, a CPU it doesn't ship for, a gated or
+  disabled driver, or your pin).
 - **Choosing among valid methods** is a separate, deterministic order. A method marked
   **`standing: never-auto`** stays listed and pinnable but is never the automatic choice while any
   other method works here (snap methods are marked this way). Among the rest, the most specific
