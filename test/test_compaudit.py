@@ -130,6 +130,35 @@ def test_aur_missing_orphaned_outofdate_promoted():
     assert [x['category'] for x in out['promo'][1]] == ['aur-promoted'] and '[extra]' in out['promo'][1][0]['summary']
 
 
+def test_brew_missing_alias_renamed_deprecated_disabled_keg_only_macos():
+    def f(name, **kw):
+        return {'name': name, 'versions': {'stable': '1'}, **kw}
+    index = [f('ok', aliases=['okalias'], oldnames=['oldok']),
+             f('dep', deprecated=True, deprecation_reason='unmaintained'),
+             f('dis', disabled=True, disable_reason='broken upstream'),
+             f('kegv', keg_only=True, keg_only_reason={'reason': ':versioned_formula'}),
+             f('kegmac', keg_only=True, keg_only_reason={'reason': ':provided_by_macos'}),
+             f('mac', requirements=[{'name': 'macos'}], bottle={'stable': {'files': {'sonoma': {}}}})]
+    url = 'https://formulae.brew.sh/api/formula.json'
+    out = ca.probe_brew(FakeFetcher({url: (200, url, json.dumps(index))}),
+                        ['ok', 'okalias', 'oldok', 'gone', 'dep', 'dis', 'kegv', 'kegmac', 'mac'])
+    cats = {p: [x['category'] for x in fs] for p, (_facts, fs) in out.items()}
+    assert cats['ok'] == [] and out['ok'][0]['latest'] == '1'
+    assert cats['okalias'] == ['brew-alias'] and cats['oldok'] == ['brew-renamed']
+    assert cats['gone'] == ['brew-missing']
+    assert cats['dep'] == ['brew-deprecated'] and cats['dis'] == ['brew-disabled']
+    assert cats['kegv'] == ['brew-keg-only']
+    assert cats['kegmac'] == []                         # a macOS keg reason doesn't apply on Linux
+    assert cats['mac'] == ['brew-macos-only']
+
+
+def test_brew_formula_name_from_binding():
+    assert ca._brew_formula({'via': 'brew', 'name': 'rg'}, 'ripgrep') == 'rg'
+    assert ca._brew_formula({'via': 'brew'}, 'ripgrep') == 'ripgrep'
+    assert ca._brew_formula({'via': 'native', 'name': {'apt': 'x', 'brew': 'y'}}, 'c') == 'y'
+    assert ca._brew_formula({'via': 'native', 'name': {'brew': {}}}, 'c') is None   # no formula
+
+
 def test_base_scope_groups_companions_with_their_parent():
     _label, _root, units = ca.load_scope('base')
     assert 'ghostty-dotfiles' not in units and 'ghostty-glue' not in units

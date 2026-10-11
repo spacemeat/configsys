@@ -114,7 +114,9 @@ editors, browsers, file-managers, …). Rules:
   on Arch has a narrower `when:` (a glibc-version-gated AppImage listing `arch`, a `cpu:`-gated
   tarball) — that one would otherwise win on specificity before preference. Likewise don't gate
   snap/AppImage/flatpak bindings by OS: a driver whose own `requires:` can't be met somewhere (no
-  snapd, no glibc, no libfuse2) is automatically not offered there.
+  snapd, no glibc, no libfuse2) is automatically not offered there. A `via: brew` binding needs no
+  `when:` either — the brew driver's gate (`when: "glibc_linux"`) keeps it off musl, and adding one
+  would make it more specific than the ungated native binding and steal the default.
 - **`requires:`** is HARD (`epel`, `rpmfusion`, `glibc`, a toolchain like `go`/`cargo`, or another
   component). **`suggests:`** is SOFT (pulled if resolvable, else skipped — the mechanism for
   attaching `<name>-dotfiles`).
@@ -146,6 +148,20 @@ Order native-first, then fallbacks. Typical comprehensive rows:
 - **Upstream ships a .deb/.rpm** but not in-repo (fastfetch, yazi): `via: native-pkg-file when:
   "debian"` with `asset: { x86_64: …deb  aarch64: …deb }` (or format-keyed `asset: { deb: { x86_64: … }
   rpm: { x86_64: … } }` with `when: "debian or redhat"` to cover both in one binding).
+- **Homebrew** — give every CLI tool, toolchain and server a `{ via: brew  name: <formula> }`
+  binding (no `when:`; check the formula at formulae.brew.sh — the name can differ: `tshark` is
+  the `wireshark` formula, versioned ones are `gcc@14`/`openssl@4`; name the real formula, not an
+  alias). brew ranks
+  just ahead of tarball, so it beats tarball/script/cargo/pipx/npm/sdkman defaults and fills gaps,
+  but never displaces native/flatpak/snap/native-pkg-file/AppImage; it pulls in the `homebrew`
+  component on first use. **Skip it for** libraries and `-dev` packages (a brew lib lives in brew's
+  prefix, invisible to system builds), formulae keg-only ON LINUX (`openjdk@21` — not linked onto
+  PATH; Homebrew ignores the macOS-only keg reasons `provided_by_macos`/`shadowed_by_macos` on
+  Linux), macOS-only formulae/casks (GUI apps), and `curl`/`git` (homebrew's own prerequisites — a
+  cycle). On `fedora_atomic` brew is the native manager: a `via: native` binding reaches it there
+  with the `brew:` key of its `name:` map, so give that key too when the formula name differs; where
+  there is no Linux formula, gate the broad native binding `not fedora_atomic` (routing-model
+  §"native: brew").
 - **Raw binary download** (no archive — kubectl/bazelisk style): `via: tarball  archive: none  binary:
   <name>` (a single gzip-compressed binary is `archive: gz`).
 - Language-ecosystem tools: `cargo`/`pip`/`pipx`/`npm`/`gem`/`opam`/`luarocks`/`cabal`/`go-install`/
@@ -315,8 +331,13 @@ and need re-sync+re-trust to load.
 
 **OS package managers** (`via: native` resolves to the right one; name a manager directly only to
 pin it, or for a binding valid on just one, e.g. `{ via: apk  when: "alpine" }`): `apt` `dnf` `pacman`
-`zypper` `apk` `xbps` `brew`. Plus `aur` (Arch community, `when: "arch"`), `rpm-ostree` (atomic
-layering — rarely; prefer flatpak/brew there).
+`zypper` `apk` `xbps` (and `brew`, fedora_atomic's native). Plus `aur` (Arch community; no `when:`
+needed — the driver's own gate is Arch-only, see §2), `rpm-ostree` (atomic layering — rarely;
+prefer flatpak/brew there).
+
+**Homebrew as an ordinary method:** `brew` — `name: <formula>`; valid on every glibc OS via the
+driver gate, user-scope (never sudo), real `lock` (`brew pin`), `set-version` only to a versioned
+formula (`<name>@<ver>`). When to add one and when not: §3.
 
 **Upstream distribution:**
 - `native-pkg-file` — install an upstream release `.deb`/`.rpm`/`pkg` with the OS tool (rides

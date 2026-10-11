@@ -16,6 +16,10 @@ Probes (cached under $XDG_CACHE_HOME/configsys/compaudit, default TTL 1 day):
              also archived / license / last push.
   flathub  — app-id published; end-of-life (renamed via eol/rebase, or an eol message).
   aur      — package exists; orphaned; flagged out-of-date.
+  brew     — formula exists (else an alias / old name of which formula); deprecated; disabled;
+             keg-only on Linux (not on PATH — house rule: no brew binding); macOS-only. One fetch of the
+             full formulae.brew.sh index serves every brew binding (the per-formula API 404s on
+             aliases).
   crates / pypi / npm — package exists; npm deprecation.
 
 Usage:
@@ -180,7 +184,8 @@ _GH_URL = re.compile(r'https?://github\.com/([\w.-]+/[\w.-]+?)(?:\.git)?(?:/|$|"
 
 def _probe_targets(comps):
     '''Upstream identifiers worth checking, from the IN-SCOPE layers' bindings.'''
-    t = {'github': {}, 'flatpak': [], 'aur': [], 'crates': [], 'pypi': [], 'npm': [], 'static': []}
+    t = {'github': {}, 'flatpak': [], 'aur': [], 'brew': [], 'crates': [], 'pypi': [], 'npm': [],
+         'static': []}
     for name, c in comps.items():
         for layer in c['layers']:
             if not layer['in_scope']:
@@ -210,15 +215,29 @@ def _probe_targets(comps):
                     t['flatpak'].append(b['app'])
                 elif via == 'aur':
                     t['aur'].append(pkg or name)
+                elif via == 'brew' or (via == 'native' and isinstance(b.get('name'), dict)
+                                       and b['name'].get('brew')):
+                    formula = _brew_formula(b, name)
+                    if formula:
+                        t['brew'].append(formula)
                 elif via == 'cargo':
                     t['crates'].append(ver.get('crates') or pkg or name)
                 elif via in ('pip', 'pipx'):
                     t['pypi'].append(ver.get('pypi') or pkg or name)
                 elif via == 'npm':
                     t['npm'].append(pkg or name)
-    for k in ('flatpak', 'aur', 'crates', 'pypi', 'npm'):
+    for k in ('flatpak', 'aur', 'brew', 'crates', 'pypi', 'npm'):
         t[k] = sorted(set(t[k]))
     return {k: v for k, v in t.items() if v}
+
+
+def _brew_formula(b, name):
+    '''The formula a brew binding installs: a scalar `name:`, else its `brew:` (or `default:`) key,
+    else the component name. `{}` in a name map means "no package there".'''
+    n = b.get('name')
+    if isinstance(n, dict):
+        n = n.get('brew', n.get('default', name))
+    return n if isinstance(n, str) and n else (None if n is not None else name)
 
 
 _X86_TOKEN = re.compile(r'(x86[_-]64|amd64|linux64|\bx64\b|-x64[.-]|[-_]64bit\b)', re.I)
@@ -487,6 +506,54 @@ def probe_aur(f, pkgs):
     return out
 
 
+def probe_brew(f, formulae):
+    '''{formula: (facts, findings)} from ONE fetch of the full Homebrew formula index.'''
+    st, _u, body = f.get('https://formulae.brew.sh/api/formula.json')
+    if st != 200 or not body:
+        return {}
+    index, alias = {}, {}
+    for d in json.loads(body):
+        index[d['name']] = d
+        for a in d.get('aliases') or []:
+            alias.setdefault(a, ('alias', d['name']))
+        for o in d.get('oldnames') or []:
+            alias.setdefault(o, ('old name', d['name']))
+    out = {}
+    for p in formulae:
+        d, fs = index.get(p), []
+        if d is None:
+            kind, real = alias.get(p, (None, None))
+            if kind == 'old name':
+                fs.append(_fd('drift', 'brew-renamed', f'brew formula {p} was renamed to {real}',
+                              proposed=f'name: {real}'))
+            elif kind == 'alias':
+                # works today, but an alias can be repointed (openssl -> openssl@3 -> openssl@4)
+                fs.append(_fd('note', 'brew-alias', f'brew formula {p} is an alias of {real}',
+                              proposed=f'name: "{real}"'))
+            else:
+                fs.append(_fd('broken', 'brew-missing', f'brew formula {p} does not exist'))
+            d = index.get(real) if real else None
+        if d:
+            if d.get('disabled'):
+                fs.append(_fd('broken', 'brew-disabled', f'brew formula {d["name"]} is disabled: '
+                              f'{d.get("disable_reason") or "no reason given"}'))
+            elif d.get('deprecated'):
+                fs.append(_fd('drift', 'brew-deprecated', f'brew formula {d["name"]} is deprecated: '
+                              f'{d.get("deprecation_reason") or "no reason given"}'))
+            # Homebrew ignores the macOS keg reasons on Linux (KegOnlyReason#applicable?)
+            reason = (d.get('keg_only_reason') or {}).get('reason')
+            if d.get('keg_only') and reason not in (':provided_by_macos', ':shadowed_by_macos'):
+                fs.append(_fd('drift', 'brew-keg-only', f'brew formula {d["name"]} is keg-only on Linux '
+                              f'({reason}: not linked onto PATH) — house rule: no brew binding for it'))
+            files = ((d.get('bottle') or {}).get('stable') or {}).get('files') or {}
+            macos = any((r.get('name') if isinstance(r, dict) else r) == 'macos'
+                        for r in d.get('requirements') or [])
+            if macos and not any(k.endswith('_linux') for k in files):
+                fs.append(_fd('broken', 'brew-macos-only', f'brew formula {d["name"]} is macOS-only'))
+        out[p] = ({'formula': p, 'latest': ((d or {}).get('versions') or {}).get('stable')}, fs)
+    return out
+
+
 def probe_registry(f, kind, pkg):
     url = {'crates': f'https://crates.io/api/v1/crates/{pkg}',
            'pypi': f'https://pypi.org/pypi/{pkg}/json',
@@ -532,6 +599,8 @@ def run_probes(units, fetcher):
     eol_msg = json.loads(b2) if b2 else {}
     aur_all = sorted({p for u in units.values() for p in u['probes'].get('aur', [])})
     aur = probe_aur(fetcher, aur_all) if aur_all else {}
+    brew_all = sorted({p for u in units.values() for p in u['probes'].get('brew', [])})
+    brew = probe_brew(fetcher, brew_all) if brew_all else {}
 
     def one(u):
         facts, finds = {}, list(u['probes'].get('static', []))
@@ -546,6 +615,10 @@ def run_probes(units, fetcher):
         for p in u['probes'].get('aur', []):
             fa, fi = aur.get(p, ({}, []))
             facts.setdefault('aur', []).append({'pkg': p, **fa})
+            finds += fi
+        for p in u['probes'].get('brew', []):
+            fa, fi = brew.get(p, ({'formula': p}, []))
+            facts.setdefault('brew', []).append(fa)
             finds += fi
         for kind in ('crates', 'pypi', 'npm'):
             for p in u['probes'].get(kind, []):

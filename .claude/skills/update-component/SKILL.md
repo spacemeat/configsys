@@ -18,7 +18,9 @@ Two halves:
   cache (GitHub rename/gone/latest release [+archived/license with a token — see Phase 0], and asset globs
   checked the way the driver resolves them — latest, then recent releases incl. prereleases,
   case-insensitive; Flathub published/end-of-life/renamed; AUR missing/promoted-to-`[extra]`/
-  orphaned/out-of-date; crates/PyPI/npm missing/deprecated; and a static check for x86-64-only
+  orphaned/out-of-date; Homebrew formula missing/alias/renamed/deprecated/disabled/keg-only on
+  Linux/macOS-only (one fetch of the full formulae.brew.sh index); crates/PyPI/npm
+  missing/deprecated; and a static check for x86-64-only
   downloads with neither a `cpu-names:` map nor a `cpu:` gate). ~40 s for the whole catalog. A per-unit **ledger** makes
   routine `*` runs incremental.
 - **Judgment** — audit subagents, one per batch of units, doing the web research the probes can't.
@@ -141,8 +143,11 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
 >    (MSRV for cargo/source, Go version for go-install) that should be versioned requires.
 > 6. **New or removed methods** — now packaged somewhere it isn't routed (Ubuntu universe, Debian,
 >    Fedora, EPEL, Arch extra — AUR packages that got promoted vanish from the AUR — Alpine,
->    openSUSE, Void, Homebrew for atomic, Flathub, snap)? upstream now ships a .deb/.rpm/AppImage/
->    musl tarball? a method gone (Flathub delisted, AUR deleted, PPA dead)?
+>    openSUSE, Void, Flathub, snap)? a CLI tool, toolchain or server with no `{ via: brew  name:
+>    <formula> }` binding while Homebrew has a Linux formula (add one, no `when:` — but not for a
+>    library, a formula keg-only on Linux, or curl/git; add-component §3 "Homebrew")? upstream
+>    now ships a .deb/.rpm/AppImage/musl tarball? a method gone (Flathub delisted, AUR deleted,
+>    PPA dead, brew formula disabled)?
 > 7. **Config & shell** — config path still right (XDG moves, file renames, format changes)? a
 >    tool that now keeps config but has no `-dotfiles` companion, or a `-dotfiles` pointing at a
 >    path the tool no longer reads? glue still correct (changed `init` syntax for shell hooks,
@@ -256,6 +261,11 @@ Same gates as add-component §7–9, with one twist for the golden:
   package = renamed or dropped (research it); `asset-glob-miss` = no recent release carries the
   asset (`probe_facts.latest_assets` lists what does — usually an arch-token change like
   `aarch64`→`arm64`); `asset-not-in-latest` = only an older release has it (upstream dropped it?);
+  `brew-renamed` = the formula's old name (use the new one); `brew-alias` = works, but an alias
+  can be repointed (`openssl` → `openssl@4`) — name the real formula; `brew-keg-only` = keg-only
+  on Linux (a versioned formula like `openjdk@21` — not on PATH), so the brew binding (or a
+  native `brew:` name on fedora_atomic) installs something unusable — drop it or route atomic
+  elsewhere; `brew-deprecated`/`brew-disabled` = on its way out / already uninstallable;
   `prerelease-only` = resolves from a nightly/prerelease (rolling version, updates invisible);
   `arch-unguarded` = an x86-64-only download with no cpu gate (wrong binary on aarch64) — fix with
   `$ARCH` + `cpu-names:` (docs/routing-model.md §7), `{ x86_64: … }` alone if there's no arm64 build.
