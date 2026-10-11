@@ -1,11 +1,9 @@
 '''drivers — registry of install-medium implementations.
 
-Ships the native managers (apt, dnf, pacman, aur) plus tarball, native-pkg-file
-(install an upstream release's .deb/.rpm/pkg with the OS package tool), flatpak,
-appImage, dotfiles, font, cargo, brew, pip, pipx, rpm-ostree, the
-gcc/clang/gcc-toolset toolchains, and the post-install primitives service
-(systemd) and group (usermod). An unregistered driver name still returns None
-here so InstallState degrades gracefully instead of crashing.
+`_REGISTRY` below is the list of built-in drivers (one per `via:` name); the families they fall
+into are enumerated in README / docs/config-format.md / CLAUDE.md and pinned by
+test/test_driver_inventory.py. Adding one: .claude/skills/add-driver/SKILL.md. An unregistered
+driver name still returns None here so InstallState degrades gracefully instead of crashing.
 '''
 
 from .appImage import AppImage

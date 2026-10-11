@@ -3586,8 +3586,8 @@ def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
 
 # Short two/three-letter tags for the cross-cutting install methods in `driver-preference`, so the
 # whole ordered list fits the Config value column. The reorder modal spells each one out (`na: native`).
-_DRIVER_ABBR = {'native': 'na', 'flatpak': 'fp', 'snap': 'sn', 'native-pkg-file': 'nf',
-                'appImage': 'ai', 'tarball': 'tb', 'source': 'src', 'script': 'sc'}
+_DRIVER_ABBR = {'native': 'na', 'aur': 'au', 'flatpak': 'fp', 'snap': 'sn', 'native-pkg-file': 'nf',
+                'appImage': 'ai', 'brew': 'br', 'tarball': 'tb', 'source': 'src', 'script': 'sc'}
 
 
 def _order_list(stdscr, pal, title, items, label=None):

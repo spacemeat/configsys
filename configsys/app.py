@@ -1344,7 +1344,7 @@ def refresh_native_index(ctx):
     return True, res.ok
 
 
-_NATIVE_PMS = {'apt', 'dnf', 'zypper', 'apk', 'xbps', 'brew'}   # index benefits from a pre-batch refresh (not pacman)
+_NATIVE_PMS = frozenset(_NATIVE_REFRESH)   # index benefits from a pre-batch refresh (not pacman)
 
 
 def maybe_refresh_before_plan(ctx, plan):
@@ -1430,9 +1430,7 @@ def cmd_refresh(ctx, args):
     # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole app.
     from . import refreshstate
     pm = ctx.routes.cascade.native(ctx.os_info.block)
-    native = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
-              'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update', 'xbps': 'xbps-install -S',
-              'brew': 'brew update'}.get(pm)
+    native = _NATIVE_REFRESH.get(pm)
     ok = True
     if native:
         print(f'\nRefreshing the {pm} package index...')
