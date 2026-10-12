@@ -8352,6 +8352,37 @@
     "name": "make"
    }
   },
+  "mangowc": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   },
+   "pacman\\mangowc": {
+    "driver": "pacman",
+    "fields": {
+     "name": "mangowm"
+    },
+    "name": "mangowm"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "pacman\\mariadb": {
     "driver": "pacman",
@@ -25004,6 +25035,18 @@
     "name": "make"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "apt\\mariadb": {
     "driver": "apt",
@@ -41312,6 +41355,18 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
    }
   },
   "mariadb": {
@@ -57656,6 +57711,18 @@
     "name": "make"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "apt\\mariadb": {
     "driver": "apt",
@@ -73786,6 +73853,18 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
    }
   },
   "mariadb": {
@@ -89947,6 +90026,18 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
    }
   },
   "mariadb": {
@@ -107012,6 +107103,18 @@
     "name": "homebrew"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "brew\\mariadb": {
     "driver": "brew",
@@ -123942,6 +124045,18 @@
     "name": "make"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "apt\\mariadb": {
     "driver": "apt",
@@ -140441,6 +140556,18 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
    }
   },
   "mariadb": {
@@ -157193,6 +157320,18 @@
     "name": "make"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "apt\\mariadb": {
     "driver": "apt",
@@ -173606,6 +173745,18 @@
     "name": "make"
    }
   },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "apt\\mariadb": {
     "driver": "apt",
@@ -189115,6 +189266,37 @@
     "name": "make"
    }
   },
+  "mangowc": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   },
+   "xbps\\mangowc": {
+    "driver": "xbps",
+    "fields": {
+     "name": "mangowc"
+    },
+    "name": "mangowc"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   }
+  },
   "mariadb": {
    "xbps\\mariadb": {
     "driver": "xbps",
@@ -202316,6 +202498,37 @@
      "name": "make"
     },
     "name": "make"
+   }
+  },
+  "mangowc": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
+   },
+   "xbps\\mangowc": {
+    "driver": "xbps",
+    "fields": {
+     "name": "mangowc"
+    },
+    "name": "mangowc"
+   }
+  },
+  "mangowc-dotfiles": {
+   "dotfiles\\mangowc-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mango",
+      "src": "mango"
+     }
+    },
+    "name": "mangowc-dotfiles"
    }
   },
   "mariadb": {

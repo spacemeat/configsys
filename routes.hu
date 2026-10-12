@@ -2867,10 +2867,12 @@
         budgie:   { attrs: [ GUI FOSS copyleft ] description: "Budgie — an elegant, modern desktop environment." install: [ { via: native  when: "void or void_musl"  name: budgie-desktop }  { via: native  when: "(debian or redhat or arch or opensuse) and not amzn"  name: { default: budgie-desktop } } ] }                                                                    // not packaged for Alpine
         hyprland: { attrs: [ GUI FOSS permissive ] suggests: hyprland-dotfiles  description: "Hyprland — a dynamic tiling Wayland compositor with eye candy." install: [ { via: native  when: "(redhat or arch or opensuse or alpine) and not amzn and not (fedora >= 43)"  name: { default: hyprland } } ] }   // not in stock Ubuntu; retired from Fedora 43 (COPR only)
         cosmic:   { attrs: [ GUI FOSS copyleft ] description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "(pop_os! or redhat or arch or opensuse or alpine) and not amzn"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
-        // Bare compositors (no full desktop): niri, plus GNOME's mutter / KDE's kwin on their own (usually
+        // Bare compositors (no full desktop): niri and mango, plus GNOME's mutter / KDE's kwin on their own (usually
         // pulled in by the gnome/kde metapackages — listed so a session can be assembled piecemeal).
         niri:     { attrs: [ GUI FOSS GNU copyleft ] suggests: niri-dotfiles  description: "niri — a scrollable-tiling Wayland compositor (`niri`, `niri-session`)."
                     install: [ { via: native  when: "fedora or arch or opensuse_tumbleweed or (alpine >= 3.23) or void or void_musl" } ] }   // not in Debian/Ubuntu (third-party PPA only), EPEL or brew; Leap 16's 0.1.9 is too old. Upstream ships source only
+        mangowc:  { attrs: [ GUI FOSS copyleft ] suggests: mangowc-dotfiles  description: "Mango — a fast dwl-based tiling Wayland compositor with scroller layouts and effects (`mango`)."
+                    install: [ { via: native  when: "arch or (alpine >= 3.24) or void or void_musl"  name: { xbps: mangowc  default: mangowm } } ] }   // upstream renamed mangowc -> mangowm (Void keeps the old name). Fedora: Terra only; openSUSE: OBS only; not in Debian/Ubuntu or brew. Source-only upstream (needs wlroots 0.20 + scenefx)
         mutter:   { attrs: [ GUI FOSS GNU copyleft ] description: "mutter — GNOME's Wayland compositor and window manager, standalone."
                     install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine or void or void_musl) and not amzn" } ] }   // EL: in AppStream (no EPEL needed)
         kwin:     { attrs: [ GUI FOSS GNU copyleft ] description: "KWin — KDE's Wayland compositor and window manager, standalone (`kwin_wayland`)."
@@ -4111,6 +4113,7 @@
         ruby-glue: { description: "ruby shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: ruby } ] }
         rust-glue: { description: "rust shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: rust } ] }
         sway-dotfiles: { description: "sway config, linked into place." install: [ { via: dotfiles  config: { src: sway  dst: $XDG_CONFIG_HOME/sway } } ] }
+        mangowc-dotfiles: { description: "mango config, linked into place." install: [ { via: dotfiles  config: { src: mango  dst: $XDG_CONFIG_HOME/mango } } ] }
         niri-dotfiles: { description: "niri config (config.kdl), linked into place." install: [ { via: dotfiles  config: { src: niri  dst: $XDG_CONFIG_HOME/niri } } ] }
         tree-sitter-cli-glue: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: tree-sitter-cli } ] }
         unityhub-glue: { description: "unityhub shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: unityhub } ] }
