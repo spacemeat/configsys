@@ -8352,8 +8352,8 @@
     "name": "make"
    }
   },
-  "mangowc": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -8361,9 +8361,9 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    },
-   "pacman\\mangowc": {
+   "pacman\\mangowm": {
     "driver": "pacman",
     "fields": {
      "name": "mangowm"
@@ -8371,8 +8371,8 @@
     "name": "mangowm"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -8380,7 +8380,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -25035,8 +25035,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -25044,7 +25044,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -41357,8 +41357,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -41366,7 +41366,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -57711,8 +57711,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -57720,7 +57720,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -73855,8 +73855,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -73864,7 +73864,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -90028,8 +90028,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -90037,7 +90037,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -107103,8 +107103,8 @@
     "name": "homebrew"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -107112,7 +107112,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -124045,8 +124045,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -124054,7 +124054,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -140558,8 +140558,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -140567,7 +140567,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -157320,8 +157320,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -157329,7 +157329,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -173745,8 +173745,8 @@
     "name": "make"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -173754,7 +173754,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -189266,8 +189266,8 @@
     "name": "make"
    }
   },
-  "mangowc": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -189275,9 +189275,9 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    },
-   "xbps\\mangowc": {
+   "xbps\\mangowm": {
     "driver": "xbps",
     "fields": {
      "name": "mangowc"
@@ -189285,8 +189285,8 @@
     "name": "mangowc"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -189294,7 +189294,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {
@@ -202500,8 +202500,8 @@
     "name": "make"
    }
   },
-  "mangowc": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -202509,9 +202509,9 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    },
-   "xbps\\mangowc": {
+   "xbps\\mangowm": {
     "driver": "xbps",
     "fields": {
      "name": "mangowc"
@@ -202519,8 +202519,8 @@
     "name": "mangowc"
    }
   },
-  "mangowc-dotfiles": {
-   "dotfiles\\mangowc-dotfiles": {
+  "mangowm-dotfiles": {
+   "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
     "fields": {
      "config": {
@@ -202528,7 +202528,7 @@
       "src": "mango"
      }
     },
-    "name": "mangowc-dotfiles"
+    "name": "mangowm-dotfiles"
    }
   },
   "mariadb": {

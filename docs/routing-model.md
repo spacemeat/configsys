@@ -344,6 +344,20 @@ matches, so `configsys check` warns `unknown-os` (`routecheck.validate`).
 Identity and scale are orthogonal: sharing a version line does not make two OSes the
 same OS.
 
+**Choosing the block** (`osdetect.detect`, then `osdetect.settle` once routes are loaded, since
+plugins add blocks): os-release `ID` maps to a block (`_ALIASES` where the names differ), refined by
+`detect:` markers. A distro with no block of its own routes as the first `ID_LIKE` entry that has
+one, WITHOUT a version (its VERSION_ID is on its own scale, not the parent's) and with an `os`
+warning on `!`; with no such relative it is an error pointing at `--os` and `request-os`.
+`--os`/`CONFIGSYS_OS` force `BLOCK` or `BLOCK:VERSION` (`alpine:3.24`; `CONFIGSYS_OS_VERSION`
+supplies a version the value omits, and the flag replaces both variables); a forced unknown block
+is an error naming the closest blocks, never a silent stand-in — `main` checks it (`Context.check_os`)
+before every command except `plugin …` (which may be what brings the block), and resolution
+(`resolve.gated_context`) refuses one too, so a long-lived Context that forces a block a plugin adds
+later still loads. With no version every versioned
+atom on the lineage reads false (so `not (fedora >= 44)` reads TRUE) — `where` says so when one of
+the component's `when:`s has such an atom.
+
 **OS block fields** (the `os:` section; merged per block from EVERY layer, lowest first —
 `layers.merge_dict_section(…, layers.ALL_ROLES)`, the uniform layer rule of §10b — so a plugin may
 add a derivative distro and the top config may tweak a block on one machine): `using:` (parent),

@@ -865,7 +865,7 @@ On a binding or a \fBdrivers:\fR entry, \fBprefer:\fR became \fBstanding: <integ
 .IP \(bu 2
 \fBCONFIGSYS_USERSCOPE_DIR\fR, \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR, \fBCONFIGSYS_APP_DIR\fR, \fBCONFIGSYS_SDK_DIR\fR, \fBCONFIGSYS_SRC_DIR\fR: override the matching \fBdirs:\fR key.
 .IP \(bu 2
-\fBCONFIGSYS_OS\fR, \fBCONFIGSYS_OS_VERSION\fR, \fBCONFIGSYS_ARCH\fR: evaluate routes as this OS block, version and CPU instead of the detected ones (\fB--os\fR sets the block).
+\fBCONFIGSYS_OS\fR, \fBCONFIGSYS_OS_VERSION\fR, \fBCONFIGSYS_ARCH\fR: evaluate routes as this OS block, version and CPU instead of the detected ones. \fBCONFIGSYS_OS\fR takes \fBBLOCK\fR or \fBBLOCK:VERSION\fR (\fBalpine:3.24\fR), the same as \fB--os\fR, which replaces both variables. An unknown block is an error; with no version, version conditions such as \fBalpine >= 3.24\fR read false.
 .IP \(bu 2
 \fBCONFIGSYS_FACET_<name>\fR: a facet's value, overriding detection and your \fBfacets:\fR.
 .IP \(bu 2

@@ -112,6 +112,7 @@ class Context:
             env['CONFIGSYS_HOME'] = args.home
         if args.os:
             env['CONFIGSYS_OS'] = args.os
+            env.pop('CONFIGSYS_OS_VERSION', None)   # the flag replaces the env pair: BLOCK[:VERSION]
         if args.config:
             env['CONFIGSYS_CONFIG'] = args.config
         if getattr(args, 'splash_linger', False):
@@ -126,6 +127,7 @@ class Context:
         self._config = None
         self._routes = None            # cached Resolver (rebuilding it = parse routes.hu + routecheck)
         self._os_refined = False       # detect:-marker refinement runs once, lazily
+        self.os_note = None            # osdetect.settle's fallback note (an ID_LIKE stand-in block)
         self._plugin_files = None
         self._plugin_code_loaded = False
         self.plugin_code_warnings = []   # code plugins that ship code but were gated out
@@ -197,6 +199,8 @@ class Context:
                 'podman, or rpm-ostree for those. Review the plan before you run any op, and '
                 'please report anything that misroutes.')
 
+        if self.os_note:
+            add('warn', 'os', self.os_note)
         _blk = self.os_info.block
         if _blk == 'kde_linux':
             add('warn', 'immutable',
@@ -334,12 +338,19 @@ class Context:
         # rebuilds when a marker actually reroutes (rare).
         if not self._os_refined:
             self._os_refined = True
+            block = self.os_info.block
+            if not self.os_info.forced:   # a forced block may arrive with a plugin (check_os)
+                self.os_note = osdetect.settle(self.os_info, r.cascade.blocks) or self.os_note
             refined = osdetect.refine(self.os_info.block, r.cascade, self.env)
-            if refined != self.os_info.block:
-                self.os_info.block = refined
+            self.os_info.block = refined
+            if refined != block:
                 r = self._resolver(refined)
         self._routes = r
         return r
+
+    def check_os(self):
+        '''Raise ConfigsysError unless the OS block (a forced one included) names a loaded os: block.'''
+        osdetect.settle(self.os_info, self.routes.cascade.blocks)
 
     @property
     def config(self):
@@ -1595,6 +1606,29 @@ def _source_label(comp, paths):
     return f'{where}   (overrides routes.hu)' if comp.shadows else f'{where}   (new; not in routes.hu)'
 
 
+def _os_version_conditions(comp, cx):
+    '''The versioned OS atoms in `comp`'s `when:`s that name a block in this machine's lineage
+    (`alpine >= 3.24`), as text — each reads false while no OS version is known.'''
+    from . import predicate
+    found = []
+
+    def walk(p):
+        if isinstance(p, (predicate.And, predicate.Or)):
+            for t in p.terms:
+                walk(t)
+        elif isinstance(p, predicate.Not):
+            walk(p.term)
+        elif isinstance(p, predicate.Os) and p.op is not None and p.name in cx.lineage:
+            text = f'{p.name} {p.op} {".".join(map(str, p.version))}'
+            if text not in found:
+                found.append(text)
+
+    for b in comp.bindings:
+        if b.pred is not None:
+            walk(b.pred)
+    return found
+
+
 def where_report(ctx, name):
     '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
     (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
@@ -1649,6 +1683,11 @@ def where_report(ctx, name):
     ver = f' {r.version}' if r.version else ''
     out.append('')
     out.append(f'  on {r.block}{ver} ({r.cpu}):')
+    if not r.version:
+        conds = _os_version_conditions(comp, cx)
+        if conds:
+            out.append(f'    (no OS version set, so {", ".join(conds)} reads false here; ask about a '
+                       f'release with --os {r.block}:VERSION)')
     if not comp.bindings:
         out.append('    nothing (removed)')
         return out
@@ -3293,7 +3332,7 @@ examples:
   configsys --pretend install steam    dry run: print the commands instead of running them
 
 environment:
-  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block / version instead of the detected one (--os)
+  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block[:version] / version instead of the detected one (--os)
   CONFIGSYS_ARCH                       CPU arch for `$ARCH` and `cpu:` conditions (default: detected)
   CONFIGSYS_HOME                       stand-in for $HOME on every configsys path (--home)
   CONFIGSYS_CONFIG                     your user config file (--config)
@@ -3331,9 +3370,10 @@ def build_parser():
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--pretend', action='store_true',
                    help='dry run: print the commands an operation would run instead of running them')
-    p.add_argument('--os', metavar='BLOCK',
-                   help='use this OS block instead of the detected one (e.g. pop_os!, fedora, arch); '
-                        'same as CONFIGSYS_OS')
+    p.add_argument('--os', metavar='BLOCK[:VERSION]',
+                   help='use this OS block, and optionally release, instead of the detected one (e.g. '
+                        'pop_os!:22.04, fedora:44, arch); without a version, version conditions read '
+                        'false. Same as CONFIGSYS_OS')
     p.add_argument('--home', metavar='DIR',
                    help='use DIR in place of $HOME for every path configsys reads or writes (config, '
                         'state, user-scope installs), for sandboxed runs; same as CONFIGSYS_HOME')
@@ -4537,10 +4577,17 @@ def main(argv=None):
     if getattr(args, 'effects', None):                # --effects wins over the setting + SSH default
         os.environ['CONFIGSYS_EFFECTS'] = args.effects
     command = args.command or 'tui'
-    ctx = Context(args)
+    try:
+        ctx = Context(args)
+    except ConfigsysError as e:                 # a malformed --os / CONFIGSYS_OS value
+        print(f'configsys: {e}', file=sys.stderr)
+        return 1
     if getattr(args, 'probe', False):
         return _probe_color(ctx)
     try:
+        if ctx.os_info.forced and command != 'plugin':
+            ctx.check_os()  # a forced OS block must exist before any command runs on it — except the
+                            # plugin commands, which may be what brings that block (`plugin add`)
         return _COMMANDS[command](ctx, args)
     except ConfigsysError as e:
         print(f'configsys: {e}', file=sys.stderr)

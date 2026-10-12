@@ -59,7 +59,7 @@ profiles: {
     text-editors: [ asciidoc  android-studio  antigravity  emacs  helix  jetbrains-toolbox  micro  neovim  vscode
         vscodium  zed  fresh  jrnl  vis ]
 
-    desktops-compositors: [ budgie  cinnamon  cosmic  fvwm2  gnome  hyprland  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad  niri  mangowc  mutter  kwin ]
+    desktops-compositors: [ budgie  cinnamon  cosmic  fvwm2  gnome  hyprland  i3  kde  lxqt  mate  qtile  sway  xfce  xmonad  niri  mangowm  mutter  kwin ]
     desktop-tools: [ wmenu ]
     web-browsers: [ chrome  chromium  firefox  librewolf  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]

@@ -219,7 +219,7 @@
                        { via: pipx  name: mercurial  standing: never-auto }  { via: brew  name: mercurial } ] }       // Python; pinnable alt
         subversion: { attrs: [ CLI FOSS permissive ] description: "Apache Subversion — centralized version control (the `svn` CLI)."
             install: [ { via: native  repo-component: universe }  { via: brew  name: subversion } ] }                  // uniform pkg `subversion`
-        cvs: { attrs: [ CLI FOSS GNU copyleft ] suggests: cvs-dotfiles  description: "CVS — the classic Concurrent Versions System."
+        cvs: { attrs: [ CLI FOSS copyleft ] suggests: cvs-dotfiles  description: "CVS — the classic Concurrent Versions System."
             install: [ { via: native  when: "debian or fedora or arch or fedora_atomic or void or void_musl"  repo-component: universe }
                        { via: native  when: "rhel"  requires: epel }  { via: brew  name: cvs } ] }              // gone from stable-Alpine + openSUSE
         fossil: { attrs: [ CLI web FOSS permissive ] suggests: fossil-glue  description: "Fossil — a self-contained distributed SCM (wiki, tickets, web UI in one binary)."
@@ -432,7 +432,7 @@
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel }  { via: brew  name: stow } ] }   // EL: EPEL-only; Alpine: community repo
         rsync: { attrs: [ CLI FOSS copyleft ] description: "rsync — fast incremental file transfer and synchronization." install: [ { via: native }  { via: brew  name: rsync } ] }   // core package on every family
-        tree:  { attrs: [ CLI FOSS GNU copyleft ] description: "tree — list a directory as an indented tree." install: [ { via: native }  { via: brew  name: tree } ] }   // `tree` on every family
+        tree:  { attrs: [ CLI FOSS copyleft ] description: "tree — list a directory as an indented tree." install: [ { via: native }  { via: brew  name: tree } ] }   // `tree` on every family
         eza:   { attrs: [ CLI FOSS copyleft ] suggests: eza-dotfiles  description: "eza — a modern, colorful `ls` replacement (the maintained fork of exa)."
                  install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(fedora or arch or opensuse or alpine or fedora_atomic) and not amzn" }
                             { via: native  when: "(ubuntu >= 24.04) or (debian >= 13)"  repo-component: universe }   // only newer Debian/Ubuntu carry eza
@@ -444,9 +444,9 @@
                   install: [ { via: native  when: "not (rhel or amzn)" }
                              { via: native  when: "rhel"  requires: epel }  { via: brew  name: figlet } ] }   // EL via EPEL
         // --- terminal eye-candy / toys + a couple of terminal CLIs ---
-        cbonsai:    { attrs: [ CLI FOSS GNU copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "fedora or alpine or opensuse or fedora_atomic or void or void_musl" }  { via: aur  name: cbonsai }  { via: brew  name: cbonsai } ] }   // GPL; Arch has it only in the AUR; not in Debian/EL repos -> declines there
-        cmatrix:    { attrs: [ CLI FOSS GNU copyleft ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native }  { via: brew  name: cmatrix } ] }   // packaged on every family
-        neo:        { attrs: [ TUI FOSS GNU copyleft ] description: "neo — Matrix-style digital rain in the terminal (`neo`; a modern cmatrix)."
+        cbonsai:    { attrs: [ CLI FOSS copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "fedora or alpine or opensuse or fedora_atomic or void or void_musl" }  { via: aur  name: cbonsai }  { via: brew  name: cbonsai } ] }   // GPL; Arch has it only in the AUR; not in Debian/EL repos -> declines there
+        cmatrix:    { attrs: [ CLI FOSS copyleft ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native }  { via: brew  name: cmatrix } ] }   // packaged on every family
+        neo:        { attrs: [ TUI FOSS copyleft ] description: "neo — Matrix-style digital rain in the terminal (`neo`; a modern cmatrix)."
                       install: [ { via: native  when: "(ubuntu >= 24.04) or (debian >= 12) or (elementary >= 8) or (linuxmint >= 22) or (lmde >= 6) or (mx >= 23) or (zorin >= 18) or pikaos or kali or fedora"  repo-component: universe  name: { apt: neo-cli  default: neo } }
                                  { via: aur  name: neo-matrix } ] }   // st3w/neo: Debian 12+/Ubuntu 24.04+ (neo-cli), Fedora; AUR on Arch; source-only elsewhere
         // pipes.sh: a self-contained bash script. Packaged only in the AUR; everywhere else install it
@@ -461,10 +461,10 @@
                          version:       { github: pipeseroni/pipes.sh  strip-v: true }
                          uninstall-cmd: 'rm -f "$HOME/.local/bin/pipes.sh" "$HOME/.local/share/man/man6/pipes.sh.6"'
                          location:      "~/.local/bin/pipes.sh" }  { via: brew  name: pipes-sh } ] }
-        asciiquarium: { attrs: [ CLI FOSS GNU copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "rhel"  requires: epel }  { via: native  when: "arch or fedora_atomic or void or void_musl" }  { via: brew  name: asciiquarium } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, Arch [extra] (promoted from the AUR), brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
+        asciiquarium: { attrs: [ CLI FOSS copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "rhel"  requires: epel }  { via: native  when: "arch or fedora_atomic or void or void_musl" }  { via: brew  name: asciiquarium } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, Arch [extra] (promoted from the AUR), brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
         lolcat:     { attrs: [ CLI FOSS permissive ] description: "lolcat — rainbow-colorize any piped output (`lolcat`)." install: [ { via: native  when: "(debian or fedora or arch) and not amzn"  repo-component: universe }  { via: gem  name: lolcat }  { via: brew  name: lolcat } ] }   // the original is a Ruby gem -> gem covers openSUSE/Alpine/atomic + is pinnable anywhere
-        asciinema:  { attrs: [ CLI FOSS GNU copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  repo-component: universe }  { via: pipx  name: asciinema }  { via: brew  name: asciinema } ] }   // native everywhere; pipx is the universal fallback + pinnable alt
-        jrnl:       { attrs: [ CLI FOSS GNU copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora_atomic" }  { via: brew  name: jrnl } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
+        asciinema:  { attrs: [ CLI FOSS copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  repo-component: universe }  { via: pipx  name: asciinema }  { via: brew  name: asciinema } ] }   // native everywhere; pipx is the universal fallback + pinnable alt
+        jrnl:       { attrs: [ CLI FOSS copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora_atomic" }  { via: brew  name: jrnl } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
         newsboat:   { attrs: [ TUI FOSS permissive ] suggests: newsboat-dotfiles  description: "Newsboat — an RSS/Atom feed reader for the terminal."
                       install: [ { via: native  when: "not ((ubuntu >= 24.04) and (ubuntu < 25.04))"  repo-component: universe }   // Rust; packaged on every family (no installable crate) — EXCEPT Ubuntu 24.x (dropped from noble; back in 25.04)
                                  { via: snap  name: newsboat  standing: never-auto }  { via: brew  name: newsboat } ] }   // the maintainer's snap: never-auto, so brew is the default where native isn't valid (24.x); pin the snap to use it
@@ -500,7 +500,7 @@
         // needrestart: a Perl tool wired into apt/dnf; native only. In Debian/Ubuntu (main; Ubuntu
         // ships it by default) + Fedora, EL via EPEL, Arch via AUR. Not in openSUSE (its native check
         // is `zypper ps`) or Alpine (OpenRC); those + atomic decline.
-        needrestart: { attrs: [ CLI FOSS GNU copyleft ]
+        needrestart: { attrs: [ CLI FOSS copyleft ]
             description: "needrestart — after an upgrade, reports (and can restart) services still running outdated libraries, and flags an outdated kernel."
             install: [ { via: native  when: "debian or fedora" }
                        { via: native  when: "rhel"  requires: epel }
@@ -588,18 +588,18 @@
                        { via: aur  name: iozone } ] }   // not in openSUSE repos
         // --- benchmarks (disk / CPU / memory / GPU + a suite). Most are in-repo everywhere (EL via
         // EPEL); the graphics ones need a working GL/Vulkan stack at runtime. ---
-        fio: { attrs: [ CLI FOSS GNU copyleft ] description: "fio — the Flexible I/O tester: the standard storage benchmark (Jens Axboe)."
+        fio: { attrs: [ CLI FOSS copyleft ] description: "fio — the Flexible I/O tester: the standard storage benchmark (Jens Axboe)."
             install: [ { via: native }  { via: brew  name: fio } ] }
         ioping: { attrs: [ CLI FOSS copyleft ] description: "ioping — measure disk I/O latency (like `ping`, for storage)."
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel" }  { via: brew  name: ioping } ] }
-        bonnie++: { attrs: [ CLI FOSS GNU copyleft ] description: "bonnie++ — a classic hard-drive and filesystem throughput benchmark."
+        bonnie++: { attrs: [ CLI FOSS copyleft ] description: "bonnie++ — a classic hard-drive and filesystem throughput benchmark."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl" }
                        { via: native  when: "rhel"  requires: epel }  { via: brew  name: "bonnie++" } ] }   // Arch: [extra] (promoted from the AUR)
-        sysbench: { attrs: [ CLI FOSS GNU copyleft ] description: "sysbench — a scriptable multi-threaded CPU / memory / threads / DB benchmark."
+        sysbench: { attrs: [ CLI FOSS copyleft ] description: "sysbench — a scriptable multi-threaded CPU / memory / threads / DB benchmark."
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel" }  { via: brew  name: sysbench } ] }
-        stress-ng: { attrs: [ CLI FOSS GNU copyleft ] description: "stress-ng — stress-test a system many ways and report per-stressor metrics (successor to `stress`)."
+        stress-ng: { attrs: [ CLI FOSS copyleft ] description: "stress-ng — stress-test a system many ways and report per-stressor metrics (successor to `stress`)."
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel" }  { via: brew  name: stress-ng } ] }
         // hyperfine — Rust; native in the newer repos, cargo covers EL/openSUSE/Amazon.
@@ -611,14 +611,14 @@
             install: [ { via: native  when: "debian" }
                        { via: native  when: "fedora_atomic" }        // brew formula `mbw`
                        { via: aur  }  { via: brew  name: mbw } ] }   // niche: Debian/brew/AUR; declines elsewhere
-        glmark2: { attrs: [ GUI FOSS GNU copyleft ] description: "glmark2 — an OpenGL (ES) 2.0 rendering benchmark."
+        glmark2: { attrs: [ GUI FOSS copyleft ] description: "glmark2 — an OpenGL (ES) 2.0 rendering benchmark."
             install: [ { via: native  when: "rhel"  requires: epel }
                        { via: native  when: "not rhel and not alpine"  repo-component: universe } ] }   // not packaged on alpine
-        vkmark: { attrs: [ GUI FOSS GNU copyleft ] description: "vkmark — an extensible Vulkan benchmark with configurable scenes."
+        vkmark: { attrs: [ GUI FOSS copyleft ] description: "vkmark — an extensible Vulkan benchmark with configurable scenes."
             install: [ { via: native  when: "debian or fedora or arch or opensuse" } ] }   // needs a Vulkan driver at runtime; not packaged on alpine/atomic/amzn
         // Phoronix Test Suite — the big automated benchmark orchestrator. Only hard dep is PHP (CLI +
         // DOM). In-repo on most distros (EL via EPEL, Arch via AUR); Amazon/atomic decline.
-        phoronix-test-suite: { attrs: [ CLI app FOSS GNU copyleft ] description: "Phoronix Test Suite — automated cross-platform benchmarking/orchestration (`phoronix-test-suite`)." requires: php
+        phoronix-test-suite: { attrs: [ CLI app FOSS copyleft ] description: "Phoronix Test Suite — automated cross-platform benchmarking/orchestration (`phoronix-test-suite`)." requires: php
             install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(fedora or opensuse) and not amzn" }   // absent from Ubuntu 24.04 & Alpine repos; Debian-family/alpine build from upstream instead
                        { via: native  when: "rhel"  requires: epel }
                        { via: aur  }  { via: brew  name: phoronix-test-suite } ] }
@@ -1528,7 +1528,7 @@
                          url: "https://nim-lang.org/download/nim-$VERSION-linux_x64.tar.xz" }  { via: brew  name: nim } ] }
 
         // R (statistics) and GNU Octave (numerical computing) — native everywhere.
-        r:      { attrs: [ CLI runtime toolchain FOSS copyleft ] suggests: r-dotfiles  description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { xbps: R apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } }  { via: brew  name: r } ] }
+        r:      { attrs: [ CLI runtime toolchain FOSS GNU copyleft ] suggests: r-dotfiles  description: "R — language and environment for statistical computing." install: [ { via: native  repo-component: universe  name: { xbps: R apt: r-base  dnf: R  pacman: r  zypper: R-base  apk: R  brew: r } }  { via: brew  name: r } ] }
         octave: { attrs: [ CLI GUI app FOSS GNU copyleft ] suggests: octave-dotfiles  description: "GNU Octave — numerical computing, largely MATLAB-compatible." install: [ { via: native  when: "not amzn"   repo-component: universe }  { via: flatpak  hub: flathub  app: org.octave.Octave }  { via: brew  name: octave } ] }
         // Common Lisp: SBCL (the compiler) + Quicklisp (the library manager, bootstrapped by its
         // own lisp script and wired into the SBCL init file).
@@ -1743,8 +1743,8 @@
         // ===================== network + web-dev tooling =====================
         // iproute2 — `ip`/`ss`/`tc`. Native everywhere; EL's dnf calls the package `iproute`.
         iproute2:   { attrs: [ CLI FOSS copyleft ] description: "iproute2 — modern Linux networking tools (`ip`, `ss`)." install: [ { via: native  name: { dnf: iproute  default: iproute2 } } ] }
-        bridge-utils: { attrs: [ CLI FOSS GNU copyleft legacy ] description: "bridge-utils (`brctl`) — legacy Ethernet-bridge admin (superseded by iproute2's `ip`)." install: [ { via: native  when: "not fedora_atomic and not arch" } ] }   // Linux-only; not on brew; dropped from Arch repos (iproute2 replaces it)
-        dosfstools: { attrs: [ CLI FOSS GNU copyleft ] description: "dosfstools — create and check FAT filesystems (`mkfs.fat`, `fsck.fat`)." install: [ { via: native  when: "not fedora_atomic" }  { via: brew  name: dosfstools } ] }   // Linux-only; not on brew
+        bridge-utils: { attrs: [ CLI FOSS copyleft legacy ] description: "bridge-utils (`brctl`) — legacy Ethernet-bridge admin (superseded by iproute2's `ip`)." install: [ { via: native  when: "not fedora_atomic and not arch" } ] }   // Linux-only; not on brew; dropped from Arch repos (iproute2 replaces it)
+        dosfstools: { attrs: [ CLI FOSS copyleft ] description: "dosfstools — create and check FAT filesystems (`mkfs.fat`, `fsck.fat`)." install: [ { via: native  when: "not fedora_atomic" }  { via: brew  name: dosfstools } ] }   // Linux-only; not on brew
         // Capture & probe — native CLI staples. Name maps only where distros diverge; the
         // rest carry the same package name everywhere.
         wireshark:  { attrs: [ GUI app FOSS copyleft ] description: "Wireshark — a GUI network protocol analyzer." install: [ { via: native  when: "not fedora_atomic"  name: { pacman: wireshark-qt }
@@ -1767,7 +1767,7 @@
                       install: [ { via: native }  { via: brew  name: mtr } ] }
         // Mosh — a robust remote shell over UDP that survives roaming and connection drops. One
         // package ships both the `mosh` client and `mosh-server` (there is no separate server pkg).
-        mosh:       { attrs: [ CLI FOSS GNU copyleft ] description: "Mosh — a remote terminal over UDP that survives roaming and network drops (`mosh` + `mosh-server`)."
+        mosh:       { attrs: [ CLI FOSS copyleft ] description: "Mosh — a remote terminal over UDP that survives roaming and network drops (`mosh` + `mosh-server`)."
                       install: [ { via: native  when: "rhel"  requires: epel }
                                  { via: native  when: "not rhel"  repo-component: universe }  { via: brew  name: mosh } ] }
         traceroute: { attrs: [ CLI FOSS copyleft ] description: "Trace the network path to a host, hop by hop." install: [ { via: native  when: "not fedora_atomic" } ] }   // no `traceroute` brew formula (Homebrew has mtr/tcptraceroute instead); macOS ships it in base — so decline on brew-native atomic rather than fail
@@ -2305,7 +2305,7 @@
             install: [ { via: native   when: "alpine" }
                        { via: flatpak  hub: flathub  app: org.gimp.GIMP } ]
         }
-        krita: { attrs: [ GUI app FOSS copyleft GNU ] description: "Krita — a digital painting studio."
+        krita: { attrs: [ GUI app FOSS copyleft ] description: "Krita — a digital painting studio."
             install: [ { via: native   when: "debian or fedora or arch or opensuse or alpine or void or void_musl"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: org.kde.krita } ]
         }
@@ -2350,22 +2350,22 @@
         // Distro-packaged GTK/KDE managers go native where packaged, Flathub as the universal / EL /
         // atomic method. The upstream-only apps (lap, allusion, mediachips, video-hub-app) ship
         // AppImages (+ AUR on Arch); their x86_64-only builds carry `cpu-names: { x86_64: … }`.
-        kphotoalbum: { attrs: [ GUI app FOSS GNU copyleft ] description: "KPhotoAlbum — KDE's keyword/category photo indexer and viewer."
+        kphotoalbum: { attrs: [ GUI app FOSS copyleft ] description: "KPhotoAlbum — KDE's keyword/category photo indexer and viewer."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: org.kde.kphotoalbum }
                        { via: snap  name: kphotoalbum } ] }   // not in EPEL/Void/brew -> flatpak there; KDE's own snap is pinnable
-        gthumb:     { attrs: [ GUI app FOSS GNU copyleft ] description: "gThumb — GNOME's image viewer, browser and organizer."
+        gthumb:     { attrs: [ GUI app FOSS copyleft ] description: "gThumb — GNOME's image viewer, browser and organizer."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or void or void_musl"  repo-component: universe }
                        { via: native  when: "rhel < 10"  requires: epel }
                        { via: flatpak  hub: flathub  app: org.gnome.gThumb } ] }   // EPEL 8/9 carry it, EPEL 10 doesn't (-> flatpak)
-        rawtherapee: { attrs: [ GUI CLI app FOSS GNU copyleft ] suggests: rawtherapee-dotfiles
+        rawtherapee: { attrs: [ GUI CLI app FOSS copyleft ] suggests: rawtherapee-dotfiles
             description: "RawTherapee — a non-destructive RAW photo developer (`rawtherapee`, `rawtherapee-cli`)."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or void or void_musl"  repo-component: universe }
                        { via: flatpak  hub: flathub  app: com.rawtherapee.RawTherapee }
                        { via: appImage  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: RawTherapee  scope: user
                          version: { github: RawTherapee/RawTherapee  asset: "RawTherapee_*_$ARCH_release.AppImage" }  path: ~/apps/rawtherapee.appimage } ] }   // not in EPEL -> flatpak; upstream AppImage pinnable (tags have no `v`)
         rawtherapee-dotfiles: { description: "RawTherapee options + processing profiles, linked into place." install: [ { via: dotfiles  config: { src: rawtherapee  dst: $XDG_CONFIG_HOME/RawTherapee } } ] }
-        shotwell:   { attrs: [ GUI app FOSS GNU copyleft ] description: "Shotwell — GNOME's photo manager (import, organize, light edits)."
+        shotwell:   { attrs: [ GUI app FOSS copyleft ] description: "Shotwell — GNOME's photo manager (import, organize, light edits)."
             install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or void or void_musl" }
                        { via: flatpak  hub: flathub  app: org.gnome.Shotwell }
                        { via: snap  name: shotwell } ] }   // Ubuntu main; not in EPEL/brew -> flatpak
@@ -2378,16 +2378,16 @@
                        { via: native-pkg-file  when: "redhat or opensuse"  name: xnview  standing: never-auto  cpu-names: { x86_64: x86_64 }
                          version: { url: "https://www.xnview.com/en/xnview-mp/"  regex: "Version +([0-9]+[.][0-9]+(?:[.][0-9]+)?)" }
                          url: "https://download.xnview.com/XnView_MP-linux.x86_64.rpm" } ] }   // proprietary: the sandboxed flatpak is the default; vendor .deb/.rpm (stable "latest" URLs, x86_64 — the ARM build is stale) + AUR are pinnable
-        lap:        { attrs: [ GUI app FOSS GNU copyleft tele ] description: "Lap — an offline-first photo manager for large local libraries (`Lap`; local AI search, faces, dedupe)."
+        lap:        { attrs: [ GUI app FOSS copyleft tele ] description: "Lap — an offline-first photo manager for large local libraries (`Lap`; local AI search, faces, dedupe)."
             install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"
                          version: { github: julyx10/lap  strip-v: true }  asset: { x86_64: "Lap_*_amd64.deb"  aarch64: "Lap_*_arm64.deb" } }
                        { via: appImage  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
                          version: { github: julyx10/lap  strip-v: true  asset: "Lap_*_$ARCH.AppImage" }  path: ~/apps/lap.appimage } ] }   // Tauri app, not in any distro; the .deb needs webkit2gtk-4.1 (Ubuntu 22.04+/Debian 12+). Aptabase usage stats are ON by default (tele)
-        allusion:   { attrs: [ GUI app FOSS GNU copyleft electron ] description: "Allusion — a visual reference/image library for artists (the maintained RafaUC fork)."
+        allusion:   { attrs: [ GUI app FOSS copyleft electron ] description: "Allusion — a visual reference/image library for artists (the maintained RafaUC fork)."
             install: [ { via: aur  cpu-names: { x86_64: x86_64 }  name: allusion-appimage-rafauc }
                        { via: appImage  cpu-names: { x86_64: x86_64 }  name: Allusion  scope: user
                          version: { github: RafaUC/Allusion  strip-v: true  asset: "Allusion-*-ruc.AppImage" }  path: ~/apps/allusion.appimage } ] }   // upstream allusion-app is dormant since 2023; the fork keeps the same appId/config. x86_64 only
-        mediachips: { attrs: [ GUI app FOSS GNU copyleft electron freemium ] description: 'MediaChips — a local media library (video/images/audio) with custom metadata "chips" and tags.'
+        mediachips: { attrs: [ GUI app FOSS copyleft electron freemium ] description: 'MediaChips — a local media library (video/images/audio) with custom metadata "chips" and tags.'
             install: [ { via: aur  cpu-names: { x86_64: x86_64 }  name: mediachips-bin }
                        { via: appImage  cpu-names: { x86_64: x86_64 }  name: MediaChips  scope: user
                          version: { github: fupdec/MediaChips  strip-v: true  asset: "MediaChips.v*.Linux.AppImage" }  path: ~/apps/mediachips.appimage } ] }   // x86_64-only AppImage; an optional paid activation key exists (freemium)
@@ -2857,7 +2857,7 @@
         // (inspect reads it as installed). `when:`-gated to the traditional package families
         // (excludes atomic / brew-native desktops, which are image-based). Arch installs some as
         // package GROUPS (xfce4/mate) — the pacman driver detects group membership for get_version.
-        gnome:    { attrs: [ GUI app FOSS GNU copyleft ] description: "GNOME — the polished, mainstream GNOME desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  name: { xbps: gnome-shell default: gnome-shell } } ] }
+        gnome:    { attrs: [ GUI app FOSS copyleft ] description: "GNOME — the polished, mainstream GNOME desktop." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  name: { xbps: gnome-shell default: gnome-shell } } ] }
         kde:      { attrs: [ GUI FOSS copyleft ] description: "KDE Plasma — a feature-rich, highly customizable desktop." install: [ { via: native  when: "void or void_musl"  name: plasma-desktop }  { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: kde-plasma-desktop  dnf: plasma-desktop  pacman: plasma-meta  zypper: plasma6-session  apk: plasma-desktop } } ] }
         xfce:     { attrs: [ GUI app FOSS copyleft ] description: "Xfce — a lightweight, traditional desktop environment." install: [ { via: native  when: "void or void_musl"  name: xfce4 }  { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: xfce4  dnf: xfce4-session  pacman: xfce4  zypper: xfce4-session  apk: xfce4 } } ] }
         lxqt:     { attrs: [ GUI FOSS copyleft ] description: "LXQt — a lightweight Qt desktop." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or redhat or arch or opensuse or alpine) and not amzn"  name: { apt: lxqt  dnf: lxqt-session  pacman: lxqt  zypper: lxqt-session  apk: lxqt-desktop } } ] }
@@ -2869,13 +2869,13 @@
         cosmic:   { attrs: [ GUI FOSS copyleft ] description: "COSMIC — System76's Rust-based desktop environment." install: [ { via: native  when: "(pop_os! or redhat or arch or opensuse or alpine) and not amzn"  name: { default: cosmic-session } } ] }                                                          // stock Debian/Ubuntu lack it; Pop + others ship cosmic-session
         // Bare compositors (no full desktop): niri and mango, plus GNOME's mutter / KDE's kwin on their own (usually
         // pulled in by the gnome/kde metapackages — listed so a session can be assembled piecemeal).
-        niri:     { attrs: [ GUI FOSS GNU copyleft ] suggests: niri-dotfiles  description: "niri — a scrollable-tiling Wayland compositor (`niri`, `niri-session`)."
+        niri:     { attrs: [ GUI FOSS copyleft ] suggests: niri-dotfiles  description: "niri — a scrollable-tiling Wayland compositor (`niri`, `niri-session`)."
                     install: [ { via: native  when: "fedora or arch or opensuse_tumbleweed or (alpine >= 3.23) or void or void_musl" } ] }   // not in Debian/Ubuntu (third-party PPA only), EPEL or brew; Leap 16's 0.1.9 is too old. Upstream ships source only
-        mangowc:  { attrs: [ GUI FOSS copyleft ] suggests: mangowc-dotfiles  description: "Mango — a fast dwl-based tiling Wayland compositor with scroller layouts and effects (`mango`)."
-                    install: [ { via: native  when: "arch or (alpine >= 3.24) or void or void_musl"  name: { xbps: mangowc  default: mangowm } } ] }   // upstream renamed mangowc -> mangowm (Void keeps the old name). Fedora: Terra only; openSUSE: OBS only; not in Debian/Ubuntu or brew. Source-only upstream (needs wlroots 0.20 + scenefx)
-        mutter:   { attrs: [ GUI FOSS GNU copyleft ] description: "mutter — GNOME's Wayland compositor and window manager, standalone."
+        mangowm:  { attrs: [ GUI FOSS copyleft ] suggests: mangowm-dotfiles  description: "Mango — a fast dwl-based tiling Wayland compositor with scroller layouts and effects (`mango`)."
+                    install: [ { via: native  when: "arch or (alpine >= 3.24) or void or void_musl"  name: { xbps: mangowc } } ] }   // formerly mangowc (Void still packages it under that name). Fedora: Terra only; openSUSE: OBS only; not in Debian/Ubuntu or brew. Source-only upstream (needs wlroots 0.20 + scenefx)
+        mutter:   { attrs: [ GUI FOSS copyleft ] description: "mutter — GNOME's Wayland compositor and window manager, standalone."
                     install: [ { via: native  when: "(debian or redhat or arch or opensuse or alpine or void or void_musl) and not amzn" } ] }   // EL: in AppStream (no EPEL needed)
-        kwin:     { attrs: [ GUI FOSS GNU copyleft ] description: "KWin — KDE's Wayland compositor and window manager, standalone (`kwin_wayland`)."
+        kwin:     { attrs: [ GUI FOSS copyleft ] description: "KWin — KDE's Wayland compositor and window manager, standalone (`kwin_wayland`)."
                     install: [ { via: native  when: "(debian or fedora or arch or opensuse or alpine or void or void_musl) and not (opensuse_leap < 16) and not amzn"  repo-component: universe
                                  name: { apt: kwin-wayland  zypper: kwin6  default: kwin } }
                                { via: native  when: "rhel"  requires: epel } ] }   // Wayland session; the X11 build is a separate kwin-x11 package now. Leap 15.6 still ships kwin5 -> excluded. EL via EPEL 9/10
@@ -3289,22 +3289,22 @@
         // not packages — nothing to install for those). ---
         valgrind:  { attrs: [ CLI FOSS copyleft ] suggests: valgrind-dotfiles  description: "Valgrind — memory-error and leak detector." install: [ { via: native }  { via: brew  name: valgrind } ] }
         cppcheck:  { attrs: [ CLI FOSS copyleft ] description: "Cppcheck — static analysis for C/C++." install: [ { via: native }  { via: brew  name: cppcheck } ] }
-        doxygen:   { attrs: [ CLI FOSS GNU copyleft ] description: "Doxygen — generate API docs from annotated C/C++/… source." install: [ { via: native }  { via: brew  name: doxygen } ] }
+        doxygen:   { attrs: [ CLI FOSS copyleft ] description: "Doxygen — generate API docs from annotated C/C++/… source." install: [ { via: native }  { via: brew  name: doxygen } ] }
         swig:      { attrs: [ CLI FOSS permissive ] description: "SWIG — generate scripting-language bindings for C/C++ (`swig`)." install: [ { via: native }  { via: brew  name: swig } ] }   // apt `swig`: a meta over swig4.0 on older Debian/Ubuntu (installed too, so it answers), the real package on 24.04+ (swig 4.2; no swig4.0)
         source-highlight: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Source-highlight — syntax-highlight source to HTML and other formats."
                             install: [ { via: native  when: "not (rhel or amzn)" }
                                        { via: native  when: "rhel"  requires: epel }  { via: brew  name: source-highlight } ] }   // EL via EPEL
-        po4a:      { attrs: [ CLI FOSS GNU copyleft ] description: "po4a — keep doc translations (man/markdown/…) in sync via PO files."
+        po4a:      { attrs: [ CLI FOSS copyleft ] description: "po4a — keep doc translations (man/markdown/…) in sync via PO files."
                      install: [ { via: native  when: "not (rhel or amzn)" }
                                 { via: native  when: "rhel"  requires: epel }  { via: brew  name: po4a } ] }   // EL via EPEL
-        asciidoc:  { attrs: [ CLI FOSS GNU copyleft ] description: "AsciiDoc — a plain-text document format rendered to HTML/DocBook/man (`asciidoc`, `a2x`)."
+        asciidoc:  { attrs: [ CLI FOSS copyleft ] description: "AsciiDoc — a plain-text document format rendered to HTML/DocBook/man (`asciidoc`, `a2x`)."
                      install: [ { via: native  when: "not (rhel or amzn)" }
                                 { via: native  when: "rhel"  requires: epel }  { via: brew  name: asciidoc } ] }   // EL via EPEL
         strace:    { attrs: [ CLI FOSS copyleft ] description: "strace — trace the system calls of a running program." install: [ { via: native }  { via: brew  name: strace } ] }
         ltrace:    { attrs: [ CLI FOSS copyleft ] description: "ltrace — trace the library calls of a running program." install: [ { via: native } ] }
         lldb:      { attrs: [ CLI FOSS permissive ] description: "LLDB — the LLVM project's debugger." install: [ { via: native }  { via: brew  name: lldb } ] }
         // --- reverse-engineering / analysis ---
-        radare2:   { attrs: [ CLI FOSS GNU copyleft ] description: "radare2 — a portable reverse-engineering framework & low-level debugger (`r2`)." install: [ { via: native  repo-component: universe }  { via: native  when: "fedora_atomic" }  { via: brew  name: radare2 } ] }   // packaged on every family (+ brew on atomic); a modern stand-in for the old SoftICE workflow
+        radare2:   { attrs: [ CLI FOSS copyleft ] description: "radare2 — a portable reverse-engineering framework & low-level debugger (`r2`)." install: [ { via: native  repo-component: universe }  { via: native  when: "fedora_atomic" }  { via: brew  name: radare2 } ] }   // packaged on every family (+ brew on atomic); a modern stand-in for the old SoftICE workflow
         ghidra:    { attrs: [ GUI app FOSS permissive ] description: "Ghidra — the NSA's open-source software reverse-engineering (SRE) suite." install: [ { via: flatpak  hub: flathub  app: org.ghidra_sre.Ghidra }  { via: native  when: "arch or void or void_musl" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ghidra"  requires: [ unzip, jdk-21 ]  version: { github: NationalSecurityAgency/ghidra  tag-re: "Ghidra_([0-9.]+)_build"  asset: "ghidra_*_PUBLIC_*.zip" } } ] }   // flatpak bundles a JRE (default); the release zip needs a JDK 21 -> requires it
         // RAD Debugger (Epic): alpha. Release binaries are Windows-only; on Linux it BUILDS (the AUR package
         // runs ./build.sh), but its debugging target is still Windows x64 only — native Linux debugging is
@@ -3900,7 +3900,7 @@
         // recipes `requires:` these by name, so they live in core where any component can reach them).
         // Debian/Fedora/openSUSE split a -dev/-devel package; Arch (and the component-name `default:`)
         // don't split, so the base name carries headers. NAMESWEEP PENDING as repos roll. ---
-        ncurses:  { attrs: [ lib FOSS permissive ] description: "ncurses — terminal text-UI / window library (dev headers + libs)."
+        ncurses:  { attrs: [ lib FOSS GNU permissive ] description: "ncurses — terminal text-UI / window library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libncurses-dev  dnf: ncurses-devel   apk: ncurses-dev   zypper: ncurses-devel } } ] }
         libevent: { attrs: [ lib FOSS permissive ] description: "libevent — asynchronous event-notification library (dev headers + libs)."
                     install: [ { via: native  name: { apt: libevent-dev    dnf: libevent-devel  apk: libevent-dev  zypper: libevent-devel } } ] }
@@ -4113,7 +4113,7 @@
         ruby-glue: { description: "ruby shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: ruby } ] }
         rust-glue: { description: "rust shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: rust } ] }
         sway-dotfiles: { description: "sway config, linked into place." install: [ { via: dotfiles  config: { src: sway  dst: $XDG_CONFIG_HOME/sway } } ] }
-        mangowc-dotfiles: { description: "mango config, linked into place." install: [ { via: dotfiles  config: { src: mango  dst: $XDG_CONFIG_HOME/mango } } ] }
+        mangowm-dotfiles: { description: "mango config, linked into place." install: [ { via: dotfiles  config: { src: mango  dst: $XDG_CONFIG_HOME/mango } } ] }
         niri-dotfiles: { description: "niri config (config.kdl), linked into place." install: [ { via: dotfiles  config: { src: niri  dst: $XDG_CONFIG_HOME/niri } } ] }
         tree-sitter-cli-glue: { description: "tree-sitter-cli shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: tree-sitter-cli } ] }
         unityhub-glue: { description: "unityhub shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: unityhub } ] }

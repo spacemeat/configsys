@@ -71,3 +71,29 @@ def test_faceted_filter_exclude_and_empty():
     assert _attr_pass({'gui', 'foss'}, set(), {'proprietary'})
     assert _attr_pass(set(), set(), set())                             # untagged passes an empty filter
     assert not _attr_pass({'dotfiles'}, set(), {'dotfiles'})           # default companion-hide
+
+
+# `GNU` means "a GNU project" (docs/component-attrs.md), not "GPL-licensed" — that is `copyleft`.
+# Each shipped GNU tag, against the package's entry at gnu.org/software/ (checked 2026-10-12).
+# A new GNU tag fails here until it's confirmed against that list; a component that only shares a
+# name with a GNU package (Breezy vs GNU Bazaar, Artifex Ghostscript, the MPD client `mpc`) or is
+# merely GPL (niri, tree, krita, GNOME — which left GNU) doesn't get one.
+_GNU_PROJECTS = {
+    'autoconf': 'autoconf', 'automake': 'automake', 'bison': 'bison', 'c-toolchain': 'gcc + make',
+    'cpp-toolchain': 'gcc + make', 'emacs': 'emacs', 'gdb': 'gdb', 'gettext': 'gettext',
+    'gfortran': 'gcc', 'gimp': 'gimp', 'gnat': 'gnat', 'gnucobol': 'gnucobol', 'gnupg': 'gnupg',
+    'gnuradio': 'gnuradio', 'gnustep': 'gnustep', 'guile': 'guile', 'libiberty': 'libiberty',
+    'libidn2': 'libidn', 'libstdc++': 'gcc', 'libtool': 'libtool', 'make': 'make', 'mc': 'mc',
+    'ncurses': 'ncurses', 'objective-c': 'gcc', 'octave': 'octave', 'patch': 'patch', 'r': 'r',
+    'source-highlight': 'src-highlite', 'stow': 'stow', 'wget': 'wget',
+    **{f'gcc-{v}': 'gcc' for v in (10, 11, 12, 13, 14, 15)},
+}
+
+
+def test_gnu_tag_marks_exactly_the_gnu_projects(tmp_path):
+    from configsys.app import Context, build_parser
+    r = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'arch', 'inspect'])).routes
+    tagged = {n for n, c in r.components.items() if 'GNU' in (c.attrs or ())}
+    assert tagged - set(_GNU_PROJECTS) == set(), 'GNU-tagged but not a known GNU project'
+    assert set(_GNU_PROJECTS) - tagged == set(), 'a GNU project lost its GNU tag'
+    assert all('FOSS' in r.components[n].attrs for n in tagged)

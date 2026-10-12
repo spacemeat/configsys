@@ -40,12 +40,16 @@ another app) · `game` · `service` (a `-service` companion) · `group` (a `-gro
 ### 3. License / openness — free-form, combine as many as apply
 `FOSS` (OSI-free) · `FOSSish` (partly non-free — open core) · `proprietary` (closed) ·
 `source-available` (visible but non-OSI: BSL/SSPL) · `freeware` (gratis but closed) · `GNU` (a GNU
-project) · `copyleft` (GPL-family) · `permissive` (MIT/BSD/Apache)
+project — listed at gnu.org/software/; NOT a synonym for GPL) · `copyleft` (GPL-family) ·
+`permissive` (MIT/BSD/Apache)
 
 > `proprietary` is deliberately its own tag (not "absence of FOSS") so "hide non-free" is an
 > unambiguous *exclude*. `GNU`/`copyleft`/`permissive` are independent so the license-minded can
 > include/exclude each on its own. There is no per-license tag (`GPL`, `MIT`, …): a GPL project is
-> `copyleft`.
+> `copyleft`, and only a GNU project is also `GNU` (most GPL software isn't — niri, krita, tree; nor
+> is GNOME, which left GNU; nor a namesake like Breezy or Artifex Ghostscript). A GNU project under a
+> permissive license (ncurses) is `GNU permissive`. `test_attrs.test_gnu_tag_marks_exactly_the_gnu_projects`
+> holds the verified set, so a new `GNU` tag is checked against gnu.org/software/ before it lands.
 
 ### 4. Data / autonomy — what it does behind your back
 `tele` (telemetry on by default) · `tele-optin` (telemetry present but **off** by default) ·

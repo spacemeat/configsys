@@ -115,7 +115,8 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
    - `.venv/bin/python -m configsys --os <block> check` → 0 errors; also run the existing spread
      (SKILL.md step 7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl) so a
      shared-parent edit didn't regress them.
-   - Resolve sweep on the new atom: force `--os <block>` and confirm a handful of components resolve
+   - Resolve sweep on the new atom: force `--os <block>` (`--os <block>:<version>` for a versioned
+     block — without one, every version condition reads false) and confirm a handful of components resolve
      to the method a human would pick there (the `reschk.py` pattern in SKILL.md, with your block in
      the OS list).
    - **Name-existence sweep** for the manager (podman): `bash test/run-name-sweep-in-podman.sh

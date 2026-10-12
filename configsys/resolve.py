@@ -207,6 +207,9 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
     + auto-tighten), never the detection tier's soft ones, so an opt-in stays explicit. The reasons
     land in `ctx.derived_gates` ({driver: why}) for `where`. Cached on the cascade per (components,
     drivers, context, pins, …); a context is never mutated after it's returned.'''
+    if block not in cascade.blocks:            # an unknown forced block: say so, never an empty lineage
+        from .osdetect import unknown_block_message
+        raise ConfigsysError(unknown_block_message(block, cascade.blocks))
     pins = dict(pins or {})
     key = (id(components), id(drivers), id(overrides), block, version, cpu,
            frozenset(disabled or ()), frozenset((k, str(v)) for k, v in pins.items()),

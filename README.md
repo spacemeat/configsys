@@ -426,8 +426,9 @@ Global flags (they go before the command): `--pretend` (dry run — prints the c
 would run, including the queries that read install state, so the plan can list things you already
 have; makes no changes and no network calls, and saves no config edits, locks, install records or
 starter config; a download whose version isn't cached yet shows as `<latest release>` — `configsys
-refresh` caches versions), `--os <block>`, `--home <dir>` and `--config <file>` (run as if on
-another OS block, with another home directory or config file — together they sandbox a run),
+refresh` caches versions), `--os <block>[:<version>]`, `--home <dir>` and `--config <file>` (run as if on
+another OS block — `--os alpine:3.24` names the release too, since version conditions read false without
+one — with another home directory or config file; together they sandbox a run),
 `--machine <name>` (view and edit another machine's picks for this run; installs still act
 on this box), `--color {auto,24bit,256,16,8,none}` / `--nocolor` (cap the TUI color depth),
 `--effects {full,reduced,none}` (TUI motion), `--probe` (print the resolved color and motion mode,
@@ -439,7 +440,7 @@ Environment variables (a flag in parentheses sets the same thing for one run):
 
 | variable | effect |
 | --- | --- |
-| `CONFIGSYS_OS`, `CONFIGSYS_OS_VERSION` | use this OS block / version instead of detecting them (`--os` sets the block) |
+| `CONFIGSYS_OS`, `CONFIGSYS_OS_VERSION` | use this OS block (`BLOCK` or `BLOCK:VERSION`, like `--os`) / version instead of detecting them; `--os` replaces both |
 | `CONFIGSYS_ARCH` | use this CPU instead of the detected one — for `cpu:` in `when:` and `$ARCH` in download names |
 | `CONFIGSYS_FACET_<name>` | set a facet instead of detecting it, e.g. `CONFIGSYS_FACET_gpu=nvidia` |
 | `CONFIGSYS_HOME` | the home directory every `~` path resolves under (`--home`) |

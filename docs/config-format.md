@@ -1115,7 +1115,9 @@ and `check` reports the key as unrecognized.
 - `CONFIGSYS_USERSCOPE_DIR`, `CONFIGSYS_SYSTEMSCOPE_DIR`, `CONFIGSYS_APP_DIR`, `CONFIGSYS_SDK_DIR`,
   `CONFIGSYS_SRC_DIR`: override the matching `dirs:` key.
 - `CONFIGSYS_OS`, `CONFIGSYS_OS_VERSION`, `CONFIGSYS_ARCH`: evaluate routes as this OS block,
-  version and CPU instead of the detected ones (`--os` sets the block).
+  version and CPU instead of the detected ones. `CONFIGSYS_OS` takes `BLOCK` or `BLOCK:VERSION`
+  (`alpine:3.24`), the same as `--os`, which replaces both variables. An unknown block is an error;
+  with no version, version conditions such as `alpine >= 3.24` read false.
 - `CONFIGSYS_FACET_<name>`: a facet's value, overriding detection and your `facets:`.
 - `CONFIGSYS_COLOR`: caps the TUI color depth, with the same values as `--color`; `NO_COLOR`
   (any non-empty value) forces monochrome.

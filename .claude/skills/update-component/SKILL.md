@@ -126,8 +126,8 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
 >    backticks)?
 > 2. **Attrs** — license still matches the license tags (relicensing to BSL/SSPL/source-available/
 >    proprietary is high-value)? telemetry/account/cloud/ads/electron tags still true (look for
->    new telemetry, opt-in vs opt-out)? interface/role tags right? Missing `attrs:` on a real
->    component?
+>    new telemetry, opt-in vs opt-out)? interface/role tags right? `GNU` only on a GNU project
+>    (gnu.org/software/ — a GPL license alone is `copyleft`)? Missing `attrs:` on a real component?
 > 3. **Each in-scope binding still works** — native package names still exist where gated
 >    (packages.ubuntu.com, packages.debian.org, packages.fedoraproject.org, archlinux.org/packages,
 >    pkgs.alpinelinux.org, software.opensuse.org, Void's xbps-src templates on GitHub); EPEL still

@@ -18,8 +18,8 @@ show this help message and exit
 \fB--pretend\fR
 dry run: print the commands an operation would run instead of running them
 .TP
-\fB--os\fR \fIBLOCK\fR
-use this OS block instead of the detected one (e.g. pop_os!, fedora, arch); same as CONFIGSYS_OS
+\fB--os\fR \fIBLOCK[:VERSION]\fR
+use this OS block, and optionally release, instead of the detected one (e.g. pop_os!:22.04, fedora:44, arch); without a version, version conditions read false. Same as CONFIGSYS_OS
 .TP
 \fB--home\fR \fIDIR\fR
 use DIR in place of $HOME for every path configsys reads or writes (config, state, user-scope installs), for sandboxed runs; same as CONFIGSYS_HOME
@@ -213,7 +213,7 @@ open the interactive TUI (the default; prints \fBinspect\fR output when not on a
 .fi
 .SH ENVIRONMENT
 .nf
-  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block / version instead of the detected one (--os)
+  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block[:version] / version instead of the detected one (--os)
   CONFIGSYS_ARCH                       CPU arch for `$ARCH` and `cpu:` conditions (default: detected)
   CONFIGSYS_HOME                       stand-in for $HOME on every configsys path (--home)
   CONFIGSYS_CONFIG                     your user config file (--config)

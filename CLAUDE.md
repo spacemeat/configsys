@@ -42,7 +42,8 @@ terminal). Ops `inspect` / `install` / `remove` / `upgrade`
 `theme` / `keys`; `plugin …` (incl. `set-source`, which also retargets the synced clone's origin);
 `dotfiles …` (`activate [--local]` turns a staged block into user glue), `glue add|override`;
 `orphans`; `updates`, `refresh`; `report` / `request` / `request-os`; `manpages`. Global
-`--pretend`, `--os`, `--home` (sandbox), `--machine`, `--config`. `install --picks` (missing picks) /
+`--pretend`, `--os BLOCK[:VERSION]` (an unknown block errors — `osdetect.settle`; with no version
+every versioned OS atom reads false), `--home` (sandbox), `--machine`, `--config`. `install --picks` (missing picks) /
 `upgrade --picks` (outdated picks) = `app._picks_selection`: this box only (refused when
 `--machine` names another), unioned with any names, plan shown + confirmed unless `--yes`; bare
 `install` with neither names nor `--picks` errors. `set-version` refuses up front on a driver whose

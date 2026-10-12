@@ -134,7 +134,9 @@ editors, browsers, file-managers, …). Rules:
   `copyleft`/`permissive`; **data** `tele`/`tele-optin`/`account`/`cloud`/`online`/`ads`/`paid`/
   `freemium`; **pedigree** `electron`/`patent`/`legacy`/`beta`. Case: ALL-CAPS acronyms (`CLI FOSS SDK
   GNU`), lowercase words. Interface/role you can read off the tool; **the license + data axes you MUST
-  research per tool** (does it phone home? what license?) — only a human knows. `via: dotfiles`/`glue`/
+  research per tool** (does it phone home? what license?) — only a human knows. `GNU` means a GNU
+  project (listed at gnu.org/software/), never just "GPL" — GPL is `copyleft`; a new `GNU` tag also
+  goes in `test/test_attrs.py`'s `_GNU_PROJECTS`. `via: dotfiles`/`glue`/
   `service`/`group`/`font` auto-derive `dotfiles`/`glue`/`service`/`group`/`font` (`routes._VIA_ATTR`),
   so companions need no `attrs:`. Example: ``mpv: { … attrs: [ CLI GUI app FOSS copyleft ] … }``.
 
@@ -275,8 +277,12 @@ for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic','voi
         row.append(f'{c}={via}')
     print(f'{os:14} ' + '  '.join(row))
 ```
-Run with `.venv/bin/python reschk.py`. Also handy: `configsys --os <os>
-where <component>` (source layer + resolution) and `configsys --os <os> request <component>`.
+Run with `.venv/bin/python reschk.py`. A bare block has NO version, so every versioned condition
+reads false there (`alpine >= 3.24` declines, `not (fedora >= 44)` holds): for a version-gated
+binding, check the releases on each side of the gate with `--os <block>:<version>`
+(`--os alpine:3.23` / `alpine:3.24`). Also handy: `configsys --os <os> where <component>` (source
+layer + resolution; it notes any version condition a versionless block reads false) and
+`configsys --os <os> request <component>`.
 
 ### 8. Regenerate the golden gate + run the suite
 Adding components changes the frozen resolution snapshot (`test/routing_golden.json`, every
