@@ -334,14 +334,12 @@
         python3-dev: { attrs: [ lib FOSS permissive ] description: "CPython development headers (`Python.h`) for building C extension modules."
             install: [ { via: native  name: { xbps: python3-devel apt: python3-dev  dnf: python3-devel  pacman: python  apk: python3-dev  zypper: python313-devel  brew: "python@3.15" } } ] }   // zypper: openSUSE ships version-scoped python devel (no bare python3-devel); bump on the distro's default-python move. brew: the real formula, not the `python` alias — bump when Homebrew's default python moves
         numpy: { attrs: [ lib FOSS permissive ] description: "NumPy — the fundamental array-computing package for Python."
-            install: [ { via: native  when: "not opensuse"  name: { xbps: python3-numpy apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy } }
-                       { via: pip  name: numpy } ] }   // openSUSE ships only version-scoped python3XY-numpy (churns) — let pip cover it
+            install: [ { via: native  name: { xbps: python3-numpy apt: python3-numpy  dnf: python3-numpy  pacman: python-numpy  apk: py3-numpy  zypper: python313-numpy } } ] }   // zypper: openSUSE ships only version-scoped python3XY-* (bump with the default python, like python3-dev); no pip fallback — `pip install --user` is refused on PEP 668 (externally-managed) interpreters, openSUSE's included
         pytest: { attrs: [ CLI FOSS permissive ] description: "pytest — the Python testing framework (`pytest`)."
-            install: [ { via: native  when: "not opensuse"  name: { xbps: python3-pytest apt: python3-pytest  dnf: python3-pytest  pacman: python-pytest  apk: py3-pytest } }
-                       { via: pip  name: pytest }  { via: brew  name: pytest } ] }   // openSUSE ships only version-scoped python3XY-pytest (churns) — let pip cover it
+            install: [ { via: native  name: { xbps: python3-pytest apt: python3-pytest  dnf: python3-pytest  pacman: python-pytest  apk: py3-pytest  zypper: python313-pytest } }
+                       { via: brew  name: pytest } ] }   // zypper: version-scoped python3XY-* (bump with the default python); no pip fallback (PEP 668 refuses `pip install --user`)
         wxpython: { attrs: [ lib GUI FOSS FOSSish ] description: "wxPython (Phoenix) — Python bindings for the wxWidgets GUI toolkit."
-            install: [ { via: native  when: "not opensuse"  name: { xbps: wxPython apt: python3-wxgtk4.0  dnf: python3-wxpython4  pacman: python-wxpython  apk: py3-wxpython } }
-                       { via: pip  name: wxpython } ] }   // openSUSE ships only version-scoped python3XY-wxPython (churns) — let pip cover it
+            install: [ { via: native  name: { xbps: wxPython apt: python3-wxgtk4.0  dnf: python3-wxpython4  pacman: python-wxpython  apk: py3-wxpython  zypper: python313-wxPython } } ] }   // zypper: version-scoped python3XY-* (bump with the default python); no pip fallback (PEP 668 refuses `pip install --user`)
 
         // pyenv itself + the C libraries it needs to COMPILE CPython — the `via: pyenv` method's deps
         // (see drivers.pyenv). pyenv installs user-scope under ~/.pyenv via its official installer.

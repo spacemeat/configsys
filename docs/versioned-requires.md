@@ -299,7 +299,9 @@ the interpreter to install with:
 
 - **pip** (`drivers/pip.Pip._pip`) runs `<python> -m pip install --user`, so the package lands in
   that interpreter's user site; `get_version` probes that interpreter directly (`<python> -m pip
-  show`) because the batched index enumerates only the default `python3`.
+  list --user`) because the batched index enumerates only the default `python3`. Every pip read is
+  user-site only — a plain `pip list` also shows the distro's Python packages, which aren't pip
+  installs (see the `drivers/pip.py` docstring, which also covers PEP 668).
 - **pipx** (`drivers/pipx.Pipx._py_flag`) adds `--python <python>` to the venv-creating ops (install,
   `set_version`). `upgrade` becomes `pipx reinstall --python …`, the only pipx op that rebuilds a
   venv on a new interpreter (`pipx upgrade` keeps the venv's interpreter and `install --force`

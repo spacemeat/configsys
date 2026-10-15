@@ -41,7 +41,7 @@ def test_install_uninstall_upgrade_commands_are_user_space():
     Pip(r).upgrade(dist())
     assert r.calls == [
         'python3 -m pip install --user pipx',
-        'python3 -m pip uninstall -y pipx',
+        'PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip uninstall -y pipx',
         'python3 -m pip install --user --upgrade pipx',
     ]
     assert all('sudo' not in c for c in r.calls)   # user-space, no root
@@ -54,15 +54,15 @@ def test_set_version_pins():
 
 
 def test_get_version_from_pip_list():
-    # get_version now reads the batched `pip list --format=json` index (PEP-503-normalized), so N
-    # units cost one call; the lookup matches case/-_. spelling.
+    # get_version reads the batched `pip list --user --format=json` index (PEP-503-normalized), so
+    # N units cost one call; the lookup matches case/-_. spelling.
     listing = '[{"name": "Pipx", "version": "1.4.2"}, {"name": "other", "version": "9"}]'
-    fr = FakeRunner([('pip list --format=json', 0, listing)])
+    fr = FakeRunner([('pip list --user --format=json', 0, listing)])
     assert Pip(fr).get_version(dist()) == '1.4.2'
 
 
 def test_get_version_not_installed():
-    fr = FakeRunner([('pip list --format=json', 0, '[]')])   # not in the listing
+    fr = FakeRunner([('pip list --user --format=json', 0, '[]')])   # not in the listing
     assert Pip(fr).get_version(dist()) is None
 
 
@@ -94,6 +94,37 @@ def test_interpreter_pin_installs_into_a_specific_python():
 
 
 def test_interpreter_pin_get_version_probes_that_python():
-    show = 'Name: black\nVersion: 24.1.0\n'
-    fr = FakeRunner([('python3.12 -m pip show black', 0, show)])   # NOT the default-python batch
+    listing = '[{"name": "black", "version": "24.1.0"}]'
+    fr = FakeRunner([('python3.12 -m pip list --user --format=json', 0, listing)])   # NOT the default-python batch
     assert Pip(fr).get_version(dist(name='black', python='python3.12')) == '24.1.0'
+
+
+def test_reads_only_the_user_site():
+    # apt's `pipx` package is the dist `pipx` in /usr/lib/python3/dist-packages: a plain `pip list`
+    # shows it, and reading that as a pip install made a method switch try to `pip uninstall` the
+    # distro's package (PEP 668 refusal). Every read asks for the user site only.
+    fr = FakeRunner([('pip list --user --format=json', 0, '[]'),
+                     ('pip list --format=json', 0, '[{"name": "pipx", "version": "1.4.3"}]')])
+    assert Pip(fr).get_version(dist()) is None
+    assert Pip(fr).installed_index() == {}
+    assert all('--user' in c for c in fr.calls)
+
+
+def test_uninstall_skips_a_dist_not_in_the_user_site():
+    fr = FakeRunner([('pip list --user --format=json', 0, '[{"name": "six", "version": "1"}]')])
+    r = Pip(fr).uninstall(dist())
+    assert r.ok and 'nothing to remove' in r.stdout
+    assert not any('uninstall' in c for c in fr.calls)   # never reaches for the distro's copy
+
+
+def test_uninstall_removes_a_user_site_dist_past_pep_668():
+    fr = FakeRunner([('pip list --user --format=json', 0, '[{"name": "pipx", "version": "1.4.2"}]')])
+    assert Pip(fr).uninstall(dist()).ok
+    # the env var (not --break-system-packages) so a pip too old to know the option ignores it
+    assert fr.calls[-1] == 'PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip uninstall -y pipx'
+
+
+def test_uninstall_runs_when_the_user_site_cannot_be_read():
+    fr = FakeRunner([('pip list --user --format=json', 1, '')])   # can't tell -> let pip decide
+    Pip(fr).uninstall(dist())
+    assert fr.calls[-1].endswith('pip uninstall -y pipx')
