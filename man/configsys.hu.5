@@ -334,7 +334,7 @@ Driver-specific fields include:
 .IP \(bu 2
 \fBrpm-ostree\fR: \fBapply-live: true\fR also applies the layered package to the running system, instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
 .IP \(bu 2
-\fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR. pip installs into, and reads, only your user site (\fBpip install --user\fR): a Python package your distribution installed is not a pip install.
+\fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR. pip installs into, and reads, only your user site (\fBpip install --user\fR): a Python package your distribution installed is not a pip install. For both, "latest" is the newest release whose \fBrequires_python\fR admits the interpreter in use, so a release that dropped your Python never reads as an available upgrade.
 .IP \(bu 2
 \fBgo-install\fR: \fBname:\fR (the package path), \fBversion:\fR, and \fBcheckout: true\fR to build from a git checkout of the module instead of \fBgo install <path>@<version>\fR — for a module whose \fBgo.mod\fR has \fBreplace\fR directives, which \fBgo install\fR refuses. \fBname:\fR must then be the module root; \fBrepo:\fR overrides the clone URL. The build still targets the version the Go module proxy names, so update checks work as usual. Add \fBgit\fR to the binding's \fBrequires:\fR.
 .IP \(bu 2

@@ -117,6 +117,31 @@ class Pip(Driver):
         idx = self.batch if self.batch is not None else self.installed_index()
         return idx.get(_norm(self._dist(rc))) if idx else None
 
+    def _disco_spec(self, rc):
+        '''A `version: { pypi: <dist> }` spec scoped to the interpreter pip installs into (the
+        `python:` pin, else the default python3), so "latest" is the newest release whose
+        requires_python admits it — what `pip install --upgrade` can actually reach. pipx 1.18 needs
+        Python >= 3.11: on a 3.10 system pip stops at 1.17.x, and the absolute latest read outdated
+        forever ("Requirement already satisfied"). The pipx driver scopes the same way.'''
+        spec = super()._disco_spec(rc)
+        if isinstance(spec, dict) and spec.get('pypi') and not spec.get('python'):
+            py = self._python_version(rc)
+            if py:
+                spec = {**spec, 'python': py}
+        return spec
+
+    def _python_version(self, rc):
+        '''"3.10.12" for the interpreter `rc` installs into, probed once per interpreter per driver
+        instance; None when it can't be asked (a --pretend run, no such python).'''
+        cache = self.__dict__.setdefault('_pyver', {})
+        interp = str(rc.fields.get('python') or 'python3')
+        if interp not in cache:
+            r = self.runner.run(f'{shlex.quote(interp)} -c '
+                                '"import sys; print(\'%d.%d.%d\' % sys.version_info[:3])"')
+            out = (r.stdout or '').strip() if r.ok else ''
+            cache[interp] = out if re.fullmatch(r'\d+\.\d+\.\d+', out) else None
+        return cache[interp]
+
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):

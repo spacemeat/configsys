@@ -472,7 +472,9 @@ Driver-specific fields include:
   instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
 - **pipx** and **pip**: `name:`, `python:` (the interpreter), `version: { pypi: <dist> }`. pip
   installs into, and reads, only your user site (`pip install --user`): a Python package your
-  distribution installed is not a pip install.
+  distribution installed is not a pip install. For both, "latest" is the newest release whose
+  `requires_python` admits the interpreter in use, so a release that dropped your Python never
+  reads as an available upgrade.
 - **go-install**: `name:` (the package path), `version:`, and `checkout: true` to build from a git
   checkout of the module instead of `go install <path>@<version>` — for a module whose `go.mod` has
   `replace` directives, which `go install` refuses. `name:` must then be the module root; `repo:`

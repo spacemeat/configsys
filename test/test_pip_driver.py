@@ -128,3 +128,24 @@ def test_uninstall_runs_when_the_user_site_cannot_be_read():
     fr = FakeRunner([('pip list --user --format=json', 1, '')])   # can't tell -> let pip decide
     Pip(fr).uninstall(dist())
     assert fr.calls[-1].endswith('pip uninstall -y pipx')
+
+
+def test_latest_is_scoped_to_the_interpreter_pip_installs_into():
+    # pipx 1.18 needs Python >= 3.11; on a 3.10 system pip stops at 1.17.x, so the absolute latest
+    # read outdated forever. The pypi spec carries the interpreter's version (-> requires_python).
+    fr = FakeRunner([('python3 -c', 0, '3.10.12\n')])
+    assert Pip(fr)._disco_spec(dist(version_spec={'pypi': 'pipx'})) == {'pypi': 'pipx', 'python': '3.10.12'}
+    fr = FakeRunner([('python3.12 -c', 0, '3.12.3\n')])
+    spec = Pip(fr)._disco_spec(dist(version_spec={'pypi': 'pipx'}, python='python3.12'))
+    assert spec == {'pypi': 'pipx', 'python': '3.12.3'}       # the pinned interpreter, asked directly
+
+
+def test_latest_scoping_probes_once_and_degrades():
+    fr = FakeRunner([('python3 -c', 0, '3.10.12\n')])
+    d = Pip(fr)
+    d._disco_spec(dist(version_spec={'pypi': 'pipx'}))
+    d._disco_spec(dist(comp='black', name='black', version_spec={'pypi': 'black'}))
+    assert sum('python3 -c' in c for c in fr.calls) == 1        # one probe per interpreter
+    # a pretend run can't ask -> the plain spec (absolute latest), never a broken one
+    assert Pip(Runner(pretend=True))._disco_spec(dist(version_spec={'pypi': 'pipx'})) == {'pypi': 'pipx'}
+    assert Pip(Runner(pretend=True))._disco_spec(dist()) is None   # no version spec: unchanged
