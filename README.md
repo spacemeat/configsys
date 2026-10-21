@@ -358,7 +358,7 @@ configsys refresh                  # re-query latest versions + refresh the nati
 configsys dotfiles <status|capture|staged|activate|discard>   # your dotfiles + staged glue (see below)
 configsys glue    <add|override>   # your own shell snippets (add), or your editable copy of a component's glue (override)
 configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|init|set-source>   # declare, sync and trust plugins; bless or init your primary (see Plugins)
-configsys report  [<name>] [--print]      # file an install-failure report (default: the last failure; you approve the text first)
+configsys report  [<name>] [--print]      # file an install-failure report (default: every unfixed failure; you approve the text first)
 configsys request <name> [--print]        # ask upstream for full cross-platform support (coverage matrix)
 configsys request-os [--print]            # suggest this OS for support, or report that an update broke it (you approve first)
 configsys manpages <install|status>       # install/check the man pages (configsys(1), configsys.hu(5)) [--prefix DIR]
@@ -401,8 +401,10 @@ Profiles screen (`T`) or with `configsys picks add`.
 package index (`apt-get update`, `dnf makecache`, …; sudo may prompt). On Arch the only safe
 refresh is a full `pacman -Syu`, so `refresh` asks before running it. Every install or upgrade
 batch — from the CLI or the TUI — also refreshes the index once up front when it includes a native
-install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`). Arch is the
-exception: there a refresh means a full upgrade, so a batch never runs one for you.
+install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`). If that
+refresh turns up updates published after you staged, the batch's summary names the ones it didn't
+include. Arch is the exception: there a refresh means a full upgrade, so a batch never runs one for
+you.
 
 When the index refresh fails, configsys tells you why instead of leaving you with a raw apt or dnf
 error. It names the likely cause (a missing or rotated signing key, a dead repository URL, …) and the
@@ -538,8 +540,9 @@ tiers, packages pulled in only as dependencies are dimmed). It applies in bulk: 
 and `X` runs each manager's own upgrade before your other staged ops.
 
 **Issues (`!`).** From any screen, `!` lists every issue — config warnings, picks that can't route,
-routing statuses, scope drift, version-floor advisories. It is also where you file upstream: `r`
-reports a failed install, `f` requests full support for a component, `s` suggests this OS. You see
+routing statuses, scope drift, version-floor advisories, and installs, upgrades or removals that
+failed and haven't been fixed (each stays listed until a later attempt succeeds or the component
+reaches that state some other way). It is also where you file upstream: `r` reports a failed install, `f` requests full support for a component, `s` suggests this OS. You see
 the full text before anything is sent.
 
 Navigation is VIM-style everywhere: `j`/`k` and `h`/`l` (or the arrow keys), `g`/`G` for top and

@@ -246,7 +246,7 @@ def test_pick_method_single_method_is_a_noop(tmp_path):
 def test_fail_detail_surfaces_the_reason():
     from configsys.runner import Result
     r = Result('cmd', 1, stderr='E: could not get lock\nsome trailing line')
-    assert menu._fail_detail(r) == 'exit 1: some trailing line'
+    assert menu._fail_detail(r) == 'exit 1: E: could not get lock'   # the error line, not a trailer
     # falls back to the tee'd tail of streamed output when there is no stderr; a recognised failure
     # (a 404) also gets the taxonomy suffix appended (failures.py)
     r2 = Result('cmd', 2, captured='downloading...\ncurl: (22) 404')

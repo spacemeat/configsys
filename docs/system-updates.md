@@ -56,8 +56,12 @@ one map, test_driver_inventory):
 
 - `app._NATIVE_REFRESH` (apt, dnf, zypper, apk, xbps, brew) — an index-only refresh, safe before
   any install. `app.refresh_native_index` runs it (sudo, except brew) before `upgrade --system`,
-  before a TUI bulk apply, and before an ops batch per `refresh-before-execute`; `configsys
-  refresh` runs it too.
+  and before an ops batch per `refresh-before-execute`; `configsys refresh` runs it too. A TUI
+  batch refreshes ONCE, up front (`app.maybe_refresh_before_plan(…, system=True)`, then
+  `apply_bulk(refresh=False)` and `execute_plan(refresh=False)`): a second refresh between a long
+  bulk upgrade and the component ops picked up packages published meanwhile, which then read
+  "newly outdated" after a run that never offered them. The refresh's newly-upgradable names that
+  survive the batch are listed in the summary (`app.published_pending`).
 - `app._FULL_UPGRADE_REFRESH` (pacman) — an index-only `pacman -Sy` would leave a partial-sync
   state that breaks the next `pacman -S`, so the only safe refresh is `pacman -Syu` itself.
   `refresh_native_index` returns `(False, True)` and does nothing; `configsys refresh` asks before

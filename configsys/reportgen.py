@@ -46,13 +46,27 @@ def save_failures(paths, records):
         pass
 
 
+def record_run(paths, failures, attempted):
+    '''Fold one run's results into the saved failures, which hold every UNRESOLVED failure across
+    runs (what TUI::Components' ! page lists and `configsys report` files): a unit this run acted on
+    sheds its old record — succeeded, or replaced by this run's — and the run's new failures are
+    added. Records without a `unit` (the old single-record format) are dropped. Best-effort.'''
+    try:
+        done = set(attempted) | {f.get('unit') for f in failures}
+        keep = [f for f in load_failures(paths) if f.get('unit') and f.get('unit') not in done]
+        if keep or failures or paths.failure_file.exists():
+            save_failures(paths, keep + list(failures))
+    except Exception:                                     # noqa: BLE001
+        pass
+
+
 def save_failure(paths, record):
     '''Compat: persist a single failure record (wraps save_failures).'''
     save_failures(paths, [record])
 
 
 def load_failures(paths):
-    '''Every saved op-failure record (most recent run) as a list of dicts, or []. Back-compat: an
+    '''Every saved op-failure record (the unresolved ones — record_run) as a list of dicts, or []. Back-compat: an
     OLD single-record file (top-level `component:`, no `failures:` list) reads as a one-element
     list.'''
     p = paths.failure_file

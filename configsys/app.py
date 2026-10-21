@@ -274,6 +274,8 @@ class Context:
                 add('warn', tag, text)
         for note in getattr(self, '_sysupd_notes', None) or ():   # the TUI's System Updates scan
             add('warn', 'system-updates', note)
+        for text in _failure_diagnostics(self, states):
+            add('error', 'failed', text)
         return out
 
     def ensure_plugin_code(self):
@@ -895,6 +897,47 @@ def print_reboot_advisory(ctx):
               f'{"" if adv.reboot else " — restart them or reboot"}.')
 
 
+def _failure_open(rec, states):
+    '''Is a saved failure still unresolved, judged against the current install state? A later op on
+    the unit drops its record (reportgen.record_run); this also hides one the system has since made
+    moot by other means — the install that failed is present now, the upgrade is current, the remove
+    is gone. With no states (nothing inspected) every record shows. A unit outside the inspected set
+    (the pick was dropped) is hidden; a System Updates bulk failure always shows.'''
+    unit = rec.get('unit') or ''
+    if states is None or unit.startswith('system-updates\\'):
+        return True
+    st = states.get(unit)
+    if st is None:
+        return False
+    op = rec.get('op')
+    if op == 'install':
+        return not st.present
+    if op == 'upgrade':
+        return not (st.present and not st.outdated)
+    if op == 'remove':
+        return st.present
+    return True                                     # set-version / lock / unlock: until acted on again
+
+
+def _failure_diagnostics(ctx, states):
+    '''One ! line per unresolved op failure (reportgen.load_failures, minus the moot ones), naming the
+    op, when, and why (actions.failure_excerpt), with the fix path. installed-with-a-warning records
+    are skipped — the package is in; the run's summary already said so.'''
+    from . import reportgen
+    from .actions import failure_excerpt
+    out = []
+    for rec in reportgen.load_failures(ctx.paths):
+        if rec.get('installed') == 'true' or not _failure_open(rec, states):
+            continue
+        unit = rec.get('unit') or rec.get('component') or '?'
+        why = failure_excerpt(rec.get('output') or '')
+        name = rec.get('component') or unit
+        out.append(f"{unit}: {rec.get('op', 'op')} failed {rec.get('at', '')} (exit {rec.get('exit', '?')})"
+                   + (f' — {why}' if why else '')
+                   + f' — retry it, or file it: configsys report {name}')
+    return out
+
+
 def _installed_despite_failure(drv, rc, op, version):
     '''Re-export of actions.installed_despite_failure (the op loop moved there); kept for tests.'''
     from . import actions
@@ -902,8 +945,8 @@ def _installed_despite_failure(drv, rc, op, version):
 
 
 def _offer_report(ctx, failures, fatal=None):
-    '''Persist EVERY problem from the run (real failures + installed-with-a-warning) so `configsys
-    report` can reuse them later, and — on a terminal — offer to file real failures now. `fatal` is
+    '''The run's problems (real failures + installed-with-a-warning — run_plan has recorded them for
+    `configsys report` and the ! page) — on a terminal, offer to file real failures now. `fatal` is
     how many are hard failures (None = treat all as fatal). Never fatal itself. A --pretend run
     records nothing: no last-failure.hu, no report offer — just a note of what would have failed.'''
     if not isinstance(failures, list):                    # tolerate a single record
@@ -913,8 +956,7 @@ def _offer_report(ctx, failures, fatal=None):
         print(f'\nconfigsys: [pretend] {", ".join(names)} would fail as shown above — nothing '
               'recorded (no report saved).')
         return
-    reportgen.save_failures(ctx.paths, failures)
-    fatal = len(failures) if fatal is None else fatal
+    fatal = len(failures) if fatal is None else fatal     # (run_plan already recorded them)
     if fatal == 0:                                        # only installed-with-warnings — note, don't push
         names = [f['component'] for f in failures]
         print(f'\nconfigsys: {", ".join(names)} installed with a warning — '
@@ -1397,34 +1439,66 @@ def _uses_native_index(rc, pm):
     return bool(getattr(drv, 'native_backed', False))
 
 
-def maybe_refresh_before_plan(ctx, plan):
+def maybe_refresh_before_plan(ctx, plan, *, system=False):
     '''Per the `refresh-before-execute` setting, refresh the OS package index ONCE before running
     `plan` — so upgrades see current candidates and a broken vendor source is caught up front instead
     of failing per-package. 'auto' (default) refreshes only when the plan installs/upgrades something
-    that reads this OS's index (_uses_native_index); 'always'/'never' force it. A manager with no
-    index-only refresh (_FULL_UPGRADE_REFRESH) is never refreshed here; 'always' says so. Non-fatal:
-    a failed refresh proceeds on the cached index.'''
+    that reads this OS's index (_uses_native_index); 'always'/'never' force it. `system` = the batch
+    also runs a System Updates bulk upgrade, which always reads the index (refreshed whatever the
+    setting). A manager with no index-only refresh (_FULL_UPGRADE_REFRESH) is never refreshed here;
+    'always' says so. Non-fatal: a failed refresh proceeds on the cached index.
+
+    ONE refresh per batch: a TUI batch running System Updates and then component ops refreshes here,
+    up front, never again between the two — a second refresh after a long bulk upgrade picks up
+    packages published meanwhile, which then read "newly outdated" after a run that never offered
+    them. Returns the package names this refresh made upgradable that weren't before (staged against
+    the older index — `published_pending` reports the ones the batch didn't cover); empty when it
+    didn't refresh or can't tell.'''
     cfg = getattr(ctx, 'config', None)
     mode = cfg.refresh_before_execute() if hasattr(cfg, 'refresh_before_execute') else 'auto'
-    if mode == 'never':
-        return
+    if mode == 'never' and not system:
+        return set()
     if getattr(ctx, 'routes', None) is None or getattr(ctx, 'os_info', None) is None:
-        return                               # not enough context to refresh (e.g. a bare test stub)
+        return set()                         # not enough context to refresh (e.g. a bare test stub)
     pm = ctx.routes.cascade.native(ctx.os_info.block)
-    if mode == 'auto' and not any(op in ('install', 'upgrade') and _uses_native_index(rc, pm)
-                                  for op, _k, rc in plan):
-        return
+    if mode == 'auto' and not system and not any(
+            op in ('install', 'upgrade') and _uses_native_index(rc, pm) for op, _k, rc in plan):
+        return set()
     if pm not in _NATIVE_REFRESH:
         if mode == 'always' and pm in _FULL_UPGRADE_REFRESH:
             print(f'\nNot refreshing the {pm} index before the batch: its only safe refresh is a full '
                   'upgrade (run `configsys refresh` for that).', flush=True)
-        return
+        return set()
+    before = _upgradable_names(ctx, pm)
     print('\nRefreshing the package index before the batch…', flush=True)
     ran, ok = refresh_native_index(ctx)
     if ran:
         print('  ✓ index refreshed' if ok else
               '  ⚠ index refresh hit a problem — proceeding on the cached index '
               '(run `configsys refresh` to diagnose)')
+    after = _upgradable_names(ctx, pm) if ran and ok else None
+    return (after - before) if before is not None and after is not None else set()
+
+
+def _upgradable_names(ctx, pm):
+    '''The native manager's upgradable package names from its CACHED index (Driver.upgradable_index —
+    no network), or None when it can't say.'''
+    drv = get_driver(pm, ctx.runner, getattr(ctx, "paths", None)) if pm else None
+    try:
+        idx = drv.upgradable_index() if drv is not None else None
+    except Exception:                        # noqa: BLE001 — an advisory read, never fatal
+        idx = None
+    return set(idx) if isinstance(idx, dict) else None
+
+
+def published_pending(ctx, fresh):
+    '''Of `fresh` (maybe_refresh_before_plan's newly-upgradable names), the ones STILL upgradable
+    after the batch — updates published after you staged, which the run didn't include. Sorted.'''
+    if not fresh:
+        return []
+    pm = ctx.routes.cascade.native(ctx.os_info.block)
+    now = _upgradable_names(ctx, pm)
+    return sorted(fresh & now) if now is not None else []
 
 
 def cmd_refresh(ctx, args):
@@ -3700,8 +3774,8 @@ def build_parser():
 
     rp = sub.add_parser('report', help='assemble an install-failure report (OS + route + driver '
                                        'output) and file it upstream — you approve the full text first')
-    rp.add_argument('name', nargs='?', help='component to report (default: the failures saved from '
-                                            'the last run)')
+    rp.add_argument('name', nargs='?', help='component to report (default: every saved failure not '
+                                            'yet fixed)')
     rp.add_argument('--yes', action='store_true',
                     help='file without asking (the full text is still printed first)')
     rp.add_argument('--print', dest='print_only', action='store_true',

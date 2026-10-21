@@ -131,8 +131,10 @@ effective value and where it lives.
   installed over the computed default (detection).
 - **`refresh-before-execute`** (scalar, uniform; default `auto`): refresh the OS package index once
   before running staged operations: `auto` (when the batch includes a native install or upgrade),
-  `always`, or `never`. On Arch, where the only safe refresh is a full system upgrade, nothing is
-  refreshed automatically; `configsys refresh` offers the upgrade.
+  `always`, or `never`. A TUI batch that also applies System Updates always refreshes, once, before
+  anything runs; if that refresh finds updates published since you staged, the summary lists the
+  ones the batch didn't include. On Arch, where the only safe refresh is a full system upgrade,
+  nothing is refreshed automatically; `configsys refresh` offers the upgrade.
 - **`install-overlay`** (bool, uniform; default on): open the TUI Profiles screen with the
   install-state overlay on (`O` toggles it).
 - **`reboot-advice`** (bool, uniform; default on): after an operation, and as a TUI header chip,
@@ -468,7 +470,14 @@ Driver-specific fields include:
   `via: native` binding's `name:` map takes a `brew:` key.
 - **rpm-ostree**: `apply-live: true` also applies the layered package to the running system,
   instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
-- **pipx** and **pip**: `name:`, `python:` (the interpreter), `version: { pypi: <dist> }`.
+- **pipx** and **pip**: `name:`, `python:` (the interpreter), `version: { pypi: <dist> }`. pip
+  installs into, and reads, only your user site (`pip install --user`): a Python package your
+  distribution installed is not a pip install.
+- **go-install**: `name:` (the package path), `version:`, and `checkout: true` to build from a git
+  checkout of the module instead of `go install <path>@<version>` — for a module whose `go.mod` has
+  `replace` directives, which `go install` refuses. `name:` must then be the module root; `repo:`
+  overrides the clone URL. The build still targets the version the Go module proxy names, so update
+  checks work as usual. Add `git` to the binding's `requires:`.
 - **sdkman**: `name:` (the SDKMAN candidate, such as `java`), and optionally `version:`, an exact
   SDKMAN version identifier (`21.0.12+1.1-tem`). A binding with a `version:` installs and reads
   only that version, so several components can share one candidate, and upgrading it installs the

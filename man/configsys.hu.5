@@ -93,7 +93,7 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 .IP \(bu 2
 \fB\fBadopt-installed\fR\fR (bool, uniform; default on): prefer a method or provider that is already installed over the computed default (detection).
 .IP \(bu 2
-\fB\fBrefresh-before-execute\fR\fR (scalar, uniform; default \fBauto\fR): refresh the OS package index once before running staged operations: \fBauto\fR (when the batch includes a native install or upgrade), \fBalways\fR, or \fBnever\fR. On Arch, where the only safe refresh is a full system upgrade, nothing is refreshed automatically; \fBconfigsys refresh\fR offers the upgrade.
+\fB\fBrefresh-before-execute\fR\fR (scalar, uniform; default \fBauto\fR): refresh the OS package index once before running staged operations: \fBauto\fR (when the batch includes a native install or upgrade), \fBalways\fR, or \fBnever\fR. A TUI batch that also applies System Updates always refreshes, once, before anything runs; if that refresh finds updates published since you staged, the summary lists the ones the batch didn't include. On Arch, where the only safe refresh is a full system upgrade, nothing is refreshed automatically; \fBconfigsys refresh\fR offers the upgrade.
 .IP \(bu 2
 \fB\fBinstall-overlay\fR\fR (bool, uniform; default on): open the TUI Profiles screen with the install-state overlay on (\fBO\fR toggles it).
 .IP \(bu 2
@@ -334,7 +334,9 @@ Driver-specific fields include:
 .IP \(bu 2
 \fBrpm-ostree\fR: \fBapply-live: true\fR also applies the layered package to the running system, instead of only from the next boot (rpm-ostree refuses this for kernel-level packages).
 .IP \(bu 2
-\fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR.
+\fBpipx\fR and \fBpip\fR: \fBname:\fR, \fBpython:\fR (the interpreter), \fBversion: { pypi: <dist> }\fR. pip installs into, and reads, only your user site (\fBpip install --user\fR): a Python package your distribution installed is not a pip install.
+.IP \(bu 2
+\fBgo-install\fR: \fBname:\fR (the package path), \fBversion:\fR, and \fBcheckout: true\fR to build from a git checkout of the module instead of \fBgo install <path>@<version>\fR — for a module whose \fBgo.mod\fR has \fBreplace\fR directives, which \fBgo install\fR refuses. \fBname:\fR must then be the module root; \fBrepo:\fR overrides the clone URL. The build still targets the version the Go module proxy names, so update checks work as usual. Add \fBgit\fR to the binding's \fBrequires:\fR.
 .IP \(bu 2
 \fBsdkman\fR: \fBname:\fR (the SDKMAN candidate, such as \fBjava\fR), and optionally \fBversion:\fR, an exact SDKMAN version identifier (\fB21.0.12+1.1-tem\fR). A binding with a \fBversion:\fR installs and reads only that version, so several components can share one candidate, and upgrading it installs the identifier the route names rather than moving SDKMAN's default.
 .IP \(bu 2

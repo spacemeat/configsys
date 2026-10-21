@@ -172,6 +172,12 @@ Order native-first, then fallbacks. Typical comprehensive rows:
   <name>` (a single gzip-compressed binary is `archive: gz`).
 - Language-ecosystem tools: `cargo`/`pip`/`pipx`/`npm`/`gem`/`opam`/`luarocks`/`cabal`/`go-install`/
   `sdkman` — each takes `name:` (the crate/pkg/candidate) and often `requires: <toolchain>`.
+  **go-install:** check the module's `go.mod` for `replace` directives — `go install path@latest`
+  refuses them, so such a module needs `checkout: true` (build in a clone; `name:` = the module root)
+  plus `git` in `requires:` (`discordo`). **pip:** `pip install --user` is refused on PEP 668
+  (externally-managed) interpreters — Debian 12+, Ubuntu 23.04+, Arch, openSUSE, Alpine 3.19+ — so
+  never route a library there via pip; use the distro package (version-scoped `python313-*` on
+  openSUSE) or pipx for a CLI.
 
 ### 4. Add `-glue` / `-dotfiles` companions whenever the tool needs shell setup or has config (implied — don't skip)
 Two kinds of companion, kept apart (glue is SHIPPED shell integration; dotfiles are the user's own

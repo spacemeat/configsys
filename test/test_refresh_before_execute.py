@@ -64,7 +64,8 @@ def test_auto_refreshes_only_for_this_oss_manager_not_brew_elsewhere():
     # on fedora_atomic brew IS the OS manager -> `brew update`, never sudo apt
     ctx, calls = _mkctx('auto', pm='brew')
     app.maybe_refresh_before_plan(ctx, _plan(('install', 'brew')))
-    assert calls == ['brew update']
+    refreshes = [c for c in calls if 'update' in c.split()]   # (+ the cached upgradable reads around it)
+    assert refreshes == ['brew update'] and not any('apt' in c for c in calls)
 
 
 def test_auto_refreshes_for_a_native_backed_install():

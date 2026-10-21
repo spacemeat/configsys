@@ -117,3 +117,53 @@ def test_pseudo_versions_compare_by_commit_time():
                               lock_source=None, managed=True, error=None)
     assert st('0.0.0-20260819035418-d1f67621141c', '0.0.0-20260926000522-08b41176c060').outdated
     assert not st('0.0.0-20260926000522-08b41176c060', '0.0.0-20260926000522-08b41176c060').outdated
+
+
+def _checkout_tool(**extra):
+    return ResolvedComponent(key='go-install\\discordo', driver='go-install', comp='discordo',
+                             fields={'name': 'github.com/ayn2op/discordo', 'checkout': True, **extra})
+
+
+def test_checkout_builds_the_proxy_latest_commit_in_a_clone(monkeypatch):
+    # `go install pkg@latest` refuses a go.mod with `replace` directives; checkout mode builds inside
+    # the module's own clone instead, at the commit the proxy's @latest pseudo-version names — asked
+    # fresh, not from the cache
+    from configsys import versions
+    seen = {}
+    def disco(spec, paths, **kw):
+        seen.update(kw)
+        return '0.0.0-20261020010606-2c8d24d94015'
+    monkeypatch.setattr(versions, 'discover', disco)
+    r = FakeRunner()                                       # not pretending -> may hit the network
+    GoInstall(r).upgrade(_checkout_tool())
+    (cmd,) = r.calls
+    assert seen.get('refresh') is True
+    assert 'git clone --quiet --filter=blob:none https://github.com/ayn2op/discordo "$tmp/src"' in cmd
+    assert 'checkout --quiet 2c8d24d94015' in cmd          # the pseudo-version's commit
+    assert 'cd "$tmp/src" && PATH=' in cmd and 'go install .' in cmd
+    assert '@latest' not in cmd
+    assert cmd.endswith('rc=$?; rm -rf "$tmp"; exit $rc')  # the clone goes whatever the outcome
+
+
+def test_checkout_set_version_uses_the_release_tag_and_repo_override():
+    r = Runner(pretend=True)
+    GoInstall(r).set_version(_checkout_tool(repo='https://example.org/x.git'), '1.2.3')
+    assert "git clone --quiet --filter=blob:none https://example.org/x.git" in r.calls[0]
+    assert 'checkout --quiet v1.2.3' in r.calls[0]
+
+
+def test_checkout_reads_route_strings_as_booleans():
+    r = Runner(pretend=True)
+    GoInstall(r).set_version(_checkout_tool(checkout='false'), '1.2.3')   # humon hands us strings
+    assert r.calls == [_P + 'go install github.com/ayn2op/discordo@1.2.3']
+    r = Runner(pretend=True)
+    GoInstall(r).set_version(_checkout_tool(checkout='true'), '1.2.3')
+    assert 'git clone' in r.calls[0]
+
+
+def test_checkout_without_a_version_fails_cleanly(monkeypatch):
+    from configsys import versions
+    monkeypatch.setattr(versions, 'discover', lambda spec, paths, **kw: None)
+    r = Runner(pretend=True)
+    res = GoInstall(r).install(_checkout_tool())
+    assert not res.ok and 'proxy' in res.output and r.calls == []

@@ -3123,7 +3123,7 @@
         // TUI clients + creative/misc terminal apps.
         discordo: { attrs: [ TUI app FOSS permissive account cloud online ] description: "Discordo — a lightweight terminal (TUI) Discord client."
                     install: [ { via: aur  name: discordo-git }
-                               { via: go-install  name: "github.com/ayn2op/discordo"  requires: [ { go: ">=1.26" } ] } ] }   // no releases (rolling master); AUR on arch, `go install` elsewhere (a modern Go toolchain floor advises the go tarball)
+                               { via: go-install  name: "github.com/ayn2op/discordo"  checkout: true  requires: [ git { go: ">=1.27" } ] } ] }   // no releases (rolling master); AUR on arch, a Go build elsewhere (a modern Go toolchain floor advises the go tarball). `checkout: true`: upstream's go.mod carries `replace` directives, which `go install pkg@latest` refuses — built in a checkout instead
         caligula: { attrs: [ TUI FOSS copyleft ] description: "Caligula — a user-friendly TUI disk imager / ISO burner."
                     install: [ { via: native  when: "arch or fedora_atomic or void or void_musl" }
                                { via: cargo   name: caligula  version: { crates: caligula } } ] }   // pacman / brew where packaged; cargo everywhere else (and pinnable anywhere)

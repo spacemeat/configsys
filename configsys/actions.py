@@ -6,6 +6,7 @@ stay in lockstep (the TUI is a skin over these, never a parallel implementation)
 cached config so the change takes effect on the next read. See docs/done/tui-screens-plan.md (F3).
 '''
 
+import re
 from pathlib import Path
 
 from . import plugins
@@ -60,14 +61,44 @@ class RunResult:
         self.interrupted = interrupted
 
 
+_ERROR_LINE = re.compile(r'^\s*(?:error|fatal|e|err)\b\s*[:!]|\berror:', re.IGNORECASE)
+
+
+def failure_excerpt(text, limit=240):
+    '''The line(s) of a failed command's output that say WHY, for one-line summaries. The last line is
+    often a trailer — pip's "hint: See PEP 668 …", the tail of a wrapped go message ("… it to be
+    interpreted differently than if it were the main module.") — so: the LAST error-looking line
+    (`error:` / `E:` / `fatal:` / `ERROR …`), else the trailing paragraph (the last line plus the
+    indented continuation lines and the header line they hang from), whitespace-collapsed and
+    truncated to `limit`.'''
+    lines = [ln.rstrip() for ln in (text or '').splitlines() if ln.strip()]
+    if not lines:
+        return ''
+    hits = [i for i, ln in enumerate(lines) if _ERROR_LINE.search(ln)]
+    if hits:
+        i = hits[-1]
+        block = [lines[i]]
+        for ln in lines[i + 1:]:                     # its own indented continuation lines only
+            if not ln[:1].isspace():
+                break
+            block.append(ln)
+    else:
+        i = len(lines) - 1
+        while i > 0 and lines[i][:1].isspace():
+            i -= 1                                   # back to the line the indented tail hangs from
+        block = lines[i:]
+    out = ' '.join(' '.join(block).split())
+    return out if len(out) <= limit else out[:limit - 1] + '…'
+
+
 def fail_detail(res):
-    '''A concise failure reason for a driver Result: exit code + the last non-empty output line, plus
-    the failure taxonomy tag when known. The full output is still persisted for `configsys report`.'''
+    '''A concise failure reason for a driver Result: exit code + the line(s) of output that say why
+    (failure_excerpt), plus the failure taxonomy tag when known. The full output is still persisted
+    for `configsys report`.'''
     if res is None:
         return 'no result'
-    text = (res.stderr or res.captured or res.stdout or '').strip()
-    last = text.splitlines()[-1].strip() if text else ''
-    base = f'exit {res.returncode}: {last}' if last else f'exit {res.returncode}'
+    why = failure_excerpt(res.stderr or res.captured or res.stdout or '')
+    base = f'exit {res.returncode}: {why}' if why else f'exit {res.returncode}'
     cat, rem = res.classified()
     if cat:
         base += f'  [{cat}]' + (f' — {rem}' if rem else '')
@@ -291,6 +322,8 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
     if ledger is not None and not pretend:          # a dry run records nothing (no locks, no receipts)
         ledger.save(ctx.paths)
+    if not pretend:                # the unresolved-failures record (! page, `report`): this run's in, fixed ones out
+        reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
 
 

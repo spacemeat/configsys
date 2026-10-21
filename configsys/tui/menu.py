@@ -587,17 +587,16 @@ class MenuState:
 from ..actions import OpOutcome, fail_detail as _fail_detail   # noqa: E402
 
 
-def execute_plan(ctx, plan, ledger, version=None):
+def execute_plan(ctx, plan, ledger, version=None, refresh=True):
     '''Run the plan through the SAME shared loop the CLI uses (actions.run_plan) — so the TUI gets
     set-version, the advisory "needs your input" outcome, verify-after-fail (installed-with-a-warning),
     and EVERY failure persisted for `configsys report`, not just the last one. Returns the OpOutcomes
     the summary/footer render.'''
     from ..app import maybe_refresh_before_plan           # lazy import: app imports this module
-    from .. import actions, reportgen
-    maybe_refresh_before_plan(ctx, plan)
-    result = actions.run_plan(ctx, plan, ledger=ledger, version=version)
-    if result.failures:                                  # persist ALL of them (was: only the last)
-        reportgen.save_failures(ctx.paths, result.failures)
+    from .. import actions
+    if refresh:                                          # False: the caller refreshed for the batch
+        maybe_refresh_before_plan(ctx, plan)
+    result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # records its failures
     return result.outcomes
 
 
@@ -691,15 +690,26 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             return False, 'cancelled', []
 
         outcomes = []
+        # ONE index refresh for the whole batch, before anything runs (see maybe_refresh_before_plan)
+        from ..app import maybe_refresh_before_plan, published_pending
+        fresh = maybe_refresh_before_plan(ctx, plan, system=bool(su_managers))
         if su_managers:                                   # the whole-machine bulk upgrade(s) — first
             from .. import sysupdates
             from ..actions import OpOutcome
-            for mgr, res in sysupdates.apply_bulk(ctx, su_managers):
+            bulk_failures, bulk_keys = [], []
+            for mgr, res in sysupdates.apply_bulk(ctx, su_managers, refresh=False):
                 ok = bool(res is not None and res.ok)
-                outcomes.append(OpOutcome('upgrade', f'system-updates\\{mgr}', mgr, ok,
-                                          '' if ok else 'bulk upgrade failed'))
+                bkey = f'system-updates\\{mgr}'
+                outcomes.append(OpOutcome('upgrade', bkey, mgr, ok,
+                                          '' if ok else (_fail_detail(res) if res is not None
+                                                         else 'bulk upgrade failed')))
+                bulk_keys.append(bkey)
+                if res is not None and not ok:
+                    bulk_failures.append(reportgen.failure_from_result(bkey, mgr, 'upgrade', res))
+            if not getattr(ctx.runner, 'pretend', False):   # the ! page + `report` see it too
+                reportgen.record_run(ctx.paths, bulk_failures, bulk_keys)
         if plan:                                          # then the per-component ops, against the fresh base
-            outcomes += execute_plan(ctx, plan, ledger)
+            outcomes += execute_plan(ctx, plan, ledger, refresh=False)
         # drain the persisted !uninstall queue for components we just successfully removed
         try:
             from .. import actions as _act
@@ -726,7 +736,14 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         for o in advisories:
             print(f'  NEEDS INPUT  {o.op:8} {o.key}  {o.detail}')
         if failed or warned:                          # all failures are persisted now -> report works
-            print('\n`configsys report` files the details of the above.')
+            print('\n`configsys report` files the details of the above (they stay on the ! page '
+                  'until fixed).')
+        pending = published_pending(ctx, fresh)
+        if pending:                                   # no surprises: say why they now read outdated
+            shown = ', '.join(pending[:8]) + (f' +{len(pending) - 8} more' if len(pending) > 8 else '')
+            print(f'\nPublished since you staged: the refresh found {len(pending)} newer package(s) '
+                  f'this batch didn\'t include — {shown}. They now show as outdated; stage them to '
+                  f'upgrade.')
         input('\nPress Enter to return...')
         return True, _summary_note(outcomes), outcomes
 

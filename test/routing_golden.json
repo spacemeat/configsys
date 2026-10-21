@@ -18867,12 +18867,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -18891,6 +18908,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -35149,12 +35167,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -35173,6 +35208,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -51508,12 +51544,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -51532,6 +51585,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -67699,12 +67753,29 @@
    }
   },
   "discordo": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "dnf\\go": {
     "driver": "dnf",
     "fields": {
      "name": "golang"
     },
     "name": "golang"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -67723,6 +67794,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -83845,12 +83917,29 @@
    }
   },
   "discordo": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "dnf\\go": {
     "driver": "dnf",
     "fields": {
      "name": "golang"
     },
     "name": "golang"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -83869,6 +83958,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -100048,12 +100138,29 @@
    }
   },
   "discordo": {
+   "brew\\git": {
+    "driver": "brew",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "brew\\go": {
     "driver": "brew",
     "fields": {
      "name": "go"
     },
     "name": "go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -100072,6 +100179,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -117825,12 +117933,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -117849,6 +117974,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -134340,12 +134466,29 @@
    }
   },
   "discordo": {
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "dnf\\go": {
     "driver": "dnf",
     "fields": {
      "name": "golang"
     },
     "name": "golang"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -134364,6 +134507,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -151100,12 +151244,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -151124,6 +151285,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -167594,12 +167756,29 @@
    }
   },
   "discordo": {
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
    "apt\\go": {
     "driver": "apt",
     "fields": {
      "name": "golang-go"
     },
     "name": "golang-go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "glue\\go-glue": {
     "driver": "glue",
@@ -167618,6 +167797,7 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
@@ -183409,6 +183589,16 @@
    }
   },
   "discordo": {
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
    "glue\\go-glue": {
     "driver": "glue",
     "fields": {
@@ -183426,9 +183616,17 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
+   },
+   "xbps\\git": {
+    "driver": "xbps",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    },
    "xbps\\go": {
     "driver": "xbps",
@@ -197887,6 +198085,16 @@
    }
   },
   "discordo": {
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
    "glue\\go-glue": {
     "driver": "glue",
     "fields": {
@@ -197904,9 +198112,17 @@
    "go-install\\discordo": {
     "driver": "go-install",
     "fields": {
+     "checkout": "true",
      "name": "github.com/ayn2op/discordo"
     },
     "name": "github.com/ayn2op/discordo"
+   },
+   "xbps\\git": {
+    "driver": "xbps",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    },
    "xbps\\go": {
     "driver": "xbps",
