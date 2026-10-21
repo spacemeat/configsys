@@ -1404,7 +1404,7 @@ def branch_state(runner, dest, ref=None):
     if up is None or not up.ok or getattr(up, 'pretended', False):
         return None
     ahead, behind = _ahead_behind(runner, dq, f'origin/{branch}')
-    st = runner.run(f'git -C {dq} status --porcelain', capture=True)
+    st = runner.run(f'git --no-optional-locks -C {dq} status --porcelain', capture=True)   # may run on a thread
     dirty = bool((st.stdout or '').strip()) if st is not None and st.ok else False
     return branch, ahead, behind, dirty
 

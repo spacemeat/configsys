@@ -1,6 +1,6 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: IN PROGRESS** — phases 0 and 1 done (2026-10-21); phases 2–4 not started. Tag-pinned primaries
+> **Status: IN PROGRESS** — phases 0, 1 and 2 done (2026-10-21); phases 3–4 not started. Tag-pinned primaries
 > stay supported (decided 2026-10-21).
 
 ## Why
@@ -110,7 +110,17 @@ Why commit locally at all: commits are local, instant and undoable, and they're 
 conflicts manageable. git can replay commits onto another machine's changes, but it can't replay
 uncommitted edits.
 
-## Phase 2 — show where the primary stands
+## Phase 2 — show where the primary stands — DONE 2026-10-21
+
+Built: `primarygit.state` (via `plugins.branch_state`, `--no-optional-locks` so it's safe on a thread),
+`fetch`, and the renderings `glyphs` (row: `↑N ↓N ●`), `chip` (header, shown when ↑ or ↓) and
+`describe` (`plugin list`). Both arrows are shown with their counts instead of a separate `↕`. The
+Plugins model computes the local state on reload and refines it after a background fetch;
+`ctx._primary_state` feeds the Components header chip and is recomputed after every TUI action that
+committed to the primary. The chip shows whenever there's something to push or sync — phase 3's
+`primary-push` setting will hide it under `auto`. Tests: test/test_primary_state.py.
+
+### The original sketch
 
 - **Plugins screen, primary row:**
   - `↑N` — N commits not pushed yet.

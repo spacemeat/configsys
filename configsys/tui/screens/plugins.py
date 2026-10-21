@@ -94,7 +94,8 @@ class PluginsScreen(Screen):
             vm.empty_msg = '(no plugins declared — a to add)'
         else:
             remotes = [pl.remote.get(plugins.dir_name(r['source'])) for r in pl.rows]
-            vm.cells = [_plugin_cells(r, pl.tree[i], remotes[i]) for i, r in enumerate(pl.rows)]
+            pst = getattr(pl, 'primary_state', None)
+            vm.cells = [_plugin_cells(r, pl.tree[i], remotes[i], pst) for i, r in enumerate(pl.rows)]
             vm.widths = [max(len(_PLUGIN_HEADERS[c]), max((len(cs[c]) for cs in vm.cells), default=0))
                          for c in range(len(_PLUGIN_HEADERS))]
             vx = 0
@@ -105,7 +106,7 @@ class PluginsScreen(Screen):
             for i, row in enumerate(pl.rows):
                 healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
                 base = 'component' if healthy else 'info_dim'
-                vm.elems.append([base, 'info_dim', 'info', _plugin_remote_elem(row, remotes[i]),
+                vm.elems.append([base, 'info_dim', 'info', _plugin_remote_elem(row, remotes[i], pst),
                                  'installed' if row['abi_ok'] else 'error', _plugin_code_elem(row),
                                  'info_dim'])
         self._build_diff_vm(vm)

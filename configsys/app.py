@@ -2961,7 +2961,7 @@ def _print_sync(ctx, results):
 
 
 def cmd_plugin(ctx, args):
-    from . import actions, plugins
+    from . import actions, plugins, primarygit
     decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
     # the full set incl. transitively-declared plugins (for read-only views + trust)
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
@@ -3113,6 +3113,10 @@ def cmd_plugin(ctx, args):
                     ('  [via primary]' if plugins.dir_name(r['source']) not in top else ''))
             if r.get('locked'):
                 state += f'  [locked since {r["locked"]} — no sync/update/trust; configsys plugin unlock {r["name"]}]'
+            if r['primary'] and r['synced']:
+                where = primarygit.describe(primarygit.state(ctx))
+                if where:
+                    state += f'  [{where}]'
             print(f'  {r["name"]:22} {r["source"]}{ref}{tags}')
             print(f'  {"":22} {state}')
             if r.get('provisions'):

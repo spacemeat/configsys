@@ -509,7 +509,7 @@ Seven screens; press a number key (shown in the top chip bar) to switch:
    uninstall (`x`); track everything already installed here (`C`); toggle the install-state overlay
    (`O`); and filter by attrs (`f`).
 3. **Plugins** — declared plugins with their ref, ABI and trust status and what each provides
-   (short codes, spelled out under `?`), plus a review diff of what taking the selected one would
+   (short codes, spelled out under `?`) — your primary's also shows `↑` changes to push and `↓` to sync — plus a review diff of what taking the selected one would
    change — readable before it's synced: add (`a`), remove (`x`), sync (`s`, `S` all), update
    (`u`, `U` all), bless / unbless your primary (`b` / `B`), trust (`t`, `T` all), set its ref
    (`v`), lock / unlock (`L`).

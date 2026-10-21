@@ -507,6 +507,13 @@ editing are untouched. A primary pinned to a tag or commit isn't committed to, a
 identity set, commits are signed `<user>@<host>` until you set one (configsys says so once).
 Nothing is committed under `--pretend`.
 
+**Seeing where it stands.** The Plugins screen marks your primary's remote-ref with `↑N` (changes not
+pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) and `●` (edits not committed
+yet); both arrows at once mean the two sides need combining before a push. The screen fetches the
+primary in the background to count `↓`. The Components header shows `<primary>: ↑N to push, ↓N to
+sync` whenever there's something either way, and `plugin list` says the same in words (`↓` there is as
+of the last fetch or sync).
+
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:
 

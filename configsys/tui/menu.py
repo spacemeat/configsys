@@ -1045,8 +1045,9 @@ _HELP = {
                                'apps); auto-pulled ones are dimmed. i/u stages them all, '
                                'c on any of them unstages them all (all or nothing), the execute key '
                                'applies them in bulk. R rescans them'),
-            ('header', 'view mode · package-index age (refresh with R) · ⚠ reboot advised · ⟳ N '
-                       'system updates · ⚠ N issues (! to view)'),
+            ('header', 'view mode · package-index age (refresh with R) · ⚠ reboot advised · your '
+                       'primary plugin\'s ↑N to push / ↓N to sync · ⟳ N system updates · ⚠ N issues '
+                       '(! to view)'),
             ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
             ('[L]', 'beside an installed version: the version is locked'),
             ('also present', 'on the detail line: another install of this component via a different '
@@ -1120,6 +1121,9 @@ _HELP = {
             ('diff', 'synced: your copy → the remote-ref (what u would pull in). Not synced: the ref → '
                      'the remote-ref, or everything a sync would download — fetched into a review '
                      'cache that is never loaded, so you can read it before you sync'),
+            ('↑ ↓ ●', 'on your ★ primary\'s remote-ref: ↑N changes not pushed yet, ↓N changes from your '
+                      'other machines (s syncs them in), ● edits not committed yet. Both ↑ and ↓ = the '
+                      'two sides need combining before a push'),
             ('⊘ locked', 'L locks the plugin on this machine: no sync, update, bless or trust until L '
                          'unlocks it. A synced copy keeps loading as it is — x removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
@@ -4236,6 +4240,7 @@ class PluginScreen:
                                    trust_file=self.ctx.paths.plugin_trust_file,
                                    lock_file=self.ctx.paths.plugin_lock_file)
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self._set_primary_state(primarygit.state(self.ctx))   # local counts now; the fetch refines them
         self._diff_cache = {}            # a sync/update may have moved what's on disk
         self._invalidate_diff()
         self._start_remote()
@@ -4245,6 +4250,12 @@ class PluginScreen:
 
     def cur_tree(self):
         return self.tree[self.cur] if 0 <= self.cur < len(self.tree) else None
+
+    def _set_primary_state(self, st):
+        '''Where the primary stands (primarygit.state) — shown on its row, and mirrored on the ctx for
+        the Components header chip.'''
+        self.primary_state = st
+        self.ctx._primary_state = st
 
     def _start_remote(self):
         '''Resolve each plugin's remote-ref on a daemon thread (read-only `git ls-remote`); the
@@ -4257,6 +4268,12 @@ class PluginScreen:
             self.remote.setdefault(plugins.dir_name(r['source']), 'pending')
 
         def run():
+            if any(r.get('primary') for r in rows):      # fetch the primary first: ↓N needs the remote
+                try:
+                    if primarygit.fetch(self.ctx) and self._remote_gen == gen:
+                        self._set_primary_state(primarygit.state(self.ctx))
+                except Exception:                        # noqa: BLE001 — never let it crash
+                    pass
             for r in rows:
                 if self._remote_gen != gen:              # a reload superseded us
                     return
@@ -4369,9 +4386,13 @@ def _plugin_provides_cell(row):
                     for k in keys) or '—'
 
 
-def _plugin_cells(row, node, remote):
-    '''The seven column strings for a plugin row (name carries the tree prefix, ⊘ locked, ★).'''
+def _plugin_cells(row, node, remote, pstate=None):
+    '''The seven column strings for a plugin row (name carries the tree prefix, ⊘ locked, ★). The
+    primary's remote-ref also carries where it stands (`pstate`, primarygit.glyphs): ↑N ↓N ●.'''
     rref = '…' if remote == 'pending' else (remote if isinstance(remote, str) else '—')
+    marks = primarygit.glyphs(pstate) if row.get('primary') else ''
+    if marks:
+        rref = f'{rref} {marks}'
     mark = ('⊘' if row.get('locked') else '') + ('★' if row['primary'] else '')
     return [f'{_plugin_tree_prefix(node)}{mark}{row["name"]}',
             row['source'], row['ref'] or '—', rref,
@@ -4393,7 +4414,9 @@ def _put_hscroll(stdscr, y, left, win_w, vx, hscroll, text, attr):
     _put(stdscr, y, left + start, text[:win_w - start], attr)
 
 
-def _plugin_remote_elem(row, remote):
+def _plugin_remote_elem(row, remote, pstate=None):
+    if row.get('primary') and primarygit.glyphs(pstate):
+        return 'outdated'                                # something to push, sync or commit
     if remote == 'pending' or not isinstance(remote, str) or row.get('locked'):
         return 'info_dim'                                # a locked plugin's update can't be taken
     return 'installed' if remote == (row['ref'] or None) else 'outdated'   # green=up-to-date, amber=update
@@ -4667,6 +4690,7 @@ def run(ctx):
         ms._uninstall_q = set(ctx.config.uninstall_queue())
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
         from .. import rebootcheck                 # (reboot, reason) cached ONCE — the header chip reads
+        ctx._primary_state = primarygit.state(ctx)  # the header's ↑/↓ chip (local; Plugins fetches)
         ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in _draw
                                if ctx.config.reboot_advice() else (False, ''))
         diags = ctx.diagnostics(states)
@@ -4872,6 +4896,9 @@ def run(ctx):
                 note = intent.note
             if _snap is not None:
                 _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note)
+                ctx._primary_state = primarygit.state(ctx)          # the chip / Plugins row follow it
+                if _reg.get('plugins') is not None:
+                    _reg['plugins'].model.primary_state = ctx._primary_state
                 if _cnotes:
                     note = (f'{note}  ·  ' if note else '') + _cnotes[0]
                     pending_notes.extend(_cnotes)

@@ -127,3 +127,74 @@ def commit(ctx, snap, message):
         return notes + [f'could not commit to {snap.name}: '
                         f'{((c.stderr or c.stdout or "") if c else "").strip()[:200]}']
     return notes
+
+
+# -- where the primary stands (phase 2: the Plugins row, the header chip, `plugin list`) ----------
+
+def state(ctx):
+    '''{name, branch, ahead, behind, dirty} for the primary against its remote branch (as of the last
+    fetch), or None (no primary, not a git checkout, not on a branch, --pretend). Local and cheap.'''
+    pr = primary_root(ctx)
+    if pr is None:
+        return None
+    from . import plugins
+    bs = plugins.branch_state(ctx.runner, pr[0])
+    if bs is None:
+        return None
+    branch, ahead, behind, dirty = bs
+    return {'name': pr[1], 'branch': branch, 'ahead': ahead, 'behind': behind, 'dirty': dirty}
+
+
+def fetch(ctx):
+    '''Fetch the primary's remote (non-interactive, refs only — the working tree is untouched), so
+    `state()` can count what your other machines pushed. Best-effort; False if it couldn't.'''
+    pr = primary_root(ctx)
+    if pr is None:
+        return False
+    from . import plugins
+    r = ctx.runner.run(f'git -C {shlex.quote(str(pr[0]))} fetch --quiet', capture=True,
+                       env=plugins._noninteractive_git_env())
+    return r is not None and r.ok
+
+
+def glyphs(st):
+    '''The compact marks for the Plugins row: ↑N to push, ↓N to sync, ● uncommitted edits.'''
+    if not st:
+        return ''
+    out = []
+    if st['ahead']:
+        out.append(f'↑{st["ahead"]}')
+    if st['behind']:
+        out.append(f'↓{st["behind"]}')
+    if st['dirty']:
+        out.append('●')
+    return ' '.join(out)
+
+
+def chip(st):
+    '''The header chip text, or '' when there's nothing to push or sync.'''
+    if not st or not (st['ahead'] or st['behind']):
+        return ''
+    parts = []
+    if st['ahead']:
+        parts.append(f'↑{st["ahead"]} to push')
+    if st['behind']:
+        parts.append(f'↓{st["behind"]} to sync')
+    return f'{st["name"]}: ' + ', '.join(parts)
+
+
+def describe(st):
+    '''Where the primary stands, in words (for `plugin list`), or '' when it's level and clean.'''
+    if not st:
+        return ''
+    parts = []
+    if st['ahead']:
+        parts.append(f'{st["ahead"]} change{"s" if st["ahead"] != 1 else ""} not pushed yet')
+    if st['behind']:
+        parts.append(f'{st["behind"]} change{"s" if st["behind"] != 1 else ""} from your other '
+                     f'machines (as of the last fetch) — `plugin sync` brings them in')
+    if st['dirty']:
+        parts.append('edits not committed yet')
+    if st['ahead'] and st['behind']:
+        parts.append('both sides changed, so pushing will need the two combined')
+    return '; '.join(parts)

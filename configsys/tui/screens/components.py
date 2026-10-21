@@ -141,6 +141,11 @@ class ComponentsScreen(Screen):
             if rend + len(btext) < w - 1:
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
+        from ... import primarygit
+        ptext = primarygit.chip(getattr(ctx, '_primary_state', None))
+        if ptext and rend + 3 + len(ptext) < w - 1:      # your primary has changes to push / sync
+            _put(surface, 1, rend + 3, ptext, pal.style('outdated', 1, rend + 3, h, w))
+            rend += 3 + len(ptext)
         from ... import sysupdates
         # the 3-space gap is left UNSTYLED (page bg) so a chip's own background doesn't bleed into the
         # separator between chips — only the glyph text carries the element colour.
