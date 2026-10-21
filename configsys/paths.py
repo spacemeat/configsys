@@ -97,6 +97,8 @@ class Paths:
         self.method_versions_file = self.state_dir / 'method-versions.hu'  # per-method get_latest cache (native queries are slow)
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
         self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}
+        self.plugin_lock_file = self.state_dir / 'plugin-locks.hu'    # {plugin: date locked} — no sync/update/trust
+        self.plugin_review_dir = self.state_dir / 'plugin-review'     # inert bare repos the pre-sync review diff fetches into
         self.last_refresh_file = self.state_dir / 'last-refresh'   # unix ts of the last `configsys refresh`
         self.glue_locations_file = self.state_dir / 'glue-locations.tsv'  # <comp>\t<path> cache the shell glue reads instead of spawning `configsys location --all` each startup
         self.startup_timing_file = self.state_dir / 'startup-timing.json'  # learned per-phase durations (splash pacing)

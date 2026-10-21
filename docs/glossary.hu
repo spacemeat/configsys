@@ -134,7 +134,17 @@
         trust: {
             short: "`configsys plugin trust`"
             def: "Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data."
-            see: [ plugin ]
+            see: [ plugin  plugin-lock  review-diff ]
+        }
+        plugin-lock: {
+            short: "`configsys plugin lock`"
+            def: "A machine-local hold on a plugin: sync leaves it as it is, and update, bless and trust refuse it, until `configsys plugin unlock`. Its synced copy, if any, keeps loading."
+            see: [ plugin  trust  review-diff ]
+        }
+        review-diff: {
+            short: "`configsys plugin diff`"
+            def: "What taking a plugin would change, readable before you sync, update or trust it: a synced plugin's copy against its newest ref, or an unsynced one's ref against the newest (or everything a sync would download). An unsynced plugin is fetched into a cache that is never loaded or run."
+            see: [ plugin  plugin-lock  trust ]
         }
         setting-nature: {
             def: "Whether a machine setting is uniform (belongs in your primary plugin, same everywhere) or machine-local (belongs in this box's config). `configsys config move` carries one across."

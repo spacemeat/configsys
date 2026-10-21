@@ -56,9 +56,10 @@ def _nav_str():
         return (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
                 f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
                 f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
-                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · {g('quit')} ")
+                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
+                f"{g('lock')} lock · {g('quit')} ")
     return (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-            'v ref · t trust · T trust-all · q ')
+            'v ref · t trust · T trust-all · L lock · q ')
 
 
 class PluginsScreen(Screen):
@@ -106,7 +107,11 @@ class PluginsScreen(Screen):
         from ... import plugins
         pl = self.model
         row = pl.cur_row()
-        if row is not None:
+        span = getattr(pl, 'diff_span', None)
+        if row is not None and span:
+            frm, to, what = span
+            vm.diff_title = f'diff · {row["name"]} · {frm} → {to} · {what}'
+        elif row is not None:
             remote = pl.remote.get(plugins.dir_name(row['source']))
             to = remote if isinstance(remote, str) else '—'
             vm.diff_title = f'diff · {row["name"]} · {row["ref"] or "HEAD"} → {to}'
@@ -276,10 +281,11 @@ class PluginsScreen(Screen):
                 tgt = [t['decl'] for t in pl.tree
                        if plugins.dir_name(t['decl']['source']) == plugins.dir_name(row['source'])]
                 with suspended(stdscr):
-                    actions.plugin_sync(ctx, tgt)
+                    res = actions.plugin_sync(ctx, tgt)
                 pl.reload()
                 dirty = True
-                note = f'synced {row["name"]}'
+                note = (f'{row["name"]} is locked — not synced (L unlocks)'
+                        if res and res[0][1] == 'locked' else f'synced {row["name"]}')
             elif pact == 'sync-all':
                 with suspended(stdscr):
                     actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
@@ -321,6 +327,12 @@ class PluginsScreen(Screen):
                 _n, note = actions.plugin_trust_all(ctx)
                 pl.reload()
                 dirty = bool(_n)
+            elif pact == 'lock' and row:
+                if row.get('locked'):
+                    _ok, note = actions.plugin_unlock(ctx, row['name'])
+                else:
+                    _ok, note = actions.plugin_lock(ctx, row['name'])
+                pl.reload()
             elif pact == 'set-ref' and row:
                 ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                 if ref and ref.strip():
@@ -331,4 +343,8 @@ class PluginsScreen(Screen):
                     note = msg
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
+        try:
+            pl.load_diff()               # the review diff follows the cursor (fetched in the background)
+        except Exception as e:  # noqa: BLE001
+            note = note or f'error: {e}'
         return Intent(note=note, dirty=dirty)

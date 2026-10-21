@@ -284,6 +284,7 @@ profiles: {
             trust: t                // trust / untrust the current plugin's code or recipes
             trust-all: T            // trust every untrusted or changed plugin
             set-ref: v              // pin a tag / branch / sha and re-sync
+            lock: L                 // lock / unlock: no sync, update, bless or trust on this machine
         }
 
         // Profiles screen (two panes). Nav is focus-aware from `global` (left pane: up/down the tree,

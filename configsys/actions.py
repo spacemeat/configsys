@@ -1177,7 +1177,8 @@ def _locate_decl(ctx, ident):
 def plugin_sync(ctx, decls):
     '''Sync each declared plugin to its ref (transitive fixpoint). Returns [(name, action)].'''
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
-    results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls)
+    results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls,
+                           locked=_locks(ctx))
     ctx.invalidate()             # new data files / drivers are now on disk — rebuild so they surface
     invalidate_location_cache(ctx)   # a synced plugin can MOVE installs (e.g. a build `dir:`): the
     # shell glue must not keep pointing at the old place for the cache's hour
@@ -1203,6 +1204,8 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     new_dn = plugins.dir_name(source)
     clashes = [d for d in plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
                if plugins.dir_name(d['source']) == new_dn and d['source'] != source]
+    if new_dn in _locks(ctx):
+        return False, f"'{new_dn}' is locked on this machine — unlock it first (configsys plugin unlock {new_dn})", []
     if clashes and not replace:
         others = ', '.join(sorted({d['source'] for d in clashes}))
         return (False, f"a plugin named '{new_dn}' is already declared from {others}; "
@@ -1317,6 +1320,9 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     cfg_file, cur, target = _locate_decl(ctx, ident)
     if target is None:
         return False, f'no declared plugin matches {ident!r}', []
+    locked = _locked_note(ctx, target, 'update')
+    if locked:
+        return False, locked, []
     latest_note = ''
     if latest:
         if ref:
@@ -1363,6 +1369,9 @@ def plugin_update_all(ctx, *, latest=True, pin=False):
         if latest and plugins.is_local_authored(src, dest):
             out.append((src, True, 'local — skipped (authored in place)'))
             continue
+        if plugins.dir_name(src) in _locks(ctx):
+            out.append((src, True, f'{plugins.dir_name(src)}: locked — skipped'))
+            continue
         ok, msg, _results = plugin_update(ctx, src, pin=pin, latest=latest)
         out.append((src, ok, msg))
     return out
@@ -1376,6 +1385,9 @@ def plugin_bless(ctx, ident):
     existing = plugins.find_decl(decls, ctx.paths.plugins_dir, ident)
     source = existing['source'] if existing else ident
     ref = existing.get('ref') if existing else None
+    locked = _locked_note(ctx, {'source': source}, 'bless')
+    if locked:
+        return False, locked, []
     results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
     if not results or 'failed' in results[0][1].lower():
         return False, f"could not find/sync '{ident}' — nothing changed", results
@@ -1415,6 +1427,9 @@ def plugin_trust(ctx, ident):
         return False, f'no declared plugin matches {ident!r}'
     key = plugins.dir_name(target['source'])
     pdir = Path(ctx.paths.plugins_dir) / key
+    locked = _locked_note(ctx, target, 'trust')
+    if locked:
+        return False, locked
     if not pdir.exists():
         return False, f'{key} is not synced — sync it first'
     manifest = plugins.read_manifest(pdir)
@@ -1440,8 +1455,10 @@ def plugin_trust_all(ctx):
     the TUI shows), followed by one `verb name` line per plugin. Unsynced trustable plugins are
     counted in the note but skipped (nothing on disk to hash yet).'''
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
-    rows = plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file)
-    pending = [r for r in rows if r['code_state'] in ('untrusted', 'changed')]
+    rows = plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file,
+                          lock_file=getattr(ctx.paths, 'plugin_lock_file', None))
+    held = [r for r in rows if r['locked'] and r['code_state'] in ('untrusted', 'changed')]
+    pending = [r for r in rows if not r['locked'] and r['code_state'] in ('untrusted', 'changed')]
     unsynced = [r for r in rows if r['code_state'] == 'unsynced']
     n, detail = 0, []
     for r in pending:
@@ -1451,8 +1468,10 @@ def plugin_trust_all(ctx):
             detail.append(f'  {"re-approved" if r["code_state"] == "changed" else "trusted":11} {r["name"]}')
     if not pending:
         return 0, ('no untrusted plugins'
-                   + (' (some ship code/recipes but are unsynced — sync first)' if unsynced else ''))
-    tail = f'; {len(unsynced)} unsynced skipped' if unsynced else ''
+                   + (' (some ship code/recipes but are unsynced — sync first)' if unsynced else '')
+                   + (f' ({len(held)} locked left untrusted)' if held else ''))
+    tail = (f'; {len(unsynced)} unsynced skipped' if unsynced else '') + (
+        f'; {len(held)} locked skipped' if held else '')
     return n, '\n'.join([f'trusted {n} plugin(s){tail}'] + detail)
 
 
@@ -1467,6 +1486,85 @@ def plugin_untrust(ctx, ident):
         ctx.invalidate()
         return True, f'untrusted {disp}'
     return False, f'{disp} was not trusted'
+
+
+def _locks(ctx):
+    return plugins.read_locks(getattr(ctx.paths, 'plugin_lock_file', None))
+
+
+def _locked_note(ctx, decl, verb):
+    '''The refusal for `verb` on a locked plugin, or None when it isn't locked.'''
+    key = plugins.dir_name(decl['source'])
+    when = _locks(ctx).get(key)
+    if when is None:
+        return None
+    return f'{key} is locked (since {when}) — no {verb}; unlock it first (configsys plugin unlock {key})'
+
+
+def plugin_lock(ctx, ident):
+    '''Lock a declared plugin on this machine: sync leaves it as it is, update / bless / trust
+    refuse it, and what is already on disk keeps loading. Returns (ok, note).'''
+    import datetime
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
+    if target is None:
+        return False, f'no declared plugin matches {ident!r}'
+    key = plugins.dir_name(target['source'])
+    if key in _locks(ctx):
+        return False, f'{key} is already locked'
+    if getattr(ctx.runner, 'pretend', False):
+        return False, PRETEND_NOT_SAVED
+    plugins.set_lock(ctx.paths.plugin_lock_file, key, datetime.date.today().isoformat())
+    synced = (Path(ctx.paths.plugins_dir) / key).exists()
+    return True, (f'locked {key} — no sync, update or trust until you unlock it'
+                  + ('; its synced copy still loads (remove it to stop that)' if synced else ''))
+
+
+def plugin_unlock(ctx, ident):
+    '''Lift a plugin's lock. Returns (ok, note).'''
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
+    key = plugins.dir_name(target['source']) if target else ident
+    if key not in _locks(ctx):
+        return False, f'{key} is not locked'
+    if getattr(ctx.runner, 'pretend', False):
+        return False, PRETEND_NOT_SAVED
+    plugins.remove_lock(ctx.paths.plugin_lock_file, key)
+    return True, f'unlocked {key}'
+
+
+def plugin_review_plan(row, remote):
+    '''What the review diff compares for a plugin status `row`, given its resolved remote-ref
+    (`remote`: a ref string, or None). Returns (kind, base, target, what):
+      kind 'synced'   — the on-disk copy (HEAD) -> remote-ref: what an update would pull in;
+      kind 'review'   — two refs of the remote, fetched into the review cache (unsynced): the
+                        declared ref -> remote-ref, or, with base None, the whole content at
+                        target — what a sync would download (no ref, or the ref is already newest);
+      kind None       — nothing to compare (`what` says why).'''
+    ref = row.get('ref')
+    if row.get('synced'):
+        if not remote:
+            return None, None, None, 'no upstream ref to compare against'
+        return 'synced', 'HEAD', remote, 'what an update would change'
+    if ref and remote and ref != remote:
+        return 'review', ref, remote, 'not synced — what the newer remote changes'
+    target = ref or remote
+    if not target:
+        return None, None, None, 'no ref to review (remote unreachable?)'
+    return 'review', None, target, 'not synced — everything a sync would download'
+
+
+def plugin_review(ctx, decl, row, remote):
+    '''Run the review diff plugin_review_plan picks. Returns (files, note, plan).'''
+    plan = plugin_review_plan(row, remote)
+    kind, base, target, what = plan
+    if kind is None:
+        return [], what, plan
+    if kind == 'synced':
+        files, err = plugins.diff_against_ref(ctx.runner, ctx.paths.plugins_dir, decl, target)
+        return files, err or ('' if files else 'up to date — nothing to pull in'), plan
+    files, err = plugins.review_diff(ctx.runner, ctx.paths.plugin_review_dir, decl, base, target)
+    return files, err or ('' if files else f'{base} and {target} are identical'), plan
 
 
 # -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------

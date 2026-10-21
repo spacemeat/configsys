@@ -992,6 +992,15 @@ def _wordwrap(s, width):
 
 # Per-page `?` help: a brief description + a glossary of the terms/markers/glyphs that page uses.
 # (Keybindings are generated from the live keymap; these are the reminders that aren't keys.)
+def _provides_legend():
+    '''The Plugins `?` legend for the provides column: one (code, meaning) row per provision.'''
+    from .. import plugins
+    return [(f'  {c}', label) for _k, c, label in plugins.PROVISIONS]
+
+
+_PROVIDES_LEGEND = _provides_legend()
+
+
 _HELP = {
     'components': {
         'desc': "This machine's picks, as a tree. Each row is a component (or a unit under it) with its "
@@ -1086,12 +1095,19 @@ _HELP = {
         ],
     },
     'plugins': {
-        'desc': "Data/code plugins declared in your config. Top: the plugin tree. Bottom: a diff of "
-                "what updating the selected plugin to its remote ref would change. Sync, bless, trust, "
+        'desc': "Data/code plugins declared in your config. Top: the plugin tree. Bottom: the review "
+                "diff for the selected plugin, fetched as the cursor settles. Sync, bless, trust, lock "
                 "and update from here.",
         'glossary': [
             ('columns', 'name · source · ref (pinned) · remote-ref (upstream: green = current, amber = '
                         'update available) · abi · code · provides'),
+            ('provides', 'what the plugin ships, one code each (its manifest `provides:` until synced):'),
+            *_PROVIDES_LEGEND,
+            ('diff', 'synced: your copy → the remote-ref (what u would pull in). Not synced: the ref → '
+                     'the remote-ref, or everything a sync would download — fetched into a review '
+                     'cache that is never loaded, so you can read it before you sync'),
+            ('⊘ locked', 'L locks the plugin on this machine: no sync, update, bless or trust until L '
+                         'unlocks it. A synced copy keeps loading as it is — x removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
             ('code', 'trust for its Python code or command-carrying recipes: trusted · untrusted · '
                      'changed (content moved; trust again) · unsynced · — (nothing to trust)'),
@@ -3883,6 +3899,10 @@ def _sample_plugins_state(ctx):
         _row(False, 'fresh',        'github:new/configsys-fresh',         None,     True, 2,
              'unsynced', False, {},                       False),
     ]
+    for r, prov in zip(pl.rows, (['components', 'drivers', 'glue', 'plugins'], ['components', 'splashes'],
+                                 ['profiles', 'version-floors'], [], ['drivers'], [])):
+        r['provisions'] = prov
+    pl.rows[3]['locked'] = '2026-10-21'                   # `legacy-pack` held (⊘)
     # tree: `science-data` is a transitive child of `science`; the rest are roots.
     pl.tree = [{'depth': 0, 'last': [True], 'decl': {}} for _ in pl.rows]
     pl.tree[2] = {'depth': 1, 'last': [False, True], 'decl': {}}
@@ -4165,9 +4185,12 @@ _DIFF_ELEM = {'add': 'diff_add', 'del': 'diff_del', 'hunk': 'diff_hunk',
 class PluginScreen:
     '''Two-pane Plugins screen. TOP: a `tree`-style table of declared plugins (incl. transitive)
     with name│source│ref│remote-ref│abi│code│provides columns — j/k select, h/l scroll columns.
-    BOTTOM: a diff of what updating the selected plugin to its remote-ref would change (fetched on
-    demand; files as headers; hjkl scroll). Tab cycles focus table→diff→next file→table; Shift-Tab
-    reverses. A skin over configsys.actions.plugin_* — add/remove/sync/bless/update/trust.'''
+    BOTTOM: the review diff for the selected plugin (actions.plugin_review_plan): a synced plugin's
+    on-disk copy -> its remote-ref, or, unsynced, its ref -> remote-ref (or the whole content a sync
+    would download) fetched into an inert review cache. Loaded on a background thread as the cursor
+    settles, cached per (plugin, base, target); files as headers; hjkl scroll. Tab cycles focus
+    table→diff→next file→table; Shift-Tab reverses. A skin over configsys.actions.plugin_* —
+    add/remove/sync/bless/update/trust/lock.'''
 
     def __init__(self, ctx):
         self.ctx = ctx
@@ -4180,17 +4203,25 @@ class PluginScreen:
         self.dfile = 0                   # selected file within the loaded diff
         self.dtop = 0                    # vertical scroll within the diff file
         self.dhscroll = 0                # horizontal scroll within the diff
-        self.diff_key = None             # (name, from_ref, to_ref) the loaded diff belongs to
+        self.diff_key = None             # (name, kind, base, target) the shown diff belongs to
         self.diff_files = []
         self.diff_note = ''
+        self.diff_span = None            # (from, to, what) for the diff pane title
+        self._diff_cache = {}            # diff_key -> (files, note)
+        self._diff_want = None           # (diff_key, thunk) the worker should run next
+        self._diff_busy = False
+        self._diff_awaiting = None       # the diff_key queued but not yet shown
+        self._diff_lock = threading.Lock()
         self.reload()
 
     def reload(self):
         from .. import plugins
         self.tree = plugins.declared_tree(self.ctx.paths.user_config_file, self.ctx.paths.plugins_dir)
         self.rows = plugins.status(self.ctx.paths.plugins_dir, [t['decl'] for t in self.tree],
-                                   trust_file=self.ctx.paths.plugin_trust_file)
+                                   trust_file=self.ctx.paths.plugin_trust_file,
+                                   lock_file=self.ctx.paths.plugin_lock_file)
         self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self._diff_cache = {}            # a sync/update may have moved what's on disk
         self._invalidate_diff()
         self._start_remote()
 
@@ -4223,36 +4254,84 @@ class PluginScreen:
         threading.Thread(target=run, daemon=True).start()
 
     def _invalidate_diff(self):
-        self.diff_key, self.diff_files, self.diff_note = None, [], ''
+        self.diff_key, self.diff_files, self.diff_note, self.diff_span = None, [], '', None
+        self._diff_awaiting = None
         self.dfile = self.dtop = self.dhscroll = 0
 
+    def busy(self):
+        '''True while a remote-ref or review diff is still being fetched — the menu loop polls so
+        the result paints without a keypress.'''
+        return (self._diff_busy or self._diff_awaiting is not None
+                or any(v == 'pending' for v in list(self.remote.values())))
+
     def load_diff(self):
-        '''Fetch + parse the selected plugin's diff against its remote-ref (what updating pulls in),
-        cached by (name, ref, remote). No-op if already loaded; retries while the remote is pending.'''
-        from .. import plugins
+        '''Show the selected plugin's review diff (actions.plugin_review_plan): from the cache when
+        it's been fetched, else queue it on the background worker and say so. Cheap and idempotent —
+        the screen calls it after every key and on each poll tick.'''
+        from .. import actions, plugins
         row, node = self.cur_row(), self.cur_tree()
         if row is None or node is None:
-            self.diff_key, self.diff_files, self.diff_note = None, [], 'no plugin selected'
+            self._invalidate_diff()
+            self.diff_note = 'no plugin selected'
             return
         key = plugins.dir_name(row['source'])
         remote = self.remote.get(key)
-        target = remote if isinstance(remote, str) else None
-        ident = (key, row['ref'], target)
-        if ident == self.diff_key:
-            return                                       # already loaded this exact diff
         if remote == 'pending':
-            self.diff_files, self.diff_note = [], 'resolving remote-ref…'
-            return                                       # not cached — retry once it lands
-        self.dfile = self.dtop = self.dhscroll = 0
-        if not target:
-            self.diff_key, self.diff_files = ident, []
-            self.diff_note = 'no upstream ref to compare against'
+            self.diff_key, self.diff_files, self.diff_span = None, [], None
+            self.diff_note = 'resolving remote-ref…'
             return
-        files, err = plugins.diff_against_ref(self.ctx.runner, self.ctx.paths.plugins_dir,
-                                              node['decl'], target)
-        self.diff_key, self.diff_files = ident, files
-        self.diff_note = err or ('' if files else 'up to date — nothing to pull in')
+        plan = actions.plugin_review_plan(row, remote if isinstance(remote, str) else None)
+        kind, base, target, what = plan
+        ident = (key, kind, base, target)
+        if ident == self.diff_key:
+            return
+        frm = ('∅' if base is None else (row['ref'] or 'HEAD') if base == 'HEAD' else base)
+        span = (frm, target, what) if kind else None
+        if kind is None:
+            self._show(ident, [], what, span)
+        elif ident in self._diff_cache:
+            self._show(ident, *self._diff_cache[ident], span)
+        elif getattr(self.ctx.runner, 'pretend', False):
+            self._show(ident, [], '--pretend: the review diff fetches nothing', span)
+        else:
+            self.diff_key, self.diff_files, self.diff_span = None, [], span
+            self.diff_note = f'fetching {target} to review…'
+            self._diff_awaiting = ident
+            decl, rref = node['decl'], remote if isinstance(remote, str) else None
+            self._request_diff(ident, lambda: actions.plugin_review(self.ctx, decl, row, rref)[:2])
+
+    def _show(self, ident, files, note, span):
+        self._diff_awaiting = None
+        if ident != self.diff_key:
+            self.dfile = self.dtop = self.dhscroll = 0
+        self.diff_key, self.diff_files, self.diff_note, self.diff_span = ident, files, note, span
         self.dfile = min(self.dfile, max(0, len(files) - 1))
+
+    def _request_diff(self, ident, thunk):
+        '''Run `thunk` for `ident` on the single worker thread. Only the NEWEST request matters: a
+        cursor scrolling past rows never fetches the ones it passed over.'''
+        with self._diff_lock:
+            self._diff_want = (ident, thunk)
+            if self._diff_busy:
+                return
+            self._diff_busy = True
+
+        def run():
+            while True:
+                with self._diff_lock:
+                    job, self._diff_want = self._diff_want, None
+                    if job is None:
+                        self._diff_busy = False
+                        return
+                ident_, thunk_ = job
+                if ident_ in self._diff_cache:
+                    continue
+                try:
+                    files, note = thunk_()
+                except Exception as e:               # noqa: BLE001 — never let it crash
+                    files, note = [], f'review failed: {e}'
+                self._diff_cache[ident_] = (files, note)
+        threading.Thread(target=run, daemon=True).start()
 
 
 def _plugin_tree_prefix(node):
@@ -4265,16 +4344,27 @@ def _plugin_tree_prefix(node):
     return ''.join('   ' if f else '│  ' for f in flags[1:-1]) + ('└─ ' if flags[-1] else '├─ ')
 
 
+def _plugin_provides_cell(row):
+    '''Every provision as its short code (plugins.PROVISIONS; spelled out on the `?` page) — what
+    the plugin actually ships, falling back to its manifest `provides:` keys when it isn't synced.'''
+    from .. import plugins
+    keys = row.get('provisions') or (list(row['provides']) if isinstance(row.get('provides'), dict)
+                                     else [])
+    return ' '.join(plugins.PROVISION_CODES.get(plugins._PROVIDES_ALIASES.get(k, k), k)
+                    for k in keys) or '—'
+
+
 def _plugin_cells(row, node, remote):
-    '''The seven column strings for a plugin row (name carries the tree prefix + ★).'''
+    '''The seven column strings for a plugin row (name carries the tree prefix, ⊘ locked, ★).'''
     rref = '…' if remote == 'pending' else (remote if isinstance(remote, str) else '—')
-    return [f'{_plugin_tree_prefix(node)}{"★" if row["primary"] else ""}{row["name"]}',
+    mark = ('⊘' if row.get('locked') else '') + ('★' if row['primary'] else '')
+    return [f'{_plugin_tree_prefix(node)}{mark}{row["name"]}',
             row['source'], row['ref'] or '—', rref,
             'ok' if row['abi_ok'] else f'≠{row["requires_abi"]}',
             # the trust column: a code: module OR command-carrying recipes both need trust (code_state
             # already reflects either); '—' only when there is nothing to trust.
             row['code_state'] if (row['has_code'] or row.get('has_recipes')) else '—',
-            ','.join(row['provides']) if isinstance(row['provides'], dict) and row['provides'] else '—']
+            _plugin_provides_cell(row)]
 
 
 def _put_hscroll(stdscr, y, left, win_w, vx, hscroll, text, attr):
@@ -4289,8 +4379,8 @@ def _put_hscroll(stdscr, y, left, win_w, vx, hscroll, text, attr):
 
 
 def _plugin_remote_elem(row, remote):
-    if remote == 'pending' or not isinstance(remote, str):
-        return 'info_dim'
+    if remote == 'pending' or not isinstance(remote, str) or row.get('locked'):
+        return 'info_dim'                                # a locked plugin's update can't be taken
     return 'installed' if remote == (row['ref'] or None) else 'outdated'   # green=up-to-date, amber=update
 
 
@@ -4621,11 +4711,18 @@ def run(ctx):
             # would wait for the next keypress).
             _su_busy = screen == 'components' and (sysupdates.scan_busy(ctx)
                                                    or getattr(ctx, '_sysupd_dirty', False))
-            stdscr.timeout(120 if (_su_busy or (screen == 'profiles' and _pscr is not None
+            _plscr = _reg.get('plugins')                 # remote-refs / a review diff still fetching
+            _pl_busy = screen == 'plugins' and _plscr is not None and _plscr.model.busy()
+            stdscr.timeout(120 if (_su_busy or _pl_busy or (screen == 'profiles' and _pscr is not None
                                    and (_pscr.model.overlay_busy() or _pscr.model.probe_busy()))) else -1)
             ch = stdscr.getch()
             stdscr.timeout(-1)
             if ch == -1:                                 # timed out with no key -> just redraw
+                if _pl_busy:                             # a remote-ref landed -> fetch/show its diff
+                    try:
+                        _plscr.model.load_diff()
+                    except Exception as e:               # noqa: BLE001
+                        note = f'error: {e}'
                 # the background System Updates scan just landed -> fold its group into the tree.
                 # Only the TREE changes (install state didn't), so rebuild it from the states we have
                 # (_rebuild_menu, ~10ms) — NOT _reload, which re-runs the load pipeline + diagnostics

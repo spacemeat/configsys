@@ -2913,6 +2913,36 @@ def _retarget_clone(ctx, old_dir, new_source):
     print(f'configsys: retargeted the synced clone\'s origin -> {plugins.source_url(new_source)}')
 
 
+def cmd_plugin_diff(ctx, args, eff):
+    '''`plugin diff NAME [--ref R]`: print the review diff — the TUI Plugins diff pane, as text.'''
+    from . import actions, plugins
+    target = _find_decl(eff, ctx.paths.plugins_dir, args.name)
+    if target is None:
+        print(f'configsys: no declared plugin matches {args.name!r}')
+        return 1
+    row = plugins.status(ctx.paths.plugins_dir, [target])[0]
+    remote = args.to
+    if not remote:
+        remote, _kind = plugins.latest_ref(ctx.runner, target['source'])
+    kind, base, to, what = actions.plugin_review_plan(row, remote)
+    if kind is None:
+        print(f'configsys: {row["name"]}: {what}')
+        return 1
+    if ctx.runner.pretend:
+        print(f'configsys: [pretend] would fetch {to} to review {row["name"]} ({what})')
+        return 0
+    files, note, _plan = actions.plugin_review(ctx, target, row, remote)
+    frm = '(nothing)' if base is None else (row['ref'] or 'HEAD') if base == 'HEAD' else base
+    print(f'configsys: {row["name"]}: {frm} -> {to} — {what}')
+    for f in files:
+        print(f'diff --git a/{f["path"]} b/{f["path"]}')
+        for _k, line in f['lines']:
+            print(line)
+    if not files:
+        print(f'configsys: {note}')
+    return 0 if files or not note or 'identical' in note or 'up to date' in note else 1
+
+
 def cmd_plugin(ctx, args):
     from . import actions, plugins
     decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
@@ -3032,9 +3062,18 @@ def cmd_plugin(ctx, args):
         print(f'configsys: {disp} was not trusted')
         return 0
 
+    if sub in ('lock', 'unlock'):
+        ok, note = (actions.plugin_lock if sub == 'lock' else actions.plugin_unlock)(ctx, args.name)
+        print(f'configsys: {note}')
+        return 0 if ok else 1
+
+    if sub == 'diff':
+        return cmd_plugin_diff(ctx, args, eff)
+
     if sub == 'list':
         rows = plugins.status(ctx.paths.plugins_dir, eff,
-                              trust_file=ctx.paths.plugin_trust_file)
+                              trust_file=ctx.paths.plugin_trust_file,
+                              lock_file=ctx.paths.plugin_lock_file)
         if not rows:
             print('configsys: no plugins declared')
             return 0
@@ -3065,8 +3104,12 @@ def cmd_plugin(ctx, args):
             ref = f' @{r["ref"]}' if r['ref'] else ''
             tags = ('  [primary]' if r['primary'] else
                     ('  [via primary]' if plugins.dir_name(r['source']) not in top else ''))
+            if r.get('locked'):
+                state += f'  [locked since {r["locked"]} — no sync/update/trust; configsys plugin unlock {r["name"]}]'
             print(f'  {r["name"]:22} {r["source"]}{ref}{tags}')
             print(f'  {"":22} {state}')
+            if r.get('provisions'):
+                print(f'  {"":22} provides: {", ".join(r["provisions"])}')
         for kind, name, dirs in plugins.declared_conflicts(ctx.paths.plugins_dir, eff):
             print(f'  {_fmt_conflict(kind, name, dirs)}')
         for drv, key in plugins.shadowed_builtins(ctx.paths.plugins_dir, eff):
@@ -3760,6 +3803,19 @@ def build_parser():
                     help='trust every plugin that is currently untrusted or changed since trusted')
     pun = plsub.add_parser('untrust', help="revoke a plugin's trust")
     pun.add_argument('name', help='plugin name, source, or dir')
+    plk = plsub.add_parser('lock', help='hold a plugin where it is on this machine: sync leaves it '
+                                        'alone and update, bless and trust refuse it (its synced copy '
+                                        'still loads)')
+    plk.add_argument('name', help='plugin name, source, or dir')
+    pulk = plsub.add_parser('unlock', help="lift a plugin's lock")
+    pulk.add_argument('name', help='plugin name, source, or dir')
+    pdf = plsub.add_parser('diff', help='review what a plugin would change before you take it: a '
+                                        'synced plugin against its newest remote ref; an unsynced one '
+                                        'between its ref and the newest (or everything a sync would '
+                                        'download), fetched into a cache that is never loaded')
+    pdf.add_argument('name', help='plugin name, source, or dir')
+    pdf.add_argument('--to', metavar='REF',
+                     help='compare against this ref instead of the newest version tag (or main/master)')
     pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
                                         "dotfiles, your own glue, your config's component "
                                         'definitions), or merge that into your existing primary')

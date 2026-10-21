@@ -764,6 +764,6 @@ def test_plugin_sync_drops_the_glue_location_cache(tmp_path, monkeypatch):
     cache.write_text('blender-4.3\t/old/blender-git\n')
     ctx = types.SimpleNamespace(paths=types.SimpleNamespace(glue_locations_file=cache, plugins_dir=tmp_path),
                                 runner=None, ensure_plugin_code=lambda: None, invalidate=lambda: None)
-    monkeypatch.setattr('configsys.plugins.sync', lambda runner, pdir, decls: [('configsys-blender', 'updated')])
+    monkeypatch.setattr('configsys.plugins.sync', lambda runner, pdir, decls, **kw: [('configsys-blender', 'updated')])
     assert actions.plugin_sync(ctx, []) == [('configsys-blender', 'updated')]
     assert not cache.exists()

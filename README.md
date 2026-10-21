@@ -357,7 +357,7 @@ configsys refresh                  # re-query latest versions + refresh the nati
 
 configsys dotfiles <status|capture|staged|activate|discard>   # your dotfiles + staged glue (see below)
 configsys glue    <add|override>   # your own shell snippets (add), or your editable copy of a component's glue (override)
-configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|init|set-source>   # declare, sync and trust plugins; bless or init your primary (see Plugins)
+configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|diff|lock|unlock|init|set-source>   # declare, sync, review, trust and lock plugins; bless or init your primary (see Plugins)
 configsys report  [<name>] [--print]      # file an install-failure report (default: every unfixed failure; you approve the text first)
 configsys request <name> [--print]        # ask upstream for full cross-platform support (coverage matrix)
 configsys request-os [--print]            # suggest this OS for support, or report that an update broke it (you approve first)
@@ -508,9 +508,11 @@ Seven screens; press a number key (shown in the top chip bar) to switch:
    (`s` / `i`); pin its install method (`v`); show its `where` explanation (`w`); stage an
    uninstall (`x`); track everything already installed here (`C`); toggle the install-state overlay
    (`O`); and filter by attrs (`f`).
-3. **Plugins** — declared plugins with their ref, ABI and trust status, plus a diff of what
-   updating the selected one would change: add (`a`), remove (`x`), sync (`s`, `S` all), update
-   (`u`, `U` all), bless / unbless your primary (`b` / `B`), trust (`t`, `T` all), set its ref (`v`).
+3. **Plugins** — declared plugins with their ref, ABI and trust status and what each provides
+   (short codes, spelled out under `?`), plus a review diff of what taking the selected one would
+   change — readable before it's synced: add (`a`), remove (`x`), sync (`s`, `S` all), update
+   (`u`, `U` all), bless / unbless your primary (`b` / `B`), trust (`t`, `T` all), set its ref
+   (`v`), lock / unlock (`L`).
 4. **Glue** — shell snippets grouped by installed shell, your own user glue included; activate
    (`a`, or `A` for the whole shell's group) or deactivate (`x`).
 5. **Dotfiles** — each managed config's state and where its content lives; manage / unmanage
@@ -677,6 +679,16 @@ $ ./configsys.sh plugin trust <name>     # binds to a content hash; any change t
 
 `plugin list` shows which plugins are waiting for trust; `plugin untrust <name>` revokes it.
 
+Before you sync, update or trust a plugin, you can read what it would change:
+
+```console
+$ ./configsys.sh plugin diff <name>      # synced: your copy -> the newest ref; unsynced: its ref -> the newest
+$ ./configsys.sh plugin lock <name>      # don't like it? no sync, update or trust here until `plugin unlock`
+```
+
+An unsynced plugin's diff is fetched into a review cache that's never loaded or run. A lock is
+machine-local and freezes the plugin where it is; a synced copy keeps loading until you remove it.
+
 [`examples/examplos/`](examples/examplos/) is a complete, copy-able example — the fictional
 **ExamplOS** distro with a `toybox` driver + an `examplos` OS block, walked through step by step
 in [its WALKTHROUGH](examples/examplos/WALKTHROUGH.md). It's deliberately fictional so it never
@@ -797,6 +809,7 @@ edit that file, not this section -->
 - **picks** (`picks:`) — What each machine installs: a component × machine matrix in your config (`picks: { <machine>: [ components ] }`). This machine's column is its install set. *See also:* **machine**, **profile**. *Not:* “active profiles”, “configs”.
 - **pin** (`pins:`) — A per-machine override at top precedence: a binding-pin forces a component's method (`pins: { yazi: tarball }`), a provider-pin forces which component satisfies a capability. *See also:* **candidate**, **provider**.
 - **plugin** — A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Code — and data that runs shell commands, like build recipes or shell glue — loads only after you trust it. *See also:* **layer**, **primary-plugin**, **trust**, **transitive-plugin**.
+- **plugin-lock** (`configsys plugin lock`) — A machine-local hold on a plugin: sync leaves it as it is, and update, bless and trust refuse it, until `configsys plugin unlock`. Its synced copy, if any, keeps loading. *See also:* **plugin**, **trust**, **review-diff**.
 - **primary-plugin** (`primary: true`) — Your personal plugin: travels with you across machines and may also set machine settings that should be uniform. *See also:* **plugin**, **setting-nature**.
 - **profile** — A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin, or written in your own config as your own category. Profiles never install anything themselves; you pick from them. *See also:* **picks**, **subprofile**. *Not:* “install set”.
 - **provider** — A component that `provides:` a capability another component `requires:` (e.g. `jdk-21` provides `jdk`). *See also:* **capability**, **pin**.
@@ -805,6 +818,7 @@ edit that file, not this section -->
 - **refresh** (`configsys refresh`) — Re-checking upstream versions and refreshing the OS package index. Where the only safe refresh is a full system upgrade (Arch's `pacman -Syu`), configsys asks before running it.
 - **requires** (`requires:`) — A HARD dependency: the capability must resolve here or the component errors. *See also:* **suggests**, **capability**.
 - **resolution** — Turning wanted component names into concrete units for THIS machine: pick a binding per component, close its requires/suggests, dedupe. *See also:* **unit**, **candidate**.
+- **review-diff** (`configsys plugin diff`) — What taking a plugin would change, readable before you sync, update or trust it: a synced plugin's copy against its newest ref, or an unsynced one's ref against the newest (or everything a sync would download). An unsynced plugin is fetched into a cache that is never loaded or run. *See also:* **plugin**, **plugin-lock**, **trust**.
 - **routing-status** — A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS). *See also:* **stranded**, **status**.
 - **scale-root** (`scale-root: true`) — Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version. *See also:* **OS-block**.
 - **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user.
@@ -825,7 +839,7 @@ edit that file, not this section -->
 - **top-config** (`~/.config/configsys/configsys.hu`) — This machine's own config file — the highest layer, never shared. Machine-local settings and `--local` edits land here. *See also:* **layer**, **setting-nature**, **primary-plugin**.
 - **track** — Adding a component to a machine's picks (TUI Profiles `T` / `t`, or `configsys picks add`). Tracked components are that machine's install set. *See also:* **picks**, **claim**.
 - **transitive-plugin** — A plugin declared inside another plugin's manifest; it is synced and loaded along with the plugin that declares it. *See also:* **plugin**.
-- **trust** (`configsys plugin trust`) — Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data. *See also:* **plugin**.
+- **trust** (`configsys plugin trust`) — Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data. *See also:* **plugin**, **plugin-lock**, **review-diff**.
 - **uninstall-queue** (`uninstall:`) — Removals you've staged on this machine for installs outside its picks (the TUI's `!uninstall` view); kept machine-local until you run them. *See also:* **orphan**, **picks**.
 - **unit** (unit key `driver\comp`) — One concrete install the drivers act on — a component bound to a driver (`apt\ripgrep`, `flatpak\gimp`). Two requests resolving to the same unit install it once. *See also:* **resolution**, **component**.
 - **user-glue** (`configsys glue add`) — Your own shell startup snippets, not tied to any component, kept in a `user.d` folder and loaded after component glue (so yours win); a `99-user` snippet is scaffolded for you. *See also:* **glue**, **conf.d**, **band**.

@@ -233,7 +233,7 @@ and may set machine settings; `plugin add` writes to it by default. **Code plugi
 hash (`configsys plugin trust`; `plugin_identity`, `plugin-trust.hu`); command-carrying DATA
 (script/source recipes, apt `source-line`/`ppa`, `facets:` `detect:` probes, and ANY shipped glue —
 it is sourced at every shell start) is gated by the same trust (`command_source_trusted`;
-`ships_executable_data` makes such a data-only plugin trustable). `configsys plugin list` (and the TUI Plugins screen) shows status.
+`ships_executable_data` makes such a data-only plugin trustable). `configsys plugin list` (and the TUI Plugins screen) shows status, plus what each plugin provides (`plugins.provisions` — derived from its data sections, manifest `provides:`/`plugins:` and `dotfiles/`/`glue/` dirs; the TUI shows `PROVISIONS` codes). **Review + lock** (docs/plugins.md §6a): `plugin diff` / the TUI diff pane = `actions.plugin_review_plan` (synced: HEAD → remote-ref; unsynced: ref → remote-ref, or the whole tree via `plugins.review_diff` into an inert bare repo under `<state>/plugin-review/`, fetched on a background worker in the TUI); `plugin lock|unlock` / TUI `L` = a machine-local hold (`plugin-locks.hu`): `plugins.sync(locked=)` skips it, update/bless/add/trust refuse it, its synced copy still loads.
 
 **Machine-level plugins (was: project discovery).** (History: the old CWD-walk-up scan for
 `.configsys.hu`/`.configsys-*.hu`, which auto-activated layers, was REMOVED.) A source repo or app

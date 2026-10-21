@@ -346,28 +346,64 @@ def plugin_identity(plugin_dir):
     return 'sha256:' + h.hexdigest()
 
 
-def read_trust(trust_file):
-    '''The trust store { plugin_dir_name: approved_identity }, or {} (missing/corrupt =
-    nothing trusted — fail closed).'''
-    p = Path(trust_file)
+def _read_flat_map(path):
+    '''A machine-local { str: str } store (trust, locks), or {} when missing or corrupt.'''
+    p = Path(path)
     if not p.exists():
         return {}
     try:
         data = layers.materialize_string(p.read_text(encoding='utf-8'))
         return {str(k): str(v) for k, v in data.items()} if isinstance(data, dict) else {}
-    except Exception:                                  # noqa: BLE001 — corrupt store -> trust nothing
+    except Exception:                                  # noqa: BLE001 — corrupt store -> empty
         return {}
+
+
+def _write_flat_map(path, m):
+    '''Rewrite a machine-local { str: str } store (not user-authored — a plain full rewrite).'''
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    if not m:
+        p.write_text('{ }\n', encoding='utf-8')
+        return
+    lines = ['{'] + [f'    {_scalar(k)}: {_scalar(m[k])}' for k in sorted(m)] + ['}']
+    p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
+def read_trust(trust_file):
+    '''The trust store { plugin_dir_name: approved_identity }, or {} (missing/corrupt =
+    nothing trusted — fail closed).'''
+    return _read_flat_map(trust_file)
 
 
 def write_trust(trust_file, trust):
     '''Rewrite the trust store (machine-local, not user-authored — a plain full rewrite).'''
-    p = Path(trust_file)
-    p.parent.mkdir(parents=True, exist_ok=True)
-    if not trust:
-        p.write_text('{ }\n', encoding='utf-8')
-        return
-    lines = ['{'] + [f'    {_scalar(k)}: {_scalar(trust[k])}' for k in sorted(trust)] + ['}']
-    p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    _write_flat_map(trust_file, trust)
+
+
+# -- plugin locks: a machine-local hold (no sync, no update, no trust) ------
+# A LOCK freezes a plugin where it is on this machine — typically because its review diff showed
+# something alarming. `sync` skips it (so a moved `ref:` is never fetched into the plugins dir),
+# `update` and `trust` refuse it; what is already on disk keeps loading exactly as before (remove
+# the plugin to stop that). Machine-local like trust: { plugin_dir_name: date locked }.
+
+def read_locks(lock_file):
+    '''{ plugin_dir_name: date locked }, or {}.'''
+    return _read_flat_map(lock_file) if lock_file is not None else {}
+
+
+def set_lock(lock_file, name, when):
+    locks = read_locks(lock_file)
+    locks[name] = when
+    _write_flat_map(lock_file, locks)
+
+
+def remove_lock(lock_file, name):
+    '''Drop `name`'s lock. Returns True if it was locked.'''
+    locks = read_locks(lock_file)
+    existed = locks.pop(name, None) is not None
+    if existed:
+        _write_flat_map(lock_file, locks)
+    return existed
 
 
 def set_trust(trust_file, name, identity):
@@ -504,11 +540,106 @@ def code_state(manifest, synced, approved, identity, *, trustable=None):
     return 'untrusted' if approved is None else 'changed'
 
 
-def status(plugins_dir, decls, *, trust_file=None):
+# What a plugin brings, derived from what it SHIPS (not only the manifest's informational
+# `provides:`, which names just the code registrations): each data file's top-level sections, the
+# manifest's `provides:` and `plugins:`, and its `dotfiles/` / `glue/` content. (key, code, label)
+# in display order — the codes are the Plugins screen's `provides` column, explained on its `?` page.
+PROVISIONS = (
+    ('components', 'cm', 'components'),
+    ('profiles', 'pr', 'profiles'),
+    ('os', 'os', 'OS blocks'),
+    ('drivers', 'dr', 'drivers (code, or `drivers:` config)'),
+    ('facets', 'fa', 'facets'),
+    ('component-names', 'nm', 'package-name patches'),
+    ('version-floors', 'vf', 'version floors'),
+    ('settings', 'ms', 'machine settings (honored only from your primary plugin)'),
+    ('theme', 'th', 'theme'),
+    ('keys', 'ky', 'key bindings'),
+    ('splashes', 'sp', 'startup splashes'),
+    ('transports', 'tp', 'sync transports'),
+    ('version-sources', 'vs', 'version sources'),
+    ('dotfiles', 'df', 'dotfiles content'),
+    ('glue', 'gl', 'shell glue'),
+    ('plugins', 'pl', 'more plugins (declared transitively)'),
+)
+PROVISION_CODES = {k: c for k, c, _l in PROVISIONS}
+_PROVISION_ORDER = {k: i for i, (k, _c, _l) in enumerate(PROVISIONS)}
+_DATA_SECTIONS = frozenset({'components', 'profiles', 'os', 'drivers', 'facets', 'component-names',
+                            'version-floors', 'theme', 'keys', 'plugins'})
+_PROVIDES_ALIASES = {'driver': 'drivers', 'splash': 'splashes', 'transport': 'transports',
+                     'version-source': 'version-sources'}
+_PROV_CACHE = {}                                   # plugin dir -> (signature, [keys])
+
+
+def _data_sections(path, root, seen):
+    '''Top-level non-empty section names of one data file, following its `include:`s that stay
+    inside the plugin dir `root`.'''
+    p = Path(path)
+    if p in seen or not p.is_file():
+        return set()
+    seen.add(p)
+    try:
+        data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    except Exception:                              # noqa: BLE001 — a broken file contributes nothing
+        return set()
+    if not isinstance(data, dict):
+        return set()
+    out = {k for k, v in data.items() if v not in (None, '', [], {}) and k != 'include'}
+    inc = data.get('include')
+    for rel in (inc if isinstance(inc, list) else [inc] if inc else []):
+        sub = (p.parent / str(rel)).resolve()
+        if sub.is_relative_to(root.resolve()):
+            out |= _data_sections(sub, root, seen)
+    return out
+
+
+def _has_files(d):
+    return d.is_dir() and any(f.is_file() for f in d.rglob('*'))
+
+
+def provisions(plugin_dir, manifest=None):
+    '''The PROVISIONS keys a synced plugin brings, in display order; an unrecognized manifest
+    `provides:` key is kept as itself (sorted, after the known ones). Cached per plugin dir on the
+    mtimes of its manifest and data files.'''
+    pdir = Path(plugin_dir)
+    if manifest is None:
+        manifest = read_manifest(pdir)
+    files = [Path(f) for f in _data_files(pdir, manifest)]
+    sig = tuple((str(f), f.stat().st_mtime_ns if f.exists() else 0)
+                for f in [pdir / 'plugin.hu', *files, pdir / 'dotfiles', pdir / 'glue'])
+    hit = _PROV_CACHE.get(str(pdir))
+    if hit and hit[0] == sig:
+        return list(hit[1])
+    keys, seen = set(), set()
+    settings = layers.machine_setting_sections()
+    for f in files:
+        for sec in _data_sections(f, pdir, seen):
+            if sec in _DATA_SECTIONS:
+                keys.add(sec)
+            elif sec in settings:
+                keys.add('settings')
+    prov = manifest.get('provides')
+    for k, v in (prov.items() if isinstance(prov, dict) else ()):
+        if v not in (None, '', [], {}):
+            keys.add(_PROVIDES_ALIASES.get(k, k))
+    if manifest.get('plugins'):
+        keys.add('plugins')
+    if _has_files(pdir / 'dotfiles'):
+        keys.add('dotfiles')
+    if _has_files(pdir / 'glue'):
+        keys.add('glue')
+    out = sorted(keys, key=lambda k: (_PROVISION_ORDER.get(k, len(PROVISIONS)), k))
+    _PROV_CACHE[str(pdir)] = (sig, out)
+    return list(out)
+
+
+def status(plugins_dir, decls, *, trust_file=None, lock_file=None):
     '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok,
-    provides, has_code, and `checksum` ('ok'/'mismatch'/None). When `trust_file` is given, also
-    resolves the on-disk content identity and its code-trust state.'''
+    provides (the manifest's own `provides:`), `provisions` (what it actually ships — see
+    provisions()), has_code, `locked` (date, or None), and `checksum` ('ok'/'mismatch'/None). When
+    `trust_file` is given, also resolves the on-disk content identity and its code-trust state.'''
     trust = read_trust(trust_file) if trust_file is not None else {}
+    locks = read_locks(lock_file)
     rows = []
     for d in decls:
         key = dir_name(d['source'])
@@ -532,6 +663,8 @@ def status(plugins_dir, decls, *, trust_file=None):
             'synced': synced, 'abi_ok': (not synced) or _abi_ok(manifest),
             'requires_abi': manifest.get('requires-abi', ABI_VERSION),
             'provides': manifest.get('provides', {}),
+            'provisions': provisions(pdir, manifest) if synced else [],
+            'locked': locks.get(key),
             'has_code': has_code, 'has_recipes': has_recipes,
             'identity': identity,
             'checksum': checksum,
@@ -1416,7 +1549,53 @@ def diff_against_ref(runner, plugins_dir, decl, target_ref):
     fetched = runner.run(f'git -C {cq} fetch --quiet -- {dq} {rq}', capture=True, env=genv)
     if fetched is None or not fetched.ok:
         return [], f'could not fetch {target_ref} (unreachable or private?)'
-    d = runner.run(f'git -C {cq} diff HEAD..FETCH_HEAD', capture=True, env=genv)
+    d = runner.run(f'git -C {cq} diff --no-ext-diff --no-textconv HEAD..FETCH_HEAD', capture=True,
+                   env=genv)
+    if d is None or not d.ok:
+        return [], 'diff failed'
+    return _parse_unified_diff(d.stdout or ''), None
+
+
+_EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'   # git's well-known empty tree
+
+
+def review_diff(runner, review_dir, decl, base_ref, target_ref):
+    '''Diff two refs of a plugin's REMOTE without syncing it — the review before you download.
+    The objects are fetched into an inert bare repo under `review_dir` (created with no hook
+    templates; never a layer, never loaded, never checked out, nothing in it runs), so this works
+    for an unsynced plugin and leaves the plugins dir untouched. `base_ref` None diffs against the
+    empty tree: the whole content at `target_ref`, i.e. what a sync would download. Returns
+    (files, err) like diff_against_ref. Only git sources can be reviewed.'''
+    if not target_ref:
+        return [], 'no upstream ref to compare against'
+    if _transport_for(decl['source']) is not _git_transport:
+        return [], 'not a git source — nothing to review before syncing'
+    repo = Path(review_dir) / (dir_name(decl['source']) + '.git')
+    genv = _noninteractive_git_env()
+    rq, uq = shlex.quote(str(repo)), shlex.quote(clone_url(decl['source']))
+    if not (repo / 'HEAD').exists():
+        repo.parent.mkdir(parents=True, exist_ok=True)
+        r = runner.run(f'git init --quiet --bare --template= {rq}', capture=True, env=genv)
+        if r is None or not r.ok:
+            return [], 'could not create the review cache'
+
+    def fetch(ref):
+        f = runner.run(f'git -C {rq} fetch --quiet --no-tags --force -- {uq} {shlex.quote(ref)}',
+                       capture=True, env=genv)
+        if f is None or not f.ok:
+            return None
+        c = runner.run(f'git -C {rq} rev-parse --verify --quiet "FETCH_HEAD^{{commit}}"',
+                       capture=True, env=genv)
+        return (c.stdout or '').strip() if c is not None and c.ok else None
+
+    target = fetch(target_ref)
+    if not target:
+        return [], f'could not fetch {target_ref} (unreachable or private?)'
+    base = fetch(base_ref) if base_ref else _EMPTY_TREE
+    if not base:
+        return [], f'could not fetch {base_ref} (unreachable or private?)'
+    d = runner.run(f'git -C {rq} diff --no-ext-diff --no-textconv {base} {target}', capture=True,
+                   env=genv)
     if d is None or not d.ok:
         return [], 'diff failed'
     return _parse_unified_diff(d.stdout or ''), None
@@ -1445,13 +1624,14 @@ def _transport_for(source):
     return _TRANSPORTS.get(scheme, _git_transport)
 
 
-def sync(runner, plugins_dir, decls):
+def sync(runner, plugins_dir, decls, *, locked=()):
     '''Sync each declared plugin to plugins_dir/<name> at its ref, via its transport (git by
     default; a registered transport claims a `<scheme>:` source). Returns [(name, action)].
     Transitive: after a plugin is synced, plugins named in ITS manifest `plugins:` are enqueued
     and synced too (fixpoint, deduped by dir) — so a primary/personal plugin pulls its own
-    plugin set. Best-effort: a transport failure becomes a per-plugin 'failed' action, never an
-    exception.'''
+    plugin set. A plugin whose dir name is in `locked` is left exactly as it is ('locked'); the
+    plugins its on-disk manifest declares are still visited. Best-effort: a transport failure
+    becomes a per-plugin 'failed' action, never an exception.'''
     results, seen = [], set()
     stack = list(decls)
     while stack:
@@ -1460,11 +1640,14 @@ def sync(runner, plugins_dir, decls):
         if name in seen:
             continue
         seen.add(name)
-        try:
-            action = _transport_for(d['source'])(runner, plugins_dir / name, d['source'],
-                                                 d.get('ref'))
-        except Exception as e:                       # noqa: BLE001 — isolate a bad transport
-            action = f'failed ({e})'
+        if name in locked:
+            action = 'locked'
+        else:
+            try:
+                action = _transport_for(d['source'])(runner, plugins_dir / name, d['source'],
+                                                     d.get('ref'))
+            except Exception as e:                   # noqa: BLE001 — isolate a bad transport
+                action = f'failed ({e})'
         results.append((name, action))
         for sub in (read_manifest(plugins_dir / name).get('plugins') or []):
             nd = _decl(sub)

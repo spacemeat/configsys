@@ -146,8 +146,10 @@ so you can push a plugin you author without a token.
 | Command | What it does |
 | --- | --- |
 | `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` | Sync the source first; only if that works, declare it. With a primary plugin set, the entry goes into the primary's manifest (so it travels); `--local` keeps it in this machine's config instead (§9). `--replace` swaps out an already-declared plugin of the same name from another source. |
-| `configsys plugin sync` | Fetch every declared plugin (and the plugins they list) to its ref, and report how your component set changed. New or changed code stays inert until trusted. |
-| `configsys plugin list` | Each plugin: source, ref, `[primary]` / `[via primary]`, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), and whether its code or recipes are trusted. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
+| `configsys plugin sync` | Fetch every declared plugin (and the plugins they list) to its ref, and report how your component set changed. New or changed code stays inert until trusted. A locked plugin is left as it is (`locked`). |
+| `configsys plugin list` | Each plugin: source, ref, `[primary]` / `[via primary]`, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
+| `configsys plugin diff <name> [--to REF]` | The review diff (§6a): what taking the plugin would change, before you sync, update or trust it. `--to` compares against that ref instead of the newest version tag. |
+| `configsys plugin lock <name>` / `unlock <name>` | Hold a plugin where it is on this machine (§6a): no sync, update, bless or trust until you unlock it. |
 | `configsys plugin update [name] [--ref R \| --latest] [--pin]` | Re-pin and re-sync one plugin. `--latest` pins the newest stable version tag on the remote (`v1.2.3` style; pre-release tags ignored), else `main`/`master`. Omit the name (or pass `--all`) to update every plugin; locally authored ones are skipped, and it exits 1 if any fail. |
 | `configsys plugin remove <name>` | Undeclare the plugin (wherever it's declared) and delete its synced copy. |
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
@@ -155,10 +157,17 @@ so you can push a plugin you author without a token.
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
 | `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
 
-The TUI **Plugins** screen (key `3`) shows the same tree, with a diff of what updating the
-selected plugin to its remote ref would change — review it before you trust. Keys: `a` add, `x`
-remove, `s`/`S` sync one/all, `u`/`U` update one/all, `v` set the ref, `t` trust/untrust one, `T`
-trust every untrusted or changed one, `b`/`B` bless/unbless.
+The TUI **Plugins** screen (key `3`) shows the same tree, and below it the review diff (§6a) for
+the selected plugin, fetched in the background as the cursor settles. Its `provides` column lists
+everything a plugin brings as short codes (spelled out on the screen's `?` page): `cm` components,
+`pr` profiles, `os` OS blocks, `dr` drivers, `fa` facets, `nm` package-name patches, `vf` version
+floors, `ms` machine settings, `th` theme, `ky` key bindings, `sp` splashes, `tp` sync transports,
+`vs` version sources, `df` dotfiles content, `gl` shell glue, `pl` further plugins. They're read
+from what the plugin actually ships — its data files' sections, its manifest's `provides:` and
+`plugins:`, its `dotfiles/` and `glue/` directories — so they're only known once it's synced (until
+then the manifest's own `provides:` stands in). Keys: `a` add, `x` remove, `s`/`S` sync one/all,
+`u`/`U` update one/all, `v` set the ref, `t` trust/untrust one, `T` trust every untrusted or
+changed one, `b`/`B` bless/unbless, `L` lock/unlock (a locked plugin's name carries `⊘`).
 
 ## 5. When a plugin fails
 
@@ -211,6 +220,34 @@ than a git commit, it works for plugins fetched by any transport. Approvals live
 
 Your primary plugin follows the same rule: if it carries code or command-carrying data, trust it
 too.
+
+### 6a. Review before you take it, and lock what alarms you
+
+**The review diff** (`configsys plugin diff`, and the Plugins screen's lower pane) shows what a
+plugin would change before you let it:
+
+- **Synced:** your on-disk copy against the remote-ref (the newest stable version tag, else
+  `main`/`master`) — exactly what `update` would pull in.
+- **Not synced:** its declared `ref:` against the remote-ref; or, when there's no `ref:` or the ref
+  is already the newest, everything at that ref — what a sync would download.
+
+For an unsynced plugin the objects are fetched into an inert bare repository under
+`~/.config/configsys/plugin-review/` (created without hook templates, diffed with external diff
+drivers and textconv off). Nothing there is checked out, loaded as a layer, or run, so you can read
+a plugin before it ever reaches the plugins directory. Only git sources can be reviewed this way.
+
+**A lock** (`configsys plugin lock <name>`, or `L` on the Plugins screen) holds a plugin where it
+is on this machine — typically because its review diff shows something you don't want:
+
+- `sync` leaves it alone (reported `locked`), so a `ref:` moved elsewhere — say, by updating the
+  primary plugin that declares it — is never fetched into the plugins directory;
+- `update`, `update --all` (skipped), `bless`, `add` and `trust` / `trust --all` (skipped)
+  refuse it.
+
+A lock doesn't unload anything: a synced copy keeps loading as it is, with the trust it already
+had. To stop using it, remove it. Locks are machine-local, like trust — they live in
+`~/.config/configsys/plugin-locks.hu` keyed by the plugin's directory name — and `plugin unlock`
+lifts one.
 
 ## 7. Writing code: the ABI
 

@@ -98,8 +98,38 @@ def test_handle_nav_moves_cursor_and_invalidates_diff(ctx):
     down = next(k for k in range(32, 127) if km.action_for('plugins', k) == 'down')
     intent = scr.handle(down, ctx, None, None)
     assert scr.model.cur == 1
-    assert scr.model.diff_key is None                     # nav invalidates the loaded diff
+    # nav drops the old diff and asks for the new row's (a --pretend ctx fetches nothing)
+    assert scr.model.diff_key == ('configsys-science', 'synced', 'HEAD', 'v0.5.0')
+    assert scr.model.diff_files == [] and 'pretend' in scr.model.diff_note
+    assert scr.model.diff_span == ('v0.4.1', 'v0.5.0', 'what an update would change')
     assert not intent.dirty
+
+
+def test_review_diff_loads_in_the_background_and_caches(ctx, monkeypatch):
+    import threading
+    from configsys import actions
+    gate, calls = threading.Event(), []
+
+    def review(c, decl, row, remote):
+        calls.append(row['name'])
+        gate.wait(5)
+        return [{'path': 'a.hu', 'lines': [('add', '+x')]}], '', None
+    monkeypatch.setattr(actions, 'plugin_review', review)
+    pl = menu._sample_plugins_state(ctx)
+    monkeypatch.setattr(ctx.runner, 'pretend', False)
+    pl.diff_files, pl.diff_key = [], None
+    pl.load_diff()
+    assert pl.busy() and pl.diff_note.startswith('fetching v0.5.0')
+    gate.set()
+    for _ in range(200):
+        if not pl._diff_busy:
+            break
+        threading.Event().wait(0.01)
+    assert pl.busy()                                      # fetched but not yet shown: keep polling
+    pl.load_diff()
+    assert [f['path'] for f in pl.diff_files] == ['a.hu'] and not pl.busy()
+    pl.load_diff()
+    assert calls == ['science']                           # cached: one fetch
 
 
 def test_handle_switch_pane_toggles_focus(ctx):

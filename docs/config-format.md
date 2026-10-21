@@ -978,6 +978,8 @@ one works.
 - `trust` (`t`): trust or untrust the current plugin's code or recipes.
 - `trust-all` (`T`): trust every untrusted or changed plugin.
 - `set-ref` (`v`): pin a tag, branch or commit and re-sync.
+- `lock` (`L`): lock or unlock the current plugin on this machine — no sync, update, bless or
+  trust while locked.
 
 **glue**:
 
