@@ -501,7 +501,7 @@ def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys):
 
     # with a primary set, `add` lands in the PRIMARY's transitive plugins:, not the top config
     assert main(home + ['plugin', 'add', str(addon)]) == 0
-    assert 'in the primary plugin (prim)' in capsys.readouterr().out
+    assert 'in your primary plugin (prim)' in capsys.readouterr().out
     assert 'addon' in prim_manifest.read_text()                 # rode the primary (portable)
     assert 'addon' not in top.read_text()                       # NOT in the per-machine top config
     # ...and it's transitively effective + synced locally right away

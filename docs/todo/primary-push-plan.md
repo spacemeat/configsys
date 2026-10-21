@@ -1,6 +1,6 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: IN PROGRESS** — phase 0 done (2026-10-21); phases 1–4 not started. Tag-pinned primaries
+> **Status: IN PROGRESS** — phases 0 and 1 done (2026-10-21); phases 2–4 not started. Tag-pinned primaries
 > stay supported (decided 2026-10-21).
 
 ## Why
@@ -71,7 +71,19 @@ Tests: a sandbox primary with a dirty tree survives `sync` under each ref kind. 
 behind each produce their message. `update --latest` on a primary whose repo has a `v1.0` tag
 keeps `ref: main`.
 
-## Phase 1 — commit every configsys edit to the primary, locally
+## Phase 1 — commit every configsys edit to the primary, locally — DONE 2026-10-21
+
+Built differently from the sketch below, more robustly: instead of wiring a commit into each writer,
+`configsys/primarygit.py` brackets every CLI command (`app.main`) and every non-navigation TUI action
+(the router, `menu._commit_primary_action`; navigation keys are `menu._NO_WRITE_ACTIONS`). `snapshot()`
+records the primary's dirty paths (and hashes them); `commit()` commits exactly the paths that became
+dirty in between, so every writer — present and future — is covered with no per-writer code. A file
+that was already dirty and that configsys changed further is left uncommitted with a note. Messages:
+the CLI command as typed minus global flags (`app._command_words`, `--machine` kept as a suffix), or
+`<screen>: <action label> — <note>`; body `Made by configsys on <host>.`. Not done: squashing a TUI
+batch into one commit (each action commits on its own). Tests: test/test_primary_autocommit.py.
+
+### The original sketch
 
 Every writer that lands in the primary commits right after its write, with a message saying what
 changed: `picks: add btop to laptop`, `setting: splash = plain`, `dotfiles: capture btop`,

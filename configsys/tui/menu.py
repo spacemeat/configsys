@@ -17,7 +17,8 @@ import threading
 import time
 from pathlib import Path
 
-from .. import reportgen
+from .. import primarygit, reportgen
+from . import keyspec
 from ..drivers import get_driver, scope_meta
 from ..errors import ConfigError, ConfigsysError
 from ..osversion import clean_version
@@ -651,6 +652,19 @@ def _seed_uninstall(ms, ctx):
     for key, st in ms.states.items():
         if st.present and st.component.comp in q:
             ms.staged.setdefault(key, 'remove')
+
+
+# Actions that only move, look or mark — no primary snapshot/commit around them (primarygit).
+_NO_WRITE_ACTIONS = frozenset({'down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up',
+                               'switch-pane', 'switch-pane-back', 'find', 'filter', 'help', 'issues',
+                               'select', 'where', 'expand-all', 'quit', 'quit-force'})
+
+
+def _commit_primary_action(ctx, snap, screen, act, note):
+    '''Commit what one TUI action changed in the primary (primarygit), as `<screen>: <action> — <note>`.
+    Returns the notes to show (empty when it went through quietly or nothing changed).'''
+    label = keyspec.ACTION_LABELS.get(f'{screen}.{act}') or keyspec.ACTION_LABELS.get(act, act)
+    return primarygit.commit(ctx, snap, f'{screen}: {label}' + (f' — {note}' if note else ''))
 
 
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
@@ -4846,6 +4860,9 @@ def run(ctx):
             # -- per-screen input: every screen's handle() returns an Intent the router applies to
             # the shared loop state; the components handle also gets cfg/ledger and re-probes/rebinds.
             scr = _screen(screen)
+            _act = keymap.action_for(screen, ch)
+            _snap = (primarygit.snapshot(ctx)            # an action that may edit the primary: commit it
+                     if _act is not None and _act not in _NO_WRITE_ACTIONS else None)
             if screen == 'components':
                 scr.model = ms
                 intent = scr.handle(ch, ctx, stdscr, pal, cfg, ledger)
@@ -4853,6 +4870,11 @@ def run(ctx):
                 intent = scr.handle(ch, ctx, stdscr, pal)
             if intent.note is not None:
                 note = intent.note
+            if _snap is not None:
+                _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note)
+                if _cnotes:
+                    note = (f'{note}  ·  ' if note else '') + _cnotes[0]
+                    pending_notes.extend(_cnotes)
             menu_dirty = menu_dirty or intent.dirty
             if intent.goto is not None:
                 screen = intent.goto

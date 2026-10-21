@@ -2862,7 +2862,7 @@ def _plugin_init_merge(ctx, args, prim):
     if gmoved:                                           # primary_glue_dir already set; repoint links
         _redeploy_user_glue(ctx)
     print(f'\nconfigsys: moved {len(move)} dotfile + {gmoved} glue item(s) into "{prim}". '
-          'Commit + push it to share.')
+          'Push it to share.')
     return 0
 
 
@@ -3015,7 +3015,7 @@ def cmd_plugin(ctx, args):
             return 1
         if ' from ' in msg:                          # removed from a plugin's own file
             plug = msg.rsplit(' from ', 1)[1]
-            print(f'configsys: commit + push + re-tag {plug} and bump its ref to propagate the removal')
+            print(f'configsys: push {plug} to share the removal with your other machines')
         return 0
 
     if sub == 'update':
@@ -4706,6 +4706,32 @@ def _probe_color(ctx):
     return 0
 
 
+# global options that take a value — skipped when a command line becomes a commit message
+_GLOBAL_VALUE_OPTS = frozenset({'--os', '--home', '--machine', '--config', '--color', '--effects'})
+
+
+def _command_words(argv, command):
+    '''The command as typed, minus global flags — the commit message for a primary edit
+    (`picks add btop`, `config set splash plain`). A `--machine NAME` is kept as a suffix.'''
+    words = list(sys.argv[1:] if argv is None else argv)
+    out, machine, i = [], None, 0
+    while i < len(words):
+        w = words[i]
+        if w in _GLOBAL_VALUE_OPTS or any(w.startswith(o + '=') for o in _GLOBAL_VALUE_OPTS):
+            val = w.split('=', 1)[1] if '=' in w else (words[i + 1] if i + 1 < len(words) else '')
+            if w.startswith('--machine'):
+                machine = val
+            i += 1 if '=' in w else 2
+            continue
+        if not out and w.startswith('-'):
+            i += 1
+            continue
+        out.append(w)
+        i += 1
+    msg = ' '.join(out) or command
+    return msg + (f' (machine {machine})' if machine else '')
+
+
 def main(argv=None):
     args = build_parser().parse_args(argv)
     # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
@@ -4728,7 +4754,15 @@ def main(argv=None):
         if ctx.os_info.forced and command != 'plugin':
             ctx.check_os()  # a forced OS block must exist before any command runs on it — except the
                             # plugin commands, which may be what brings that block (`plugin add`)
-        return _COMMANDS[command](ctx, args)
+        if command == 'tui':
+            return _COMMANDS[command](ctx, args)       # the TUI commits per action (tui/menu.py)
+        from . import primarygit
+        snap = primarygit.snapshot(ctx)                # commit what this command edits in the primary
+        try:
+            return _COMMANDS[command](ctx, args)
+        finally:
+            for note in primarygit.commit(ctx, snap, _command_words(argv, command)):
+                print(f'configsys: {note}')
     except ConfigsysError as e:
         print(f'configsys: {e}', file=sys.stderr)
         return 1

@@ -1283,8 +1283,8 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     ctx.invalidate()
     verb, at = ('re-pinned' if existing else 'added'), (f' @{ref}' if ref else '')
     if to_primary:
-        msg = (f'{verb} {source}{at} in the primary plugin ({primary}) — commit + push + re-tag '
-               f'{primary} and bump its ref to propagate (works locally now)')
+        msg = (f'{verb} {source}{at} in your primary plugin ({primary}) — push {primary} to share '
+               f'it with your other machines')
     else:
         msg = f'{verb} {source}{at}' + (' (this machine only)' if primary else '')
     return True, lead + msg + pin_msg, results

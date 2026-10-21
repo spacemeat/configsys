@@ -497,6 +497,16 @@ You *can* pin a primary to a tag deliberately; it then stays at that tag (`updat
 it to the newest one), and sync still never discards your edits. See `docs/todo/primary-push-plan.md`
 for publishing a primary.
 
+**configsys commits its own edits.** Whatever configsys writes into your primary — a pick, a uniform
+setting, a captured dotfile, your own glue, a plugin added to its manifest — is committed right away
+on its branch, locally, with a message saying what was done: the command as you typed it (`picks add
+btop`), or the TUI action (`profiles: toggle tracking: highlighted — tracking btop`). Nothing is
+pushed; push it to share it with your other machines. Edits you make by hand are never swept in: a
+file you had already changed is left uncommitted for you (configsys says so), and other files you're
+editing are untouched. A primary pinned to a tag or commit isn't committed to, and with no git
+identity set, commits are signed `<user>@<host>` until you set one (configsys says so once).
+Nothing is committed under `--pretend`.
+
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:
 
