@@ -2196,6 +2196,8 @@ def write_location_cache(ctx, lines=None):
     if lines is None:
         lines = _location_lines(ctx)
     try:
+        if ctx.runner.pretend:                           # pretend probes read empty: never cache that
+            return
         p = ctx.paths.glue_locations_file
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(('\n'.join(lines) + '\n') if lines else '', encoding='utf-8')
@@ -2784,8 +2786,8 @@ def _plugin_init_create(ctx, args, decls):
     print(f'  glue        {gmoved_est} user snippet/override(s) moved from {ctx.paths.user_glue_dir}')
     print(f'  config      {", ".join(sections) or "(none)"} copied from configsys.hu')
     print(f'  transitive  {len(decls)} plugin(s) carried into the manifest')
-    if args.dry_run:
-        print('\n(dry run — nothing written)')
+    if args.dry_run or ctx.runner.pretend:
+        print('\n(' + ('dry run' if args.dry_run else '--pretend') + ' — nothing written)')
         return 0
 
     plugins.scaffold_primary(plug, name, decls, sections)     # decls = the (non-primary) others
@@ -2840,8 +2842,8 @@ def _plugin_init_merge(ctx, args, prim):
     print(f'  glue        {gmoved_est} user snippet/override(s) to move')
     if sections:
         print(f'  config      your {", ".join(sections)} could move into the plugin (not auto-merged)')
-    if args.dry_run:
-        print('\n(dry run — nothing written)')
+    if args.dry_run or ctx.runner.pretend:
+        print('\n(' + ('dry run' if args.dry_run else '--pretend') + ' — nothing written)')
         return 0
     if not move and not gmoved_est:
         print('\nnothing to merge.' + ('  (see the config note above.)' if sections else ''))
@@ -3052,14 +3054,8 @@ def cmd_plugin(ctx, args):
         return 0 if (ok or 'nothing to trust' in note) else 1
 
     if sub == 'untrust':
-        target = _find_decl(eff, ctx.paths.plugins_dir, args.name)
-        key = plugins.dir_name(target['source']) if target else args.name
-        pdir = ctx.paths.plugins_dir / key
-        disp = plugins.read_manifest(pdir).get('name', key) if pdir.exists() else key
-        if plugins.remove_trust(ctx.paths.plugin_trust_file, key):
-            print(f'configsys: untrusted {disp}')
-            return 0
-        print(f'configsys: {disp} was not trusted')
+        _ok, note = actions.plugin_untrust(ctx, args.name)
+        print(f'configsys: {note}')
         return 0
 
     if sub in ('lock', 'unlock'):

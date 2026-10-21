@@ -1465,7 +1465,8 @@ def _git_transport(runner, dest, source, ref):
         runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False, env=genv)   # --force: re-pointed tags; non-fatal (offline -> checkout from local refs)
         _set_push_remote(runner, dest, source, only_if_unset=True)   # keep ssh push url, don't clobber a manual one
         return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
-    dest.parent.mkdir(parents=True, exist_ok=True)
+    if not getattr(runner, 'pretend', False):         # a dry run creates nothing
+        dest.parent.mkdir(parents=True, exist_ok=True)
     r = runner.run(f'git clone --quiet -- {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
     if r is not None and not r.ok:
         return 'failed'
@@ -1570,6 +1571,8 @@ def review_diff(runner, review_dir, decl, base_ref, target_ref):
         return [], 'no upstream ref to compare against'
     if _transport_for(decl['source']) is not _git_transport:
         return [], 'not a git source — nothing to review before syncing'
+    if getattr(runner, 'pretend', False):
+        return [], f'[pretend] would fetch {target_ref} into the review cache'
     repo = Path(review_dir) / (dir_name(decl['source']) + '.git')
     genv = _noninteractive_git_env()
     rq, uq = shlex.quote(str(repo)), shlex.quote(clone_url(decl['source']))

@@ -51,7 +51,7 @@ class attribute `targets_version = False` (tarball, appImage, font, native-pkg-f
 rpm-ostree, gcc/clang alternatives, gcc-toolset, glue, dotfiles, service, group —
 `actions.targets_version`). **`--pretend` is a full dry run**: the runner echoes instead of
 executing (so probes read empty → everything reads missing), and no ledger/receipt/lock, `.cfs`
-marker, `last-failure.hu`, config edit (CLI `app._pretend_edit`; TUI writers in actions.py return
+marker, `last-failure.hu`, plugin trust/lock, plugin dir or review cache, glue-locations cache, config edit (CLI `app._pretend_edit`; TUI writers in actions.py return
 `(False, actions.PRETEND_NOT_SAVED)`), user-config generation or legacy-config move happens, and no
 false "NOT DETECTED"; an uncached download prints a `<latest release>` placeholder
 (`actions.pretend_unresolved_download`). Any new write path must honor `ctx.runner.pretend`.

@@ -27,6 +27,8 @@ def invalidate_location_cache(ctx):
     '''Drop the glue-locations cache after an edit that changes WHERE a component installs (a method
     pin, a pick added/removed) so the next shell startup recomputes it. Lives here (not app.py) and
     is called from inside the shared writers, so neither the CLI nor the TUI can forget it.'''
+    if getattr(getattr(ctx, 'runner', None), 'pretend', False):
+        return                                           # a dry run changed nothing to recompute
     try:
         ctx.paths.glue_locations_file.unlink()
     except (FileNotFoundError, OSError):
@@ -1332,6 +1334,11 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
             return False, (f'could not resolve --latest for {target["source"]} — no version tags '
                            f'and no main/master branch (unreachable or private?)'), []
         latest_note = f' (latest {kind})'
+    pretend = bool(getattr(ctx.runner, 'pretend', False))
+    if pretend:                                          # a dry run: show the sync, edit nothing
+        results = plugin_sync(ctx, [{**target, 'ref': ref or target.get('ref')}])
+        return True, (f'[pretend] would re-pin {target["source"]} @{ref}{latest_note}' if ref
+                      else f'[pretend] would re-sync {target["source"]}'), results
     if ref:
         target['ref'] = ref
         plugins.set_declared(cfg_file, cur)
@@ -1441,6 +1448,8 @@ def plugin_trust(ctx, ident):
     identity = plugins.plugin_identity(pdir)
     if identity is None:
         return False, f'could not read {disp}’s contents'
+    if _pretend(ctx):
+        return False, f'[pretend] would trust {disp} @ {identity.split(":")[-1][:12]} — not saved'
     plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
     ctx.invalidate()
     what = 'its code' if has_code else 'its recipes'
@@ -1461,6 +1470,9 @@ def plugin_trust_all(ctx):
     pending = [r for r in rows if not r['locked'] and r['code_state'] in ('untrusted', 'changed')]
     unsynced = [r for r in rows if r['code_state'] == 'unsynced']
     n, detail = 0, []
+    if pending and _pretend(ctx):
+        return 0, '\n'.join([f'[pretend] would trust {len(pending)} plugin(s) — not saved']
+                             + [f'  {r["name"]}' for r in pending])
     for r in pending:
         ok, _note = plugin_trust(ctx, r['name'])
         if ok:
@@ -1482,10 +1494,17 @@ def plugin_untrust(ctx, ident):
     key = plugins.dir_name(target['source']) if target else ident
     pdir = Path(ctx.paths.plugins_dir) / key
     disp = plugins.read_manifest(pdir).get('name', key) if pdir.exists() else key
-    if plugins.remove_trust(ctx.paths.plugin_trust_file, key):
-        ctx.invalidate()
-        return True, f'untrusted {disp}'
-    return False, f'{disp} was not trusted'
+    if key not in plugins.read_trust(ctx.paths.plugin_trust_file):
+        return False, f'{disp} was not trusted'
+    if _pretend(ctx):
+        return False, f'[pretend] would untrust {disp} — not saved'
+    plugins.remove_trust(ctx.paths.plugin_trust_file, key)
+    ctx.invalidate()
+    return True, f'untrusted {disp}'
+
+
+def _pretend(ctx):
+    return bool(getattr(getattr(ctx, 'runner', None), 'pretend', False))
 
 
 def _locks(ctx):
