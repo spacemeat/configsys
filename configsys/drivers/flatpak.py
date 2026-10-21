@@ -147,7 +147,7 @@ class Flatpak(Driver):
             cols = line.split('\t') if '\t' in line else line.split()
             if cols and cols[0].strip():
                 m[cols[0].strip()] = (cols[1].strip() if len(cols) > 1 else '') or None
-        if fp and m:
+        if fp and m and not getattr(self.runner, 'pretend', False):
             cache[slot] = {'fp': fp, 'apps': m}
             self._write_remote_cache(cache)
         return m

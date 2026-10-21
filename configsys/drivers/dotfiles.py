@@ -420,7 +420,14 @@ class DotFiles(Driver):
         capture_plan. Copies each `copy` target FROM the on-system dst INTO the store, SKIPPING any
         path the manifest excludes (secrets), and writes/refreshes the manifest (auto-suggesting
         secret-shaped excludes on FIRST capture) + `.gitignore`. Never modifies or deletes an
-        on-system file. Returns the list of (name, dst, dest) captured.'''
+        on-system file. Returns the list of (name, dst, dest) captured; under --pretend, nothing is
+        copied and [] comes back after saying what would be.'''
+        if getattr(self.runner, 'pretend', False):
+            for name, dst, _dest, action in self.capture_plan(rc, force):
+                if action == 'copy':
+                    self._echo(f'[pretend] would capture {self.display_path(self._expand(dst))} '
+                               f'into {self._cfs_dir(rc)}')
+            return []
         man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
         first = not man                                    # no manifest yet -> first capture here
         done = []
@@ -467,6 +474,9 @@ class DotFiles(Driver):
         bare layout into `<comp>.cfs/<src>` and re-pointing the live symlink. A no-op for specs with
         no user-captured content (templates / uncaptured). Returns [(name, new_path)] relocated.'''
         target = Path(target)
+        if getattr(self.runner, 'pretend', False):
+            self._echo(f'[pretend] would move {rc.comp}\'s captured config to {target}')
+            return []
         target_cfs = target / f'{rc.comp}{CFS_SUFFIX}'
         prev = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)   # keep any exclude: lists
         moved, specs_map = [], {}

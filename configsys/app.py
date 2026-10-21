@@ -1555,7 +1555,8 @@ def cmd_refresh(ctx, args):
         print('\nManual version pins behind upstream (bump the pin in routes.hu / the plugin):')
         for comp in sorted(stale):
             print(f'  {comp}: pinned {stale[comp][0]}  ->  {stale[comp][1]} available')
-    refreshstate.record_stale_pins(ctx.paths, stale)
+    if not ctx.runner.pretend:                    # a dry run checked nothing: keep the last stamp
+        refreshstate.record_stale_pins(ctx.paths, stale)
 
     # refresh the native package index too — the SOURCE for `via: native` components, so their
     # get_latest / installs reflect the current candidates (apt in particular NEVER auto-updates
@@ -1613,7 +1614,7 @@ def cmd_refresh(ctx, args):
         else:
             print(f'Skipped — {pm} DB left unchanged.')
             ok = False                                 # nothing refreshed -> don't stamp
-    if ok:
+    if ok and not ctx.runner.pretend:
         refreshstate.record(ctx.paths)                # stamp only a successful index refresh
     if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():
         print_reboot_advisory(ctx)                    # a refresh can reveal a pending reboot too
@@ -3134,6 +3135,9 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
     import urllib.parse
     from .reportgen import REPORTS_REPO
 
+    if getattr(ctx.runner, 'pretend', False):          # a dry run files nothing and saves nothing
+        how = '`gh issue create`' if shutil.which('gh') else 'a prefilled new-issue link'
+        return 0, [f'configsys: [pretend] would file "{title}" at {REPORTS_REPO} via {how} — not sent']
     lines = []
     if shutil.which('gh'):
         import tempfile

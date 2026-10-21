@@ -2203,7 +2203,8 @@ class _InspectWorker:
         for i, p in enumerate(started):
             nxt = self._t[started[i + 1]] if i + 1 < len(started) else end
             measured[p] = nxt - self._t[p]
-        startuptiming.update(self.ctx.paths, measured)
+        if not getattr(self.ctx.runner, 'pretend', False):   # a dry run's empty probes would skew the pacing
+            startuptiming.update(self.ctx.paths, measured)
 
     def phase_label(self):
         '''What the worker is doing right now — so the splash label tracks the phase, not a fixed

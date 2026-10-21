@@ -234,7 +234,8 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             n_fatal += 1
             continue
         on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
-        rc_snap = shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op)
+        rc_snap = (None if pretend else      # nothing runs in a dry run, so nothing to guard or revert
+                   shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op))
         res = None
         try:
             try:

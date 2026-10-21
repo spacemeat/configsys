@@ -426,7 +426,7 @@ your last full `pacman -Syu`, and configsys says so under the list and on the `!
 
 Global flags (they go before the command): `--pretend` (dry run — prints the commands configsys
 would run, including the queries that read install state, so the plan can list things you already
-have; makes no changes and no network calls, and saves no config edits, locks, plugin trust, install records or
+have; makes no changes and no network calls, files no reports, and saves no config edits, locks, plugin trust, install records or
 starter config; a download whose version isn't cached yet shows as `<latest release>` — `configsys
 refresh` caches versions), `--os <block>[:<version>]`, `--home <dir>` and `--config <file>` (run as if on
 another OS block — `--os alpine:3.24` names the release too, since version conditions read false without

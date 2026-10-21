@@ -321,6 +321,8 @@ class Glue(Driver):
         stem = name[:-(len(ext) + 1)] if name.endswith(f'.{ext}') else name
         path = self._user_d(dest, shell) / f'{stem}.{ext}'
         created = not path.exists()
+        if created and getattr(self.runner, 'pretend', False):   # a dry run creates nothing
+            return path, False
         if created:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(f'# {stem} — your own {shell} glue. configsys links this into conf.d but\n'
@@ -347,6 +349,8 @@ class Glue(Driver):
         (shellguard.activate). Never clobbers: an existing snippet that already contains `body` is
         left as is; otherwise `body` is APPENDED to it, so a user's edits survive a re-activation.
         Returns (snippet_path, conf.d_link), or (None, None) for an unknown shell / no store.'''
+        if getattr(self.runner, 'pretend', False):
+            return None, None
         path, created = self.new_user_snippet(name, shell, local=local)
         if path is None:
             return None, None
@@ -435,7 +439,7 @@ class Glue(Driver):
         path. Deploy is the caller's `install(rc)` (which resolves the override via the search path).
         Returns [(dest_path, shell)]; empty if no store or no shipped variant.'''
         dest = self._dest_glue_root(local=local)
-        if dest is None:
+        if dest is None or getattr(self.runner, 'pretend', False):
             return []
         out = []
         for name, src, _dst in self._specs(rc):

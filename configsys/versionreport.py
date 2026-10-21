@@ -184,7 +184,8 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
             installed=_safe(lambda u, d=drv: probes.version(d, u), rc) if drv is not None else None,
             is_default=(b is default_binding), is_pinned=(pin == b.via),
             note=note))
-    cache.save(ctx.paths)
+    if not getattr(ctx.runner, 'pretend', False):      # pretend probes read empty: never cache that
+        cache.save(ctx.paths)
 
     tip = _max_version([m.latest for m in methods])
     for m in methods:

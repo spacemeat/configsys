@@ -1,5 +1,7 @@
 '''End-to-end-ish tests for the CLI entry, all in --pretend (no real mutation).'''
 
+import pytest
+
 from configsys.app import main, build_parser, Context
 
 
@@ -320,9 +322,19 @@ def test_report_print_shows_scrubbed_body(tmp_path, capsys):
     assert 'ghp_ABCDEF' not in out                       # token scrubbed before display
 
 
-def test_send_report_short_body_prefills_url(tmp_path, capsys):
-    from configsys.app import _send_report
+def _filing_ctx(tmp_path, monkeypatch):
+    '''A ctx that really files (not --pretend), with `gh` hidden so the no-gh link path runs and the
+    suite never reaches GitHub — even on a machine where gh is installed and logged in.'''
+    import shutil
+    monkeypatch.setattr(shutil, 'which', lambda n, *a, _w=shutil.which, **k: None if n == 'gh' else _w(n, *a, **k))
     ctx = _ctx(tmp_path)
+    ctx.runner.pretend = False
+    return ctx
+
+
+def test_send_report_short_body_prefills_url(tmp_path, capsys, monkeypatch):
+    from configsys.app import _send_report
+    ctx = _filing_ctx(tmp_path, monkeypatch)
     rc = _send_report(ctx, '[report] git on pop', 'a short body line')
     assert rc == 0
     out = capsys.readouterr().out
@@ -330,9 +342,9 @@ def test_send_report_short_body_prefills_url(tmp_path, capsys):
     assert 'a+short+body+line' in out                        # url-encoded body rides along
 
 
-def test_send_report_long_body_falls_back_to_paste(tmp_path, capsys):
+def test_send_report_long_body_falls_back_to_paste(tmp_path, capsys, monkeypatch):
     from configsys.app import _send_report, _URL_PREFILL_LIMIT
-    ctx = _ctx(tmp_path)
+    ctx = _filing_ctx(tmp_path, monkeypatch)
     rc = _send_report(ctx, '[report] git on pop', 'x' * (_URL_PREFILL_LIMIT + 500))
     assert rc == 0
     out = capsys.readouterr().out
@@ -567,16 +579,25 @@ def test_request_os_print_files_nothing(tmp_path, capsys):
 
 
 def test_file_issue_returns_display_lines(tmp_path, monkeypatch):
-    # force the no-gh path so the test never touches the network / files a real issue (_file_issue
-    # does a local `import shutil` -> patching the shutil module's `which` reaches it)
-    import shutil
-    monkeypatch.setattr(shutil, 'which', lambda _n: None)
+    # the no-gh path, so the test never touches the network / files a real issue
     import configsys.app as app
-    ctx = _ctx(tmp_path)
+    ctx = _filing_ctx(tmp_path, monkeypatch)
     rc, lines = app._file_issue(ctx, '[report] git on pop', 'a short body line')
     assert rc == 0
     joined = '\n'.join(lines)
     assert 'issues/new?' in joined and 'a+short+body+line' in joined      # prefilled URL, body encoded
+
+
+def test_file_issue_under_pretend_files_and_saves_nothing(tmp_path, monkeypatch):
+    import shutil
+    import subprocess
+    import configsys.app as app
+    monkeypatch.setattr(shutil, 'which', lambda n, *a, **k: '/usr/bin/gh')
+    monkeypatch.setattr(subprocess, 'run', lambda *a, **k: pytest.fail('nothing may run under --pretend'))
+    ctx = _ctx(tmp_path)
+    rc, lines = app._file_issue(ctx, '[report] git on pop', 'body')
+    assert rc == 0 and 'would file' in lines[0] and 'not sent' in lines[0]
+    assert not (ctx.paths.state_dir / 'last-report.md').exists()
 
 
 def test_pretend_inspect_writes_no_user_config(tmp_path, capsys):
