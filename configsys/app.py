@@ -442,8 +442,7 @@ class Context:
             return
         from . import actions
         _ok, msg, results = actions.plugin_bless(self, ans)
-        for name, action in results:
-            print(f'  {action:8} {name}')
+        _print_sync(self, results)
         print(f'configsys: {msg}')
 
     def load_pipeline(self, reuse=None, dirty=None, progress=None, detect_progress=None,
@@ -2806,7 +2805,8 @@ def _plugin_init_create(ctx, args, decls):
         f'to a remote and `configsys plugin set-source {name} github:you/{name}` to share.\n',
         encoding='utf-8')
     _git_init_commit(ctx, plug, 'initial personal config (configsys plugin init)')
-    plugins.set_declared(ctx.paths.user_config_file, [{'source': str(plug), 'primary': True}])
+    plugins.set_declared(ctx.paths.user_config_file,      # follows its branch (never tagged)
+                         [{'source': str(plug), 'ref': 'main', 'primary': True}])
     # the copied sections now live in the plugin (primary layer) — strip the redundant originals
     # from configsys.hu so it collapses toward the one-line bootstrap the primary model is for.
     stripped = plugins.remove_sections(ctx.paths.user_config_file, list(sections)) if sections else []
@@ -2946,6 +2946,20 @@ def cmd_plugin_diff(ctx, args, eff):
     return 0 if files or not note or 'identical' in note or 'up to date' in note else 1
 
 
+def _print_sync(ctx, results):
+    '''Print plugin sync outcomes, one per line, then a plain sentence for any that need one
+    (local changes kept, diverged from the remote, commits not pushed — plugins.sync_note).'''
+    from . import plugins
+    notes = []
+    for name, action in results:
+        print(f'  {action:8} {name}')
+        note = plugins.sync_note(name, action, ctx.paths.plugins_dir)
+        if note:
+            notes.append(note)
+    for note in notes:
+        print(f'configsys: {note}')
+
+
 def cmd_plugin(ctx, args):
     from . import actions, plugins
     decls = plugins.declared(ctx.paths.user_config_file)   # top-config decls (for edits)
@@ -2958,8 +2972,7 @@ def cmd_plugin(ctx, args):
             print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
         before = active_snapshot(ctx.config)
-        for name, action in actions.plugin_sync(ctx, decls):
-            print(f'  {action:8} {name}')
+        _print_sync(ctx, actions.plugin_sync(ctx, decls))
         print_sync_delta(before, ctx.config)           # how the active set changed across the sync
         return 0
 
@@ -2973,8 +2986,7 @@ def cmd_plugin(ctx, args):
         if args.source.lower() == 'none':
             return cmd_plugin(ctx, argparse.Namespace(plugin_command='unbless'))
         ok, msg, results = actions.plugin_bless(ctx, args.source)
-        for name, action in results:
-            print(f'  {action:8} {name}')
+        _print_sync(ctx, results)
         print(f'configsys: {msg}')
         return 0 if ok else 1
 
@@ -2988,8 +3000,7 @@ def cmd_plugin(ctx, args):
                                               local=getattr(args, 'local', False),
                                               pin=getattr(args, 'pin', False),
                                               replace=getattr(args, 'replace', False))
-        for name, action in results:
-            print(f'  {action:8} {name}')
+        _print_sync(ctx, results)
         if not ok:
             print(f'configsys: {msg}')
             return 1
@@ -3035,8 +3046,7 @@ def cmd_plugin(ctx, args):
         if not ok:
             print(f'configsys: {msg}')
             return 1
-        for name, action in results:
-            print(f'  {action:8} {name}')
+        _print_sync(ctx, results)
         print(f'configsys: {msg}')
         print_sync_delta(before, ctx.config)
         return 0

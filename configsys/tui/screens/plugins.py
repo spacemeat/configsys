@@ -62,6 +62,16 @@ def _nav_str():
             'v ref · t trust · T trust-all · L lock · q ')
 
 
+def _sync_note(ctx, results):
+    '''The first sync outcome that needs explaining (kept / diverged / ahead), for the status line.'''
+    from ... import plugins
+    for name, action in results or ():
+        note = plugins.sync_note(name, action, ctx.paths.plugins_dir)
+        if note:
+            return note
+    return None
+
+
 class PluginsScreen(Screen):
     id = 'plugins'
 
@@ -285,13 +295,14 @@ class PluginsScreen(Screen):
                 pl.reload()
                 dirty = True
                 note = (f'{row["name"]} is locked — not synced (L unlocks)'
-                        if res and res[0][1] == 'locked' else f'synced {row["name"]}')
+                        if res and res[0][1] == 'locked' else
+                        _sync_note(ctx, res) or f'synced {row["name"]}')
             elif pact == 'sync-all':
                 with suspended(stdscr):
-                    actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
+                    res = actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                 pl.reload()
                 dirty = True
-                note = 'synced all'
+                note = _sync_note(ctx, res) or 'synced all'
             elif pact == 'bless' and row:
                 with suspended(stdscr):
                     _ok, msg, _r = actions.plugin_bless(ctx, row['source'])

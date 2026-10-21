@@ -1,7 +1,7 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: PLAN** — not started. Written 2026-10-21 from a design discussion; phase 0 fixes hazards
-> that exist today.
+> **Status: IN PROGRESS** — phase 0 done (2026-10-21); phases 1–4 not started. Tag-pinned primaries
+> stay supported (decided 2026-10-21).
 
 ## Why
 
@@ -40,7 +40,16 @@ Consequences, all deliberate:
   are someone's releases, and pinning them to tags is right. Bumping one is just a primary edit
   (its ref changes in the primary's manifest), so it gets committed and pushed like any other.
 
-## Phase 0 — make sync safe for a primary (bug fixes, needed regardless)
+## Phase 0 — make sync safe for a primary (bug fixes, needed regardless) — DONE 2026-10-21
+
+Built: `plugins._git_checkout` never forces (a blocked checkout → `kept`), reports `diverged` /
+`ahead` (`_ahead_behind`), won't strand commits on a detached HEAD (`_orphan_commits`), and with
+`follow_default` (sync passes it for a primary) keeps a no-ref primary on its default branch;
+`plugins.sync_note` words each outcome (CLI `_print_sync`, the TUI sync note); `branch_state` /
+`follows_branch` / `default_branch` helpers; `bless` syncs as a primary and records the branch,
+`init` records `ref: main`; `actions.plugin_update` keeps a branch-following primary on its branch
+under `--latest`. Tests: test/test_primary_sync_safety.py. Note: the fix applies to every plugin,
+not only the primary — no sync forces a checkout any more.
 
 1. **Never discard uncommitted primary edits.**
    - **Today:** a primary with a tag ref or no ref is checked out with

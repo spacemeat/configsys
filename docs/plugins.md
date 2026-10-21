@@ -129,6 +129,11 @@ fast-forwards to the remote's tip on each sync; no `ref:` follows the remote's d
 For a plugin that ships code, pin a tag or commit — trust re-arms on any content change anyway
 (§6).
 
+**Sync never throws away your work.** A sync that would overwrite edits you haven't committed in a
+plugin's directory leaves the plugin as it is and reports it `kept`, with how to commit or discard
+them. A branch that can't fast-forward because it has commits of its own *and* new ones on the
+remote is reported `diverged` (not updated); one with commits not pushed yet is reported `ahead`.
+
 **Content pin.** An optional `sha256:` on an entry locks the plugin to an exact content hash. If
 the synced tree doesn't match (a moved tag, a compromised mirror, tampering), the plugin is
 **quarantined**: neither its data nor its code loads, and `plugin list` shows `CHECKSUM MISMATCH`.
@@ -150,7 +155,7 @@ so you can push a plugin you author without a token.
 | `configsys plugin list` | Each plugin: source, ref, `[primary]` / `[via primary]`, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
 | `configsys plugin diff <name> [--to REF]` | The review diff (§6a): what taking the plugin would change, before you sync, update or trust it. `--to` compares against that ref instead of the newest version tag. |
 | `configsys plugin lock <name>` / `unlock <name>` | Hold a plugin where it is on this machine (§6a): no sync, update, bless or trust until you unlock it. |
-| `configsys plugin update [name] [--ref R \| --latest] [--pin]` | Re-pin and re-sync one plugin. `--latest` pins the newest stable version tag on the remote (`v1.2.3` style; pre-release tags ignored), else `main`/`master`. Omit the name (or pass `--all`) to update every plugin; locally authored ones are skipped, and it exits 1 if any fail. |
+| `configsys plugin update [name] [--ref R \| --latest] [--pin]` | Re-pin and re-sync one plugin. `--latest` pins the newest stable version tag on the remote (`v1.2.3` style; pre-release tags ignored), else `main`/`master` — except on a primary that follows a branch, which stays on it (§8). Omit the name (or pass `--all`) to update every plugin; locally authored ones are skipped, and it exits 1 if any fail. |
 | `configsys plugin remove <name>` | Undeclare the plugin (wherever it's declared) and delete its synced copy. |
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
 | `configsys plugin bless <source>` / `unbless` | Make a plugin your primary (§8), or clear that. `bless none` also clears. |
@@ -482,6 +487,15 @@ in another plugin's manifest is never primary.
 
 On a fresh machine, a one-line top config that declares your primary is enough: `plugin sync`
 fetches it and every plugin its manifest lists.
+
+**It follows a branch.** A primary is meant to follow a branch — normally `main` — rather than be
+version-tagged: it changes too often for tagging to be worth it, and your other machines pick up
+whatever you push to the branch on their next `plugin sync`. `bless` and `init` record the branch
+as its `ref:`; a primary with no `ref:` follows its remote's default branch, checked out on the
+branch (never detached), and `plugin update --latest` / `U` re-sync it without moving it to a tag.
+You *can* pin a primary to a tag deliberately; it then stays at that tag (`update --latest` moves
+it to the newest one), and sync still never discards your edits. See `docs/todo/primary-push-plan.md`
+for publishing a primary.
 
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:

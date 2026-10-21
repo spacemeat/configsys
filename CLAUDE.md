@@ -231,7 +231,7 @@ may add components, profiles, drivers AND os blocks (derivative distros). Loadin
 `requires-abi` vs `ABI_VERSION`/`ABI_SUPPORTED`) / sha256-mismatched (quarantined) / malformed
 plugins are skipped, never fatal. Only the top config may grant `primary: true` (`configsys plugin
 bless`): the **primary plugin** is the user's portable personal layer — it sorts last among plugins
-and may set machine settings; `plugin add` writes to it by default. **Code plugins** (a manifest
+and may set machine settings; `plugin add` writes to it by default. A primary FOLLOWS A BRANCH (normally `main`, never version-tagged by default; `bless`/`init` record it, a no-ref primary stays attached to its default branch, `update --latest` won't re-pin it to a tag; tag-pinned primaries stay supported) — publishing it is docs/todo/primary-push-plan.md. Sync never forces a checkout: blocked by local edits → `kept`, a branch with local+remote commits → `diverged`, unpushed → `ahead` (`plugins.sync_note`). **Code plugins** (a manifest
 `code:` module exporting `DRIVERS = [Driver subclasses]` / `SPLASHES`, plus
 `register_version_source` / `register_transport`) load only when trusted at their exact content
 hash (`configsys plugin trust`; `plugin_identity`, `plugin-trust.hu`); command-carrying DATA

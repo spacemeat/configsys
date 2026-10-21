@@ -1320,33 +1320,130 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     return loaded, skipped
 
 
-def _git_checkout(runner, dq, ref):
-    '''Put the checkout at `ref` as it is on the remote now, so a re-sync advances.
+def _git_checkout(runner, dq, ref, *, follow_default=False):
+    '''Put the checkout at `ref` as it is on the remote now, so a re-sync advances. Returns an outcome:
+    'ok' | 'failed' | 'kept' (local edits stood in the way — left exactly as they were) |
+    'diverged' (a branch with commits both here and on the remote — not updated) | 'ahead' (a branch
+    with local commits the remote doesn't have yet; otherwise up to date).
 
     A BRANCH ref stays ON its local branch (ATTACHED HEAD) and fast-forwards to `origin/<ref>`. This
-    keeps a plugin you author in place (your primary) on a real, pushable branch — so `plugin add` /
-    `plugin init` edits + commits land on the branch, never on a detached HEAD whose commits git will
-    eventually gc — and, being ff-only with no `--force`, a re-sync neither discards commits the
-    branch is ahead by nor clobbers an in-progress uncommitted edit (it simply no-ops when it can't
-    fast-forward). A TAG or commit ref DETACHES (it is immutable — you cannot be "on" it) with
-    `--force` to overwrite drift; NO ref -> the remote's default branch (`origin/HEAD`), detached.
-    Returns True unless the checkout itself failed (a pretended/absent run counts as ok).'''
+    keeps a plugin you author in place (your primary) on a real, pushable branch — so edits + commits
+    land on the branch, never on a detached HEAD whose commits git will eventually gc — and, being
+    ff-only, a re-sync never discards commits. A TAG or commit ref DETACHES (it is immutable — you
+    cannot be "on" it); NO ref -> the remote's default branch (`origin/HEAD`), detached — or, with
+    `follow_default` (a primary plugin), that branch ATTACHED, like a branch ref. Nothing is ever
+    forced: a checkout that would overwrite uncommitted edits (or untracked files) is refused by git,
+    reported 'kept', and the edits survive. A pretended/absent run counts as 'ok'.'''
     def _has(rev):
         r = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote(rev)}', capture=True)
         return r is not None and r.ok and not r.pretended
+
+    def _blocked(res):
+        out = f'{getattr(res, "stdout", "") or ""}{getattr(res, "stderr", "") or ""}'
+        return 'would be overwritten' in out or 'Please commit your changes' in out
+
+    if not ref and follow_default and _has('origin/HEAD'):
+        head = runner.run(f'git -C {dq} rev-parse --abbrev-ref origin/HEAD', capture=True)
+        branch = (head.stdout or '').strip().split('/', 1)[-1] if head is not None and head.ok else ''
+        ref = branch if branch and branch != 'HEAD' else None
     if ref and _has(f'origin/{ref}'):            # a BRANCH: stay attached, fast-forward
         rq = shlex.quote(ref)
+        if _orphan_commits(runner, dq):
+            return 'kept'                        # commits on a detached HEAD no ref holds: don't strand them
         co = runner.run(f'git -C {dq} checkout --quiet {rq}', capture=True)   # DWIM creates+tracks
-        if co is not None and not co.ok:         # older git / edge: create it tracking origin/<ref>
+        if co is not None and not co.ok and not _blocked(co):   # older git / edge: create it tracking
             co = runner.run(f'git -C {dq} checkout --quiet -B {rq} --track origin/{rq}', capture=True)
+        if co is not None and not co.ok:
+            return 'kept' if _blocked(co) else 'failed'
         runner.run(f'git -C {dq} merge --ff-only --quiet origin/{rq}', capture=True)   # no-op if ahead
-        return co is None or co.ok
+        ahead, behind = _ahead_behind(runner, dq, f'origin/{ref}')
+        if behind:
+            return 'diverged' if ahead else 'kept'   # couldn't fast-forward: commits, or edits, here
+        return 'ahead' if ahead else 'ok'
     target = ref if ref else ('origin/HEAD' if _has('origin/HEAD') else None)
     if target is None:
-        return True                              # no ref and no known default branch: leave as-is
-    co = runner.run(f'git -C {dq} checkout --quiet --force --detach {shlex.quote(target)}',
-                    capture=False)
-    return co is None or co.ok
+        return 'ok'                              # no ref and no known default branch: leave as-is
+    co = runner.run(f'git -C {dq} checkout --quiet --detach {shlex.quote(target)}', capture=True)
+    if co is None or co.ok:
+        return 'ok'
+    return 'kept' if _blocked(co) else 'failed'
+
+
+def _orphan_commits(runner, dq):
+    '''True when HEAD is detached on a commit no branch or tag contains — switching away would strand
+    it (recoverable only through the reflog).'''
+    sym = runner.run(f'git -C {dq} symbolic-ref -q HEAD', capture=True)
+    if sym is None or sym.ok or getattr(sym, 'pretended', False):
+        return False                             # on a branch (or not a real run)
+    refs = runner.run(f'git -C {dq} for-each-ref --count=1 --contains HEAD', capture=True)
+    return refs is not None and refs.ok and not (refs.stdout or '').strip()
+
+
+def _ahead_behind(runner, dq, upstream):
+    '''(commits on HEAD not on `upstream`, commits on `upstream` not on HEAD); (0, 0) if unknown.'''
+    r = runner.run(f'git -C {dq} rev-list --left-right --count HEAD...{shlex.quote(upstream)}',
+                   capture=True)
+    try:
+        a, b = (r.stdout or '').split()
+        return int(a), int(b)
+    except (AttributeError, ValueError):
+        return 0, 0
+
+
+def branch_state(runner, dest, ref=None):
+    '''Where a branch-following checkout stands against its remote: (branch, ahead, behind, dirty),
+    or None when `dest` isn't on a branch tracking `origin/<branch>` (a tag/commit pin, unsynced).
+    Read-only — compares with whatever was last fetched.'''
+    dq = shlex.quote(str(dest))
+    cur = runner.run(f'git -C {dq} symbolic-ref --short -q HEAD', capture=True)
+    branch = (cur.stdout or '').strip() if cur is not None and cur.ok else ''
+    if not branch or (ref and ref != branch):
+        return None
+    up = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote("origin/" + branch)}',
+                    capture=True)
+    if up is None or not up.ok or getattr(up, 'pretended', False):
+        return None
+    ahead, behind = _ahead_behind(runner, dq, f'origin/{branch}')
+    st = runner.run(f'git -C {dq} status --porcelain', capture=True)
+    dirty = bool((st.stdout or '').strip()) if st is not None and st.ok else False
+    return branch, ahead, behind, dirty
+
+
+def default_branch(runner, dest):
+    '''The synced clone's remote default branch (`origin/HEAD` -> `main`), or None.'''
+    r = runner.run(f'git -C {shlex.quote(str(dest))} rev-parse --abbrev-ref origin/HEAD', capture=True)
+    if r is None or not r.ok or getattr(r, 'pretended', False):
+        return None
+    branch = (r.stdout or '').strip().split('/', 1)[-1]
+    return branch if branch and branch != 'HEAD' else None
+
+
+def follows_branch(runner, dest, ref):
+    '''True when a plugin declared at `ref` follows a branch (no ref = its default branch), False for
+    a tag or commit pin. Read from the synced clone's remote-tracking refs.'''
+    if not ref:
+        return True
+    r = runner.run(f'git -C {shlex.quote(str(dest))} rev-parse --verify --quiet '
+                   f'{shlex.quote("refs/remotes/origin/" + ref)}', capture=True)
+    return r is not None and r.ok and not getattr(r, 'pretended', False)
+
+
+_SYNC_OUTCOME = {'ok': None, 'failed': 'failed', 'kept': 'kept', 'diverged': 'diverged', 'ahead': 'ahead'}
+
+
+def sync_note(name, action, plugins_dir):
+    '''One plain sentence for a sync outcome that needs explaining (kept / diverged / ahead), else None.'''
+    d = Path(plugins_dir) / name
+    if action == 'kept':
+        return (f'{name}: not updated — it has local changes the update would overwrite; they were '
+                f'left as they are. Commit them (in {d}), or discard them with '
+                f'`git -C {d} checkout -- .`, then sync again.')
+    if action == 'diverged':
+        return (f'{name}: not updated — it has commits here AND new ones on its remote (another '
+                f'machine pushed). Combine them in {d} (`git pull --rebase`, then push).')
+    if action == 'ahead':
+        return f'{name}: has local commits not pushed yet (`git -C {d} push` shares them).'
+    return None
 
 
 def ensure_branch(runner, dest):
@@ -1451,12 +1548,14 @@ def _noninteractive_git_env():
     return {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'}
 
 
-def _git_transport(runner, dest, source, ref):
+def _git_transport(runner, dest, source, ref, *, follow_default=False):
     '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
     the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
     checkout is reported as 'failed', not silently 'updated'. A locally-authored plugin (source ==
     its own dir) is 'local' — untouched. Fetches run NON-INTERACTIVELY (never prompt for
-    credentials — a bad/private source fails fast). Returns 'local'/'cloned'/'updated'/'failed'.'''
+    credentials — a bad/private source fails fast). `follow_default` (a primary): no ref = the
+    default branch, attached. Returns 'local'/'cloned'/'updated'/'failed', or (see _git_checkout)
+    'kept'/'diverged'/'ahead'.'''
     if is_local_authored(source, dest):
         return 'local'
     dq = shlex.quote(str(dest))
@@ -1464,14 +1563,14 @@ def _git_transport(runner, dest, source, ref):
     if dest.exists():
         runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False, env=genv)   # --force: re-pointed tags; non-fatal (offline -> checkout from local refs)
         _set_push_remote(runner, dest, source, only_if_unset=True)   # keep ssh push url, don't clobber a manual one
-        return 'updated' if _git_checkout(runner, dq, ref) else 'failed'
+        return _SYNC_OUTCOME[_git_checkout(runner, dq, ref, follow_default=follow_default)] or 'updated'
     if not getattr(runner, 'pretend', False):         # a dry run creates nothing
         dest.parent.mkdir(parents=True, exist_ok=True)
     r = runner.run(f'git clone --quiet -- {shlex.quote(clone_url(source))} {dq}', capture=False, env=genv)
     if r is not None and not r.ok:
         return 'failed'
     _set_push_remote(runner, dest, source)          # push via ssh keys; fetch stays https
-    return 'cloned' if _git_checkout(runner, dq, ref) else 'failed'
+    return _SYNC_OUTCOME[_git_checkout(runner, dq, ref, follow_default=follow_default)] or 'cloned'
 
 
 _SEMVER_TAG = re.compile(r'^v?\d+(?:\.\d+)*$')   # stable only: v1.2.3 / 1.2 — no -rc/-beta suffixes
@@ -1647,8 +1746,10 @@ def sync(runner, plugins_dir, decls, *, locked=()):
             action = 'locked'
         else:
             try:
-                action = _transport_for(d['source'])(runner, plugins_dir / name, d['source'],
-                                                     d.get('ref'))
+                transport = _transport_for(d['source'])
+                kw = ({'follow_default': True} if transport is _git_transport and d.get('primary')
+                      else {})
+                action = transport(runner, plugins_dir / name, d['source'], d.get('ref'), **kw)
             except Exception as e:                   # noqa: BLE001 — isolate a bad transport
                 action = f'failed ({e})'
         results.append((name, action))

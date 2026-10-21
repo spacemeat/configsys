@@ -324,7 +324,7 @@ def test_plugin_init_create_then_merge(tmp_path, monkeypatch):
     assert (plug / 'dotfiles' / 'htop' / 'htoprc').read_text() == 'cfg'   # dotfiles moved in
     assert not (cfgdir / 'dotfiles' / 'htop').exists()          # local store emptied
     decls = plugins.declared(str(cfgdir / 'configsys.hu'))
-    assert decls == [{'source': str(plug), 'ref': None, 'primary': True}]
+    assert decls == [{'source': str(plug), 'ref': 'main', 'primary': True}]   # follows its branch
     cfg = materialize_string((cfgdir / 'configsys.hu').read_text())
     assert 'profiles' not in cfg and 'configs' in cfg          # profiles moved out; configs stays
 

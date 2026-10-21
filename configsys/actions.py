@@ -1327,9 +1327,14 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     if locked:
         return False, locked, []
     latest_note = ''
+    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    if latest and ref:
+        return False, 'pass either --ref or --latest, not both', []
+    if latest and target.get('primary') and plugins.follows_branch(ctx.runner, pdir, target.get('ref')):
+        # a primary follows its branch and is never re-pinned to a version tag: just re-sync it
+        latest = False
+        latest_note = ' (your primary follows its branch)'
     if latest:
-        if ref:
-            return False, 'pass either --ref or --latest, not both', []
         ref, kind = plugins.latest_ref(ctx.runner, target['source'])
         if ref is None:
             return False, (f'could not resolve --latest for {target["source"]} — no version tags '
@@ -1356,7 +1361,7 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     ctx.invalidate()
     where = '' if str(cfg_file) == str(ctx.paths.user_config_file) else f' in {Path(cfg_file).parent.name}'
     msg = (f're-pinned {target["source"]} @{ref}{latest_note}{where}' if ref
-           else f're-synced {target["source"]}')
+           else f're-synced {target["source"]}{latest_note}')
     return True, msg + warn, results
 
 
@@ -1396,12 +1401,16 @@ def plugin_bless(ctx, ident):
     locked = _locked_note(ctx, {'source': source}, 'bless')
     if locked:
         return False, locked, []
-    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
+    results = plugin_sync(ctx, [{'source': source, 'ref': ref, 'primary': True}])   # on its branch
     if not results or 'failed' in results[0][1].lower():
         return False, f"could not find/sync '{ident}' — nothing changed", results
     if existing is None:
         existing = {'source': source, 'ref': ref}
         decls.append(existing)
+    if not existing.get('ref'):                      # a primary follows a branch: record which one
+        branch = plugins.default_branch(ctx.runner, ctx.paths.plugins_dir / plugins.dir_name(source))
+        if branch:
+            existing['ref'] = branch
     for d in decls:
         d.pop('primary', None)                       # exactly one primary
     existing['primary'] = True

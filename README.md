@@ -658,7 +658,7 @@ They clone to `~/.config/configsys/plugins/<name>/`, pin to a ref, and are ABI-g
 incompatible plugin degrades instead of breaking the tool. `add` / `remove` / `update` edit
 your `plugins:` list **in place, preserving your comments**. If you have a primary plugin, `add`
 declares the new plugin there so it travels to your other machines; `--local` keeps it on this
-one. `update --latest` moves a plugin to its newest tag, and `--pin` locks it to the synced
+one. `update --latest` moves a plugin to its newest tag (your primary, which follows its branch, stays on it), and `--pin` locks it to the synced
 content's sha256 (if the content stops matching, the plugin is set aside).
 
 One plugin can be your **primary** — a personal config plugin that may set machine settings and
