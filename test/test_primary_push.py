@@ -1,4 +1,4 @@
-'''Primary-push plan, phase 3 (docs/todo/primary-push-plan.md): `configsys plugin push` commits, combines
+'''Primary-push plan, phase 3 (docs/done/primary-push-plan.md): `configsys plugin push` commits, combines
 with what your other machines pushed (asking per file when both changed the same lines), and pushes to
 the primary's branch — never leaving a half-done rebase, never sweeping in your hand edits unasked —
 plus the `primary-push: ask | auto | auto-on-quit | manual` setting and the TUI's quit prompt and `P` key.'''
@@ -34,6 +34,7 @@ def primary(tmp_path, monkeypatch):
     subprocess.run(['git', 'clone', '-q', str(bare), str(other)], check=True, capture_output=True)
     (other / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ] }\n')
     (other / 'p.hu').write_text(BASE_P)
+    (other / 'notes.txt').write_text(BASE_P)                  # a plain file: git's line merge only
     _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'A'); _git(other, 'push', '-q', 'origin', 'main')
     home = tmp_path / 'home'
     base = ['--home', str(home), '--os', 'pop', '-q']
@@ -71,6 +72,10 @@ class Scripted(primarygit.PushUI):
 
     def resolve(self, name, path, what, i, n):
         self.asked.append(('resolve', path, what))
+        return self.choice
+
+    def resolve_value(self, name, path, words, i, n):
+        self.asked.append(('value', path, words))
         return self.choice
 
     def edit(self, path):
@@ -112,9 +117,10 @@ def test_push_replays_onto_the_other_machines_changes(primary):
 
 
 def _both_change_line_one(base, clone, other):
-    '''This machine and the other both change this-machine's picks; the other also changes desk.'''
-    _other_pushes(other, 'p.hu', BASE_P.replace('[ btop ]', '[ btop  zsh ]').replace('[ jq ]', '[ jq  yq ]'))
-    (clone / 'p.hu').write_text(BASE_P.replace('[ btop ]', '[ btop  fish ]'))
+    '''This machine and the other both change line two of a plain (non-.hu) file; the other also
+    changes line four. (A .hu file would be merged key by key instead — test_humerge.py.)'''
+    _other_pushes(other, 'notes.txt', BASE_P.replace('[ btop ]', '[ btop  zsh ]').replace('[ jq ]', '[ jq  yq ]'))
+    (clone / 'notes.txt').write_text(BASE_P.replace('[ btop ]', '[ btop  fish ]'))
     _git(clone, 'commit', '-qam', 'mine')
 
 
@@ -125,8 +131,8 @@ def test_a_conflict_kept_mine_keeps_the_rest_of_theirs(primary):
     ui = Scripted('mine')
     ok, lines = primarygit.push(_ctx(base), ui)
     assert ok, lines
-    assert ('resolve', 'p.hu', 'both machines changed the same lines') in ui.asked
-    text = _remote_file(bare)
+    assert ('resolve', 'notes.txt', 'both machines changed the same lines') in ui.asked
+    text = _remote_file(bare, 'notes.txt')
     assert 'fish' in text and 'zsh' not in text and 'yq' in text            # overlap: mine; the rest: both
     assert any('settled as you chose' in ln for ln in lines)
     _clean(clone)
@@ -138,7 +144,7 @@ def test_a_conflict_kept_theirs(primary):
     _both_change_line_one(base, clone, other)
     ok, _lines = primarygit.push(_ctx(base), Scripted('theirs'))
     assert ok
-    text = _remote_file(bare)
+    text = _remote_file(bare, 'notes.txt')
     assert 'zsh' in text and 'fish' not in text and 'yq' in text
 
 
@@ -148,7 +154,7 @@ def test_a_conflict_edited_by_hand(primary):
     _both_change_line_one(base, clone, other)
     merged = BASE_P.replace('[ btop ]', '[ btop  fish  zsh ]').replace('[ jq ]', '[ jq  yq ]')
     ok, _lines = primarygit.push(_ctx(base), Scripted('edit', edit_to=merged))
-    assert ok and _remote_file(bare) == merged.rstrip('\n')
+    assert ok and _remote_file(bare, 'notes.txt') == merged.rstrip('\n')
 
 
 @needs_git

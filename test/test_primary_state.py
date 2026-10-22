@@ -1,4 +1,4 @@
-'''Primary-push plan, phase 2 (docs/todo/primary-push-plan.md): where your primary stands against its
+'''Primary-push plan, phase 2 (docs/done/primary-push-plan.md): where your primary stands against its
 remote — ↑N to push, ↓N to sync, ● uncommitted — on its Plugins row, in a Components header chip, and
 in words in `plugin list`.'''
 

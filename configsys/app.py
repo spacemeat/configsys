@@ -3004,6 +3004,12 @@ class _CliPushUI:
                         'your editor  [s] stop: ', 'mtes', 's')
         return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
 
+    def resolve_value(self, name, path, words, i, n):
+        print(f'configsys: {name}: {path} ({i + 1} of {n}) — {words}')
+        ans = self._ask('  [m] keep this machine\'s  [t] keep the other machine\'s  [e] show me the '
+                        'file in your editor  [s] stop: ', 'mtes', 's')
+        return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
+
     def edit(self, path):
         _edit_conflict(path)
 

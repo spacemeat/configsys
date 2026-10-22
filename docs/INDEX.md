@@ -33,7 +33,6 @@ Unfinished plans: not started, in progress, or deferred.
 |---|---|---|---|---|
 | [community-routes-registry.md](todo/community-routes-registry.md) | DEFERRED | 2026-09-23 | — | Design note: crowdsourcing route data safely (catalog → curated repo → federated). *design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).* |
 | [method-broadening-plan.md](todo/method-broadening-plan.md) | IN PROGRESS | 2026-08-27 | — | Offer every working install method (`when:` is validity, not preference). *Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.* |
-| [primary-push-plan.md](todo/primary-push-plan.md) | IN PROGRESS | 2026-10-21 | — | Publishing the primary plugin: it follows a branch (never version-tagged); auto-commit configsys edits, ahead/behind on the Plugins screen, `plugin push` with plain-language conflicts and a `.hu`-aware merge. *Phases 0–3 done (sync never forces, reports kept/diverged/ahead, primary stays on its branch; configsys commits its own edits to the primary; ↑/↓/● on the Plugins row, a header chip, `plugin list` words; `plugin push` / `P` with per-file conflict questions and the `primary-push: ask/auto/manual` setting); phase 4 (`.hu`-aware merge) not started.* |
 | [source-plugin-plan.md](todo/source-plugin-plan.md) | IN PROGRESS | 2026-08-02 | — | configsys-source: additive build-from-source bindings. *pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.* |
 
 ## Done — `docs/done/`
@@ -41,6 +40,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 
 | doc | status | created | finished | summary |
 |---|---|---|---|---|
+| [primary-push-plan.md](done/primary-push-plan.md) | DONE | 2026-10-21 | 2026-10-21 | Publishing the primary plugin: it follows a branch (never version-tagged); configsys commits its own edits; ↑/↓/● marks; `plugin push` / `P` with plain-language conflicts; `primary-push: ask/auto/auto-on-quit/manual`; a `.hu`-aware merge (`humerge`) so most conflicts settle themselves. Lives on in docs/plugins.md §8. |
 | [d2-mvvm-findings.md](done/d2-mvvm-findings.md) | DONE | 2026-09-20 | 2026-09-20 (aef1da9) | Findings log kept during the MVVM rewrite. |
 | [d2-mvvm-plan.md](done/d2-mvvm-plan.md) | DONE | 2026-09-20 | 2026-09-20 (5641778) | TUI rewrite to MVVM screens + a lazy router. |
 | [docs-audit-fixes-2026-10.md](done/docs-audit-fixes-2026-10.md) | DONE | 2026-10-10 | 2026-10-10 | The audit bug batch + grilled decisions (uniform layers, brew routes, glue bands). |

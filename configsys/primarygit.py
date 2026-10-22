@@ -1,5 +1,5 @@
-'''primarygit.py — commit configsys's own edits to your primary plugin, locally (docs/todo/
-primary-push-plan.md, phase 1).
+'''primarygit.py — commit configsys's own edits to your primary plugin, locally (docs/done/
+primary-push-plan.md, phase 1), and publish them (`push`, phases 3–4).
 
 Every CLI command and every TUI action that may write is bracketed: `snapshot()` records which paths
 in the primary's checkout are already dirty, and `commit()` afterwards commits exactly the paths that
@@ -50,8 +50,8 @@ def primary_root(ctx):
     return (root, name) if (root / '.git').exists() else None
 
 
-def _git(ctx, root, args):
-    return ctx.runner.run(f'git -C {shlex.quote(str(root))} {args}', capture=True)
+def _git(ctx, root, args, env=None):
+    return ctx.runner.run(f'git -C {shlex.quote(str(root))} {args}', capture=True, env=env)
 
 
 def _dirty(ctx, root):
@@ -242,6 +242,9 @@ class PushUI:
     def resolve(self, name, path, what, i, n):         # -> 'mine' | 'theirs' | 'edit' | 'stop'
         return 'stop'
 
+    def resolve_value(self, name, path, words, i, n):  # one key both changed -> 'mine' | 'theirs' |
+        return 'stop'                                  #   'edit' (the whole file) | 'stop'
+
     def edit(self, path):                              # open a file with conflict markers in an editor
         pass
 
@@ -414,16 +417,61 @@ def push(ctx, ui=None):
                           f'{"them" if ahead != 1 else "it"} on their next `configsys plugin sync`.']
 
 
+def _merge_driver(ctx, root):
+    '''(git -c options, env) that make `humerge` git's merge driver for `*.hu` for one command —
+    nothing is configured permanently. The attributes file carries your own global one along.'''
+    import os
+    import sys
+    tmp = root / '.git' / 'configsys-merge'
+    tmp.mkdir(exist_ok=True)
+    attrs = tmp / 'attributes'
+    own = _git(ctx, root, 'config --path core.attributesFile')
+    own = Path((own.stdout or '').strip()) if own is not None and own.ok and (own.stdout or '').strip() \
+        else Path(os.environ.get('XDG_CONFIG_HOME') or Path.home() / '.config') / 'git' / 'attributes'
+    try:
+        prior = own.read_text(encoding='utf-8') if own.is_file() else ''
+    except OSError:
+        prior = ''
+    attrs.write_text(prior + ('\n' if prior and not prior.endswith('\n') else '') + '*.hu merge=configsys\n',
+                     encoding='utf-8')
+    notes = tmp / 'notes'
+    notes.write_text('', encoding='utf-8')
+    pkg = str(Path(__file__).resolve().parent.parent)
+    env = dict(os.environ,
+               PYTHONPATH=pkg + (os.pathsep + os.environ['PYTHONPATH'] if os.environ.get('PYTHONPATH') else ''))
+    drv = f'{shlex.quote(sys.executable)} -m configsys.humerge {shlex.quote(str(notes))} %O %A %B %P'
+    opts = (f'-c merge.configsys.name={shlex.quote("configsys .hu merge")} '
+            f'-c merge.configsys.driver={shlex.quote(drv)} '
+            f'-c core.attributesFile={shlex.quote(str(attrs))} ')
+    return opts, env, notes
+
+
+def _driver_notes(notes):
+    try:
+        seen = []
+        for ln in notes.read_text(encoding='utf-8').splitlines():
+            if ln.strip() and ln not in seen:
+                seen.append(ln)
+        notes.write_text('', encoding='utf-8')
+        return seen
+    except OSError:
+        return []
+
+
 def _combine(ctx, ui, name, root, branch, upstream):
-    '''Put this machine's commits on top of the remote's. A clean replay is a rebase; when the replay
-    hits a conflict it is backed out completely, each conflicted file is asked about (`ui.resolve`),
+    '''Put this machine's commits on top of the remote's. A clean replay is a rebase — with `.hu`
+    files merged key by key (`humerge`, so two machines adding picks to their own columns is no
+    conflict). When the replay still hits a conflict it is backed out completely, each conflict is
+    asked about — per key in a `.hu` file (`ui.resolve_value`), per file otherwise (`ui.resolve`) —
     and the two sides are merged with those answers. Returns (ok, [lines]).'''
     ident = _ident(ctx, root, name, [])
-    r = _git(ctx, root, f'{ident}rebase --quiet --autostash {shlex.quote(upstream)}')
+    drv, env, notes = _merge_driver(ctx, root)
+    r = _git(ctx, root, f'{drv}{ident}rebase --quiet --autostash {shlex.quote(upstream)}', env=env)
     if r is not None and r.ok:
-        return True, []
+        return True, [f'{name}: {n}' for n in _driver_notes(notes)]
     conflicted = _unmerged(ctx, root)
     _git(ctx, root, 'rebase --abort')
+    _driver_notes(notes)
     if not conflicted:
         return False, [f'{name}: could not combine with the remote: '
                        f'{((r.stderr or r.stdout or "") if r else "").strip()[:160]}', _intact(name, root, branch)]
@@ -432,13 +480,16 @@ def _combine(ctx, ui, name, root, branch, upstream):
         s = _git(ctx, root, f'stash push --include-untracked --quiet -m {shlex.quote("configsys plugin push")}')
         stashed = s is not None and s.ok
     lines = []
-    m = _git(ctx, root, f'{ident}merge --no-ff --no-commit --quiet {shlex.quote(upstream)}')
+    m = _git(ctx, root, f'{drv}{ident}merge --no-ff --no-commit --quiet {shlex.quote(upstream)}', env=env)
     conflicted = _unmerged(ctx, root) if (m is None or not m.ok) else []
     if m is not None and not m.ok and not conflicted:
         _git(ctx, root, 'merge --abort')
         return False, _unstash(ctx, root, name, stashed) + [_intact(name, root, branch)]
     for i, path in enumerate(conflicted):
-        choice = ui.resolve(name, path, _what_changed(ctx, root, path), i, len(conflicted))
+        settled = _settle_hu(ctx, ui, name, root, path, i, len(conflicted))
+        if settled == 'done':
+            continue
+        choice = settled or ui.resolve(name, path, _what_changed(ctx, root, path), i, len(conflicted))
         if choice in ('mine', 'theirs'):
             _take(ctx, root, path, 'ours' if choice == 'mine' else 'theirs')
         elif choice == 'edit':
@@ -455,9 +506,39 @@ def _combine(ctx, ui, name, root, branch, upstream):
     if c is None or not c.ok:
         _git(ctx, root, 'merge --abort')
         return False, _unstash(ctx, root, name, stashed) + [_intact(name, root, branch)]
+    lines += [f'{name}: {n}' for n in _driver_notes(notes)]
     if conflicted:
         lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')
     return True, lines + _unstash(ctx, root, name, stashed)
+
+
+def _settle_hu(ctx, ui, name, root, path, i, n):
+    '''A conflicted `.hu` file, key by key: each key both machines changed differently is asked about
+    (`ui.resolve_value`). Returns 'done' (merged and staged), 'edit' / 'stop' (the answer for the
+    whole file), or None (not a file this can merge: ask about the whole file).'''
+    from . import humerge
+    if not path.endswith('.hu'):
+        return None
+    base, mine, theirs = (_stage(ctx, root, path, k) for k in (1, 2, 3))
+    if mine is None or theirs is None:
+        return None
+    try:
+        res = humerge.merge(base or '', mine, theirs)
+        answers = {}
+        for c in res.conflicts:
+            choice = ui.resolve_value(name, path, c.words(), i, n)
+            if choice not in ('mine', 'theirs'):
+                return choice if choice == 'edit' else 'stop'
+            answers[c.path] = choice
+        if answers:
+            res = humerge.merge(base or '', mine, theirs, answers)
+    except humerge.Unmergeable:
+        return None
+    if res.text is None:
+        return None
+    (root / path).write_text(res.text, encoding='utf-8')
+    _git(ctx, root, f'add -- {shlex.quote(path)}')
+    return 'done'
 
 
 def _unstash(ctx, root, name, stashed):

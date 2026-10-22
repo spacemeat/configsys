@@ -525,7 +525,17 @@ your other machines, in three steps:
 3. It pushes to the branch, and says how many changes went out. Your other machines get them on
    their next `plugin sync`.
 
-When this machine and another changed the same lines of a file, the replay is backed out completely
+Your primary's `.hu` files are merged by what they mean, not line by line, so most changes on two
+machines combine with no question. Each machine adding picks to its own column, both adding to the
+same column (additions and removals from both sides are kept), different settings, components or pins
+changed on each side, and plugins added on each side all combine. When both sides moved the same
+plugin to different version tags, the newer is kept and you're told. What's left is a real
+disagreement, asked about one setting at a time: *This machine set `splash: plain`; your other machine
+set `splash: ocean`* — keep this one, keep the other, show me the file in your editor, or stop. The
+lines and comments around a setting are kept as they were.
+
+When this machine and another changed the same lines of any other file (or a `.hu` file configsys
+can't read as a map), the replay is backed out completely
 (you are never left mid-rebase), and you're asked, per file: keep this machine's version, keep the
 other machine's, or edit both in your editor (`$VISUAL`/`$EDITOR`, else nano or vi; the file holds
 both versions between `<<<<<<<` and `>>>>>>>` lines). Keeping one side keeps it only where the two

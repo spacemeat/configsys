@@ -1,8 +1,7 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: IN PROGRESS** — phases 0–3 done (2026-10-21); phase 4 (the `.hu`-aware merge) not started.
-> Tag-pinned primaries stay supported (decided 2026-10-21). The shipped behavior is specified in
-> docs/plugins.md §8.
+> **Status: DONE** — finished 2026-10-21 (phase 4, the `.hu`-aware merge, landed last). Tag-pinned
+> primaries stay supported (decided 2026-10-21). Lives on in: docs/plugins.md §8.
 
 ## Why
 
@@ -211,7 +210,30 @@ the primary):
 Pushing is outward-facing, so `auto` is opt-in and `ask` is the default ("no surprises"). Nothing
 is pushed under `--pretend`.
 
-## Phase 4 — a `.hu`-aware merge
+## Phase 4 — a `.hu`-aware merge — DONE 2026-10-21
+
+As built: `configsys/humerge.py`. `merge(base, mine, theirs, answers)` reads the three texts as data
+and merges per key, recursively through maps (picks per column, components/profiles/pins per name,
+settings per key); order-free name lists (`humerge.SET_LISTS`: a picks column, a profile, a
+component's `attrs:`, `disabled-drivers:`, `orphans-ignore:`, `installer-shell-writes-allow:`)
+combine both sides' additions and removals; `plugins:` merges per source, and both moving the same
+plugin to different version tags keeps the newer, with a note. Anything else both changed
+differently is a `Conflict` (`words()`: "This machine set `splash: plain`; your other machine set
+`splash: ocean`."). The merged text is mine's text with only the changed keys rewritten: a key taken
+whole from theirs is copied verbatim, only a key combined from both is emitted fresh; the result is
+re-read and compared, else `Unmergeable` (→ the per-file question). As a git merge driver
+(`python -m configsys.humerge <notes file> %O %A %B %P`) it is registered only for the length of `_combine`'s own
+rebase and merge (`primarygit._merge_driver`: `git -c merge.configsys.driver=… -c
+core.attributesFile=<your global attributes + "*.hu merge=configsys">`), so nothing is configured
+in the repo and the clean case stays a linear rebase; driver notes come back through
+that notes file. A conflict the driver can't settle exits 1 with git's own marker text; when
+git's line merge is clean it keeps git's text (and result). After the rebase is backed out, each
+conflicted `.hu` file is settled per key (`primarygit._settle_hu` → `PushUI.resolve_value`: keep this
+one / keep the other / show me the file / stop). Differences from the sketch: "show me" opens the file
+with git's markers in your editor (the per-file edit flow); a structural conflict that git's line
+merge settles cleanly is left to git (never worse than git's default). Tests: test/test_humerge.py.
+
+### The original sketch
 
 Most primary conflicts are in configsys's own files (the primary's `configsys.hu`, `plugin.hu`),
 and most of those aren't real disagreements. The common case: two machines each add picks to

@@ -1,4 +1,4 @@
-'''Primary-push plan, phase 0 (docs/todo/primary-push-plan.md): sync never discards local edits, says
+'''Primary-push plan, phase 0 (docs/done/primary-push-plan.md): sync never discards local edits, says
 when a branch diverged or has unpushed commits, keeps a primary attached to its branch even with no
 `ref:`, and `update --latest` never re-pins a branch-following primary to a version tag.'''
 

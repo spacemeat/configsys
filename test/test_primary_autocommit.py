@@ -1,4 +1,4 @@
-'''Primary-push plan, phase 1 (docs/todo/primary-push-plan.md): configsys commits its own edits to
+'''Primary-push plan, phase 1 (docs/done/primary-push-plan.md): configsys commits its own edits to
 the primary plugin, locally, with a message saying what it did — and never sweeps in edits you were
 making by hand.'''
 
