@@ -89,7 +89,7 @@ VERBS = [
     ['plugin', 'remove', 'codeplug'], ['plugin', 'update'], ['plugin', 'update', 'codeplug', '--ref', 'v1', '--pin'],
     ['plugin', 'trust', '--all'], ['plugin', 'untrust', 'codeplug'], ['plugin', 'lock', 'codeplug'],
     ['plugin', 'diff', 'codeplug', '--to', 'v1'], ['plugin', 'init', 'configsys-me'],
-    ['plugin', 'set-source', 'srcplug', 'github:me/codeplug'],
+    ['plugin', 'set-source', 'srcplug', 'github:me/codeplug'], ['plugin', 'push'],
     ['report', 'btop', '--yes'], ['request', 'btop', '--yes'], ['request-os', '--yes'],
     ['orphans', '--ignore', 'nano'],
     ['dotfiles', 'capture', 'bash', '--yes'], ['dotfiles', 'capture', 'btop', '--force', '--yes'],

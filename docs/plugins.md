@@ -159,6 +159,7 @@ so you can push a plugin you author without a token.
 | `configsys plugin remove <name>` | Undeclare the plugin (wherever it's declared) and delete its synced copy. |
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
 | `configsys plugin bless <source>` / `unbless` | Make a plugin your primary (§8), or clear that. `bless none` also clears. |
+| `configsys plugin push [--include-edits]` | Publish your primary plugin (§8): commit, combine with what your other machines pushed (asking about any file both changed), push to its branch. Edits you made by hand are included only if you say yes (or pass `--include-edits`). |
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
 | `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
 
@@ -172,7 +173,8 @@ from what the plugin actually ships — its data files' sections, its manifest's
 `plugins:`, its `dotfiles/` and `glue/` directories — so they're only known once it's synced (until
 then the manifest's own `provides:` stands in). Keys: `a` add, `x` remove, `s`/`S` sync one/all,
 `u`/`U` update one/all, `v` set the ref, `t` trust/untrust one, `T` trust every untrusted or
-changed one, `b`/`B` bless/unbless, `L` lock/unlock (a locked plugin's name carries `⊘`).
+changed one, `b`/`B` bless/unbless, `L` lock/unlock (a locked plugin's name carries `⊘`), `P` push
+your primary (§8).
 
 ## 5. When a plugin fails
 
@@ -494,14 +496,13 @@ whatever you push to the branch on their next `plugin sync`. `bless` and `init` 
 as its `ref:`; a primary with no `ref:` follows its remote's default branch, checked out on the
 branch (never detached), and `plugin update --latest` / `U` re-sync it without moving it to a tag.
 You *can* pin a primary to a tag deliberately; it then stays at that tag (`update --latest` moves
-it to the newest one), and sync still never discards your edits. See `docs/todo/primary-push-plan.md`
-for publishing a primary.
+it to the newest one), and sync still never discards your edits.
 
 **configsys commits its own edits.** Whatever configsys writes into your primary — a pick, a uniform
 setting, a captured dotfile, your own glue, a plugin added to its manifest — is committed right away
 on its branch, locally, with a message saying what was done: the command as you typed it (`picks add
 btop`), or the TUI action (`profiles: toggle tracking: highlighted — tracking btop`). Nothing is
-pushed; push it to share it with your other machines. Edits you make by hand are never swept in: a
+pushed by this — see "Publishing it" below. Edits you make by hand are never swept in: a
 file you had already changed is left uncommitted for you (configsys says so), and other files you're
 editing are untouched. A primary pinned to a tag or commit isn't committed to, and with no git
 identity set, commits are signed `<user>@<host>` until you set one (configsys says so once).
@@ -511,8 +512,48 @@ Nothing is committed under `--pretend`.
 pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) and `●` (edits not committed
 yet); both arrows at once mean the two sides need combining before a push. The screen fetches the
 primary in the background to count `↓`. The Components header shows `<primary>: ↑N to push, ↓N to
-sync` whenever there's something either way, and `plugin list` says the same in words (`↓` there is as
-of the last fetch or sync).
+sync` whenever there's something either way (under `primary-push: auto`, only the `↓` part), and
+`plugin list` says the same in words (`↓` there is as of the last fetch or sync).
+
+**Publishing it.** `configsys plugin push` (or `P` on the Plugins screen) shares your primary with
+your other machines, in three steps:
+
+1. Edits you made by hand and haven't committed are listed, and you're asked whether to include
+   them (`--include-edits` says yes up front). Left out, they stay here, uncommitted.
+2. It fetches the remote — through the push URL, so a private repo you can push to is one you can
+   fetch from — and puts this machine's commits on top of what your other machines pushed.
+3. It pushes to the branch, and says how many changes went out. Your other machines get them on
+   their next `plugin sync`.
+
+When this machine and another changed the same lines of a file, the replay is backed out completely
+(you are never left mid-rebase), and you're asked, per file: keep this machine's version, keep the
+other machine's, or edit both in your editor (`$VISUAL`/`$EDITOR`, else nano or vi; the file holds
+both versions between `<<<<<<<` and `>>>>>>>` lines). Keeping one side keeps it only where the two
+overlap — the other side's changes elsewhere in the file survive. The two are then merged with your
+answers and pushed. Stop (or leave markers in an edited file) and nothing is pushed: your work stays
+committed here as it was, and configsys names the git commands to finish by hand.
+
+A refused push is explained with its fix: an SSH key the remote doesn't know, a host you've never
+connected to, a remote that wants you signed in (`gh auth login` and `gh auth setup-git` when `gh` is
+installed), a repository that doesn't exist yet, or being offline. A primary with no remote yet (one
+`plugin init` made) is told to create an empty repository, then `plugin set-source`. A primary pinned
+to a tag is explained — a tag pins your other machines in place — and you're asked whether to make
+it follow its branch instead (it is checked out on the branch, and its `ref:` here changes; run `plugin
+update <name> --ref main` on your other machines). configsys never tags for you. In the TUI, git never
+prompts: an SSH key that needs its passphrase fails with a note (load it with `ssh-add`, or push from
+the command line). Nothing is pushed under `--pretend`.
+
+**When it's pushed** is the `primary-push` setting (uniform, so it travels in the primary):
+
+- `ask` (default) — quitting the TUI with changes not pushed asks *Push, then quit / Quit, push later
+  / Keep working* (Esc keeps working, like the plain quit confirm). After a command that changed the
+  primary, the CLI says it isn't pushed yet.
+- `auto` — the CLI pushes after each command that changed the primary, and quitting the TUI pushes
+  without asking. Nothing is asked: your own edits stay out, and a conflict leaves it unpushed with a
+  one-line note (`plugin push` settles it). A failure is retried the next time.
+- `manual` — only `plugin push` / `P`, the marks and the header chip.
+
+Quitting with `Q` (quit without confirming) never stops to push; under `ask` or `auto` it leaves a note.
 
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:
@@ -521,8 +562,8 @@ primary plugin in `~/.config/configsys/plugins/<name>/` from what you have local
 - your config's `components:` overrides are copied into it (and removed from `configsys.hu`);
 - the other plugins you declared move into its manifest's `plugins:`;
 - it is `git init`ed, committed, and blessed. Its source is its own directory, so `sync` leaves
-  it alone until you add a remote, push it, and run
-  `configsys plugin set-source <name> github:you/<name>`.
+  it alone until you create an empty repository for it, run
+  `configsys plugin set-source <name> github:you/<name>`, and `configsys plugin push`.
 
 If you already have a primary, `plugin init` merges your local dotfiles and glue into it instead
 (`--force` overwrites ones already there; `--dry-run` shows the plan). Your picks move separately,
@@ -532,7 +573,7 @@ with `configsys picks to-primary`.
 machine) or machine-local (belongs in this machine's config). configsys writes each edit to the
 right place, and `configsys config move` (TUI Config screen `m`) carries a setting across. A new
 `plugin add` lands in the primary's manifest too, unless you pass `--local`. Changes to a primary
-reach your other machines once you commit, push, and bump its ref there.
+reach your other machines once you push them (`plugin push`) and they sync.
 
 A primary that has no data file yet (a `plugin init` with no components or profiles to move writes
 only the manifest) gets an empty `<name>.hu` the first time configsys writes a setting, pin or pick

@@ -100,7 +100,7 @@ def test_config_settings_view_has_desc_and_man(tmp_path):
     s = actions.config_settings(ctx)
     assert set(s) == {'scope', 'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed',
                       'refresh-before-execute', 'install-overlay', 'reboot-advice', 'splash', 'effects',
-                      'orphans-ignore', 'machine',
+                      'orphans-ignore', 'machine', 'primary-push',
                       'detect-coexisting', 'installer-shell-writes', 'installer-shell-writes-allow',
                       'locations',
                       'dirs.user', 'dirs.system', 'dirs.app', 'dirs.sdk', 'dirs.src'}

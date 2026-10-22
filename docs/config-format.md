@@ -79,6 +79,8 @@ doesn't exist, the first command that needs it generates it from a commented tem
 
     reboot-advice: true              // post-op "reboot advised" via the distro's native check (default on)
 
+    primary-push: auto               // push your primary for you (ask / auto / manual; default ask)
+
     splash: ocean                    // startup wait-screen (a splash name / random / off; unset = built-in)
 
     effects: reduced                 // TUI motion: full / reduced / none (unset: reduced over SSH)
@@ -139,6 +141,11 @@ effective value and where it lives.
   install-state overlay on (`O` toggles it).
 - **`reboot-advice`** (bool, uniform; default on): after an operation, and as a TUI header chip,
   advise when a reboot or a service restart is needed, using the distro's own check.
+- **`primary-push`** (`ask`, `auto` or `manual`, uniform; default `ask`): when your primary plugin is
+  pushed to its remote. `ask` offers it when you quit the TUI with changes not pushed (and the CLI
+  says when a command left changes not pushed); `auto` pushes after each command that changed the
+  primary and when you quit the TUI, asking nothing (a conflict or failure leaves a one-line note);
+  `manual` pushes only on `configsys plugin push` or the Plugins screen's `P`. See plugins.md §8.
 - **`splash`** (scalar, uniform; default unset): the startup wait-screen. A splash name (or the
   name of the plugin that ships it), `random` for a different one each run, or `off`. Unset uses
   the built-in `braille-bar`.
@@ -980,6 +987,8 @@ one works.
 - `set-ref` (`v`): pin a tag, branch or commit and re-sync.
 - `lock` (`L`): lock or unlock the current plugin on this machine — no sync, update, bless or
   trust while locked.
+- `push` (`P`): push your primary plugin — commit, combine with what your other machines pushed,
+  push (see the `primary-push` setting).
 
 **glue**:
 

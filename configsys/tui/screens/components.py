@@ -142,7 +142,8 @@ class ComponentsScreen(Screen):
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
         from ... import primarygit
-        ptext = primarygit.chip(getattr(ctx, '_primary_state', None))
+        ptext = primarygit.chip(getattr(ctx, '_primary_state', None),   # auto pushes ↑ for you
+                                hide_ahead=getattr(ctx, '_primary_push_mode', 'ask') == 'auto')
         if ptext and rend + 3 + len(ptext) < w - 1:      # your primary has changes to push / sync
             _put(surface, 1, rend + 3, ptext, pal.style('outdated', 1, rend + 3, h, w))
             rend += 3 + len(ptext)

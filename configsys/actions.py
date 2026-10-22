@@ -648,6 +648,11 @@ CONFIG_SETTINGS = {
     'reboot-advice':     ('bool',   'After an op (and as a TUI chip), advise when a reboot is needed / '
                                     'services want a restart, via each distro\'s native check. On by '
                                     'default.', 'configsys.hu(5)'),
+    'primary-push':      ('scalar', "When your primary plugin is pushed to its remote: 'ask' (default; "
+                                    'offered when you quit the TUI with changes not pushed), '
+                                    "'auto' (after each command that changes it, and when you quit "
+                                    "the TUI), or 'manual' (only `plugin push` / P).",
+                          'configsys.hu(5)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
@@ -700,6 +705,7 @@ SETTING_NATURE = {
     'refresh-before-execute': 'uniform',      # a behavior preference (override per-machine with `m`)
     'install-overlay':   'uniform',           # a UI preference
     'reboot-advice':     'uniform',           # a behavior preference (override per-machine with `m`)
+    'primary-push':      'uniform',           # it travels in the primary it governs
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
@@ -731,6 +737,7 @@ _SETTING_GETTERS = {
     'refresh-before-execute': lambda c: c.refresh_before_execute(),
     'install-overlay':        lambda c: c.install_overlay_default(),
     'reboot-advice':          lambda c: c.reboot_advice(),
+    'primary-push':           lambda c: c.primary_push(),
     'splash':                 lambda c: c.splash(),
     'effects':                lambda c: c.effects(),
     'orphans-ignore':         lambda c: c.orphans_ignore(),
@@ -1283,8 +1290,8 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     ctx.invalidate()
     verb, at = ('re-pinned' if existing else 'added'), (f' @{ref}' if ref else '')
     if to_primary:
-        msg = (f'{verb} {source}{at} in your primary plugin ({primary}) — push {primary} to share '
-               f'it with your other machines')
+        msg = (f'{verb} {source}{at} in your primary plugin ({primary}) — `configsys plugin push` '
+               f'shares it with your other machines')
     else:
         msg = f'{verb} {source}{at}' + (' (this machine only)' if primary else '')
     return True, lead + msg + pin_msg, results

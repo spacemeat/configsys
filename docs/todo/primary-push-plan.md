@@ -1,7 +1,8 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: IN PROGRESS** — phases 0, 1 and 2 done (2026-10-21); phases 3–4 not started. Tag-pinned primaries
-> stay supported (decided 2026-10-21).
+> **Status: IN PROGRESS** — phases 0–3 done (2026-10-21); phase 4 (the `.hu`-aware merge) not started.
+> Tag-pinned primaries stay supported (decided 2026-10-21). The shipped behavior is specified in
+> docs/plugins.md §8.
 
 ## Why
 
@@ -135,7 +136,34 @@ committed to the primary. The chip shows whenever there's something to push or s
   machine not synced").
 - `?` page and docs/plugins.md explain the glyphs.
 
-## Phase 3 — `configsys plugin push` (and the TUI key)
+## Phase 3 — `configsys plugin push` (and the TUI key) — DONE 2026-10-21
+
+Built: `primarygit.push(ctx, ui)` with a `PushUI` question object (base = the cautious answers; the
+CLI's `app._CliPushUI` asks on the terminal, the TUI's `menu._TuiPushUI` with popups). Steps: no
+primary / not synced / no remote (→ create a repo + `set-source`) / a tag-pinned primary (explained;
+`switch_to_branch` rewrites its `ref:` and checks the branch out via `plugins.sync`) → your own
+uncommitted edits (`include_own`, `--include-edits`; left out = they stay) → fetch through the PUSH url
+(`--prune`, into `refs/remotes/origin/*`) → nothing ahead = "nothing to push" → behind = `_combine` →
+`git push origin HEAD:refs/heads/<branch>` (upstream set on a first push). `_combine`: a
+`rebase --autostash` first (the clean case stays linear); on a conflict it is aborted, the conflicted
+files are asked about per file (`resolve`: mine / theirs / edit / stop), and the two sides are MERGED
+(`merge --no-ff --no-commit`, own edits stashed around it) with those answers — "mine"/"theirs" use
+`git merge-file --ours/--theirs` on the index stages, so only overlapping hunks take one side; a
+deletion on the chosen side deletes. Stop, or markers left after an edit = `merge --abort`, nothing
+pushed, work intact, the by-hand recipe printed. `explain_git_failure` words refused fetches/pushes
+(publickey, host key, sign-in → `gh auth login` + `gh auth setup-git`, repo not found, offline,
+rejected). The TUI runs git non-interactively (`GIT_SSH_COMMAND=ssh -o BatchMode=yes`).
+`primary-push: ask | auto | manual` (uniform, `Config.primary_push`): ask = the quit prompt
+(`menu._quit_push`: Push, then quit / Quit, push later / Keep working — Esc keeps working) and a CLI
+"not pushed yet" line after a committing command (`app._after_primary_commit`); auto = push after each
+committing CLI command and on TUI quit, asking nothing, failures one line; manual = nothing. `Q`
+never stops to push (a note). The header chip hides ↑ under auto. Sync notes for the primary point at
+`plugin push` (`plugins.sync_note(primary=True)`). Differences from the sketch: a conflicted replay is
+redone as a merge rather than a rebase (per-file answers apply cleanly to one merge); "auto" pushes on
+TUI quit rather than after every TUI action (no network on the UI thread per keypress). Tests:
+test/test_primary_push.py; `plugin push` is in the pretend sweep.
+
+### The original sketch
 
 A separate command, not part of `sync`. `sync` only brings things in; it's safe to run anytime and
 safe in scripts, and it must not fail because of a push problem. Steps:

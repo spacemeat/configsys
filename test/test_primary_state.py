@@ -64,7 +64,7 @@ def test_the_words_and_marks():
     assert primarygit.chip(_st(0, 0, True)) == ''                        # uncommitted alone: row only
     words = primarygit.describe(_st(1, 2, True))
     assert '1 change not pushed yet' in words and '2 changes from your other machines' in words
-    assert 'edits not committed' in words and 'combined' in words
+    assert 'edits not committed' in words and 'combines them' in words
     assert primarygit.describe(_st()) == ''
 
 

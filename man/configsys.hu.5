@@ -60,6 +60,8 @@ Your top config is \fB$XDG_CONFIG_HOME/configsys/configsys.hu\fR (by default \fB
 
     reboot-advice: true              // post-op "reboot advised" via the distro's native check (default on)
 
+    primary-push: auto               // push your primary for you (ask / auto / manual; default ask)
+
     splash: ocean                    // startup wait-screen (a splash name / random / off; unset = built-in)
 
     effects: reduced                 // TUI motion: full / reduced / none (unset: reduced over SSH)
@@ -98,6 +100,8 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 \fB\fBinstall-overlay\fR\fR (bool, uniform; default on): open the TUI Profiles screen with the install-state overlay on (\fBO\fR toggles it).
 .IP \(bu 2
 \fB\fBreboot-advice\fR\fR (bool, uniform; default on): after an operation, and as a TUI header chip, advise when a reboot or a service restart is needed, using the distro's own check.
+.IP \(bu 2
+\fB\fBprimary-push\fR\fR (\fBask\fR, \fBauto\fR or \fBmanual\fR, uniform; default \fBask\fR): when your primary plugin is pushed to its remote. \fBask\fR offers it when you quit the TUI with changes not pushed (and the CLI says when a command left changes not pushed); \fBauto\fR pushes after each command that changed the primary and when you quit the TUI, asking nothing (a conflict or failure leaves a one-line note); \fBmanual\fR pushes only on \fBconfigsys plugin push\fR or the Plugins screen's \fBP\fR. See plugins.md §8.
 .IP \(bu 2
 \fB\fBsplash\fR\fR (scalar, uniform; default unset): the startup wait-screen. A splash name (or the name of the plugin that ships it), \fBrandom\fR for a different one each run, or \fBoff\fR. Unset uses the built-in \fBbraille-bar\fR.
 .IP \(bu 2
@@ -740,6 +744,8 @@ The defaults below are the shipped \fBconfig.hu\fR bindings; where an action has
 \fBset-ref\fR (\fBv\fR): pin a tag, branch or commit and re-sync.
 .IP \(bu 2
 \fBlock\fR (\fBL\fR): lock or unlock the current plugin on this machine — no sync, update, bless or trust while locked.
+.IP \(bu 2
+\fBpush\fR (\fBP\fR): push your primary plugin — commit, combine with what your other machines pushed, push (see the \fBprimary-push\fR setting).
 .PP
 \fBglue\fR:
 .IP \(bu 2

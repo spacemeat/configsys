@@ -35,7 +35,7 @@ MACHINE_SETTING_SECTIONS = frozenset({
     'picks', 'machine', 'scope', 'pins', 'dispositions', 'uninstall', 'dirs', 'locations',
     'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed', 'detect-coexisting',
     'installer-shell-writes', 'installer-shell-writes-allow', 'refresh-before-execute',
-    'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore',
+    'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore', 'primary-push',
 })
 
 

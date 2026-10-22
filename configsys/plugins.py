@@ -1431,9 +1431,15 @@ def follows_branch(runner, dest, ref):
 _SYNC_OUTCOME = {'ok': None, 'failed': 'failed', 'kept': 'kept', 'diverged': 'diverged', 'ahead': 'ahead'}
 
 
-def sync_note(name, action, plugins_dir):
-    '''One plain sentence for a sync outcome that needs explaining (kept / diverged / ahead), else None.'''
+def sync_note(name, action, plugins_dir, *, primary=False):
+    '''One plain sentence for a sync outcome that needs explaining (kept / diverged / ahead), else None.
+    For the `primary` plugin, a diverged or unpushed branch points at `configsys plugin push`.'''
     d = Path(plugins_dir) / name
+    if primary and action == 'diverged':
+        return (f'{name}: not updated — it has changes made here AND new ones from another machine. '
+                f'`configsys plugin push` combines them and pushes the result.')
+    if primary and action == 'ahead':
+        return f'{name}: has changes made here not pushed yet (`configsys plugin push` shares them).'
     if action == 'kept':
         return (f'{name}: not updated — it has local changes the update would overwrite; they were '
                 f'left as they are. Commit them (in {d}), or discard them with '

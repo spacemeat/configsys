@@ -2801,8 +2801,9 @@ def _plugin_init_create(ctx, args, decls):
     (plug / '.gitignore').write_text('__pycache__/\n', encoding='utf-8')
     (plug / 'README.md').write_text(
         f'# {name}\n\nA personal [configsys](https://github.com/spacemeat/configsys) plugin '
-        f'(dotfiles + profiles/components). Authored locally by `configsys plugin init`; push it '
-        f'to a remote and `configsys plugin set-source {name} github:you/{name}` to share.\n',
+        f'(dotfiles + profiles/components). Authored locally by `configsys plugin init`. To share '
+        f'it, create an empty repository, then run `configsys plugin set-source {name} '
+        f'github:you/{name}` and `configsys plugin push`.\n',
         encoding='utf-8')
     _git_init_commit(ctx, plug, 'initial personal config (configsys plugin init)')
     plugins.set_declared(ctx.paths.user_config_file,      # follows its branch (never tagged)
@@ -2813,10 +2814,10 @@ def _plugin_init_create(ctx, args, decls):
     print(f'\nconfigsys: created + blessed "{name}" as your primary plugin.')
     if stripped:
         print(f'  ({", ".join(stripped)} moved into the plugin and removed from configsys.hu.)')
-    print('  capture now lands in it. When ready to share:')
-    print(f'    cd {plug}')
-    print(f'    git remote add origin git@github.com:you/{name}.git && git push -u origin main')
+    print('  capture now lands in it. When ready to share, create an empty repository for it')
+    print(f'  (e.g. `gh repo create {name} --private`), then:')
     print(f'    configsys plugin set-source {name} github:you/{name}')
+    print('    configsys plugin push')
     return 0
 
 
@@ -2946,18 +2947,83 @@ def cmd_plugin_diff(ctx, args, eff):
     return 0 if files or not note or 'identical' in note or 'up to date' in note else 1
 
 
+def _primary_dir_name(ctx):
+    from . import plugins
+    try:
+        return plugins.primary_name(plugins.declared(ctx.paths.user_config_file))
+    except Exception:                                  # noqa: BLE001 — an unreadable config: no primary
+        return None
+
+
 def _print_sync(ctx, results):
     '''Print plugin sync outcomes, one per line, then a plain sentence for any that need one
     (local changes kept, diverged from the remote, commits not pushed — plugins.sync_note).'''
     from . import plugins
     notes = []
+    prim = _primary_dir_name(ctx)
     for name, action in results:
         print(f'  {action:8} {name}')
-        note = plugins.sync_note(name, action, ctx.paths.plugins_dir)
+        note = plugins.sync_note(name, action, ctx.paths.plugins_dir, primary=name == prim)
         if note:
             notes.append(note)
     for note in notes:
         print(f'configsys: {note}')
+
+
+class _CliPushUI:
+    '''`plugin push`'s questions, asked on the terminal (the cautious answer when it isn't one).'''
+
+    def __init__(self, include=False):
+        self.interactive = sys.stdin.isatty() and sys.stdout.isatty()
+        self.include = include
+
+    def _ask(self, prompt, keys, default):
+        if not self.interactive:
+            return default
+        try:
+            ans = input(prompt).strip().lower()[:1]
+        except EOFError:
+            return default
+        return ans if ans in keys else default
+
+    def include_own(self, name, paths):
+        print(f'configsys: {name} has edits you made yourself, not committed:')
+        for p in paths[:20]:
+            print(f'    {p}')
+        if len(paths) > 20:
+            print(f'    … and {len(paths) - 20} more')
+        return self.include or self._ask('Include them in the push? [y/N] ', 'yn', 'n') == 'y'
+
+    def switch_to_branch(self, name, ref, branch):
+        return self._ask(f'Make {name} follow {branch} instead, so every push reaches your other '
+                         f'machines? [y/N] ', 'yn', 'n') == 'y'
+
+    def resolve(self, name, path, what, i, n):
+        print(f'configsys: {name}: {path} ({i + 1} of {n}) — {what}.')
+        ans = self._ask('  [m] keep this machine\'s  [t] keep the other machine\'s  [e] edit both in '
+                        'your editor  [s] stop: ', 'mtes', 's')
+        return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
+
+    def edit(self, path):
+        _edit_conflict(path)
+
+    def progress(self, text):
+        pass
+
+
+def _edit_conflict(path):
+    '''Open a file holding conflict markers in $VISUAL/$EDITOR (else nano, else vi), on the terminal.'''
+    import shlex as _shlex
+    import shutil
+    import subprocess
+    editor = (os.environ.get('VISUAL') or os.environ.get('EDITOR')
+              or ('nano' if shutil.which('nano') else 'vi'))
+    print(f'configsys: both versions are in {path}, between <<<<<<< and >>>>>>> lines. Keep what you '
+          f'want, delete the marker lines, save, and quit the editor.')
+    try:
+        subprocess.run([*_shlex.split(editor), str(path)])
+    except Exception as e:                               # noqa: BLE001 — markers stay; push stops
+        print(f'configsys: could not open {editor}: {e}')
 
 
 def cmd_plugin(ctx, args):
@@ -3015,7 +3081,7 @@ def cmd_plugin(ctx, args):
             return 1
         if ' from ' in msg:                          # removed from a plugin's own file
             plug = msg.rsplit(' from ', 1)[1]
-            print(f'configsys: push {plug} to share the removal with your other machines')
+            print(f'configsys: `configsys plugin push` shares the removal with your other machines')
         return 0
 
     if sub == 'update':
@@ -3076,6 +3142,12 @@ def cmd_plugin(ctx, args):
 
     if sub == 'diff':
         return cmd_plugin_diff(ctx, args, eff)
+
+    if sub == 'push':
+        ok, lines = primarygit.push(ctx, _CliPushUI(include=getattr(args, 'include_edits', False)))
+        for line in lines:
+            print(f'configsys: {line}')
+        return 0 if ok else 1
 
     if sub == 'list':
         rows = plugins.status(ctx.paths.plugins_dir, eff,
@@ -3830,6 +3902,11 @@ def build_parser():
     pdf.add_argument('name', help='plugin name, source, or dir')
     pdf.add_argument('--to', metavar='REF',
                      help='compare against this ref instead of the newest version tag (or main/master)')
+    ppu = plsub.add_parser('push', help='publish your primary plugin: commit, combine with what your '
+                                        'other machines pushed (asking about any file both changed), '
+                                        'and push to its branch')
+    ppu.add_argument('--include-edits', action='store_true',
+                     help='also commit and push edits you made by hand, without asking')
     pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
                                         "dotfiles, your own glue, your config's component "
                                         'definitions), or merge that into your existing primary')
@@ -4736,6 +4813,22 @@ def _command_words(argv, command):
     return msg + (f' (machine {machine})' if machine else '')
 
 
+def _after_primary_commit(ctx):
+    '''A CLI command just committed to the primary: under `primary-push: auto` push it (a failure is
+    one line, retried next time); under `ask` say it isn't pushed yet; under `manual` stay quiet.'''
+    from . import primarygit
+    mode = primarygit.push_mode(ctx)
+    if mode == 'auto':
+        ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
+        if lines:
+            print(f'configsys: {lines[-1] if ok else "not pushed automatically — " + lines[-1]}')
+    elif mode == 'ask':
+        st = primarygit.state(ctx)
+        if st and st['ahead']:
+            print(f'configsys: saved to {st["name"]} — {primarygit._count(st["ahead"])} not pushed '
+                  f'yet; `configsys plugin push` shares {"them" if st["ahead"] != 1 else "it"}.')
+
+
 def main(argv=None):
     args = build_parser().parse_args(argv)
     # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
@@ -4767,6 +4860,8 @@ def main(argv=None):
         finally:
             for note in primarygit.commit(ctx, snap, _command_words(argv, command)):
                 print(f'configsys: {note}')
+            if snap is not None and snap.committed:
+                _after_primary_commit(ctx)
     except ConfigsysError as e:
         print(f'configsys: {e}', file=sys.stderr)
         return 1

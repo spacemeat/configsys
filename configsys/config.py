@@ -317,6 +317,15 @@ class Config:
         v = layers.merge_scalar(self._layers, 'install-overlay', _MACHINE_ROLES)
         return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
 
+    def primary_push(self):
+        '''When the primary plugin is pushed: 'ask' (default — offered when you quit the TUI with
+        changes not pushed), 'auto' (pushed after each CLI command that changed it and when you quit
+        the TUI) or 'manual' (only `plugin push` / the Plugins `P` key). A machine setting
+        (repo < primary < user).'''
+        v = layers.merge_scalar(self._layers, 'primary-push', _MACHINE_ROLES)
+        v = str(v).strip().lower() if v is not None else 'ask'
+        return v if v in ('ask', 'auto', 'manual') else 'ask'
+
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).

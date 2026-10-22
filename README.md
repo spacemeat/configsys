@@ -308,13 +308,23 @@ manifest so they come along, `git init`s it, and makes it your primary plugin. I
 a primary, it moves your captured dotfiles and glue into it instead; your `components:` and
 `profiles:` sections stay where they are (move them by hand). Picks, pins and settings move separately:
 `configsys picks to-primary`, `configsys pin promote <name>`, `configsys config move <key>`. It's a real git repo you author in place; when you're ready to
-share it, push it and repoint the source:
+share it, create an empty repository for it (e.g. `gh repo create configsys-<user> --private`),
+point the plugin at it, and push:
 
 ```console
-$ cd ~/.config/configsys/plugins/configsys-<user>
-$ git remote add origin git@github.com:you/configsys-<user>.git && git push -u origin main
 $ ./configsys.sh plugin set-source configsys-<user> github:you/configsys-<user>
+$ ./configsys.sh plugin push
 ```
+
+From then on configsys commits each change it makes to your primary, and `plugin push` (or `P` on
+the TUI's Plugins screen) shares them. It fetches what your other machines pushed, puts your changes
+on top, and pushes. When two machines changed the same lines of a file, it asks you per file: keep
+this machine's version, keep the other's, or edit both. It never leaves you half-way through a git
+operation. The `primary-push` setting decides when this happens:
+
+- `ask` (the default): quitting the TUI offers to push.
+- `auto`: configsys pushes for you.
+- `manual`: only when you run `plugin push` or press `P`.
 
 ## Commands
 
@@ -357,7 +367,7 @@ configsys refresh                  # re-query latest versions + refresh the nati
 
 configsys dotfiles <status|capture|staged|activate|discard>   # your dotfiles + staged glue (see below)
 configsys glue    <add|override>   # your own shell snippets (add), or your editable copy of a component's glue (override)
-configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|diff|lock|unlock|init|set-source>   # declare, sync, review, trust and lock plugins; bless or init your primary (see Plugins)
+configsys plugin  <list|sync|add|remove|update|bless|unbless|trust|untrust|diff|lock|unlock|push|init|set-source>   # declare, sync, review, trust and lock plugins; bless or init your primary (see Plugins)
 configsys report  [<name>] [--print]      # file an install-failure report (default: every unfixed failure; you approve the text first)
 configsys request <name> [--print]        # ask upstream for full cross-platform support (coverage matrix)
 configsys request-os [--print]            # suggest this OS for support, or report that an update broke it (you approve first)
@@ -512,7 +522,7 @@ Seven screens; press a number key (shown in the top chip bar) to switch:
    (short codes, spelled out under `?`) — your primary's also shows `↑` changes to push and `↓` to sync — plus a review diff of what taking the selected one would
    change — readable before it's synced: add (`a`), remove (`x`), sync (`s`, `S` all), update
    (`u`, `U` all), bless / unbless your primary (`b` / `B`), trust (`t`, `T` all), set its ref
-   (`v`), lock / unlock (`L`).
+   (`v`), lock / unlock (`L`), push your primary (`P`).
 4. **Glue** — shell snippets grouped by installed shell, your own user glue included; activate
    (`a`, or `A` for the whole shell's group) or deactivate (`x`).
 5. **Dotfiles** — each managed config's state and where its content lives; manage / unmanage
@@ -665,7 +675,8 @@ One plugin can be your **primary** — a personal config plugin that may set mac
 carry its own (transitive) plugins, so a fresh machine bootstraps from a one-line config.
 `plugin bless <source>` designates an existing one; `plugin init` [creates one from your local
 bits](#your-config-as-a-plugin); `plugin set-source <name> <source>` repoints it and its synced
-clone (e.g. local path → `github:you/name` after you push); `plugin unbless` clears the designation.
+clone (e.g. local path → `github:you/name`); `plugin push` publishes it to its branch, combining
+what your other machines pushed; `plugin unbless` clears the designation.
 
 A plugin can also ship **code** — Python that adds a driver (a new install method, such as a
 package manager or a from-source build), a version source, a sync transport, or a startup splash.

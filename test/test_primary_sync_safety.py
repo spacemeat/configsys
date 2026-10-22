@@ -179,4 +179,4 @@ def test_cli_sync_explains_divergence(tmp_path, remote, capsys):
     capsys.readouterr()
     assert main(base + ['plugin', 'sync']) == 0
     out = capsys.readouterr().out
-    assert 'diverged prim' in out and 'another machine pushed' in out
+    assert 'diverged prim' in out and 'another machine' in out and 'plugin push' in out

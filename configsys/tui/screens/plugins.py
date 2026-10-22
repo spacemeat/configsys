@@ -57,16 +57,18 @@ def _nav_str():
                 f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
                 f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
                 f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
-                f"{g('lock')} lock · {g('quit')} ")
+                f"{g('lock')} lock · {g('push')} push · {g('quit')} ")
     return (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-            'v ref · t trust · T trust-all · L lock · q ')
+            'v ref · t trust · T trust-all · L lock · P push · q ')
 
 
 def _sync_note(ctx, results):
     '''The first sync outcome that needs explaining (kept / diverged / ahead), for the status line.'''
     from ... import plugins
+    from ...app import _primary_dir_name
+    prim = _primary_dir_name(ctx)
     for name, action in results or ():
-        note = plugins.sync_note(name, action, ctx.paths.plugins_dir)
+        note = plugins.sync_note(name, action, ctx.paths.plugins_dir, primary=name == prim)
         if note:
             return note
     return None
@@ -214,6 +216,7 @@ class PluginsScreen(Screen):
         pact = km.action_for('plugins', ch) if km is not None else None
         note = None
         dirty = False
+        pending = []
         try:
             if pl.focus == 'diff' and pl.diff_key is None:
                 pl.load_diff()
@@ -345,6 +348,11 @@ class PluginsScreen(Screen):
                 else:
                     _ok, note = actions.plugin_lock(ctx, row['name'])
                 pl.reload()
+            elif pact == 'push':
+                _ok, lines = menu._push_primary(stdscr, pal, ctx)
+                pl.reload()
+                note = lines[-1] if lines else None
+                pending = lines[:-1]
             elif pact == 'set-ref' and row:
                 ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                 if ref and ref.strip():
@@ -359,4 +367,4 @@ class PluginsScreen(Screen):
             pl.load_diff()               # the review diff follows the cursor (fetched in the background)
         except Exception as e:  # noqa: BLE001
             note = note or f'error: {e}'
-        return Intent(note=note, dirty=dirty)
+        return Intent(note=note, dirty=dirty, pending_notes=pending)

@@ -667,6 +667,80 @@ def _commit_primary_action(ctx, snap, screen, act, note):
     return primarygit.commit(ctx, snap, f'{screen}: {label}' + (f' — {note}' if note else ''))
 
 
+class _TuiPushUI(primarygit.PushUI):
+    '''`primarygit.push`'s questions as popups over the current screen. git never prompts here (no
+    terminal): an SSH key that needs a passphrase fails with a note saying how to fix it.'''
+
+    def __init__(self, stdscr, pal):
+        self.stdscr, self.pal = stdscr, pal
+
+    def include_own(self, name, paths):
+        title = f'{name}: {primarygit._count(len(paths), "file")} you edited by hand — push them too?'
+        return _popup_choose(self.stdscr, self.pal, title,
+                             [('Leave them out (they stay here)', ''), ('Include them', '')],
+                             start=0, shortcuts={'n': 0, 'y': 1}) == 1
+
+    def switch_to_branch(self, name, ref, branch):
+        title = f'{name} is pinned to {ref or "a commit"} — follow {branch} so pushes reach your machines?'
+        return _popup_choose(self.stdscr, self.pal, title, [('No, leave it pinned', ''),
+                             (f'Yes, follow {branch}', '')], start=0, shortcuts={'n': 0, 'y': 1}) == 1
+
+    def resolve(self, name, path, what, i, n):
+        c = _popup_choose(self.stdscr, self.pal, f'{path} ({i + 1}/{n}): {what}',
+                          [("Keep this machine's", 'm'), ("Keep the other machine's", 't'),
+                           ('Edit both in my editor', 'e'), ('Stop — push nothing', 's')],
+                          start=0, shortcuts={'m': 0, 't': 1, 'e': 2, 's': 3})
+        return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
+
+    def edit(self, path):
+        from ..app import _edit_conflict
+        from .screen import suspended
+        with suspended(self.stdscr):
+            _edit_conflict(path)
+
+    def progress(self, text):
+        h, w = self.stdscr.getmaxyx()
+        _put(self.stdscr, h - 2, 0, _fit(f' {text}'.ljust(w), w), self.pal.style('status_line', h - 2, 0, h, w))
+        self.stdscr.refresh()
+
+
+def _push_primary(stdscr, pal, ctx):
+    '''Push the primary from the TUI (Plugins `P`, the quit prompt). Returns (ok, lines).'''
+    try:
+        return primarygit.push(ctx, _TuiPushUI(stdscr, pal))
+    except Exception as e:                          # noqa: BLE001 — surface, don't crash
+        return False, [f'push failed: {e}']
+
+
+def _quit_push(stdscr, pal, ctx, force=False):
+    '''What quitting does about a primary with changes not pushed, per `primary-push`. Returns
+    (quit?, notes to print after exit). ask: one prompt — push and quit / quit / keep working (the
+    default, like the plain quit confirm). auto: push without asking. manual: nothing. `force`
+    (quit-force) never stops to push; it leaves a note instead.'''
+    try:
+        st, mode = primarygit.state(ctx), primarygit.push_mode(ctx)
+    except Exception:                               # noqa: BLE001
+        st, mode = None, 'manual'
+    ahead = st['ahead'] if st else 0
+    if mode == 'manual' or not ahead:
+        return None, []
+    later = f'{st["name"]}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares them.'
+    if force:
+        return True, [later]
+    if mode == 'auto':
+        ok, lines = _push_primary(stdscr, pal, ctx)
+        return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
+    c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st["name"]} not pushed yet.',
+                      [('Push, then quit', 'p'), ('Quit, push later', 'q'), ('Keep working', 'n')],
+                      start=2, shortcuts={'p': 0, 'q': 1, 'n': 2})
+    if c == 0:
+        _ok, lines = _push_primary(stdscr, pal, ctx)
+        return True, lines
+    if c == 1:
+        return True, [later]
+    return False, []
+
+
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     raw = ms.plan()
     # System Updates rows are a BULK mark, not per-unit ops: pull them out of the per-unit plan and
@@ -1123,7 +1197,12 @@ _HELP = {
                      'cache that is never loaded, so you can read it before you sync'),
             ('↑ ↓ ●', 'on your ★ primary\'s remote-ref: ↑N changes not pushed yet, ↓N changes from your '
                       'other machines (s syncs them in), ● edits not committed yet. Both ↑ and ↓ = the '
-                      'two sides need combining before a push'),
+                      'two sides need combining, which P does'),
+            ('P push', 'publish your ★ primary: commit, combine with what your other machines pushed '
+                       '(a file both changed is asked about: keep this machine\'s, keep the other\'s, or '
+                       'edit both), then push. Edits you made by hand are only included if you say so. '
+                       'The primary-push setting decides whether quitting offers it (ask), does it '
+                       '(auto) or leaves it to you (manual)'),
             ('⊘ locked', 'L locks the plugin on this machine: no sync, update, bless or trust until L '
                          'unlocks it. A synced copy keeps loading as it is — x removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
@@ -4691,6 +4770,7 @@ def run(ctx):
         ms.descriptions = _describe(ctx)          # {name -> desc}, cached; not touched per frame
         from .. import rebootcheck                 # (reboot, reason) cached ONCE — the header chip reads
         ctx._primary_state = primarygit.state(ctx)  # the header's ↑/↓ chip (local; Plugins fetches)
+        ctx._primary_push_mode = primarygit.push_mode(ctx)
         ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in _draw
                                if ctx.config.reboot_advice() else (False, ''))
         diags = ctx.diagnostics(states)
@@ -4827,11 +4907,16 @@ def run(ctx):
             # so this reads exactly as global-then-screens did.
             gact, dest = _route_key(keymap, screen, ch)
             if gact == 'quit-force':                     # leave immediately, no confirm (harder to hit)
+                pending_notes.extend(_quit_push(stdscr, pal, ctx, force=True)[1])
                 break
             if gact == 'quit':                          # confirm before leaving; esc no longer quits
-                if _popup_choose(stdscr, pal, 'Really quit?',
-                                 [('Yes, quit', ''), ('No, keep working', '')], start=1,
-                                 shortcuts={'y': 0, 'n': 1}) == 0:
+                _leave, _qnotes = _quit_push(stdscr, pal, ctx)   # primary-push: ask / auto
+                if _leave is None:
+                    _leave = _popup_choose(stdscr, pal, 'Really quit?',
+                                           [('Yes, quit', ''), ('No, keep working', '')], start=1,
+                                           shortcuts={'y': 0, 'n': 1}) == 0
+                if _leave:
+                    pending_notes.extend(_qnotes)
                     break
                 continue
             if gact == 'issues':                        # the `!` page: diagnostics + file an issue
@@ -4897,6 +4982,7 @@ def run(ctx):
             if _snap is not None:
                 _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note)
                 ctx._primary_state = primarygit.state(ctx)          # the chip / Plugins row follow it
+                ctx._primary_push_mode = primarygit.push_mode(ctx)  # (a Config edit may change it)
                 if _reg.get('plugins') is not None:
                     _reg['plugins'].model.primary_state = ctx._primary_state
                 if _cnotes:
