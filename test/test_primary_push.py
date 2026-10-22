@@ -1,7 +1,7 @@
 '''Primary-push plan, phase 3 (docs/todo/primary-push-plan.md): `configsys plugin push` commits, combines
 with what your other machines pushed (asking per file when both changed the same lines), and pushes to
 the primary's branch — never leaving a half-done rebase, never sweeping in your hand edits unasked —
-plus the `primary-push: ask | auto | manual` setting and the TUI's quit prompt and `P` key.'''
+plus the `primary-push: ask | auto | auto-on-quit | manual` setting and the TUI's quit prompt and `P` key.'''
 
 import shutil
 import subprocess
@@ -259,6 +259,16 @@ def test_manual_stays_quiet(primary, capsys):
     assert 'fzf' not in _remote_file(bare)
 
 
+@needs_git
+def test_auto_on_quit_leaves_cli_commands_unpushed(primary, capsys):
+    base, _clone, bare, _other = primary
+    assert main(base + ['config', 'set', 'primary-push', 'auto-on-quit']) == 0
+    capsys.readouterr()
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    assert 'not pushed yet' in capsys.readouterr().out                    # the TUI quit pushes it
+    assert 'fzf' not in _remote_file(bare)
+
+
 def test_failures_are_explained_in_plain_words():
     say = lambda t: primarygit.explain_git_failure(t, name='prim', root='/r', source='github:me/prim')
     assert 'SSH key' in say('git@github.com: Permission denied (publickey).\nfatal: Could not read')
@@ -326,6 +336,18 @@ def test_quit_under_auto_pushes_and_force_never_stops(monkeypatch):
     calls = _quit(monkeypatch, ahead=1, mode='ask')
     leave, notes = menu._quit_push(None, None, _FakeCtx(), force=True)
     assert leave and calls == [] and 'plugin push' in notes[0]
+
+
+def test_quit_under_auto_on_quit_pushes_even_on_quit_force(monkeypatch):
+    for force in (False, True):
+        calls = _quit(monkeypatch, ahead=1, mode='auto-on-quit')
+        assert menu._quit_push(None, None, _FakeCtx(), force=force) == (True, ['pushed 2 changes to x'])
+        assert calls == ['push']
+    calls = _quit(monkeypatch, ahead=1, mode='auto')                     # plain auto: Q still just notes
+    leave, notes = menu._quit_push(None, None, _FakeCtx(), force=True)
+    assert leave and calls == [] and 'plugin push' in notes[0]
+    calls = _quit(monkeypatch, ahead=1, mode='auto-on-quit', push_ok=False)
+    assert menu._quit_push(None, None, _FakeCtx(), force=True)[1][0].startswith('not pushed automatically')
 
 
 def test_the_plugins_screen_P_pushes(monkeypatch, tmp_path):

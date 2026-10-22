@@ -651,7 +651,8 @@ CONFIG_SETTINGS = {
     'primary-push':      ('scalar', "When your primary plugin is pushed to its remote: 'ask' (default; "
                                     'offered when you quit the TUI with changes not pushed), '
                                     "'auto' (after each command that changes it, and when you quit "
-                                    "the TUI), or 'manual' (only `plugin push` / P).",
+                                    "the TUI), 'auto-on-quit' (only when you quit the TUI, Q "
+                                    "included), or 'manual' (only `plugin push` / P).",
                           'configsys.hu(5)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "

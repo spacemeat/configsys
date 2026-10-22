@@ -4815,14 +4815,15 @@ def _command_words(argv, command):
 
 def _after_primary_commit(ctx):
     '''A CLI command just committed to the primary: under `primary-push: auto` push it (a failure is
-    one line, retried next time); under `ask` say it isn't pushed yet; under `manual` stay quiet.'''
+    one line, retried next time); under `ask` / `auto-on-quit` (which pushes only when you quit the
+    TUI) say it isn't pushed yet; under `manual` stay quiet.'''
     from . import primarygit
     mode = primarygit.push_mode(ctx)
     if mode == 'auto':
         ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
         if lines:
             print(f'configsys: {lines[-1] if ok else "not pushed automatically — " + lines[-1]}')
-    elif mode == 'ask':
+    elif mode in ('ask', 'auto-on-quit'):
         st = primarygit.state(ctx)
         if st and st['ahead']:
             print(f'configsys: saved to {st["name"]} — {primarygit._count(st["ahead"])} not pushed '

@@ -715,8 +715,9 @@ def _push_primary(stdscr, pal, ctx):
 def _quit_push(stdscr, pal, ctx, force=False):
     '''What quitting does about a primary with changes not pushed, per `primary-push`. Returns
     (quit?, notes to print after exit). ask: one prompt — push and quit / quit / keep working (the
-    default, like the plain quit confirm). auto: push without asking. manual: nothing. `force`
-    (quit-force) never stops to push; it leaves a note instead.'''
+    default, like the plain quit confirm). auto: push without asking. auto-on-quit: push without
+    asking, quit-force included. manual: nothing. `force` (quit-force) otherwise never stops to push;
+    it leaves a note instead.'''
     try:
         st, mode = primarygit.state(ctx), primarygit.push_mode(ctx)
     except Exception:                               # noqa: BLE001
@@ -725,9 +726,9 @@ def _quit_push(stdscr, pal, ctx, force=False):
     if mode == 'manual' or not ahead:
         return None, []
     later = f'{st["name"]}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares them.'
-    if force:
+    if force and mode != 'auto-on-quit':
         return True, [later]
-    if mode == 'auto':
+    if mode in ('auto', 'auto-on-quit'):
         ok, lines = _push_primary(stdscr, pal, ctx)
         return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
     c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st["name"]} not pushed yet.',
@@ -1202,7 +1203,7 @@ _HELP = {
                        '(a file both changed is asked about: keep this machine\'s, keep the other\'s, or '
                        'edit both), then push. Edits you made by hand are only included if you say so. '
                        'The primary-push setting decides whether quitting offers it (ask), does it '
-                       '(auto) or leaves it to you (manual)'),
+                       '(auto; auto-on-quit also on Q) or leaves it to you (manual)'),
             ('⊘ locked', 'L locks the plugin on this machine: no sync, update, bless or trust until L '
                          'unlocks it. A synced copy keeps loading as it is — x removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
@@ -4910,7 +4911,7 @@ def run(ctx):
                 pending_notes.extend(_quit_push(stdscr, pal, ctx, force=True)[1])
                 break
             if gact == 'quit':                          # confirm before leaving; esc no longer quits
-                _leave, _qnotes = _quit_push(stdscr, pal, ctx)   # primary-push: ask / auto
+                _leave, _qnotes = _quit_push(stdscr, pal, ctx)   # primary-push: ask / auto / auto-on-quit
                 if _leave is None:
                     _leave = _popup_choose(stdscr, pal, 'Really quit?',
                                            [('Yes, quit', ''), ('No, keep working', '')], start=1,

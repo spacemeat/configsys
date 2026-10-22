@@ -160,7 +160,9 @@ committing CLI command and on TUI quit, asking nothing, failures one line; manua
 never stops to push (a note). The header chip hides ↑ under auto. Sync notes for the primary point at
 `plugin push` (`plugins.sync_note(primary=True)`). Differences from the sketch: a conflicted replay is
 redone as a merge rather than a rebase (per-file answers apply cleanly to one merge); "auto" pushes on
-TUI quit rather than after every TUI action (no network on the UI thread per keypress). Tests:
+TUI quit rather than after every TUI action (no network on the UI thread per keypress). Added after:
+`auto-on-quit` = auto's no-questions push, but only on TUI quit — `Q` included (the one mode where
+quit-force pushes); the CLI prints the ask line; the chip hides ↑ as under auto. Tests:
 test/test_primary_push.py; `plugin push` is in the pretend sweep.
 
 ### The original sketch

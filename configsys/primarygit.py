@@ -184,7 +184,7 @@ def glyphs(st):
 
 def chip(st, *, hide_ahead=False):
     '''The header chip text, or '' when there's nothing to push or sync. `hide_ahead` (under
-    `primary-push: auto`, where configsys pushes for you) leaves out the ↑ part.'''
+    `primary-push: auto` / `auto-on-quit`, where configsys pushes for you) leaves out the ↑ part.'''
     ahead = 0 if hide_ahead or not st else st['ahead']
     if not st or not (ahead or st['behind']):
         return ''
@@ -216,11 +216,11 @@ def describe(st):
 
 # -- publishing it (phase 3: `configsys plugin push`, the Plugins `P` key, the `primary-push` setting) --
 
-PUSH_MODES = ('ask', 'auto', 'manual')
+PUSH_MODES = ('ask', 'auto', 'auto-on-quit', 'manual')
 
 
 def push_mode(ctx):
-    '''The `primary-push` setting: 'ask' (default), 'auto' or 'manual'.'''
+    '''The `primary-push` setting: 'ask' (default), 'auto', 'auto-on-quit' or 'manual'.'''
     try:
         return ctx.config.primary_push()
     except Exception:                                  # noqa: BLE001 — a fake/odd ctx: the default

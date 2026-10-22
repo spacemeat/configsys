@@ -323,7 +323,8 @@ this machine's version, keep the other's, or edit both. It never leaves you half
 operation. The `primary-push` setting decides when this happens:
 
 - `ask` (the default): quitting the TUI offers to push.
-- `auto`: configsys pushes for you.
+- `auto`: configsys pushes for you, after each command and when you quit the TUI.
+- `auto-on-quit`: configsys pushes for you only when you quit the TUI (`Q` too).
 - `manual`: only when you run `plugin push` or press `P`.
 
 ## Commands

@@ -512,7 +512,7 @@ Nothing is committed under `--pretend`.
 pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) and `●` (edits not committed
 yet); both arrows at once mean the two sides need combining before a push. The screen fetches the
 primary in the background to count `↓`. The Components header shows `<primary>: ↑N to push, ↓N to
-sync` whenever there's something either way (under `primary-push: auto`, only the `↓` part), and
+sync` whenever there's something either way (under `primary-push: auto` or `auto-on-quit`, only the `↓` part), and
 `plugin list` says the same in words (`↓` there is as of the last fetch or sync).
 
 **Publishing it.** `configsys plugin push` (or `P` on the Plugins screen) shares your primary with
@@ -551,9 +551,12 @@ the command line). Nothing is pushed under `--pretend`.
 - `auto` — the CLI pushes after each command that changed the primary, and quitting the TUI pushes
   without asking. Nothing is asked: your own edits stay out, and a conflict leaves it unpushed with a
   one-line note (`plugin push` settles it). A failure is retried the next time.
+- `auto-on-quit` — like `auto`, but only quitting the TUI pushes, `Q` included. After a command that
+  changed the primary, the CLI says it isn't pushed yet.
 - `manual` — only `plugin push` / `P`, the marks and the header chip.
 
-Quitting with `Q` (quit without confirming) never stops to push; under `ask` or `auto` it leaves a note.
+Quitting with `Q` (quit without confirming) pushes only under `auto-on-quit`; under `ask` or `auto` it
+leaves a note instead.
 
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:

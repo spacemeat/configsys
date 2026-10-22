@@ -320,11 +320,12 @@ class Config:
     def primary_push(self):
         '''When the primary plugin is pushed: 'ask' (default — offered when you quit the TUI with
         changes not pushed), 'auto' (pushed after each CLI command that changed it and when you quit
-        the TUI) or 'manual' (only `plugin push` / the Plugins `P` key). A machine setting
+        the TUI), 'auto-on-quit' (pushed only when you quit the TUI — `Q` included) or 'manual' (only
+        `plugin push` / the Plugins `P` key). A machine setting
         (repo < primary < user).'''
         v = layers.merge_scalar(self._layers, 'primary-push', _MACHINE_ROLES)
         v = str(v).strip().lower() if v is not None else 'ask'
-        return v if v in ('ask', 'auto', 'manual') else 'ask'
+        return v if v in ('ask', 'auto', 'auto-on-quit', 'manual') else 'ask'
 
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
