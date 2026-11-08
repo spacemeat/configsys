@@ -269,15 +269,17 @@ def test_the_cli_and_tui_ask_about_overlapping_edits(monkeypatch, capsys):
     from configsys.tui import menu
     cli = _CliPushUI()
     cli.interactive = False                                       # no terminal: the cautious answer
-    assert cli.overlapping('prim', ['notes.txt']) == 'stop'
+    q = primarygit.question('overlap', name='prim', items=['notes.txt'])
+    assert cli.ask(q) == 'stop'
     assert 'overlap' in capsys.readouterr().out
     cli.interactive = True
     monkeypatch.setattr('builtins.input', lambda prompt: 'i')
-    assert cli.overlapping('prim', ['notes.txt']) == 'include'
+    assert cli.ask(q) == 'include'
     seen = []
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 0)
-    assert menu._TuiPushUI(None, None).overlapping('prim', ['a', 'b']) == 'stop'   # the default
-    assert seen == ['prim: your edits to 2 files overlap what your other machine pushed']
+    two = primarygit.question('overlap', name='prim', items=['a', 'b'])
+    assert menu._TuiPushUI(None, None).ask(two) == 'stop'          # the first choice
+    assert seen == ['prim: your uncommitted edits to 2 files overlap what your other machine pushed']
 
 
 # -- the small fixes (plan phase 4) -------------------------------------------------------------
@@ -349,8 +351,10 @@ def test_settings_in_one_file_are_numbered_by_setting(primary):
     seen = []
 
     class UI(Scripted):
-        def resolve_value(self, name, path, words, i, n):
-            seen.append((i, n))
+        def ask(self, q):
+            if q.kind != 'value':
+                return super().ask(q)
+            seen.append((q.index, q.count))
             return 'mine'
     ok, lines = primarygit.push(_ctx(base), UI())
     assert ok, lines
@@ -434,10 +438,14 @@ def test_the_cli_confirms_on_a_terminal_unless_yes(monkeypatch, capsys):
     ui = _CliPushUI()
     ui.interactive = True
     monkeypatch.setattr('builtins.input', lambda prompt: 'n')
-    assert ui.confirm_push('prim', 'github:me/prim', ['abc1234 picks add yq'], ['p.hu']) is False
+    q = primarygit.question('confirm-push', name='prim', items=['abc1234 picks add yq'], files=['p.hu'],
+                            source='github:me/prim')
+    assert ui.ask(q) is False
     out = capsys.readouterr().out
     assert 'abc1234 picks add yq' in out and 'p.hu' in out and 'github:me/prim' in out
-    assert _CliPushUI(yes=True).confirm_push('prim', 's', ['x'], ['f']) is True
+    monkeypatch.setattr('builtins.input', lambda prompt: '')
+    assert ui.ask(q) is False                                       # Enter: the cautious answer
+    assert _CliPushUI(yes=True).ask(q) is True
     quiet = _CliPushUI()
     quiet.interactive = False                                       # a script: the command is consent
-    assert quiet.confirm_push('prim', 's', ['x'], ['f']) is True
+    assert quiet.ask(q) is True

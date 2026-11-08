@@ -2975,63 +2975,30 @@ def _print_sync(ctx, results):
 
 
 class _CliPushUI:
-    '''`plugin push`'s questions, asked on the terminal (the cautious answer when it isn't one).'''
+    '''`plugin push`'s questions (`primarygit.Question`), asked on the terminal: the title, what it
+    lists, then its choices as `[k] label`. Not a terminal: the question's unattended answer.
+    `include` (--include-edits) answers include-own yes; `yes` (--yes) answers confirm-push yes.'''
 
     def __init__(self, include=False, yes=False):
         self.interactive = sys.stdin.isatty() and sys.stdout.isatty()
         self.include, self.yes = include, yes
 
-    def _ask(self, prompt, keys, default):
-        if not self.interactive:
-            return default
-        try:
-            ans = input(prompt).strip().lower()[:1]
-        except EOFError:
-            return default
-        return ans if ans in keys else default
-
-    def include_own(self, name, paths):
-        print(f'configsys: {name} has edits you made yourself, not committed:')
-        for p in paths[:20]:
-            print(f'    {p}')
-        if len(paths) > 20:
-            print(f'    … and {len(paths) - 20} more')
-        return self.include or self._ask('Include them in the push? [y/N] ', 'yn', 'n') == 'y'
-
-    def overlapping(self, name, paths):
-        print(f'configsys: your uncommitted edits to {", ".join(paths)} overlap what your other '
-              f'machine pushed.')
-        ans = self._ask('  [i] include them in this push  [s] stop — push nothing, change nothing: ',
-                        'is', 's')
-        return 'include' if ans == 'i' else 'stop'
-
-    def switch_to_branch(self, name, ref, branch):
-        return self._ask(f'Make {name} follow {branch} instead, so every push reaches your other '
-                         f'machines? [y/N] ', 'yn', 'n') == 'y'
-
-    def confirm_push(self, name, source, commits, files):
-        if self.yes or not self.interactive:           # --yes, or a script: the command is consent
+    def ask(self, q):
+        if q.kind == 'confirm-push' and (self.yes or not self.interactive):
+            return True                                # --yes, or a script: the command is consent
+        print(f'configsys: {q.title}')
+        for line in q.listing():
+            print(f'    {line}')
+        if q.kind == 'include-own' and self.include:
             return True
-        print(f'configsys: {name}: {len(commits)} change{"s" if len(commits) != 1 else ""} to push to {source}:')
-        for c in commits[:20]:
-            print(f'    {c}')
-        if len(commits) > 20:
-            print(f'    … and {len(commits) - 20} more')
-        print(f'  files: {", ".join(files[:20])}' + (f' … and {len(files) - 20} more' if len(files) > 20 else ''))
-        return self._ask('Push them? [y/N] ', 'yn', 'n') == 'y'
-
-    def resolve(self, name, path, what, i, n):
-        print(f'configsys: {name}: {path} ({i + 1} of {n}) — {what}.')
-        ans = self._ask('  [m] keep this machine\'s  [t] keep the other machine\'s  [e] edit both in '
-                        'your editor  [s] stop: ', 'mtes', 's')
-        return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
-
-    def resolve_value(self, name, path, words, i, n):
-        print(f'configsys: {name}: {path}, setting {i + 1} of {n} — {words}')
-        dropped = ' (your answers above for this file are set aside)' if i else ''
-        ans = self._ask(f'  [m] keep this machine\'s  [t] keep the other machine\'s  [e] show me the '
-                        f'file in your editor{dropped}  [s] stop: ', 'mtes', 's')
-        return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
+        if not self.interactive:
+            return q.unattended
+        prompt = '  ' + '  '.join(f'[{c.key}] {c.label}' for c in q.choices) + ': '
+        try:
+            key = input(prompt).strip().lower()[:1]
+        except EOFError:
+            return q.enter
+        return q.answer(key)
 
     def edit(self, path):
         _edit_conflict(path)

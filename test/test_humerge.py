@@ -249,11 +249,15 @@ def test_the_cli_and_tui_ask_per_key(monkeypatch):
     from configsys.tui import menu
     cli = _CliPushUI()
     cli.interactive = False
-    assert cli.resolve_value('prim', 'p.hu', 'This machine set `a: 1`; …', 0, 1) == 'stop'
+    q = primarygit.question('value', name='prim', path='p.hu', detail='This machine set `a: 1`; …')
+    assert cli.ask(q) == 'stop'
     seen = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 1)
-    assert menu._TuiPushUI(None, None).resolve_value('prim', 'p.hu', 'words', 0, 2) == 'theirs'
-    assert seen == ['p.hu, setting 1/2: words']
+    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append((a[2], a[3])) or 1)
+    q = primarygit.question('value', name='prim', path='p.hu', detail='words', index=1, count=2)
+    assert menu._TuiPushUI(None, None).ask(q) == 'theirs'
+    title, options = seen[0]
+    assert title == 'prim: p.hu, setting 2 of 2 — words'
+    assert options[2] == ('Show me the file in my editor (sets aside the answers above)', 'e')
 
 
 @needs_git

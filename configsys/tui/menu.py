@@ -669,46 +669,16 @@ class _TuiPushUI(primarygit.PushUI):
     def __init__(self, stdscr, pal):
         self.stdscr, self.pal = stdscr, pal
 
-    def include_own(self, name, paths):
-        title = f'{name}: {primarygit._count(len(paths), "file")} you edited by hand — push them too?'
-        return _popup_choose(self.stdscr, self.pal, title,
-                             [('Leave them out (they stay here)', ''), ('Include them', '')],
-                             start=0, shortcuts={'n': 0, 'y': 1}) == 1
-
-    def overlapping(self, name, paths):
-        what = paths[0] if len(paths) == 1 else primarygit._count(len(paths), 'file')
-        c = _popup_choose(self.stdscr, self.pal,
-                          f'{name}: your edits to {what} overlap what your other machine pushed',
-                          [('Stop — push nothing, change nothing', 's'), ('Include them in this push', 'i')],
-                          start=0, shortcuts={'s': 0, 'i': 1})
-        return 'include' if c == 1 else 'stop'
-
-    def switch_to_branch(self, name, ref, branch):
-        title = f'{name} is pinned to {ref or "a commit"} — follow {branch} so pushes reach your machines?'
-        return _popup_choose(self.stdscr, self.pal, title, [('No, leave it pinned', ''),
-                             (f'Yes, follow {branch}', '')], start=0, shortcuts={'n': 0, 'y': 1}) == 1
-
-    def resolve(self, name, path, what, i, n):
-        c = _popup_choose(self.stdscr, self.pal, f'{path} ({i + 1}/{n}): {what}',
-                          [("Keep this machine's", 'm'), ("Keep the other machine's", 't'),
-                           ('Edit both in my editor', 'e'), ('Stop — push nothing', 's')],
-                          start=0, shortcuts={'m': 0, 't': 1, 'e': 2, 's': 3})
-        return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
-
-    def resolve_value(self, name, path, words, i, n):
-        edit = 'Show me the file in my editor' + (' (sets aside the answers above)' if i else '')
-        c = _popup_choose(self.stdscr, self.pal, f'{path}, setting {i + 1}/{n}: {words}',
-                          [('Keep this one', 'm'), ("Keep the other machine's", 't'),
-                           (edit, 'e'), ('Stop — push nothing', 's')],
-                          start=0, shortcuts={'m': 0, 't': 1, 'e': 2, 's': 3})
-        return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
-
-    def confirm_push(self, name, source, commits, files):
-        shown = '; '.join(c.split(' ', 1)[-1] for c in commits[:3]) + (' …' if len(commits) > 3 else '')
-        c = _popup_choose(self.stdscr, self.pal,
-                          f'Push {primarygit._count(len(commits))} to {source}? {shown}',
-                          [('Push', 'p'), ("Don't push", 'n')], start=0, shortcuts={'p': 0, 'n': 1})
-        return c == 0
+    def ask(self, q):
+        '''A `primarygit.Question` as a popup: its title (with the first few listed items), its
+        choices with their letters; Enter starts on the cautious answer, Esc gives it.'''
+        shown = '; '.join(it.split(' ', 1)[-1] if q.kind == 'confirm-push' else it for it in q.items[:3])
+        title = q.title + (f' — {shown}' + (' …' if len(q.items) > 3 else '') if shown and q.kind in
+                           ('include-own', 'confirm-push') else '')
+        start = next((i for i, c in enumerate(q.choices) if c.answer == q.enter), 0)
+        i = _popup_choose(self.stdscr, self.pal, title, [(c.label, c.key) for c in q.choices], start=start,
+                          shortcuts={c.key: i for i, c in enumerate(q.choices)})
+        return q.choices[i].answer if i is not None else q.enter
 
     def edit(self, path):
         from ..app import _edit_conflict

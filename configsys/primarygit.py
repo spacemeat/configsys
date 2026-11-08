@@ -29,7 +29,9 @@ import os
 import re
 import shlex
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
+from typing import NamedTuple
 
 
 # git's repository-locating variables (`git rev-parse --local-env-vars`, as of git 2.34) — removed from
@@ -497,29 +499,102 @@ def push_mode(ctx):
         return 'ask'
 
 
+class Choice(NamedTuple):
+    answer: object                                     # what `ask` returns for it
+    key: str                                           # its one-letter shortcut
+    label: str
+
+
+_KEEP = (Choice('mine', 'm', "Keep this machine's"), Choice('theirs', 't', "Keep the other machine's"))
+_STOP = Choice('stop', 's', 'Stop — push nothing')
+
+# Every question `push` asks: kind -> (choices, the answer for Enter / Esc, the answer when nobody can
+# be asked). Both are the cautious one, except that an unattended push needs no "send it?" — the
+# command was the consent. The CLI and the TUI render these same choices.
+QUESTIONS = {
+    'include-own': ((Choice(False, 'n', 'Leave them out (they stay here)'), Choice(True, 'y', 'Include them')),
+                    False, False),
+    'overlap': ((Choice('stop', 's', 'Stop — push nothing, change nothing'),
+                 Choice('include', 'i', 'Include them in this push')), 'stop', 'stop'),
+    'switch-branch': ((Choice(False, 'n', 'No, leave it pinned'), Choice(True, 'y', 'Yes, follow {branch}')),
+                      False, False),
+    'file': (_KEEP + (Choice('edit', 'e', 'Edit both in my editor'), _STOP), 'stop', 'stop'),
+    'value': (_KEEP + (Choice('edit', 'e', 'Show me the file in my editor{aside}'), _STOP), 'stop', 'stop'),
+    'confirm-push': ((Choice(True, 'p', 'Push'), Choice(False, 'n', "Don't push")), False, True),
+}
+
+
+@dataclass(frozen=True)
+class Question:
+    '''One question `push` asks, as data: the UI renders `title`, the `items` listed under it (and
+    `files`, for confirm-push) and the `choices`, and returns one choice's `answer`. Every text is
+    already safe to show (`_printable`). The facts (`path`, `index`/`count`, `ref`/`branch`, …) are
+    there for a UI or a test that wants them.'''
+    kind: str
+    title: str
+    choices: tuple
+    enter: object
+    unattended: object
+    items: tuple = ()
+    files: tuple = ()
+    path: str = None
+    detail: str = None
+    index: int = 0
+    count: int = 1
+    ref: str = None
+    branch: str = None
+
+    def answer(self, key):
+        '''The answer a typed key means, else the Enter answer.'''
+        return next((c.answer for c in self.choices if c.key == key), self.enter)
+
+    def listing(self, most=20):
+        '''The lines to show under the title: the items (at most `most`), then confirm-push's files.'''
+        out = list(self.items[:most])
+        if len(self.items) > most:
+            out.append(f'… and {len(self.items) - most} more')
+        if self.files:
+            out.append(f'files: {", ".join(self.files[:most])}'
+                       + (f' … and {len(self.files) - most} more' if len(self.files) > most else ''))
+        return out
+
+
+def question(kind, *, name, items=(), files=(), path=None, detail=None, index=0, count=1, ref=None,
+             branch=None, source=None):
+    '''Build the `kind` question (a key of QUESTIONS), with its title worded once for every UI.'''
+    name, items, files = _printable(name), tuple(map(_printable, items)), tuple(map(_printable, files))
+    path, detail = (_printable(path) if path is not None else None), (_printable(detail) if detail else None)
+    choices, enter, unattended = QUESTIONS[kind]
+    fill = {'branch': branch or 'its branch', 'aside': ' (sets aside the answers above)' if index else ''}
+    choices = tuple(c._replace(label=c.label.format(**fill)) for c in choices)
+    if kind == 'include-own':
+        title = f'{name}: {_count(len(items), "file")} you edited by hand, not committed — push them too?'
+    elif kind == 'overlap':
+        what = items[0] if len(items) == 1 else _count(len(items), 'file')
+        title = f'{name}: your uncommitted edits to {what} overlap what your other machine pushed'
+    elif kind == 'switch-branch':
+        title = (f'{name} is pinned to {_printable(ref or "a fixed commit")} — follow {branch} instead, so '
+                 f'every push reaches your other machines?')
+    elif kind == 'file':
+        title = f'{name}: {path} ({index + 1} of {count}) — {detail}'
+    elif kind == 'value':
+        title = f'{name}: {path}, setting {index + 1} of {count} — {detail}'
+    elif kind == 'confirm-push':
+        title = f'{name}: push {_count(len(items))} to {_printable(source)}?'
+    else:
+        raise KeyError(kind)
+    return Question(kind, title, choices, enter, unattended, items, files, path, detail, index, count,
+                    ref, branch)
+
+
 class PushUI:
-    '''How `push` asks its questions. This base answers every one the cautious way (no prompt): your
-    own edits stay out, a tag-pinned primary stays pinned, a conflict stops with your work intact. The
-    CLI and the TUI subclass it to ask.'''
+    '''How `push` asks its questions. This base answers each one unattended — the cautious way: your
+    own edits stay out, a tag-pinned primary stays pinned, a conflict stops with your work intact (and
+    the push itself goes ahead: the command was the consent). The CLI and the TUI subclass it to ask.'''
     interactive = False                                # may git prompt on the terminal (ssh passphrase)?
 
-    def include_own(self, name, paths):                # your uncommitted edits: push them too?
-        return False
-
-    def overlapping(self, name, paths):                # edits left out that overlap what came in
-        return 'stop'                                  #   -> 'include' (commit + push them) | 'stop'
-
-    def switch_to_branch(self, name, ref, branch):     # a tag-pinned primary: follow `branch` instead?
-        return False
-
-    def resolve(self, name, path, what, i, n):         # -> 'mine' | 'theirs' | 'edit' | 'stop'
-        return 'stop'
-
-    def resolve_value(self, name, path, words, i, n):  # one key both changed -> 'mine' | 'theirs' |
-        return 'stop'                                  #   'edit' (the whole file) | 'stop'
-
-    def confirm_push(self, name, source, commits, files):   # what leaves the machine: send it?
-        return True                                    #   (no prompt = the command was the consent)
+    def ask(self, q):                                  # a Question -> one of its choices' answers
+        return q.unattended
 
     def edit(self, path):                              # open a file with conflict markers in an editor
         pass
@@ -623,9 +698,10 @@ def _primary(ctx):
 
 def push(ctx, ui=None):
     '''Publish the primary: commit (your own edits only if you say so), fetch, replay this machine's
-    commits on top of the remote's, push to its branch. Returns (ok, [lines]). A conflict is asked about
-    per file (`ui.resolve`); anything left unsettled ends with nothing pushed and your work intact.
-    Nothing happens under --pretend.'''
+    commits on top of the remote's, show what will leave and push to its branch. Returns (ok, [lines]).
+    Every question is a `Question` passed to `ui.ask` — a conflict per key in a `.hu` file, per file
+    otherwise; anything left unsettled ends with nothing pushed and your work intact. Nothing happens
+    under --pretend (it previews instead).'''
     from . import plugins
     ui = ui or PushUI()
     try:
@@ -655,7 +731,7 @@ def push(ctx, ui=None):
         target = plugins.default_branch(ctx.runner, root) or 'main'
         lines.append(f'{name} is pinned to {ref or "a fixed commit"}, so your other machines stay '
                      f'frozen there and a push wouldn\'t reach them (configsys never tags for you).')
-        if not ui.switch_to_branch(name, ref, target):
+        if not ui.ask(question('switch-branch', name=name, ref=ref, branch=target)):
             return False, lines + [f'Left as is. To publish anyway, tag and push it yourself in {root}, '
                                    f'then `configsys plugin update {name} --ref <tag>` on each machine.']
         was = repo.text('rev-parse', 'HEAD')           # switch first; write `ref:` only once it worked
@@ -682,7 +758,7 @@ def push(ctx, ui=None):
                                f'then push again.']
     mine, mine_left = repo.dirty() or set(), set()
     if mine:
-        if ui.include_own(name, [_printable(p) for p in sorted(mine)]):
+        if ui.ask(question('include-own', name=name, items=sorted(mine))):
             ok, why = _commit_paths(repo, [], sorted(mine), 'Edits made by hand',
                                     _made_by(ctx, 'Included by configsys plugin push'))
             if not ok:
@@ -713,7 +789,7 @@ def push(ctx, ui=None):
         return True, lines + [msg]
     overlap = sorted(mine_left & repo.incoming(upstream)) if behind and mine_left else []
     if overlap:                                        # combining would leave conflict markers in them
-        if ui.overlapping(name, [_printable(p) for p in overlap]) != 'include':
+        if ui.ask(question('overlap', name=name, items=overlap)) != 'include':
             return False, lines[:-1] + [
                 f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what your other '
                 f'machine pushed, so nothing was combined or pushed, and nothing here changed. Commit '
@@ -731,7 +807,7 @@ def push(ctx, ui=None):
             return False, lines
         ahead, _b = repo.ahead_behind(upstream)
     commits, files = _outgoing(repo, None if first else upstream)
-    if not ui.confirm_push(name, source, [_printable(c) for c in commits], [_printable(f) for f in files]):
+    if not ui.ask(question('confirm-push', name=name, items=commits, files=files, source=source)):
         return False, lines + [f'{name}: not pushed — your changes stay committed here.']
     ui.progress(f'pushing {name} …')
     p = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
@@ -875,7 +951,7 @@ def _replay(ctx, ui, name, repo, upstream):
     '''The combine itself, on a clean tree. A clean replay is a rebase — with `.hu` files merged key
     by key (`humerge`, so two machines adding picks to their own columns is no conflict). When the
     replay still hits a conflict it is backed out, each conflict is asked about — per key in a `.hu`
-    file (`ui.resolve_value`), per file otherwise (`ui.resolve`) — and the two sides are merged with
+    file (a `value` question), per file otherwise (a `file` question) — and the two sides are merged with
     those answers. (ok, [lines]); on not-ok the caller restores.'''
     root = repo.root
     drv, notes = _merge_driver(repo)
@@ -895,7 +971,8 @@ def _replay(ctx, ui, name, repo, upstream):
         settled = _settle_hu(ui, name, repo, path, i, len(conflicted))
         if settled == 'done':
             continue
-        choice = settled or ui.resolve(name, _printable(path), _what_changed(repo, path), i, len(conflicted))
+        choice = settled or ui.ask(question('file', name=name, path=path, detail=_what_changed(repo, path),
+                                            index=i, count=len(conflicted)))
         if choice in ('mine', 'theirs'):
             _take(repo, path, 'ours' if choice == 'mine' else 'theirs')
         elif choice == 'edit':
@@ -919,7 +996,7 @@ def _replay(ctx, ui, name, repo, upstream):
 
 def _settle_hu(ui, name, repo, path, i, n):
     '''A conflicted `.hu` file, key by key: each key both machines changed differently is asked about
-    (`ui.resolve_value`, numbered key k of this file's conflicts — a k past 0 means earlier keys were
+    (a `value` question, numbered key k of this file's conflicts — a k past 0 means earlier keys were
     answered, which "show me the file" sets aside, the UI says). Returns 'done' (merged and staged),
     'edit' / 'stop' (the answer for the whole file), or None (not a file this can merge: ask about
     the whole file).'''
@@ -935,7 +1012,8 @@ def _settle_hu(ui, name, repo, path, i, n):
         return None                                    # text humerge can't read: the file question
     answers = {}
     for k, c in enumerate(res.conflicts):             # numbered by key within this file
-        choice = ui.resolve_value(name, _printable(path), _printable(c.words()), k, len(res.conflicts))
+        choice = ui.ask(question('value', name=name, path=path, detail=c.words(), index=k,
+                                 count=len(res.conflicts)))
         if choice not in ('mine', 'theirs'):
             return choice if choice == 'edit' else 'stop'
         answers[c.path] = choice

@@ -65,30 +65,20 @@ class Scripted(primarygit.PushUI):
         self.confirm = confirm
         self.asked, self.confirms = [], []                 # confirms: the "push these?" questions
 
-    def confirm_push(self, name, source, commits, files):
-        self.confirms.append((tuple(commits), tuple(files)))
-        return self.confirm
-
-    def overlapping(self, name, paths):
-        self.asked.append(('overlap', tuple(paths)))
-        return self.overlap
-
-    def include_own(self, name, paths):
-        self.asked.append(('include', tuple(paths)))
-        return self.include
-
-    def switch_to_branch(self, name, ref, branch):
-        self.asked.append(('switch', ref, branch))
-        return self.switch
-
-    def resolve(self, name, path, what, i, n):
-        self.asked.append(('resolve', path, what))
-        if self.raise_on is not None:
-            raise self.raise_on
-        return self.choice
-
-    def resolve_value(self, name, path, words, i, n):
-        self.asked.append(('value', path, words))
+    def ask(self, q):
+        if q.kind == 'confirm-push':
+            self.confirms.append((q.items, q.files))
+            return self.confirm
+        if q.kind == 'overlap':
+            self.asked.append(('overlap', q.items))
+            return self.overlap
+        if q.kind == 'include-own':
+            self.asked.append(('include', q.items))
+            return self.include
+        if q.kind == 'switch-branch':
+            self.asked.append(('switch', q.ref, q.branch))
+            return self.switch
+        self.asked.append(('resolve' if q.kind == 'file' else 'value', q.path, q.detail))
         if self.raise_on is not None:
             raise self.raise_on
         return self.choice
@@ -383,3 +373,33 @@ def test_the_plugins_screen_P_pushes(monkeypatch, tmp_path):
     scr.model.load_diff = lambda: None
     intent = scr.handle(ord('P'), ctx, None, None)
     assert intent.note == 'pushed 1 change' and intent.pending_notes == ['left out x']
+
+
+@pytest.mark.parametrize('kind', sorted(primarygit.QUESTIONS))
+def test_every_question_renders_the_same_choices_on_both_uis(kind, monkeypatch, capsys):
+    # F1: one Question, one choice table — the CLI and the TUI can't drift apart in wording or keys,
+    # and Enter / Esc / no terminal always give the question's own cautious answers
+    from configsys.app import _CliPushUI
+    from configsys.tui import menu
+    q = primarygit.question(kind, name='prim', items=['a\x1b[2Jb'], files=['f'], path='p.hu',
+                            detail='what', ref='v1', branch='main', source='github:me/prim')
+    keys = [c.key for c in q.choices]
+    assert len(set(keys)) == len(keys) and q.enter in [c.answer for c in q.choices]
+    assert '\x1b' not in q.title + ''.join(q.listing())                 # A5: made safe once, here
+    assert primarygit.PushUI().ask(q) == q.unattended
+    cli = _CliPushUI()
+    cli.interactive = True
+    shown = []
+    monkeypatch.setattr('builtins.input', lambda prompt: shown.append(prompt) or '')
+    assert cli.ask(q) == q.enter
+    for c in q.choices:
+        assert f'[{c.key}] {c.label}' in shown[0]
+        monkeypatch.setattr('builtins.input', lambda prompt, k=c.key: k)
+        assert cli.ask(q) == c.answer
+    capsys.readouterr()
+    popups = []
+    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: popups.append((a[3], k)) or None)
+    assert menu._TuiPushUI(None, None).ask(q) == q.enter                # Esc
+    options, kw = popups[0]
+    assert options == [(c.label, c.key) for c in q.choices]
+    assert q.choices[kw['start']].answer == q.enter
