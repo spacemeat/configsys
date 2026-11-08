@@ -674,9 +674,9 @@ def _merge_driver(repo):
     # no user site) plus an explicit path to this configsys keeps every import ours.
     pkg = str(Path(__file__).resolve().parent.parent)
     boot = (f'import sys; sys.path.insert(0, {pkg!r}); from configsys.humerge import driver; '
-            f'sys.exit(driver(*sys.argv[1:6]))')
+            f'sys.exit(driver(*sys.argv[1:7]))')
     drv = (f'{shlex.quote(sys.executable)} -I -c {shlex.quote(boot)} '
-           f'{shlex.quote(str(notes))} %O %A %B %P')
+           f'{shlex.quote(str(notes))} %O %A %B %P %L')
     return ['-c', 'merge.configsys.name=configsys .hu merge', '-c', f'merge.configsys.driver={drv}',
             '-c', f'core.attributesFile={attrs}'], notes
 

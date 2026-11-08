@@ -358,10 +358,15 @@ def _rewrite(text, m, t_text, t, merged, depth):
 
 # -- the git merge driver --
 
-def _line_merge(base, mine, theirs):
-    '''git's own line merge: (clean?, text with conflict markers where it isn't).'''
-    r = subprocess.run(['git', 'merge-file', '-p', mine, base, theirs], capture_output=True, text=True)
-    return r.returncode == 0, r.stdout
+def _line_merge(base, mine, theirs, marker_size=None):
+    '''git's own line merge, as bytes: (rc, text). rc 0 = clean, 1..127 = conflicts left (markers
+    labelled by machine), anything else = merge-file couldn't (a binary file) and the text is
+    meaningless.'''
+    argv = ['git', 'merge-file', '-p', '-L', 'this machine', '-L', 'base', '-L', 'your other machine']
+    if marker_size and str(marker_size).isdigit():
+        argv.append(f'--marker-size={marker_size}')
+    r = subprocess.run(argv + [mine, base, theirs], capture_output=True)
+    return r.returncode, r.stdout
 
 
 def _note(path, lines):
@@ -374,33 +379,47 @@ def _note(path, lines):
         pass
 
 
-def driver(notes, base, mine, theirs, name=''):
+def driver(notes, base, mine, theirs, name='', marker_size=None):
     '''Merge driver body: the result into `mine`; 0 = settled, 1 = conflicts left (git's markers).
     What's worth telling you (a newer plugin kept, a file combined key by key) is appended to the
-    file `notes` ('-' = nowhere).'''
-    read = lambda p: open(p, encoding='utf-8').read()
-    clean, lines = _line_merge(base, mine, theirs)
+    file `notes` ('-' = nowhere). Never worse than git's own merge: when humerge can't settle it, `mine`
+    gets exactly what `git merge-file` would leave — labelled markers, the file's own line endings —
+    and when even git can't (a binary file), `mine` is left as it was and git sees a conflict.'''
     try:
-        res = merge(read(base), read(mine), read(theirs))
-    except Exception:                                  # noqa: BLE001 — never worse than git's merge
+        rc, lines = _line_merge(base, mine, theirs, marker_size)
+    except Exception:                                  # noqa: BLE001 — no git: leave it to git
+        return 1
+    if rc < 0 or rc >= 128:                            # git couldn't merge it either: untouched
+        return 1
+    clean = rc == 0
+    try:
+        raw = [open(p, 'rb').read() for p in (base, mine, theirs)]
+        crlf = b'\r\n' in raw[1]
+        res = merge(*(b.decode('utf-8') for b in raw))
+    except Exception:                                  # noqa: BLE001 — unreadable / not UTF-8: git's
         res = None
     if res is None or res.conflicts:
-        with open(mine, 'w', encoding='utf-8') as f:
+        with open(mine, 'wb') as f:
             f.write(lines)
         return 0 if clean else 1
     text = res.text
     if clean:                                          # git's merge reads the same: keep its text
         try:
-            if _load(lines) == res.merged:
-                text = lines
-        except Unmergeable:
+            if _load(lines.decode('utf-8')) == res.merged:
+                with open(mine, 'wb') as f:
+                    f.write(lines)
+                _note(notes, res.notes)
+                return 0
+        except (Unmergeable, UnicodeDecodeError):
             pass
-    with open(mine, 'w', encoding='utf-8') as f:
-        f.write(text)
+    if crlf:                                           # keep the file's own line ending
+        text = text.replace('\r\n', '\n').replace('\n', '\r\n')
+    with open(mine, 'wb') as f:
+        f.write(text.encode('utf-8'))
     _note(notes, res.notes + ([f'{name or "a .hu file"}: both machines changed it — combined key by key.']
                        if not clean else []))
     return 0
 
 
 if __name__ == '__main__':
-    sys.exit(driver(*sys.argv[1:6]))
+    sys.exit(driver(*sys.argv[1:7]))

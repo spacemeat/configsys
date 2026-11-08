@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 17/37 items done (+ B1 in part), 0 declined, 19 open.
+**Status:** 18/37 items done (+ B1 in part), 0 declined, 18 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -70,7 +70,9 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
   `fd0e94f`.
 - B14, B15, B19: the tag-to-branch switch writes `ref:` only after the checkout worked; identity from
   `git var` (an env identity counts) and never an invented `<login>@<host>`; commit bodies name the
-  configsys machine — batch 3.
+  configsys machine — `ab5c941`.
+- B9: the driver's fallback is git's own result — labelled markers, the file's line endings, a binary
+  file left untouched, no crash on invalid UTF-8 — merge quality 1.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -132,7 +134,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B8 [LOW] A never-pushed primary is invisible** — no "not pushed yet" line, chip or quit prompt.
   (primary-15) · S · [done e03afa8]
 - **B9 [LOW] The driver's "git's own result" isn't** — temp-file labels, CRLF → LF, a NUL truncates, invalid
-  UTF-8 crashes it. (primary-16) · S · [open]
+  UTF-8 crashes it. (primary-16) · S · [done — merge quality 1]
 - **B10 [LOW] Backtick strings and `\` trip humerge's scanner** → a whole-file question. (primary-19) · S ·
   [open]
 - **B11 [LOW] `plugins:` merged in mine's order** — theirs' reorder (layer precedence) is lost; a duplicate
@@ -142,16 +144,16 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B13 [LOW] `explain_git_failure` calls an HTTPS 403 "offline?" and gives GitHub fixes for GitLab.**
   (primary-22) · S · [done fd0e94f]
 - **B14 [LOW] The tag-to-branch switch writes `ref:` before the checkout** — half applied when refused.
-  (primary-23) · S · [done — small fixes, batch 3]
+  (primary-23) · S · [done ab5c941]
 - **B15 [LOW] The "no git identity" note is wrong for env identities; `user.name` is never checked.**
-  (primary-24) · S · [done — small fixes, batch 3]
+  (primary-24) · S · [done ab5c941]
 - **B16 [LOW] A Markdown `=======` underline reads as an unresolved conflict.** (primary-25) · S · [done e03afa8]
 - **B17 [LOW] Type-change conflicts are misdescribed; "keep this machine's" pushes `<path>~HEAD`.**
   (primary-26) · M · [open]
 - **B18 [NIT] Repeated notes, leftover scratch copies, `.git` assumed to be a directory.** (primary-34) · S ·
   [done e03afa8]
 - **B19 [LOW] Commits name the hostname and fall back to a `<login>@<host>` identity** — use the configsys
-  machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [done — small fixes, batch 3]
+  machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [done ab5c941]
 
 ### Tier C — performance
 - **C1 [MED] Every non-navigation TUI keypress costs 6 git spawns, 2 config parses, ~23 ms** (63 ms with 500

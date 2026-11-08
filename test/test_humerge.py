@@ -281,3 +281,43 @@ def test_the_merge_driver_never_imports_code_from_the_primary(primary, tmp_path)
     assert ok, lines
     picks = _data(_remote_file(bare))['picks']
     assert 'fish' in picks['this-machine'] and picks['desk'] == ['jq', 'yq']   # the driver still merged
+
+
+# -- the driver is git's own result when it falls back (review-2026-11 B9 / primary-16) --
+
+def _driver_bytes(tmp_path, base, mine, theirs, *extra):
+    for n, t in (('O', base), ('A', mine), ('B', theirs)):
+        (tmp_path / n).write_bytes(t)
+    r = subprocess.run([sys.executable, '-m', 'configsys.humerge', '-', str(tmp_path / 'O'),
+                        str(tmp_path / 'A'), str(tmp_path / 'B'), 'p.hu', *extra],
+                       capture_output=True)
+    return r.returncode, (tmp_path / 'A').read_bytes(), r.stderr
+
+
+@needs_git
+def test_the_drivers_markers_say_which_machine(tmp_path):
+    rc, out, _e = _driver_bytes(tmp_path, BASE.encode(), BASE.replace('ocean', 'plain').encode(),
+                                BASE.replace('ocean', 'blocks').encode())
+    assert rc == 1 and b'<<<<<<< this machine' in out and b'>>>>>>> your other machine' in out
+
+
+@needs_git
+def test_the_driver_keeps_crlf_line_endings(tmp_path):
+    crlf = lambda t: t.replace('\n', '\r\n').encode()      # noqa: E731
+    mine = BASE.replace('desk: [ btop fzf ]', 'desk: [ btop fzf ripgrep ]')
+    theirs = BASE.replace('laptop: [ htop ]', 'laptop: [ htop bat ]')
+    rc, out, _e = _driver_bytes(tmp_path, crlf(BASE), crlf(mine), crlf(theirs))
+    assert rc == 0 and out.count(b'\r\n') == BASE.count('\n') and b'\n' not in out.replace(b'\r\n', b'')
+
+
+@needs_git
+def test_a_binary_or_undecodable_file_is_left_to_git(tmp_path):
+    # a NUL byte: git calls it binary and merge-file errors — %A must stay mine, rc 1 (a conflict)
+    mine = BASE.encode() + b'\0mine'
+    rc, out, err = _driver_bytes(tmp_path, BASE.encode() + b'\0', mine, BASE.encode() + b'\0theirs')
+    assert rc == 1 and out == mine and b'Traceback' not in err
+    # invalid UTF-8: no crash; git's line merge result (here, with its conflict markers) is what's left
+    bad = BASE.replace('ocean', 'oc\udcffean'.encode('utf-8', 'surrogateescape').decode('latin-1'))
+    rc, out, err = _driver_bytes(tmp_path, BASE.encode('latin-1'), bad.encode('latin-1'),
+                                 BASE.replace('ocean', 'blocks').encode('latin-1'))
+    assert b'Traceback' not in err and rc == 1 and b'<<<<<<<' in out
