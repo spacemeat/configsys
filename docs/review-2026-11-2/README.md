@@ -3,12 +3,12 @@
 Baseline: `956208e` · reviewers: opus, effort xhigh (security max), checkers: opus, effort max
 Areas: 16 (routing, config-layers, plugins, primary, drivers-os, drivers-lang, dotfiles-glue, app-cli,
 actions, subsystems, tui-core, tui-screens, tui-theme, tests-tools, security, parity) · not reviewed:
-tests-tools — its reviewer was cut off twice by usage limits; a third run was in progress when this was committed (results land as a follow-up commit).
+none (tests-tools needed three runs — two usage-limit cut-offs).
 Health at baseline: 2314 tests passed (500 s); `check` 0 errors on pop/fedora/arch/opensuse/rhel/void,
 1–2 on alpine/void_musl/fedora_atomic (this machine's own pins — not tree errors), 6 warnings each (the
 plugin ambiguity warnings + the python-3.10 advisory); docaudit 0 findings.
-Findings (15 reviewed areas, after verification): **5 CRITICAL · 34 HIGH · 142 MED · 175 LOW · 28 NIT** —
-78 checked by 15 checkers: **78 confirmed (60+ reproduced), 0 plausible, 0 refuted**, 11 severity changes ·
+Findings (16 areas, after verification): **5 CRITICAL · 36 HIGH · 149 MED · 185 LOW · 31 NIT** —
+81 checked by 16 checkers: **81 confirmed (60+ reproduced), 0 plausible, 0 refuted**, 11 severity changes ·
 components: 184 broken / 163 drift / 221 opportunity / 142 note (§5).
 
 This is the first full-tree review since 2026-09 and the first with an adversarial checker on every area.
@@ -144,6 +144,12 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   report scrubber misses URL-embedded credentials and non-GitHub tokens. (drivers-os-06, drivers-lang-06,
   subsystems-03) · effort S · [open]
 
+- **A17 [HIGH] The test suite touches the developer's real machine:** a unit test runs real `sudo -v` and
+  `sudo apt-get update`; tests read and write the real config (`--home` loses to ambient env), and a global
+  git config breaks 105 tests; a fixed world-writable `/tmp/nohome` is trusted as a configsys home.
+  **Fix:** an autouse conftest fixture that scrubs `CONFIGSYS_*`/`GIT_CONFIG*`/`HOME`, a fake `sudo` first on
+  PATH, and a per-test tmp home. (tests-tools-01/02/03) · effort S–M · [open]
+
 ### Tier B — correctness
 
 - **B1 [HIGH] CLI ops ignore the detection tier:** `upgrade X` uninstalls an adopted install and upgrades
@@ -278,7 +284,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 ## 4. Test gaps
 Mutating key paths are untested on every TUI screen (no TUI `--pretend` sweep — tui-screens-11); verbs no
 test drives through `main` (the gap that hid B1 — app-cli-15); every confirmed CRITICAL/HIGH above lacks a
-regression test (each area file's "Test gaps" section lists them). The tests-tools area review (`tests-tools.md`) follows in a later commit.
+regression test (each area file's "Test gaps" section lists them). tests-tools adds: host-dependent tests (real dpkg/flatpak/brew probes, api.github.com — tests-tools-04); ~55% of suite time re-parses routes.hu (0.4 s per load — tests-tools-05, a session-scoped cache); namesweep/osaudit report OK when the container never ran, compaudit turns outages into "broken" (06/07 — weigh the component audit's broken count with this in mind); podman harnesses drifted from the code (08); the golden doesn't cover two managers or the newest releases (09, with os-releases §5).
 
 ## 5. OS releases and the catalog
 **OS releases** (detail: `os-releases.md`): registry for every versioned line landed the same day
@@ -297,7 +303,7 @@ Tumbleweed's versioned packages, Amazon Linux absences; license/telemetry/attrs 
 (23). Broken findings are not yet individually re-fetched (deferred to apply, per `/update-component`).
 
 ## 6. Suggested sequencing
-1. **A2, A3, A4, A5, A7, B2** — small or medium, each a data-loss or surprise path in everyday use.
+1. **A17 first** (so the fixes after it can't touch this machine), then **A2, A3, A4, A5, A7, B2** — small or medium, each a data-loss or surprise path in everyday use.
 2. **A1** as a plan (theme 1: gate at resolution) — the one trust-boundary decision; F1 rides along.
 3. **B1 + D3** together (plan builder), then **A6/A8/A9** with a shared `safe_remove` (theme 2).
 4. **B3, B13** (glue loads/ordering wrong on non-Debian and fish), **B12** (EL9/AL2023 bootstrap), then the
