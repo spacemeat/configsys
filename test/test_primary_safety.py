@@ -269,3 +269,50 @@ def test_the_cli_and_tui_ask_about_overlapping_edits(monkeypatch, capsys):
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 0)
     assert menu._TuiPushUI(None, None).overlapping('prim', ['a', 'b']) == 'stop'   # the default
     assert seen == ['prim: your edits to 2 files overlap what your other machine pushed']
+
+
+# -- the small fixes (plan phase 4) -------------------------------------------------------------
+
+@needs_git
+def test_quitting_under_auto_pushes_without_asking_anything(primary, monkeypatch):
+    # B7 / primary-11: "nothing is asked" — not even "push your hand edits too?"
+    from configsys.tui import menu
+    base, clone, bare, other = primary
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    (clone / 'notes.txt').write_text('a hand edit\n')
+    asked = []
+    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: asked.append(a[2]) or 0)
+    monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: 'auto-on-quit')
+    leave, notes = menu._quit_push(None, None, _ctx(base), force=True)
+    assert leave and asked == []
+    assert notes and notes[-1].startswith('pushed 1 change')
+    assert (clone / 'notes.txt').read_text() == 'a hand edit\n'          # left out, still here
+
+
+@needs_git
+def test_a_primary_never_pushed_shows_its_commits_as_not_pushed(primary):
+    # B8 / primary-15: after `plugin init` + `set-source` to an empty repo there's no origin/main yet
+    base, clone, bare, other = primary
+    _git(clone, 'update-ref', '-d', 'refs/remotes/origin/main')
+    st = primarygit.state(_ctx(base))
+    assert st is not None and st['ahead'] == int(_git(clone, 'rev-list', '--count', 'HEAD')) >= 1
+
+
+def test_a_markdown_underline_is_not_a_conflict_marker(tmp_path):
+    # B16 / primary-25
+    readme = tmp_path / 'README.md'
+    readme.write_text('Title\n=======\n\nbody\n')
+    assert not primarygit._has_markers(readme)
+    readme.write_text('<<<<<<< ours\na\n=======\nb\n>>>>>>> theirs\n')
+    assert primarygit._has_markers(readme)
+
+
+@needs_git
+def test_the_combine_leaves_no_copies_of_your_files_behind(primary):
+    # B18 / primary-34: the driver's scratch dir (notes + base/mine/theirs copies) goes away
+    base, clone, bare, other = primary
+    _both_change_line_one(base, clone, other)
+    ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
+    assert ok, lines
+    assert not (clone / '.git' / 'configsys-merge').exists()

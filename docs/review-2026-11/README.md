@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 7/37 items done, 0 declined, 30 open.
+**Status:** 11/37 items done (+ B1 in part), 0 declined, 25 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -61,8 +61,10 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - A2, A3, D1 part 2: one undoable combine (stash, replay, restore on any non-success exit incl.
   Ctrl-C), overlapping hand edits asked about first, a primary mid-merge refused — `da323ea`.
 - B1 (immediate part): `select` is bracketed, so Config/Theme space edits commit; decision 1:
-  configsys's own commits skip hooks — the next commit after `da323ea`. (B1's durable fix, the write
-  journal, is phase 3.)
+  configsys's own commits skip hooks — `f5e0340`. (B1's durable fix, the write journal, has its own
+  plan: docs/todo/primary-journal-plan.md, awaiting go.)
+- B7, B8, B16, B18: auto quit asks nothing; a never-pushed primary shows as not pushed; a Markdown
+  underline isn't a conflict; the combine's scratch copies are removed and notes printed once — batch 1.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -107,7 +109,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 
 ### Tier B — correctness
 - **B1 [HIGH] Config and Theme `space` edits are written to the primary but never committed**, and from then
-  on configsys treats the file as your hand edit. (primary-04) · effort S · [partly done — select bracketed; the journal (phase 3) open]
+  on configsys treats the file as your hand edit. (primary-04) · effort S · [partly done f5e0340 — the journal: docs/todo/primary-journal-plan.md]
 - **B2 [HIGH] The snapshot/commit bracket isn't best-effort.** One uncommitted non-UTF-8 file name crashes
   every CLI command (`check`, `picks list`, `inspect`); a 2000-file `dotfiles capture` overflows the command
   line. (primary-05; with primary-18, paths as globs) · effort M · [done efa9c38]
@@ -120,9 +122,9 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B6 [MED] The non-interactive ssh setup is wrong both ways**: push's `GIT_SSH_COMMAND` overrides your
   `core.sshCommand`; the background fetch has no `BatchMode`. (primary-10) · effort S · [done efa9c38]
 - **B7 [MED] Under `auto` / `auto-on-quit`, quitting the TUI can still pop push questions**, though the docs
-  say nothing is asked. (primary-11) · effort S · [open]
+  say nothing is asked. (primary-11) · effort S · [done — small fixes, batch 1]
 - **B8 [LOW] A never-pushed primary is invisible** — no "not pushed yet" line, chip or quit prompt.
-  (primary-15) · S · [open]
+  (primary-15) · S · [done — small fixes, batch 1]
 - **B9 [LOW] The driver's "git's own result" isn't** — temp-file labels, CRLF → LF, a NUL truncates, invalid
   UTF-8 crashes it. (primary-16) · S · [open]
 - **B10 [LOW] Backtick strings and `\` trip humerge's scanner** → a whole-file question. (primary-19) · S ·
@@ -137,11 +139,11 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   (primary-23) · S · [open]
 - **B15 [LOW] The "no git identity" note is wrong for env identities; `user.name` is never checked.**
   (primary-24) · S · [open]
-- **B16 [LOW] A Markdown `=======` underline reads as an unresolved conflict.** (primary-25) · S · [open]
+- **B16 [LOW] A Markdown `=======` underline reads as an unresolved conflict.** (primary-25) · S · [done — small fixes, batch 1]
 - **B17 [LOW] Type-change conflicts are misdescribed; "keep this machine's" pushes `<path>~HEAD`.**
   (primary-26) · M · [open]
 - **B18 [NIT] Repeated notes, leftover scratch copies, `.git` assumed to be a directory.** (primary-34) · S ·
-  [open]
+  [done — small fixes, batch 1]
 - **B19 [LOW] Commits name the hostname and fall back to a `<login>@<host>` identity** — use the configsys
   machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [open]
 

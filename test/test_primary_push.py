@@ -320,8 +320,9 @@ def _quit(monkeypatch, *, ahead, mode, choice=None, push_ok=True):
     monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: mode)
     calls = []
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: calls.append(a[2]) or choice)
-    monkeypatch.setattr(menu, '_push_primary',
-                        lambda s, p, c: calls.append('push') or (push_ok, ['pushed 2 changes to x']))
+    push = lambda s, p, c: calls.append('push') or (push_ok, ['pushed 2 changes to x'])  # noqa: E731
+    monkeypatch.setattr(menu, '_push_primary', push)
+    monkeypatch.setattr(menu, '_auto_push_primary', push)
     return calls
 
 

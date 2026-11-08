@@ -720,11 +720,32 @@ class _TuiPushUI(primarygit.PushUI):
         self.stdscr.refresh()
 
 
+class _TuiAutoPushUI(primarygit.PushUI):
+    '''The no-questions push of `primary-push: auto` / `auto-on-quit` on quit: every question gets
+    the cautious answer (your edits stay out, a conflict stops it unpushed) — only the progress line
+    is painted.'''
+
+    def __init__(self, stdscr, pal):
+        self.stdscr, self.pal = stdscr, pal
+
+    def progress(self, text):
+        if self.stdscr is not None:
+            _TuiPushUI.progress(self, text)
+
+
 def _push_primary(stdscr, pal, ctx):
     '''Push the primary from the TUI (Plugins `P`, the quit prompt). Returns (ok, lines).'''
     try:
         return primarygit.push(ctx, _TuiPushUI(stdscr, pal))
     except Exception as e:                          # noqa: BLE001 — surface, don't crash
+        return False, [f'push failed: {e}']
+
+
+def _auto_push_primary(stdscr, pal, ctx):
+    '''The push on quit under `auto` / `auto-on-quit`: nothing is asked. Returns (ok, lines).'''
+    try:
+        return primarygit.push(ctx, _TuiAutoPushUI(stdscr, pal))
+    except Exception as e:                          # noqa: BLE001
         return False, [f'push failed: {e}']
 
 
@@ -745,7 +766,7 @@ def _quit_push(stdscr, pal, ctx, force=False):
     if force and mode != 'auto-on-quit':
         return True, [later]
     if mode in ('auto', 'auto-on-quit'):
-        ok, lines = _push_primary(stdscr, pal, ctx)
+        ok, lines = _auto_push_primary(stdscr, pal, ctx)
         return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
     c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st["name"]} not pushed yet.',
                       [('Push, then quit', 'p'), ('Quit, push later', 'q'), ('Keep working', 'n')],
@@ -5027,7 +5048,7 @@ def run(ctx):
                     _psx.model.invalidate_overlay()
     ctx.reporter.resume()             # back on the console (endwin has restored the terminal)
     ctx.report_session_summary(cfg, states, diags)   # -v+: leave a recap in the scrollback
-    for msg in pending_notes:         # pin/promote hints held back so they don't interrupt the TUI
+    for msg in dict.fromkeys(pending_notes):   # held back so they don't interrupt the TUI; once each
         print(f'configsys: {msg}')
     if pending_report:                # an op failed; its output is captured and persisted
         print(f'configsys: an op failed — run `configsys report {pending_report}` to file it '

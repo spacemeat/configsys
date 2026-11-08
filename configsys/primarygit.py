@@ -288,16 +288,22 @@ def _ident(ctx, repo, name, notes):
 
 def state(ctx):
     '''{name, branch, ahead, behind, dirty} for the primary against its remote branch (as of the last
-    fetch), or None (no primary, not a git checkout, not on a branch, --pretend). Local and cheap.'''
+    fetch), or None (no primary, not a git checkout, not on a branch, no remote, --pretend). A primary
+    whose remote has never had that branch counts every commit as not pushed yet. Local and cheap.'''
     try:
         pr = primary_root(ctx)
         if pr is None:
             return None
         repo = PrimaryRepo(pr[0])
         branch = repo.branch()
-        if not branch or not repo.has_ref(f'origin/{branch}'):
+        if not branch:
             return None
-        ahead, behind = repo.ahead_behind(f'origin/{branch}')
+        if repo.has_ref(f'origin/{branch}'):
+            ahead, behind = repo.ahead_behind(f'origin/{branch}')
+        elif repo.text('remote', 'get-url', '--push', 'origin'):
+            ahead, behind = int(repo.text('rev-list', '--count', 'HEAD') or 0), 0   # never pushed
+        else:
+            return None
         return {'name': pr[1], 'branch': branch, 'ahead': ahead, 'behind': behind,
                 'dirty': bool(repo.dirty())}
     except Exception:                                  # noqa: BLE001 — best-effort, never a crash
@@ -581,8 +587,7 @@ def _merge_driver(repo):
     nothing is configured permanently. The attributes file carries your own global one along; the
     driver appends what's worth telling you to the notes file.'''
     import sys
-    tmp = repo.root / '.git' / 'configsys-merge'
-    tmp.mkdir(exist_ok=True)
+    tmp = _scratch(repo)
     attrs = tmp / 'attributes'
     own = repo.text('config', '--path', 'core.attributesFile')
     own = Path(own) if own else \
@@ -606,6 +611,15 @@ def _merge_driver(repo):
            f'{shlex.quote(str(notes))} %O %A %B %P')
     return ['-c', 'merge.configsys.name=configsys .hu merge', '-c', f'merge.configsys.driver={drv}',
             '-c', f'core.attributesFile={attrs}'], notes
+
+
+def _scratch(repo):
+    '''configsys's scratch dir inside the primary's git dir (a gitlink `.git` file — a worktree or
+    submodule primary — resolved by git), removed again when the combine ends.'''
+    gd = repo.text('rev-parse', '--absolute-git-dir')
+    tmp = (Path(gd) if gd else repo.root / '.git') / 'configsys-merge'
+    tmp.mkdir(exist_ok=True)
+    return tmp
 
 
 def _driver_notes(notes):
@@ -639,6 +653,9 @@ def _combine(ctx, ui, name, repo, branch, upstream):
         _restore(repo, head)
         _unstash(repo, name, stashed)
         raise
+    finally:                                           # the driver's notes + copies of your files
+        import shutil
+        shutil.rmtree(_scratch(repo), ignore_errors=True)
     if not ok:
         _restore(repo, head)
         return False, lines + _unstash(repo, name, stashed) + [_intact(name, repo.root, branch)]
@@ -775,8 +792,7 @@ def _take(repo, path, side):
         repo.git('rm', '--quiet', paths=[path])
         return
     if base is not None and mine is not None and theirs is not None:
-        tmp = repo.root / '.git' / 'configsys-merge'
-        tmp.mkdir(exist_ok=True)
+        tmp = _scratch(repo)
         for n, data in (('base', base), ('mine', mine), ('theirs', theirs)):
             (tmp / n).write_bytes(data)
         r = repo.git('merge-file', '-p', f'--{side}', str(tmp / 'mine'), str(tmp / 'base'),
@@ -794,4 +810,5 @@ def _has_markers(path):
         text = path.read_text(encoding='utf-8', errors='replace')
     except OSError:
         return False
-    return any(ln.startswith(('<<<<<<< ', '>>>>>>> ')) or ln == '=======' for ln in text.splitlines())
+    # an `=======` alone is a Markdown underline, not a conflict — only the outer markers count
+    return any(ln.startswith(('<<<<<<< ', '>>>>>>> ')) for ln in text.splitlines())
