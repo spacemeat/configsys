@@ -1346,13 +1346,23 @@ def follows_branch(runner, dest, ref):
     return r is not None and r.ok and not getattr(r, 'pretended', False)
 
 
-_SYNC_OUTCOME = {'ok': None, 'failed': 'failed', 'kept': 'kept', 'diverged': 'diverged', 'ahead': 'ahead'}
+_SYNC_OUTCOME = {'ok': None, 'failed': 'failed', 'kept': 'kept', 'diverged': 'diverged', 'ahead': 'ahead',
+                 'unsigned': 'unsigned'}
 
 
 def sync_note(name, action, plugins_dir, *, primary=False):
     '''One plain sentence for a sync outcome that needs explaining (kept / diverged / ahead), else None.
     For the `primary` plugin, a diverged or unpushed branch points at `configsys plugin push`.'''
     d = Path(plugins_dir) / name
+    if action == 'unsigned':
+        if not d.exists():
+            return (f'{name}: not synced — its newest commit has no good signature from a key you trust '
+                    f'(primary-verify: signed). Sign your commits, or check the repository and set '
+                    f'`configsys config set primary-verify off` for this first sync.')
+        return (f'{name}: not updated — its remote has commits without a good signature from a key you '
+                f'trust (primary-verify: signed). Look at them: `git -C {d} log --show-signature '
+                f'HEAD..@{{u}}`. If they are yours, sign them (or add the key to git\'s trusted keys), '
+                f'then sync again; nothing here changed.')
     if primary and action == 'diverged':
         return (f'{name}: not updated — it has changes made here AND new ones from another machine. '
                 f'`configsys plugin push` combines them and pushes the result.')
@@ -1472,14 +1482,43 @@ def _noninteractive_git_env():
     return {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'}
 
 
-def _git_transport(runner, dest, source, ref, *, follow_default=False):
+def _sync_target(runner, dq, ref, follow_default):
+    '''The commit a sync would move the checkout to (mirrors _git_checkout's choice), or None.'''
+    def _has(rev):
+        r = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote(rev)}', capture=True)
+        return r is not None and r.ok and not r.pretended
+    if not ref and follow_default and _has('origin/HEAD'):
+        return 'origin/HEAD'
+    if ref and _has(f'origin/{ref}'):
+        return f'origin/{ref}'
+    if ref:
+        return ref
+    return 'origin/HEAD' if _has('origin/HEAD') else None
+
+
+def unsigned_commits(runner, dq, since, target):
+    '''["<hash> <subject>"] for the commits `since..target` (just `target` when `since` is None) that
+    lack a good signature from a key git trusts here (`%G?` other than G — unsigned, bad, expired,
+    revoked, or from a key you don't have). [] under --pretend.'''
+    span = f'{shlex.quote(since)}..{shlex.quote(target)}' if since else f'-1 {shlex.quote(target)}'
+    r = runner.run(f'git -C {dq} log --format="%G? %h %s" {span}', capture=True)
+    if r is None or getattr(r, 'pretended', False):
+        return []
+    if not r.ok:
+        return ['(could not read the commits to check their signatures)']
+    return [ln[2:] for ln in (r.stdout or '').splitlines() if ln.strip() and not ln.startswith('G ')]
+
+
+def _git_transport(runner, dest, source, ref, *, follow_default=False, verify=False):
     '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
     the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
     checkout is reported as 'failed', not silently 'updated'. A locally-authored plugin (source ==
     its own dir) is 'local' — untouched. Fetches run NON-INTERACTIVELY (never prompt for
     credentials — a bad/private source fails fast). `follow_default` (a primary): no ref = the
-    default branch, attached. Returns 'local'/'cloned'/'updated'/'failed', or (see _git_checkout)
-    'kept'/'diverged'/'ahead'.'''
+    default branch, attached. `verify` (a primary under `primary-verify: signed`): every commit the
+    sync would bring in must carry a good signature, else nothing moves — 'unsigned' (a fresh clone
+    whose tip isn't signed is removed again, so nothing unsigned is ever loaded). Returns
+    'local'/'cloned'/'updated'/'failed'/'unsigned', or (see _git_checkout) 'kept'/'diverged'/'ahead'.'''
     if is_local_authored(source, dest):
         return 'local'
     dq = shlex.quote(str(dest))
@@ -1487,6 +1526,9 @@ def _git_transport(runner, dest, source, ref, *, follow_default=False):
     if dest.exists():
         runner.run(f'git -C {dq} fetch --force --tags --quiet', capture=False, env=genv)   # --force: re-pointed tags; non-fatal (offline -> checkout from local refs)
         _set_push_remote(runner, dest, source, only_if_unset=True)   # keep ssh push url, don't clobber a manual one
+        target = _sync_target(runner, dq, ref, follow_default) if verify else None
+        if target and unsigned_commits(runner, dq, 'HEAD', target):
+            return 'unsigned'                             # nothing moves: the old, checked state stays
         return _SYNC_OUTCOME[_git_checkout(runner, dq, ref, follow_default=follow_default)] or 'updated'
     if not getattr(runner, 'pretend', False):         # a dry run creates nothing
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -1494,6 +1536,11 @@ def _git_transport(runner, dest, source, ref, *, follow_default=False):
     if r is not None and not r.ok:
         return 'failed'
     _set_push_remote(runner, dest, source)          # push via ssh keys; fetch stays https
+    target = _sync_target(runner, dq, ref, follow_default) if verify else None
+    if target and unsigned_commits(runner, dq, None, target):
+        import shutil
+        shutil.rmtree(dest, ignore_errors=True)          # the clone made just now — never loaded
+        return 'unsigned'
     return _SYNC_OUTCOME[_git_checkout(runner, dq, ref, follow_default=follow_default)] or 'cloned'
 
 
@@ -1650,14 +1697,15 @@ def _transport_for(source):
     return _TRANSPORTS.get(scheme, _git_transport)
 
 
-def sync(runner, plugins_dir, decls, *, locked=()):
+def sync(runner, plugins_dir, decls, *, locked=(), verify_primary=False):
     '''Sync each declared plugin to plugins_dir/<name> at its ref, via its transport (git by
     default; a registered transport claims a `<scheme>:` source). Returns [(name, action)].
     Transitive: after a plugin is synced, plugins named in ITS manifest `plugins:` are enqueued
     and synced too (fixpoint, deduped by dir) — so a primary/personal plugin pulls its own
     plugin set. A plugin whose dir name is in `locked` is left exactly as it is ('locked'); the
-    plugins its on-disk manifest declares are still visited. Best-effort: a transport failure
-    becomes a per-plugin 'failed' action, never an exception.'''
+    plugins its on-disk manifest declares are still visited. `verify_primary` (`primary-verify:
+    signed`): the primary takes in only signed commits ('unsigned' otherwise). Best-effort: a
+    transport failure becomes a per-plugin 'failed' action, never an exception.'''
     results, seen = [], set()
     stack = list(decls)
     while stack:
@@ -1671,8 +1719,8 @@ def sync(runner, plugins_dir, decls, *, locked=()):
         else:
             try:
                 transport = _transport_for(d['source'])
-                kw = ({'follow_default': True} if transport is _git_transport and d.get('primary')
-                      else {})
+                kw = ({'follow_default': True, 'verify': verify_primary}
+                      if transport is _git_transport and d.get('primary') else {})
                 action = transport(runner, plugins_dir / name, d['source'], d.get('ref'), **kw)
             except Exception as e:                   # noqa: BLE001 — isolate a bad transport
                 action = f'failed ({e})'

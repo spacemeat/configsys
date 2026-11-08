@@ -525,6 +525,16 @@ sync` whenever there's something either way (under `primary-push: auto` or `auto
 `plugin list` says the same in words (`↓` there is as of the last fetch or sync; `plugin list --fetch`
 fetches first).
 
+**Only signed changes, if you like.** Whoever can push to your primary's repository can put data,
+shell glue or code on every machine that syncs it. If you sign your commits (`git config --global
+commit.gpgsign true`; configsys's own commits follow that setting), set `configsys config set
+primary-verify signed` on each machine: from then on the primary takes in commits from its remote
+only when every one has a good signature from a key git trusts there — a GPG key in your keyring, or
+an SSH key listed in `gpg.ssh.allowedSignersFile`. `plugin sync` leaves the primary as it was and
+says which commits aren't signed; `plugin bless` on a new machine doesn't clone a primary whose
+newest commit isn't signed; `plugin push` doesn't combine with unsigned commits. The setting is read
+only from your top config, so a commit pushed to the primary can't switch it off.
+
 **Seeing and undoing configsys's changes.** `configsys plugin log` (or `H` on the Plugins screen)
 lists the primary's recent commits, marking the ones configsys made (`*`) and the ones not pushed yet
 (`↑`). `configsys plugin undo` (or "Undo" at the top of `H`'s list) takes back the newest change

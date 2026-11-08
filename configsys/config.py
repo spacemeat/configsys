@@ -327,6 +327,14 @@ class Config:
         v = str(v).strip().lower() if v is not None else 'ask'
         return v if v in layers.SETTING_CHOICES['primary-push'] else 'ask'
 
+    def primary_verify(self):
+        '''`primary-verify`: 'signed' — sync and push take in your primary's remote commits only when
+        each carries a good signature from a key you trust (git's `%G?` = G); 'off' (default). Read
+        from the top config ONLY (layers.TOP_CONFIG_ONLY), so the primary can't turn it off.'''
+        v = layers.merge_scalar(self._layers, 'primary-verify', ('user',))
+        v = str(v).strip().lower() if v is not None else 'off'
+        return v if v in layers.SETTING_CHOICES['primary-verify'] else 'off'
+
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).

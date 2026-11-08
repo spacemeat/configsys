@@ -150,6 +150,15 @@ warns about one in a file (configsys then uses the default).
   one-line note); `auto-on-quit` pushes the same way but only when you quit the TUI, `Q` included
   (the CLI says when a command left changes not pushed); `manual` pushes only on `configsys plugin
   push` or the Plugins screen's `P`. See plugins.md §8.
+- **`primary-verify`** (`off` or `signed`, machine; default `off`): with `signed`, your primary
+  plugin takes in commits from its remote only when each one has a good signature from a key git
+  trusts on this machine (a GPG key in your keyring, or an SSH key in `gpg.ssh.allowedSignersFile`).
+  `plugin sync` leaves the primary where it was when new commits aren't signed, a first sync (`plugin
+  bless` on a new machine) doesn't clone a primary whose newest commit isn't signed, and `plugin
+  push` doesn't combine with unsigned commits. Read only from your top config: a value in your
+  primary plugin is ignored (and `check` warns), so a commit pushed to the primary can't turn it off.
+  Sign your own commits (`git config --global commit.gpgsign true`) before you turn it on —
+  configsys's commits follow that setting. See plugins.md §8.
 - **`splash`** (scalar, uniform; default unset): the startup wait-screen. A splash name (or the
   name of the plugin that ships it), `random` for a different one each run, or `off`. Unset uses
   the built-in `braille-bar`.

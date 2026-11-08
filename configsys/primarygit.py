@@ -528,6 +528,14 @@ PUSH_POLICY = {
 }
 
 
+def _verify(ctx):
+    '''`primary-verify: signed` on this machine?'''
+    try:
+        return ctx.config.primary_verify() == 'signed'
+    except Exception:                                  # noqa: BLE001 — a fake/odd ctx: off
+        return False
+
+
 def push_mode(ctx):
     '''The `primary-push` setting: 'ask' (default), 'auto', 'auto-on-quit' or 'manual'.'''
     try:
@@ -779,7 +787,8 @@ def push(ctx, ui=None):
             return False, lines + [f'Left as is. To publish anyway, tag and push it yourself in {root}, '
                                    f'then `configsys plugin update {name} --ref <tag>` on each machine.']
         was = repo.text('rev-parse', 'HEAD')           # switch first; write `ref:` only once it worked
-        res = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [dict(decl, ref=target)])
+        res = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [dict(decl, ref=target)],
+                           verify_primary=_verify(ctx))
         action = res[0][1] if res else 'failed'
         if action not in ('updated', 'cloned', 'ahead'):
             if repo.branch() and was:                  # half switched: back to where it was pinned
@@ -843,6 +852,16 @@ def push(ctx, ui=None):
         if not ok:
             return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
         ahead, behind = repo.ahead_behind(upstream)
+    if behind and _verify(ctx):                        # primary-verify: signed — check before combining
+        r = repo.git('log', '--format=%G? %h %s', f'HEAD..{upstream}')
+        bad = ([_printable(ln[2:]) for ln in r.stdout.splitlines() if ln.strip() and not ln.startswith('G ')]
+               if r.ok else ['(could not read them)'])
+        if bad:
+            return False, lines + [f'{name}: your remote has {_count(len(bad), "commit")} without a good '
+                                   f'signature from a key you trust ({"; ".join(bad[:3])}'
+                                   f'{" …" if len(bad) > 3 else ""}), so nothing was combined or pushed '
+                                   f'(primary-verify: signed). Look at them: `git -C {root} log '
+                                   f'--show-signature HEAD..{upstream}`.']
     if behind:
         ui.progress(f'combining {name} with your other machines\' changes …')
         ok, more = _combine(ctx, ui, name, repo, branch, upstream)

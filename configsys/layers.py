@@ -36,6 +36,7 @@ MACHINE_SETTING_SECTIONS = frozenset({
     'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed', 'detect-coexisting',
     'installer-shell-writes', 'installer-shell-writes-allow', 'refresh-before-execute',
     'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore', 'primary-push',
+    'primary-verify',
 })
 
 
@@ -46,7 +47,13 @@ SETTING_CHOICES = {
     'primary-push': ('ask', 'auto', 'auto-on-quit', 'manual'),
     'refresh-before-execute': ('auto', 'always', 'never'),
     'effects': ('full', 'reduced', 'none'),
+    'primary-verify': ('off', 'signed'),
 }
+
+# Settings read ONLY from this machine's top config: a value in your primary plugin (or anywhere
+# else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, so
+# a commit pushed to the primary must not be able to switch it off.
+TOP_CONFIG_ONLY = frozenset({'primary-verify'})
 
 
 def setting_value_warnings(layers):
@@ -60,6 +67,10 @@ def setting_value_warnings(layers):
             if v is not None and str(v).strip().lower() not in choices:
                 warns.append(f'{layer.path}: `{key}: {v}` is not one of {", ".join(choices)} — '
                              f'configsys uses the default instead')
+        for key in TOP_CONFIG_ONLY & set(layer.data):
+            if layer.role != 'user':
+                warns.append(f'{layer.path}: `{key}:` is read only from your top config '
+                             f'(~/.config/configsys/configsys.hu), so it is ignored here')
     return warns
 
 

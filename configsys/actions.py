@@ -353,6 +353,8 @@ def _nature_target(ctx, key, lives_in, *, create=False):
     primary). `create` (write paths only) lets a primary with no data file yet get an empty one;
     without it a display caller still sees the label an edit WOULD land under.'''
     local = str(ctx.paths.user_config_file)
+    if key in layers.TOP_CONFIG_ONLY:                  # read only from the top config: edited there
+        return local, 'top config'
     pfile, pname = _primary_data_file(ctx)
     if lives_in(local):
         return local, 'top config'
@@ -654,6 +656,10 @@ CONFIG_SETTINGS = {
                                     "the TUI), 'auto-on-quit' (only when you quit the TUI, Q "
                                     "included), or 'manual' (only `plugin push` / P).",
                           'configsys.hu(5)'),
+    'primary-verify':    ('scalar', "Check your primary's incoming commits: 'signed' — sync and push "
+                                    'take in commits from its remote only when each has a good '
+                                    "signature from a key you trust; 'off' (default). Read only from "
+                                    'your top config.', 'configsys.hu(5)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
@@ -707,6 +713,7 @@ SETTING_NATURE = {
     'install-overlay':   'uniform',           # a UI preference
     'reboot-advice':     'uniform',           # a behavior preference (override per-machine with `m`)
     'primary-push':      'uniform',           # it travels in the primary it governs
+    'primary-verify':    'machine',           # top config only: the primary must not switch it off
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
@@ -739,6 +746,7 @@ _SETTING_GETTERS = {
     'install-overlay':        lambda c: c.install_overlay_default(),
     'reboot-advice':          lambda c: c.reboot_advice(),
     'primary-push':           lambda c: c.primary_push(),
+    'primary-verify':         lambda c: c.primary_verify(),
     'splash':                 lambda c: c.splash(),
     'effects':                lambda c: c.effects(),
     'orphans-ignore':         lambda c: c.orphans_ignore(),
@@ -921,6 +929,8 @@ def move_config_setting(ctx, key):
     Returns (ok, message).'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
+    if key in layers.TOP_CONFIG_ONLY:
+        return False, f'{key} is read only from your top config, so it stays there'
     where, _who = _setting_home(ctx, key)
     if where is None:
         return False, f'{key} is at its default — set a value before moving it'
@@ -1190,11 +1200,18 @@ def _locate_decl(ctx, ident):
     return None, None, None
 
 
+def _verify_primary(ctx):
+    try:
+        return ctx.config.primary_verify() == 'signed'
+    except Exception:                                  # noqa: BLE001 — no config yet: off
+        return False
+
+
 def plugin_sync(ctx, decls):
     '''Sync each declared plugin to its ref (transitive fixpoint). Returns [(name, action)].'''
     ctx.ensure_plugin_code()     # register transports from already-trusted plugins before sync
     results = plugins.sync(ctx.runner, ctx.paths.plugins_dir, decls,
-                           locked=_locks(ctx))
+                           locked=_locks(ctx), verify_primary=_verify_primary(ctx))
     ctx.invalidate()             # new data files / drivers are now on disk — rebuild so they surface
     invalidate_location_cache(ctx)   # a synced plugin can MOVE installs (e.g. a build `dir:`): the
     # shell glue must not keep pointing at the old place for the cache's hour
