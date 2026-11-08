@@ -35,6 +35,8 @@ import subprocess
 import sys
 from difflib import SequenceMatcher
 
+from .hutext import emit as _emit, key as _safe_key, scalar_end as _scalar_end, skip_blank as _skip
+
 GONE = object()                                       # "this side has no such key"
 
 
@@ -289,26 +291,9 @@ def merge(base_text, mine_text, theirs_text, answers=None):
 
 # -- building the merged text from mine's --
 
-def _skip(text, i):
-    '''Past whitespace and comments (not strings — a quoted value is a value).'''
-    n = len(text)
-    while i < n:
-        if text[i] in ' \t\r\n':
-            i += 1
-        elif text.startswith('//', i):
-            j = text.find('\n', i)
-            i = n if j < 0 else j + 1
-        elif text.startswith('/*', i):
-            j = text.find('*/', i + 2)
-            i = n if j < 0 else j + 2
-        else:
-            break
-    return i
-
-
 def _bounds(text):
     '''(open, close) indices of the `{ … }` map that `text` holds (leading comments allowed).'''
-    from .plugins import _scan_value_end
+    from .hutext import value_end as _scan_value_end
     o = _skip(text, 0)
     if o >= len(text) or text[o] != '{':
         raise Unmergeable('not a map')
@@ -317,7 +302,7 @@ def _bounds(text):
 
 def _key(text, k):
     '''(key_start, value_start, value_end) of `k:` directly inside the map `text`, or None.'''
-    from .plugins import _locate_section_span
+    from .hutext import section_span as _locate_section_span
     span = _locate_section_span(text, k)
     if span is None:
         return None
@@ -329,43 +314,9 @@ def _key(text, k):
     return start, vs, end
 
 
-def _scalar_end(text, i):
-    q = text[i]
-    if q in '"\'`':
-        j = text.find(q, i + 1)
-        return len(text) if j < 0 else j + 1
-    j = i
-    while j < len(text) and text[j] not in ' \t\r\n{}[]:,' and not text.startswith(('//', '/*'), j):
-        j += 1
-    return j
-
-
 def _indent_at(text, i):
     ls = text.rfind('\n', 0, i) + 1
     return i - ls
-
-
-def _safe_key(k):
-    from .troveio import _UNSAFE, _scalar
-    return _scalar(k) if (not k or any(c in _UNSAFE for c in str(k))) else str(k)
-
-
-def _emit(v, indent):
-    '''Humon text for a value whose first line sits at `indent` (one-line name lists).'''
-    from .troveio import _scalar
-    pad, inner = ' ' * indent, ' ' * (indent + 4)
-    if isinstance(v, dict):
-        if not v:
-            return '{}'
-        return '\n'.join(['{'] + [f'{inner}{_safe_key(k)}: {_emit(x, indent + 4)}' for k, x in v.items()]
-                         + [pad + '}'])
-    if isinstance(v, list):
-        if not v:
-            return '[]'
-        if _scalars(v):
-            return '[ ' + '  '.join(_scalar(x) for x in v) + ' ]'
-        return '\n'.join(['['] + [f'{inner}{_emit(x, indent + 4)}' for x in v] + [pad + ']'])
-    return _scalar(v)
 
 
 def _emit_kv(k, v, indent, top):
@@ -426,7 +377,7 @@ def _relist(text, old, new):
     '''The list text `text` (holding `old`) edited in place to hold `new`: items that left are cut
     out, items that came in are inserted beside their neighbours — every comment and line in it
     stays.'''
-    from .troveio import _scalar
+    from .hutext import scalar as _scalar
     items = _list_items(text)
     if [v for v, _s, _e in items] != [str(x) for x in old]:
         raise Unmergeable('a list that does not read the way it parses')

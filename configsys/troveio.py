@@ -13,11 +13,10 @@ from pathlib import Path
 import humon as h
 
 from .errors import ConfigError
+# Scalar quoting is hutext's (one rule for every writer); the old names stay for their callers.
+from .hutext import UNSAFE as _UNSAFE, scalar as _scalar  # noqa: F401
 
 _INDENT = '    '
-
-# Characters that force a scalar to be quoted (humon would otherwise mis-tokenize).
-_UNSAFE = set(' \t\n\r{}[]:,"\'`\\@')
 
 
 def load(path):
@@ -47,25 +46,6 @@ def load_string(text):
         return h.from_string(text)
     except h.DeserializeError as e:
         raise ConfigError(f'{e}')
-
-
-def _scalar(v):
-    if isinstance(v, bool):
-        return 'true' if v else 'false'
-    if v is None:
-        return '""'
-    s = str(v)
-    if s and not any(c in _UNSAFE for c in s):
-        return s
-    # Humon has no escapes; a delimiter that doesn't occur in the value works.
-    if '"' not in s:
-        return f'"{s}"'
-    if "'" not in s:
-        return f"'{s}'"
-    if '`' not in s:
-        return f'`{s}`'
-    # Extremely unlikely for ledger data; fall back to backtick with backticks stripped.
-    return '`' + s.replace('`', '') + '`'
 
 
 def _emit(obj, depth):

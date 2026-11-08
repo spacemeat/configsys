@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 23/37 items done (+ B1 in part), 0 declined, 13 open.
+**Status:** 24/37 items done (+ B1 in part), 0 declined, 12 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -78,7 +78,9 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - B4, B5: profile terms merged in order (decision 5); a combined list edited in place with its
   comments; a comment-only edit of mine kept; git's clean merge preferred — `17643aa`.
 - G1 (decision 6): `plugin push` lists the outgoing commits and files and asks on a terminal (`--yes`
-  skips; TUI popup; auto modes silent); `--pretend plugin push` shows the same list — merge quality 4.
+  skips; TUI popup; auto modes silent); `--pretend plugin push` shows the same list — `0aa1606`.
+- D3: one humon text module, `configsys/hutext.py` (scanner, quoting, emitter), shared by plugins,
+  troveio and humerge — merge quality 5.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -175,7 +177,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   `primary-push` values go unvalidated; hold the mode policy, chip and failure wording as data.
   (primary-27, -28) · effort S · [open]
 - **D3 [LOW] One shared module for humon text surgery** (humerge's span helpers and plugins.py's).
-  (primary-29) · effort M · [open]
+  (primary-29) · effort M · [done — merge quality 5]
 - **D4 [NIT] Naming: `mine` means two things in one module; single-letter git results.** (primary-33) · S ·
   [open]
 
@@ -191,7 +193,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 
 ### Tier G — features + parity
 - **G1 [MED] `plugin push` gives no preview of what will leave the machine**, and `--pretend plugin push` says
-  nothing useful. (primary-12; decision 6) · effort M · [done — merge quality 4]
+  nothing useful. (primary-12; decision 6) · effort M · [done 0aa1606]
 - **G2 [LOW] No way to see or undo configsys's commits from configsys.** (primary-30) · effort M · [open]
 - **G3 [LOW] The CLI `plugin list` never fetches the primary**, so it can't show `↓` the way the TUI does.
   (primary-31) · effort S · [open]

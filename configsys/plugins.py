@@ -27,7 +27,8 @@ from .drivers import register_driver
 from .errors import ConfigError
 from .runner import Result
 from .splashes import Splash, SplashFrame, register_splash
-from .troveio import _scalar
+from . import hutext
+from .hutext import scalar as _scalar
 
 register_version_source = versions.register_source   # re-export on the frozen surface
 
@@ -799,96 +800,11 @@ def _emit_block(decls, indent):
     return '\n'.join(lines)
 
 
-def _skip_trivia(text, i):
-    '''Advance past ONE run of whitespace / `//` line comment / `/* */` block comment / quoted
-    string starting at `i`; return the new index (unchanged if `i` is none of those). Humon
-    honors both C++ (`//`) and C (`/* */`) comments, and braces/brackets can appear inside a
-    comment or a `"..."`/`'...'` string — the span scanner must step over all of them so their
-    contents never fool the depth counter. Humon quotes with `"`, `'` or a backtick, and has NO escape
-    mechanism (a backslash is just a backslash), so a string runs to the next matching quote.'''
-    n = len(text)
-    c = text[i]
-    if c in ' \t\r\n':
-        while i < n and text[i] in ' \t\r\n':
-            i += 1
-        return i
-    if c == '/' and i + 1 < n and text[i + 1] == '/':
-        j = text.find('\n', i)
-        return n if j < 0 else j
-    if c == '/' and i + 1 < n and text[i + 1] == '*':
-        j = text.find('*/', i + 2)
-        return n if j < 0 else j + 2
-    if c in '"\'`':
-        j = text.find(c, i + 1)
-        return n if j < 0 else j + 1
-    return i
-
-
-def _scan_value_end(text, i):
-    '''End index (exclusive) of the humon value beginning at `i` (after `<key>:`). A `{...}`/`[...]`
-    value brace-matches to its close (comment/string-aware); a bare scalar runs to end-of-line.'''
-    n = len(text)
-    while i < n:
-        j = _skip_trivia(text, i)
-        if j != i:
-            i = j
-            continue
-        break
-    if i >= n:
-        return n
-    if text[i] in '{[':
-        opens, closes = '{[', '}]'
-        stack = [text[i]]
-        i += 1
-        while i < n and stack:
-            j = _skip_trivia(text, i)
-            if j != i:
-                i = j
-                continue
-            c = text[i]
-            if c in opens:
-                stack.append(c)
-            elif c in closes:
-                stack.pop()
-            i += 1
-        return i
-    j = text.find('\n', i)                          # scalar value: to end of line
-    return n if j < 0 else j
-
-
-def _locate_section_span(text, section):
-    '''(key_start, value_end) of a TOP-LEVEL `<section>: <value>` span — the key char through the
-    end of its value — or None. Comment- and string-aware so braces inside `/* */`, `//`, or a
-    quoted string never fool the depth counter, and it matches `section` only as a real key
-    (depth 1, token-bounded, followed by `:`). This replaces the old humon-`source_text`-span
-    approach, which mis-reported the span when humon bound a comment to the node (e.g. a trailing
-    `/* */` before the closing brace), duplicating the section and dropping a brace.'''
-    n, i, depth = len(text), 0, 0
-    slen = len(section)
-    while i < n:
-        j = _skip_trivia(text, i)
-        if j != i:
-            i = j
-            continue
-        c = text[i]
-        if c in '{[':
-            depth += 1
-            i += 1
-            continue
-        if c in '}]':
-            depth -= 1
-            i += 1
-            continue
-        if (depth == 1 and text.startswith(section, i)
-                and (i == 0 or text[i - 1] in ' \t\r\n{')      # left token boundary
-                and i + slen <= n):
-            k = i + slen
-            while k < n and text[k] in ' \t':                  # ws before ':'
-                k += 1
-            if k < n and text[k] == ':':                       # a real `<section>:` key
-                return i, _scan_value_end(text, k + 1)
-        i += 1
-    return None
+# The humon text scanner lives in hutext (shared with troveio and humerge); these names stay for the
+# callers that know them.
+_skip_trivia = hutext.skip_trivia
+_scan_value_end = hutext.value_end
+_locate_section_span = hutext.section_span
 
 
 def set_section(user_config_file, section, emit):
