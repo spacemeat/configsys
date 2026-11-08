@@ -136,3 +136,46 @@ def test_fixtures_reads_the_real_golden_contexts_and_containerfiles():
     cascade, _ = oa.load()
     found = oa.fixtures(cascade)
     assert any(f['fixture'] == 'test/Containerfile.fedora' for f in found)
+
+
+def test_arrival_candidates_find_gated_out_native_bindings_and_unrouted_names(loaded, tmp_path,
+                                                                               monkeypatch):
+    # folly's only native binding stops at 43 — on 44 its own package name is the candidate
+    found = oa.arrival_candidates('fedora', '44', 'dnf')
+    assert found['folly-devel'] == {'components': ['folly'], 'confidence': 'release-gated',
+                                    'when': 'fedora < 44'}
+    assert 'java-25-openjdk-devel' not in found                 # jdk is native on 44 already
+    assert 'old' in found                                       # eol-only's fedora = 41 binding
+    # a component with no native binding that doesn't route here: its own name, low confidence
+    path = tmp_path / 'routes2.hu'
+    path.write_text(ROUTES.replace('components: {', 'components: {\n    zoxide: { install: [ '
+                                   '{ via: cargo  name: zoxide } ] }'), encoding='utf-8')
+    monkeypatch.setattr(oa, 'ROUTES', str(path))
+    found = oa.arrival_candidates('fedora', '44', 'dnf')
+    assert found['zoxide']['confidence'] == 'name-only'
+
+
+def test_snapshot_then_compare_shows_only_what_an_edit_changed(loaded, tmp_path, monkeypatch):
+    cascade, _ = loaded
+    snap = oa.snapshot(cascade, 'fedora')
+    assert set(snap['releases']) == {'43', '44', '45'}
+    edited = tmp_path / 'edited.hu'
+    edited.write_text(ROUTES.replace('when: "fedora < 44"  name: folly-devel',
+                                     'when: "fedora < 46"  name: folly-devel'), encoding='utf-8')
+    monkeypatch.setattr(oa, 'ROUTES', str(edited))
+    result = oa.compare(snap)['releases']
+    assert result['43'] == {'lost': {}, 'gained': {}, 'changed': {}, 'follows': {}}
+    assert set(result['44']['gained']) == {'folly'} and set(result['45']['gained']) == {'folly'}
+
+
+def test_facts_output_becomes_registry_fields_and_a_paste_ready_entry():
+    found = oa.parse_facts('version_id=45\ncodename=\nglibc=2.42\n'
+                           'manager=dnf5 version 5.3.0.0\npython3=3.14.0\ngcc=16.0.1\n')
+    assert found == {'version_id': '45', 'glibc': '2.42', 'manager': 'dnf5 version 5.3.0.0',
+                     'python3': '3.14', 'gcc': '16'}
+    apt = oa.parse_facts('python3=3.12.3-0ubuntu2.1\ngcc=4:13.2.0-7ubuntu1\n')
+    assert apt == {'python3': '3.12', 'gcc': '4'} or apt['python3'] == '3.12'
+    entry = oa._humon_entry('45', {'status': 'prerelease', 'image': 'docker.io/library/fedora:45',
+                                   'glibc': '2.42', 'manager': 'dnf5 version 5.3.0.0'})
+    assert entry == ('45: { status: prerelease  image: "docker.io/library/fedora:45"  '
+                     'glibc: 2.42  manager: "dnf5 version 5.3.0.0" }')

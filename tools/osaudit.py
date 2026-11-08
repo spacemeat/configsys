@@ -21,9 +21,18 @@ Subcommands:
                                  `source-line` with $CODENAME (or a literal codename: flagged), PPAs
   sweep LINE [RELEASE…]          podman: the native-name sweep per release (default: every live
                                  release with an image), plus what is missing on one release and
-                                 present on another — the retirements and arrivals to gate
+                                 present on another — the retirements to gate — and ARRIVALS: a
+                                 package now in the release's repos for a component that doesn't
+                                 route natively there (a gated-out native binding whose name now
+                                 exists; or, lower confidence, the component's own name)
   fixtures                       the golden contexts, namesweep's releases and the Containerfile
                                  defaults, against the registry's newest live releases
+  facts LINE RELEASE [--image I] podman: read a release's facts from its own image (VERSION_ID,
+                                 codename, glibc, the repo's python3 / gcc, the package-manager
+                                 version), compare them with the registry, print a ready entry
+  snapshot LINE [RELEASE…] --out F   every component's resolution on each release (default: live)
+  compare F                      what changed since a snapshot, per release — the guard that an edit
+                                 for a new release left the older releases resolving as before
 
 Every subcommand takes --json. Core routes.hu only (a plugin OS line: tools/namesweep.py --plugin).
 '''
@@ -187,11 +196,10 @@ def _own(units, name):
     return {k: v for k, v in units.items() if k.split('\\', 1)[-1] == name}
 
 
-def delta(block, old, new):
-    '''Per component, how its OWN unit differs between two releases (lost / gained / changed);
-    a component that differs only through what it requires is folded into `follows` under the
-    dependency that changed, so one retired jdk doesn't read as 25 changes.'''
-    a, b = _resolve_all(block, old), _resolve_all(block, new)
+def diff_resolved(a, b):
+    '''{lost, gained, changed, follows} between two {component: units} maps: per component, how
+    its OWN unit differs; a component that differs only through what it requires is folded into
+    `follows` under the dependency that changed, so one retired jdk doesn't read as 25 changes.'''
     lost = {n: _brief(a[n]) for n in sorted(set(a) - set(b))}
     gained = {n: _brief(b[n]) for n in sorted(set(b) - set(a))}
     changed, follows = {}, {}
@@ -206,8 +214,33 @@ def delta(block, old, new):
                        {k.split('\\', 1)[-1] for k in set(a[n]) & set(b[n]) if a[n][k] != b[n][k]})
         for dep in moved:
             follows.setdefault(dep, []).append(n)
-    return {'line': block, 'old': old, 'new': new, 'lost': lost, 'gained': gained,
-            'changed': changed, 'follows': follows}
+    return {'lost': lost, 'gained': gained, 'changed': changed, 'follows': follows}
+
+
+def delta(block, old, new):
+    return dict({'line': block, 'old': old, 'new': new},
+                **diff_resolved(_resolve_all(block, old), _resolve_all(block, new)))
+
+
+def snapshot(cascade, line, releases_wanted=None):
+    table = cascade.releases(line)
+    targets = releases_wanted or live(table)
+    return {'line': line, 'releases': {v: {n: {k: list(u) for k, u in units.items()}
+                                           for n, units in _resolve_all(line, v).items()}
+                                       for v in targets}}
+
+
+def compare(snap):
+    def tup(units):
+        return {k: (u[0], u[1], tuple(u[2]) if isinstance(u[2], list) else u[2])
+                for k, u in units.items()}
+    out = {}
+    for version, before in snap['releases'].items():
+        old = {n: tup(units) for n, units in before.items()}
+        now = {n: tup({k: list(u) for k, u in units.items()})
+               for n, units in _resolve_all(snap['line'], version).items()}
+        out[version] = diff_resolved(old, now)
+    return {'line': snap['line'], 'releases': out}
 
 
 # -- pinned: version-bounded bindings -----------------------------------------------------------
@@ -395,17 +428,23 @@ def sweep(cascade, line, releases_wanted=None):
             continue
         names = namesweep._native_names(line, version, manager)
         names_by_release[version] = names
-        print(f'>> {line} {version}: {len(names)} {manager} packages in {image}', file=sys.stderr)
+        candidates = arrival_candidates(line, version, manager)
+        query = sorted(set(names) | set(candidates))
+        print(f'>> {line} {version}: {len(names)} {manager} packages + {len(candidates)} arrival '
+              f'candidates in {image}', file=sys.stderr)
         try:
             missing, _rc = namesweep._run_verifier(
-                image, namesweep._build_snippet(_SETUPS[line], namesweep._CHECK[manager]),
-                sorted(names))
+                image, namesweep._build_snippet(_SETUPS[line], namesweep._CHECK[manager]), query)
         except subprocess.TimeoutExpired:
             per_release[version] = {'error': 'verifier timed out'}
             continue
-        per_release[version] = {'image': image, 'checked': len(names),
-                                'missing': {p: names[p] for p in missing if p not in allow},
-                                'allowlisted': sorted(p for p in missing if p in allow)}
+        absent = set(missing)
+        per_release[version] = {
+            'image': image, 'checked': len(names),
+            'missing': {p: names[p] for p in missing if p in names and p not in allow},
+            'allowlisted': sorted(p for p in missing if p in names and p in allow),
+            'arrivals': {p: c for p, c in sorted(candidates.items()) if p not in absent},
+        }
     # a name missing on one swept release and present on another is a release boundary to gate
     boundaries = {}
     swept = [v for v in targets if 'missing' in per_release.get(v, {})]
@@ -418,6 +457,145 @@ def sweep(cascade, line, releases_wanted=None):
                                             'present_on': sorted(present, key=_vkey)})
                 boundaries[pkg]['missing_on'].append(version)
     return {'line': line, 'manager': manager, 'releases': per_release, 'boundaries': boundaries}
+
+
+# vias that install no distro-packageable software of their own (companions, bundles)
+_NOT_PACKAGES = frozenset({'dotfiles', 'glue', 'service', 'group', 'parts'})
+
+
+def arrival_candidates(line, version, manager):
+    '''{package: {components, confidence, when}} — names to look for in a release's repos for
+    components that do NOT route natively there: a native (or `via: <manager>`) binding whose
+    `when:` excludes this release by a version bound on this line ("release-gated"), or that names
+    a package for this manager but is gated off this family ("named") — high confidence, the name
+    is the binding's own — or
+    — for a component that doesn't route here at all and has no native binding — the component's
+    own name ("name-only", low confidence: the package may be something else entirely) — for
+    one installed by a fallback (cargo, tarball, flatpak, …) or not routable here at all.'''
+    import namesweep
+    from configsys.resolve import ResolveError, _package
+    from configsys.routes import Resolver
+    r = Resolver(ROUTES, line, version, CPU)
+    ctx = r.cascade.context(line, version, CPU)
+    out = {}
+    for name, comp in sorted(r.components.items()):
+        try:
+            units = r.resolve_names([name])
+        except ResolveError:
+            units = None
+        if units and any(k == f'{manager}\\{name}' for k in units):
+            continue                                          # already native here
+        native = [b for b in comp.bindings if b.via in ('native', manager)
+                  and not (namesweep._NON_REPO_FIELDS & set(b.details))]
+        for b in native:
+            if b.pred is not None and b.pred.eval(ctx):
+                continue                                      # valid here, lost for another reason
+            on_line = any(a.name in r.cascade.blocks and r.cascade.version_line(a.name) == line
+                          for a in _versioned_atoms(b.pred))
+            named = isinstance(b.details.get('name'), dict) and manager in b.details['name']
+            if not (on_line or named):
+                continue                  # gated to another family: its name isn't this manager's
+            pkg = _package(b, manager, comp)
+            if isinstance(pkg, str) and pkg:
+                entry = out.setdefault(pkg, {'components': [],
+                                             'confidence': 'release-gated' if on_line else 'named',
+                                             'when': b.when})
+                entry['components'].append(name)
+        if not native and any(b.via not in _NOT_PACKAGES for b in comp.bindings):
+            entry = out.setdefault(name, {'components': [], 'confidence': 'name-only',
+                                          'when': None})
+            entry['components'].append(name)
+    return out
+
+
+# -- facts: read a release from its own image ---------------------------------------------------
+
+_FACTS_COMMON = r'''
+. /etc/os-release 2>/dev/null
+echo "version_id=$VERSION_ID"
+echo "codename=${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+echo "glibc=$(getconf GNU_LIBC_VERSION 2>/dev/null | cut -d' ' -f2)"
+'''
+_FACTS = {
+    'dnf': r'''
+echo "manager=$( (dnf --version 2>/dev/null || true) | head -1)"
+for p in python3 gcc; do echo "$p=$(dnf -q info "$p" 2>/dev/null | sed -n 's/^Version *: *//p' | head -1)"; done''',
+    'apt': r'''
+export DEBIAN_FRONTEND=noninteractive; apt-get update -qq >/dev/null 2>&1
+echo "manager=$(apt --version 2>/dev/null | head -1)"
+for p in python3 gcc; do echo "$p=$(apt-cache policy "$p" 2>/dev/null | sed -n 's/ *Candidate: *//p' | sed 's/^[0-9]*://')"; done''',
+    'apk': r'''
+apk update >/dev/null 2>&1
+echo "manager=$(apk --version 2>/dev/null | head -1)"
+for p in python3 gcc; do echo "$p=$(apk search -x "$p" 2>/dev/null | head -1 | sed "s/^$p-//")"; done''',
+    'zypper': r'''
+zypper -n --gpg-auto-import-keys ref >/dev/null 2>&1
+echo "manager=$(zypper --version 2>/dev/null | head -1)"
+for p in python3 gcc; do echo "$p=$(zypper -n info "$p" 2>/dev/null | sed -n 's/^Version *: *//p' | head -1)"; done''',
+}
+
+
+def _leading(version, parts):
+    m = re.match(r'(\d+(?:\.\d+){0,%d})' % (parts - 1), str(version or ''))
+    return m.group(1) if m else None
+
+
+def parse_facts(text):
+    '''The facts snippet's key=value lines -> registry-shaped fields (python3 as major.minor,
+    gcc as its major, glibc as printed).'''
+    raw = {}
+    for line in text.splitlines():
+        if '=' in line:
+            k, v = line.split('=', 1)
+            raw[k.strip()] = v.strip()
+    out = {k: raw[k] for k in ('version_id', 'codename', 'glibc', 'manager') if raw.get(k)}
+    if _leading(raw.get('python3'), 2):
+        out['python3'] = _leading(raw.get('python3'), 2)
+    if _leading(raw.get('gcc'), 1):
+        out['gcc'] = _leading(raw.get('gcc'), 1)
+    return out
+
+
+def facts(cascade, line, release, image=None):
+    manager = cascade.native(line)
+    rel = cascade.releases(line).get(release) or {}
+    image = image or rel.get('image')
+    if manager not in _FACTS:
+        return {'error': f'{line}: no facts snippet for manager {manager!r}'}
+    if not image:
+        return {'error': f'{line} {release}: no image — pass --image'}
+    if not shutil.which('podman'):
+        return {'error': 'podman not found'}
+    proc = subprocess.run(['podman', 'run', '--rm', '-i', image, 'sh', '-s'],
+                          input=_FACTS_COMMON + _FACTS[manager], capture_output=True, text=True,
+                          timeout=900)
+    found = parse_facts(proc.stdout)
+    mismatches = []
+    if found.get('version_id') and found['version_id'] != str(release) and \
+            not found['version_id'].startswith(str(release) + '.'):
+        mismatches.append(f"the image reports VERSION_ID {found['version_id']}, not {release}")
+    for key in ('codename', 'glibc', 'python3', 'gcc', 'manager'):
+        if key in rel and key in found and str(rel[key]) != found[key]:
+            mismatches.append(f'{key}: registry {rel[key]!r}, image {found[key]!r}')
+    entry = {'status': rel.get('status', 'prerelease'), 'image': image}
+    entry.update({k: v for k, v in found.items() if k != 'version_id'})
+    for key in ('released', 'eol', 'note'):
+        if key in rel:
+            entry[key] = rel[key]
+    return {'line': line, 'release': release, 'image': image, 'found': found,
+            'mismatches': mismatches, 'entry': _humon_entry(release, entry),
+            'stderr': proc.stderr[-2000:] if proc.returncode else ''}
+
+
+def _humon_entry(release, entry):
+    order = ('status', 'released', 'eol', 'codename', 'image', 'glibc', 'python3', 'gcc', 'manager',
+             'note')
+
+    def val(v):
+        v = str(v)
+        return v if re.fullmatch(r'[\w.\-]+', v) and not v.startswith('-') else json.dumps(v)
+    body = '  '.join(f'{k}: {val(entry[k])}' for k in order if entry.get(k))
+    return f'{release}: {{ {body} }}'
 
 
 # -- fixtures: tests and containers against the registry ----------------------------------------
@@ -491,6 +669,16 @@ def main(argv=None):
     p.add_argument('line')
     p.add_argument('releases', nargs='*')
     sub.add_parser('fixtures')
+    p = sub.add_parser('facts')
+    p.add_argument('line')
+    p.add_argument('release')
+    p.add_argument('--image', help='an image to read instead of the registry entry\'s')
+    p = sub.add_parser('snapshot')
+    p.add_argument('line')
+    p.add_argument('releases', nargs='*')
+    p.add_argument('--out', required=True)
+    p = sub.add_parser('compare')
+    p.add_argument('snapshot')
     for sp in sub.choices.values():
         sp.add_argument('--json', action='store_true')
     args = parser.parse_args(argv)
@@ -574,6 +762,9 @@ def main(argv=None):
                       f"{len(res['missing'])} missing")
                 for pkg, comps in sorted(res['missing'].items()):
                     print(f"  missing  {pkg}  ({', '.join(comps)})")
+                for pkg, a in res.get('arrivals', {}).items():
+                    when = f" (binding when: \"{a['when']}\")" if a['when'] else ''
+                    print(f"  arrival  {pkg}  {a['confidence']}: {', '.join(a['components'])}{when}")
             for pkg, b in sorted(d['boundaries'].items()):
                 print(f"boundary {pkg}: missing on {', '.join(b['missing_on'])}, present on "
                       f"{', '.join(b['present_on'])}  ({', '.join(b['components'])})")
@@ -581,6 +772,45 @@ def main(argv=None):
         if 'error' in data:
             return 2
         return 1 if any(r.get('missing') for r in data['releases'].values()) else 0
+
+    if args.cmd == 'facts':
+        data = facts(cascade, args.line, args.release, args.image)
+
+        def render(d):
+            if 'error' in d:
+                print(d['error'])
+                return
+            for k, v in d['found'].items():
+                print(f'  {k:10} {v}')
+            for m in d['mismatches']:
+                print(f'! {m}')
+            print(f"\nregistry entry for {d['line']}:\n    {d['entry']}")
+            if d['stderr']:
+                print(f"\n(podman stderr)\n{d['stderr']}")
+        _emit(data, args.json, render)
+        return 2 if 'error' in data else (1 if data['mismatches'] else 0)
+
+    if args.cmd == 'snapshot':
+        data = snapshot(cascade, args.line, args.releases or None)
+        Path(args.out).write_text(json.dumps(data), encoding='utf-8')
+        print(f"snapshot: {args.line} {', '.join(data['releases'])} -> {args.out}")
+        return 0
+
+    if args.cmd == 'compare':
+        data = compare(json.loads(Path(args.snapshot).read_text(encoding='utf-8')))
+
+        def render(d):
+            for version, diff in d['releases'].items():
+                n = len(diff['lost']) + len(diff['gained']) + len(diff['changed'])
+                print(f"{d['line']} {version}: {'unchanged' if not n else f'{n} changed'}")
+                for k in ('lost', 'gained'):
+                    for name, units in diff[k].items():
+                        print(f'  {k:8} {name}: {units}')
+                for name, ch in diff['changed'].items():
+                    print(f"  changed  {name}: {ch['old']}  ->  {ch['new']}")
+        _emit(data, args.json, render)
+        return 1 if any(d['lost'] or d['gained'] or d['changed']
+                        for d in data['releases'].values()) else 0
 
     if args.cmd == 'fixtures':
         data = fixtures(cascade)
