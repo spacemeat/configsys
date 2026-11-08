@@ -42,7 +42,17 @@
         // RHEL family (dnf). The EL rebuilds share rhel's routes + version line; distinct
         // blocks (vs. one aliased `rhel`) buy them identity — `when: "rocky"`, correct display.
         redhat:    { using: glibc_linux  native: dnf }              // fedora + EL share dnf
-        fedora:    { using: redhat    scale-root: true }            // fedora proper (YY release)
+        fedora:    { using: redhat    scale-root: true              // fedora proper (YY release)
+            // The release registry (facts read from each image by `tools/osaudit.py facts`; dates from
+            // Fedora's schedule). EOL releases keep their gates and stay routable; /update-os sweeps
+            // only the live ones.
+            releases: {
+                41: { status: eol  released: 2024-10-29  eol: 2025-12-15  image: "docker.io/library/fedora:41"  glibc: 2.40  python3: 3.13  gcc: 14  manager: "dnf5 version 5.2.17.0" }
+                42: { status: eol  released: 2025-04-15  eol: 2026-05-27  image: "docker.io/library/fedora:42"  glibc: 2.41  python3: 3.13  gcc: 15  manager: "dnf5 version 5.2.18.0" }
+                43: { status: released  released: 2025-10-28  eol: 2026-12-01  image: "docker.io/library/fedora:43"  glibc: 2.42  python3: 3.14  gcc: 15  manager: "dnf5 version 5.2.18.0" }
+                44: { status: released  released: 2026-04-28  eol: 2027-06-02  image: "docker.io/library/fedora:44"  glibc: 2.43  python3: 3.14  gcc: 16  manager: "dnf5 version 5.4.3.0" }
+                45: { status: released  released: 2026-11-03  eol: 2027-12-08  image: "docker.io/library/fedora:45"  glibc: 2.44  python3: 3.15  gcc: 16  manager: "dnf5 version 5.4.6.0" }
+            } }
         nobara:    { using: fedora }                                // Fedora-based (Nobara N = Fedora N) — borrows fedora's scale, no own scale-root
         rhel:      { using: redhat    scale-root: true }            // EL scale-root (N release)
         rocky:     { using: rhel }
@@ -62,7 +72,16 @@
         // dep is env-satisfied instead of trying to `brew install flatpak`. scale-root: it owns
         // its VERSION_ID (tracks Fedora) without inheriting fedora's dnf version line. osdetect
         // folds every variant (ID=fedora + atomic VARIANT_ID or the ostree marker) into this block.
-        fedora_atomic: { using: glibc_linux  native: brew  provides: flatpak  scale-root: true }
+        fedora_atomic: { using: glibc_linux  native: brew  provides: flatpak  scale-root: true
+            // tracks Fedora's releases and dates (the atomic images ship with each Fedora release);
+            // not swept — brew is its native, checked by compaudit
+            releases: {
+                41: { status: eol  released: 2024-10-29  eol: 2025-12-15 }
+                42: { status: eol  released: 2025-04-15  eol: 2026-05-27 }
+                43: { status: released  released: 2025-10-28  eol: 2026-12-01 }
+                44: { status: released  released: 2026-04-28  eol: 2027-06-02 }
+                45: { status: released  released: 2026-11-03  eol: 2027-12-08 }
+            } }
 
         // KDE Linux (ID=kde-linux, aliased) — KDE's immutable, image-based distro (built from Arch
         // packages, but pacman is REMOVED from the image, so no `ID_LIKE=arch`). There is NO system
@@ -1251,7 +1270,8 @@
             install: [
                 { via: native  when: "arch"    name: dotnet-sdk }              // rolling latest
                 { via: native  when: "ubuntu"  name: dotnet-sdk-8.0 }          // Canonical feed (22.04+)
-                { via: native  when: "fedora"  name: dotnet-sdk-8.0 }          // Fedora's own repo
+                { via: native  when: "fedora < 45"   name: dotnet-sdk-8.0 }     // Fedora's own repo
+                { via: native  when: "fedora >= 45"  name: dotnet-sdk-10.0 }    // .NET 8 left Fedora in 45; 10.0 is the LTS there
                 { via: native  when: "alpine"  name: dotnet8-sdk }             // community
                 { via: script  when: "debian or rhel or opensuse or void or void_musl"   // dotnet-install.sh: glibc + musl
                   install-cmd:   'curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0'
@@ -2576,9 +2596,7 @@
                   pubkey-url: "https://repo.jellyfin.org/debian/jellyfin_team.gpg.key"  pubkey-path: /usr/share/keyrings/jellyfin.gpg
                   source-line: "deb [signed-by=/usr/share/keyrings/jellyfin.gpg] https://repo.jellyfin.org/debian bookworm main"
                   source-path: /etc/apt/sources.list.d/jellyfin.list }
-                { via: native  when: "fedora"  name: jellyfin  requires: rpmfusion   // pulls ffmpeg from RPM Fusion
-                  pubkey-url: "https://repo.jellyfin.org/fedora/jellyfin_team.gpg.key"
-                  repo-id: jellyfin  repo-name: "Jellyfin"  repo-url: "https://repo.jellyfin.org/fedora/$releasever/$basearch" }
+                { via: native  when: "fedora"  name: jellyfin  requires: rpmfusion }   // RPM Fusion Free ships it (Jellyfin's own Fedora repo is deprecated since 10.9)
                 { via: native  when: "arch"  packages: [ jellyfin-server, jellyfin-web ] } ] }   // Arch `extra`
         jellyfin-service: { description: "Enable and start the Jellyfin server (systemd / runit)." requires: jellyfin  install: [ { via: service  unit: jellyfin } ] }
         plex: { attrs: [ daemon web app proprietary account cloud freemium ] description: "Plex Media Server — a media server with the Plex client ecosystem."
@@ -2795,8 +2813,9 @@
                        { via: native  when: "(not fedora_atomic) and not amzn" } ]
         }
         // RPM Fusion Free: enabling it = (EL only) turn on EPEL + CRB, then drop the free
-        // .repo (dnf expands $releasever/$basearch and auto-imports the per-release key on the
-        // first -y install) and pull the release package that formalizes the config. Fedora and
+        // .repo (dnf expands $releasever/$basearch; EL's key is per major and auto-imported on the
+        // first -y install, Fedora's is the single "2020" key every release since 33 is signed
+        // with — the per-release URL 404s) and pull the release package that formalizes the config. Fedora and
         // EL differ only in the repo path + key + those EL prereqs, so it's two bindings.
         // Provides the `rpmfusion` capability ffmpeg (both families) and vlc (Fedora) pull in.
         // Validated end to end on fedora:41 and rockylinux:9 (ffmpeg deps resolve). NOTE: EL
@@ -2813,7 +2832,7 @@
                 { via: native  when: "fedora"  name: rpmfusion-free-release
                   repo-id: rpmfusion-free  repo-name: "RPM Fusion Free"
                   repo-url: "https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/"
-                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-$releasever" }
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020" }   // one key for Fedora 33+ (no per-release key)
             ]
         }
         // RPM Fusion (nonfree) — the patent/nonfree Fedora/RHEL repo (e.g. Steam, some codecs).
@@ -2831,7 +2850,7 @@
                 { via: native  when: "fedora"  name: rpmfusion-nonfree-release
                   repo-id: rpmfusion-nonfree  repo-name: "RPM Fusion Nonfree"
                   repo-url: "https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/"
-                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-$releasever" }
+                  pubkey-url: "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020" }   // one key for Fedora 33+ (no per-release key)
             ]
         }
 
@@ -3713,7 +3732,7 @@
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-14, g++-14 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: software-properties-common  suggests: gcc-glue }
-                { via: gcc  when: "fedora = 42"  packages: [ gcc14, gcc14-c++ ] }
+                { via: gcc  when: "(fedora >= 42) and (fedora < 44)"  packages: [ gcc14, gcc14-c++ ] }   // Fedora's gcc14 compat pkg: 42–43 (checked through 45)
                 { via: gcc-toolset  when: "rhel" }
                 { via: brew  name: "gcc@14" }
             ]
@@ -3724,6 +3743,7 @@
             install: [
                 { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ]  slaves: [ g++ ]  ppa: ubuntu-toolchain-r/test
                   requires: software-properties-common  suggests: gcc-glue }
+                { via: gcc  when: "(fedora >= 44) and (fedora < 46)"  packages: [ gcc15, gcc15-c++ ] }   // Fedora's gcc15 compat pkg: 44–45 (system gcc is 16)
                 { via: gcc-toolset  when: "rhel" }
                 { via: brew  name: "gcc@15" }
             ]
@@ -3762,7 +3782,7 @@
                 { via: clang  when: "debian"  packages: [ clang-19 ]
                   requires: curl  suggests: clang-glue }
                 { via: clang  when: "fedora = 41"  packages: [ clang ] }      // system clang -> /usr/bin/clang-19
-                { via: clang  when: "fedora = 42"  packages: [ clang19 ] }
+                { via: clang  when: "(fedora >= 42) and (fedora < 46)"  packages: [ clang19 ] }   // compat pkg: 42–45
                 { via: clang  when: "rhel"  packages: [ clang19 ]  requires: epel }
             ]
         }
@@ -3774,6 +3794,7 @@
                 { via: clang  when: "debian"  packages: [ clang-20 ]
                   requires: curl  suggests: clang-glue }
                 { via: clang  when: "fedora = 42"  packages: [ clang ] }      // system clang -> /usr/bin/clang-20
+                { via: clang  when: "(fedora >= 43) and (fedora < 46)"  packages: [ clang20 ] }   // compat pkg: 43–45
                 { via: clang  when: "rhel"  packages: [ clang20 ]  requires: epel }
             ]
         }
@@ -3847,7 +3868,9 @@
             install: [ { via: native  when: "void or void_musl"  name: libsecret-devel }  { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"
                          name: { apt: libsecret-1-dev  dnf: libsecret-devel  pacman: libsecret  apk: libsecret-dev  zypper: libsecret-devel  brew: libsecret } } ] }
         libgit2: { attrs: [ lib FOSS permissive ] description: "libgit2 — a portable C implementation of the Git core methods (dev)."
-            install: [ { via: native  when: "void or void_musl"  name: libgit2-devel }  { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
+            install: [ { via: native  when: "void or void_musl"  name: libgit2-devel }
+                       { via: native  when: "fedora >= 45"  name: "libgit2_1.9-devel" }   // Fedora 45 ships it as the versioned compat package
+                       { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"  repo-component: universe
                          name: { apt: libgit2-dev  dnf: libgit2-devel  pacman: libgit2  apk: libgit2-dev  zypper: libgit2-devel  brew: libgit2 } } ] }
         dbus-dev: { attrs: [ lib FOSS ] description: "D-Bus development headers (libdbus-1)."
             install: [ { via: native  when: "void or void_musl"  name: dbus-devel }  { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn"

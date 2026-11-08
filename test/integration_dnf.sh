@@ -11,11 +11,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 . /etc/os-release
 say "target: $PRETTY_NAME (VERSION_ID=$VERSION_ID)"
 
-# Default generated config uses the `dev` profile, whose versioned toolchains do
-# not route on Fedora (deferred). Point at `user`, which is fully Fedora-routable,
-# so `inspect` exercises the real fedora cascade end to end.
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
-
 say "bootstrap + inspect (also builds .venv and installs humon)"
 bash configsys.sh inspect
 

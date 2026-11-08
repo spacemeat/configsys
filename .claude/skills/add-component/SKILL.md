@@ -298,7 +298,7 @@ layer + resolution; it notes any version condition a versionless block reads fal
 
 ### 8. Regenerate the golden gate + run the suite
 Adding components changes the frozen resolution snapshot (`test/routing_golden.json`, every
-component × 13 contexts, incl. void + void_musl). Regenerate and confirm it's **purely additive**:
+component × 15 contexts, incl. void + void_musl). Regenerate and confirm it's **purely additive**:
 ```
 CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q   # writes the golden
 ```

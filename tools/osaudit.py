@@ -207,15 +207,30 @@ def _resolve_all(block, version):
             units = r.resolve_names([name])
         except ResolveError:
             continue
-        out[name] = {k: (rc.driver, rc.name, rc.fields.get('packages')) for k, rc in units.items()}
+        out[name] = {k: (rc.driver, rc.name, rc.fields.get('packages'), _digest(rc.fields))
+                     for k, rc in units.items()}
     return out
 
 
-def _brief(units):
+def _digest(fields):
+    '''A short stable digest of a unit's fields, so a changed repo URL or key shows up in a
+    compare even when the package name doesn't move.'''
+    import hashlib
+    text = json.dumps(fields, sort_keys=True, default=str)
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()[:12]
+
+
+def _brief(units, other=None):
+    '''driver:name [packages] per unit; `~fields` marks a unit whose fields differ from the same
+    unit in `other` (the side it is being compared with).'''
     parts = []
-    for _k, (driver, name, packages) in sorted(units.items()):
+    for key, unit in sorted(units.items()):
+        driver, name, packages = unit[0], unit[1], unit[2]
         pk = f" [{' '.join(packages)}]" if isinstance(packages, (list, tuple)) else ''
-        parts.append(f'{driver}:{name}{pk}')
+        mark = ''
+        if other and key in other and other[key][:3] == unit[:3] and other[key] != unit:
+            mark = ' ~fields'
+        parts.append(f'{driver}:{name}{pk}{mark}')
     return ', '.join(parts)
 
 
@@ -236,7 +251,7 @@ def diff_resolved(a, b):
             continue
         own_a, own_b = _own(a[n], n), _own(b[n], n)
         if own_a != own_b:
-            changed[n] = {'old': _brief(own_a), 'new': _brief(own_b)}
+            changed[n] = {'old': _brief(own_a, own_b), 'new': _brief(own_b, own_a)}
             continue
         moved = sorted({k.split('\\', 1)[-1] for k in set(a[n]) ^ set(b[n])} |
                        {k.split('\\', 1)[-1] for k in set(a[n]) & set(b[n]) if a[n][k] != b[n][k]})
@@ -260,13 +275,17 @@ def snapshot(cascade, line, releases_wanted=None):
 
 def compare(snap):
     def tup(units):
-        return {k: (u[0], u[1], tuple(u[2]) if isinstance(u[2], list) else u[2])
+        return {k: (u[0], u[1], tuple(u[2]) if isinstance(u[2], list) else u[2],
+                    u[3] if len(u) > 3 else None)
                 for k, u in units.items()}
     out = {}
     for version, before in snap['releases'].items():
         old = {n: tup(units) for n, units in before.items()}
         now = {n: tup({k: list(u) for k, u in units.items()})
                for n, units in _resolve_all(snap['line'], version).items()}
+        if any(u[3] is None for units in old.values() for u in units.values()):
+            # a snapshot from before fields were recorded: compare names and packages only
+            now = {n: {k: u[:3] + (None,) for k, u in units.items()} for n, units in now.items()}
         out[version] = diff_resolved(old, now)
     return {'line': snap['line'], 'releases': out}
 
@@ -746,7 +765,12 @@ def main(argv=None):
     p.add_argument('snapshot')
     for sp in sub.choices.values():
         sp.add_argument('--json', action='store_true')
+        sp.add_argument('--routes', help='a routes.hu to read instead of the repo\'s (e.g. a '
+                        'snapshot of HEAD: `git show HEAD:routes.hu > F`)')
     args = parser.parse_args(argv)
+    if args.routes:
+        global ROUTES
+        ROUTES = str(Path(args.routes).resolve())
 
     cascade, components = load()
 

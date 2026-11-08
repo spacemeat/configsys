@@ -763,7 +763,7 @@ zypper, apk, xbps), catching upstream renames and removals; Homebrew formula nam
 the name sweep ([name-sweep-test.md](docs/name-sweep-test.md)).
 
 Routing changes are gated by a golden snapshot, `test/routing_golden.json` (how every component
-resolves on 13 reference machines). After an intentional change, regenerate it and review the diff:
+resolves on 15 reference machines). After an intentional change, regenerate it and review the diff:
 
 ```console
 $ CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q
@@ -809,7 +809,7 @@ edit that file, not this section -->
 - **driver-preference** (`driver-preference:`) — A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). Your list only needs the drivers you care about — the ones it leaves out follow in the default order. *See also:* **standing**, **specificity**.
 - **facet** — A detected machine trait beyond the OS — CPU, GPU, and so on — usable in `when:` (`cpu: x86_64`). *See also:* **when**.
 - **glue** (`via: glue`) — A small shipped shell snippet that wires a tool into your shells (PATH, aliases, init hooks), installed into each shell's `conf.d`. Distinct from dotfiles: glue is shipped, not captured. *See also:* **dotfiles**, **shell-glue**.
-- **golden** (test/routing_golden.json) — A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly.
+- **golden** (test/routing_golden.json) — A frozen snapshot of how every component resolves on 15 reference machines; a test fails if routing changes unexpectedly.
 - **install-dirs** (`dirs:`) — Where user-space installs land — the `user`, `system`, `app`, `sdk` and `src` directories; set in your config (environment variables override). *See also:* **scope**.
 - **install-overlay** (`install-overlay:`) — The Profiles screen's installed-state layer (an installed column, underlines, orphan colors); `O` toggles it. *See also:* **orphan**.
 - **issues** — The diagnostics list — the TUI `!` page, `configsys check`, and the end of `configsys inspect`: config warnings, picks that can't route, routing statuses, scope drift, version-floor advisories. *See also:* **routing-status**.

@@ -1,8 +1,9 @@
 # OS releases: a registry, `/add-os`, `/update-os`
 
-> **Status: IN PROGRESS** — phases 1–3 done 2026-11-07 (9a9b0c6, d0afa5e, 23f40f0 + the skills
-> commit); phase 4 (populate the registry; the first `/update-os fedora 45` run) and phase 5
-> (engine uses) not started.
+> **Status: IN PROGRESS** — phases 1–3 done 2026-11-07 (9a9b0c6, d0afa5e, 23f40f0, b61874b);
+> phase 4 partly: fedora + fedora_atomic registered and `/update-os fedora 45` applied 2026-11-07;
+> the other lines (debian, ubuntu + derivatives, rhel, amzn, opensuse_leap, alpine, kde_linux) have
+> no registry yet. Phase 5 (engine uses) not started.
 
 ## Why
 

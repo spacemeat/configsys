@@ -203,13 +203,16 @@ Apply serially (routes.hu is one file; never parallel edits). Rules:
 
 Then validate:
 1. `osaudit.py compare $RUN/before-<line>.json` — **every older release unchanged** except the
-   corrections the user approved for it. Anything else changing on an old release is a leaked edit:
-   fix it before going on.
+   corrections the user approved for it (a unit whose package is the same but whose fields moved —
+   a repo URL, a key — shows as `~fields`). Anything else changing on an old release is a leaked
+   edit: fix it before going on. (Forgot the Phase 0 snapshot? `git show HEAD:routes.hu > F` and
+   `osaudit.py snapshot <line> --routes F --out …` takes it from HEAD.)
 2. `osaudit.py sweep <line>` again — the fixed names are gone from `missing`; `osaudit.py repos`
    again for fixed sources.
-3. `configsys --os <line>:<new release> check` and the usual spread (pop_os!, fedora, arch, alpine,
-   opensuse, rhel, fedora_atomic, void, void_musl) — 0 errors, warnings not up; no `os-release`
-   warnings.
+3. `configsys --home $RUN/home --os <line>:<new release> check` and the usual spread (pop_os!,
+   fedora, arch, alpine, opensuse, rhel, fedora_atomic, void, void_musl) — 0 errors, warnings not
+   up; no `os-release` warnings. Use the sandbox `--home`: without it `check` also reads YOUR config,
+   and your own pins (an `appImage` pin on a musl box) show up as errors that aren't the routes'.
 4. Golden: `CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q`, then the
    semantic diff vs HEAD (add-component §8) — changes only in the edited components (and a new
    context, if one was added).
@@ -233,5 +236,13 @@ Then validate:
   inside a major is the plain sweep's.
 - **Plugin OS lines** (a plugin's own os block with `releases:`): osaudit covers core routes only;
   use `tools/namesweep.py --plugin` per release and the plugin's own repo for edits.
-- Cost: offline phases take seconds; a sweep is ~1–3 min per release (image pull + repo metadata);
-  a lifecycle harness ~5–10 min.
+- Cost: offline phases take seconds; a sweep is ~10 min per release (the catalog index is one
+  query, but every arrival candidate that ISN'T in the repos falls back to the manager's slow
+  per-name query); a lifecycle harness ~5–10 min. Run the sweep in the background and do Phase 2 and
+  the repo probes meanwhile.
+- **Verify what the tools can't see.** The sweep checks names that resolve; a binding that reaches
+  NO live release (a `= 41` pin after 41's EOL) is invisible to it — `pinned` is what finds those,
+  and a quick `dnf repoquery` / `apt-cache policy` per live release settles what to pin next.
+- **A 404 on every release is not a release problem** — compare `repos` across the live releases
+  first. The first run found RPM Fusion's per-release key URL dead since Fedora 33 and Jellyfin's
+  Fedora repo deprecated: old-release corrections, found by the new-release probe.

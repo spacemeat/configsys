@@ -364,7 +364,7 @@
         }
         golden: {
             short: "test/routing_golden.json"
-            def: "A frozen snapshot of how every component resolves on 13 reference machines; a test fails if routing changes unexpectedly."
+            def: "A frozen snapshot of how every component resolves on 15 reference machines; a test fails if routing changes unexpectedly."
         }
         name-sweep: {
             def: "A container test that checks every native package name configsys would install really exists in each distro's repos."

@@ -21,5 +21,5 @@ podman build -q -t "$IMAGE" --build-arg "FEDORA=$FEDORA" -f "$here/Containerfile
 echo ">> [1/2] dnf lifecycle cycle (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_dnf.sh
 
-echo ">> [2/2] dev/graphics gaps (build-essential bundle + vulkan X libs)"
+echo ">> [2/2] dev/graphics gaps (build toolchain + vulkan X libs)"
 podman run --rm "$IMAGE" bash test/integration_fedora_devgaps.sh

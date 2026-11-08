@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Runs INSIDE a Fedora container as user `tester`. Installs the components that were
-# the Fedora dev/graphics gaps — build-essential (a bundle of gcc/gcc-c++/make) and
+# the Fedora dev/graphics gaps — the build toolchain (c-toolchain + cpp-toolchain + make, which
+# replaced the old build-essential bundle) and
 # the vulkan X-dev libs — through configsys, and asserts via rpm. Skips the large
 # vulkan-sdk tarball (OS-agnostic, covered elsewhere). Needs network.
 set -euo pipefail
@@ -10,12 +11,10 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
-
-say "install build-essential via configsys (bundle: gcc, gcc-c++, make)"
-bash configsys.sh install build-essential
+say "install c-toolchain + cpp-toolchain + make via configsys (gcc, gcc-c++, make)"
+bash configsys.sh install c-toolchain cpp-toolchain make
 for p in gcc gcc-c++ make; do
-    rpm -q "$p" >/dev/null 2>&1 || fail "$p not installed by build-essential"
+    rpm -q "$p" >/dev/null 2>&1 || fail "$p not installed"
     echo "  $p $(rpm -q --qf '%{VERSION}' "$p")"
 done
 
@@ -32,8 +31,8 @@ say "libxcb-devel provides the xinput + xinerama headers (the Debian trio)"
 [ -e /usr/include/xcb/xinerama.h ]  || fail "xinerama.h missing"
 echo "  /usr/include/xcb/xinput.h + xinerama.h present"
 
-say "remove build-essential via configsys"
-bash configsys.sh remove build-essential
+say "remove make via configsys"
+bash configsys.sh remove make
 if rpm -q make >/dev/null 2>&1; then fail "make still installed after remove"; fi
 
-printf '\nPASS: Fedora dev/graphics gaps (build-essential bundle + vulkan X libs)\n'
+printf '\nPASS: Fedora dev/graphics gaps (build toolchain + vulkan X libs)\n'

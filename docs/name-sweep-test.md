@@ -12,7 +12,7 @@ package exist?". Fast, container-only, no kernel/GPU/GUI/hardware needed, so it'
 ## Why this is the high-value cheap test
 
 configsys's routing is already frozen by the golden gate (`test/routing_golden.json`: every
-component × 13 reference machines). What the golden CANNOT know is whether the package *name* it
+component × 15 reference machines). What the golden CANNOT know is whether the package *name* it
 resolves to still exists upstream — repos drift under us. This sweep closes exactly that gap, and only that gap. It's the 20% that catches 80% of
 real breakage.
 
@@ -27,7 +27,7 @@ real breakage.
 ### 1. Extractor (`tools/namesweep.py`)
 
 Resolves every component in a representative context per manager (`namesweep.MANAGERS`: ubuntu
-24.04=apt, fedora 44=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps) and collects
+24.04=apt, fedora 45=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps) and collects
 the **native** package names each maps to (`_native_names`, `Resolver.resolve_names` per component,
 so its `requires:` closure's native units count too) — respecting `when:` (only what routes there)
 and `name:` (the real per-distro name). A multi-package unit contributes each of its real
@@ -66,7 +66,7 @@ read-only, nothing installed):
 
 - **apt** — `ubuntu:24.04`; `apt-cache show "$p"` (enables `restricted universe multiverse`;
   `apt-get update`)
-- **dnf** — `fedora:44`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
+- **dnf** — `fedora:45`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
   nonfree)
 - **pacman** — `archlinux:latest`; `pacman -Si "$p" || pacman -Sg "$p"` (groups like `xfce4`;
   `pacman -Sy`)

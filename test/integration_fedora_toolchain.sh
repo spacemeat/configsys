@@ -14,13 +14,12 @@ say "target: $PRETTY_NAME (VERSION_ID=$VERSION_ID)"
 
 # The routable gcc version depends on the release (see the fedora@N route variants).
 case "$VERSION_ID" in
-    41) GCC_COMP=gcc-13; GCC_N=13 ;;
-    42) GCC_COMP=gcc-14; GCC_N=14 ;;
-    *)  GCC_COMP=gcc-13; GCC_N=13 ;;
+    41)    GCC_COMP=gcc-13; GCC_N=13 ;;
+    42|43) GCC_COMP=gcc-14; GCC_N=14 ;;
+    44|45) GCC_COMP=gcc-15; GCC_N=15 ;;
+    *)     fail "no gccNN compat window recorded for Fedora $VERSION_ID — /update-os fedora $VERSION_ID" ;;
 esac
-CLANG_COMP=clang-18; CLANG_N=18      # clang18 compat exists on 41 and 42
-
-printf '{ configs: user }\n' > "$HOME/configsys.hu"   # a Fedora-routable profile
+CLANG_COMP=clang-18; CLANG_N=18      # clang18 compat exists on 41 through 45
 
 say "system gcc baseline (must stay untouched by versioned installs)"
 sys_gcc=$(gcc --version | head -1); echo "  $sys_gcc"

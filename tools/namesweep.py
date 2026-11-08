@@ -35,7 +35,7 @@ ALLOWLIST = os.path.join(ROOT, 'test', 'namesweep-allowlist.hu')
 # version-gated name map is checked against the release it was resolved for.
 MANAGERS = [
     ('apt', 'ubuntu', '24.04'),
-    ('dnf', 'fedora', '44'),
+    ('dnf', 'fedora', '45'),
     ('pacman', 'arch', ''),
     ('zypper', 'opensuse', ''),
     ('apk', 'alpine', '3.24'),

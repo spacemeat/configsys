@@ -177,7 +177,7 @@ fedora: { using: redhat  scale-root: true
    - **Name-existence sweep** for the manager (podman): `bash test/run-name-sweep-in-podman.sh
      <manager>` — the cheapest catch for native-name drift on the new OS.
    - Golden gate: `CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q`, then
-     semantic-diff vs HEAD. The golden covers a FIXED list of 13 contexts (`CONTEXTS` in
+     semantic-diff vs HEAD. The golden covers a FIXED list of 15 contexts (`CONTEXTS` in
      `test/test_golden.py`), so a new block adds no column by itself — and existing contexts must be
      unchanged (`changed=[]`); a shift means a new atom leaked into a sibling's routing (or a parent
      edit changed it). Add the block to `CONTEXTS` only for a new base family worth freezing.
