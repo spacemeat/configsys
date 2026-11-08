@@ -1,8 +1,9 @@
 # Primary push: a safe git layer, an undoable combine, a write journal
 
 > **Status: IN PROGRESS** — started 2026-11-07 from docs/review-2026-11/ (the user chose every group:
-> the safety core, the write journal, the small fixes, merge quality). Phases 1 (efa9c38) and 2 done;
-> 3–5 not started.
+> the safety core, the write journal, the small fixes, merge quality). Phases 1 (efa9c38) and 2
+> (da323ea) done; 3 split out to docs/todo/primary-journal-plan.md (its decision-1 part done, f5e0340);
+> 4–5 not started.
 
 The review of `configsys/primarygit.py` and `configsys/humerge.py` (docs/review-2026-11/primary.md)
 found that the push works on its tested paths and fails badly off them: an interrupted or failed combine
@@ -25,7 +26,9 @@ status` around an action. Decisions are in the review's §7.
    `--autostash`), rebase or merge, and on ANY exit that isn't a commit — a stop, a failure, an exception,
    Ctrl-C — abort, restore HEAD and pop the stash, then re-raise. `_settle_hu` falls back to the per-file
    question on any humerge error; a binary conflict is settled by side, never decoded.
-3. **The write journal** (B1, B3, C1; decisions 1 and 2). Each configsys writer to the primary records the
+3. **The write journal** — split out to its own plan, docs/todo/primary-journal-plan.md (it reaches the
+   dotfiles and glue writers). Done here: B1's immediate fix and decision 1 (f5e0340). Originally:
+   (B1, B3, C1; decisions 1 and 2). Each configsys writer to the primary records the
    path it wrote; `commit()` commits exactly those (no action allowlist, no sweep-in of edits you make
    meanwhile, far fewer git spawns per keypress). configsys's commits pass `--no-verify` and follow your
    signing setting.
