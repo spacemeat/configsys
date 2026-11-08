@@ -69,7 +69,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | [theme-redesign.md](done/theme-redesign.md) | DONE | 2026-08-03 | 2026-08-04 (cadaaa7) | Shared color map + per-page role styles. |
 | [tui-screens-plan.md](done/tui-screens-plan.md) | DONE | 2026-08-03 | 2026-08-03 (dad4f31) | The TUI screen set. |
 
-## Archive — `docs/history/`, `docs/review-2026-09/`
+## Archive — `docs/history/`, `docs/review-*/`
 Early plans, previous definitions of terms, and dated reviews. Links are kept working; content is never rewritten.
 
 | doc | status | created | finished | summary |
@@ -79,4 +79,5 @@ Early plans, previous definitions of terms, and dated reviews. Links are kept wo
 | [README.md](history/README.md) | ARCHIVE | 2026-07-30 | — | What is archived here. |
 | [wire-in.md](history/wire-in.md) | ARCHIVE | 2026-07-16 | — | v2 resolver wire-in log. |
 | [review-2026-09/](review-2026-09/README.md) | ARCHIVE | 2026-09-20 | — | Full-tree code review (11 reviewers): security, correctness, perf, docs sync. |
+| [review-2026-11/](review-2026-11/README.md) | IN PROGRESS | 2026-11-07 | — | `/review-code` calibration run on the primary area (primarygit, humerge): 34 findings, 6 HIGH confirmed; 1/35 done. |
 

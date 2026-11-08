@@ -203,7 +203,8 @@ synthesis. Recommend fixing it first; fix it only with their go-ahead (Phase 6's
 > `examples/`, the tests, and the frozen ABI list in configsys/driver.py's docstring — this is a
 > plugin architecture. **Performance** claims need a measurement (time it, count calls on the real
 > catalog). **Security** findings say who controls the input, when it runs, with whose privileges,
-> and what consent preceded it.
+> what consent preceded it — and what that attacker could ALREADY do without this bug (rate the
+> severity on the difference: a pusher to your primary can already run code through its linked glue).
 >
 > Rules: read-only on the repo — write ONLY `{REV}/{AREA}.md` and `{RUN}/area-{AREA}.json` (scratch
 > work under `{RUN}/scratch/{AREA}/`). No git writes. Never touch the real home, never install,
