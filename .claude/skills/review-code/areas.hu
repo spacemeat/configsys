@@ -1,0 +1,239 @@
+// areas.hu — the /review-code area map (.claude/skills/review-code/SKILL.md).
+//
+// One entry per review AREA = one reviewer agent. `files:` are repo-relative globs (`*` stays inside
+// one path segment, `**` crosses segments). `tools/reviewaudit.py coverage` lists every tracked file
+// under `track:` that no non-cross area claims (and every glob that matches nothing) — the skill
+// fixes this map before a run, so new modules are always reviewed by someone.
+//
+// Fields:
+//   title:   what the area is (the heading of its review file)
+//   files:   the files this area OWNS (read line by line)
+//   context: files the reviewer reads to judge its own (not reviewed line by line)
+//   focus:   area-specific lenses, on top of the shared lens set in SKILL.md
+//   was:     earlier review files whose open findings this area inherits, when the area was renamed
+//            or split (a review file named after the area's own key is inherited automatically)
+//   cross:   true = a cross-cutting area: reads across the whole tree, owns no files for coverage
+//   effort:  reviewer effort override (default xhigh)
+{
+    track: [ "configsys/**/*.py"  "tools/*"  "glue/**"  "configsys.sh"  "test/**"  "examples/**"
+             ".claude/hooks/*"  "pyproject.toml" ]
+
+    areas: {
+        routing: {
+            title: "Routing + resolution engine"
+            files: [ "configsys/routes.py"  "configsys/resolve.py"  "configsys/predicate.py"
+                     "configsys/routecheck.py"  "configsys/adapt.py"  "configsys/componentObj.py"
+                     "configsys/detection.py"  "configsys/errors.py"  "configsys/planning.py"
+                     "configsys/stranded.py" ]
+            context: [ "routes.hu"  "docs/routing-model.md"  "docs/stranded-installs.md"
+                       "test/routing_golden.json" ]
+            focus: [
+                "the routing invariants in docs/routing-model.md and docs/principles.md: `when:` is validity only; a conflict is an error row, never a silent guess; pins are filters; soft pins are dropped, never errors"
+                "routes.hu STRUCTURE (os:/drivers:/facets: sections, the driver gates) — per-component data is /update-component's job, not yours"
+                "selection policy threaded positionally through resolve functions; hand-built contexts that skip Resolver.context()"
+                "cost of a resolve per OS x component (the check sweep compounds it); caches keyed on the right inputs"
+            ]
+            was: [ "routing-engine" ]
+        }
+        config-layers: {
+            title: "Config, settings + the layer stack"
+            files: [ "configsys/config.py"  "configsys/layers.py"  "configsys/troveio.py" ]
+            context: [ "config.hu"  "docs/config-format.md"  "configsys/actions.py" ]
+            focus: [
+                "the settings registry: CONFIG_SETTINGS, MACHINE_SETTING_SECTIONS, SETTING_NATURE, the retired-key tables and the Config getters must agree (2026-09 found live settings that check called unrecognized)"
+                "the uniform layer rule (who may set machine settings) enforced everywhere a layer is read"
+                "include expansion: cycles, missing files, a root layer re-included, `~` expansion against --home"
+            ]
+            was: [ "config-plugins" ]
+        }
+        plugins: {
+            title: "Plugins: sync, trust, review, lock"
+            files: [ "configsys/plugins.py"  "examples/**" ]
+            context: [ "docs/plugins.md"  "configsys/driver.py" ]
+            focus: [
+                "the trust model: content-hash identity, command_source_trusted, ships_executable_data — does every command-carrying data path go through it?"
+                "path containment of every plugin dir (dir_name) before clone / read / rmtree; git argument injection from source:/ref:"
+                "sync never forces a checkout (kept / diverged / ahead); transitive plugins: declarations"
+                "the hand-rolled humon text editing (_locate_section_span, _emit_block, _read_top/_write_top) on hostile text: backslashes, backticks, comments, empty files"
+                "the example plugin (examples/examplos) still matches the frozen ABI and the docs"
+            ]
+            was: [ "config-plugins" ]
+        }
+        primary: {
+            title: "Primary plugin: commits, push, merge"
+            files: [ "configsys/primarygit.py"  "configsys/humerge.py" ]
+            context: [ "docs/plugins.md"  "docs/done/primary-push-plan.md"  "configsys/plugins.py" ]
+            focus: [
+                "never lose the user's work: stop = nothing pushed and work intact; every abort path restores the tree; hand edits are never committed without consent"
+                "--pretend: no commit, fetch, rebase, merge or push"
+                "the merge driver is configured only for the command (no git config left behind); env and attributes isolation"
+                "humerge on hostile text: comments, one-line maps, quoted strings with braces, annotations, CRLF, empty files; the verify-by-reread guard"
+            ]
+        }
+        drivers-os: {
+            title: "Drivers: OS package managers + the Driver base"
+            files: [ "configsys/driver.py"  "configsys/drivers/__init__.py"  "configsys/drivers/_native.py"
+                     "configsys/drivers/apt.py"  "configsys/drivers/dnf.py"  "configsys/drivers/pacman.py"
+                     "configsys/drivers/aur.py"  "configsys/drivers/zypper.py"  "configsys/drivers/apk.py"
+                     "configsys/drivers/xbps.py"  "configsys/drivers/brew.py"  "configsys/drivers/rpm_ostree.py"
+                     "configsys/drivers/flatpak.py"  "configsys/drivers/snap.py"
+                     "configsys/drivers/native_pkg_file.py" ]
+            context: [ "configsys/runner.py"  "configsys/app.py"  "test/test_abi_surface.py"
+                       "test/test_driver_inventory.py"  ".claude/skills/add-driver/SKILL.md" ]
+            focus: [
+                "the FROZEN driver ABI (driver.py docstring + test_abi_surface): is it complete, minimal, and honored by the external code plugins (~/src/configsys-*/, read-only)?"
+                "every interpolated name / version / url in a command is quoted; root commands most of all"
+                "batch_index / installed_index coverage — a manager without one spawns per unit at startup"
+                "lock / set-version honesty (holds_version, targets_version) and multi-package bindings"
+            ]
+            was: [ "drivers-os" ]
+        }
+        drivers-lang: {
+            title: "Drivers: language toolchains, downloads, builds, post-install"
+            files: [ "configsys/drivers/cargo.py"  "configsys/drivers/pip.py"  "configsys/drivers/pipx.py"
+                     "configsys/drivers/npm.py"  "configsys/drivers/gem.py"  "configsys/drivers/opam.py"
+                     "configsys/drivers/luarocks.py"  "configsys/drivers/cabal.py"
+                     "configsys/drivers/go_install.py"  "configsys/drivers/sdkman.py"
+                     "configsys/drivers/pyenv.py"  "configsys/drivers/gcc.py"
+                     "configsys/drivers/gcc_toolset.py"  "configsys/drivers/clang.py"
+                     "configsys/drivers/_alt.py"  "configsys/drivers/source.py"
+                     "configsys/drivers/tarball.py"  "configsys/drivers/appImage.py"
+                     "configsys/drivers/font.py"  "configsys/drivers/script.py"
+                     "configsys/drivers/service.py"  "configsys/drivers/group.py" ]
+            context: [ "configsys/driver.py"  "configsys/runner.py"  "configsys/versions.py"  "routes.hu" ]
+            focus: [
+                "DESTRUCTIVE TARGETS: every rm -rf / rmtree / mv / ln -sf whose path comes from route data, scope or env — can it resolve to $HOME, a scope base, / or a shared dir? (the 2026-09 critical was exactly this, in tarball)"
+                "the ten ecosystem installers' shared shape (a ModuleDriver base was proposed as D4 in 2026-09) and their per-unit probes"
+                "$VERSION and other upstream-controlled text spliced into build/script commands"
+                "download integrity (sha256:), http URLs, predictable temp paths"
+            ]
+            was: [ "drivers-lang-build" ]
+        }
+        dotfiles-glue: {
+            title: "Dotfiles, glue, the shell-writes guard, the bootstrap"
+            files: [ "configsys/drivers/glue.py"  "configsys/drivers/dotfiles.py"  "configsys/shellguard.py"
+                     "glue/**"  "configsys.sh" ]
+            context: [ "docs/shell-glue.md"  "docs/done/dotfiles-redesign.md" ]
+            focus: [
+                "never overwrite a user file: .pre-configsys, .pre-configsys.1, ... backups; links never point into the repo"
+                "--pretend on every link / rc rewrite / marker stamp"
+                "each shell's snippets: correct in all five shells, self-guarding where inlined (nu/elvish), and cheap at shell start (no configsys spawn per snippet)"
+                "configsys.sh: python floor, venv repair, behavior on a fresh box"
+            ]
+            was: [ "dotfiles-glue" ]
+        }
+        app-cli: {
+            title: "CLI: app.py (parser, handlers, Context)"
+            files: [ "configsys/app.py"  "configsys/__main__.py"  "configsys/__init__.py" ]
+            context: [ "configsys/actions.py"  "test/test_pretend_sweep.py" ]
+            focus: [
+                "every write path honors ctx.runner.pretend, and every mutating verb is in test_pretend_sweep VERBS"
+                "verbs with no main([...]) test"
+                "the Context: what is computed per command, and how often (repeated resolves, re-reads)"
+                "size and shape (app.py was 3.7k lines in 2026-09; a split was proposed as D9)"
+            ]
+            was: [ "app-cli-actions" ]
+        }
+        actions: {
+            title: "Shared actions: plans, execution, ledger, system updates"
+            files: [ "configsys/actions.py"  "configsys/ledger.py"  "configsys/failures.py"
+                     "configsys/sysupdates.py" ]
+            context: [ "configsys/app.py"  "configsys/tui/menu.py"  "docs/system-updates.md" ]
+            focus: [
+                "run_plan is the one op-execution loop for CLI and TUI — anything that still bypasses it"
+                "TUI writers return (False, PRETEND_NOT_SAVED) under --pretend"
+                "ledger integrity: receipts written on every successful install / upgrade / set-version, cleared on remove; concurrent writers"
+            ]
+            was: [ "app-cli-actions" ]
+        }
+        subsystems: {
+            title: "Subsystems: state, versions, runner, OS detection, reports"
+            files: [ "configsys/installState.py"  "configsys/versions.py"  "configsys/versionreport.py"
+                     "configsys/versionsweep.py"  "configsys/floorderive.py"  "configsys/flooradvise.py"
+                     "configsys/orphans.py"  "configsys/reportgen.py"  "configsys/report.py"
+                     "configsys/rebootcheck.py"  "configsys/refreshstate.py"  "configsys/startuptiming.py"
+                     "configsys/runner.py"  "configsys/osdetect.py"  "configsys/osversion.py"
+                     "configsys/paths.py"  "configsys/splashes.py"  "configsys/probecache.py" ]
+            context: [ "docs/versioned-requires.md"  "docs/orphans.md" ]
+            focus: [
+                "caches: races under the inspect thread pool, invalidation, keys that miss an input"
+                "runner: sudo / tty handling, pretend echo, environment passed to children"
+                "reportgen / report: what a filed issue can leak (paths, hostnames, env, tokens)"
+            ]
+            was: [ "subsystems" ]
+        }
+        tui-core: {
+            title: "TUI core: menu, router, popups, surface"
+            files: [ "configsys/tui/menu.py"  "configsys/tui/screen.py"  "configsys/tui/surface.py"
+                     "configsys/tui/__init__.py" ]
+            context: [ "docs/tui-architecture.md"  "configsys/tui/screens/base.py" ]
+            focus: [
+                "what is left of the pre-MVVM painters and ladders after the D2 rewrite (dead or duplicate code)"
+                "menu.py size, run() length, popup / modal / table copy-paste"
+                "per-keystroke and per-frame cost on the real catalog — measure it, don't guess"
+            ]
+            was: [ "tui-menu" ]
+        }
+        tui-screens: {
+            title: "TUI screens (build_vm / draw / handle)"
+            files: [ "configsys/tui/screens/*.py" ]
+            context: [ "configsys/tui/menu.py"  "configsys/tui/surface.py"  "docs/tui-architecture.md" ]
+            focus: [
+                "build_vm is pure (no model writes in draw); a screen's VM is memoized on the right generation"
+                "every screen has a BufferSurface render test, plus tests of its key handling"
+                "data-driven presentation: tables and columns as data, not per-screen hand-painting"
+            ]
+            was: [ "tui-menu" ]
+        }
+        tui-theme: {
+            title: "TUI theme, keys, splash, terminfo"
+            files: [ "configsys/tui/theme.py"  "configsys/tui/keyspec.py"  "configsys/tui/splash.py"
+                     "configsys/tui/terminfo.py" ]
+            context: [ "docs/theming.md"  "config.hu" ]
+            focus: [
+                "keyspec: rebinding steals, lockout lint, router actions inside a screen scope"
+                "color-depth and motion degradation (NO_COLOR, --color, SSH)"
+                "the splash provider ABI as a frozen plugin interface"
+            ]
+            was: [ "tui-theme" ]
+        }
+        tests-tools: {
+            title: "Test suite + maintenance tools"
+            files: [ "test/**"  "tools/*"  ".claude/hooks/*"  "pyproject.toml" ]
+            context: [ ".claude/skills/update-docs/SKILL.md"  ".claude/skills/update-component/SKILL.md" ]
+            focus: [
+                "the suite AS A WHOLE: read the shared infrastructure (conftest, fixtures, helpers, sandbox homes) line by line; each area's reviewer reads its own modules' test files, so you sample individual tests rather than read all ~28k lines"
+                "suite runtime: run `pytest --durations=40` once and explain where the time goes (the full suite took ~10 minutes in 2026-10)"
+                "tests that assert nothing, duplicate fixtures across files, sleeps, network or real-home access"
+                "tools (docaudit, compaudit, namesweep, regsweep, gen_manpages): correctness, and whether their checks are still sharp"
+                "podman integration scripts and Containerfiles that no longer match the code"
+            ]
+        }
+        security: {
+            title: "Security (cross-cutting)"
+            cross: true
+            effort: max
+            context: [ "docs/principles.md"  "docs/plugins.md"  "configsys/runner.py" ]
+            focus: [
+                "the trust boundary: which layer can make configsys run a command, at which moment (startup, inspect, install), with whose privileges, after which consent"
+                "every subprocess / shell=True / bash -c fed by data, env or upstream text"
+                "every destructive op (rm, rmtree, mv, ln -sf, truncating writes) and its containment"
+                "downloads (checksums, http), root writes (keyrings, sources, /etc), temp files"
+                "secrets: tokens in argv or logs, filed reports, the review cache"
+                "the 2026-09 Tier A items still open (A5 transitive plugins: scope, A7 asset checksums, A10 key/source paths)"
+            ]
+            was: [ "security" ]
+        }
+        parity: {
+            title: "CLI / TUI parity + missing features (cross-cutting)"
+            cross: true
+            context: [ "configsys/app.py"  "configsys/tui/menu.py"  "configsys/tui/screens/*.py"
+                       "configsys/tui/keyspec.py"  "README.md" ]
+            focus: [
+                "a table of every CLI verb against its TUI counterpart (screen + key), with a verdict per row: present / missing-should-add / CLI-only-by-design"
+                "features a user would reasonably expect and not find (call them out; the user asked)"
+                "the same action reachable in both with different behavior (plans, confirmations, pretend, errors)"
+            ]
+        }
+    }
+}

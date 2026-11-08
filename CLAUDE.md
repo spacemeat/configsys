@@ -338,6 +338,12 @@ clone-first.)
   `test/run-name-sweep-in-podman.sh`) checks native package names exist per distro, in podman
   containers (brew has no container repo — `namesweep.UNSWEPT`; `compaudit`'s `probe_brew` checks
   its formulae against formulae.brew.sh, flagging missing/alias/renamed/deprecated/keg-only).
+- `/review-code` is the full code review (the 2026-09 review, `docs/review-2026-09/`, made
+  repeatable): one reviewer per area of `.claude/skills/review-code/areas.hu` (+ cross-cutting
+  security and CLI/TUI parity) under the user's lens brief, an adversarial checker for every serious
+  finding, `/update-component` for the catalog, a dated `docs/review-YYYY-MM/` with ranked tiers
+  whose `[open]`/`[done <commit>]` tags are its ledger, the user's chosen fixes applied test-first,
+  then `/update-docs` last. `tools/reviewaudit.py coverage` lists files no area owns.
 
 ## Some considerations
 

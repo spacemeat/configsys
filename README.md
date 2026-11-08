@@ -775,8 +775,9 @@ version-floor sweeps, `regsweep.py` finds crates.io / PyPI / npm / Flathub metho
 could add, `compaudit.py` probes components for upstream drift, and `docaudit.py`
 checks the docs against the code and renders the Glossary below from `docs/glossary.hu`. If you
 use Claude Code, `.claude/skills/` has playbooks for the common jobs: `/add-component`,
-`/update-component`, `/add-driver` and `/update-docs`; `test/test_driver_inventory.py` fails until a
-new driver is wired through everything `/add-driver` lists.
+`/update-component`, `/add-driver`, `/update-docs` and `/review-code` (a full code review that
+ends in the chosen fixes and a docs pass); `test/test_driver_inventory.py` fails until a new driver
+is wired through everything `/add-driver` lists.
 
 ## Glossary
 

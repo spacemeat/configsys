@@ -48,7 +48,7 @@ therefore faithfully wrong. This skill exists so that never accumulates again.
 | `docs/*.md` (root) reference specs | devs + Claude | the file | |
 | `docs/todo/*.md` unfinished plans | devs + Claude, the user's to-do view | the Status header + phase markers (and the plan, if it changed) | |
 | `docs/done/` | history | header/links only (see Lifecycle) | the historical body |
-| `docs/history/`, `docs/review-*/` | archive (may hold previous definitions of terms) | links only | content |
+| `docs/history/`, `docs/review-*/` | archive (may hold previous definitions of terms) | links only | content (a review's Progress + status tags belong to `/review-code`) |
 | `docs/INDEX.md` | everyone | the file | |
 | `docs/glossary.hu` | everyone, via README | the file | |
 | `DEFERRED.md` | devs + Claude | the file | |
@@ -206,7 +206,8 @@ Each writes `$RUN/report-<unit>.json` and replies with one line.
   NOWHERE else, that's a `missing` finding: fold the essentials into the right reference doc first —
   a done plan is history, not the spec.
 - **`docs/history/` = archive, kept separate** (old plans, previous definitions of terms, early
-  design records); `docs/review-*/` are dated reviews. Fix links only; never rewrite. When a
+  design records); `docs/review-*/` are dated reviews (`/review-code` writes them and keeps their
+  Progress section and status tags current). Fix links only; never rewrite. When a
   glossary term is renamed, its old definition may be worth preserving here.
 - After any move, fix every inbound link (`grep -rn '<old path>'` across the repo, CLAUDE.md, skills,
   and the user's memory directory — repoint memory notes that cite moved docs).
