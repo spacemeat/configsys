@@ -28,7 +28,7 @@ def test_install_command_construction(tmp_path):
     assert len(r.calls) == 1
     cmd = r.calls[0]
     assert f'mkdir -p {d}' in cmd
-    assert 'curl -fSL' in cmd and 'y-1.2.3.tar.xz' in cmd
+    assert 'curl -fSL --retry 3' in cmd and 'y-1.2.3.tar.xz' in cmd   # a GitHub 5xx burst is retried
     assert 'tar -xf' in cmd and f'-C {d}' in cmd
     assert 'printf %s 1.2.3' in cmd
     assert 'sudo' not in cmd   # user-space, never privileged
@@ -315,3 +315,13 @@ def test_empty_marker_reads_installed_not_missing(tmp_path):
     d.mkdir()
     (d / '.configsys-vulkan-sdk.version').write_text('')
     assert Tarball(Runner(pretend=True), paths=None).get_version(tb_unit(d)) == 'installed'
+
+
+def test_every_asset_download_retries_transient_errors():
+    # GitHub's release redirect 504s in bursts: curl --retry covers timeouts/408/429/5xx, never a 404
+    import inspect
+    from configsys import driver
+    from configsys.drivers import appImage, font, native_pkg_file, tarball
+    assert '--retry' in driver._CURL_DOWNLOAD
+    for mod in (driver, appImage, font, native_pkg_file, tarball):
+        assert 'curl -fSL {' not in inspect.getsource(mod), mod.__name__   # all via _CURL_DOWNLOAD

@@ -19,7 +19,7 @@ package format in one binding — the driver picks the layer matching this machi
 import shlex
 import shutil
 
-from ..driver import Driver
+from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
 
@@ -123,7 +123,7 @@ class NativePkgFile(Driver):
         # root's `curl -o` clobbers an arbitrary file. Download into a private root-owned `mktemp -d`
         # dir (mode 700, unguessable — portable across GNU/busybox, unlike --suffix), and quote $PKG.
         cmd = (f'D="$(mktemp -d)" && PKG="$D/pkg.{ext}" && '
-               f'curl -fSL {shlex.quote(url)} -o "$PKG" && {inst} && rm -rf "$D"')
+               f'{_CURL_DOWNLOAD} {shlex.quote(url)} -o "$PKG" && {inst} && rm -rf "$D"')
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):

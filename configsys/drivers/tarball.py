@@ -10,7 +10,7 @@ version. There is no native version lock — lock intent lives in the ledger.
 import shlex
 from pathlib import Path
 
-from ..driver import Driver
+from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
@@ -107,7 +107,7 @@ class Tarball(Driver):
             # bare executable (bazelisk, kubectl, ...): no archive to unpack — download straight
             # to <stage>/<binary> and make it executable. `binary:` overrides the file name.
             binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
-            build = f'curl -fSL {uq} -o {binpath} && chmod +x {binpath}'
+            build = f'{_CURL_DOWNLOAD} {uq} -o {binpath} && chmod +x {binpath}'
         elif archive in ('gz', 'gzip'):
             # a SINGLE gzip-compressed binary (e.g. tree-sitter's `tree-sitter-linux-x64.gz`) — NOT
             # a `.tar.gz` (those are tar streams, handled by the tar branch below, which auto-detects
@@ -115,7 +115,7 @@ class Tarball(Driver):
             # <stage>/<binary> and make it executable. `binary:` overrides the file name.
             binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
             tmp = shlex.quote(f'{stage}/.configsys-download.gz')
-            build = (f'curl -fSL {uq} -o {tmp} && '
+            build = (f'{_CURL_DOWNLOAD} {uq} -o {tmp} && '
                      f'gunzip -c {tmp} > {binpath} && chmod +x {binpath} && rm -f {tmp}')
         else:
             # download + unpack via the shared acquire (same fragment the source driver builds on).

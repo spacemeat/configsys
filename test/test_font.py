@@ -28,7 +28,7 @@ def test_install_command_construction(tmp_path):
     Font(r, paths=p).install(font_unit())
     cmd = r.calls[0]
     fdir = tmp_path / '.local/share/fonts/configsys-mononoki-nerd'
-    assert 'curl -fSL https://x/F.zip' in cmd
+    assert 'curl -fSL --retry 3 --retry-delay 2 https://x/F.zip' in cmd   # 5xx/timeouts retried
     assert f'mkdir -p {fdir}' in cmd
     assert '*.[to]tf' in cmd            # extracts ttf + otf in one glob
     assert 'printf %s v1.0' in cmd

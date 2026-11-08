@@ -12,7 +12,7 @@ User-space by default (~/.local/share/fonts); `scope: system` installs into
 import shlex
 from pathlib import Path
 
-from ..driver import Driver
+from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
@@ -69,7 +69,7 @@ class Font(Driver):
         script = '\n'.join([
             'set -e',
             'tmp=$(mktemp -d)',
-            f'curl -fSL {uq} -o "$tmp/font.zip"',
+            f'{_CURL_DOWNLOAD} {uq} -o "$tmp/font.zip"',
             f'rm -rf {dq} && mkdir -p {dq}',
             # `*.[to]tf` matches .ttf and .otf in one glob (so a missing type isn't
             # an unzip "nothing matched" error)

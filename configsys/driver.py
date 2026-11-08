@@ -86,6 +86,12 @@ def tier_by_name(key):
     return 'apps'
 
 
+# How every release-asset download fetches (tarball, appImage, font, native-pkg-file, the shared
+# _fetch_and_extract): curl's --retry retries only its transient answers — a timeout, HTTP 408/429/
+# 5xx (GitHub's release redirect 504s in bursts) — never a 404, so a moved asset still fails at once.
+_CURL_DOWNLOAD = 'curl -fSL --retry 3 --retry-delay 2'
+
+
 class Driver:
     name = None             # subclasses set, e.g. 'apt'
     privileged = False      # True if mutating ops need sudo
@@ -291,7 +297,7 @@ class Driver:
         (the binding/driver `requires: curl`).'''
         dq = shlex.quote(str(dest))
         tmp = shlex.quote(str(Path(dest) / '.configsys-download.archive'))
-        return (f'mkdir -p {dq} && curl -fSL {shlex.quote(url)} -o {tmp} && '
+        return (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {shlex.quote(url)} -o {tmp} && '
                 f'{self._extract_cmd(url, tmp, dq, archive_fmt, strip)} && rm -f {tmp}')
 
     def location_override(self, rc):

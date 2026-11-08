@@ -21,7 +21,7 @@ import re
 import shlex
 from pathlib import Path
 
-from ..driver import Driver
+from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
 MARKER_PREFIX = '.configsys-'
@@ -89,7 +89,7 @@ class AppImage(Driver):
         # download to a temp file, then atomically mv into place — a failed/partial download (or a
         # failed upgrade) leaves the EXISTING AppImage intact, not a truncated/broken one (P4).
         tmp = shlex.quote(str(t) + '.configsys-download')
-        cmd = (f'mkdir -p {dq} && curl -fSL {uq} -o {tmp} && chmod +x {tmp} && mv -f {tmp} {tq} && '
+        cmd = (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {uq} -o {tmp} && chmod +x {tmp} && mv -f {tmp} {tq} && '
                f'printf %s {vq} > {mq}')
         res = self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
         if res.ok:
