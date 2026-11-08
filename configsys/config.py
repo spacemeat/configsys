@@ -308,7 +308,7 @@ class Config:
         native install/upgrade. 'always'/'never' force it. Machine setting (repo<primary<user).'''
         v = layers.merge_scalar(self._layers, 'refresh-before-execute', _MACHINE_ROLES)
         v = str(v).strip().lower() if v is not None else 'auto'
-        return v if v in ('auto', 'always', 'never') else 'auto'
+        return v if v in layers.SETTING_CHOICES['refresh-before-execute'] else 'auto'
 
     def install_overlay_default(self):
         '''Whether TUI::Profiles opens with the install-state overlay ON (installed underlined,
@@ -325,7 +325,7 @@ class Config:
         (repo < primary < user).'''
         v = layers.merge_scalar(self._layers, 'primary-push', _MACHINE_ROLES)
         v = str(v).strip().lower() if v is not None else 'ask'
-        return v if v in ('ask', 'auto', 'auto-on-quit', 'manual') else 'ask'
+        return v if v in layers.SETTING_CHOICES['primary-push'] else 'ask'
 
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
@@ -343,7 +343,7 @@ class Config:
         reduced over SSH, else full). A machine setting (repo < primary < user).'''
         v = layers.merge_scalar(self._layers, 'effects', _MACHINE_ROLES)
         v = v.strip().lower() if isinstance(v, str) and v.strip() else None
-        return v if v in ('full', 'reduced', 'none') else None
+        return v if v in layers.SETTING_CHOICES['effects'] else None
 
     def selected_machine(self):
         '''The active/target machine name: a `--machine` working-target override if given, else the

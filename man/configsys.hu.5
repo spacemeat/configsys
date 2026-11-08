@@ -80,7 +80,7 @@ Your top config is \fB$XDG_CONFIG_HOME/configsys/configsys.hu\fR (by default \fB
 .RE
 .SH MACHINE SETTINGS
 .PP
-A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\fR, which decides where an edit lands by default (see "Where a machine-setting edit lands"): a \fBuniform\fR setting belongs in your primary plugin, a \fBmachine\fR setting in your top config. Machine settings are read from the repo, your primary plugin and your top config; an ordinary plugin or an included file can't set them (it is ignored, and \fBcheck\fR warns). \fBconfigsys config show\fR lists every setting below with its effective value and where it lives.
+A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\fR, which decides where an edit lands by default (see "Where a machine-setting edit lands"): a \fBuniform\fR setting belongs in your primary plugin, a \fBmachine\fR setting in your top config. Machine settings are read from the repo, your primary plugin and your top config; an ordinary plugin or an included file can't set them (it is ignored, and \fBcheck\fR warns). \fBconfigsys config show\fR lists every setting below with its effective value and where it lives. A setting that takes one of a few words (\fBprimary-push\fR, \fBrefresh-before-execute\fR, \fBeffects\fR) takes only those: \fBconfig set\fR refuses any other, and \fBcheck\fR warns about one in a file (configsys then uses the default).
 .SS Settings you change with config set
 .IP \(bu 2
 \fB\fBmachine\fR\fR (scalar, machine; default \fBthis-machine\fR): this box's machine name, i.e. which \fBpicks:\fR column is "this machine". \fBconfigsys machine use <name>\fR sets it.

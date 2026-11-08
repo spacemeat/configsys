@@ -104,7 +104,9 @@ an edit lands by default (see "Where a machine-setting edit lands"): a **uniform
 in your primary plugin, a **machine** setting in your top config. Machine settings are read from the
 repo, your primary plugin and your top config; an ordinary plugin or an included file can't set
 them (it is ignored, and `check` warns). `configsys config show` lists every setting below with its
-effective value and where it lives.
+effective value and where it lives. A setting that takes one of a few words (`primary-push`,
+`refresh-before-execute`, `effects`) takes only those: `config set` refuses any other, and `check`
+warns about one in a file (configsys then uses the default).
 
 ### Settings you change with config set
 

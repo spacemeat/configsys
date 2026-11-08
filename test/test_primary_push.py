@@ -306,6 +306,28 @@ def test_the_setting_reads_and_defaults(tmp_path):
     assert 'primary-push' in machine_setting_sections()
 
 
+
+def test_a_push_mode_it_doesnt_take_is_refused_and_flagged(tmp_path, capsys):
+    # D2 / primary-27: `config set primary-push autoo` used to save it and silently mean `ask`
+    home = tmp_path / 'home'
+    base = ['--home', str(home), '--os', 'pop', '-q']
+    assert main(base + ['config', 'set', 'primary-push', 'autoo']) == 1
+    assert 'takes one of ask, auto, auto-on-quit, manual' in capsys.readouterr().err
+    assert main(base + ['config', 'set', 'primary-push', 'Auto']) == 0      # case doesn't matter
+    assert 'primary-push: auto' in (home / '.config' / 'configsys' / 'configsys.hu').read_text()
+    cfg = home / '.config' / 'configsys' / 'configsys.hu'
+    cfg.write_text(cfg.read_text().replace('primary-push: auto', 'primary-push: sometimes'))
+    capsys.readouterr()
+    main(base + ['check'])
+    assert '`primary-push: sometimes` is not one of ask, auto, auto-on-quit, manual' in capsys.readouterr().out
+
+
+def test_every_push_mode_has_a_policy():
+    assert set(primarygit.PUSH_POLICY) == set(primarygit.PUSH_MODES)
+    for rules in primarygit.PUSH_POLICY.values():
+        assert set(rules) == {'after_cli', 'quit', 'quit_force', 'hide_ahead'}
+
+
 class _FakeCtx:
     pass
 

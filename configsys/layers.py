@@ -39,6 +39,30 @@ MACHINE_SETTING_SECTIONS = frozenset({
 })
 
 
+# Scalar settings whose value is one of a fixed set — `config set` refuses anything else, `check` warns
+# on one in a layer, and the TUI Config screen offers them as a list. (The accessors in config.py fall
+# back to the default on an unknown value, so a bad one is never fatal — but it is never silent either.)
+SETTING_CHOICES = {
+    'primary-push': ('ask', 'auto', 'auto-on-quit', 'manual'),
+    'refresh-before-execute': ('auto', 'always', 'never'),
+    'effects': ('full', 'reduced', 'none'),
+}
+
+
+def setting_value_warnings(layers):
+    '''Warnings for a fixed-choice setting (SETTING_CHOICES) set to a value it doesn't take.'''
+    warns = []
+    for layer in layers:
+        if not isinstance(layer.data, dict):
+            continue
+        for key, choices in SETTING_CHOICES.items():
+            v = layer.data.get(key)
+            if v is not None and str(v).strip().lower() not in choices:
+                warns.append(f'{layer.path}: `{key}: {v}` is not one of {", ".join(choices)} — '
+                             f'configsys uses the default instead')
+    return warns
+
+
 def machine_setting_sections():
     '''MACHINE_SETTING_SECTIONS ∪ the top-level keys of actions.CONFIG_SETTINGS (`dirs.user` -> `dirs`).
     actions is imported lazily (it imports this module's dependents), and a failed import just falls

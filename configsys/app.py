@@ -2443,7 +2443,8 @@ def cmd_check(ctx, args):
     issues = routecheck.validate(components, cascade, drivers,
                                  pending_vias=ctx.plugin_pending_vias)
     include_warnings = (layers.ignored_section_warnings(layer_list)
-                        + layers.unknown_section_warnings(layer_list))
+                        + layers.unknown_section_warnings(layer_list)
+                        + layers.setting_value_warnings(layer_list))
 
     # the theme model is `colors:` (a shared map) + `pages.<page>.<role>`; a leftover
     # palette/elements block or a top-level gradient is ignored, so flag it rather than let a stale
@@ -4621,7 +4622,11 @@ def cmd_config(ctx, args):
         return 0
     ctx.ensure_user_config()
     target = str(ctx.paths.user_config_file) if getattr(args, 'local', False) else None
-    _changed, label = actions.set_config_setting(ctx, args.key, values, target=target)
+    try:
+        _changed, label = actions.set_config_setting(ctx, args.key, values, target=target)
+    except ValueError as e:                          # a fixed-choice setting given another value
+        print(f'configsys: {e}', file=sys.stderr)
+        return 1
     if sub == 'unset':
         print(f'configsys: cleared {args.key}  (in {label})')
     else:
@@ -4816,17 +4821,17 @@ def _command_words(argv, command):
 def _after_primary_commit(ctx):
     '''A CLI command just committed to the primary: under `primary-push: auto` push it (a failure is
     one line, retried next time); under `ask` / `auto-on-quit` (which pushes only when you quit the
-    TUI) say it isn't pushed yet; under `manual` stay quiet.'''
-    mode = primarygit.push_mode(ctx)
-    if mode == 'auto':
+    TUI) say it isn't pushed yet; under `manual` stay quiet (`primarygit.PUSH_POLICY`).'''
+    then = primarygit.PUSH_POLICY[primarygit.push_mode(ctx)]['after_cli']
+    if then == 'push':
         ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
         if lines:
             print(f'configsys: {lines[-1] if ok else "not pushed automatically — " + lines[-1]}')
-    elif mode in ('ask', 'auto-on-quit'):
+    elif then == 'hint':
         st = primarygit.state(ctx)
         if st and st.ahead:
             print(f'configsys: saved to {st.name} — {primarygit._count(st.ahead)} not pushed '
-                  f'yet; `configsys plugin push` shares {"them" if st.ahead != 1 else "it"}.')
+                  f'yet; `configsys plugin push` shares {primarygit._them(st.ahead)}.')
 
 
 def main(argv=None):

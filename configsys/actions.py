@@ -9,7 +9,7 @@ cached config so the change takes effect on the next read. See docs/done/tui-scr
 import re
 from pathlib import Path
 
-from . import plugins, primarygit
+from . import layers, plugins, primarygit
 
 
 # --pretend is a true dry run for the TUI too: every config-editing action below refuses to write
@@ -906,7 +906,10 @@ def set_config_setting(ctx, key, values, *, target=None):
         token = 'true' if _to_bool(values[0]) else 'false'
         plugins.set_section(tfile, key, lambda indent: f'{key}: {token}')   # bare humon bool
     else:                                                 # scalar
-        plugins.set_scalar_section(tfile, key, values[0])
+        choices = layers.SETTING_CHOICES.get(key)
+        if choices and values[0].strip().lower() not in choices:
+            raise ValueError(f'{key} takes one of {", ".join(choices)} (not {values[0]!r})')
+        plugins.set_scalar_section(tfile, key, values[0].strip().lower() if choices else values[0])
     ctx.invalidate()
     return True, label
 

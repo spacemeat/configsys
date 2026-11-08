@@ -33,6 +33,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import NamedTuple
 
+from . import layers
+
 
 # git's repository-locating variables (`git rev-parse --local-env-vars`, as of git 2.34) — removed from
 # the env of every primary git call, so the primary is always the repository at `PrimaryRepo.root`
@@ -357,10 +359,10 @@ def _commit_paths(repo, ident, paths, subject, body, hooks=True):
     TUI write); your signing setting applies either way.'''
     add = repo.git('add', '-A', paths=paths)
     if not add.ok:
-        return False, add.stderr.strip()[:200]
+        return False, _err(add, 200)
     c = repo.git(*ident, 'commit', '-q', *([] if hooks else ['--no-verify']), '-m', subject, '-m', body,
                  paths=paths)
-    return c.ok, (c.stderr or c.stdout).strip()[:200]
+    return c.ok, _err(c, 200)
 
 
 def _machine(ctx):
@@ -487,7 +489,7 @@ def describe(st):
     parts = []
     if st.ahead:
         parts.append(f'{st.ahead} change{"s" if st.ahead != 1 else ""} not pushed yet '
-                     f'(`plugin push` shares {"them" if st.ahead != 1 else "it"})')
+                     f'(`plugin push` shares {_them(st.ahead)})')
     if st.behind:
         parts.append(f'{st.behind} change{"s" if st.behind != 1 else ""} from your other '
                      f'machines (as of the last fetch) — `plugin sync` brings them in')
@@ -500,7 +502,18 @@ def describe(st):
 
 # -- publishing it (phase 3: `configsys plugin push`, the Plugins `P` key, the `primary-push` setting) --
 
-PUSH_MODES = ('ask', 'auto', 'auto-on-quit', 'manual')
+PUSH_MODES = layers.SETTING_CHOICES['primary-push']
+
+# What each `primary-push` mode does: after a CLI command that committed ('push', 'hint' = say it
+# isn't pushed yet, None = quiet), when you quit the TUI ('push', 'ask', None) and on quit-force
+# ('push', 'note' = leave a line, None), and whether the header chip leaves out ↑ (configsys pushes
+# those for you).
+PUSH_POLICY = {
+    'ask':          {'after_cli': 'hint', 'quit': 'ask',  'quit_force': 'note', 'hide_ahead': False},
+    'auto':         {'after_cli': 'push', 'quit': 'push', 'quit_force': 'note', 'hide_ahead': True},
+    'auto-on-quit': {'after_cli': 'hint', 'quit': 'push', 'quit_force': 'push', 'hide_ahead': True},
+    'manual':       {'after_cli': None,   'quit': None,   'quit_force': None,   'hide_ahead': False},
+}
 
 
 def push_mode(ctx):
@@ -619,6 +632,10 @@ def _count(n, word='change'):
     return f'{n} {word}{"s" if n != 1 else ""}'
 
 
+def _them(n):
+    return 'them' if n != 1 else 'it'
+
+
 _CONTROL = re.compile(r'[\x00-\x08\x0b-\x1f\x7f-\x9f]')
 
 
@@ -638,57 +655,59 @@ def _source_host(source):
     return m.group(1) if m else source
 
 
-# A refused fetch / push -> (what git said, the kind). First match wins: a "denied" 403 must not read
-# as "offline?", and a branch rule's `[remote rejected]` is not the `[rejected]` of a race.
+# A refused fetch / push: (what git says, in lower case) -> the words for it, with the fix for the host
+# it lives on. First match wins: a "denied" 403 must not read as "offline?", and a branch rule's
+# `[remote rejected]` is not the `[rejected]` of a race. The words are filled from {name} {host}
+# {source} {root} {said} (git's first line) {add_key} (where to add an SSH key) {sign_in}.
 _FAILURES = (
-    (('permission to', 'denied to', 'error: 403', 'returned error: 403', '[remote rejected]'), 'denied'),
-    (('host key verification failed',), 'host-key'),
-    (('permission denied (publickey)', 'passphrase'), 'ssh-key'),
+    (('permission to', 'denied to', 'error: 403', 'returned error: 403', '[remote rejected]'),
+     '{name}: {host} refused the push — your account can\'t write to {source}, or a branch rule there '
+     'blocked it ("{said:.120}"). Nothing was pushed. Check it is your own repository (`configsys '
+     'plugin set-source {name} …` points at another), then push again.'),
+    (('host key verification failed',),
+     '{name}: this machine has never connected to {host} over SSH, so the push was not sent. Connect '
+     'once from a terminal (`ssh -T git@{host}`, answer yes), then push again.'),
+    (('permission denied (publickey)', 'passphrase'),
+     '{name}: {host} refused this machine\'s SSH key. Add a key to your account ({add_key}), or load '
+     'yours into ssh-agent (`ssh-add`), then push again.'),
     (('authentication failed', 'could not read username', 'terminal prompts disabled',
-      'invalid username or password'), 'sign-in'),
-    (('repository not found', 'does not appear to be a git repository'), 'missing'),
+      'invalid username or password'),
+     '{name}: {host} wants you signed in. {sign_in}, then push again.'),
+    (('repository not found', 'does not appear to be a git repository'),
+     '{name}: {source} doesn\'t exist yet (or you can\'t reach it). Create an empty repository there, '
+     'then push again.'),
     (('could not resolve host', 'network is unreachable', 'connection timed out', 'connection refused',
-      'unable to access'), 'offline'),
-    (('fetch first', 'non-fast-forward', '[rejected]'), 'race'),
+      'unable to access'),
+     '{name}: couldn\'t reach {host} — offline? Nothing was pushed; try again later.'),
+    (('fetch first', 'non-fast-forward', '[rejected]'),
+     '{name}: another machine pushed while this push ran. Nothing was lost — run `configsys plugin '
+     'push` again to combine and push.'),
 )
+_ADD_KEY = {'github.com': '`gh ssh-key add ~/.ssh/id_ed25519.pub`, or GitHub\'s SSH keys page',
+            'gitlab.com': '`glab ssh-key add ~/.ssh/id_ed25519.pub`, or GitLab\'s SSH Keys page'}
+_SIGN_IN_CLI = {'github.com': ('gh', 'Run `gh auth login` and `gh auth setup-git`'),
+                'gitlab.com': ('glab', 'Run `glab auth login`')}
 
 
 def explain_git_failure(text, *, name, root, source):
-    '''A refused fetch or push, in plain words with the fix for the host it lives on.'''
+    '''A refused fetch or push, in plain words with the fix for the host it lives on (_FAILURES).'''
     import shutil
     t = (text or '').lower()
-    first = _printable(next((ln.strip() for ln in (text or '').splitlines() if ln.strip()), 'git failed'))
-    kind = next((k for needles, k in _FAILURES if any(n in t for n in needles)), None)
+    said = _printable(next((ln.strip() for ln in (text or '').splitlines() if ln.strip()), 'git failed'))
     host = _source_host(source)
-    if kind == 'denied':
-        return (f'{name}: {host} refused the push — your account can\'t write to {source}, or a branch '
-                f'rule there blocked it ("{first[:120]}"). Nothing was pushed. Check it is your own '
-                f'repository (`configsys plugin set-source {name} …` points at another), then push again.')
-    if kind == 'host-key':
-        return (f'{name}: this machine has never connected to {host} over SSH, so the push was not '
-                f'sent. Connect once from a terminal (`ssh -T git@{host}`, answer yes), then push again.')
-    if kind == 'ssh-key':
-        add = {'github.com': '`gh ssh-key add ~/.ssh/id_ed25519.pub`, or GitHub\'s SSH keys page',
-               'gitlab.com': '`glab ssh-key add ~/.ssh/id_ed25519.pub`, or GitLab\'s SSH Keys page'}.get(
-                   host, f'your account settings on {host}')
-        return (f'{name}: {host} refused this machine\'s SSH key. Add a key to your account ({add}), '
-                f'or load yours into ssh-agent (`ssh-add`), then push again.')
-    if kind == 'sign-in':
-        cli = {'github.com': ('gh', '`gh auth login` and `gh auth setup-git`'),
-               'gitlab.com': ('glab', '`glab auth login`')}.get(host)
-        if cli and shutil.which(cli[0]):
-            return f'{name}: {host} wants you signed in. Run {cli[1]}, then push again.'
-        return (f'{name}: {host} wants you signed in. Set up an SSH key, or a git credential helper '
-                f'with a token, then push again.')
-    if kind == 'missing':
-        return (f'{name}: {source} doesn\'t exist yet (or you can\'t reach it). Create an empty '
-                f'repository there, then push again.')
-    if kind == 'offline':
-        return f'{name}: couldn\'t reach {host} — offline? Nothing was pushed; try again later.'
-    if kind == 'race':
-        return (f'{name}: another machine pushed while this push ran. Nothing was lost — run '
-                f'`configsys plugin push` again to combine and push.')
-    return f'{name}: git said "{first[:160]}" (in {root}).'
+    cli = _SIGN_IN_CLI.get(host)
+    facts = {'name': name, 'host': host, 'source': source, 'root': root, 'said': said,
+             'add_key': _ADD_KEY.get(host, f'your account settings on {host}'),
+             'sign_in': cli[1] if cli and shutil.which(cli[0]) else
+             'Set up an SSH key, or a git credential helper with a token'}
+    words = next((w for needles, w in _FAILURES if any(n in t for n in needles)),
+                 '{name}: git said "{said:.160}" (in {root}).')
+    return words.format(**facts)
+
+
+def _err(r, most=160):
+    '''What a failed git run said, trimmed for a one-line note.'''
+    return ((r.stderr or r.stdout or '') if r is not None else '').strip()[:most]
 
 
 def _intact(name, root, branch):
@@ -797,7 +816,7 @@ def push(ctx, ui=None):
         msg = f'nothing to push — {name} has no changes your remote lacks.'
         if behind:
             msg += (f' {_count(behind)} from your other machines {"are" if behind != 1 else "is"} '
-                    f'waiting; `configsys plugin sync` brings {"them" if behind != 1 else "it"} in.')
+                    f'waiting; `configsys plugin sync` brings {_them(behind)} in.')
         return True, lines + [msg]
     overlap = sorted(mine_left & repo.incoming(upstream)) if behind and mine_left else []
     if overlap:                                        # combining would leave conflict markers in them
@@ -830,7 +849,7 @@ def push(ctx, ui=None):
     if first:
         repo.git('branch', '--quiet', f'--set-upstream-to={upstream}')
     return True, lines + [f'pushed {_count(ahead)} to {source}. Your other machines get '
-                          f'{"them" if ahead != 1 else "it"} on their next `configsys plugin sync`.']
+                          f'{_them(ahead)} on their next `configsys plugin sync`.']
 
 
 def _outgoing(repo, upstream):
@@ -974,7 +993,7 @@ def _replay(ctx, ui, name, repo, upstream):
     repo.git('rebase', '--abort')
     _driver_notes(notes)
     if not conflicted:
-        return False, [f'{name}: could not combine with the remote: {(r.stderr or r.stdout).strip()[:160]}']
+        return False, [f'{name}: could not combine with the remote: {_err(r)}']
     m = repo.git(*drv, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
     conflicted = repo.unmerged() if not m.ok else []
     if not m.ok and not conflicted:
@@ -999,7 +1018,7 @@ def _replay(ctx, ui, name, repo, upstream):
     c = repo.git('commit', '--quiet', '--no-edit', '-m',
                  f'Combine {name} changes{f" from {m_name}" if m_name else ""} with the remote')
     if not c.ok:
-        return False, [f'{name}: could not commit the combined result: {(c.stderr or c.stdout).strip()[:160]}']
+        return False, [f'{name}: could not commit the combined result: {_err(c)}']
     lines = [f'{name}: {n}' for n in _driver_notes(notes)]
     if conflicted:
         lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')

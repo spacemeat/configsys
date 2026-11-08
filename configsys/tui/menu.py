@@ -726,18 +726,20 @@ def _quit_push(stdscr, pal, ctx, force=False):
     (quit?, notes to print after exit). ask: one prompt — push and quit / quit / keep working (the
     default, like the plain quit confirm). auto: push without asking. auto-on-quit: push without
     asking, quit-force included. manual: nothing. `force` (quit-force) otherwise never stops to push;
-    it leaves a note instead.'''
+    it leaves a note instead. The rules are `primarygit.PUSH_POLICY`.'''
     try:
         st, mode = primarygit.state(ctx), primarygit.push_mode(ctx)
     except Exception:                               # noqa: BLE001
         st, mode = None, 'manual'
     ahead = st.ahead if st else 0
-    if mode == 'manual' or not ahead:
+    then = primarygit.PUSH_POLICY[mode]['quit_force' if force else 'quit']
+    if then is None or not ahead:
         return None, []
-    later = f'{st.name}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares them.'
-    if force and mode != 'auto-on-quit':
+    later = (f'{st.name}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares '
+             f'{primarygit._them(ahead)}.')
+    if then == 'note':
         return True, [later]
-    if mode in ('auto', 'auto-on-quit'):
+    if then == 'push':
         ok, lines = _auto_push_primary(stdscr, pal, ctx)
         return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
     c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st.name} not pushed yet.',

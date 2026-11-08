@@ -84,9 +84,10 @@ class ComponentsVM(ViewModel):
     list (for the header attention badge). The tree/infoblock content is read from the model in draw
     (a deeper pure extraction is a later pass — this screen's win is the render seam + handle).'''
 
-    def __init__(self, note='', diags=()):
+    def __init__(self, note='', diags=(), primary_chip=''):
         self.note = note
         self.diags = diags
+        self.primary_chip = primary_chip           # "prim: ↑2 to push, ↓1 to sync", or ''
 
 
 class ComponentsScreen(Screen):
@@ -99,7 +100,10 @@ class ComponentsScreen(Screen):
         self.diags = ()
 
     def build_vm(self, ctx, size):
-        return ComponentsVM(self.note, self.diags)
+        from ... import primarygit
+        policy = primarygit.PUSH_POLICY[getattr(ctx, '_primary_push_mode', 'ask')]
+        chip = primarygit.chip(getattr(ctx, '_primary_state', None), hide_ahead=policy['hide_ahead'])
+        return ComponentsVM(self.note, self.diags, chip)
 
     # -- draw (reproduces menu._draw for screen == 'components') -----------
 
@@ -141,9 +145,7 @@ class ComponentsScreen(Screen):
             if rend + len(btext) < w - 1:
                 _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
                 rend += len(btext)
-        from ... import primarygit
-        ptext = primarygit.chip(getattr(ctx, '_primary_state', None),   # auto pushes ↑ for you
-                                hide_ahead=getattr(ctx, '_primary_push_mode', 'ask') in ('auto', 'auto-on-quit'))
+        ptext = vm.primary_chip
         if ptext and rend + 3 + len(ptext) < w - 1:      # your primary has changes to push / sync
             _put(surface, 1, rend + 3, ptext, pal.style('outdated', 1, rend + 3, h, w))
             rend += 3 + len(ptext)

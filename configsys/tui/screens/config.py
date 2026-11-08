@@ -17,6 +17,7 @@ composed unchanged; this adds the three MVVM seams:
 
 import os
 
+from ... import layers
 from .. import menu
 from ..menu import (_DRIVER_ABBR, ConfigScreen as _ConfigModel, _draw_nav, _fill_bg, _fit,
                     _input_box, _order_list, _page_rows, _panel, _popup_choose, _put, _scrollbar_v,
@@ -297,6 +298,16 @@ class ConfigScreen(Screen):
                         val = names[idx]
                         _set(ctx, key, [] if val == 'auto' else [val])
                         note = f'{key} = {val}'
+                        cs.reload()
+                elif key in layers.SETTING_CHOICES:  # a fixed-choice scalar -> its choices, + unset
+                    names = [*layers.SETTING_CHOICES[key], 'unset']
+                    cur = str(info['value']).lower() if info['value'] is not None else 'unset'
+                    idx = _popup_choose(stdscr, pal, key, [(n, '(default)' if n == 'unset' else '')
+                                                           for n in names],
+                                        names.index(cur) if cur in names else len(names) - 1)
+                    if idx is not None:
+                        _set(ctx, key, [] if names[idx] == 'unset' else [names[idx]])
+                        note = f'{key} = {names[idx]}'
                         cs.reload()
                 elif info['kind'] == 'scalar':      # any other scalar -> text input
                     new = _input_box(stdscr, pal, f'{key}  (empty clears)',
