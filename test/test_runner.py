@@ -402,3 +402,19 @@ def test_begin_sudo_skips_pretend_and_root(monkeypatch):
     monkeypatch.setattr(R.os, 'geteuid', lambda: 0)
     assert R.Runner().begin_sudo() is False
     assert calls == []
+
+
+def test_commands_run_outside_an_activated_virtualenv(tmp_path, monkeypatch):
+    # configsys started from a shell with some project's venv active: `python3 -m pip install --user`
+    # refuses there and `python3 -m pipx` isn't in it — so commands run with the venv dropped
+    from configsys.runner import child_env
+    venv = tmp_path / 'proj' / '.venv'
+    (venv / 'bin').mkdir(parents=True)
+    monkeypatch.setenv('VIRTUAL_ENV', str(venv))
+    monkeypatch.setenv('PATH', os.pathsep.join([str(venv / 'bin'), '/usr/bin', '/bin']))
+    env = child_env()
+    assert 'VIRTUAL_ENV' not in env and env['PATH'] == os.pathsep.join(['/usr/bin', '/bin'])
+    r = Runner().run('echo "${VIRTUAL_ENV:-none} $PATH"')
+    assert r.stdout.strip() == 'none /usr/bin' + os.pathsep + '/bin'
+    monkeypatch.delenv('VIRTUAL_ENV')
+    assert child_env() is None and child_env({'A': '1'}) == {'A': '1'}   # no venv: untouched

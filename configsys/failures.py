@@ -37,10 +37,19 @@ _RULES = [
     (re.compile(r'Could not resolve|Temporary failure in name resolution|Network is unreachable|'
                 r'Connection timed out|Failed to connect|Cannot download.*Timeout', re.I), NETWORK,
      "a network fetch failed — check connectivity/proxy and retry."),
+    (re.compile(r'returned error: 5[0-9][0-9]\b|\b50[234] (?:Bad Gateway|Service Unavailable|Gateway Time-?out)',
+                re.I), NETWORK,
+     "the upstream server answered with an error of its own (HTTP 5xx) — usually brief; retry later."),
     (re.compile(r'Failed to fetch|Cannot download|Curl error|could not download', re.I), NETWORK,
      "a download failed (network, or the upstream URL is unavailable) — retry, or the route may "
      "need updating if the URL moved."),
-    (re.compile(r'\b404\b|Not Found|No such file or directory.*http|does not have a Release file', re.I),
+    # a shell's "brew: command not found" (bash) / "sh: 1: brew: not found" (dash): the step's own tool
+    # isn't on PATH — before the 404 rule, whose HTTP "Not Found" is matched case-sensitively so this
+    # and pacman's "target not found" aren't read as a vanished URL
+    (re.compile(r'command not found|^\S*sh: (?:line )?\d+: \S+: not found', re.M), DEPENDENCY,
+     "a command this step runs isn't installed, or isn't on PATH — install it (or open a new shell "
+     "so its PATH setup applies) and retry."),
+    (re.compile(r'\b404\b|(?-i:Not Found)|No such file or directory.*http|does not have a Release file', re.I),
      NOT_FOUND,
      "an upstream URL is gone (moved or removed) — the component's route likely needs updating."),
     (re.compile(r'Permission denied|are you root|must be (?:run as |)root|sudo:.*(?:password|required)|'

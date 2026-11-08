@@ -1424,7 +1424,9 @@ def refresh_native_index(ctx):
     if not cmd:
         return False, True
     from .failures import retry_transient
-    res = retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True))
+    from .drivers.brew import brew_env
+    env = brew_env() if pm == 'brew' else None
+    res = retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True, env=env))
     return True, res.ok
 
 

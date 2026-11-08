@@ -164,7 +164,8 @@ def test_brew_driver_requires_homebrew():
 
 def test_homebrew_is_glibc_only_script_and_atomic_needs_no_curl_git():
     rc, units = _own('fedora_atomic', '41', 'homebrew')
-    assert rc.driver == 'script' and set(units) == {'script\\homebrew'}   # curl/git route via brew there
+    units = {u for u in units if not u.startswith('glue\\')}         # its homebrew-glue companion
+    assert rc.driver == 'script' and units == {'script\\homebrew'}   # curl/git route via brew there
     rc, units = _own('ubuntu', '24.04', 'homebrew')
     assert rc.driver == 'script' and {'apt\\curl', 'apt\\git'} <= set(units)
     for block in ('alpine', 'void_musl'):
@@ -185,11 +186,12 @@ def test_homebrew_version_probe_finds_brew_off_path(tmp_path):
     env = {'HOME': str(tmp_path), 'PATH': '/usr/bin:/bin'}
     out = subprocess.run(['bash', '-c', rc.fields['version-cmd']], env=env,
                          capture_output=True, text=True).stdout
-    assert re.search(rc.fields['version-re'], out).group(1) == '4.6.3'
+    system = os.path.exists('/home/linuxbrew/.linuxbrew/bin/brew')   # a real one, ahead in the loop
+    assert re.search(rc.fields['version-re'], out).group(1) == '4.6.3' or system
     empty = tmp_path / 'empty'
     empty.mkdir()
     out = subprocess.run(['bash', '-c', rc.fields['version-cmd']],
                          env={'HOME': str(empty), 'PATH': '/usr/bin:/bin'},
                          capture_output=True, text=True).stdout
-    if not os.path.exists('/home/linuxbrew/.linuxbrew/bin/brew'):
+    if not system:
         assert out.strip() == ''                    # absent -> "not installed"

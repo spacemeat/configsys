@@ -310,6 +310,12 @@ before running and nothing runs automatically); its reboot check — `rebootchec
 what checks the names instead}. More drivers can be added in core or by a trusted code plugin
 (playbook: `/add-driver`, enforced by test/test_driver_inventory.py; `register_driver`).
 
+Every command runs through `runner.Runner.run` with an activated Python virtualenv dropped from its
+env (`runner.child_env` — else `python3` is the venv's, pip `--user` refuses and pipx's apps read
+uninstalled); the brew driver finds `brew` off PATH in Homebrew's standard prefixes
+(`drivers/brew.brew_env`, appended — a same-batch `homebrew` install isn't on the process's PATH),
+and `homebrew-glue` puts that prefix on your shells' PATH after the system's.
+
 (History: routes.hu was previously a `\family` blocks + OS-cascade + `*: apt\*` wildcard model
 resolved by a `RouteResolver`. That was replaced in-place by the capability model above, built
 in parallel and proven byte-equivalent before the flip; the old resolver/data are deleted.

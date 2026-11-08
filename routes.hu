@@ -207,7 +207,7 @@
         // no brew binding, so homebrew -> curl/git can never route back through brew). Installed
         // only when a brew method is chosen: fedora_atomic's native, or elsewhere on glibc where
         // brew is the best valid method (it ranks just ahead of tarball) or is pinned.
-        homebrew: { attrs: [ CLI FOSS permissive ] description: "Homebrew on Linux — the `brew` package manager (prefix /home/linuxbrew/.linuxbrew)."
+        homebrew: { attrs: [ CLI FOSS permissive ] suggests: homebrew-glue  description: "Homebrew on Linux — the `brew` package manager (prefix /home/linuxbrew/.linuxbrew)."
             install: [
                 { via: script  when: "fedora_atomic"
                   install-cmd:   'sudo -v && NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
@@ -4126,6 +4126,7 @@
         pgcli-dotfiles: { description: "pgcli config, linked into place." install: [ { via: dotfiles  config: { src: pgcli-config  dst: $XDG_CONFIG_HOME/pgcli/config } } ] }
         pipx-glue: { description: "pipx shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: pipx } ] }
         protobuf-glue: { description: "protobuf shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: protobuf } ] }
+        homebrew-glue: { description: "Homebrew shell setup (its bin on PATH, after the system's), linked into place." install: [ { via: glue  requires: shell-glue  glue: homebrew } ] }
         pyenv-glue: { description: "pyenv shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: pyenv } ] }
         python3-pip-glue: { description: "python3-pip shell setup, linked into place." install: [ { via: glue  requires: shell-glue  glue: python3-pip } ] }
         qtile-dotfiles: { description: "qtile config, linked into place." install: [ { via: dotfiles  config: { src: qtile  dst: $XDG_CONFIG_HOME/qtile } } ] }

@@ -115,3 +115,19 @@ def test_a_failing_brew_is_still_unknown_not_empty():
     fr = FakeRunner([('brew list --versions', 1, '')])
     d = Brew(fr)
     assert d.installed_index() is None and d.batch_index([]) is None
+
+
+def test_brew_off_path_is_found_in_its_prefix(tmp_path, monkeypatch):
+    # Homebrew installed earlier in the same batch isn't on this process's PATH: the driver still
+    # runs `brew …`, with the prefix's bin APPENDED (nothing brew ships shadows a system tool)
+    from configsys.drivers import brew
+    prefix = tmp_path / 'linuxbrew'
+    (prefix / 'bin').mkdir(parents=True)
+    exe = prefix / 'bin' / 'brew'
+    exe.write_text('#!/bin/sh\necho "brew $*"\n'); exe.chmod(0o755)
+    monkeypatch.setenv('PATH', '/usr/bin:/bin')
+    monkeypatch.setattr(brew, '_PREFIXES', (str(tmp_path / 'absent'), str(prefix)))
+    assert brew.brew_env()['PATH'] == f'/usr/bin:/bin:{prefix}/bin'
+    assert Runner().run('brew list --versions', env=brew.brew_env()).stdout.strip() == 'brew list --versions'
+    monkeypatch.setattr(brew, '_PREFIXES', (str(tmp_path / 'absent'),))
+    assert brew.brew_env() is None                                # not installed anywhere: inherit

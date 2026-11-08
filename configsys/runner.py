@@ -5,7 +5,8 @@ Every shell-out goes through Runner.run so that:
     host, and makes command construction assertable in tests),
   * the terminal can be released cleanly when shelling out from inside the curses
     TUI (so sudo/apt can prompt and paint normally),
-  * tests can inject a recording/mock runner.
+  * tests can inject a recording/mock runner,
+  * every command runs outside an activated virtualenv (`child_env`).
 '''
 
 import collections
@@ -203,6 +204,25 @@ class Result:
         into `cmd`, where neither looks. `cmd` stays empty so the report shows no spurious
         Command block. A driver that knows the failure kind can tag it (category/remediation).'''
         return cls('', returncode, stderr=reason, category=category, remediation=remediation)
+
+
+def child_env(env=None):
+    '''The environment a command runs in: `env` (else ours) minus an ACTIVATED Python virtualenv. A
+    venv is one project's environment — configsys launched from a shell with one active must not
+    install into it, nor read it as the machine's python: `python3 -m pip install --user` refuses
+    there ("User site-packages are not visible in this virtualenv") and `python3 -m pipx` isn't in it,
+    so pipx's apps read as not installed and get re-routed to another method. Drops VIRTUAL_ENV (+
+    its prompt) and the venv's bin/ from PATH, so `python3` is the machine's again. `env` itself
+    (None = inherit) when no venv is active.'''
+    base = os.environ if env is None else env
+    venv = base.get('VIRTUAL_ENV')
+    if not venv:
+        return env
+    venv_bin = os.path.normpath(os.path.join(venv, 'bin'))
+    out = {k: v for k, v in base.items() if k not in ('VIRTUAL_ENV', 'VIRTUAL_ENV_PROMPT')}
+    out['PATH'] = os.pathsep.join(p for p in base.get('PATH', '').split(os.pathsep)
+                                  if p and os.path.normpath(p) != venv_bin)
+    return out
 
 
 def _can_tee():
@@ -451,6 +471,7 @@ class Runner:
         # root shell (`sudo bash -c '<cmd>'`). Prepending `sudo ` to a compound
         # command would only elevate its first word and eat a leading `set -e`.
         argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
+        env = child_env(env)
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
             # Streamed op on a real terminal: mirror the output live AND keep a bounded tail for

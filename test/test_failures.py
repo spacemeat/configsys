@@ -88,3 +88,18 @@ def test_retry_transient_does_not_retry_a_definitive_failure():
     run = _seq([Result('u', 1, stderr='NO_PUBKEY 7198F4B714ABFC68')])
     res = failures.retry_transient(run, tries=5, sleep=lambda s: None)
     assert not res.ok and run.count() == 1
+
+
+def test_command_not_found_is_a_missing_tool_not_a_moved_url():
+    # "brew: command not found" (exit 127, right after Homebrew was installed but before it was on
+    # PATH) was read as a vanished upstream URL because the 404 rule matched "not found" in any case
+    for text in ('bash: line 1: brew: command not found', 'sh: 1: brew: not found'):
+        assert failures.classify(text)[0] == failures.DEPENDENCY
+    assert failures.classify('error: target not found: foo')[0] == failures.DEPENDENCY   # pacman
+    assert failures.classify('HTTP/1.1 404 Not Found')[0] == failures.NOT_FOUND
+    assert failures.classify('curl: (22) The requested URL returned error: 404')[0] == failures.NOT_FOUND
+
+
+def test_an_upstream_5xx_is_a_retryable_network_failure():
+    cat, hint = failures.classify('curl: (22) The requested URL returned error: 504')
+    assert cat == failures.NETWORK and 'retry' in hint and cat not in failures.DEFINITIVE

@@ -10,21 +10,40 @@ foundation for eventual macOS support.
 Version state: `brew list --versions` (installed) and `brew info --json` (latest
 available from the tap). Native version lock is real: `brew pin`/`unpin`. Bootstrapping
 brew itself is a separate concern (a `homebrew` prereq component / env-provided on
-atomic), not this driver's job — this driver assumes `brew` is on PATH and degrades to
-"not installed" when it isn't.
+atomic), not this driver's job. `brew` is found on PATH, else in Homebrew's standard Linux
+prefixes (`brew_env`: a fresh install — the `homebrew` component earlier in the same batch, or an
+uBlue image's — isn't on this process's PATH yet); with neither it degrades to "not installed".
 
 Formulae only for now; macOS GUI *casks* (`brew install --cask`) are a future `cask:`
 field — the op structure below is already cask-ready.
 '''
 
 import json
+import os
 import re
 import shlex
+import shutil
 
 from ..driver import Driver
 from ..runner import Result
 
 _NOT_FOUND = 127     # the shell's exit status for "command not found": Homebrew isn't installed
+# where Homebrew's installer puts it on Linux (the shared prefix, then a per-user one); /opt/homebrew
+# and /usr/local are macOS's, on PATH there
+_PREFIXES = ('/home/linuxbrew/.linuxbrew', '~/.linuxbrew')
+
+
+def brew_env():
+    '''The env to run `brew` in: None (inherit) when `brew` is on PATH, else ours with the first
+    installed prefix's bin/ APPENDED to PATH — so the command line stays `brew …` and nothing brew
+    ships shadows a system tool. Looked up per call (never cached): Homebrew can arrive mid-batch.'''
+    if shutil.which('brew'):
+        return None
+    for prefix in _PREFIXES:
+        bindir = os.path.join(os.path.expanduser(prefix), 'bin')
+        if os.access(os.path.join(bindir, 'brew'), os.X_OK):
+            return {**os.environ, 'PATH': os.environ.get('PATH', '') + os.pathsep + bindir}
+    return None
 
 
 class Brew(Driver):
@@ -43,7 +62,7 @@ class Brew(Driver):
         "<formula> <v1> [<v2>...]" per line. When Homebrew isn't installed at all (the shell's
         command-not-found, exit 127) that is a TRUE empty — nothing is installed via brew — so it
         returns ({}, True) rather than the None that means "couldn't tell".'''
-        r = self.runner.run('brew list --versions')
+        r = self.runner.run('brew list --versions', env=brew_env())
         if r.returncode == _NOT_FOUND:
             return {}, True
         if not r.ok:
@@ -74,7 +93,7 @@ class Brew(Driver):
 
     def explicit_keys(self):
         '''`brew leaves --installed-on-request` — formulae the user asked for, not dependency-only.'''
-        r = self.runner.run('brew leaves --installed-on-request')
+        r = self.runner.run('brew leaves --installed-on-request', env=brew_env())
         if not r.ok:
             return None
         return {ln.strip() for ln in r.stdout.splitlines() if ln.strip()}
@@ -84,7 +103,7 @@ class Brew(Driver):
         if hit:
             return ver
         f = self._formula(rc)
-        r = self.runner.run(f'brew list --versions {shlex.quote(f)}')
+        r = self.runner.run(f'brew list --versions {shlex.quote(f)}', env=brew_env())
         if not r.ok or not r.stdout.strip():
             return None
         # "<formula> <ver> [<ver>...]" — a keg may have several; the last is newest.
@@ -100,7 +119,7 @@ class Brew(Driver):
         if self._missing():
             return None
         r = self.runner.run(
-            f'brew info --json=v2 --formula {shlex.quote(self._formula(rc))}')
+            f'brew info --json=v2 --formula {shlex.quote(self._formula(rc))}', env=brew_env())
         if not r.ok or not r.stdout.strip():
             return None
         try:
@@ -112,14 +131,14 @@ class Brew(Driver):
     def is_locked(self, rc):
         if self._missing():
             return False
-        r = self.runner.run('brew list --pinned')
+        r = self.runner.run('brew list --pinned', env=brew_env())
         if not r.ok:
             return False
         return self._formula(rc) in r.stdout.split()
 
     def upgradable_index(self):
         # `brew outdated --formula --verbose` -> "<formula> (<installed>[, ...]) [<!=] <candidate>".
-        r = self.runner.run('brew outdated --formula --verbose')
+        r = self.runner.run('brew outdated --formula --verbose', env=brew_env())
         if not r.ok:
             return None
         idx = {}
@@ -135,45 +154,45 @@ class Brew(Driver):
         return idx
 
     def held_keys(self):
-        r = self.runner.run('brew list --pinned')
+        r = self.runner.run('brew list --pinned', env=brew_env())
         if not r.ok:
             return None
         return {x.strip() for x in r.stdout.split() if x.strip()}
 
     def upgrade_all(self):
-        return self.runner.run('brew upgrade', capture=False)   # user-owned prefix; never sudo
+        return self.runner.run('brew upgrade', capture=False, env=brew_env())   # user-owned prefix; never sudo
 
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
         return self.runner.run(f'brew install {shlex.quote(self._formula(rc))}',
-                               capture=False)
+                               capture=False, env=brew_env())
 
     def uninstall(self, rc):
         return self.runner.run(f'brew uninstall {shlex.quote(self._formula(rc))}',
-                               capture=False)
+                               capture=False, env=brew_env())
 
     def upgrade(self, rc):
         return self.runner.run(f'brew upgrade {shlex.quote(self._formula(rc))}',
-                               capture=False)
+                               capture=False, env=brew_env())
 
     def set_version(self, rc, version):
         # brew is latest-oriented: an exact old version is only reachable when the tap
         # ships a versioned formula (e.g. python@3.11). Best-effort install of that
         # variant; brew reports clearly if `<formula>@<version>` doesn't exist.
         spec = f'{self._formula(rc)}@{version}'
-        return self.runner.run(f'brew install {shlex.quote(spec)}', capture=False)
+        return self.runner.run(f'brew install {shlex.quote(spec)}', capture=False, env=brew_env())
 
     def lock(self, rc):
         return self.runner.run(f'brew pin {shlex.quote(self._formula(rc))}',
-                               capture=False)
+                               capture=False, env=brew_env())
 
     def unlock(self, rc):
         return self.runner.run(f'brew unpin {shlex.quote(self._formula(rc))}',
-                               capture=False)
+                               capture=False, env=brew_env())
 
     def location(self, rc):
-        r = self.runner.run(f'brew --prefix {shlex.quote(self._formula(rc))}')
+        r = self.runner.run(f'brew --prefix {shlex.quote(self._formula(rc))}', env=brew_env())
         if r.ok and r.stdout.strip():
             return r.stdout.strip()
         return '(homebrew)'
