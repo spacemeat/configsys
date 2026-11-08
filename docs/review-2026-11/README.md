@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 27/37 items done, 0 declined, 10 open — B17, D2, D4, E1, F1–F3, G2–G4 (not chosen yet).
+**Status:** 37/37 items done, 0 declined, 0 open (closed 2026-11-08).
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -84,6 +84,25 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
   skips; TUI popup; auto modes silent); `--pretend plugin push` shows the same list — `0aa1606`.
 - D3: one humon text module, `configsys/hutext.py` (scanner, quoting, emitter), shared by plugins,
   troveio and humerge — `0c62c22`.
+- F1: every push question is one `Question` (title, items, choices from the shared `QUESTIONS`
+  table, Enter/Esc and unattended answers) passed to `PushUI.ask`; the CLI and TUI render the same
+  choices; Enter/Esc is the cautious answer on both — `254f842`.
+- F2: `primarygit.state()` returns a `PrimaryState` dataclass with `first_push` — `23d4340`.
+- D2: `layers.SETTING_CHOICES` (refused by `config set`, warned by `check`, a list in the TUI),
+  `primarygit.PUSH_POLICY` read by all three mode decisions, the chip built in the Components VM, the
+  failure wording one table, `_err` / `_them` — `6f77f95`.
+- D4, E1, F3: `hand_edited` / `left_out` and named git results; docstrings true again (with F1's);
+  `humerge.main(argv)` the one driver entry point — `d783030`.
+- B17: a type change (file vs symlink / submodule / folder) is one question, settled whole — no
+  `x~HEAD` pushed — `5e2bd33`.
+- G3: `plugin list --fetch` — `b1de32d`.
+- G2: `plugin log`, `plugin undo` (dropped if unpushed, else reverted; undo twice = redo), Plugins
+  `H` — `ad01667`.
+- G4: `primary-verify: signed` (top config only): sync, bless and push take in only commits with a
+  good signature from a key you trust — `de4710b`. This also answers the glue lead in §2 for anyone
+  who signs.
+- Found while closing out: `dotfiles capture <tool>` captured nothing (the filter wanted
+  `<tool>-dotfiles`) — `ce2476e`.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -160,7 +179,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   (primary-24) · S · [done ab5c941]
 - **B16 [LOW] A Markdown `=======` underline reads as an unresolved conflict.** (primary-25) · S · [done e03afa8]
 - **B17 [LOW] Type-change conflicts are misdescribed; "keep this machine's" pushes `<path>~HEAD`.**
-  (primary-26) · M · [open]
+  (primary-26) · M · [done 5e2bd33]
 - **B18 [NIT] Repeated notes, leftover scratch copies, `.git` assumed to be a directory.** (primary-34) · S ·
   [done e03afa8]
 - **B19 [LOW] Commits name the hostname and fall back to a `<login>@<host>` identity** — use the configsys
@@ -178,32 +197,32 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **D2 [LOW] One source for push modes, choices and commit logic** — `PUSH_MODES` is defined and never read
   (`Config.primary_push` hard-codes the tuple), the choice/commit/branch/error logic is hand-copied, and
   `primary-push` values go unvalidated; hold the mode policy, chip and failure wording as data.
-  (primary-27, -28) · effort S · [open]
+  (primary-27, -28) · effort S · [done 6f77f95]
 - **D3 [LOW] One shared module for humon text surgery** (humerge's span helpers and plugins.py's).
   (primary-29) · effort M · [done 0c62c22]
 - **D4 [NIT] Naming: `mine` means two things in one module; single-letter git results.** (primary-33) · S ·
-  [open]
+  [done d783030]
 
 ### Tier E — docs vs code
-- **E1 [NIT] Docstrings that describe what the code no longer does.** (primary-32) · S · [open]
+- **E1 [NIT] Docstrings that describe what the code no longer does.** (primary-32) · S · [done 254f842, d783030]
 
 ### Tier F — interfaces (none plugin-facing; neither module is in the frozen ABI)
 - **F1 `PushUI` as one `ask(Question) -> answer`**, with kind, sanitized text, file/key index and count, and
   the allowed answers from a shared table — CLI and TUI render the same data, tests script it; fixes B12's
-  numbering and carries A5's sanitizing. · effort M · [open]
-- **F2 `primarygit.state()` as a `PrimaryState` dataclass** (with `first_push`, fixing B8). · effort S · [open]
-- **F3 `humerge.main(argv)`** so the isolated entry point (A1) and the tests share it. · effort S · [open]
+  numbering and carries A5's sanitizing. · effort M · [done 254f842]
+- **F2 `primarygit.state()` as a `PrimaryState` dataclass** (with `first_push`, fixing B8). · effort S · [done 23d4340]
+- **F3 `humerge.main(argv)`** so the isolated entry point (A1) and the tests share it. · effort S · [done d783030]
 
 ### Tier G — features + parity
 - **G1 [MED] `plugin push` gives no preview of what will leave the machine**, and `--pretend plugin push` says
   nothing useful. (primary-12; decision 6) · effort M · [done 0aa1606]
-- **G2 [LOW] No way to see or undo configsys's commits from configsys.** (primary-30) · effort M · [open]
+- **G2 [LOW] No way to see or undo configsys's commits from configsys.** (primary-30) · effort M · [done ad01667]
 - **G3 [LOW] The CLI `plugin list` never fetches the primary**, so it can't show `↓` the way the TUI does.
-  (primary-31) · effort S · [open]
+  (primary-31) · effort S · [done b1de32d]
 - **G4 [MED] Verify primary commit signatures on sync** (an opt-in setting): `plugin sync` refuses primary
   commits not signed by your key(s), closing "whoever can push to your primary runs code as you" (the
   shape behind A1 and the glue lead in §2). Useful once you sign (decision 1). Added from the decisions;
-  not a reviewer finding. · effort M · [open]
+  not a reviewer finding. · effort M · [done de4710b]
 
 ## 4. Test gaps
 None of the 58 primary tests covers any of the six HIGH findings. The full list (13 groups) is in
