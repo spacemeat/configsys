@@ -79,7 +79,7 @@ class Scripted(primarygit.PushUI):
         if q.kind == 'switch-branch':
             self.asked.append(('switch', q.ref, q.branch))
             return self.switch
-        self.asked.append(('resolve' if q.kind == 'file' else 'value', q.path, q.detail))
+        self.asked.append(('value' if q.kind == 'value' else 'resolve', q.path, q.detail))
         if self.raise_on is not None:
             raise self.raise_on
         return self.choice
@@ -426,3 +426,59 @@ def test_every_question_renders_the_same_choices_on_both_uis(kind, monkeypatch, 
     options, kw = popups[0]
     assert options == [(c.label, c.key) for c in q.choices]
     assert q.choices[kw['start']].answer == q.enter
+
+
+def _other_makes_a_link(other, path, target):
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / path).unlink()
+    (other / path).symlink_to(target)
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', f'other: {path} -> link')
+    _git(other, 'push', '-q', 'origin', 'main')
+
+
+@needs_git
+@pytest.mark.parametrize('choice', ['mine', 'theirs'])
+def test_a_type_change_is_described_and_settled_as_one_file(primary, choice):
+    # B17 / primary-26: the remote turned notes.txt into a symlink while this machine edited it. It
+    # was asked as "this machine deleted it" plus a second question about `notes.txt~HEAD`, and
+    # "keep mine" pushed a tree holding `notes.txt~HEAD`
+    base, clone, bare, other = primary
+    _other_makes_a_link(other, 'notes.txt', 'p.hu')
+    (clone / 'notes.txt').write_text(BASE_P + '// mine\n')
+    _git(clone, 'commit', '-qam', 'mine: notes')
+    ui = Scripted(choice)
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok, lines
+    asked = [a for a in ui.asked if a[0] == 'resolve']
+    assert len(asked) == 1 and asked[0][1] == 'notes.txt', ui.asked
+    assert 'link' in asked[0][2] and 'deleted' not in asked[0][2]
+    tree = _git(bare, 'ls-tree', '--name-only', 'main').split()
+    assert sorted(tree) == ['notes.txt', 'p.hu', 'plugin.hu'], tree       # no `notes.txt~HEAD`
+    mode = _git(bare, 'ls-tree', 'main', 'notes.txt').split()[0]
+    assert mode == ('100644' if choice == 'mine' else '120000')
+    if choice == 'mine':
+        assert _remote_file(bare, 'notes.txt').endswith('// mine')
+    _clean(clone)
+
+
+@needs_git
+@pytest.mark.parametrize('choice', ['mine', 'theirs'])
+def test_a_file_that_became_a_folder_is_one_question(primary, choice):
+    # B17's other shape: the remote replaced notes.txt with a folder while this machine edited it
+    base, clone, bare, other = primary
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / 'notes.txt').unlink()
+    (other / 'notes.txt').mkdir()
+    (other / 'notes.txt' / 'a').write_text('in a folder\n')
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'other: folder'); _git(other, 'push', '-q', 'origin', 'main')
+    (clone / 'notes.txt').write_text(BASE_P + '// mine\n')
+    _git(clone, 'commit', '-qam', 'mine: notes')
+    ui = Scripted(choice)
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok, lines
+    asked = [a for a in ui.asked if a[0] == 'resolve']
+    assert len(asked) == 1 and asked[0][1] == 'notes.txt' and 'folder' in asked[0][2], ui.asked
+    tree = _git(bare, 'ls-tree', '-r', '--name-only', 'main').split()
+    assert not any('~' in t for t in tree), tree
+    assert ('notes.txt' in tree) == (choice == 'mine') and ('notes.txt/a' in tree) == (choice == 'theirs')
+    _clean(clone)

@@ -151,6 +151,18 @@ class PrimaryRepo:
         r = self.git('diff', '--name-only', '--diff-filter=U', '-z')
         return sorted(os.fsdecode(p) for p in r.out.split(b'\0') if p) if r.ok else []
 
+    def unmerged_entries(self, paths):
+        '''{path: {stage: (mode, blob)}} for the unmerged index entries of `paths` (a few: ls-files
+        takes no pathspec on stdin, so they go after `--` — literal, like every pathspec here).'''
+        r = self.git('ls-files', '-u', '-z', '--', *paths)
+        out = {}
+        for rec in (r.out.split(b'\0') if r.ok else []):
+            if b'\t' in rec:
+                meta, name = rec.split(b'\t', 1)
+                mode, blob, stage = meta.decode().split()
+                out.setdefault(os.fsdecode(name), {})[int(stage)] = (mode, blob)
+        return out
+
     def stage(self, n, path):
         '''The bytes of `path` at merge stage `n` (1 base, 2 ours, 3 theirs), or None.'''
         r = self.git('show', f':{n}:{path}')
@@ -544,6 +556,7 @@ QUESTIONS = {
     'switch-branch': ((Choice(False, 'n', 'No, leave it pinned'), Choice(True, 'y', 'Yes, follow {branch}')),
                       False, False),
     'file': (_KEEP + (Choice('edit', 'e', 'Edit both in my editor'), _STOP), 'stop', 'stop'),
+    'type-change': (_KEEP + (_STOP,), 'stop', 'stop'),
     'value': (_KEEP + (Choice('edit', 'e', 'Show me the file in my editor{aside}'), _STOP), 'stop', 'stop'),
     'confirm-push': ((Choice(True, 'p', 'Push'), Choice(False, 'n', "Don't push")), False, True),
 }
@@ -600,7 +613,7 @@ def question(kind, *, name, items=(), files=(), path=None, detail=None, index=0,
     elif kind == 'switch-branch':
         title = (f'{name} is pinned to {_printable(ref or "a fixed commit")} — follow {branch} instead, so '
                  f'every push reaches your other machines?')
-    elif kind == 'file':
+    elif kind in ('file', 'type-change'):
         title = f'{name}: {path} ({index + 1} of {count}) — {detail}'
     elif kind == 'value':
         title = f'{name}: {path}, setting {index + 1} of {count} — {detail}'
@@ -998,7 +1011,15 @@ def _replay(ctx, ui, name, repo, upstream):
     conflicted = repo.unmerged() if not merged.ok else []
     if not merged.ok and not conflicted:
         return False, []
+    renamed = _type_renames(repo, conflicted)          # `x~HEAD` → x: a file whose type differs
+    conflicted = [p for p in conflicted if p not in renamed]
+    conflicted += sorted(x for x in set(renamed.values()) if x not in conflicted)   # x became a folder
     for i, path in enumerate(conflicted):
+        if path in renamed.values():                   # asked once, settled as one file
+            twin = next(r for r, p in renamed.items() if p == path)
+            if not _settle_type_change(ui, name, repo, path, twin, i, len(conflicted)):
+                return False, []
+            continue
         settled = _settle_hu(ui, name, repo, path, i, len(conflicted))
         if settled == 'done':
             continue
@@ -1023,6 +1044,65 @@ def _replay(ctx, ui, name, repo, upstream):
     if conflicted:
         lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')
     return True, lines
+
+
+def _type_renames(repo, conflicted):
+    '''{`x~<side>`: x} for the files git renamed because the two sides gave `x` different types — a
+    file on one, a symlink or submodule on the other ("CONFLICT (distinct types)", `x` conflicted
+    too), or a folder ("file/directory": `x` is the other side's folder, merged cleanly). git keeps one
+    side under `x` and parks the other under `x~HEAD` / `x~<branch>`.'''
+    names = set(conflicted)
+    out = {}
+    for p in conflicted:
+        x = p.rsplit('~', 1)[0] if '~' in p else None
+        if x and (x in names or (repo.root / x).is_dir() and not (repo.root / x).is_symlink()):
+            out[p] = x
+    return out
+
+
+_KINDS = {'120000': 'link', '160000': 'submodule', '040000': 'folder'}
+
+
+def _kind(entry):
+    return _KINDS.get(entry[0], 'file') if entry else None
+
+
+def _settle_type_change(ui, name, repo, path, twin, i, n):
+    '''`path` has a different type on each side (git parked one under `twin`): ask which to keep, as
+    one question about `path`, and put that side's entry — its type included — back at `path`, with
+    `twin` gone. False = stop.'''
+    entries = repo.unmerged_entries([path, twin])
+    stage = lambda k: entries.get(path, {}).get(k) or entries.get(twin, {}).get(k)   # noqa: E731
+    base, mine, theirs = stage(1), stage(2), stage(3)
+    folder = path not in entries and (repo.root / path).is_dir()
+    if folder:                                         # one side's folder sits at `path`
+        mine, theirs = mine or ('040000', None), theirs or ('040000', None)
+    km, kt = _kind(mine), _kind(theirs)
+    if km is None or kt is None:                       # not the shape git leaves for distinct types
+        return False
+    if _kind(base) == km:
+        what = f'this machine changed the {km}; your other machine made it a {kt}'
+    elif _kind(base) == kt:
+        what = f'this machine made it a {km}; your other machine changed the {kt}'
+    else:
+        what = f'this machine has a {km} there; your other machine has a {kt}'
+    choice = ui.ask(question('type-change', name=name, path=path, detail=what, index=i, count=n))
+    keep = {'mine': mine, 'theirs': theirs}.get(choice)
+    if keep is None:
+        return False
+    if folder and keep[0] == '040000':                 # keep the folder: drop the parked file
+        repo.git('rm', '--quiet', '-f', '--ignore-unmatch', paths=[twin])
+        return True
+    if folder:                                         # keep the file: the folder's tracked files go
+        repo.git('rm', '-r', '--quiet', '-f', '--ignore-unmatch', paths=[path])
+    repo.git('rm', '--quiet', '--cached', '-f', '--ignore-unmatch', paths=[path, twin])
+    for p in (twin, path):                             # only the two names git wrote — never a folder
+        f = repo.root / p
+        if f.is_symlink() or f.is_file():
+            f.unlink()
+    repo.git('update-index', '--add', '--cacheinfo', f'{keep[0]},{keep[1]},{path}')
+    repo.git('checkout-index', '--force', '--', path)
+    return True
 
 
 def _settle_hu(ui, name, repo, path, i, n):
