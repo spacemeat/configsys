@@ -360,9 +360,9 @@ def _commit_paths(repo, ident, paths, subject, body, hooks=True):
     add = repo.git('add', '-A', paths=paths)
     if not add.ok:
         return False, _err(add, 200)
-    c = repo.git(*ident, 'commit', '-q', *([] if hooks else ['--no-verify']), '-m', subject, '-m', body,
-                 paths=paths)
-    return c.ok, _err(c, 200)
+    committed = repo.git(*ident, 'commit', '-q', *([] if hooks else ['--no-verify']), '-m', subject,
+                         '-m', body, paths=paths)
+    return committed.ok, _err(committed, 200)
 
 
 def _machine(ctx):
@@ -787,23 +787,23 @@ def push(ctx, ui=None):
         return False, lines + [f'{name}: no git identity is set, so nothing was pushed — set one (`git '
                                f'config --global user.name "Your Name"` and `user.email you@example.com`), '
                                f'then push again.']
-    mine, mine_left = repo.dirty() or set(), set()
-    if mine:
-        if ui.ask(question('include-own', name=name, items=sorted(mine))):
-            ok, why = _commit_paths(repo, [], sorted(mine), 'Edits made by hand',
+    hand_edited, left_out = repo.dirty() or set(), set()
+    if hand_edited:
+        if ui.ask(question('include-own', name=name, items=sorted(hand_edited))):
+            ok, why = _commit_paths(repo, [], sorted(hand_edited), 'Edits made by hand',
                                     _made_by(ctx, 'Included by configsys plugin push'))
             if not ok:
                 return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
         else:
-            lines.append(f'{name}: {_count(len(mine), "file")} with edits of your own left out of the '
-                         f'push (still here, uncommitted).')
-            mine_left = mine
+            lines.append(f'{name}: {_count(len(hand_edited), "file")} with edits of your own left out '
+                         f'of the push (still here, uncommitted).')
+            left_out = hand_edited
     ui.progress(f'fetching {name} …')
     # fetch through the PUSH url (ssh for a github:/gitlab: source), so a private repo you can push
     # to is also one you can fetch from here — the https fetch url may need a sign-in you don't have
-    f = _fetch(repo, url, ui.interactive)
-    if not f.ok:
-        return False, lines + [explain_git_failure(f.stderr or f.stdout, name=name, root=root,
+    fetched = _fetch(repo, url, ui.interactive)
+    if not fetched.ok:
+        return False, lines + [explain_git_failure(fetched.stderr or fetched.stdout, name=name, root=root,
                                                    source=source)]
     upstream = f'origin/{branch}'
     first = not repo.has_ref(upstream)
@@ -818,7 +818,7 @@ def push(ctx, ui=None):
             msg += (f' {_count(behind)} from your other machines {"are" if behind != 1 else "is"} '
                     f'waiting; `configsys plugin sync` brings {_them(behind)} in.')
         return True, lines + [msg]
-    overlap = sorted(mine_left & repo.incoming(upstream)) if behind and mine_left else []
+    overlap = sorted(left_out & repo.incoming(upstream)) if behind and left_out else []
     if overlap:                                        # combining would leave conflict markers in them
         if ui.ask(question('overlap', name=name, items=overlap)) != 'include':
             return False, lines[:-1] + [
@@ -841,10 +841,10 @@ def push(ctx, ui=None):
     if not ui.ask(question('confirm-push', name=name, items=commits, files=files, source=source)):
         return False, lines + [f'{name}: not pushed — your changes stay committed here.']
     ui.progress(f'pushing {name} …')
-    p = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
-                 env=repo.network_env(ui.interactive))
-    if not p.ok:
-        return False, lines + [explain_git_failure(p.stderr or p.stdout, name=name, root=root,
+    pushed = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
+                      env=repo.network_env(ui.interactive))
+    if not pushed.ok:
+        return False, lines + [explain_git_failure(pushed.stderr or pushed.stdout, name=name, root=root,
                                                    source=source)]
     if first:
         repo.git('branch', '--quiet', f'--set-upstream-to={upstream}')
@@ -889,7 +889,7 @@ def _pretend_preview(name, root, source):
 
 
 def _merge_driver(repo):
-    '''(git -c args, notes file) that make `humerge` git's merge driver for `*.hu` for one command —
+    '''(git -c options, notes file) that make `humerge` git's merge driver for `*.hu` for one command —
     nothing is configured permanently. The attributes file carries your own global one along; the
     driver appends what's worth telling you to the notes file.'''
     import sys
@@ -911,11 +911,11 @@ def _merge_driver(repo):
     # whoever can push to its remote would run as you. Isolated mode (-I: no cwd, no PYTHON* env,
     # no user site) plus an explicit path to this configsys keeps every import ours.
     pkg = str(Path(__file__).resolve().parent.parent)
-    boot = (f'import sys; sys.path.insert(0, {pkg!r}); from configsys.humerge import driver; '
-            f'sys.exit(driver(*sys.argv[1:7]))')
-    drv = (f'{shlex.quote(sys.executable)} -I -c {shlex.quote(boot)} '
-           f'{shlex.quote(str(notes))} %O %A %B %P %L')
-    return ['-c', 'merge.configsys.name=configsys .hu merge', '-c', f'merge.configsys.driver={drv}',
+    boot = (f'import sys; sys.path.insert(0, {pkg!r}); from configsys.humerge import main; '
+            f'sys.exit(main(sys.argv[1:]))')
+    command = (f'{shlex.quote(sys.executable)} -I -c {shlex.quote(boot)} '
+               f'{shlex.quote(str(notes))} %O %A %B %P %L')
+    return ['-c', 'merge.configsys.name=configsys .hu merge', '-c', f'merge.configsys.driver={command}',
             '-c', f'core.attributesFile={attrs}'], notes
 
 
@@ -985,18 +985,18 @@ def _replay(ctx, ui, name, repo, upstream):
     file (a `value` question), per file otherwise (a `file` question) — and the two sides are merged with
     those answers. (ok, [lines]); on not-ok the caller restores.'''
     root = repo.root
-    drv, notes = _merge_driver(repo)
-    r = repo.git(*drv, 'rebase', '--quiet', upstream)
-    if r.ok:
+    driver_opts, notes = _merge_driver(repo)
+    rebased = repo.git(*driver_opts, 'rebase', '--quiet', upstream)
+    if rebased.ok:
         return True, [f'{name}: {n}' for n in _driver_notes(notes)]
     conflicted = repo.unmerged()
     repo.git('rebase', '--abort')
     _driver_notes(notes)
     if not conflicted:
-        return False, [f'{name}: could not combine with the remote: {_err(r)}']
-    m = repo.git(*drv, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
-    conflicted = repo.unmerged() if not m.ok else []
-    if not m.ok and not conflicted:
+        return False, [f'{name}: could not combine with the remote: {_err(rebased)}']
+    merged = repo.git(*driver_opts, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
+    conflicted = repo.unmerged() if not merged.ok else []
+    if not merged.ok and not conflicted:
         return False, []
     for i, path in enumerate(conflicted):
         settled = _settle_hu(ui, name, repo, path, i, len(conflicted))
@@ -1014,11 +1014,11 @@ def _replay(ctx, ui, name, repo, upstream):
                 repo.git('add', '-A', paths=[path])
         if choice not in ('mine', 'theirs', 'edit'):
             return False, []
-    m_name = _machine(ctx)
-    c = repo.git('commit', '--quiet', '--no-edit', '-m',
-                 f'Combine {name} changes{f" from {m_name}" if m_name else ""} with the remote')
-    if not c.ok:
-        return False, [f'{name}: could not commit the combined result: {_err(c)}']
+    machine = _machine(ctx)
+    combined = repo.git('commit', '--quiet', '--no-edit', '-m',
+                        f'Combine {name} changes{f" from {machine}" if machine else ""} with the remote')
+    if not combined.ok:
+        return False, [f'{name}: could not commit the combined result: {_err(combined)}']
     lines = [f'{name}: {n}' for n in _driver_notes(notes)]
     if conflicted:
         lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')
@@ -1105,10 +1105,10 @@ def _take(repo, path, side):
         tmp = _scratch(repo)
         for n, data in (('base', base), ('mine', mine), ('theirs', theirs)):
             (tmp / n).write_bytes(data)
-        r = repo.git('merge-file', '-p', f'--{side}', str(tmp / 'mine'), str(tmp / 'base'),
-                     str(tmp / 'theirs'))
-        if r.ok:                                       # with --ours/--theirs no conflict is left
-            (repo.root / path).write_bytes(r.out)
+        merged = repo.git('merge-file', '-p', f'--{side}', str(tmp / 'mine'), str(tmp / 'base'),
+                          str(tmp / 'theirs'))
+        if merged.ok:                                  # with --ours/--theirs no conflict is left
+            (repo.root / path).write_bytes(merged.out)
             repo.git('add', paths=[path])
             return
     repo.git('checkout', f'--{side}', paths=[path])

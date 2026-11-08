@@ -19,16 +19,19 @@ as data and merged key by key:
   in plain words, and `merge(..., answers={path: 'mine' | 'theirs'})` settles it.
 
 The merged text is built from MINE's text: every key whose value doesn't change keeps its text and
-comments; a key taken whole from theirs is copied from theirs' text verbatim; a list combined from both
-sides is edited in place (items removed and inserted, its comments kept); only a map entry combined
-from both sides is written fresh. Theirs' text is taken whole only when this machine changed nothing. The result is re-read and compared with the merged data, so a file this
-can't rewrite faithfully raises `Unmergeable` (the caller falls back to asking about the whole file).
+comments; a key taken whole from theirs is copied from theirs' text verbatim; a list combined from
+both sides is edited in place (items removed and inserted, its comments kept); only a map entry
+combined from both sides is written fresh. Theirs' text is taken whole only when this machine changed
+nothing. The result is re-read and compared with the merged data, so a file this can't rewrite
+faithfully raises `Unmergeable` (the caller falls back to asking about the whole file).
 
-Run as `python -m configsys.humerge NOTES BASE MINE THEIRS [PATH]` it is a git merge driver: the result goes to
-MINE, exit 0 when settled, 1 when a conflict is left (then MINE holds git's own conflict-marker text,
-exactly what git's built-in merge would have left). It is never worse than git's merge: a file it
-can't read, or a conflict git's line merge settles cleanly, gets git's own result. `primarygit` registers it only for the length of
-its own rebase / merge (`git -c merge.configsys.driver=…`), so nothing is configured permanently.
+`main(argv)` — `NOTES BASE MINE THEIRS [PATH [MARKER_SIZE]]` — is git's merge driver: the result
+goes to MINE, exit 0 when settled, 1 when a conflict is left. Then MINE holds what `git merge-file`
+leaves (labelled markers, the file's own line endings); a file even git can't merge (binary) is left
+untouched. A clean git line merge is kept as the result unless it differs from this merge only in a
+name list's order or duplicates. `primarygit` runs it isolated (`python -I -c`, configsys's own path
+— never a module from the primary's checkout) and registers it only for the length of its own rebase
+/ merge (`git -c merge.configsys.driver=…`), so nothing is configured permanently.
 '''
 
 import subprocess
@@ -44,8 +47,9 @@ class Unmergeable(Exception):
     '''Not a humon map, unreadable, or a shape this merge can't rewrite faithfully.'''
 
 
-# Lists whose order carries no meaning: both sides' additions and removals combine. Path patterns,
-# '*' = any one key.
+# Name lists whose order carries no meaning (a set of names): both sides' additions and removals
+# combine. Path patterns, '*' = any one key. Profiles are NOT here — their order is meaning
+# (ORDERED_LISTS).
 SET_LISTS = (
     ('picks', '*'),
     ('disabled-drivers',),
@@ -518,5 +522,14 @@ def driver(notes, base, mine, theirs, name='', marker_size=None):
     return 0
 
 
+def main(argv):
+    '''The merge-driver entry point: `NOTES BASE MINE THEIRS [PATH [MARKER_SIZE]]` (git's
+    `%O %A %B %P %L` after the notes file). The exit status for git.'''
+    if not 4 <= len(argv) <= 6:
+        print('usage: humerge NOTES BASE MINE THEIRS [PATH [MARKER_SIZE]]', file=sys.stderr)
+        return 2
+    return driver(*argv)
+
+
 if __name__ == '__main__':
-    sys.exit(driver(*sys.argv[1:7]))
+    sys.exit(main(sys.argv[1:]))

@@ -438,3 +438,13 @@ def test_a_comment_only_edit_of_mine_is_not_lost():
     theirs = base.replace('effects: full', 'effects: none')
     res = humerge.merge(base, mine, theirs)
     assert '// the one I like' in res.text and _data(res.text)['effects'] == 'none'
+
+
+def test_main_is_the_driver_entry_point(tmp_path, capsys):
+    # F3: the isolated `python -I -c` boot and `python -m configsys.humerge` both go through main()
+    for n, text in (('O', '{ a: 1 }\n'), ('A', '{ a: 1  b: 2 }\n'), ('B', '{ a: 1  c: 3 }\n')):
+        (tmp_path / n).write_text(text)
+    paths = [str(tmp_path / n) for n in 'OAB']
+    assert humerge.main(['-', *paths, 'p.hu']) == 0
+    assert layers.materialize_string((tmp_path / 'A').read_text()) == {'a': '1', 'b': '2', 'c': '3'}
+    assert humerge.main(['-']) == 2 and 'usage' in capsys.readouterr().err
