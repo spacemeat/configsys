@@ -3184,6 +3184,8 @@ def cmd_plugin(ctx, args):
             if r.get('locked'):
                 state += f'  [locked since {r["locked"]} — no sync/update/trust; configsys plugin unlock {r["name"]}]'
             if r['primary'] and r['synced']:
+                if getattr(args, 'fetch', False) and not primarygit.fetch(ctx):
+                    state += '  [could not fetch its remote — counts are as of the last fetch]'
                 where = primarygit.describe(primarygit.state(ctx))
                 if where:
                     state += f'  [{where}]'
@@ -3843,8 +3845,11 @@ def build_parser():
     pl = sub.add_parser('plugin', help='manage plugins: declare and sync them, bless or init your '
                                        'primary plugin, trust plugins that run code')
     plsub = pl.add_subparsers(dest='plugin_command')
-    plsub.add_parser('list', help='list declared plugins with their sync, ABI and trust status '
-                                  '(default)')
+    pll = plsub.add_parser('list', help='list declared plugins with their sync, ABI and trust status '
+                                        '(default)')
+    pll.add_argument('--fetch', action='store_true',
+                     help="fetch your primary's remote first, so it counts the changes your other "
+                          'machines pushed (otherwise: as of the last fetch or sync)')
     plsub.add_parser('sync', help='clone or fetch every declared plugin at its `ref:`')
     pb = plsub.add_parser('bless', help='designate your primary personal-config plugin '
                                         '(register + sync it; its machine settings then apply)')

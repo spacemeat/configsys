@@ -152,7 +152,7 @@ so you can push a plugin you author without a token.
 | --- | --- |
 | `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` | Sync the source first; only if that works, declare it. With a primary plugin set, the entry goes into the primary's manifest (so it travels); `--local` keeps it in this machine's config instead (§9). `--replace` swaps out an already-declared plugin of the same name from another source. |
 | `configsys plugin sync` | Fetch every declared plugin (and the plugins they list) to its ref, and report how your component set changed. New or changed code stays inert until trusted. A locked plugin is left as it is (`locked`). |
-| `configsys plugin list` | Each plugin: source, ref, `[primary]` / `[via primary]`, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
+| `configsys plugin list [--fetch]` | Each plugin: source, ref, `[primary]` / `[via primary]`, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
 | `configsys plugin diff <name> [--to REF]` | The review diff (§6a): what taking the plugin would change, before you sync, update or trust it. `--to` compares against that ref instead of the newest version tag. |
 | `configsys plugin lock <name>` / `unlock <name>` | Hold a plugin where it is on this machine (§6a): no sync, update, bless or trust until you unlock it. |
 | `configsys plugin update [name] [--ref R \| --latest] [--pin]` | Re-pin and re-sync one plugin. `--latest` pins the newest stable version tag on the remote (`v1.2.3` style; pre-release tags ignored), else `main`/`master` — except on a primary that follows a branch, which stays on it (§8). Omit the name (or pass `--all`) to update every plugin; locally authored ones are skipped, and it exits 1 if any fail. |
@@ -520,7 +520,8 @@ pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) a
 yet); both arrows at once mean the two sides need combining before a push. The screen fetches the
 primary in the background to count `↓`. The Components header shows `<primary>: ↑N to push, ↓N to
 sync` whenever there's something either way (under `primary-push: auto` or `auto-on-quit`, only the `↓` part), and
-`plugin list` says the same in words (`↓` there is as of the last fetch or sync).
+`plugin list` says the same in words (`↓` there is as of the last fetch or sync; `plugin list --fetch`
+fetches first).
 
 **Publishing it.** `configsys plugin push` (or `P` on the Plugins screen) shares your primary with
 your other machines, in three steps:

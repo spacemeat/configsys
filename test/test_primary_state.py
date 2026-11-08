@@ -102,6 +102,19 @@ def test_plugin_list_says_where_the_primary_stands(primary, capsys):
     assert '1 change not pushed yet' in capsys.readouterr().out
 
 
+
+@needs_git
+def test_plugin_list_fetch_counts_what_your_other_machines_pushed(primary, capsys):
+    # G3 / primary-31: the CLI never fetched, so a CLI-only machine never learned it was behind
+    base, _ctx, _clone, other = primary
+    (other / 'p.hu').write_text('{ picks: { laptop: [ htop ] } }\n')
+    _git(other, 'commit', '-qam', 'B'); _git(other, 'push', '-q', 'origin', 'main')
+    capsys.readouterr()
+    assert main(base + ['plugin', 'list']) == 0
+    assert 'from your other machines' not in capsys.readouterr().out          # as of the last fetch
+    assert main(base + ['plugin', 'list', '--fetch']) == 0
+    assert '1 change from your other machines' in capsys.readouterr().out
+
 @needs_git
 def test_the_plugins_screen_fetches_and_shows_behind(primary):
     import time
