@@ -610,7 +610,12 @@ An `os:` block describes one distro:
   `/etc/os-release` (Proxmox VE reports `ID=debian`). When the detected block is that base, or a
   descendant of it, and every marker exists on disk (`marker:` may be a list), configsys routes to
   this block. This lets a plugin add a detectable OS with no code; the **configsys-proxmox** plugin
-  does exactly this.
+  does exactly this;
+- **`releases:`** the release registry, on the block that owns a version line: `{ <VERSION_ID>: {
+  status: prerelease | released | eol  … } }`, plus optional facts (`released:` and `eol:` dates as
+  YYYY-MM-DD, `codename:`, `image:`, `glibc:`, `python3:`, `gcc:`, `manager:`, `note:`). It records
+  which releases exist and what each ships, for the maintenance sweeps; it does not change how
+  components route.
 
 A `drivers:` entry configures one driver. Each field also applies to a `via: native` binding when
 this OS's package manager is that driver:

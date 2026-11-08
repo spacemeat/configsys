@@ -426,7 +426,9 @@ An \fBos:\fR block describes one distro:
 .IP \(bu 2
 \fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order, consulted before the machine setting on this block and the blocks that inherit from it (the nearest block's list first); drivers it doesn't name fall back to the setting, then to the default order;
 .IP \(bu 2
-\fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this.
+\fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this;
+.IP \(bu 2
+\fB\fBreleases:\fR\fR the release registry, on the block that owns a version line: \fB{ <VERSION_ID>: { status: prerelease | released | eol  … } }\fR, plus optional facts (\fBreleased:\fR and \fBeol:\fR dates as YYYY-MM-DD, \fBcodename:\fR, \fBimage:\fR, \fBglibc:\fR, \fBpython3:\fR, \fBgcc:\fR, \fBmanager:\fR, \fBnote:\fR). It records which releases exist and what each ships, for the maintenance sweeps; it does not change how components route.
 .PP
 A \fBdrivers:\fR entry configures one driver. Each field also applies to a \fBvia: native\fR binding when this OS's package manager is that driver:
 .IP \(bu 2

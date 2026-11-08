@@ -176,6 +176,14 @@ def _truthy(v):
     return str(v).lower() in ('true', 'yes', '1')
 
 
+# The release registry: an OS block that owns a version line may carry `releases: { <VERSION_ID>:
+# { status: … } }` — which releases exist and what each ships. Read by the maintenance tools
+# (tools/osaudit.py, the /update-os skill); the resolver doesn't consult it (docs/routing-model.md §6).
+RELEASE_STATUSES = ('prerelease', 'released', 'eol')
+RELEASE_FIELDS = frozenset({'status', 'released', 'eol', 'codename', 'image', 'glibc', 'python3',
+                            'gcc', 'manager', 'note'})
+
+
 class OsCascade:
     '''The OS layer: `using` inheritance, the `native` driver, scale-roots, and the
     capabilities each environment provides for free.'''
@@ -222,6 +230,26 @@ class OsCascade:
             if mech:
                 return mech
         return None
+
+    def version_line(self, block):
+        '''The block whose numbering `block`'s VERSION_ID is read in — its nearest scale-root,
+        else (a line with no scale-root above it, like alpine) the nearest block declaring
+        `releases:`; None for a rolling block.'''
+        chain = self.lineage(block)
+        for n in chain:
+            if n in self.scale_roots:
+                return n
+        for n in chain:
+            if (self.blocks.get(n) or {}).get('releases'):
+                return n
+        return None
+
+    def releases(self, block):
+        '''{VERSION_ID: {field: value}} — the release registry of `block`'s version line ({} when
+        none is declared, or the block is rolling).'''
+        line = self.version_line(block)
+        table = (self.blocks.get(line) or {}).get('releases') if line else None
+        return table if isinstance(table, dict) else {}
 
     def is_descendant(self, x, y):
         '''True if y is ancestor-or-self of x (x's subtree ⊆ y's subtree).'''

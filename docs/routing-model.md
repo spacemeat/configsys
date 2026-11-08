@@ -363,8 +363,23 @@ the component's `when:`s has such an atom.
 add a derivative distro and the top config may tweak a block on one machine): `using:` (parent),
 `native:` (package-manager driver, inherited; absent on native-less blocks, §3), `scale-root:`,
 `provides:` (environment capabilities, §4), `driver-preference:` (an OS-specific preference order,
-§8a), and `detect:` (`{ id: …  marker: <path> }`, for os-release ambiguity — `pios`, `void_musl`;
-read by osdetect, not the resolver). The C library is a lineage axis: glibc families hang off
+§8a), `detect:` (`{ id: …  marker: <path> }`, for os-release ambiguity — `pios`, `void_musl`;
+read by osdetect, not the resolver), and `releases:` (the release registry, below).
+
+**The release registry.** The block that owns a version line — a scale-root, or a block with no
+scale-root above it that declares `releases:` (alpine) — may list its releases:
+`releases: { 42: { status: released  released: 2025-04-15  image: "fedora:42"  glibc: 2.41
+python3: 3.13  gcc: 15  manager: dnf5 } }`. Keys are VERSION_IDs; `status:`
+(`prerelease` / `released` / `eol`) is required; the other fields (`released`, `eol` as YYYY-MM-DD,
+`codename` for apt suites and PPAs, `image` for the container sweeps, the shipped `glibc` /
+`python3` / `gcc`, the package-manager `manager` version, a free-text `note`) are optional facts.
+`OsCascade.version_line(block)` names the owning block (a borrower like `pop_os!` or `nobara`
+reads its parent's table; an own-numbering derivative never falls through to its parent's) and
+`OsCascade.releases(block)` returns the table. The resolver does not consult it: it is the source
+of truth the maintenance tools (`tools/osaudit.py`, the `/update-os` skill) sweep and diff against,
+so "which releases do we support" has one answer. An EOL release keeps its `when:` gates — it stays
+routable and installable — but is no longer swept. `check` lints the table's shape
+(`routecheck.release_registry_issues`, `os-release` warnings). The C library is a lineage axis: glibc families hang off
 `glibc_linux` (which `provides: glibc`); musl ones (`alpine`, `void_musl`, `chimera`) off bare
 `linux`.
 

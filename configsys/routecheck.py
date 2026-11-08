@@ -9,6 +9,7 @@ load-time error, pointing at a witness context — never a silent tiebreak.
 Run check_all() when loading routes.hu to reject an ambiguous routes file up front.
 '''
 
+import re
 from itertools import combinations
 
 from . import predicate
@@ -228,6 +229,49 @@ def retired_driver_key_warnings(cascade):
     return out
 
 
+_ISO_DATE = re.compile(r'\d{4}-\d{2}-\d{2}\Z')
+
+
+def release_registry_issues(cascade):
+    '''[(message, source)] for a malformed `releases:` registry on an OS block: on a block that
+    doesn't own its version line, a key that isn't a version, a missing / unknown `status:`, an
+    unknown field, a date that isn't YYYY-MM-DD. Warnings — the registry feeds maintenance tools,
+    never resolution.'''
+    from .osversion import parse_version
+    from .routes import RELEASE_FIELDS, RELEASE_STATUSES
+    out = []
+    for block, spec in sorted(cascade.blocks.items()):
+        table = (spec or {}).get('releases') if isinstance(spec, dict) else None
+        if table is None:
+            continue
+        src = (getattr(cascade, 'os_sources', None) or {}).get(block)
+        where = f'os {block!r} releases:'
+        if not isinstance(table, dict):
+            out.append((f'{where} must be a map of VERSION_ID -> {{ status: … }}', src))
+            continue
+        line = cascade.version_line(block)      # never None here: this block declares releases
+        if line != block:
+            out.append((f'{where} {block!r} reads its versions on the {line!r} line — declare '
+                        'the releases there', src))
+        for version, rel in table.items():
+            label = f'{where} {version}'
+            if not parse_version(version):
+                out.append((f'{label}: not a version', src))
+            if not isinstance(rel, dict):
+                out.append((f'{label}: must be a map with at least `status:`', src))
+                continue
+            status = rel.get('status')
+            if status not in RELEASE_STATUSES:
+                out.append((f"{label}: status {status!r} — use one of {', '.join(RELEASE_STATUSES)}",
+                            src))
+            for key in sorted(set(rel) - RELEASE_FIELDS):
+                out.append((f'{label}: unknown field {key!r}', src))
+            for key in ('released', 'eol'):
+                if key in rel and not _ISO_DATE.match(str(rel[key])):
+                    out.append((f'{label}: {key}: {rel[key]!r} is not YYYY-MM-DD', src))
+    return out
+
+
 def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_only=None):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
@@ -307,6 +351,8 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_o
                                     f'{os_name!r}', None, src, 'warning'))
     for msg, src in retired_driver_key_warnings(cascade):
         issues.append(Issue('retired-key', msg, None, src, 'warning'))
+    for msg, src in release_registry_issues(cascade):
+        issues.append(Issue('os-release', msg, None, src, 'warning'))
     for drv, reqs in drivers.items():
         for cap in reqs:
             if cap not in providable:
