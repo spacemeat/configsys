@@ -1,4 +1,4 @@
-'''The primary's git layer is safe off the happy path (docs/todo/primary-safety-plan.md; findings in
+'''The primary's git layer is safe off the happy path (docs/done/primary-safety-plan.md; findings in
 docs/review-2026-11/primary.md): the ambient git environment never redirects it, file names that aren't
 UTF-8 and very long path lists don't crash the snapshot/commit bracket, paths are never globs, and the
 non-interactive network env keeps your own ssh command.'''

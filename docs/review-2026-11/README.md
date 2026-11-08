@@ -9,7 +9,9 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 24/37 items done (+ B1 in part), 0 declined, 12 open.
+**Status:** 24/37 items done (+ B1 in part), 0 declined, 12 open — the open ones: the write journal
+(B1's rest, B3, C1 — planned in docs/todo/primary-journal-plan.md, awaiting go), B17, D2, D4, E1, F1–F3,
+G2–G4 (not chosen yet).
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -80,7 +82,7 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - G1 (decision 6): `plugin push` lists the outgoing commits and files and asks on a terminal (`--yes`
   skips; TUI popup; auto modes silent); `--pretend plugin push` shows the same list — `0aa1606`.
 - D3: one humon text module, `configsys/hutext.py` (scanner, quoting, emitter), shared by plugins,
-  troveio and humerge — merge quality 5.
+  troveio and humerge — `0c62c22`.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -177,7 +179,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   `primary-push` values go unvalidated; hold the mode policy, chip and failure wording as data.
   (primary-27, -28) · effort S · [open]
 - **D3 [LOW] One shared module for humon text surgery** (humerge's span helpers and plugins.py's).
-  (primary-29) · effort M · [done — merge quality 5]
+  (primary-29) · effort M · [done 0c62c22]
 - **D4 [NIT] Naming: `mine` means two things in one module; single-letter git results.** (primary-33) · S ·
   [open]
 

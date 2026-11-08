@@ -15,7 +15,7 @@ nothing is committed and you're told once how to set one — configsys never inv
 Commit bodies name the configsys machine (`machine:`), never the hostname. The bracket is
 best-effort: whatever goes wrong in it is a note, never a crash of the command.
 
-Every git call goes through `PrimaryRepo` (docs/todo/primary-safety-plan.md): argv lists, never a
+Every git call goes through `PrimaryRepo` (docs/done/primary-safety-plan.md): argv lists, never a
 shell; bytes in and `os.fsdecode` out, so a file name that isn't UTF-8 is just a name; literal
 pathspecs, passed on stdin, so a `[` in a name is no glob and a long list no overflow; and an env
 without git's repository-locating variables, so a `GIT_DIR` from a vcsh / yadm session can't send a
