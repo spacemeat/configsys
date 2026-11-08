@@ -81,5 +81,6 @@ Early plans, previous definitions of terms, and dated reviews. Links are kept wo
 | [README.md](history/README.md) | ARCHIVE | 2026-07-30 | — | What is archived here. |
 | [wire-in.md](history/wire-in.md) | ARCHIVE | 2026-07-16 | — | v2 resolver wire-in log. |
 | [review-2026-09/](review-2026-09/README.md) | ARCHIVE | 2026-09-20 | — | Full-tree code review (11 reviewers): security, correctness, perf, docs sync. |
-| [review-2026-11/](review-2026-11/README.md) | IN PROGRESS | 2026-11-07 | — | `/review-code` calibration run on the primary area (primarygit, humerge): 34 findings, 6 HIGH confirmed; 24/37 done, the write journal planned. |
+| [review-2026-11/](review-2026-11/README.md) | ARCHIVE | 2026-11-07 | 2026-11-08 (6a0d44f) | `/review-code` calibration run on the primary area (primarygit, humerge): 34 findings, all 37 items done (write journal, Question/ask, plugin undo, primary-verify). |
+| [review-2026-11-2/](review-2026-11-2/README.md) | IN PROGRESS | 2026-11-08 | — | Full `/review-code` (16 areas, adversarial checkers, `/update-os *`, `/update-component *`): 5 CRITICAL / 34 HIGH, 0 refuted; 667 components audited; report only. |
 
