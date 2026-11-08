@@ -2994,6 +2994,13 @@ class _CliPushUI:
             print(f'    … and {len(paths) - 20} more')
         return self.include or self._ask('Include them in the push? [y/N] ', 'yn', 'n') == 'y'
 
+    def overlapping(self, name, paths):
+        print(f'configsys: your uncommitted edits to {", ".join(paths)} overlap what your other '
+              f'machine pushed.')
+        ans = self._ask('  [i] include them in this push  [s] stop — push nothing, change nothing: ',
+                        'is', 's')
+        return 'include' if ans == 'i' else 'stop'
+
     def switch_to_branch(self, name, ref, branch):
         return self._ask(f'Make {name} follow {branch} instead, so every push reaches your other '
                          f'machines? [y/N] ', 'yn', 'n') == 'y'

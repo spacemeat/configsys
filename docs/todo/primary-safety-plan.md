@@ -1,7 +1,8 @@
 # Primary push: a safe git layer, an undoable combine, a write journal
 
 > **Status: IN PROGRESS** — started 2026-11-07 from docs/review-2026-11/ (the user chose every group:
-> the safety core, the write journal, the small fixes, merge quality). Phases 1–5 not started.
+> the safety core, the write journal, the small fixes, merge quality). Phases 1 (efa9c38) and 2 done;
+> 3–5 not started.
 
 The review of `configsys/primarygit.py` and `configsys/humerge.py` (docs/review-2026-11/primary.md)
 found that the push works on its tested paths and fails badly off them: an interrupted or failed combine

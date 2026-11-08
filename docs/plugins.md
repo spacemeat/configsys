@@ -521,7 +521,10 @@ your other machines, in three steps:
 1. Edits you made by hand and haven't committed are listed, and you're asked whether to include
    them (`--include-edits` says yes up front). Left out, they stay here, uncommitted.
 2. It fetches the remote — through the push URL, so a private repo you can push to is one you can
-   fetch from — and puts this machine's commits on top of what your other machines pushed.
+   fetch from — and puts this machine's commits on top of what your other machines pushed. If an
+   edit you left out touches a file your other machine also changed, combining would bury it in
+   conflict markers, so you're asked first: include it in this push, or stop (nothing pushed,
+   nothing here changed).
 3. It pushes to the branch, and says how many changes went out. Your other machines get them on
    their next `plugin sync`.
 
@@ -543,6 +546,13 @@ overlap — the other side's changes elsewhere in the file survive. The two are 
 answers and pushed. Stop (or leave markers in an edited file) and nothing is pushed: your work stays
 committed here as it was, and configsys names the git commands to finish by hand.
 
+Combining is one undoable step. Your uncommitted edits are set aside first and come back afterwards,
+and any way out that isn't a combined result — a stop, a git failure, an error, Ctrl-C at a question —
+puts everything back as it was: the commits, the files, your edits. A primary that is already in the
+middle of a merge or rebase (one you started by hand) is never pushed or committed into until it is
+finished or aborted; configsys says which. Its git commands always act on the primary, even inside a
+`vcsh enter` / `yadm enter` session whose `GIT_DIR` points elsewhere.
+
 A refused push is explained with its fix: an SSH key the remote doesn't know, a host you've never
 connected to, a remote that wants you signed in (`gh auth login` and `gh auth setup-git` when `gh` is
 installed), a repository that doesn't exist yet, or being offline. A primary with no remote yet (one
@@ -551,7 +561,9 @@ to a tag is explained — a tag pins your other machines in place — and you're
 it follow its branch instead (it is checked out on the branch, and its `ref:` here changes; run `plugin
 update <name> --ref main` on your other machines). configsys never tags for you. In the TUI, git never
 prompts: an SSH key that needs its passphrase fails with a note (load it with `ssh-add`, or push from
-the command line). Nothing is pushed under `--pretend`.
+the command line). The TUI's background fetch never prompts either, and both keep the ssh command
+you configured (`core.sshCommand` or `GIT_SSH_COMMAND`), only adding `BatchMode`. Nothing is pushed
+under `--pretend`.
 
 **When it's pushed** is the `primary-push` setting (uniform, so it travels in the primary):
 

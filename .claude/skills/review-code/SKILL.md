@@ -383,7 +383,8 @@ For each item:
    intended); `configsys --os <os> check` stays 0-error across the Phase 0 OSes.
 5. **Targeted tests,** then **commit** — one item (or one coherent group) per commit, message
    `review-YYYY-MM <ID>: <what changed>`, with the item's README status tag and a Progress line
-   updated in the same commit.
+   updated in the same commit (a commit can't name its own hash: tag it `[done — <what landed>]` and
+   fill the hash in with the next commit's tag updates).
 6. After each tier, the whole suite in the background; report failures with their output.
 
 **`L` items** (most of Tier D, a big Tier F break): write `docs/todo/<slug>-plan.md` first — phases,

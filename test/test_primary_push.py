@@ -58,9 +58,15 @@ def _other_pushes(other, path, text):
 
 
 class Scripted(primarygit.PushUI):
-    def __init__(self, choice='stop', include=False, switch=False, edit_to=None):
+    def __init__(self, choice='stop', include=False, switch=False, edit_to=None, overlap='stop',
+                 raise_on=None):
         self.choice, self.include, self.switch, self.edit_to = choice, include, switch, edit_to
+        self.overlap, self.raise_on = overlap, raise_on      # raise_on: an exception for a resolve
         self.asked = []
+
+    def overlapping(self, name, paths):
+        self.asked.append(('overlap', tuple(paths)))
+        return self.overlap
 
     def include_own(self, name, paths):
         self.asked.append(('include', tuple(paths)))
@@ -72,10 +78,14 @@ class Scripted(primarygit.PushUI):
 
     def resolve(self, name, path, what, i, n):
         self.asked.append(('resolve', path, what))
+        if self.raise_on is not None:
+            raise self.raise_on
         return self.choice
 
     def resolve_value(self, name, path, words, i, n):
         self.asked.append(('value', path, words))
+        if self.raise_on is not None:
+            raise self.raise_on
         return self.choice
 
     def edit(self, path):

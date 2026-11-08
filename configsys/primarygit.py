@@ -149,6 +149,22 @@ class PrimaryRepo:
         r = self.git('show', f':{n}:{path}')
         return r.out if r.ok else None
 
+    def in_progress(self):
+        ''''merge' / 'rebase' / 'cherry-pick' / 'revert' when the checkout is in the middle of one
+        (yours, or one an interrupted configsys left), else None.'''
+        for marker, what in (('MERGE_HEAD', 'merge'), ('rebase-merge', 'rebase'),
+                             ('rebase-apply', 'rebase'), ('CHERRY_PICK_HEAD', 'cherry-pick'),
+                             ('REVERT_HEAD', 'revert')):
+            p = self.text('rev-parse', '--git-path', marker)
+            if p and (Path(p) if os.path.isabs(p) else self.root / p).exists():
+                return what
+        return None
+
+    def incoming(self, upstream):
+        '''The paths `upstream` changed since it and HEAD diverged.'''
+        r = self.git('diff', '--name-only', '-z', f'HEAD...{upstream}')
+        return {os.fsdecode(p) for p in r.out.split(b'\0') if p} if r.ok else set()
+
 
 class Snapshot:
     def __init__(self, root, name, dirty):
@@ -213,6 +229,10 @@ def commit(ctx, snap, message):
 
 def _commit(ctx, snap, message):
     repo = PrimaryRepo(snap.root)
+    busy = repo.in_progress()
+    if busy:                                           # never stage into a half-done merge / rebase
+        return [f'could not commit to {snap.name}: it is in the middle of a {busy} — finish it, or '
+                f'`git -C {snap.root} {busy} --abort`, and configsys commits again from then on.']
     now = repo.dirty()
     if now is None:
         return []
@@ -369,6 +389,9 @@ class PushUI:
     def include_own(self, name, paths):                # your uncommitted edits: push them too?
         return False
 
+    def overlapping(self, name, paths):                # edits left out that overlap what came in
+        return 'stop'                                  #   -> 'include' (commit + push them) | 'stop'
+
     def switch_to_branch(self, name, ref, branch):     # a tag-pinned primary: follow `branch` instead?
         return False
 
@@ -484,7 +507,11 @@ def push(ctx, ui=None):
         branch = target
         lines.append(f'{name} now follows {target} here; on your other machines run '
                      f'`configsys plugin update {name} --ref {target}` once.')
-    mine = repo.dirty() or set()
+    busy = repo.in_progress()
+    if busy:
+        return False, lines + [f'{name} is in the middle of a {busy}, so nothing was pushed. Finish it, '
+                               f'or `git -C {root} {busy} --abort`, then push again.']
+    mine, mine_left = repo.dirty() or set(), set()
     if mine:
         if ui.include_own(name, sorted(mine)):
             ok, why = _commit_paths(repo, _ident(ctx, repo, name, lines), sorted(mine),
@@ -494,6 +521,7 @@ def push(ctx, ui=None):
         else:
             lines.append(f'{name}: {_count(len(mine), "file")} with edits of your own left out of the '
                          f'push (still here, uncommitted).')
+            mine_left = mine
     ui.progress(f'fetching {name} …')
     # fetch through the PUSH url (ssh for a github:/gitlab: source), so a private repo you can push
     # to is also one you can fetch from here — the https fetch url may need a sign-in you don't have
@@ -514,6 +542,18 @@ def push(ctx, ui=None):
             msg += (f' {_count(behind)} from your other machines {"are" if behind != 1 else "is"} '
                     f'waiting; `configsys plugin sync` brings {"them" if behind != 1 else "it"} in.')
         return True, lines + [msg]
+    overlap = sorted(mine_left & repo.incoming(upstream)) if behind and mine_left else []
+    if overlap:                                        # combining would leave conflict markers in them
+        if ui.overlapping(name, overlap) != 'include':
+            return False, lines[:-1] + [
+                f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what your other '
+                f'machine pushed, so nothing was combined or pushed, and nothing here changed. Commit '
+                f'or undo them, or push again and include them.']
+        ok, why = _commit_paths(repo, _ident(ctx, repo, name, lines), overlap, 'Edits made by hand',
+                                f'Included by configsys plugin push on {_host()}.')
+        if not ok:
+            return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
+        ahead, behind = repo.ahead_behind(upstream)
     if behind:
         ui.progress(f'combining {name} with your other machines\' changes …')
         ok, more = _combine(ctx, ui, name, repo, branch, upstream)
@@ -578,33 +618,61 @@ def _driver_notes(notes):
 
 
 def _combine(ctx, ui, name, repo, branch, upstream):
-    '''Put this machine's commits on top of the remote's. A clean replay is a rebase — with `.hu`
-    files merged key by key (`humerge`, so two machines adding picks to their own columns is no
-    conflict). When the replay still hits a conflict it is backed out completely, each conflict is
-    asked about — per key in a `.hu` file (`ui.resolve_value`), per file otherwise (`ui.resolve`) —
-    and the two sides are merged with those answers. Returns (ok, [lines]).'''
+    '''Put this machine's commits on top of the remote's, as one undoable step: your uncommitted
+    edits are set aside first (they don't overlap what came in — `push` asked about any that do), and
+    on ANY way out that isn't a combined result — a stop, a git failure, an exception, Ctrl-C — HEAD is
+    put back, any half-done rebase or merge is undone and your edits come back (an exception is then
+    re-raised). Returns (ok, [lines]).'''
+    head = repo.text('rev-parse', 'HEAD')
+    stashed = False
+    if repo.dirty():
+        if not repo.git('stash', 'push', '--include-untracked', '--quiet', '-m', 'configsys plugin push').ok:
+            return False, [f'{name}: could not set your uncommitted edits aside, so nothing was combined '
+                           f'or pushed.']
+        stashed = True
+    try:
+        ok, lines = _replay(ctx, ui, name, repo, upstream)
+    except BaseException:
+        _restore(repo, head)
+        _unstash(repo, name, stashed)
+        raise
+    if not ok:
+        _restore(repo, head)
+        return False, lines + _unstash(repo, name, stashed) + [_intact(name, repo.root, branch)]
+    return True, lines + _unstash(repo, name, stashed)
+
+
+def _restore(repo, head):
+    '''Undo a half-done rebase / merge and put HEAD (and the tree) back at `head`. Your own
+    uncommitted edits are in the stash by now, so the tree holds nothing of yours to lose.'''
+    busy = repo.in_progress()
+    if busy in ('rebase', 'merge'):
+        repo.git(busy, '--abort')
+    if repo.text('rev-parse', 'HEAD') != head or repo.dirty():
+        repo.git('reset', '--hard', '--quiet', head)
+
+
+def _replay(ctx, ui, name, repo, upstream):
+    '''The combine itself, on a clean tree. A clean replay is a rebase — with `.hu` files merged key
+    by key (`humerge`, so two machines adding picks to their own columns is no conflict). When the
+    replay still hits a conflict it is backed out, each conflict is asked about — per key in a `.hu`
+    file (`ui.resolve_value`), per file otherwise (`ui.resolve`) — and the two sides are merged with
+    those answers. (ok, [lines]); on not-ok the caller restores.'''
     root = repo.root
     ident = _ident(ctx, repo, name, [])
     drv, notes = _merge_driver(repo)
-    r = repo.git(*drv, *ident, 'rebase', '--quiet', '--autostash', upstream)
+    r = repo.git(*drv, *ident, 'rebase', '--quiet', upstream)
     if r.ok:
         return True, [f'{name}: {n}' for n in _driver_notes(notes)]
     conflicted = repo.unmerged()
     repo.git('rebase', '--abort')
     _driver_notes(notes)
     if not conflicted:
-        return False, [f'{name}: could not combine with the remote: '
-                       f'{(r.stderr or r.stdout).strip()[:160]}', _intact(name, root, branch)]
-    stashed = False
-    if repo.dirty():                                   # your own uncommitted edits sit out the merge
-        stashed = repo.git('stash', 'push', '--include-untracked', '--quiet', '-m',
-                           'configsys plugin push').ok
-    lines = []
+        return False, [f'{name}: could not combine with the remote: {(r.stderr or r.stdout).strip()[:160]}']
     m = repo.git(*drv, *ident, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
     conflicted = repo.unmerged() if not m.ok else []
     if not m.ok and not conflicted:
-        repo.git('merge', '--abort')
-        return False, _unstash(repo, name, stashed) + [_intact(name, root, branch)]
+        return False, []
     for i, path in enumerate(conflicted):
         settled = _settle_hu(ui, name, repo, path, i, len(conflicted))
         if settled == 'done':
@@ -619,17 +687,15 @@ def _combine(ctx, ui, name, repo, branch, upstream):
             else:
                 repo.git('add', '-A', paths=[path])
         if choice not in ('mine', 'theirs', 'edit'):
-            repo.git('merge', '--abort')
-            return False, _unstash(repo, name, stashed) + [_intact(name, root, branch)]
+            return False, []
     c = repo.git(*ident, 'commit', '--quiet', '--no-edit', '-m',
                  f'Combine {name} changes from {_host()} with the remote')
     if not c.ok:
-        repo.git('merge', '--abort')
-        return False, _unstash(repo, name, stashed) + [_intact(name, root, branch)]
-    lines += [f'{name}: {n}' for n in _driver_notes(notes)]
+        return False, [f'{name}: could not commit the combined result: {(c.stderr or c.stdout).strip()[:160]}']
+    lines = [f'{name}: {n}' for n in _driver_notes(notes)]
     if conflicted:
         lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')
-    return True, lines + _unstash(repo, name, stashed)
+    return True, lines
 
 
 def _settle_hu(ui, name, repo, path, i, n):
@@ -644,16 +710,19 @@ def _settle_hu(ui, name, repo, path, i, n):
         return None
     try:
         res = humerge.merge(base or '', mine, theirs)
-        answers = {}
-        for c in res.conflicts:
-            choice = ui.resolve_value(name, path, c.words(), i, n)
-            if choice not in ('mine', 'theirs'):
-                return choice if choice == 'edit' else 'stop'
-            answers[c.path] = choice
-        if answers:
+    except Exception:                                  # noqa: BLE001 — Unmergeable, or a malformed
+        return None                                    # text humerge can't read: the file question
+    answers = {}
+    for c in res.conflicts:
+        choice = ui.resolve_value(name, path, c.words(), i, n)
+        if choice not in ('mine', 'theirs'):
+            return choice if choice == 'edit' else 'stop'
+        answers[c.path] = choice
+    if answers:
+        try:
             res = humerge.merge(base or '', mine, theirs, answers)
-    except humerge.Unmergeable:
-        return None
+        except Exception:                              # noqa: BLE001
+            return None
     if res.text is None:
         return None
     (repo.root / path).write_text(res.text, encoding='utf-8')
@@ -662,17 +731,24 @@ def _settle_hu(ui, name, repo, path, i, n):
 
 
 def _unstash(repo, name, stashed):
+    '''Bring your set-aside edits back. If they don't apply cleanly, the tree is reset to the
+    committed result (no conflict markers left lying around) and they stay safe in the stash.'''
     if not stashed:
         return []
     if repo.git('stash', 'pop', '--quiet').ok:
         return []
-    return [f'{name}: your uncommitted edits are kept in git\'s stash — `git -C {repo.root} stash pop` '
-            f'brings them back.']
+    repo.git('reset', '--hard', '--quiet')
+    return [f'{name}: your uncommitted edits don\'t apply cleanly over the combined result, so they are '
+            f'kept in git\'s stash — `git -C {repo.root} stash pop` brings them back to settle.']
 
 
 def _stage_text(repo, path, n):
+    '''A stage as text, or None (absent — or binary / not UTF-8: then it's settled by side).'''
     raw = repo.stage(n, path)
-    return None if raw is None else raw.decode('utf-8')
+    try:
+        return None if raw is None else raw.decode('utf-8')
+    except UnicodeDecodeError:
+        return None
 
 
 def _what_changed(repo, path):

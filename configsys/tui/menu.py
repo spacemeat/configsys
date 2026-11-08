@@ -680,6 +680,14 @@ class _TuiPushUI(primarygit.PushUI):
                              [('Leave them out (they stay here)', ''), ('Include them', '')],
                              start=0, shortcuts={'n': 0, 'y': 1}) == 1
 
+    def overlapping(self, name, paths):
+        what = paths[0] if len(paths) == 1 else primarygit._count(len(paths), 'file')
+        c = _popup_choose(self.stdscr, self.pal,
+                          f'{name}: your edits to {what} overlap what your other machine pushed',
+                          [('Stop — push nothing, change nothing', 's'), ('Include them in this push', 'i')],
+                          start=0, shortcuts={'s': 0, 'i': 1})
+        return 'include' if c == 1 else 'stop'
+
     def switch_to_branch(self, name, ref, branch):
         title = f'{name} is pinned to {ref or "a commit"} — follow {branch} so pushes reach your machines?'
         return _popup_choose(self.stdscr, self.pal, title, [('No, leave it pinned', ''),

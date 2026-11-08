@@ -160,7 +160,8 @@ class _Merge:
     def plugins(self, b, m, t, path):
         '''`plugins:` per entry, by source. None when an entry has no source (a conflict, then).'''
         def keyed(lst):
-            if not all(isinstance(d, dict) and d.get('source') for d in lst):
+            if not all(isinstance(d, dict) and isinstance(d.get('source'), str) and d['source']
+                       for d in lst):
                 return None
             return {d['source']: d for d in lst}
         bk, mk, tk = keyed(b), keyed(m), keyed(t)

@@ -122,3 +122,150 @@ def test_the_bracket_never_raises(primary, monkeypatch):
     assert primarygit.state(ctx) is None
     notes = primarygit.commit(ctx, snap, 'x')
     assert notes and 'could not' in notes[0]
+
+
+# -- the undoable combine (phase 2: review A2, A3) ----------------------------------------------
+
+from test_primary_push import Scripted, _both_change_line_one, _clean, _other_pushes, _remote_file  # noqa: E402
+
+
+def _state(clone):
+    return {'head': _git(clone, 'rev-parse', 'HEAD'), 'status': _git(clone, 'status', '--porcelain'),
+            'stash': _git(clone, 'stash', 'list'),
+            'merging': (clone / '.git' / 'MERGE_HEAD').exists() or (clone / '.git' / 'rebase-merge').exists()}
+
+
+@needs_git
+def test_ctrl_c_at_a_conflict_question_puts_everything_back(primary):
+    # an interrupt mid-merge used to leave MERGE_HEAD, conflict markers and your edits in the stash
+    base, clone, bare, other = primary
+    _both_change_line_one(base, clone, other)
+    (clone / 'scratch.txt').write_text('my own, uncommitted\n')
+    before = _state(clone)
+    with pytest.raises(KeyboardInterrupt):
+        primarygit.push(_ctx(base), Scripted(raise_on=KeyboardInterrupt()))
+    after = _state(clone)
+    assert after == before and not after['merging']
+    assert (clone / 'scratch.txt').read_text() == 'my own, uncommitted\n'
+    assert '<<<<<<<' not in (clone / 'notes.txt').read_text()
+
+
+@needs_git
+def test_any_error_mid_combine_puts_everything_back(primary):
+    base, clone, bare, other = primary
+    _both_change_line_one(base, clone, other)
+    before = _state(clone)
+    with pytest.raises(OSError):
+        primarygit.push(_ctx(base), Scripted(raise_on=OSError('the terminal went away')))
+    assert _state(clone) == before
+
+
+@needs_git
+def test_a_binary_file_both_changed_is_asked_about_not_decoded(primary):
+    base, clone, bare, other = primary
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / 'logo.png').write_bytes(b'\x89PNG\r\n\x1a\nOTHER')
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'other logo'); _git(other, 'push', '-q', 'origin', 'main')
+    (clone / 'logo.png').write_bytes(b'\x89PNG\r\n\x1a\nMINE')
+    _git(clone, 'add', '-A'); _git(clone, 'commit', '-qm', 'my logo')
+    ui = Scripted('mine')
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok, lines
+    assert [a[0] for a in ui.asked] == ['resolve']
+    assert subprocess.run(['git', 'show', 'main:logo.png'], cwd=bare, capture_output=True).stdout == \
+        b'\x89PNG\r\n\x1a\nMINE'
+    _clean(clone)
+
+
+@needs_git
+def test_a_malformed_plugins_entry_falls_back_to_the_file_question(primary):
+    # a remote `plugins:` entry whose source is a map used to raise TypeError mid-merge (primary-02)
+    base, clone, bare, other = primary
+    _other_pushes(other, 'p.hu', BASE_P.replace('} }', '}  splash: plain  plugins: [ { source: { x: y } } ] }'))
+    (clone / 'p.hu').write_text(BASE_P.replace('} }', '}  splash: ocean }'))
+    _git(clone, 'commit', '-qam', 'mine')
+    ui = Scripted('stop')
+    before = _state(clone)
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert not ok
+    assert any(a[1] == 'p.hu' for a in ui.asked)                       # asked, didn't crash
+    assert _state(clone) == before
+
+
+@needs_git
+def test_hand_edits_overlapping_what_came_in_are_asked_about_first(primary):
+    # decision 3: refuse and ask — never leave conflict markers while reporting success (primary-03)
+    base, clone, bare, other = primary
+    _other_pushes(other, 'notes.txt', BASE_P.replace('[ btop ]', '[ btop  zsh ]'))
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    (clone / 'notes.txt').write_text(BASE_P.replace('[ btop ]', '[ btop  fish ]'))   # by hand, overlapping
+    before = _state(clone)
+    ui = Scripted(overlap='stop')
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert not ok and ('overlap', ('notes.txt',)) in ui.asked
+    assert _state(clone) == before                                     # nothing touched
+    assert 'fish' in (clone / 'notes.txt').read_text()
+    assert 'yq' not in _remote_file(bare)                              # nothing pushed
+    assert any('overlap' in ln for ln in lines)
+
+
+@needs_git
+def test_overlapping_hand_edits_included_go_through_the_normal_questions(primary):
+    base, clone, bare, other = primary
+    _other_pushes(other, 'notes.txt', BASE_P.replace('[ btop ]', '[ btop  zsh ]'))
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    (clone / 'notes.txt').write_text(BASE_P.replace('[ btop ]', '[ btop  fish ]'))
+    ui = Scripted('mine', overlap='include')
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok, lines
+    assert 'fish' in _git(bare, 'show', 'main:notes.txt') and 'yq' in _remote_file(bare)
+    _clean(clone)
+
+
+@needs_git
+def test_hand_edits_that_dont_overlap_come_back_after_the_combine(primary):
+    base, clone, bare, other = primary
+    _other_pushes(other, 'notes.txt', BASE_P.replace('[ btop ]', '[ btop  zsh ]'))
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    (clone / 'mine-only.txt').write_text('untracked, mine\n')
+    ok, lines = primarygit.push(_ctx(base), Scripted())
+    assert ok, lines
+    assert (clone / 'mine-only.txt').read_text() == 'untracked, mine\n'
+    assert _git(clone, 'stash', 'list') == ''
+    assert '<<<<<<<' not in (clone / 'notes.txt').read_text()
+
+
+@needs_git
+def test_a_primary_left_mid_merge_is_never_pushed_or_committed_into(primary):
+    base, clone, bare, other = primary
+    _both_change_line_one(base, clone, other)
+    _git(clone, 'fetch', '-q', 'origin')
+    subprocess.run(['git', 'merge', '--no-commit', 'origin/main'], cwd=clone, capture_output=True)
+    assert (clone / '.git' / 'MERGE_HEAD').exists()
+    ctx = _ctx(base)
+    ok, lines = primarygit.push(ctx, Scripted('mine'))
+    assert not ok and 'merge' in lines[-1] and '--abort' in lines[-1]
+    snap = primarygit.snapshot(ctx)
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    notes = primarygit.commit(ctx, snap, 'picks add yq')
+    assert notes and 'middle of a merge' in notes[0]
+    assert _git(clone, 'diff', '--cached', '--name-only', '--', 'p.hu') == ''      # not staged
+
+
+def test_the_cli_and_tui_ask_about_overlapping_edits(monkeypatch, capsys):
+    from configsys.app import _CliPushUI
+    from configsys.tui import menu
+    cli = _CliPushUI()
+    cli.interactive = False                                       # no terminal: the cautious answer
+    assert cli.overlapping('prim', ['notes.txt']) == 'stop'
+    assert 'overlap' in capsys.readouterr().out
+    cli.interactive = True
+    monkeypatch.setattr('builtins.input', lambda prompt: 'i')
+    assert cli.overlapping('prim', ['notes.txt']) == 'include'
+    seen = []
+    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 0)
+    assert menu._TuiPushUI(None, None).overlapping('prim', ['a', 'b']) == 'stop'   # the default
+    assert seen == ['prim: your edits to 2 files overlap what your other machine pushed']
