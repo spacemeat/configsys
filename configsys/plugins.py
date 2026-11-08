@@ -21,7 +21,7 @@ from pathlib import Path
 
 import humon
 
-from . import layers, splashes, versions
+from . import layers, primarygit, splashes, versions
 from .driver import Driver
 from .drivers import register_driver
 from .errors import ConfigError
@@ -826,6 +826,7 @@ def set_section(user_config_file, section, emit):
     else:
         idx = text.rstrip().rfind('}')              # before the root's closing brace
         text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]
+    primarygit.will_write(path)
     path.write_text(text, encoding='utf-8')
 
 
@@ -1102,7 +1103,9 @@ def remove_sections(user_config_file, keys):
             end += 1
         text = text[:start] + text[end:]
         removed.append(k)
-    path.write_text(text, encoding='utf-8')
+    if removed:
+        primarygit.will_write(path)
+        path.write_text(text, encoding='utf-8')
     return removed
 
 
@@ -1112,6 +1115,7 @@ def scaffold_primary(plug_dir, name, transitive_decls=(), sections=None):
     become the manifest's `plugins:` list (their `primary` flag stripped — a transitive plugin is
     never itself primary). Creates an (empty) `dotfiles/` so it's the capture target.'''
     plug_dir = Path(plug_dir)
+    primarygit.will_write(plug_dir)
     plug_dir.mkdir(parents=True, exist_ok=True)
     trans = [{k: v for k, v in d.items() if k != 'primary'} for d in (transitive_decls or [])]
     lines = ['{', f'    name: {name}', f'    requires-abi: {ABI_VERSION}']

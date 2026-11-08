@@ -26,6 +26,7 @@ import re
 import shutil
 from pathlib import Path
 
+from .. import primarygit
 from ..driver import Driver
 from ..runner import Result
 
@@ -202,6 +203,7 @@ class DotFiles(Driver):
         union of excludes (so a secret that lands via edit-through is never committed/synced).'''
         from ..troveio import emit_hu
         cfs = Path(cfs)
+        primarygit.will_write(cfs)
         cfs.mkdir(parents=True, exist_ok=True)
         (cfs / MANIFEST_NAME).write_text(emit_hu({'specs': specs_map}))
         excludes = sorted({g for s in specs_map.values() for g in s.get('exclude', [])})
@@ -439,6 +441,7 @@ class DotFiles(Driver):
             specs_map[name] = {'src': src, 'dst': dst, 'exclude': excludes}
         # capture_plan is computed against pre-copy state; snapshot its actions first.
         plan = {name: action for name, _dst, _dest, action in self.capture_plan(rc, force)}
+        primarygit.will_write(self._cfs_dir(rc))          # the store may be the primary's dotfiles/
         for name, src, dst, _absorb in self._config_specs(rc):
             if plan.get(name) != 'copy':
                 continue
@@ -488,6 +491,8 @@ class DotFiles(Driver):
                 continue                                   # nothing user-captured here to move
             if os.path.realpath(srcpath) == os.path.realpath(newpath):
                 continue                                   # already at the target
+            for side in (newpath, srcpath, root / f'{rc.comp}{CFS_SUFFIX}'):   # either may be the primary
+                primarygit.will_write(side)
             newpath.parent.mkdir(parents=True, exist_ok=True)
             if newpath.is_symlink() or newpath.is_file():
                 newpath.unlink()

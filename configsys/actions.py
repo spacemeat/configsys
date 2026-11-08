@@ -9,7 +9,7 @@ cached config so the change takes effect on the next read. See docs/done/tui-scr
 import re
 from pathlib import Path
 
-from . import plugins
+from . import plugins, primarygit
 
 
 # --pretend is a true dry run for the TUI too: every config-editing action below refuses to write
@@ -1032,6 +1032,7 @@ def save_theme_plugin(ctx, name, *, force=False):
     if (existed and not force) or _pretend(ctx):     # --pretend: nothing written (caller checks _pretend)
         return pdir, existed
     from .tui import theme as _theme
+    primarygit.will_write(pdir)                      # `force` over the primary itself is a write to it
     pdir.mkdir(parents=True, exist_ok=True)
     (pdir / 'plugin.hu').write_text(
         f'{{\n    name: {name}\n    requires-abi: {plugins.ABI_VERSION}\n'
@@ -1099,6 +1100,7 @@ def _writable_primary_file(ctx):
     new = _creatable_primary_file(ctx, decls, prim) if prim else None
     if new is None:
         return None, None
+    primarygit.will_write(new)
     new.write_text('{\n}\n', encoding='utf-8')
     ctx.invalidate()
     return str(new), prim

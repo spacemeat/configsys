@@ -1,12 +1,14 @@
 '''primarygit.py — commit configsys's own edits to your primary plugin, locally (docs/done/
 primary-push-plan.md, phase 1), and publish them (`push`, phases 3–4).
 
-Every CLI command and every TUI action that may write is bracketed: `snapshot()` records which paths
-in the primary's checkout are already dirty, and `commit()` afterwards commits exactly the paths that
-became dirty in between — with a message saying what was done. So configsys's edits land as small,
-undoable commits on the primary's branch (ready for `plugin push`), while edits you were making by
-hand are never swept in: a file that already had uncommitted changes of yours is left for you to
-commit, and you're told.
+Every CLI command and every TUI action is bracketed by a WRITE JOURNAL (docs/done/
+primary-journal-plan.md): `snapshot()` opens it (no git — it costs nothing), each configsys writer
+calls `will_write(path)` just before it writes a file or a tree inside the primary, and `commit()`
+afterwards commits exactly the recorded paths that changed — with a message saying what was done. So
+configsys's edits land as small, undoable commits on the primary's branch (ready for `plugin push`),
+while edits you make by hand are never swept in: a recorded file that already had uncommitted
+changes of yours is left for you to commit, and a change nobody recorded (yours, made while the
+command ran) is left too, and named. An action that writes nothing spends no git call.
 
 Nothing happens under --pretend, when there's no primary, when it isn't a git checkout, or when it
 isn't on a branch (a tag-pinned primary is frozen; its edits stay uncommitted, noted once). With no
@@ -153,10 +155,11 @@ class PrimaryRepo:
     def in_progress(self):
         ''''merge' / 'rebase' / 'cherry-pick' / 'revert' when the checkout is in the middle of one
         (yours, or one an interrupted configsys left), else None.'''
-        for marker, what in (('MERGE_HEAD', 'merge'), ('rebase-merge', 'rebase'),
-                             ('rebase-apply', 'rebase'), ('CHERRY_PICK_HEAD', 'cherry-pick'),
-                             ('REVERT_HEAD', 'revert')):
-            p = self.text('rev-parse', '--git-path', marker)
+        markers = (('MERGE_HEAD', 'merge'), ('rebase-merge', 'rebase'), ('rebase-apply', 'rebase'),
+                   ('CHERRY_PICK_HEAD', 'cherry-pick'), ('REVERT_HEAD', 'revert'))
+        r = self.git('rev-parse', *(a for m, _ in markers for a in ('--git-path', m)))   # one spawn
+        paths = r.stdout.splitlines() if r.ok else []
+        for p, (_marker, what) in zip(paths, markers):
             if p and (Path(p) if os.path.isabs(p) else self.root / p).exists():
                 return what
         return None
@@ -168,10 +171,20 @@ class PrimaryRepo:
 
 
 class Snapshot:
-    def __init__(self, root, name, dirty):
-        self.root, self.name, self.dirty = root, name, dirty
+    '''One open bracket — the write journal of a CLI command or a TUI action. `recorded` holds the
+    repo-relative paths configsys said it would write ('' = the whole checkout); `before` is what was
+    already dirty when the first of them was announced (None until then — nothing written yet), and
+    `hashes` the bytes' hash of each already-dirty file under a recorded path, taken before configsys
+    wrote, so commit() can tell "configsys wrote into a file you were editing".'''
+
+    def __init__(self, root, name):
+        self.root, self.name = Path(root), name
+        self.real = os.path.realpath(self.root)
+        self.recorded = set()
+        self.before = None
+        self.hashes = {}
+        self.unknown = False                                  # git status failed: commit nothing
         self.committed = False                                # set when commit() made a commit
-        self.hashes = {p: _hash(root / p) for p in dirty}     # to spot configsys writing into them
 
 
 def _hash(path):
@@ -181,16 +194,34 @@ def _hash(path):
         return None
 
 
+def _under(rel, prefix):
+    '''Is repo-relative `rel` the recorded path `prefix` or inside it?'''
+    return prefix == '' or rel == prefix or rel.startswith(prefix + '/')
+
+
+_open_journal = []                                     # the open bracket (at most one), else empty
+_root_cache = {}
+
+
 def primary_root(ctx):
-    '''(dir, name) of the synced primary plugin when configsys may commit to it, else None.'''
+    '''(dir, name) of the synced primary plugin when configsys may commit to it, else None. Cached
+    per user-config file and mtime (the TUI asks on every keypress).'''
     if getattr(getattr(ctx, 'runner', None), 'pretend', False):
         return None
     from . import plugins
     try:
-        decls = plugins.declared(ctx.paths.user_config_file)
+        cfg = Path(ctx.paths.user_config_file)
+        key = (str(cfg), cfg.stat().st_mtime_ns, str(ctx.paths.plugins_dir))
     except Exception:                                  # noqa: BLE001 — no/odd config: nothing to do
         return None
-    name = plugins.primary_name(decls)
+    if key not in _root_cache:
+        try:
+            name = plugins.primary_name(plugins.declared(cfg))
+        except Exception:                              # noqa: BLE001
+            name = None
+        _root_cache.clear()
+        _root_cache[key] = name
+    name = _root_cache[key]
     if not name:
         return None
     root = Path(ctx.paths.plugins_dir) / name
@@ -198,16 +229,61 @@ def primary_root(ctx):
 
 
 def snapshot(ctx):
-    '''What's already dirty in the primary before an edit, or None when configsys won't commit (or
-    can't tell — the bracket never stops a command).'''
+    '''Open the write journal for one command / action: the bracket commit() closes. None when
+    configsys won't commit (no primary, --pretend, …) — then `will_write` records nothing. Runs no
+    git; never stops a command.'''
+    _open_journal.clear()
     try:
         pr = primary_root(ctx)
         if pr is None:
             return None
-        dirty = PrimaryRepo(pr[0]).dirty()
-        return Snapshot(pr[0], pr[1], dirty) if dirty is not None else None
+        snap = Snapshot(*pr)
+        _open_journal.append(snap)
+        return snap
     except Exception:                                  # noqa: BLE001 — best-effort, never a crash
         return None
+
+
+def _relative(snap, path):
+    '''`path` relative to the primary's checkout ('' for the checkout itself), or None when it is
+    outside. The parent is resolved, not the path itself: a symlink inside the primary is a path
+    inside it, wherever it points.'''
+    a = os.path.abspath(os.fspath(path))
+    real = os.path.join(os.path.realpath(os.path.dirname(a)), os.path.basename(a))
+    if real == snap.real:
+        return ''
+    if not real.startswith(snap.real + os.sep):
+        return None
+    return Path(os.path.relpath(real, snap.real)).as_posix()
+
+
+def will_write(path):
+    '''Say that configsys is about to write — create, change or delete — `path`, a file or a whole
+    tree. Inside an open bracket whose primary holds it, the path is recorded and commit() commits
+    what changes there. Call it BEFORE writing: the first call of a bracket reads what was already
+    dirty (one `git status`), so your own edits stay yours. Outside the primary, or with no bracket
+    open, it does nothing. Never raises.'''
+    if not _open_journal:
+        return
+    snap = _open_journal[0]
+    try:
+        rel = _relative(snap, path)
+        if rel is None or snap.unknown:
+            return
+        if snap.before is None:
+            dirty = PrimaryRepo(snap.root).dirty()
+            if dirty is None:
+                snap.unknown = True
+                return
+            snap.before = dirty
+        if any(_under(rel, r) for r in snap.recorded):
+            return                                     # already recorded (or inside a recorded tree)
+        snap.recorded.add(rel)
+        for p in snap.before:
+            if _under(p, rel) and p not in snap.hashes:
+                snap.hashes[p] = _hash(snap.root / p)
+    except Exception:                                  # noqa: BLE001 — best-effort, never a crash
+        snap.unknown = True
 
 
 def _note_once(ctx, key, text, notes):
@@ -218,14 +294,22 @@ def _note_once(ctx, key, text, notes):
 
 
 def commit(ctx, snap, message):
-    '''Commit the paths that became dirty since `snap`, as `message`. Returns a list of notes to show
-    (empty when there was nothing to commit or it went through quietly). Never raises.'''
-    if snap is None:
+    '''Close the bracket: commit the recorded paths that changed since `snap` opened, as `message`.
+    Returns a list of notes to show (empty when nothing was written or it went through quietly).
+    Never raises.'''
+    if _open_journal and _open_journal[0] is snap:
+        _open_journal.clear()
+    if snap is None or not snap.recorded or snap.unknown:
         return []
     try:
         return _commit(ctx, snap, message)
     except Exception as e:                             # noqa: BLE001 — best-effort, never a crash
         return [f'could not commit to {snap.name}: {e}']
+
+
+def _names(paths, most=3):
+    shown = ', '.join(paths[:most])
+    return shown + (f' and {len(paths) - most} more' if len(paths) > most else '')
 
 
 def _commit(ctx, snap, message):
@@ -237,12 +321,17 @@ def _commit(ctx, snap, message):
     now = repo.dirty()
     if now is None:
         return []
-    changed = sorted(now - snap.dirty)
+    ours = {p for p in now if any(_under(p, r) for r in snap.recorded)}
+    changed = sorted(ours - snap.before)
     notes = []
-    mixed = sorted(p for p in snap.dirty if _hash(snap.root / p) != snap.hashes.get(p))
+    mixed = sorted(p for p in ours & snap.before if _hash(snap.root / p) != snap.hashes.get(p))
     if mixed:                                          # configsys wrote into a file you were editing
-        notes.append(f'{snap.name}: {", ".join(mixed)} also has edits of your own, so configsys '
+        notes.append(f'{snap.name}: {_names(mixed)} also has edits of your own, so configsys '
                      f'left it uncommitted — commit it yourself (in {snap.root}).')
+    stray = sorted(now - snap.before - ours)
+    if stray:                                          # changed meanwhile, but not by configsys
+        notes.append(f'{snap.name}: {_names(stray)} changed while configsys was working, not by '
+                     f'configsys, so it was left uncommitted — yours to commit (in {snap.root}).')
     if not changed:
         return notes
     if not repo.branch():

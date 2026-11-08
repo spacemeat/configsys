@@ -142,16 +142,10 @@ def test_the_tui_bracket_commits_one_action(primary):
     base, clone = primary
     ctx = Context(build_parser().parse_args(base + ['inspect']))
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'p.hu')
     (clone / 'p.hu').write_text('{ picks: { this-machine: [ btop  jq ] } }\n')   # what a toggle writes
     assert menu._commit_primary_action(ctx, snap, 'profiles', 'track-one', 'tracking jq') == []
     assert _log(clone)[0] == 'profiles: toggle tracking: highlighted — tracking jq'
-
-
-def test_select_is_bracketed_because_config_and_theme_write_on_it():
-    # space (`select`) toggles a Config bool / sets a Theme color, written to the primary when it is
-    # the edit target — so it must be bracketed like any write (review-2026-11 B1 / primary-04)
-    from configsys.tui import menu
-    assert 'select' not in menu._NO_WRITE_ACTIONS
 
 
 def test_configsys_own_commits_skip_your_hooks(primary):
@@ -164,6 +158,7 @@ def test_configsys_own_commits_skip_your_hooks(primary):
     hook.chmod(0o755)
     ctx = Context(build_parser().parse_args(base + ['inspect']))
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'p.hu')
     (clone / 'p.hu').write_text('{ picks: { this-machine: [ btop  jq ] } }\n')
     assert primarygit.commit(ctx, snap, 'picks add jq') == []
     assert _log(clone)[0] == 'picks add jq'

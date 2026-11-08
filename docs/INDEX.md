@@ -33,7 +33,6 @@ Unfinished plans: not started, in progress, or deferred.
 |---|---|---|---|---|
 | [community-routes-registry.md](todo/community-routes-registry.md) | DEFERRED | 2026-09-23 | — | Design note: crowdsourcing route data safely (catalog → curated repo → federated). *design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).* |
 | [method-broadening-plan.md](todo/method-broadening-plan.md) | IN PROGRESS | 2026-08-27 | — | Offer every working install method (`when:` is validity, not preference). *Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.* |
-| [primary-journal-plan.md](todo/primary-journal-plan.md) | PLAN | 2026-11-07 | — | Commit configsys's primary edits from a write journal instead of snapshot differences (review-2026-11 B1/B3/C1). *awaiting go.* |
 | [os-releases-plan.md](todo/os-releases-plan.md) | IN PROGRESS | 2026-11-07 | — | An OS release registry (`releases:` on os blocks) + `/add-os` / `/update-os` (new releases filled in, live ones swept, EOL ones frozen). *phases 1–3 done (schema, tools/osaudit.py, the skills); 4 partly (fedora + fedora_atomic registered, /update-os fedora 45 applied; the other lines unregistered); 5 (engine uses) not started.* |
 | [source-plugin-plan.md](todo/source-plugin-plan.md) | IN PROGRESS | 2026-08-02 | — | configsys-source: additive build-from-source bindings. *pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.* |
 
@@ -43,6 +42,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | doc | status | created | finished | summary |
 |---|---|---|---|---|
 | [primary-safety-plan.md](done/primary-safety-plan.md) | DONE | 2026-11-07 | 2026-11-07 (0c62c22) | The primary push off the happy path: PrimaryRepo, an undoable combine, the small fixes, merge quality (review-2026-11). |
+| [primary-journal-plan.md](done/primary-journal-plan.md) | DONE | 2026-11-07 | 2026-11-07 | Commit configsys's primary edits from a write journal (`primarygit.will_write`) instead of snapshot differences (review-2026-11 B1/B3/C1). |
 | [primary-push-plan.md](done/primary-push-plan.md) | DONE | 2026-10-21 | 2026-10-21 | Publishing the primary plugin: it follows a branch (never version-tagged); configsys commits its own edits; ↑/↓/● marks; `plugin push` / `P` with plain-language conflicts; `primary-push: ask/auto/auto-on-quit/manual`; a `.hu`-aware merge (`humerge`) so most conflicts settle themselves. Lives on in docs/plugins.md §8. |
 | [d2-mvvm-findings.md](done/d2-mvvm-findings.md) | DONE | 2026-09-20 | 2026-09-20 (aef1da9) | Findings log kept during the MVVM rewrite. |
 | [d2-mvvm-plan.md](done/d2-mvvm-plan.md) | DONE | 2026-09-20 | 2026-09-20 (5641778) | TUI rewrite to MVVM screens + a lazy router. |

@@ -654,17 +654,11 @@ def _seed_uninstall(ms, ctx):
             ms.staged.setdefault(key, 'remove')
 
 
-# Actions that only move or look — no primary snapshot/commit around them (primarygit). Not `select`:
-# space edits on Config (a bool toggle) and Theme (a color), which may write to the primary.
-_NO_WRITE_ACTIONS = frozenset({'down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up',
-                               'switch-pane', 'switch-pane-back', 'find', 'filter', 'help', 'issues',
-                               'where', 'expand-all', 'quit', 'quit-force'})
-
-
 def _commit_primary_action(ctx, snap, screen, act, note):
     '''Commit what one TUI action changed in the primary (primarygit), as `<screen>: <action> — <note>`.
     Returns the notes to show (empty when it went through quietly or nothing changed).'''
-    label = keyspec.ACTION_LABELS.get(f'{screen}.{act}') or keyspec.ACTION_LABELS.get(act, act)
+    label = (keyspec.ACTION_LABELS.get(f'{screen}.{act}') or keyspec.ACTION_LABELS.get(act, act)
+             if act else 'edit')
     return primarygit.commit(ctx, snap, f'{screen}: {label}' + (f' — {note}' if note else ''))
 
 
@@ -5016,8 +5010,7 @@ def run(ctx):
             # the shared loop state; the components handle also gets cfg/ledger and re-probes/rebinds.
             scr = _screen(screen)
             _act = keymap.action_for(screen, ch)
-            _snap = (primarygit.snapshot(ctx)            # an action that may edit the primary: commit it
-                     if _act is not None and _act not in _NO_WRITE_ACTIONS else None)
+            _snap = primarygit.snapshot(ctx)      # every key's write journal (free until something writes)
             if screen == 'components':
                 scr.model = ms
                 intent = scr.handle(ch, ctx, stdscr, pal, cfg, ledger)
@@ -5025,8 +5018,8 @@ def run(ctx):
                 intent = scr.handle(ch, ctx, stdscr, pal)
             if intent.note is not None:
                 note = intent.note
-            if _snap is not None:
-                _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note)
+            _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note) if _snap else []
+            if _snap is not None and _snap.recorded:   # the action wrote into the primary
                 ctx._primary_state = primarygit.state(ctx)          # the chip / Plugins row follow it
                 ctx._primary_push_mode = primarygit.push_mode(ctx)  # (a Config edit may change it)
                 if _reg.get('plugins') is not None:

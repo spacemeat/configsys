@@ -1,7 +1,7 @@
 # Primary commits from a write journal
 
-> **Status: PLAN** — written 2026-11-07, awaiting the user's go (review-2026-11 decision 2; items B1
-> durable fix, B3, C1). Not started.
+> **Status: DONE** — finished 2026-11-07 (review-2026-11 decision 2; items B1 durable fix, B3, C1).
+> Lives on in: docs/plugins.md §8 ("configsys commits its own edits"), the `primarygit` module docstring.
 
 ## Why
 
@@ -70,3 +70,27 @@ need nothing.)
 2. Wire dotfiles and glue writers + `_sweep_glue_to_primary`; the every-writer test.
 3. Drop `_NO_WRITE_ACTIONS` (the bracket no longer guesses from action names) and the per-keypress
    status/state work; measure (C1).
+
+## As built (2026-11-07)
+
+All three phases, with these differences from the design above:
+- **The baseline is lazy and whole-tree:** the first `will_write` of a bracket runs one full `git status`
+  (not one per recorded path), and `commit()` one more. That one baseline gives both "a recorded file
+  you'd already edited" and "a change nobody recorded" (named in a note) — and an action that writes
+  nothing still runs no git at all.
+- **Every TUI key is bracketed**, not just the ones with a keymap action — opening a journal is free.
+  The chip and the Plugins row re-read the primary's state only after a key that wrote into it.
+- `PrimaryRepo.in_progress` asks for its five markers in one `rev-parse` (it was five spawns).
+- `primary_root` is cached per user-config file (path, mtime, size).
+- `plugin init` (create) has no bracket — there is no primary until it runs; its own
+  `_git_init_commit` commits the scaffold. `scaffold_primary` still calls `will_write`, for any caller
+  that writes into an existing primary.
+- Wired writers: `plugins.set_section` / `remove_sections` / `scaffold_primary`;
+  `actions._writable_primary_file` / `save_theme_plugin`; `Dotfiles._write_manifest_at` / `capture` /
+  `relocate` (both sides — content leaving the primary is a write to it); `Glue.new_user_snippet` /
+  `add_user_glue` / `override` / `_record_override` / the 99-user scaffold / the x-bit fix in
+  `_deploy_user_glue`; `app._sweep_glue_to_primary` and `_plugin_init_merge`'s dotfiles move.
+
+Measured (C1; a primary with 500 untracked files): an action that writes nothing went from 63 ms and 6
+git spawns to 0.16 ms and none; one that writes a file, commits it and refreshes the chip costs 45 ms
+and 10 spawns. Tests: test/test_primary_journal.py (`WRITES` is the every-writer guard).

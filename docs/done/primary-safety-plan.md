@@ -2,7 +2,7 @@
 
 > **Status: DONE** — finished 2026-11-07 (0c62c22). Phases 1 (efa9c38), 2 (da323ea), 4 (e03afa8,
 > fd0e94f, ab5c941) and 5 (a4e5132, 3e8be8a, 17643aa, 0aa1606, 0c62c22) shipped; phase 3 was split
-> out to docs/todo/primary-journal-plan.md (its decision-1 part shipped, f5e0340).
+> out to docs/done/primary-journal-plan.md (its decision-1 part shipped, f5e0340).
 > Lives on in: docs/plugins.md §8 (publishing your primary), CLAUDE.md (primarygit / humerge / hutext).
 
 The review of `configsys/primarygit.py` and `configsys/humerge.py` (docs/review-2026-11/primary.md)
@@ -26,7 +26,7 @@ status` around an action. Decisions are in the review's §7.
    `--autostash`), rebase or merge, and on ANY exit that isn't a commit — a stop, a failure, an exception,
    Ctrl-C — abort, restore HEAD and pop the stash, then re-raise. `_settle_hu` falls back to the per-file
    question on any humerge error; a binary conflict is settled by side, never decoded.
-3. **The write journal** — split out to its own plan, docs/todo/primary-journal-plan.md (it reaches the
+3. **The write journal** — split out to its own plan, docs/done/primary-journal-plan.md (it reaches the
    dotfiles and glue writers). Done here: B1's immediate fix and decision 1 (f5e0340). Originally:
    (B1, B3, C1; decisions 1 and 2). Each configsys writer to the primary records the
    path it wrote; `commit()` commits exactly those (no action allowlist, no sweep-in of edits you make

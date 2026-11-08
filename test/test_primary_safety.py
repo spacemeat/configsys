@@ -32,7 +32,8 @@ def test_an_ambient_git_dir_never_redirects_the_primary(primary, tmp_path, monke
     monkeypatch.setenv('GIT_WORK_TREE', str(dot))
     ctx = _ctx(base)
     snap = primarygit.snapshot(ctx)
-    assert snap is not None and snap.dirty == set()
+    primarygit.will_write(clone / 'p.hu')
+    assert snap is not None and snap.before == set()
     (clone / 'p.hu').write_text(BASE_P.replace('[ btop ]', '[ btop  fzf ]'))
     assert primarygit.commit(ctx, snap, 'picks add fzf') == []
     st = primarygit.state(ctx)
@@ -53,7 +54,8 @@ def test_a_file_name_that_is_not_utf8_does_not_break_the_bracket(primary):
         fh.write(b'x')
     ctx = _ctx(base)
     snap = primarygit.snapshot(ctx)
-    assert snap is not None and len(snap.dirty) == 1               # the odd name, already dirty
+    primarygit.will_write(clone / 'p.hu')
+    assert snap is not None and len(snap.before) == 1              # the odd name, already dirty
     (clone / 'p.hu').write_text(BASE_P.replace('[ btop ]', '[ btop  fzf ]'))
     assert primarygit.commit(ctx, snap, 'picks add fzf') == []
     assert _log(clone).splitlines()[0] == 'picks add fzf'
@@ -67,6 +69,7 @@ def test_a_long_path_list_commits_without_overflowing_the_command_line(primary):
     base, clone, bare, other = primary
     ctx = _ctx(base)
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'dotfiles' / 'big-dotfiles.cfs')
     cfs = clone / 'dotfiles' / 'big-dotfiles.cfs' / 'a-rather-long-directory-name-for-the-config'
     cfs.mkdir(parents=True)
     for i in range(2000):
@@ -87,6 +90,7 @@ def test_paths_are_literal_never_globs(primary):
     (clone / 'ab.conf').write_text('mine, edited by hand\n')
     ctx = _ctx(base)
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'a[bc].conf')
     (clone / 'a[bc].conf').write_text('captured\n')
     primarygit.commit(ctx, snap, 'capture')
     assert _git(clone, 'status', '--porcelain', 'ab.conf') == 'M ab.conf'   # still unstaged (" M")
@@ -114,14 +118,18 @@ def test_the_bracket_never_raises(primary, monkeypatch):
     base, clone, bare, other = primary
     ctx = _ctx(base)
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'p.hu')
+    (clone / 'p.hu').write_text(BASE_P.replace('[ btop ]', '[ btop  fzf ]'))
 
     def boom(*a, **k):
         raise OSError('git vanished')
     monkeypatch.setattr(primarygit.PrimaryRepo, 'git', boom)
-    assert primarygit.snapshot(ctx) is None
     assert primarygit.state(ctx) is None
     notes = primarygit.commit(ctx, snap, 'x')
     assert notes and 'could not' in notes[0]
+    again = primarygit.snapshot(ctx)                                # opening one runs no git at all
+    primarygit.will_write(clone / 'p.hu')                           # git fails: recorded as unknown
+    assert again.unknown and primarygit.commit(ctx, again, 'y') == []
 
 
 # -- the undoable combine (phase 2: review A2, A3) ----------------------------------------------
@@ -249,6 +257,7 @@ def test_a_primary_left_mid_merge_is_never_pushed_or_committed_into(primary):
     ok, lines = primarygit.push(ctx, Scripted('mine'))
     assert not ok and 'merge' in lines[-1] and '--abort' in lines[-1]
     snap = primarygit.snapshot(ctx)
+    primarygit.will_write(clone / 'p.hu')
     (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
     notes = primarygit.commit(ctx, snap, 'picks add yq')
     assert notes and 'middle of a merge' in notes[0]

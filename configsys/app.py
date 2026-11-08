@@ -15,6 +15,7 @@ from pathlib import Path
 from . import osdetect
 from . import report
 from . import reportgen
+from . import primarygit
 from . import shellguard
 
 
@@ -2706,6 +2707,8 @@ def _sweep_glue_to_primary(ctx, plug, dry_run, force):
         return 0, []
     src_root = Path(src_root)
     dest_glue = plug / 'glue'
+    if not dry_run:
+        primarygit.will_write(dest_glue)
     moved, skipped = 0, []
     src_shell = src_root / 'shell'
     files = sorted(f for f in src_shell.rglob('*') if f.is_file()) if src_shell.is_dir() else []
@@ -2851,6 +2854,7 @@ def _plugin_init_merge(ctx, args, prim):
         print('\nnothing to merge.' + ('  (see the config note above.)' if sections else ''))
         return 0
     if move:
+        primarygit.will_write(dfdir)
         dfdir.mkdir(parents=True, exist_ok=True)
         for e in move:
             dest = dfdir / e.name
@@ -4845,7 +4849,6 @@ def _after_primary_commit(ctx):
     '''A CLI command just committed to the primary: under `primary-push: auto` push it (a failure is
     one line, retried next time); under `ask` / `auto-on-quit` (which pushes only when you quit the
     TUI) say it isn't pushed yet; under `manual` stay quiet.'''
-    from . import primarygit
     mode = primarygit.push_mode(ctx)
     if mode == 'auto':
         ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
@@ -4882,7 +4885,6 @@ def main(argv=None):
                             # plugin commands, which may be what brings that block (`plugin add`)
         if command == 'tui':
             return _COMMANDS[command](ctx, args)       # the TUI commits per action (tui/menu.py)
-        from . import primarygit
         snap = primarygit.snapshot(ctx)                # commit what this command edits in the primary
         try:
             return _COMMANDS[command](ctx, args)

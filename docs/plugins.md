@@ -502,9 +502,12 @@ it to the newest one), and sync still never discards your edits.
 setting, a captured dotfile, your own glue, a plugin added to its manifest — is committed right away
 on its branch, locally, with a message saying what was done: the command as you typed it (`picks add
 btop`), or the TUI action (`profiles: toggle tracking: highlighted — tracking btop`). Nothing is
-pushed by this — see "Publishing it" below. Edits you make by hand are never swept in: a
-file you had already changed is left uncommitted for you (configsys says so), and other files you're
-editing are untouched. A primary pinned to a tag or commit isn't committed to, and with no git
+pushed by this — see "Publishing it" below. Only what configsys itself wrote is committed — each of its
+writers records the files it is about to write, and the commit takes exactly those — so edits you make
+by hand are never swept in: a file you had already changed is left uncommitted for you (configsys says
+so), and a file you change while a command is running is left for you too, and named. (A code plugin
+whose driver writes into the primary calls `configsys.primarygit.will_write(path)` before writing, or
+its changes are left as yours.) A primary pinned to a tag or commit isn't committed to, and with no git
 identity (no `user.name` / `user.email`, nor `GIT_AUTHOR_*` in your environment) nothing is
 committed — configsys says how to set one, and never makes one up. A commit's body names the
 configsys machine it was made on (your `machine:` setting), not the computer's hostname.

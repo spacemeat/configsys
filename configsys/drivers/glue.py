@@ -32,6 +32,7 @@ import shlex
 import shutil
 from pathlib import Path
 
+from .. import primarygit
 from ..driver import Driver
 from ..runner import Result
 
@@ -324,6 +325,7 @@ class Glue(Driver):
         if created and getattr(self.runner, 'pretend', False):   # a dry run creates nothing
             return path, False
         if created:
+            primarygit.will_write(path)                     # the glue root may be the primary's
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(f'# {stem} — your own {shell} glue. configsys links this into conf.d but\n'
                             f'# never edits it; loads after component glue, so your definitions win.\n')
@@ -359,6 +361,7 @@ class Glue(Driver):
             cur = path.read_text()
         except OSError:
             cur = ''
+        primarygit.will_write(path)
         if text.strip() not in cur:
             sep = '' if (not cur or cur.endswith('\n')) else '\n'
             path.write_text(f'{cur}{sep}{text}')
@@ -426,6 +429,7 @@ class Glue(Driver):
         d[f'{comp}|{shell}'] = digest
         try:
             f = self._overrides_file(root)
+            primarygit.will_write(f)
             f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(json.dumps(d, sort_keys=True), encoding='utf-8')
         except OSError:
@@ -452,6 +456,7 @@ class Glue(Driver):
                 continue
             target = Path(dest) / src
             if not target.exists():                        # never overwrite an existing override
+                primarygit.will_write(target)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(shipped, target)
                 target.chmod(0o755)
@@ -591,6 +596,7 @@ class Glue(Driver):
                 d.mkdir(parents=True, exist_ok=True)
                 home = d / f'99-user.{ext}'
                 if not home.exists():
+                    primarygit.will_write(home)
                     home.write_text(_USER_GLUE_HEADER)
                     home.chmod(0o755)
                 if dest not in roots:
@@ -606,7 +612,9 @@ class Glue(Driver):
         confd = self._ensure_confd(shell)
         for name, srcpath in snippets.items():
             try:
-                srcpath.chmod(0o755)                                     # loaders source only a+x files
+                if srcpath.stat().st_mode & 0o777 != 0o755:
+                    primarygit.will_write(srcpath)                       # git tracks the x bit
+                    srcpath.chmod(0o755)                                 # loaders source only a+x files
             except OSError:
                 pass
             tgt = confd / user_link_name(name)                           # the user band (90-, or NN- kept)
