@@ -1,6 +1,6 @@
 # Primary commits from a write journal
 
-> **Status: DONE** — finished 2026-11-07 (review-2026-11 decision 2; items B1 durable fix, B3, C1).
+> **Status: DONE** — finished 2026-11-07 (commit d99c1b3; review-2026-11 decision 2; items B1 durable fix, B3, C1).
 > Lives on in: docs/plugins.md §8 ("configsys commits its own edits"), the `primarygit` module docstring.
 
 ## Why

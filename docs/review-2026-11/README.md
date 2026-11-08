@@ -9,9 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 24/37 items done (+ B1 in part), 0 declined, 12 open — the open ones: the write journal
-(B1's rest, B3, C1 — planned in docs/todo/primary-journal-plan.md, awaiting go), B17, D2, D4, E1, F1–F3,
-G2–G4 (not chosen yet).
+**Status:** 27/37 items done, 0 declined, 10 open — B17, D2, D4, E1, F1–F3, G2–G4 (not chosen yet).
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -63,8 +61,11 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - A2, A3, D1 part 2: one undoable combine (stash, replay, restore on any non-success exit incl.
   Ctrl-C), overlapping hand edits asked about first, a primary mid-merge refused — `da323ea`.
 - B1 (immediate part): `select` is bracketed, so Config/Theme space edits commit; decision 1:
-  configsys's own commits skip hooks — `f5e0340`. (B1's durable fix, the write journal, has its own
-  plan: docs/todo/primary-journal-plan.md, awaiting go.)
+  configsys's own commits skip hooks — `f5e0340`.
+- B1 (durable fix), B3, C1 — decision 2: the write journal. Each writer into the primary records what
+  it writes (`primarygit.will_write`) and only that is committed; your mid-command edits are left and
+  named; an action that writes nothing runs no git (0.16 ms, was 23–63 ms) — `d99c1b3`
+  (docs/done/primary-journal-plan.md).
 - B7, B8, B16, B18: auto quit asks nothing; a never-pushed primary shows as not pushed; a Markdown
   underline isn't a conflict; the combine's scratch copies are removed and notes printed once — `e03afa8`.
 - A5, B12, B13: remote text made safe in every question; settings numbered within a file (and "show me
@@ -127,12 +128,12 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 
 ### Tier B — correctness
 - **B1 [HIGH] Config and Theme `space` edits are written to the primary but never committed**, and from then
-  on configsys treats the file as your hand edit. (primary-04) · effort S · [partly done f5e0340 — the journal: docs/todo/primary-journal-plan.md]
+  on configsys treats the file as your hand edit. (primary-04) · effort S · [done f5e0340, d99c1b3]
 - **B2 [HIGH] The snapshot/commit bracket isn't best-effort.** One uncommitted non-UTF-8 file name crashes
   every CLI command (`check`, `picks list`, `inspect`); a 2000-file `dotfiles capture` overflows the command
   line. (primary-05; with primary-18, paths as globs) · effort M · [done efa9c38]
 - **B3 [MED] Your edits made during a long action are committed under configsys's message** (and pushed
-  under `auto`). (primary-07; decision 2) · effort M · [open]
+  under `auto`). (primary-07; decision 2) · effort M · [done d99c1b3]
 - **B4 [MED] Profile term lists are merged as sets**, though their order matters — and the driver replaces
   git's clean, order-correct result with the reordered one. (primary-08; decision 5) · effort S · [done 17643aa]
 - **B5 [MED] The merge drops comments** in combined lists, and takes one side's whole text when the result
@@ -168,7 +169,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 ### Tier C — performance
 - **C1 [MED] Every non-navigation TUI keypress costs 6 git spawns, 2 config parses, ~23 ms** (63 ms with 500
   untracked files), mostly recomputing a state nothing changed. Largely dissolved by decision 2's journal.
-  (primary-13) · effort M · [open]
+  (primary-13) · effort M · [done d99c1b3]
 
 ### Tier D — refactors
 - **D1 [MED] A `PrimaryRepo` git helper + a transactional combine.** argv lists, bytes → fsdecode, literal

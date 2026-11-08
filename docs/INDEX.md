@@ -42,7 +42,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | doc | status | created | finished | summary |
 |---|---|---|---|---|
 | [primary-safety-plan.md](done/primary-safety-plan.md) | DONE | 2026-11-07 | 2026-11-07 (0c62c22) | The primary push off the happy path: PrimaryRepo, an undoable combine, the small fixes, merge quality (review-2026-11). |
-| [primary-journal-plan.md](done/primary-journal-plan.md) | DONE | 2026-11-07 | 2026-11-07 | Commit configsys's primary edits from a write journal (`primarygit.will_write`) instead of snapshot differences (review-2026-11 B1/B3/C1). |
+| [primary-journal-plan.md](done/primary-journal-plan.md) | DONE | 2026-11-07 | 2026-11-07 (d99c1b3) | Commit configsys's primary edits from a write journal (`primarygit.will_write`) instead of snapshot differences (review-2026-11 B1/B3/C1). |
 | [primary-push-plan.md](done/primary-push-plan.md) | DONE | 2026-10-21 | 2026-10-21 | Publishing the primary plugin: it follows a branch (never version-tagged); configsys commits its own edits; ↑/↓/● marks; `plugin push` / `P` with plain-language conflicts; `primary-push: ask/auto/auto-on-quit/manual`; a `.hu`-aware merge (`humerge`) so most conflicts settle themselves. Lives on in docs/plugins.md §8. |
 | [d2-mvvm-findings.md](done/d2-mvvm-findings.md) | DONE | 2026-09-20 | 2026-09-20 (aef1da9) | Findings log kept during the MVVM rewrite. |
 | [d2-mvvm-plan.md](done/d2-mvvm-plan.md) | DONE | 2026-09-20 | 2026-09-20 (5641778) | TUI rewrite to MVVM screens + a lazy router. |
