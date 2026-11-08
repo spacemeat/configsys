@@ -321,3 +321,47 @@ def test_a_binary_or_undecodable_file_is_left_to_git(tmp_path):
     rc, out, err = _driver_bytes(tmp_path, BASE.encode('latin-1'), bad.encode('latin-1'),
                                  BASE.replace('ocean', 'blocks').encode('latin-1'))
     assert b'Traceback' not in err and rc == 1 and b'<<<<<<<' in out
+
+
+def test_backtick_strings_and_backslashes_dont_confuse_the_text_scanner(tmp_path):
+    # B10 / primary-19: humon has three quote styles (backtick included) and NO escapes — a scanner
+    # that skips `\` as an escape, or doesn't know backticks, loses every key after such a string
+    from configsys import plugins
+    text = ('{\n    components: { tool: { install: [ { via: script  install-cmd: `echo \'{ hi }\'` } ] } }\n'
+            '    dir: "C:\\\\"\n'
+            '    splash: ocean\n'
+            '    effects: full\n}\n')
+    mine = text.replace('ocean', 'plain')
+    theirs = text.replace('effects: full', 'effects: none')
+    res = humerge.merge(text, mine, theirs)
+    assert res.text is not None and _data(res.text)['splash'] == 'plain' and _data(res.text)['effects'] == 'none'
+    path = tmp_path / 'p.hu'
+    path.write_text(text)
+    plugins.set_section(str(path), 'effects', lambda indent: 'effects: reduced')
+    assert _data(path.read_text())['effects'] == 'reduced' and _data(path.read_text())['dir'] == 'C:\\\\'
+
+
+def _plugins_text(*entries):
+    body = '  '.join('{ source: "github:me/%s"  ref: %s }' % e for e in entries)
+    return '{\n    plugins: [ %s ]\n}\n' % body
+
+
+def test_plugins_order_is_layer_precedence_and_is_merged_not_lost():
+    # B11 / primary-20: theirs reordering [a b] -> [b a] while mine bumps a keeps theirs' order
+    base = _plugins_text(('a', 'v1'), ('b', 'v1'))
+    mine = _plugins_text(('a', 'v2'), ('b', 'v1'))
+    theirs = _plugins_text(('b', 'v1'), ('a', 'v1'))
+    res = humerge.merge(base, mine, theirs)
+    got = [(p['source'], p['ref']) for p in _data(res.text)['plugins']]
+    assert got == [('github:me/b', 'v1'), ('github:me/a', 'v2')]
+    # both sides reordered three plugins differently: asked, never silently picked
+    base3 = _plugins_text(('a', 'v1'), ('b', 'v1'), ('c', 'v1'))
+    res = humerge.merge(base3, _plugins_text(('b', 'v1'), ('a', 'v1'), ('c', 'v1')),
+                        _plugins_text(('c', 'v1'), ('a', 'v1'), ('b', 'v1')))
+    assert res.text is None and [c.path for c in res.conflicts] == [('plugins',)]
+
+
+def test_a_plugin_declared_twice_is_not_collapsed():
+    dup = _plugins_text(('a', 'v1'), ('a', 'v2'))
+    with pytest.raises(humerge.Unmergeable):
+        humerge.merge(_plugins_text(('a', 'v1')), dup, _plugins_text(('a', 'v1'), ('b', 'v1')))

@@ -158,17 +158,29 @@ class _Merge:
         return m
 
     def plugins(self, b, m, t, path):
-        '''`plugins:` per entry, by source. None when an entry has no source (a conflict, then).'''
+        '''`plugins:` per entry, by source. None when an entry has no source (a conflict, then). The
+        list's ORDER is plugin layer precedence: one side's reordering is kept; both reordering the
+        same plugins differently is asked. A source declared twice is Unmergeable.'''
         def keyed(lst):
             if not all(isinstance(d, dict) and isinstance(d.get('source'), str) and d['source']
                        for d in lst):
                 return None
+            sources = [d['source'] for d in lst]
+            if len(set(sources)) != len(sources):
+                raise Unmergeable('a plugin source is declared twice')
             return {d['source']: d for d in lst}
         bk, mk, tk = keyed(b), keyed(m), keyed(t)
         if bk is None or mk is None or tk is None:
             return None
+        shared = [s for s in bk if s in mk and s in tk]
+        rel = lambda keys: [s for s in keys if s in shared]          # noqa: E731
+        rb, rm, rt = rel(bk), rel(mk), rel(tk)
+        if rm != rb and rt != rb and rm != rt:          # both reordered, differently: ask
+            self.conflicts.append(Conflict(path, b, m, t))
+            return m
+        first, second = (list(tk), list(mk)) if (rt != rb and rm == rb) else (list(mk), list(tk))
         out = []
-        for src in list(mk) + [s for s in tk if s not in mk]:
+        for src in first + [s for s in second if s not in first]:
             bv, mv, tv = bk.get(src, GONE), mk.get(src, GONE), tk.get(src, GONE)
             p = path + (src,)
             if p not in self.answers and bv not in (mv, tv) and _same_but_ref(mv, tv):

@@ -804,7 +804,8 @@ def _skip_trivia(text, i):
     string starting at `i`; return the new index (unchanged if `i` is none of those). Humon
     honors both C++ (`//`) and C (`/* */`) comments, and braces/brackets can appear inside a
     comment or a `"..."`/`'...'` string — the span scanner must step over all of them so their
-    contents never fool the depth counter.'''
+    contents never fool the depth counter. Humon quotes with `"`, `'` or a backtick, and has NO escape
+    mechanism (a backslash is just a backslash), so a string runs to the next matching quote.'''
     n = len(text)
     c = text[i]
     if c in ' \t\r\n':
@@ -817,12 +818,9 @@ def _skip_trivia(text, i):
     if c == '/' and i + 1 < n and text[i + 1] == '*':
         j = text.find('*/', i + 2)
         return n if j < 0 else j + 2
-    if c in '"\'':
-        q = c
-        i += 1
-        while i < n and text[i] != q:
-            i += 2 if text[i] == '\\' else 1
-        return i + 1
+    if c in '"\'`':
+        j = text.find(c, i + 1)
+        return n if j < 0 else j + 1
     return i
 
 
