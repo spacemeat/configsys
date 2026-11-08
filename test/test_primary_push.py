@@ -59,10 +59,15 @@ def _other_pushes(other, path, text):
 
 class Scripted(primarygit.PushUI):
     def __init__(self, choice='stop', include=False, switch=False, edit_to=None, overlap='stop',
-                 raise_on=None):
+                 raise_on=None, confirm=True):
         self.choice, self.include, self.switch, self.edit_to = choice, include, switch, edit_to
         self.overlap, self.raise_on = overlap, raise_on      # raise_on: an exception for a resolve
-        self.asked = []
+        self.confirm = confirm
+        self.asked, self.confirms = [], []                 # confirms: the "push these?" questions
+
+    def confirm_push(self, name, source, commits, files):
+        self.confirms.append((tuple(commits), tuple(files)))
+        return self.confirm
 
     def overlapping(self, name, paths):
         self.asked.append(('overlap', tuple(paths)))

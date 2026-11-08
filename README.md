@@ -318,7 +318,8 @@ $ ./configsys.sh plugin push
 
 From then on configsys commits each change it makes to your primary, and `plugin push` (or `P` on
 the TUI's Plugins screen) shares them. It fetches what your other machines pushed, puts your changes
-on top, and pushes. Your config files are combined by what they mean, so two machines adding picks
+on top, lists the changes and files about to leave this machine and asks, then pushes (`--yes` skips
+the question; `--pretend plugin push` shows the list and sends nothing). Your config files are combined by what they mean, so two machines adding picks
 or changing different settings need no questions. When both changed the same setting differently, it
 asks you about that setting: keep this machine's value or the other's. For any other file both changed,
 it asks per file: keep this machine's version, keep the other's, or edit both. It never leaves you

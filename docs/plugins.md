@@ -159,7 +159,7 @@ so you can push a plugin you author without a token.
 | `configsys plugin remove <name>` | Undeclare the plugin (wherever it's declared) and delete its synced copy. |
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
 | `configsys plugin bless <source>` / `unbless` | Make a plugin your primary (§8), or clear that. `bless none` also clears. |
-| `configsys plugin push [--include-edits]` | Publish your primary plugin (§8): commit, combine with what your other machines pushed (asking about any file both changed), push to its branch. Edits you made by hand are included only if you say yes (or pass `--include-edits`). |
+| `configsys plugin push [--include-edits] [--yes]` | Publish your primary plugin (§8): commit, combine with what your other machines pushed (asking about any file both changed), list what will leave this machine and ask, then push to its branch. Edits you made by hand are included only if you say yes (or pass `--include-edits`); `--yes` pushes without the final question. |
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
 | `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
 
@@ -529,8 +529,10 @@ your other machines, in three steps:
    edit you left out touches a file your other machine also changed, combining would bury it in
    conflict markers, so you're asked first: include it in this push, or stop (nothing pushed,
    nothing here changed).
-3. It pushes to the branch, and says how many changes went out. Your other machines get them on
-   their next `plugin sync`.
+3. It lists the changes and the files about to leave this machine and asks before sending them
+   (`--yes` skips the question; a script with no terminal, and `primary-push: auto` / `auto-on-quit`,
+   push without asking). Then it pushes to the branch and says how many changes went out. Your other
+   machines get them on their next `plugin sync`.
 
 Your primary's `.hu` files are merged by what they mean, not line by line, so most changes on two
 machines combine with no question. Each machine adding picks to its own column, both adding to the
@@ -571,7 +573,8 @@ update <name> --ref main` on your other machines). configsys never tags for you.
 prompts: an SSH key that needs its passphrase fails with a note (load it with `ssh-add`, or push from
 the command line). The TUI's background fetch never prompts either, and both keep the ssh command
 you configured (`core.sshCommand` or `GIT_SSH_COMMAND`), only adding `BatchMode`. Nothing is pushed
-under `--pretend`.
+under `--pretend`: `--pretend plugin push` lists what a push would send, as of the last fetch, and
+sends nothing.
 
 **When it's pushed** is the `primary-push` setting (uniform, so it travels in the primary):
 

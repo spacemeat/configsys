@@ -387,3 +387,48 @@ def test_a_refused_switch_to_the_branch_leaves_the_pin_as_it_was(primary):
     assert subprocess.run(['git', 'symbolic-ref', '-q', 'HEAD'], cwd=clone).returncode != 0   # detached
     assert 'gh' in (clone / 'p.hu').read_text()
     assert any('still pinned' in ln for ln in lines)
+
+
+# -- G1: what leaves the machine is shown first (decision 6) -------------------------------------
+
+@needs_git
+def test_push_shows_what_leaves_and_a_no_pushes_nothing(primary):
+    base, clone, bare, other = primary
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'picks add yq')
+    ui = Scripted(confirm=False)
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert not ok and 'not pushed' in lines[-1]
+    commits, files = ui.confirms[0]
+    assert any('picks add yq' in c for c in commits) and files == ('p.hu',)
+    assert 'yq' not in _remote_file(bare)
+    ok, lines = primarygit.push(_ctx(base), Scripted(confirm=True))
+    assert ok and 'yq' in _remote_file(bare)
+
+
+@needs_git
+def test_pretend_push_lists_what_would_leave(primary, capsys):
+    from configsys.app import main
+    base, clone, bare, other = primary
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'picks add yq')
+    head = _git(clone, 'rev-parse', 'HEAD')
+    capsys.readouterr()
+    assert main(base + ['--pretend', 'plugin', 'push']) == 0
+    out = capsys.readouterr().out
+    assert '[pretend] would push 1 change' in out and 'picks add yq' in out and 'p.hu' in out
+    assert _git(clone, 'rev-parse', 'HEAD') == head and 'yq' not in _remote_file(bare)
+
+
+def test_the_cli_confirms_on_a_terminal_unless_yes(monkeypatch, capsys):
+    from configsys.app import _CliPushUI
+    ui = _CliPushUI()
+    ui.interactive = True
+    monkeypatch.setattr('builtins.input', lambda prompt: 'n')
+    assert ui.confirm_push('prim', 'github:me/prim', ['abc1234 picks add yq'], ['p.hu']) is False
+    out = capsys.readouterr().out
+    assert 'abc1234 picks add yq' in out and 'p.hu' in out and 'github:me/prim' in out
+    assert _CliPushUI(yes=True).confirm_push('prim', 's', ['x'], ['f']) is True
+    quiet = _CliPushUI()
+    quiet.interactive = False                                       # a script: the command is consent
+    assert quiet.confirm_push('prim', 's', ['x'], ['f']) is True

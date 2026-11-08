@@ -429,6 +429,9 @@ class PushUI:
     def resolve_value(self, name, path, words, i, n):  # one key both changed -> 'mine' | 'theirs' |
         return 'stop'                                  #   'edit' (the whole file) | 'stop'
 
+    def confirm_push(self, name, source, commits, files):   # what leaves the machine: send it?
+        return True                                    #   (no prompt = the command was the consent)
+
     def edit(self, path):                              # open a file with conflict markers in an editor
         pass
 
@@ -545,7 +548,7 @@ def push(ctx, ui=None):
                        'your local config, `configsys plugin bless <source>` names an existing one.']
     decls, decl, name, root = found
     if getattr(ctx.runner, 'pretend', False):
-        return True, [f'[pretend] would commit, combine and push {name} — nothing sent']
+        return True, _pretend_preview(name, root, decl['source'])
     if not (root / '.git').exists():
         return False, [f'{name} isn\'t synced here yet — `configsys plugin sync` first.'
                        if not root.exists() else f'{name} ({root}) isn\'t a git repository.']
@@ -638,6 +641,9 @@ def push(ctx, ui=None):
         if not ok:
             return False, lines
         ahead, _b = repo.ahead_behind(upstream)
+    commits, files = _outgoing(repo, None if first else upstream)
+    if not ui.confirm_push(name, source, [_printable(c) for c in commits], [_printable(f) for f in files]):
+        return False, lines + [f'{name}: not pushed — your changes stay committed here.']
     ui.progress(f'pushing {name} …')
     p = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
                  env=repo.network_env(ui.interactive))
@@ -648,6 +654,42 @@ def push(ctx, ui=None):
         repo.git('branch', '--quiet', f'--set-upstream-to={upstream}')
     return True, lines + [f'pushed {_count(ahead)} to {source}. Your other machines get '
                           f'{"them" if ahead != 1 else "it"} on their next `configsys plugin sync`.']
+
+
+def _outgoing(repo, upstream):
+    '''([commit lines], [files]) that a push would send: what HEAD has that `upstream` lacks (every
+    commit and file when there is no upstream yet).'''
+    span = [f'{upstream}..HEAD'] if upstream else ['HEAD']
+    log = repo.git('log', '--format=%h %s', *span)
+    commits = [ln for ln in log.stdout.splitlines() if ln.strip()] if log.ok else []
+    diff = (repo.git('diff', '--name-only', '-z', f'{upstream}...HEAD') if upstream
+            else repo.git('ls-tree', '-r', '--name-only', '-z', 'HEAD'))
+    files = sorted(os.fsdecode(p) for p in diff.out.split(b'\0') if p) if diff.ok else []
+    return commits, files
+
+
+def _pretend_preview(name, root, source):
+    '''What `plugin push` would send, as of the last fetch — read-only (no fetch, no commit).'''
+    tag = '[pretend]'
+    if not (root / '.git').exists():
+        return [f'{tag} {name} isn\'t synced here — nothing would be pushed']
+    repo = PrimaryRepo(root)
+    branch = repo.branch()
+    if not branch:
+        return [f'{tag} {name} is pinned to a tag or commit — a push would offer to follow its branch first']
+    upstream = f'origin/{branch}'
+    has_up = repo.has_ref(upstream)
+    commits, files = _outgoing(repo, upstream if has_up else None)
+    if not commits:
+        return [f'{tag} {name}: nothing to push (as of the last fetch) — nothing sent']
+    behind = repo.ahead_behind(upstream)[1] if has_up else 0
+    out = [f'{tag} would push {_count(len(commits))} to {source} (as of the last fetch'
+           + (f'; {_count(behind)} from your other machines would be combined first' if behind else '')
+           + '):']
+    out += [f'{tag}   {_printable(c)}' for c in commits[:20]]
+    out += [f'{tag}   files: {", ".join(_printable(f) for f in files[:20])}'
+            + (f' … and {len(files) - 20} more' if len(files) > 20 else '')]
+    return out + [f'{tag} nothing sent']
 
 
 def _merge_driver(repo):

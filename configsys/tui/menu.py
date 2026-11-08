@@ -709,6 +709,13 @@ class _TuiPushUI(primarygit.PushUI):
                           start=0, shortcuts={'m': 0, 't': 1, 'e': 2, 's': 3})
         return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
 
+    def confirm_push(self, name, source, commits, files):
+        shown = '; '.join(c.split(' ', 1)[-1] for c in commits[:3]) + (' …' if len(commits) > 3 else '')
+        c = _popup_choose(self.stdscr, self.pal,
+                          f'Push {primarygit._count(len(commits))} to {source}? {shown}',
+                          [('Push', 'p'), ("Don't push", 'n')], start=0, shortcuts={'p': 0, 'n': 1})
+        return c == 0
+
     def edit(self, path):
         from ..app import _edit_conflict
         from .screen import suspended

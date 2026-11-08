@@ -2973,9 +2973,9 @@ def _print_sync(ctx, results):
 class _CliPushUI:
     '''`plugin push`'s questions, asked on the terminal (the cautious answer when it isn't one).'''
 
-    def __init__(self, include=False):
+    def __init__(self, include=False, yes=False):
         self.interactive = sys.stdin.isatty() and sys.stdout.isatty()
-        self.include = include
+        self.include, self.yes = include, yes
 
     def _ask(self, prompt, keys, default):
         if not self.interactive:
@@ -3004,6 +3004,17 @@ class _CliPushUI:
     def switch_to_branch(self, name, ref, branch):
         return self._ask(f'Make {name} follow {branch} instead, so every push reaches your other '
                          f'machines? [y/N] ', 'yn', 'n') == 'y'
+
+    def confirm_push(self, name, source, commits, files):
+        if self.yes or not self.interactive:           # --yes, or a script: the command is consent
+            return True
+        print(f'configsys: {name}: {len(commits)} change{"s" if len(commits) != 1 else ""} to push to {source}:')
+        for c in commits[:20]:
+            print(f'    {c}')
+        if len(commits) > 20:
+            print(f'    … and {len(commits) - 20} more')
+        print(f'  files: {", ".join(files[:20])}' + (f' … and {len(files) - 20} more' if len(files) > 20 else ''))
+        return self._ask('Push them? [y/N] ', 'yn', 'n') == 'y'
 
     def resolve(self, name, path, what, i, n):
         print(f'configsys: {name}: {path} ({i + 1} of {n}) — {what}.')
@@ -3158,7 +3169,8 @@ def cmd_plugin(ctx, args):
         return cmd_plugin_diff(ctx, args, eff)
 
     if sub == 'push':
-        ok, lines = primarygit.push(ctx, _CliPushUI(include=getattr(args, 'include_edits', False)))
+        ok, lines = primarygit.push(ctx, _CliPushUI(include=getattr(args, 'include_edits', False),
+                                                    yes=getattr(args, 'yes', False)))
         for line in lines:
             print(f'configsys: {line}')
         return 0 if ok else 1
@@ -3921,6 +3933,8 @@ def build_parser():
                                         'and push to its branch')
     ppu.add_argument('--include-edits', action='store_true',
                      help='also commit and push edits you made by hand, without asking')
+    ppu.add_argument('-y', '--yes', action='store_true',
+                     help='push without listing the outgoing changes and asking first')
     pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
                                         "dotfiles, your own glue, your config's component "
                                         'definitions), or merge that into your existing primary')
