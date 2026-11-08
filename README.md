@@ -772,7 +772,9 @@ $ CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q
 Maintenance tools live in `tools/`: `gen_manpages.py` regenerates the man pages (`--check` is run
 by the test suite), `namesweep.py` and `versionsweep.py` are the networked package-name and
 version-floor sweeps, `regsweep.py` finds crates.io / PyPI / npm / Flathub methods a component
-could add, `compaudit.py` probes components for upstream drift, and `docaudit.py`
+could add, `compaudit.py` probes components for upstream drift, `osaudit.py` checks each OS
+release (the release registry in routes.hu) — what a new release loses, gains or changes, the
+per-release repos, and a name sweep of every live release — and `docaudit.py`
 checks the docs against the code and renders the Glossary below from `docs/glossary.hu`. If you
 use Claude Code, `.claude/skills/` has playbooks for the common jobs: `/add-component`,
 `/update-component`, `/add-driver`, `/update-docs` and `/review-code` (a full code review that

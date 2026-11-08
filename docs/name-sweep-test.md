@@ -118,6 +118,17 @@ Run everything with `bash test/run-name-sweep-in-podman.sh`, or a subset with
 (`python313-pip`, `ffmpeg-7`) will drift as Tumbleweed rolls — the sweep flags it, you bump the
 `name:` map. That's the maintenance loop working, not a false alarm.
 
+## Every live release: `tools/osaudit.py sweep`
+
+`MANAGERS` checks ONE release per manager. A line's other live releases — and a new or pre-release
+one — are swept by `tools/osaudit.py sweep <line> [release…]` (the `/update-os` skill): it resolves
+the catalog in each release's own context (so a release-gated binding is checked against the
+release it routes on), verifies the names in that release's `image:` from the release registry
+(`releases:` on the os block; docs/routing-model.md §6) after a per-line repo setup
+(`osaudit._SETUPS`), and reports each name missing on one release but present on another — a
+retirement or arrival to gate. It reuses this tool's checks, runner and allowlist. EOL releases are
+not swept by default (their repos move to archive mirrors); name one explicitly to sweep it.
+
 ## Sweeping a plugin OS
 
 A plugin that adds an OS block (Proxmox, Void, …) can reuse this sweep for its own catalog. The

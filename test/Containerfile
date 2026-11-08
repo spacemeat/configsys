@@ -2,7 +2,10 @@
 # Matches the host codename and reports ID=ubuntu, so it also exercises the
 # ubuntu -> debian route cascade. python3-dev/gcc are present so `pip install
 # humon` can build if no wheel is available.
-FROM ubuntu:22.04
+# Release is selectable: podman build --build-arg BASE=ubuntu:26.04 ... (or a debian:N image) —
+# test/run-in-podman.sh passes $BASE through, which /update-os uses on a new release.
+ARG BASE=ubuntu:22.04
+FROM ${BASE}
 
 ENV DEBIAN_FRONTEND=noninteractive
 

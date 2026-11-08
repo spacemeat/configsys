@@ -1,0 +1,597 @@
+#!/usr/bin/env python3
+'''osaudit — the mechanical half of the `/update-os` skill (see .claude/skills/update-os/SKILL.md).
+
+configsys routes per OS RELEASE (`when: "fedora >= 43"`, `not (fedora >= 44)`, `fedora = 42`). The
+release registry — `releases:` on the os block that owns a version line (routes.hu; docs/routing-
+model.md §6) — says which releases exist and which are live. This tool checks everything else
+against it, so a new release gets a systematic pass and the live older ones stay verified:
+
+Subcommands:
+  releases [LINE…] [--today D]   the registry per line + staleness (an EOL date passed while the
+                                 status isn't eol; a prerelease past its release date; a versioned
+                                 line with no registry; a live release with no image to sweep)
+  delta LINE OLD NEW             offline: how every component's resolution differs between two
+                                 releases of a line — lost / gained / changed (method or package)
+  pinned [LINE…] [--all]         bindings whose `when:` bounds the line's version, with the
+                                 registered releases each covers: an upper bound or an exact release
+                                 that stops short of the newest live release is where a new release
+                                 falls into a gap (or a deliberate retirement — read its comment)
+  repos LINE RELEASE             network: probe every release-dependent source for that release —
+                                 dnf/zypper `repo-url` + `pubkey-url` with $releasever, apt
+                                 `source-line` with $CODENAME (or a literal codename: flagged), PPAs
+  sweep LINE [RELEASE…]          podman: the native-name sweep per release (default: every live
+                                 release with an image), plus what is missing on one release and
+                                 present on another — the retirements and arrivals to gate
+  fixtures                       the golden contexts, namesweep's releases and the Containerfile
+                                 defaults, against the registry's newest live releases
+
+Every subcommand takes --json. Core routes.hu only (a plugin OS line: tools/namesweep.py --plugin).
+'''
+
+import argparse
+import concurrent.futures
+import datetime
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / 'tools'))
+ROUTES = str(ROOT / 'routes.hu')
+CPU = 'x86_64'
+
+LIVE = ('released', 'prerelease')
+
+# Container-side repo setup per version LINE, run before namesweep's existence check for the line's
+# manager. Kept in code, not in the registry: the registry is data any layer could carry, and a
+# setup is a command. A line missing here can't be swept until it gets one.
+_SETUPS = {
+    'fedora': r'''
+        dnf -q -y install \
+          "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+          "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
+          >/dev/null 2>&1 || true''',
+    'rhel': r'''
+        dnf -q -y install epel-release dnf-plugins-core >/dev/null 2>&1 || true
+        dnf config-manager --set-enabled crb >/dev/null 2>&1 \
+          || dnf config-manager --set-enabled powertools >/dev/null 2>&1 || true
+        dnf -q -y install \
+          "https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$(rpm -E %rhel).noarch.rpm" \
+          "https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$(rpm -E %rhel).noarch.rpm" \
+          >/dev/null 2>&1 || true''',
+    'amzn': '',
+    'ubuntu': r'''
+        export DEBIAN_FRONTEND=noninteractive
+        sed -i 's/^Components: main$/Components: main restricted universe multiverse/' \
+            /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+        sed -i 's/ main restricted$/ main restricted universe multiverse/' /etc/apt/sources.list 2>/dev/null || true
+        apt-get update -qq >/dev/null 2>&1''',
+    'debian': r'''
+        export DEBIAN_FRONTEND=noninteractive
+        sed -i 's/^Components: main$/Components: main contrib non-free non-free-firmware/' \
+            /etc/apt/sources.list.d/debian.sources 2>/dev/null || true
+        sed -i 's/ main$/ main contrib non-free/' /etc/apt/sources.list 2>/dev/null || true
+        apt-get update -qq >/dev/null 2>&1''',
+    'alpine': r'''
+        ver=$(cut -d. -f1,2 /etc/alpine-release)
+        echo "https://dl-cdn.alpinelinux.org/alpine/v$ver/community" >> /etc/apk/repositories
+        apk update >/dev/null 2>&1''',
+    'opensuse_leap': 'zypper -n --gpg-auto-import-keys ref >/dev/null 2>&1',
+}
+
+
+# -- the registry -------------------------------------------------------------------------------
+
+def load():
+    from configsys import routes
+    cascade, components, _mechs, _co = routes.load(ROUTES)
+    return cascade, components
+
+
+def _vkey(version):
+    from configsys.osversion import parse_version
+    return parse_version(version) or ()
+
+
+def lines(cascade):
+    '''{line block: {VERSION_ID: release spec}} for every block that owns a version line — every
+    scale-root, plus any block that declares `releases:` with no scale-root above it.'''
+    out = {}
+    for block in sorted(cascade.blocks):
+        if cascade.version_line(block) == block:
+            out[block] = dict(sorted(cascade.releases(block).items(), key=lambda kv: _vkey(kv[0])))
+    return out
+
+
+def live(table):
+    return [v for v, r in table.items() if (r or {}).get('status') in LIVE]
+
+
+def newest_live(table, include_prerelease=False):
+    statuses = LIVE if include_prerelease else ('released',)
+    vs = [v for v, r in table.items() if (r or {}).get('status') in statuses]
+    return max(vs, key=_vkey) if vs else None
+
+
+def staleness(cascade, today, components=None):
+    '''[finding] — registry entries the calendar has overtaken, and lines/releases that can't be
+    swept. With `components`, also every block a `when:` compares versions on that owns no line
+    (alpine before it declares `releases:`).'''
+    out = []
+    if components:
+        unlined = set()
+        for comp in components.values():
+            for binding in comp.bindings:
+                for atom in _versioned_atoms(binding.pred):
+                    if atom.name in cascade.blocks and cascade.version_line(atom.name) is None:
+                        unlined.add(atom.name)
+        for block in sorted(unlined):
+            out.append({'line': block, 'kind': 'no-registry',
+                        'message': f'{block}: `when:` compares its versions, but it has no '
+                                   '`releases:` registry'})
+    for line, table in lines(cascade).items():
+        if not table:
+            out.append({'line': line, 'kind': 'no-registry',
+                        'message': f'{line}: a versioned line with no `releases:` registry'})
+            continue
+        for version, rel in table.items():
+            status = rel.get('status')
+            eol = rel.get('eol')
+            released = rel.get('released')
+            if status != 'eol' and eol and str(eol) < today:
+                out.append({'line': line, 'release': version, 'kind': 'eol-passed',
+                            'message': f'{line} {version}: EOL {eol} has passed — mark it `status: eol`'})
+            if status == 'prerelease' and released and str(released) <= today:
+                out.append({'line': line, 'release': version, 'kind': 'prerelease-past-ga',
+                            'message': f'{line} {version}: still `prerelease` after its release date '
+                                       f'{released} — recheck at GA and mark it released'})
+            if status in LIVE and not rel.get('image'):
+                out.append({'line': line, 'release': version, 'kind': 'no-image',
+                            'message': f'{line} {version}: live but no `image:` — the sweeps skip it'})
+    return out
+
+
+# -- delta: resolution between two releases -----------------------------------------------------
+
+def _resolve_all(block, version):
+    from configsys.resolve import ResolveError
+    from configsys.routes import Resolver
+    r = Resolver(ROUTES, block, version, CPU)
+    out = {}
+    for name in sorted(r.components):
+        try:
+            units = r.resolve_names([name])
+        except ResolveError:
+            continue
+        out[name] = {k: (rc.driver, rc.name, rc.fields.get('packages')) for k, rc in units.items()}
+    return out
+
+
+def _brief(units):
+    parts = []
+    for _k, (driver, name, packages) in sorted(units.items()):
+        pk = f" [{' '.join(packages)}]" if isinstance(packages, (list, tuple)) else ''
+        parts.append(f'{driver}:{name}{pk}')
+    return ', '.join(parts)
+
+
+def _own(units, name):
+    '''The units that are `name` itself (key `driver\\name`), not what it pulls in.'''
+    return {k: v for k, v in units.items() if k.split('\\', 1)[-1] == name}
+
+
+def delta(block, old, new):
+    '''Per component, how its OWN unit differs between two releases (lost / gained / changed);
+    a component that differs only through what it requires is folded into `follows` under the
+    dependency that changed, so one retired jdk doesn't read as 25 changes.'''
+    a, b = _resolve_all(block, old), _resolve_all(block, new)
+    lost = {n: _brief(a[n]) for n in sorted(set(a) - set(b))}
+    gained = {n: _brief(b[n]) for n in sorted(set(b) - set(a))}
+    changed, follows = {}, {}
+    for n in sorted(set(a) & set(b)):
+        if a[n] == b[n]:
+            continue
+        own_a, own_b = _own(a[n], n), _own(b[n], n)
+        if own_a != own_b:
+            changed[n] = {'old': _brief(own_a), 'new': _brief(own_b)}
+            continue
+        moved = sorted({k.split('\\', 1)[-1] for k in set(a[n]) ^ set(b[n])} |
+                       {k.split('\\', 1)[-1] for k in set(a[n]) & set(b[n]) if a[n][k] != b[n][k]})
+        for dep in moved:
+            follows.setdefault(dep, []).append(n)
+    return {'line': block, 'old': old, 'new': new, 'lost': lost, 'gained': gained,
+            'changed': changed, 'follows': follows}
+
+
+# -- pinned: version-bounded bindings -----------------------------------------------------------
+
+def _versioned_atoms(pred):
+    from configsys import predicate
+    out = []
+
+    def walk(p):
+        if isinstance(p, predicate.Os):
+            if p.op is not None:
+                out.append(p)
+        elif isinstance(p, predicate.Not):
+            walk(p.term)
+        elif isinstance(p, (predicate.And, predicate.Or)):
+            for t in p.terms:
+                walk(t)
+    if pred is not None:
+        walk(pred)
+    return out
+
+
+def pinned(cascade, components, only_lines=None, show_all=False):
+    '''[finding] for each binding whose `when:` carries a versioned atom on a registered line.'''
+    registry = lines(cascade)
+    out = []
+    for comp_name, comp in sorted(components.items()):
+        for index, binding in enumerate(comp.bindings):
+            atoms = _versioned_atoms(binding.pred)
+            by_line = {}
+            for atom in atoms:
+                if atom.name in cascade.blocks:
+                    line = cascade.version_line(atom.name)
+                    if line in registry and (not only_lines or line in only_lines):
+                        by_line.setdefault(line, []).append(atom)
+            for line, line_atoms in sorted(by_line.items()):
+                table = registry[line]
+                if not table:
+                    continue
+                covered = [v for v in table
+                           if binding.pred.eval(cascade.context(line, v, CPU))]
+                live_vs = live(table)
+                newest = newest_live(table, include_prerelease=True)
+                exact = any(a.op == '=' for a in line_atoms)
+                upper = any(a.op in ('<', '<=', '=') for a in line_atoms) or \
+                    (bool(covered) and newest not in covered)
+                if not covered or not any(v in live_vs for v in covered):
+                    kind = 'no-live-release'
+                elif newest not in covered and upper:
+                    kind = 'stops-short'
+                elif exact:
+                    kind = 'exact'
+                else:
+                    kind = 'from'
+                if kind == 'from' and not show_all:
+                    continue
+                out.append({'component': comp_name, 'binding': index, 'via': binding.via,
+                            'when': binding.when, 'line': line, 'kind': kind,
+                            'covers': covered, 'newest': newest, 'source': comp.source})
+    out.extend(_exact_gaps(out, registry))
+    return out
+
+
+def _exact_gaps(findings, registry):
+    '''A component pinned per release (`fedora = 41`, `fedora = 42` …) with no binding for the
+    newest live release while the one before it had one — the release-pin gap.'''
+    gaps = []
+    per = {}
+    for f in findings:
+        if f['kind'] in ('exact', 'stops-short', 'no-live-release') and '=' in (f['when'] or ''):
+            per.setdefault((f['component'], f['line']), set()).update(f['covers'])
+    for (comp, line), covered in sorted(per.items()):
+        table = registry[line]
+        ordered = sorted(live(table), key=_vkey)
+        if len(ordered) < 2:
+            continue
+        newest, previous = ordered[-1], ordered[-2]
+        if newest not in covered and previous in covered:
+            gaps.append({'component': comp, 'line': line, 'kind': 'release-pin-gap',
+                         'covers': sorted(covered, key=_vkey), 'newest': newest,
+                         'when': None, 'via': None, 'binding': None, 'source': None})
+    return gaps
+
+
+# -- repos: release-dependent sources -----------------------------------------------------------
+
+_DEB_LINE = re.compile(r'^\s*deb(?:-src)?\s+(?:\[[^\]]*\]\s+)?(\S+)\s+(\S+)')
+
+
+def _codenames(table):
+    return {str(r.get('codename')) for r in table.values() if r.get('codename')}
+
+
+def _release_sources(cascade, components, line, release):
+    '''[(component, kind, url, note)] for every source of a binding valid on LINE RELEASE whose
+    URL depends on the release.'''
+    table = cascade.releases(line)
+    rel = table.get(release) or {}
+    codename = rel.get('codename')
+    major = str(release).split('.')[0]
+    releasever = major if line == 'rhel' else str(release)
+    others = _codenames(table) - {str(codename)}
+    ctx = cascade.context(line, release, CPU)
+    out = []
+    for comp_name, comp in sorted(components.items()):
+        for binding in comp.bindings:
+            if binding.pred is not None and not binding.pred.eval(ctx):
+                continue
+            d = binding.details
+            for key in ('repo-url', 'pubkey-url'):
+                url = d.get(key)
+                if isinstance(url, str) and '$releasever' in url:
+                    url = url.replace('$releasever', releasever).replace('$basearch', CPU)
+                    if key == 'repo-url':
+                        url = url.rstrip('/') + '/repodata/repomd.xml'
+                    out.append((comp_name, key, url, None))
+            line_text = d.get('source-line')
+            if isinstance(line_text, str):
+                literal = sorted(c for c in others if re.search(rf'\b{re.escape(c)}\b', line_text))
+                if literal:
+                    out.append((comp_name, 'literal-codename', None,
+                                f"source-line names {', '.join(literal)} literally — on {line} "
+                                f'{release} ({codename}) that is another release'))
+                if '$CODENAME' in line_text and codename:
+                    m = _DEB_LINE.match(line_text.replace('$CODENAME', str(codename)))
+                    if m and not m.group(2).endswith('/') and m.group(2) != '*':
+                        out.append((comp_name, 'source-line',
+                                    f'{m.group(1).rstrip("/")}/dists/{m.group(2)}/Release', None))
+            ppa = d.get('ppa')
+            if isinstance(ppa, str) and '/' in ppa and codename:
+                owner, name = ppa.split('/', 1)
+                out.append((comp_name, 'ppa', f'https://ppa.launchpadcontent.net/{owner}/{name}/'
+                            f'ubuntu/dists/{codename}/Release', None))
+    return out
+
+
+def _probe(url, timeout=20):
+    req = urllib.request.Request(url, method='GET', headers={'User-Agent': 'configsys-osaudit'})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            resp.read(256)
+            return resp.status, None
+    except urllib.error.HTTPError as e:
+        return e.code, None
+    except Exception as e:   # noqa: BLE001 — a probe reports, never raises
+        return None, f'{type(e).__name__}: {e}'
+
+
+def repos(cascade, components, line, release):
+    sources = _release_sources(cascade, components, line, release)
+    probes = [s for s in sources if s[2]]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(lambda s: _probe(s[2]), probes))
+    out = []
+    for (comp, kind, url, _n), (status, err) in zip(probes, results):
+        out.append({'component': comp, 'kind': kind, 'url': url, 'status': status, 'error': err,
+                    'ok': status == 200})
+    for comp, kind, _url, note in sources:
+        if note:
+            out.append({'component': comp, 'kind': kind, 'url': None, 'status': None,
+                        'error': note, 'ok': False})
+    return out
+
+
+# -- sweep: native names per release ------------------------------------------------------------
+
+def sweep(cascade, line, releases_wanted=None):
+    import namesweep
+    table = cascade.releases(line)
+    manager = cascade.native(line)
+    if manager not in namesweep._CHECK:
+        return {'error': f'{line}: native manager {manager!r} has no container check '
+                         f'({namesweep.UNSWEPT.get(manager, "not sweepable")})'}
+    if line not in _SETUPS:
+        return {'error': f'{line}: no repo setup in osaudit._SETUPS — add one to sweep this line'}
+    if not shutil.which('podman'):
+        return {'error': 'podman not found'}
+    targets = releases_wanted or [v for v in live(table) if table[v].get('image')]
+    allow = namesweep._load_allowlist().get(manager, set())
+    per_release, names_by_release = {}, {}
+    for version in targets:
+        image = (table.get(version) or {}).get('image')
+        if not image:
+            per_release[version] = {'error': 'no image in the registry'}
+            continue
+        names = namesweep._native_names(line, version, manager)
+        names_by_release[version] = names
+        print(f'>> {line} {version}: {len(names)} {manager} packages in {image}', file=sys.stderr)
+        try:
+            missing, _rc = namesweep._run_verifier(
+                image, namesweep._build_snippet(_SETUPS[line], namesweep._CHECK[manager]),
+                sorted(names))
+        except subprocess.TimeoutExpired:
+            per_release[version] = {'error': 'verifier timed out'}
+            continue
+        per_release[version] = {'image': image, 'checked': len(names),
+                                'missing': {p: names[p] for p in missing if p not in allow},
+                                'allowlisted': sorted(p for p in missing if p in allow)}
+    # a name missing on one swept release and present on another is a release boundary to gate
+    boundaries = {}
+    swept = [v for v in targets if 'missing' in per_release.get(v, {})]
+    for version in swept:
+        for pkg, comps in per_release[version]['missing'].items():
+            present = [v for v in swept if v != version and pkg in names_by_release[v]
+                       and pkg not in per_release[v]['missing']]
+            if present:
+                boundaries.setdefault(pkg, {'components': comps, 'missing_on': [],
+                                            'present_on': sorted(present, key=_vkey)})
+                boundaries[pkg]['missing_on'].append(version)
+    return {'line': line, 'manager': manager, 'releases': per_release, 'boundaries': boundaries}
+
+
+# -- fixtures: tests and containers against the registry ----------------------------------------
+
+def fixtures(cascade):
+    import namesweep
+    registry = lines(cascade)
+    out = []
+    golden = (ROOT / 'test' / 'test_golden.py').read_text(encoding='utf-8')
+    block = golden[golden.index('CONTEXTS'):golden.index(']', golden.index('CONTEXTS')) + 1]
+    contexts = re.findall(r"\('([^']+)',\s*(?:'([^']*)'|None)\)", block)
+    in_golden = {}
+    for name, version in contexts:
+        line = cascade.version_line(name)
+        if line and version:
+            in_golden.setdefault(line, set()).add(version)
+    for line, versions in sorted(in_golden.items()):
+        table = registry.get(line) or {}
+        newest = newest_live(table)
+        for v in sorted(versions, key=_vkey):
+            if table and v not in table and not any(v.startswith(k + '.') for k in table):
+                out.append({'fixture': 'test/test_golden.py CONTEXTS', 'line': line,
+                            'message': f'{line} {v} is not in the registry'})
+        if newest and newest not in versions and not any(v.startswith(newest + '.') for v in versions):
+            out.append({'fixture': 'test/test_golden.py CONTEXTS', 'line': line,
+                        'message': f'{line}: newest released {newest} has no golden context '
+                                   f"(has {', '.join(sorted(versions, key=_vkey))})"})
+    for manager, block_name, version in namesweep.MANAGERS:
+        line = cascade.version_line(block_name)
+        newest = newest_live(registry.get(line) or {}) if line else None
+        if newest and version and version != newest:
+            out.append({'fixture': 'tools/namesweep.py MANAGERS', 'line': line,
+                        'message': f'{manager} sweeps {block_name} {version}; newest released is '
+                                   f'{newest} (osaudit sweep covers every live release)'})
+    for path in sorted((ROOT / 'test').glob('Containerfile*')):
+        text = path.read_text(encoding='utf-8')
+        for m in re.finditer(r'^(?:ARG\s+(\w+)=(\S+)|FROM\s+(\S+))', text, re.M):
+            ref = m.group(2) or m.group(3)
+            out.append({'fixture': str(path.relative_to(ROOT)), 'line': None,
+                        'message': f"base: {m.group(1) + '=' if m.group(1) else 'FROM '}{ref}",
+                        'info': True})
+    return out
+
+
+# -- CLI ----------------------------------------------------------------------------------------
+
+def _emit(data, as_json, render):
+    if as_json:
+        print(json.dumps(data, indent=2, sort_keys=False))
+    else:
+        render(data)
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog='osaudit', description=__doc__.split('\n\n')[0])
+    sub = parser.add_subparsers(dest='cmd', required=True)
+    p = sub.add_parser('releases')
+    p.add_argument('lines', nargs='*')
+    p.add_argument('--today', default=datetime.date.today().isoformat())
+    p = sub.add_parser('delta')
+    p.add_argument('line')
+    p.add_argument('old')
+    p.add_argument('new')
+    p = sub.add_parser('pinned')
+    p.add_argument('lines', nargs='*')
+    p.add_argument('--all', action='store_true', help='also list plain lower bounds (`>= N`)')
+    p = sub.add_parser('repos')
+    p.add_argument('line')
+    p.add_argument('release')
+    p = sub.add_parser('sweep')
+    p.add_argument('line')
+    p.add_argument('releases', nargs='*')
+    sub.add_parser('fixtures')
+    for sp in sub.choices.values():
+        sp.add_argument('--json', action='store_true')
+    args = parser.parse_args(argv)
+
+    cascade, components = load()
+
+    if args.cmd == 'releases':
+        registry = {k: v for k, v in lines(cascade).items() if not args.lines or k in args.lines}
+        stale = [f for f in staleness(cascade, args.today, components)
+                 if not args.lines or f['line'] in args.lines]
+
+        def render(_d):
+            for line, table in registry.items():
+                print(f'{line}:' + ('' if table else '  (no registry)'))
+                for version, rel in table.items():
+                    facts = '  '.join(f'{k}={rel[k]}' for k in rel if k != 'status')
+                    print(f"  {version:8} {rel.get('status', '?'):10} {facts}")
+            for f in stale:
+                print(f"! {f['message']}")
+        _emit({'lines': registry, 'stale': stale}, args.json, render)
+        return 0
+
+    if args.cmd == 'delta':
+        data = delta(args.line, args.old, args.new)
+
+        def render(d):
+            print(f"{d['line']} {d['old']} -> {d['new']}: {len(d['lost'])} lost, "
+                  f"{len(d['gained'])} gained, {len(d['changed'])} changed, "
+                  f"{sum(len(v) for v in d['follows'].values())} following a dependency")
+            for n, units in d['lost'].items():
+                print(f'  lost     {n}: {units}')
+            for n, units in d['gained'].items():
+                print(f'  gained   {n}: {units}')
+            for n, ch in d['changed'].items():
+                print(f"  changed  {n}: {ch['old'] or '(nothing of its own)'}  ->  "
+                      f"{ch['new'] or '(nothing of its own)'}")
+            for dep, comps in sorted(d['follows'].items()):
+                print(f"  follows  {dep}: {len(comps)} component(s) change only through it "
+                      f"({', '.join(comps[:6])}{' …' if len(comps) > 6 else ''})")
+        _emit(data, args.json, render)
+        return 0
+
+    if args.cmd == 'pinned':
+        data = pinned(cascade, components, set(args.lines) or None, args.all)
+
+        def render(d):
+            for f in d:
+                covers = ', '.join(f['covers']) or 'none'
+                where = f" via:{f['via']} when:\"{f['when']}\"" if f['when'] else ''
+                print(f"{f['kind']:16} {f['line']:10} {f['component']}{where}  covers {covers}"
+                      f"  (newest {f['newest']})")
+        _emit(data, args.json, render)
+        return 0
+
+    if args.cmd == 'repos':
+        data = repos(cascade, components, args.line, args.release)
+
+        def render(d):
+            for f in d:
+                state = 'ok ' if f['ok'] else 'BAD'
+                detail = f['url'] or ''
+                extra = f" ({f['status'] or f['error']})" if not f['ok'] else ''
+                print(f"{state} {f['kind']:16} {f['component']}: {detail}{extra}")
+            bad = sum(1 for f in d if not f['ok'])
+            print(f'\n{len(d)} release-dependent sources, {bad} not OK')
+        _emit(data, args.json, render)
+        return 1 if any(not f['ok'] for f in data) else 0
+
+    if args.cmd == 'sweep':
+        data = sweep(cascade, args.line, args.releases or None)
+
+        def render(d):
+            if 'error' in d:
+                print(d['error'])
+                return
+            for version, res in d['releases'].items():
+                if 'error' in res:
+                    print(f'{version}: {res["error"]}')
+                    continue
+                print(f"{version}: {res['checked']} checked in {res['image']}, "
+                      f"{len(res['missing'])} missing")
+                for pkg, comps in sorted(res['missing'].items()):
+                    print(f"  missing  {pkg}  ({', '.join(comps)})")
+            for pkg, b in sorted(d['boundaries'].items()):
+                print(f"boundary {pkg}: missing on {', '.join(b['missing_on'])}, present on "
+                      f"{', '.join(b['present_on'])}  ({', '.join(b['components'])})")
+        _emit(data, args.json, render)
+        if 'error' in data:
+            return 2
+        return 1 if any(r.get('missing') for r in data['releases'].values()) else 0
+
+    if args.cmd == 'fixtures':
+        data = fixtures(cascade)
+
+        def render(d):
+            for f in d:
+                print(f"{'info' if f.get('info') else 'stale'}  {f['fixture']}: {f['message']}")
+        _emit(data, args.json, render)
+        return 0
+    return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main())
