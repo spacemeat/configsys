@@ -1,6 +1,6 @@
 ---
 name: add-component
-description: Playbook for adding one or more components to configsys routes.hu across the full OS/driver matrix — a comprehensive row of install methods (native + fallbacks) available everywhere it can be, optional build-from-source in the configsys-source plugin, profile placement, validation, and the podman sweep/real-install tests. Use whenever adding/expanding components or when the user says "/add-component <names...>", "add these tools", or asks to route a package across distros. Two special cases have their own sub-playbooks in this skill dir (dispatch below): adding an OS block (os-block.md) and adding a new shell (add-shell.md).
+description: Playbook for adding one or more components to configsys routes.hu across the full OS/driver matrix — a comprehensive row of install methods (native + fallbacks) available everywhere it can be, optional build-from-source in the configsys-source plugin, profile placement, validation, and the podman sweep/real-install tests. Use whenever adding/expanding components or when the user says "/add-component <names...>", "add these tools", or asks to route a package across distros. Adding an OS is its own skill (/add-os; a new OS release is /update-os); adding a new shell has a sub-playbook in this skill dir (add-shell.md).
 ---
 
 # add-component — routing new components across the OS matrix
@@ -15,15 +15,21 @@ gaps — so the component *resolves* on every base OS, or declines honestly wher
 
 ---
 
-## Dispatch: two special cases have their own sub-playbook
+## Dispatch: the special cases
 
-Most requests are ordinary components — stay in this file. But **two kinds are handled differently;
-when the request is one of them, read that file in this skill's directory and follow it instead of
-the steps below** (they're kept separate so this playbook stays about routing a normal tool):
+Most requests are ordinary components — stay in this file. But **these are handled differently;
+when the request is one of them, follow that playbook instead of the steps below** (they're kept
+separate so this playbook stays about routing a normal tool):
 
 - **Adding an OS block** — a distro/environment in routes.hu's `os:` section (a Debian/Fedora/Arch
   derivative, a corporate or immutable distro, an alt-libc target). It's lineage + package manager +
-  version scale + detection, not a `via:` row. → read **`os-block.md`**.
+  version scale + detection + its release registry, not a `via:` row. → the **`/add-os`** skill
+  (`.claude/skills/add-os/SKILL.md`).
+- **A new release of a known OS** (Fedora 45, Ubuntu 26.10) — what it dropped, renamed or newly
+  packages across the whole catalog, its per-release repos, the release-pinned bindings that stop
+  short of it. → the **`/update-os`** skill (`.claude/skills/update-os/SKILL.md`). A component you
+  add here still states its own release gates (`when: "fedora >= 43"` where Fedora started
+  packaging it); /update-os keeps them true as releases come and go.
 - **Adding a new shell** — a shell (elvish, xonsh, oil, tcsh, …) that needs glue snippets and a
   `conf.d` loader wired the way bash/zsh/fish are. It's an ordinary component PLUS glue-driver +
   content wiring. → read **`add-shell.md`** (it points back here for the component's own routing).

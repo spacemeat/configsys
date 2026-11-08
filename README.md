@@ -777,8 +777,9 @@ release (the release registry in routes.hu) — what a new release loses, gains 
 per-release repos, and a name sweep of every live release — and `docaudit.py`
 checks the docs against the code and renders the Glossary below from `docs/glossary.hu`. If you
 use Claude Code, `.claude/skills/` has playbooks for the common jobs: `/add-component`,
-`/update-component`, `/add-driver`, `/update-docs` and `/review-code` (a full code review that
-ends in the chosen fixes and a docs pass); `test/test_driver_inventory.py` fails until a new driver
+`/update-component`, `/add-os`, `/update-os` (a new OS release, with the older ones kept
+correct), `/add-driver`, `/update-docs` and `/review-code` (a full code review that ends in the
+chosen fixes and a docs pass); `test/test_driver_inventory.py` fails until a new driver
 is wired through everything `/add-driver` lists.
 
 ## Glossary

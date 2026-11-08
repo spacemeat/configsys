@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: The full configsys code review — the September 2026 review (docs/review-2026-09/) made repeatable. Fans out one high-effort reviewer per AREA of the tree (areas.hu) plus cross-cutting security and CLI/TUI-parity reviewers, all applying the user's lens set (reuse, MVVM/data-driven presentation, comment drift, naming, performance, tests, dead code, security, refactors, parity/features, ABI); verifies every serious finding adversarially; chains /update-component for the component catalog; writes a dated docs/review-YYYY-MM/ with ranked tiers; lets the user choose what to fix; applies the chosen fixes with tests; and finishes with /update-docs so the docs describe the fixed code. Use when the user says "/review-code", "review the code", "do a full code review", or asks to resume one ("/review-code status", "/review-code apply A3 B1").
+description: The full configsys code review — the September 2026 review (docs/review-2026-09/) made repeatable. Fans out one high-effort reviewer per AREA of the tree (areas.hu) plus cross-cutting security and CLI/TUI-parity reviewers, all applying the user's lens set (reuse, MVVM/data-driven presentation, comment drift, naming, performance, tests, dead code, security, refactors, parity/features, ABI); verifies every serious finding adversarially; chains /update-os (OS releases) then /update-component (the component catalog); writes a dated docs/review-YYYY-MM/ with ranked tiers; lets the user choose what to fix; applies the chosen fixes with tests; and finishes with /update-docs so the docs describe the fixed code. Use when the user says "/review-code", "review the code", "do a full code review", or asks to resume one ("/review-code status", "/review-code apply A3 B1").
 ---
 
 # review-code — review everything, fix what the user chooses, make the docs true
@@ -14,7 +14,7 @@ exercise. This skill makes that review repeatable and complete:
 Phase 0  preflight      clean tree, baseline health, area-map coverage, the earlier review
 Phase 1  review         one reviewer per area + security + parity          (fan-out, read-only)
 Phase 2  verify         an adversarial checker per area for serious findings (fan-out, read-only)
-Phase 3  components     /update-component, phases 0–3 (report only)        (its own fan-out)
+Phase 3  OS + catalog   /update-os *, then /update-component — report only (their own fan-outs)
 Phase 4  synthesize     docs/review-YYYY-MM/README.md: themes, ranked tiers; commit the review
 Phase 5  decide         the user picks tiers / items; policy questions asked
 Phase 6  apply          serially, test-first, one commit per item; plan docs for the big ones
@@ -22,9 +22,11 @@ Phase 7  docs           /update-docs, last, so the docs describe the fixed code
 Phase 8  close out      progress, INDEX, memory, the final report
 ```
 
-It composes the other maintenance skills instead of copying them: **`/update-component`**
+It composes the other maintenance skills instead of copying them: **`/update-os`**
+(`.claude/skills/update-os/SKILL.md`) owns OS releases, **`/update-component`**
 (`.claude/skills/update-component/SKILL.md`) owns the component catalog, **`/update-docs`**
-(`.claude/skills/update-docs/SKILL.md`) owns every doc surface. When those playbooks change, this
+(`.claude/skills/update-docs/SKILL.md`) owns every doc surface. Order matters: OS releases before
+components (a tool is judged against a current OS layer), every fix before docs. When those playbooks change, this
 skill inherits the change.
 
 ## Arguments
@@ -38,7 +40,8 @@ skill inherits the change.
 | `/review-code apply <IDs \| tier letters>` | resume the latest review at Phase 6 (`apply A3 B1 B4`, `apply C`), then Phases 7–8 |
 
 Flags: `--model opus|fable|sonnet` (the reviewer + checker model, default **opus**);
-`--no-components` (skip Phase 3); `--no-docs` (skip Phase 7); `--plugins` (also audit each plugin
+`--no-os` (skip Phase 3's `/update-os`); `--no-components` (skip Phase 3's
+`/update-component`); `--no-docs` (skip Phase 7); `--plugins` (also audit each plugin
 repo's components in Phase 3 and run `/update-docs plugins` in Phase 7); `--report-only` (stop after
 Phase 5's report — no apply, no docs).
 
@@ -273,17 +276,28 @@ a false CRITICAL costs trust. For every area with at least one CRITICAL or HIGH 
 > "severity_now", "evidence"}]}`. Reply with one line: `{AREA}: <n> checked, <c> confirmed, <p>
 > plausible, <r> refuted, <s> severity changed`.
 
-## Phase 3 — the component catalog (`/update-component`, report only)
+## Phase 3 — OS releases, then the component catalog (report only)
 
-Unless `--no-components`: read `.claude/skills/update-component/SKILL.md` and run its **Phases 0–3**
-for scope `*` (plus `<plugin>/*` for each plugin repo with `--plugins`), with three changes:
+**3a. `/update-os *`** (unless `--no-os`): read `.claude/skills/update-os/SKILL.md` and run its
+**Phases 0–6** for every registered line, with these changes:
+- don't ask its apply question — its findings join this review's Phase 5;
+- write its report to `$REV/os-releases.md`;
+- its Phase 7–8 (apply, prove older releases unchanged, commit) run inside this skill's Phase 6;
+- a new or pre-release found upstream (its Phase 0 step 3) is in scope; its registry entry is a
+  finding like any other.
+Its offline phases (`osaudit releases`/`pinned`/`delta`) take seconds; start the podman sweeps
+while Phase 1 runs.
+
+**3b. `/update-component`** (unless `--no-components`): read
+`.claude/skills/update-component/SKILL.md` and run its **Phases 0–3** for scope `*` (plus
+`<plugin>/*` for each plugin repo with `--plugins`), with three changes:
 - don't ask its apply question at the end of its Phase 3 — its findings join this review's Phase 5;
 - copy its `report.md` to `$REV/components.md` (its run dir is in the scratchpad);
 - its Phases 4–6 (apply, validate, record + commit) run inside this skill's Phase 6, for the
   findings the user approves.
 Its GitHub-token check still applies, and a whole-scope run asks before continuing without a token.
 Start its mechanical scan (`compaudit.py scan`) while Phase 1 runs; its subagents launch in the
-waves after the reviewers.
+waves after the reviewers. A component finding that is really a release boundary defers to 3a's.
 
 ## Phase 4 — synthesize (you)
 
@@ -312,7 +326,8 @@ The brief: <the user's brief, verbatim>
 ## 3. Act-on-these, ranked               (Tier A … G; each item one line + a short paragraph)
    - **A1 [HIGH] <title>.** <what, why, fix>. (security-03, plugins-05) · effort M · [open]
 ## 4. Test gaps
-## 5. The component catalog              (counts + every broken/drift item; detail in components.md)
+## 5. OS releases and the catalog        (registry changes, release fixes, components broken/drift;
+                                          detail in os-releases.md and components.md)
 ## 6. Suggested sequencing
 ## 7. Decisions needed from you
 ```
@@ -340,15 +355,17 @@ README as a page in one line if the user would rather read it there. Then ask wi
 `AskUserQuestion`:
 - the policy decisions first (trust-model direction, an interface break, a removal) — one question
   each, the recommended option first;
-- then what to apply: tiers (multi-select), with "specific IDs" via Other, and the component
-  findings ("all broken + drift", numbers, none).
+- then what to apply: tiers (multi-select), with "specific IDs" via Other, the OS-release findings
+  ("all broken + corrections + gaps", numbers, none) and the component findings ("all broken +
+  drift", numbers, none).
 
 With `--report-only`, stop here.
 
 ## Phase 6 — apply (serially, by you)
 
 Never let subagents edit in parallel — they collide. Order: what the user chose, in tier order
-A → B → C → G → D → F, the component findings, then Phase 7. Bundle a Tier F interface change into
+A → B → C → G → D → F, then the OS-release findings (`/update-os` Phases 7–8 — they prove older
+releases unchanged), then the component findings, then Phase 7. Bundle a Tier F interface change into
 the refactor that touches the same surface, so it is one break.
 
 For each item:
@@ -372,6 +389,9 @@ For each item:
 what each delivers, the tests that prove it — show the user, and build phase by phase only on their
 go (the way the primary-push plan was built). Mark the README item `[plan → docs/todo/<slug>-plan.md]`
 until it lands.
+
+**OS-release findings:** `/update-os`'s Phases 7–8 (apply release-scoped, `osaudit compare` against
+its before-snapshot, sweep again, commit), for the approved findings only.
 
 **Component findings:** `/update-component`'s Phases 4–6 (apply, validate, record + commit), for the
 approved findings only.
@@ -409,8 +429,10 @@ The run dir is gone by then; the review dir is the state.
 
 ## Cost
 
-A full run is large: 16 reviewers at xhigh / max, up to 16 checkers at max, the component audit (a
-first full catalog run is ~44 agents; later runs are incremental via its ledger), and `/update-docs`
-(~25–35 agents). `--since`, `--areas`, `--no-components` and `--no-docs` trim it. Record the model
+A full run is large: 16 reviewers at xhigh / max, up to 16 checkers at max, `/update-os *` (mostly
+tool time: ~1–3 min of podman per live release, plus a lifecycle harness per new release), the
+component audit (a first full catalog run is ~44 agents; later runs are incremental via its
+ledger), and `/update-docs` (~25–35 agents). `--since`, `--areas`, `--no-os`, `--no-components`
+and `--no-docs` trim it. Record the model
 and efforts in the README header every run, so reviews made with different `--model` values can be
 compared on their refute rates.

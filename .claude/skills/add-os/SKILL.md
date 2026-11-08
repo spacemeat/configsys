@@ -1,16 +1,28 @@
-# Adding an OS block — routes.hu `os:` section
+---
+name: add-os
+description: Playbook for adding an OS to configsys — a new distro, derivative or environment as a routes.hu `os:` block (lineage, package manager, version numbering, detection, provided capabilities) plus, for a versioned line, its release registry (`releases:`) and sweep setup. Use when the user says "/add-os <distro>", asks to support a new distro/derivative/immutable or musl environment, or /add-component's dispatch sends an OS block here. A NEW RELEASE of an OS configsys already knows (Fedora 45, Ubuntu 26.10) is /update-os, not this.
+---
+
+# add-os — a new OS block (routes.hu `os:` section)
 
 An **OS block** is not a component. It's an entry in routes.hu's `os:` section that teaches configsys
-about a distro/environment: its lineage, its package manager, its version numbering, and the
-capabilities it provides for free. Components then route onto it through `when:` atoms and `via:
-native`. Read this instead of the main component steps when the user is adding a distro/OS (a new
-Debian/Fedora/Arch derivative, a corporate distro, an immutable/atomic environment, an alt-libc
-target). The authoritative model is `docs/routing-model.md` + the routing section of CLAUDE.md.
+about a distro/environment: its lineage, its package manager, its version numbering, the
+capabilities it provides for free, and — for a versioned line — which releases exist (the release
+registry). Components then route onto it through `when:` atoms and `via: native`. Use this when the
+user is adding a distro/OS (a new Debian/Fedora/Arch derivative, a corporate distro, an
+immutable/atomic environment, an alt-libc target). The authoritative model is
+`docs/routing-model.md` §6 + the routing section of CLAUDE.md.
+
+**Not this skill:** a new release of a line configsys already has (Fedora 45, Ubuntu 26.10,
+Alpine 3.25) is **`/update-os <line> <release>`** (`.claude/skills/update-os/SKILL.md`) — it fills
+the release's registry entry, sweeps it, and closes the gaps while keeping the older releases
+correct. Once a block you add here has a registry, `/update-os` maintains it.
 
 ## The shape of a block
 
 ```
-<name>: { using: <parent>  [native: <mgr>]  [scale-root: true]  [provides: <caps>]  [detect: {…}] }
+<name>: { using: <parent>  [native: <mgr>]  [scale-root: true]  [provides: <caps>]  [detect: {…}]
+          [releases: { <VERSION_ID>: { status: …  … } }] }
 ```
 
 - **`using: <parent>`** — single-parent lineage. Everything cascades: the parent's `native:`,
@@ -34,6 +46,8 @@ target). The authoritative model is `docs/routing-model.md` + the routing sectio
   per its image's package lists). Add one only when the environment genuinely ships the capability.
 - **`detect: { id: <base>  marker: <path|[paths]> }`** — see *Runtime detection* below; only for a
   derivative that does NOT rebrand `/etc/os-release`.
+- **`releases:`** — the release registry; only on the block that OWNS a version line (see *The
+  release registry* below).
 
 ## The libc axis (orthogonal to family)
 
@@ -86,6 +100,41 @@ name for pins/overrides) with zero routing change. Add `scale-root: true` **iff*
 releases. Add a `native:` only if the manager differs. That's usually the whole job — most of the
 `os:` section is these one-liners with a `//` comment naming the distro and its numbering.
 
+## The release registry — `releases:` on the line owner
+
+Every **versioned line** carries its releases, so "which releases do we support" has one answer
+that the maintenance tools sweep (`tools/osaudit.py`; docs/routing-model.md §6). The owner is the
+block `OsCascade.version_line` names: a scale-root, or a block with no scale-root above it that
+declares `releases:` (alpine). A borrower (`pop_os!`, `nobara`, `rocky`) declares nothing — it reads
+its parent's table; an own-numbering derivative (`linuxmint`, `zorin`) gets its OWN table, never
+its parent's. Rolling blocks (arch, tumbleweed, void, kali) have none.
+
+```
+fedora: { using: redhat  scale-root: true
+    releases: {
+        42: { status: released  released: 2025-04-15  eol: <date>  image: "docker.io/library/fedora:42"
+              glibc: 2.41  python3: 3.13  gcc: 15  manager: "dnf5 version 5.2.x" }
+        45: { status: prerelease  image: "docker.io/library/fedora:45"  … }
+    } }
+```
+
+- **Keys** are the VERSION_ID os-release reports (`22.04`, `13`, `3.24`; EL by its major, `9`).
+- **`status:`** (required) `prerelease` / `released` / `eol`. List every release still in use
+  (released and supported upstream), the next one once it has a branched image, and recently EOL'd
+  ones the routes still mention (`status: eol`) — an EOL release keeps its gates and stays
+  routable; it just isn't swept.
+- **Facts** — read them from the release's own image, never from memory:
+  `.venv/bin/python tools/osaudit.py facts <line> <release> --image <image>` prints VERSION_ID,
+  codename, glibc, the repo's python3 / gcc and the package-manager version, plus a paste-ready
+  entry. Dates (`released`, `eol` — YYYY-MM-DD) come from the distro's own lifecycle page (or
+  `https://endoflife.date/api/<product>.json`); `codename:` is required for apt lines (PPAs and
+  `$CODENAME` source lines are probed with it); `image:` is a fully qualified reference
+  (`docker.io/library/…`) — without one the release can't be swept.
+- **Sweepable?** `tools/osaudit.py sweep` needs a container-side repo setup for the line in
+  `osaudit._SETUPS` (enable the repos its routes assume: universe, EPEL + CRB, RPM Fusion, Alpine
+  community, …). Add one for a new line with an image; a line with no public image (most
+  desktop derivatives) is simply not swept — say so.
+
 ## Where it lives — base vs plugin
 
 - Core/mainstream distro → base **routes.hu** `os:` section (live immediately).
@@ -101,7 +150,9 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
 2. **Decide `scale-root`.** Does it number releases with its OWN scheme, or share the parent's exact
    numbers, or roll? Own scheme → `scale-root: true`. This is the one you must not get wrong.
 3. **Write the block** next to its siblings, with a one-line `//` comment (distro, numbering, why any
-   `native:`/`scale-root:`/`provides:`). Declare `native:`/`provides:` only where they change.
+   `native:`/`scale-root:`/`provides:`). Declare `native:`/`provides:` only where they change. If
+   it owns a version line, add its `releases:` (above) — every live release, facts from
+   `osaudit facts`.
 4. **Wire detection** (only if needed): name == ID (nothing), else an `_ALIASES` entry, else a
    `detect:` marker. If you fold it into an existing block instead of giving it its own, that's an
    alias, not a block.
@@ -113,12 +164,16 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
    go native-less (above) rather than inheriting broken names.
 6. **Validate:**
    - `.venv/bin/python -m configsys --os <block> check` → 0 errors; also run the existing spread
-     (SKILL.md step 7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl) so a
-     shared-parent edit didn't regress them.
+     (add-component SKILL.md §7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl)
+     so a shared-parent edit didn't regress them. `check` also lints the `releases:` shape
+     (`os-release` warnings) — none allowed.
    - Resolve sweep on the new atom: force `--os <block>` (`--os <block>:<version>` for a versioned
      block — without one, every version condition reads false) and confirm a handful of components resolve
-     to the method a human would pick there (the `reschk.py` pattern in SKILL.md, with your block in
-     the OS list).
+     to the method a human would pick there (the `reschk.py` pattern in add-component SKILL.md, with
+     your block in the OS list). For a versioned line, `tools/osaudit.py releases <block>` shows the
+     registry with no staleness warnings, and `tools/osaudit.py sweep <block>` (when it has an
+     image + setup) is the name sweep across its live releases — it supersedes the single-release
+     sweep below for that line.
    - **Name-existence sweep** for the manager (podman): `bash test/run-name-sweep-in-podman.sh
      <manager>` — the cheapest catch for native-name drift on the new OS.
    - Golden gate: `CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q`, then
@@ -130,8 +185,8 @@ releases. Add a `native:` only if the manager differs. That's usually the whole 
      asserting your ID/marker/alias maps to the block, and (if `scale-root`) that a versioned parent
      atom does NOT bind on it.
    - Full suite: `.venv/bin/python -m pytest test/ -q`.
-7. **Commit locally** (base identity + trailer, per SKILL.md step 10). Note the block, its lineage,
-   scale-root decision, and detection mechanism in the message.
+7. **Commit locally** (base identity + trailer, per add-component SKILL.md step 10). Note the block,
+   its lineage, scale-root decision, detection mechanism and registered releases in the message.
 
 ## Gotchas
 

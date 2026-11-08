@@ -24,7 +24,7 @@ candidate set — driver gates — and selection by `standing:` / driver-prefere
 A driver is a distinct install MECHANISM — its own install/uninstall/version/lock verbs. Not a
 driver: a new upstream (that's a `version:` source — `versions.register_source` / `_BUILTIN_KINDS`),
 a new download shape (a `tarball`/`appImage`/`native-pkg-file` field), a new OS using an existing
-manager (an `os:` block — add-component's `os-block.md`), one tool's odd installer (`via: script`),
+manager (an `os:` block — the `/add-os` skill), one tool's odd installer (`via: script`),
 a source build (`via: source`, or a plugin driver like blender's when the build is substantial).
 
 Core or plugin? **Core** for anything general (a package manager, an ecosystem installer).
@@ -137,7 +137,8 @@ Everything in §2–3, plus:
 - Subclass `NativePkgManager` (INSTALL/REMOVE/UPGRADE templates, `ENV`, `ensure_prereqs` for vendor
   repos/keys); honor `name:` maps keyed by this driver and `installed-name:` (`_native.installed_name`)
   and `packages:` lists.
-- The OS block (`native: <name>`) — add-component's `os-block.md`; the add-component matrix table.
+- The OS block (`native: <name>`) — the `/add-os` skill; the add-component matrix table; and, for a
+  versioned line, a sweep setup in `tools/osaudit.py` `_SETUPS` + a facts snippet in `_FACTS`.
 - **Required hooks** (the inventory test checks them): `installed_index`, `upgradable_index`,
   `upgrade_all`, `explicit_keys`. A gap you accept goes in `KNOWN_GAPS` there, with why.
 - **A refresh style — exactly one of:** `app._NATIVE_REFRESH`, an index-only refresh that is safe

@@ -12,6 +12,16 @@ skill finds that drift and fixes what the user approves. It is the maintenance c
 playbook's house rules (`when:` is validity only, a `description:` + `attrs:` on every real
 component, a one-line comment on non-obvious gating, plugin data in the plugin's own repo).
 
+**Release-level drift is `/update-os`'s, and runs first.** What a new OS release dropped, renamed or
+newly packages across the WHOLE catalog, the release-pinned bindings that stop short of it, and its
+per-release repos are found by `/update-os` (`.claude/skills/update-os/SKILL.md`: a per-release
+podman sweep of every live release, arrivals, `osaudit pinned`/`repos`). Run it before this skill
+when an OS release has landed since the last audit (`tools/osaudit.py releases` shows the
+registry), so you audit tools against a current OS layer. Here, a tool's own gating is still in
+scope — its glibc floor, its arch builds, a distro newly packaging THIS tool that your research
+finds — and a finding that is really a release boundary is reported as `note` pointing at
+/update-os.
+
 Two halves:
 - **Mechanical** — `tools/compaudit.py`: enumerates the scope, groups each component with its
   companions (`-dotfiles`/`-glue`/`-service`/`-group`) into one *unit*, and probes upstreams with a
@@ -138,6 +148,8 @@ or flagged by a probe this run. Everything is still probed every run (it's cheap
 >    prereleases-only projects).
 > 4. **Gating** — upstream's glibc floor rose (a binary now needs newer glibc → narrow `when:`)?
 >    new arch builds (aarch64)? a distro newly packages it (widen a native `when:`) or dropped it?
+>    (A drop or arrival at one specific OS RELEASE is /update-os's per-release sweep — report it as
+>    a `note` naming the release, don't hand-gate it here.)
 >    musl builds appeared/disappeared? Remember `when:` states validity only, never preference —
 >    and never restates a driver gate: aur is Arch-only, brew glibc-only, and appImage/snap/pyenv
 >    drop out wherever their own `requires:` can't be met (musl, no libfuse2, no snapd), so a

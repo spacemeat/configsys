@@ -71,7 +71,10 @@ the full spec). Its sections:
   aren't candidates there and components fall through to flatpak/tarball/cargo/…), version
   `scale-root:` markers, `provides:` (capabilities baseline in that environment: `linux` provides
   python3, `glibc_linux` provides glibc), optional `detect:` (id + on-disk marker refinement,
-  osdetect.py), and an optional per-OS `driver-preference:`.
+  osdetect.py), an optional per-OS `driver-preference:`, and — on the block that owns a version
+  line (`OsCascade.version_line`) — `releases:`, the release registry (`{ <VERSION_ID>: { status:
+  prerelease|released|eol  image  codename  glibc  python3  gcc  manager … } }`; maintenance-only,
+  the resolver doesn't read it; swept by `tools/osaudit.py`, linted by `check` as `os-release`).
 - `drivers:` — per-driver config: each driver's inherent `requires:`, closed for every binding of
   that via (e.g. appImage->[libfuse2, glibc], flatpak->flatpak, cargo->cargo, tarball->curl,
   source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
@@ -338,10 +341,16 @@ clone-first.)
   `test/run-name-sweep-in-podman.sh`) checks native package names exist per distro, in podman
   containers (brew has no container repo — `namesweep.UNSWEPT`; `compaudit`'s `probe_brew` checks
   its formulae against formulae.brew.sh, flagging missing/alias/renamed/deprecated/keg-only).
+- `/add-os` (a new distro / derivative / environment: lineage, numbering, detection, its release
+  registry) and `/update-os` (a new or pre-release of a known line, plus re-verifying every live
+  older one: `tools/osaudit.py` facts from the image, `delta`/`pinned` offline, a per-release podman
+  name sweep with arrivals, per-release repos/PPAs, driver lifecycle via the release-selectable
+  harnesses, `snapshot`/`compare` proving older releases unchanged; EOL releases frozen, not swept).
+  Run `/update-os` before `/update-component`.
 - `/review-code` is the full code review (the 2026-09 review, `docs/review-2026-09/`, made
   repeatable): one reviewer per area of `.claude/skills/review-code/areas.hu` (+ cross-cutting
   security and CLI/TUI parity) under the user's lens brief, an adversarial checker for every serious
-  finding, `/update-component` for the catalog, a dated `docs/review-YYYY-MM/` with ranked tiers
+  finding, `/update-os` then `/update-component` (report only), a dated `docs/review-YYYY-MM/` with ranked tiers
   whose `[open]`/`[done <commit>]` tags are its ledger, the user's chosen fixes applied test-first,
   then `/update-docs` last. `tools/reviewaudit.py coverage` lists files no area owns.
 

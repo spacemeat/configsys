@@ -1,7 +1,8 @@
 # OS releases: a registry, `/add-os`, `/update-os`
 
-> **Status: IN PROGRESS** — phases 1–3 being built 2026-11-07; phase 4 (the first `/update-os
-> fedora 45` run) and phase 5 (engine uses) not started.
+> **Status: IN PROGRESS** — phases 1–3 done 2026-11-07 (9a9b0c6, d0afa5e, 23f40f0 + the skills
+> commit); phase 4 (populate the registry; the first `/update-os fedora 45` run) and phase 5
+> (engine uses) not started.
 
 ## Why
 
@@ -45,7 +46,11 @@ expressions, the golden's fixed contexts (`test/test_golden.py` `CONTEXTS`), con
    an exact release on the line, and the releases each covers — the gaps a new release falls
    into), `repos LINE RELEASE` (probe per-release repo URLs, PPAs and codename source lines),
    `sweep LINE [RELEASE…]` (the podman name sweep per release, reusing namesweep), `fixtures` (the
-   golden contexts, namesweep defaults and Containerfile defaults vs the registry).
+   golden contexts, namesweep defaults and Containerfile defaults vs the registry). Built with
+   three more: `facts LINE RELEASE` (a release's facts read from its own image), `snapshot` /
+   `compare` (proof that older releases resolve as before), and arrivals in the sweep (packages
+   now in a release's repos for components that don't route natively there). The apt and dnf
+   lifecycle harnesses take a release (`BASE=` / `FEDORA=`).
 3. **Skills** — `/add-os` (from os-block.md, plus the registry entry), `/update-os`, the
    add-component dispatch, `/update-component`'s scope note, `/review-code`'s chain; CLAUDE.md,
    README.
