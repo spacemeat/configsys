@@ -160,13 +160,16 @@ def staleness(cascade, today, components=None):
     swept. With `components`, also every block a `when:` compares versions on that owns no line
     (alpine before it declares `releases:`).'''
     out = []
+    compared = None                     # the lines some `when:` compares versions on (with components)
     if components:
-        unlined = set()
+        unlined, compared = set(), set()
         for comp in components.values():
             for binding in comp.bindings:
                 for atom in _versioned_atoms(binding.pred):
                     if atom.name in cascade.blocks and cascade.version_line(atom.name) is None:
                         unlined.add(atom.name)
+                    elif atom.name in cascade.blocks:
+                        compared.add(cascade.version_line(atom.name))
         for block in sorted(unlined):
             out.append({'line': block, 'kind': 'no-registry',
                         'message': f'{block}: `when:` compares its versions, but it has no '
@@ -174,6 +177,12 @@ def staleness(cascade, today, components=None):
     import namesweep
     for line, table in lines(cascade).items():
         sweepable = cascade.native(line) in namesweep._CHECK    # brew lines are compaudit's
+        if not table and compared is not None and line not in compared:
+            # a scale-root kept only so no parent's versioned atom misreads its VERSION_ID (kde_linux's
+            # build stamp, pikaos on Debian sid): no gate reads its versions, so no registry to keep
+            out.append({'line': line, 'kind': 'unversioned',
+                        'message': f'{line}: no `when:` compares its versions — no registry needed'})
+            continue
         if not table:
             out.append({'line': line, 'kind': 'no-registry',
                         'message': f'{line}: a versioned line with no `releases:` registry'})
@@ -785,8 +794,15 @@ def main(argv=None):
                 for version, rel in table.items():
                     facts = '  '.join(f'{k}={rel[k]}' for k in rel if k != 'status')
                     print(f"  {version:8} {rel.get('status', '?'):10} {facts}")
+            imageless = {}                       # one line per line: a derivative has no images at all
             for f in stale:
-                print(f"! {f['message']}")
+                if f['kind'] == 'no-image':
+                    imageless.setdefault(f['line'], []).append(f['release'])
+                    continue
+                print(f"{'·' if f['kind'] == 'unversioned' else '!'} {f['message']}")
+            for line, rels in imageless.items():
+                print(f"! {line} {', '.join(rels)}: live but no `image:` — the sweeps skip "
+                      + ('them' if len(rels) > 1 else 'it'))
         _emit({'lines': registry, 'stale': stale}, args.json, render)
         return 0
 

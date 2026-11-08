@@ -85,6 +85,14 @@ def test_staleness_flags_what_the_calendar_overtook(loaded):
     assert early == set()
 
 
+def test_a_line_no_gate_compares_needs_no_registry(loaded):
+    # a scale-root kept only to isolate its VERSION_ID (kde_linux's build stamp, pikaos on sid): with
+    # the components in hand, no `when:` reading its versions means informational, not a gap
+    cascade, components = loaded
+    kinds = {(f['line'], f['kind']) for f in oa.staleness(cascade, '2026-01-01', components)}
+    assert ('zorin', 'unversioned') in kinds and ('zorin', 'no-registry') not in kinds
+
+
 def test_delta_names_what_a_release_loses_gains_and_changes(loaded):
     d = oa.delta('fedora', '43', '44')
     assert set(d['lost']) == {'folly'}

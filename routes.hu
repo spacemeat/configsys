@@ -22,16 +22,69 @@
         // Mint and LMDE use their OWN numbers (Mint 21 = Ubuntu 22.04, different digits), so
         // each is its own scale-root — a versioned `ubuntu`/`debian` atom must NOT misfire on
         // them. Bare `ubuntu`/`debian` still match all of them (route inheritance by identity).
-        debian:    { using: glibc_linux  native: apt   scale-root: true }
-        ubuntu:    { using: debian    scale-root: true }
+        debian:    { using: glibc_linux  native: apt   scale-root: true
+            // The release registry (facts read from each image by `tools/osaudit.py facts`; dates from
+            // endoflife.date). EOL releases keep their gates; /update-os sweeps only the live ones.
+            releases: {
+                11: { status: eol  released: 2021-08-14  eol: 2026-08-31  codename: bullseye  image: "docker.io/library/debian:11"  glibc: 2.31  python3: 3.9  gcc: 10  manager: "apt 2.2.4"  note: "python3 3.9 is below configsys's 3.10 floor" }
+                12: { status: released  released: 2023-06-10  eol: 2028-06-30  codename: bookworm  image: "docker.io/library/debian:12"  glibc: 2.36  python3: 3.11  gcc: 12  manager: "apt 2.6.1" }
+                13: { status: released  released: 2025-08-09  eol: 2030-06-30  codename: trixie  image: "docker.io/library/debian:13"  glibc: 2.41  python3: 3.13  gcc: 14  manager: "apt 3.0.3" }
+            } }
+        ubuntu:    { using: debian    scale-root: true
+            // interim releases are EOL after 9 months; 23.04–24.10 images no longer reach their repos
+            releases: {
+                22.04: { status: released  released: 2022-04-21  eol: 2027-06-01  codename: jammy  image: "docker.io/library/ubuntu:22.04"  glibc: 2.35  python3: 3.10  gcc: 11  manager: "apt 2.4.14" }
+                23.04: { status: eol  released: 2023-04-20  eol: 2024-01-20  codename: lunar  image: "docker.io/library/ubuntu:23.04"  glibc: 2.37  manager: "apt 2.6.0ubuntu0.1" }
+                23.10: { status: eol  released: 2023-10-12  eol: 2024-07-12  codename: mantic  image: "docker.io/library/ubuntu:23.10"  glibc: 2.38  manager: "apt 2.7.3ubuntu0.1" }
+                24.04: { status: released  released: 2024-04-25  eol: 2029-05-31  codename: noble  image: "docker.io/library/ubuntu:24.04"  glibc: 2.39  python3: 3.12  gcc: 13  manager: "apt 2.8.3" }
+                24.10: { status: eol  released: 2024-10-10  eol: 2025-07-10  codename: oracular  image: "docker.io/library/ubuntu:24.10"  glibc: 2.40  manager: "apt 2.9.8ubuntu0.1" }
+                25.04: { status: eol  released: 2025-04-17  eol: 2026-01-17  codename: plucky  image: "docker.io/library/ubuntu:25.04"  glibc: 2.41  python3: 3.13  gcc: 14  manager: "apt 3.0.0" }
+                25.10: { status: eol  released: 2025-10-09  eol: 2026-07-01  codename: questing  image: "docker.io/library/ubuntu:25.10"  glibc: 2.42  python3: 3.13  gcc: 15  manager: "apt 3.1.6ubuntu2" }
+                26.04: { status: released  released: 2026-04-23  eol: 2031-05-29  codename: resolute  image: "docker.io/library/ubuntu:26.04"  glibc: 2.43  python3: 3.14  gcc: 15  manager: "apt 3.2.0" }
+                26.10: { status: released  released: 2026-10-15  eol: 2027-07-01  codename: stonking  image: "docker.io/library/ubuntu:26.10"  glibc: 2.44  python3: 3.14  gcc: 15  manager: "apt 3.3.3" }
+            } }
         pop_os!:   { using: ubuntu }
-        elementary:{ using: ubuntu    scale-root: true }            // elementary OS (own numbering: 6/7/8); ships the Pantheon desktop
-        linuxmint: { using: ubuntu    scale-root: true }            // Mint main (own numbering)
-        zorin:     { using: ubuntu    scale-root: true }            // Zorin OS (own numbering; VERSION_ID is the major only: 17 = Ubuntu 22.04, 18 = 24.04)
-        lmde:      { using: debian    scale-root: true }            // Mint Debian Edition (own numbering)
+        elementary:{ using: ubuntu    scale-root: true   // elementary OS (own numbering: 6/7/8); ships the Pantheon desktop
+            // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
+            releases: {
+                7: { status: released  released: 2023-01-31  codename: horus  note: "Ubuntu 22.04 base" }
+                7.1: { status: released  released: 2023-10-03  codename: horus  note: "Ubuntu 22.04 base" }
+                8: { status: released  released: 2024-11-26  codename: circe  note: "Ubuntu 24.04 base" }
+                8.1: { status: released  released: 2025-12-22  codename: circe  note: "Ubuntu 24.04 base" }
+            } }
+        linuxmint: { using: ubuntu    scale-root: true   // Mint main (own numbering)
+            // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
+            releases: {
+                21: { status: released  released: 2022-07-31  eol: 2027-04-30  codename: vanessa  note: "Ubuntu 22.04 base" }
+                21.1: { status: released  released: 2022-12-20  eol: 2027-04-30  codename: vera  note: "Ubuntu 22.04 base" }
+                21.2: { status: released  released: 2023-07-16  eol: 2027-04-30  codename: victoria  note: "Ubuntu 22.04 base" }
+                21.3: { status: released  released: 2024-01-12  eol: 2027-04-30  codename: virginia  note: "Ubuntu 22.04 base" }
+                22: { status: released  released: 2024-07-25  eol: 2029-04-30  codename: wilma  note: "Ubuntu 24.04 base" }
+                22.1: { status: released  released: 2025-01-16  eol: 2029-04-30  codename: xia  note: "Ubuntu 24.04 base" }
+                22.2: { status: released  released: 2025-09-04  eol: 2029-04-30  codename: zara  note: "Ubuntu 24.04 base" }
+                22.3: { status: released  released: 2026-01-11  eol: 2029-04-30  codename: zena  note: "Ubuntu 24.04 base" }
+            } }
+        zorin:     { using: ubuntu    scale-root: true   // Zorin OS (own numbering; VERSION_ID is the major only: 17 = Ubuntu 22.04, 18 = 24.04)
+            // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
+            releases: {
+                17: { status: released  released: 2023-12-20  eol: 2027-06-01  note: "Ubuntu 22.04 base; VERSION_ID is the major only (17.0–17.3)" }
+                18: { status: released  released: 2025-10-14  eol: 2029-06-01  note: "Ubuntu 24.04 base; VERSION_ID is the major only" }
+            } }
+        lmde:      { using: debian    scale-root: true   // Mint Debian Edition (own numbering)
+            // own numbering on a Debian base; no container image, so not swept (the base is)
+            releases: {
+                6: { status: eol  released: 2023-09-27  eol: 2026-01-01  codename: faye  note: "Debian 12 base" }
+                7: { status: released  released: 2025-10-14  codename: gigi  note: "Debian 13 base" }
+            } }
         kali:      { using: debian }                                // kali-rolling (Debian testing) — rolling, bare membership like tumbleweed
         pikaos:    { using: debian    scale-root: true }            // Debian-based gaming distro; own date numbering (26.MM.DD) so it's its own scale-root
-        mx:        { using: debian    scale-root: true }            // MX Linux (ID=mx, ID_LIKE=debian); own numbering (MX-19/21/23/25 tracking Debian)
+        mx:        { using: debian    scale-root: true   // MX Linux (ID=mx, ID_LIKE=debian); own numbering (MX-19/21/23/25 tracking Debian)
+            // own numbering on a Debian base; no container image, so not swept (the base is)
+            releases: {
+                21: { status: eol  released: 2021-10-21  eol: 2026-06-30  codename: wildflower  note: "Debian 11 base" }
+                23: { status: released  released: 2023-07-31  eol: 2028-06-10  codename: libretto  note: "Debian 12 base" }
+                25: { status: released  released: 2025-11-09  eol: 2030-06-30  codename: infinity  note: "Debian 13 base" }
+            } }
         avlinux:   { using: mx }                                    // AV Linux MX Edition — MX-based multimedia distro; tracks MX (if it keeps ID=mx the `mx` block already covers it)
         // Raspberry Pi OS. Bookworm+ rebranded os-release to ID=debian (indistinguishable from plain
         // Debian by ID alone), so it's detected by the /etc/rpi-issue marker every Pi image carries
@@ -54,13 +107,23 @@
                 45: { status: released  released: 2026-11-03  eol: 2027-12-08  image: "docker.io/library/fedora:45"  glibc: 2.44  python3: 3.15  gcc: 16  manager: "dnf5 version 5.4.6.0" }
             } }
         nobara:    { using: fedora }                                // Fedora-based (Nobara N = Fedora N) — borrows fedora's scale, no own scale-root
-        rhel:      { using: redhat    scale-root: true }            // EL scale-root (N release)
+        rhel:      { using: redhat    scale-root: true   // EL scale-root (N release)
+            // keyed by MAJOR ($releasever); facts from AlmaLinux images, dates from RHEL's lifecycle
+            releases: {
+                8: { status: released  released: 2019-05-07  eol: 2029-05-31  image: "docker.io/library/almalinux:8"  glibc: 2.28  gcc: 8  manager: "dnf 4.7.0"  note: "python3 is 3.6 (platform-python); configsys needs a python3.1N route here (>= 3.10)" }
+                9: { status: released  released: 2022-05-18  eol: 2032-05-31  image: "docker.io/library/almalinux:9"  glibc: 2.34  python3: 3.9  gcc: 11  manager: "dnf 4.14.0"  note: "python3 3.9 is below configsys's 3.10 floor: the bootstrap needs a python3.1N route" }
+                10: { status: released  released: 2025-05-20  eol: 2035-05-31  image: "docker.io/library/almalinux:10"  glibc: 2.39  python3: 3.12  gcc: 14  manager: "dnf 4.20.0" }
+            } }
         rocky:     { using: rhel }
         scientific: { using: rhel }                                 // Scientific Linux (ID=scientific): Fermilab's EL rebuild, SL 7.9 = RHEL 7.9 (borrows EL's scale). EOL 2024-06 — identity only
         almalinux: { using: rhel }
         centos:    { using: rhel }                                  // CentOS Stream
         ol:        { using: rhel }                                  // Oracle Linux (os-release ID=ol) — EL rebuild, full dnf + its own EPEL pkg name
-        amzn:      { using: redhat   scale-root: true }              // Amazon Linux 2023 (ID=amzn): Fedora-derived, own repos+version, NO EPEL
+        amzn:      { using: redhat   scale-root: true   // Amazon Linux 2023 (ID=amzn): Fedora-derived, own repos+version, NO EPEL
+            // facts from the amazonlinux image
+            releases: {
+                2023: { status: released  released: 2023-03-01  eol: 2029-06-30  image: "docker.io/library/amazonlinux:2023"  glibc: 2.34  python3: 3.9  gcc: 11  manager: "dnf 4.14.0"  note: "python3 3.9 is below configsys's 3.10 floor: the bootstrap needs a python3.1N route" }
+            } }
 
         // Fedora Atomic / uBlue (Silverblue, Kinoite, Sericea, Bazzite, Bluefin, Aurora …) —
         // immutable ostree desktops. Modeled as a distinct ENVIRONMENT, deliberately NOT under
@@ -107,7 +170,15 @@
         // Alpine (apk). musl, NOT glibc — so it hangs off `linux`, not `glibc_linux`. glibc-only
         // fetch-a-binary bindings decline here (unroutable = a clean diagnostic); the optional
         // `gcompat` shim can re-enable them per-machine (see the gcompat component).
-        alpine: { using: linux  native: apk }
+        alpine: { using: linux  native: apk
+            // keyed by the release series (VERSION_ID 3.22.6 is 3.22); musl, so no glibc fact
+            releases: {
+                3.20: { status: eol  released: 2024-05-22  eol: 2026-04-01  image: "docker.io/library/alpine:3.20"  python3: 3.12  gcc: 13  manager: "apk-tools 2.14.4" }
+                3.21: { status: eol  released: 2024-12-05  eol: 2026-11-01  image: "docker.io/library/alpine:3.21"  python3: 3.12  gcc: 14  manager: "apk-tools 2.14.13" }
+                3.22: { status: released  released: 2025-05-30  eol: 2027-05-01  image: "docker.io/library/alpine:3.22"  python3: 3.12  gcc: 14  manager: "apk-tools 2.14.12" }
+                3.23: { status: released  released: 2025-12-04  eol: 2027-11-01  image: "docker.io/library/alpine:3.23"  python3: 3.12  gcc: 15  manager: "apk-tools 3.0.9-r0" }
+                3.24: { status: released  released: 2026-06-09  eol: 2028-06-01  image: "docker.io/library/alpine:3.24"  python3: 3.14  gcc: 15  manager: "apk-tools 3.0.8-r0" }
+            } }
         // Chimera Linux (ID=chimera) — an independent musl distro (LLVM, BSD userland, dinit; rolling,
         // no VERSION_ID). It uses apk-tools v3 but NOT Alpine's package names (`-devel` not `-dev`,
         // `python` not `python3`, …), so every `apk:` name in these routes would be wrong there: no
@@ -135,7 +206,12 @@
         // — a clean demo of identity-vs-scale being orthogonal. Block names use `_` (the `when:`
         // DSL has no `-`); os-release's `opensuse-leap`/`-tumbleweed` alias in.
         opensuse:             { using: glibc_linux  native: zypper }
-        opensuse_leap:        { using: opensuse  scale-root: true }
+        opensuse_leap:        { using: opensuse  scale-root: true
+            // facts from registry.opensuse.org images
+            releases: {
+                15.6: { status: eol  released: 2024-06-12  eol: 2026-04-30  image: "registry.opensuse.org/opensuse/leap:15.6"  glibc: 2.38  python3: 3.6  gcc: 7  manager: "zypper 1.14.94" }
+                16.0: { status: released  released: 2025-10-01  eol: 2027-10-31  image: "registry.opensuse.org/opensuse/leap:16.0"  glibc: 2.40  python3: 3.13  gcc: 15  manager: "zypper 1.14.101" }
+            } }
         opensuse_tumbleweed:  { using: opensuse }
     }
 

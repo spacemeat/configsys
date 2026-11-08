@@ -38,11 +38,15 @@ should judge each tool against an OS layer that is already current.
 Flags: `--report-only` (stop after the report), `--no-lifecycle` (skip the podman driver run),
 `--unfreeze <release>` (sweep an EOL release too — its image must still reach its repos).
 
-The lines today: `debian`, `ubuntu` (+ the borrowers pop_os!), the own-numbering apt derivatives
-(`elementary`, `linuxmint`, `zorin`, `lmde`, `mx`, `pikaos`), `fedora` (+ nobara), `fedora_atomic`,
-`rhel` (rocky/alma/centos/ol/scientific borrow it), `amzn`, `opensuse_leap`, `alpine`, `kde_linux`.
-Rolling blocks (arch, tumbleweed, void, kali, chimera) have no releases; their drift is the plain
-name sweep's (`tools/namesweep.py`) and `/update-component`'s.
+The lines today, each with a registry: `debian`, `ubuntu` (+ the borrowers pop_os!), `fedora` (+
+nobara), `fedora_atomic`, `rhel` (rocky/alma/centos/ol/scientific borrow it; keyed by major),
+`amzn`, `opensuse_leap`, `alpine` (keyed by series, 3.22), and the own-numbering apt derivatives
+`elementary`, `linuxmint`, `zorin`, `lmde`, `mx` — these have no container images, so their
+registries are facts and dates only (`note:` names the base release) and the sweeps reach them
+through their base. `pikaos` (Debian sid) and `kde_linux` (a build stamp) are scale-roots no
+`when:` compares — `releases` prints them as `unversioned`, no registry needed. Rolling blocks
+(arch, tumbleweed, void, kali, chimera) have no releases; their drift is the plain name sweep's
+(`tools/namesweep.py`) and `/update-component`'s.
 
 ## Phase 0 — preflight
 
