@@ -4007,8 +4007,8 @@ def build_parser():
                                     'available / inactive) (default)')
     cap = dfsub.add_parser('capture', help='adopt existing on-system dotfiles into your content '
                                            'store (read-only on the system side)')
-    cap.add_argument('names', nargs='*', help="limit to these components (default: every one in this "
-                                              "machine's picks)")
+    cap.add_argument('names', nargs='*', help="limit to these components — `btop` or `btop-dotfiles` "
+                                              "(default: every one in this machine's picks)")
     cap.add_argument('--force', action='store_true', help='overwrite content already in the store')
     cap.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
     cap.add_argument('--yes', action='store_true', help='skip the confirmation prompt')
@@ -4419,14 +4419,19 @@ def cmd_dotfiles_capture(ctx, args):
     df, units = _active_dotfiles(ctx)
     want = set(args.names or [])
     store = df._capture_root()
+    units = [rc for rc in units if rc.driver == 'dotfiles']   # capture is config-only; glue is shipped
+    if want:                                 # `btop` names its config companion `btop-dotfiles` too
+        named = {n: [rc for rc in units if rc.comp in (n, f'{n}-dotfiles')] for n in sorted(want)}
+        for n in (n for n, hit in named.items() if not hit):
+            print(f'configsys: {n}: no config to capture — neither {n} nor {n}-dotfiles is a dotfiles '
+                  f'component in this machine\'s picks (see `configsys dotfiles status`)')
+        units = [rc for hit in named.values() for rc in hit]
+        if not units:
+            return 1
     is_plugin = (ctx.paths.primary_dotfiles_dir is not None
                  and Path(store) == Path(ctx.paths.primary_dotfiles_dir))
     plan, skips = [], []
     for rc in units:
-        if rc.driver != 'dotfiles':              # capture is config-only; glue is shipped content
-            continue
-        if want and rc.comp not in want:
-            continue
         for _name, dst, dest, action in df.capture_plan(rc, force=args.force):
             (plan if action == 'copy' else skips).append((rc.comp, dst, dest, action))
 
@@ -4453,10 +4458,6 @@ def cmd_dotfiles_capture(ctx, args):
             return 1
     captured = 0
     for rc in units:
-        if rc.driver != 'dotfiles':              # config-only
-            continue
-        if want and rc.comp not in want:
-            continue
         captured += len(df.capture(rc, force=args.force))
     print(f'\ncaptured {captured} target(s) into {df.display_path(store)}.')
     return 0

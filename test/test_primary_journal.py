@@ -65,7 +65,7 @@ WRITES = [
     (['config', 'set', 'splash', 'plain'], 'plugins.set_section (a uniform setting)'),
     (['config', 'unset', 'effects'], 'plugins.remove_sections (a uniform setting)'),
     (['theme', 'set', 'accent', '#ff0000'], 'plugins.set_theme'),
-    (['dotfiles', 'capture', 'btop-dotfiles', '--yes'], 'Dotfiles.capture + _write_manifest_at'),
+    (['dotfiles', 'capture', 'btop', '--yes'], 'Dotfiles.capture + _write_manifest_at'),
     (['glue', 'add', 'mine', '--shell', 'bash'], 'Glue.new_user_snippet + the 99-user scaffold'),
     (['glue', 'override', 'fzf', '--shell', 'bash'], 'Glue.override + _record_override'),
     (['dotfiles', 'activate', 'rustup'], 'Glue.add_user_glue'),
@@ -121,7 +121,7 @@ def test_tui_relocate_commits_the_move_out_of_the_primary(primary):
     from configsys import actions
     from configsys.drivers import get_driver
     base, clone, home = primary
-    assert main(base + ['dotfiles', 'capture', 'btop-dotfiles', '--yes']) == 0
+    assert main(base + ['dotfiles', 'capture', 'btop', '--yes']) == 0
     assert any(p.startswith('dotfiles/btop-dotfiles.cfs/') for p in _git(clone, 'ls-files').splitlines())
     ctx = _ctx(base)
     ctx.ensure_plugin_code()

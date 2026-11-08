@@ -359,6 +359,26 @@ def test_cli_capture_copies_and_leaves_system_untouched(tmp_path, monkeypatch):
     assert (real / 'htoprc').read_text() == 'mine'           # system side UNTOUCHED (read-only)
 
 
+
+def test_cli_capture_takes_the_tool_name_or_the_companion_name(tmp_path, monkeypatch, capsys):
+    # `dotfiles capture htop` means htop's config companion, htop-dotfiles; a name matching neither
+    # says so (and fails) instead of "nothing to capture"
+    monkeypatch.setenv('CONFIGSYS_NO_DISCOVER', '1')
+    from configsys.app import main
+    home = tmp_path / 'home'
+    (home / '.config' / 'configsys').mkdir(parents=True)
+    (home / '.config' / 'configsys' / 'configsys.hu').write_text('{ picks: { this-machine: [ htop ] } }')
+    (home / '.config' / 'htop').mkdir(parents=True)
+    (home / '.config' / 'htop' / 'htoprc').write_text('mine')
+    base = ['--home', str(home), '--os', 'pop', 'dotfiles', 'capture']
+    store = home / '.config' / 'configsys' / 'dotfiles' / 'htop-dotfiles.cfs' / 'htop'
+    assert main(base + ['htop', '--yes']) == 0
+    assert (store / 'htoprc').read_text() == 'mine'
+    assert main(base + ['htop-dotfiles', '--force', '--yes']) == 0
+    capsys.readouterr()
+    assert main(base + ['nosuchtool', '--yes']) == 1
+    assert 'neither nosuchtool nor nosuchtool-dotfiles' in capsys.readouterr().out
+
 # -- phase 2: .cfs marker, managed-when-empty, exclude globs, secret suggest ----
 
 def test_config_install_creates_cfs_marker_even_without_content(tmp_path):
