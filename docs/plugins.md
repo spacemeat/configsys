@@ -506,7 +506,9 @@ pushed by this — see "Publishing it" below. Edits you make by hand are never s
 file you had already changed is left uncommitted for you (configsys says so), and other files you're
 editing are untouched. A primary pinned to a tag or commit isn't committed to, and with no git
 identity set, commits are signed `<user>@<host>` until you set one (configsys says so once).
-Nothing is committed under `--pretend`.
+These commits skip your git hooks (a global pre-commit hook doesn't run on every TUI edit) but follow
+your signing setting, so they're signed whenever your own commits are. Nothing is committed under
+`--pretend`.
 
 **Seeing where it stands.** The Plugins screen marks your primary's remote-ref with `↑N` (changes not
 pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) and `●` (edits not committed

@@ -250,19 +250,22 @@ def _commit(ctx, snap, message):
                    f'branch; see `configsys plugin list`).', notes)
         return notes
     ok, why = _commit_paths(repo, _ident(ctx, repo, snap.name, notes), changed, message,
-                            f'Made by configsys on {_host()}.')
+                            f'Made by configsys on {_host()}.', hooks=False)
     if not ok:
         return notes + [f'could not commit to {snap.name}: {why}']
     snap.committed = True
     return notes
 
 
-def _commit_paths(repo, ident, paths, subject, body):
-    '''Stage and commit exactly `paths` (literal, through stdin). (ok, git's complaint).'''
+def _commit_paths(repo, ident, paths, subject, body, hooks=True):
+    '''Stage and commit exactly `paths` (literal, through stdin). (ok, git's complaint). configsys's
+    own edits commit with `hooks=False` (`--no-verify`: a global pre-commit hook must not run on every
+    TUI write); your signing setting applies either way.'''
     add = repo.git('add', '-A', paths=paths)
     if not add.ok:
         return False, add.stderr.strip()[:200]
-    c = repo.git(*ident, 'commit', '-q', '-m', subject, '-m', body, paths=paths)
+    c = repo.git(*ident, 'commit', '-q', *([] if hooks else ['--no-verify']), '-m', subject, '-m', body,
+                 paths=paths)
     return c.ok, (c.stderr or c.stdout).strip()[:200]
 
 

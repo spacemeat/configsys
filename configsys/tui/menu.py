@@ -654,10 +654,11 @@ def _seed_uninstall(ms, ctx):
             ms.staged.setdefault(key, 'remove')
 
 
-# Actions that only move, look or mark — no primary snapshot/commit around them (primarygit).
+# Actions that only move or look — no primary snapshot/commit around them (primarygit). Not `select`:
+# space edits on Config (a bool toggle) and Theme (a color), which may write to the primary.
 _NO_WRITE_ACTIONS = frozenset({'down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up',
                                'switch-pane', 'switch-pane-back', 'find', 'filter', 'help', 'issues',
-                               'select', 'where', 'expand-all', 'quit', 'quit-force'})
+                               'where', 'expand-all', 'quit', 'quit-force'})
 
 
 def _commit_primary_action(ctx, snap, screen, act, note):

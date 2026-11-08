@@ -59,7 +59,10 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - A4, B2, B6, primary-18, D1 part 1: `PrimaryRepo` — argv, bytes, literal pathspecs on stdin, a scrubbed
   env, your ssh command kept — `efa9c38`.
 - A2, A3, D1 part 2: one undoable combine (stash, replay, restore on any non-success exit incl.
-  Ctrl-C), overlapping hand edits asked about first, a primary mid-merge refused — phase 2.
+  Ctrl-C), overlapping hand edits asked about first, a primary mid-merge refused — `da323ea`.
+- B1 (immediate part): `select` is bracketed, so Config/Theme space edits commit; decision 1:
+  configsys's own commits skip hooks — the next commit after `da323ea`. (B1's durable fix, the write
+  journal, is phase 3.)
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -91,11 +94,11 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **A2 [HIGH] `_combine` isn't exception-safe.** Ctrl-C at a prompt, a binary conflict or a malformed
   `plugins:` entry leaves the primary mid-merge with your hand edits stashed, and the CLI then stages the
   conflict-marked file. Fix: a transaction (record HEAD + stash, restore on any non-commit exit) — the core of
-  D1. (primary-02) · effort M · [done — phase 2 of docs/todo/primary-safety-plan.md, the commit after efa9c38]
+  D1. (primary-02) · effort M · [done da323ea]
 - **A3 [HIGH] Overlapping hand edits become conflict markers while push reports success.** On the rebase
   (`--autostash`) and merge (`_unstash`) paths; a conflicted `.hu` data file is then skipped at load, so your
   picks silently disappear (only `inspect` / `!` say so). Fix depends on decision 3. (primary-03) · effort M ·
-  [done — phase 2 of docs/todo/primary-safety-plan.md, the commit after efa9c38]
+  [done da323ea]
 - **A4 [HIGH] Ambient `GIT_DIR` / `GIT_WORK_TREE` redirect every primary git call.** In a vcsh / yadm session:
   pushes the dotfiles repo's commits as "the primary's", and a conflict there stashes every untracked file in
   your home. Fix: scrub `GIT_*` from the env of every primary git call. (primary-06) · effort S · [done efa9c38]
@@ -104,7 +107,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 
 ### Tier B — correctness
 - **B1 [HIGH] Config and Theme `space` edits are written to the primary but never committed**, and from then
-  on configsys treats the file as your hand edit. (primary-04) · effort S · [open]
+  on configsys treats the file as your hand edit. (primary-04) · effort S · [partly done — select bracketed; the journal (phase 3) open]
 - **B2 [HIGH] The snapshot/commit bracket isn't best-effort.** One uncommitted non-UTF-8 file name crashes
   every CLI command (`check`, `picks list`, `inspect`); a 2000-file `dotfiles capture` overflows the command
   line. (primary-05; with primary-18, paths as globs) · effort M · [done efa9c38]
@@ -150,7 +153,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 ### Tier D — refactors
 - **D1 [MED] A `PrimaryRepo` git helper + a transactional combine.** argv lists, bytes → fsdecode, literal
   pathspecs / pathspec-from-file, scrubbed env, one restore-on-exit transaction. Collapses A2, A4, B2, B6 and
-  primary-18 into one place. (primary-14) · effort M · [done efa9c38 + phase 2]
+  primary-18 into one place. (primary-14) · effort M · [done efa9c38, da323ea]
 - **D2 [LOW] One source for push modes, choices and commit logic** — `PUSH_MODES` is defined and never read
   (`Config.primary_push` hard-codes the tuple), the choice/commit/branch/error logic is hand-copied, and
   `primary-push` values go unvalidated; hold the mode policy, chip and failure wording as data.
