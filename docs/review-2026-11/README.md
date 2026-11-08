@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 1/35 items done, 0 declined, 34 open.
+**Status:** 1/37 items done, 0 declined, 36 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -135,6 +135,8 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   (primary-26) · M · [open]
 - **B18 [NIT] Repeated notes, leftover scratch copies, `.git` assumed to be a directory.** (primary-34) · S ·
   [open]
+- **B19 [LOW] Commits name the hostname and fall back to a `<login>@<host>` identity** — use the configsys
+  machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [open]
 
 ### Tier C — performance
 - **C1 [MED] Every non-navigation TUI keypress costs 6 git spawns, 2 config parses, ~23 ms** (63 ms with 500
@@ -170,6 +172,10 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **G2 [LOW] No way to see or undo configsys's commits from configsys.** (primary-30) · effort M · [open]
 - **G3 [LOW] The CLI `plugin list` never fetches the primary**, so it can't show `↓` the way the TUI does.
   (primary-31) · effort S · [open]
+- **G4 [MED] Verify primary commit signatures on sync** (an opt-in setting): `plugin sync` refuses primary
+  commits not signed by your key(s), closing "whoever can push to your primary runs code as you" (the
+  shape behind A1 and the glue lead in §2). Useful once you sign (decision 1). Added from the decisions;
+  not a reviewer finding. · effort M · [open]
 
 ## 4. Test gaps
 None of the 58 primary tests covers any of the six HIGH findings. The full list (13 groups) is in
@@ -184,27 +190,28 @@ Not run in this calibration (`--no-os --no-components`).
 
 ## 6. Suggested sequencing
 1. **A4** (S) — the scrubbed env, now; it is the cheapest HIGH.
-2. **D1** — build `PrimaryRepo` + the transaction, which IS the fix for **A2**, **B2**, **B6** and primary-18;
-   decide **A3** (decision 3) before it lands so the transaction carries the policy.
+2. **D1** — build `PrimaryRepo` + the transaction, which IS the fix for **A2**, **B2**, **B6** and primary-18,
+   with **A3**'s refuse-and-ask (decision 3) inside it.
 3. **B1**, **B7**, **A5** — small and user-visible.
 4. Decision 2 (write journal) → **B3** + **C1** together.
 5. The humerge items (**B4**, **B5**, **B9**–**B11**) with **D3**.
 6. **F1** with **B12**; **G1** with decision 6.
 
-## 7. Decisions needed from you
-1. **Auto-commits and your git hooks/signing** — should configsys's own commits use `--no-verify` and
-   `-c commit.gpgsign=false`? Today a global pre-commit hook or `commit.gpgsign=true` runs (or prompts
-   pinentry) on every TUI write.
-2. **Commit by write journal instead of by snapshot difference?** One `note_write` at each writer; removes
-   the action allowlist, the sweep-in of concurrent edits (B3) and most per-keypress cost (C1).
-3. **Hand edits that overlap incoming changes (A3):** refuse to push and ask "include them, or stop" — or
-   push, stash them, and say so plainly. The first is closer to "no surprises".
-4. **Your hostname and login in commits** to a possibly public remote (`Made by configsys on <host>`, the
-   `<login>@<host>` identity fallback) — keep, or drop?
-5. **Profiles in `SET_LISTS` (B4):** drop them (both sides changing one profile becomes a question), or
-   build an order-preserving list merge?
-6. **Confirm before `plugin push` (G1):** list the outgoing commits and ask (principles.md: outward-facing
-   actions are confirmed), or is typing the command consent enough, with `--yes` for scripts?
+## 7. Decisions (the user, 2026-11-07)
+1. **Hooks and signing:** configsys's own auto-commits skip hooks (`--no-verify`) but follow your signing
+   setting, so they're signed whenever you sign (and a future signature check, G4, covers them).
+2. **Commit by write journal:** each configsys writer to the primary records the path it wrote, and
+   `commit()` commits exactly those — no action allowlist, no sweep-in of concurrent edits (B3), most of
+   the per-keypress cost gone (C1); B1 becomes "the Config/Theme writers journal their writes".
+3. **Overlapping hand edits (A3): refuse and ask** — detect the overlap before combining and ask "include
+   your edits in this push, or stop"; nothing is left half-applied.
+4. **Machine name, not hostname:** commit bodies say "Made by configsys on <machine>" (the configsys
+   machine name, your picks column); `<login>@<host>` is never used as an identity — with no git identity,
+   configsys says so and doesn't commit. (New item B19.)
+5. **Profiles (B4): an order-preserving merge** — both sides' additions and removals, each term kept in
+   place relative to its neighbors; asked only when both sides reorder the same terms differently.
+6. **Confirm before `plugin push` (G1)** on a terminal: list the outgoing commits and files and ask;
+   `--yes` skips it; `auto` / `auto-on-quit` stay silent; `--pretend` shows the same list.
 
 ## 8. Calibration notes (this run tuned `/review-code`)
 - One reviewer (opus xhigh: ~33 min, 116 tool calls) and one checker (opus max: ~25 min, 96 tool calls)
