@@ -93,17 +93,47 @@ def test_a_tag_pinned_primary_is_not_committed_to(primary, capsys):
     assert 'did not commit' in capsys.readouterr().out
 
 
-def test_missing_identity_falls_back_and_says_so(primary, monkeypatch, tmp_path, capsys):
-    base, clone = primary
-    for k in ('GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL'):
-        monkeypatch.delenv(k)
+def _no_identity(monkeypatch, tmp_path, clone):
+    for k in ('GIT_AUTHOR_NAME', 'GIT_AUTHOR_EMAIL', 'GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL', 'EMAIL'):
+        monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv('HOME', str(tmp_path / 'nohome'))              # no ~/.gitconfig
     monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / 'nohome' / '.config'))
     monkeypatch.setenv('GIT_CONFIG_NOSYSTEM', '1')
+    _git(clone, 'config', 'user.useConfigOnly', 'true')              # no auto-detected login@host
+
+
+def test_missing_identity_commits_nothing_and_says_so(primary, monkeypatch, tmp_path, capsys):
+    # review-2026-11 B19 (decision 4): configsys never invents `<login>@<host>` as your identity
+    base, clone = primary
+    _no_identity(monkeypatch, tmp_path, clone)
+    capsys.readouterr()
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    assert _log(clone) == ['A']
+    assert 'no git identity is set' in capsys.readouterr().out
+    assert _git(clone, 'status', '--porcelain')                         # the edit is still here
+
+
+def test_an_identity_from_the_environment_counts(primary, monkeypatch, tmp_path, capsys):
+    # B15 / primary-24: GIT_AUTHOR_* / GIT_COMMITTER_* with no git config is an identity
+    base, clone = primary
+    _no_identity(monkeypatch, tmp_path, clone)
+    for k, v in (('GIT_AUTHOR_NAME', 'e'), ('GIT_AUTHOR_EMAIL', 'e@x'), ('GIT_COMMITTER_NAME', 'e'),
+                 ('GIT_COMMITTER_EMAIL', 'e@x')):
+        monkeypatch.setenv(k, v)
     capsys.readouterr()
     assert main(base + ['picks', 'add', 'fzf']) == 0
     assert _log(clone)[0] == 'picks add fzf'
-    assert 'no git identity is set' in capsys.readouterr().out
+    assert 'no git identity' not in capsys.readouterr().out
+    assert _git(clone, 'log', '-1', '--format=%an <%ae>') == 'e <e@x>'
+
+
+def test_the_commit_body_names_the_configsys_machine_not_the_host(primary):
+    import socket
+    base, clone = primary
+    assert main(base + ['machine', 'use', 'desk']) == 0
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    body = _git(clone, 'log', '-1', '--format=%b')
+    assert body == 'Made by configsys on desk.' and socket.gethostname() not in body
 
 
 def test_the_tui_bracket_commits_one_action(primary):

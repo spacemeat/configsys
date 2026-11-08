@@ -505,7 +505,9 @@ btop`), or the TUI action (`profiles: toggle tracking: highlighted — tracking 
 pushed by this — see "Publishing it" below. Edits you make by hand are never swept in: a
 file you had already changed is left uncommitted for you (configsys says so), and other files you're
 editing are untouched. A primary pinned to a tag or commit isn't committed to, and with no git
-identity set, commits are signed `<user>@<host>` until you set one (configsys says so once).
+identity (no `user.name` / `user.email`, nor `GIT_AUTHOR_*` in your environment) nothing is
+committed — configsys says how to set one, and never makes one up. A commit's body names the
+configsys machine it was made on (your `machine:` setting), not the computer's hostname.
 These commits skip your git hooks (a global pre-commit hook doesn't run on every TUI edit) but follow
 your signing setting, so they're signed whenever your own commits are. Nothing is committed under
 `--pretend`.

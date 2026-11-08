@@ -363,3 +363,27 @@ def test_git_failures_name_the_right_cause_and_host():
     assert "GitLab's SSH Keys page" in why('git@gitlab.com: Permission denied (publickey).',
                                            source='gitlab:me/prim')
     assert 'offline?' in why('fatal: unable to access ... Could not resolve host: github.com')
+
+
+@needs_git
+def test_a_refused_switch_to_the_branch_leaves_the_pin_as_it_was(primary):
+    # B14 / primary-23: `ref:` is written only once the checkout worked
+    from configsys import plugins
+    base, clone, bare, other = primary
+    _git(clone, 'tag', 'v1'); _git(clone, 'push', '-q', 'origin', 'v1')
+    ctx = _ctx(base)
+    decls = plugins.declared(ctx.paths.user_config_file)
+    decls[0]['ref'] = 'v1'
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    _other_pushes(other, 'p.hu', BASE_P.replace('[ jq ]', '[ jq  yq ]'))    # main moves past v1
+    _git(clone, 'fetch', '-q', 'origin')
+    _git(clone, 'checkout', '-q', '--detach', 'v1')
+    pinned = _git(clone, 'rev-parse', 'HEAD')
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  gh ]'))     # an edit that blocks it
+    ok, lines = primarygit.push(_ctx(base), Scripted(switch=True, include=False))
+    assert not ok
+    assert plugins.declared(ctx.paths.user_config_file)[0]['ref'] == 'v1'
+    assert _git(clone, 'rev-parse', 'HEAD') == pinned
+    assert subprocess.run(['git', 'symbolic-ref', '-q', 'HEAD'], cwd=clone).returncode != 0   # detached
+    assert 'gh' in (clone / 'p.hu').read_text()
+    assert any('still pinned' in ln for ln in lines)

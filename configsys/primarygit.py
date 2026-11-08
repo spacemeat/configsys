@@ -10,8 +10,10 @@ commit, and you're told.
 
 Nothing happens under --pretend, when there's no primary, when it isn't a git checkout, or when it
 isn't on a branch (a tag-pinned primary is frozen; its edits stay uncommitted, noted once). With no
-git identity configured, the commit uses a repo-local fallback (`<user>@<host>`), noted once. The
-bracket is best-effort: whatever goes wrong in it is a note, never a crash of the command.
+git identity (git can't form one: no `user.name` / `user.email`, nor `GIT_AUTHOR_*` / `EMAIL`),
+nothing is committed and you're told once how to set one — configsys never invents `<login>@<host>`.
+Commit bodies name the configsys machine (`machine:`), never the hostname. The bracket is
+best-effort: whatever goes wrong in it is a note, never a crash of the command.
 
 Every git call goes through `PrimaryRepo` (docs/todo/primary-safety-plan.md): argv lists, never a
 shell; bytes in and `os.fsdecode` out, so a file name that isn't UTF-8 is just a name; literal
@@ -20,12 +22,10 @@ without git's repository-locating variables, so a `GIT_DIR` from a vcsh / yadm s
 commit to another repository.
 '''
 
-import getpass
 import hashlib
 import os
 import re
 import shlex
-import socket
 import subprocess
 from pathlib import Path
 
@@ -250,8 +250,10 @@ def _commit(ctx, snap, message):
                    f'your changes there but did not commit them (a primary normally follows its '
                    f'branch; see `configsys plugin list`).', notes)
         return notes
-    ok, why = _commit_paths(repo, _ident(ctx, repo, snap.name, notes), changed, message,
-                            f'Made by configsys on {_host()}.', hooks=False)
+    if not _has_ident(ctx, repo):
+        _note_once(ctx, 'ident', _no_ident(snap.name, snap.root), notes)
+        return notes
+    ok, why = _commit_paths(repo, [], changed, message, _made_by(ctx), hooks=False)
     if not ok:
         return notes + [f'could not commit to {snap.name}: {why}']
     snap.committed = True
@@ -270,19 +272,35 @@ def _commit_paths(repo, ident, paths, subject, body, hooks=True):
     return c.ok, (c.stderr or c.stdout).strip()[:200]
 
 
-def _host():
-    return socket.gethostname() or 'this machine'
+def _machine(ctx):
+    '''This box's configsys machine name (the `machine:` setting — not a `--machine` working target,
+    not the hostname), or None for the default one-machine setup.'''
+    try:
+        from .config import _selected_machine
+        return _selected_machine(ctx.config._layers)
+    except Exception:                                  # noqa: BLE001
+        return None
 
 
-def _ident(ctx, repo, name, notes):
-    '''`-c user.name=… -c user.email=…` args when git has no identity for the primary (a repo-local
-    fallback, `<user>@<host>`, noted once), else [].'''
-    if repo.config('user.email'):
-        return []
-    user, host = getpass.getuser(), socket.gethostname() or 'localhost'
-    _note_once(ctx, 'ident', f'no git identity is set, so commits to {name} are signed '
-               f'{user}@{host} — set yours with `git config --global user.name/user.email`.', notes)
-    return ['-c', f'user.name={user}', '-c', f'user.email={user}@{host}']
+def _made_by(ctx, what='Made by configsys'):
+    m = _machine(ctx)
+    return f'{what} on {m}.' if m else f'{what}.'
+
+
+def _has_ident(ctx, repo):
+    '''Can git form an author and committer for the primary (config, or GIT_AUTHOR_* / EMAIL in the
+    environment)? Asked once per command.'''
+    seen = ctx.__dict__.setdefault('_primarygit_ident', {})
+    key = str(repo.root)
+    if key not in seen:
+        seen[key] = repo.git('var', 'GIT_AUTHOR_IDENT').ok and repo.git('var', 'GIT_COMMITTER_IDENT').ok
+    return seen[key]
+
+
+def _no_ident(name, root):
+    return (f'no git identity is set, so configsys left your changes to {name} uncommitted — set one '
+            f'(`git config --global user.name "Your Name"` and `user.email you@example.com`); commit '
+            f'these yourself in {root}, or they\'re offered as hand edits at your next push.')
 
 
 # -- where the primary stands (phase 2: the Plugins row, the header chip, `plugin list`) ----------
@@ -548,13 +566,17 @@ def push(ctx, ui=None):
         if not ui.switch_to_branch(name, ref, target):
             return False, lines + [f'Left as is. To publish anyway, tag and push it yourself in {root}, '
                                    f'then `configsys plugin update {name} --ref <tag>` on each machine.']
-        decl['ref'] = target
-        plugins.set_declared(ctx.paths.user_config_file, decls)
-        res = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [decl])
+        was = repo.text('rev-parse', 'HEAD')           # switch first; write `ref:` only once it worked
+        res = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [dict(decl, ref=target)])
         action = res[0][1] if res else 'failed'
         if action not in ('updated', 'cloned', 'ahead'):
+            if repo.branch() and was:                  # half switched: back to where it was pinned
+                repo.git('checkout', '--quiet', '--detach', was)
             return False, lines + [plugins.sync_note(name, action, ctx.paths.plugins_dir, primary=True)
-                                   or f'{name}: could not switch to {target} ({action}).']
+                                   or f'{name}: could not switch to {target} ({action}).',
+                                   f'{name} is still pinned to {ref or "its commit"}; your config is unchanged.']
+        decl['ref'] = target
+        plugins.set_declared(ctx.paths.user_config_file, decls)
         branch = target
         lines.append(f'{name} now follows {target} here; on your other machines run '
                      f'`configsys plugin update {name} --ref {target}` once.')
@@ -562,11 +584,15 @@ def push(ctx, ui=None):
     if busy:
         return False, lines + [f'{name} is in the middle of a {busy}, so nothing was pushed. Finish it, '
                                f'or `git -C {root} {busy} --abort`, then push again.']
+    if not _has_ident(ctx, repo):                      # combining and your edits need a committer
+        return False, lines + [f'{name}: no git identity is set, so nothing was pushed — set one (`git '
+                               f'config --global user.name "Your Name"` and `user.email you@example.com`), '
+                               f'then push again.']
     mine, mine_left = repo.dirty() or set(), set()
     if mine:
         if ui.include_own(name, [_printable(p) for p in sorted(mine)]):
-            ok, why = _commit_paths(repo, _ident(ctx, repo, name, lines), sorted(mine),
-                                    'Edits made by hand', f'Included by configsys plugin push on {_host()}.')
+            ok, why = _commit_paths(repo, [], sorted(mine), 'Edits made by hand',
+                                    _made_by(ctx, 'Included by configsys plugin push'))
             if not ok:
                 return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
         else:
@@ -600,8 +626,8 @@ def push(ctx, ui=None):
                 f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what your other '
                 f'machine pushed, so nothing was combined or pushed, and nothing here changed. Commit '
                 f'or undo them, or push again and include them.']
-        ok, why = _commit_paths(repo, _ident(ctx, repo, name, lines), overlap, 'Edits made by hand',
-                                f'Included by configsys plugin push on {_host()}.')
+        ok, why = _commit_paths(repo, [], overlap, 'Edits made by hand',
+                                _made_by(ctx, 'Included by configsys plugin push'))
         if not ok:
             return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
         ahead, behind = repo.ahead_behind(upstream)
@@ -721,9 +747,8 @@ def _replay(ctx, ui, name, repo, upstream):
     file (`ui.resolve_value`), per file otherwise (`ui.resolve`) — and the two sides are merged with
     those answers. (ok, [lines]); on not-ok the caller restores.'''
     root = repo.root
-    ident = _ident(ctx, repo, name, [])
     drv, notes = _merge_driver(repo)
-    r = repo.git(*drv, *ident, 'rebase', '--quiet', upstream)
+    r = repo.git(*drv, 'rebase', '--quiet', upstream)
     if r.ok:
         return True, [f'{name}: {n}' for n in _driver_notes(notes)]
     conflicted = repo.unmerged()
@@ -731,7 +756,7 @@ def _replay(ctx, ui, name, repo, upstream):
     _driver_notes(notes)
     if not conflicted:
         return False, [f'{name}: could not combine with the remote: {(r.stderr or r.stdout).strip()[:160]}']
-    m = repo.git(*drv, *ident, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
+    m = repo.git(*drv, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
     conflicted = repo.unmerged() if not m.ok else []
     if not m.ok and not conflicted:
         return False, []
@@ -750,8 +775,9 @@ def _replay(ctx, ui, name, repo, upstream):
                 repo.git('add', '-A', paths=[path])
         if choice not in ('mine', 'theirs', 'edit'):
             return False, []
-    c = repo.git(*ident, 'commit', '--quiet', '--no-edit', '-m',
-                 f'Combine {name} changes from {_host()} with the remote')
+    m_name = _machine(ctx)
+    c = repo.git('commit', '--quiet', '--no-edit', '-m',
+                 f'Combine {name} changes{f" from {m_name}" if m_name else ""} with the remote')
     if not c.ok:
         return False, [f'{name}: could not commit the combined result: {(c.stderr or c.stdout).strip()[:160]}']
     lines = [f'{name}: {n}' for n in _driver_notes(notes)]

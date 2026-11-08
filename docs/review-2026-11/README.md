@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 14/37 items done (+ B1 in part), 0 declined, 22 open.
+**Status:** 17/37 items done (+ B1 in part), 0 declined, 19 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -67,7 +67,10 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
   underline isn't a conflict; the combine's scratch copies are removed and notes printed once — `e03afa8`.
 - A5, B12, B13: remote text made safe in every question; settings numbered within a file (and "show me
   the file" says it sets earlier answers aside); git failures matched by a rules table, host-aware —
-  batch 2.
+  `fd0e94f`.
+- B14, B15, B19: the tag-to-branch switch writes `ref:` only after the checkout worked; identity from
+  `git var` (an env identity counts) and never an invented `<login>@<host>`; commit bodies name the
+  configsys machine — batch 3.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -108,7 +111,7 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
   pushes the dotfiles repo's commits as "the primary's", and a conflict there stashes every untracked file in
   your home. Fix: scrub `GIT_*` from the env of every primary git call. (primary-06) · effort S · [done efa9c38]
 - **A5 [LOW] Remote text goes raw into conflict prompts** — terminal escapes can spoof the question. Fix:
-  sanitize control characters in every UI string built from file content. (primary-17) · effort S · [done — small fixes, batch 2]
+  sanitize control characters in every UI string built from file content. (primary-17) · effort S · [done fd0e94f]
 
 ### Tier B — correctness
 - **B1 [HIGH] Config and Theme `space` edits are written to the primary but never committed**, and from then
@@ -135,20 +138,20 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B11 [LOW] `plugins:` merged in mine's order** — theirs' reorder (layer precedence) is lost; a duplicate
   source collapses. (primary-20) · S · [open]
 - **B12 [LOW] Per-key questions are numbered by file; "show me the file" discards answers already given.**
-  (primary-21) · S · [done — small fixes, batch 2]
+  (primary-21) · S · [done fd0e94f]
 - **B13 [LOW] `explain_git_failure` calls an HTTPS 403 "offline?" and gives GitHub fixes for GitLab.**
-  (primary-22) · S · [done — small fixes, batch 2]
+  (primary-22) · S · [done fd0e94f]
 - **B14 [LOW] The tag-to-branch switch writes `ref:` before the checkout** — half applied when refused.
-  (primary-23) · S · [open]
+  (primary-23) · S · [done — small fixes, batch 3]
 - **B15 [LOW] The "no git identity" note is wrong for env identities; `user.name` is never checked.**
-  (primary-24) · S · [open]
+  (primary-24) · S · [done — small fixes, batch 3]
 - **B16 [LOW] A Markdown `=======` underline reads as an unresolved conflict.** (primary-25) · S · [done e03afa8]
 - **B17 [LOW] Type-change conflicts are misdescribed; "keep this machine's" pushes `<path>~HEAD`.**
   (primary-26) · M · [open]
 - **B18 [NIT] Repeated notes, leftover scratch copies, `.git` assumed to be a directory.** (primary-34) · S ·
   [done e03afa8]
 - **B19 [LOW] Commits name the hostname and fall back to a `<login>@<host>` identity** — use the configsys
-  machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [open]
+  machine name; with no git identity, say so and don't commit. (decision 4; primary-24) · S · [done — small fixes, batch 3]
 
 ### Tier C — performance
 - **C1 [MED] Every non-navigation TUI keypress costs 6 git spawns, 2 config parses, ~23 ms** (63 ms with 500
