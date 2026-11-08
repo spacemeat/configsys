@@ -38,7 +38,7 @@ def primary(tmp_path, monkeypatch):
 
 
 def _st(ahead=0, behind=0, dirty=False):
-    return {'name': 'prim', 'branch': 'main', 'ahead': ahead, 'behind': behind, 'dirty': dirty}
+    return primarygit.PrimaryState('prim', 'main', ahead, behind, dirty)
 
 
 @needs_git
@@ -49,11 +49,11 @@ def test_state_counts_ahead_behind_and_dirty(primary):
     assert primarygit.state(ctx) == _st(ahead=1)
     (other / 'p.hu').write_text('{ picks: { laptop: [ htop ] } }\n')
     _git(other, 'commit', '-qam', 'B'); _git(other, 'push', '-q', 'origin', 'main')
-    assert primarygit.state(ctx)['behind'] == 0                          # not fetched yet
+    assert primarygit.state(ctx).behind == 0                          # not fetched yet
     assert primarygit.fetch(ctx)
     assert primarygit.state(ctx) == _st(ahead=1, behind=1)
     (clone / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ]  x: 1 }\n')
-    assert primarygit.state(ctx)['dirty'] is True
+    assert primarygit.state(ctx).dirty is True
 
 
 def test_the_words_and_marks():
@@ -110,7 +110,7 @@ def test_the_plugins_screen_fetches_and_shows_behind(primary):
     _git(other, 'commit', '-qam', 'B'); _git(other, 'push', '-q', 'origin', 'main')
     pl = menu.PluginScreen(ctx)
     for _ in range(300):                                                 # the background fetch lands
-        if (pl.primary_state or {}).get('behind'):
+        if pl.primary_state and pl.primary_state.behind:
             break
         time.sleep(0.02)
-    assert pl.primary_state['behind'] == 1 and ctx._primary_state['behind'] == 1
+    assert pl.primary_state.behind == 1 and ctx._primary_state.behind == 1

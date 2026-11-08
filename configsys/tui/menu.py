@@ -731,16 +731,16 @@ def _quit_push(stdscr, pal, ctx, force=False):
         st, mode = primarygit.state(ctx), primarygit.push_mode(ctx)
     except Exception:                               # noqa: BLE001
         st, mode = None, 'manual'
-    ahead = st['ahead'] if st else 0
+    ahead = st.ahead if st else 0
     if mode == 'manual' or not ahead:
         return None, []
-    later = f'{st["name"]}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares them.'
+    later = f'{st.name}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares them.'
     if force and mode != 'auto-on-quit':
         return True, [later]
     if mode in ('auto', 'auto-on-quit'):
         ok, lines = _auto_push_primary(stdscr, pal, ctx)
         return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
-    c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st["name"]} not pushed yet.',
+    c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st.name} not pushed yet.',
                       [('Push, then quit', 'p'), ('Quit, push later', 'q'), ('Keep working', 'n')],
                       start=2, shortcuts={'p': 0, 'q': 1, 'n': 2})
     if c == 0:

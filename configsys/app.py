@@ -4824,9 +4824,9 @@ def _after_primary_commit(ctx):
             print(f'configsys: {lines[-1] if ok else "not pushed automatically — " + lines[-1]}')
     elif mode in ('ask', 'auto-on-quit'):
         st = primarygit.state(ctx)
-        if st and st['ahead']:
-            print(f'configsys: saved to {st["name"]} — {primarygit._count(st["ahead"])} not pushed '
-                  f'yet; `configsys plugin push` shares {"them" if st["ahead"] != 1 else "it"}.')
+        if st and st.ahead:
+            print(f'configsys: saved to {st.name} — {primarygit._count(st.ahead)} not pushed '
+                  f'yet; `configsys plugin push` shares {"them" if st.ahead != 1 else "it"}.')
 
 
 def main(argv=None):

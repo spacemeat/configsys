@@ -396,10 +396,22 @@ def _no_ident(name, root):
 
 # -- where the primary stands (phase 2: the Plugins row, the header chip, `plugin list`) ----------
 
+@dataclass(frozen=True)
+class PrimaryState:
+    '''Where the primary stands against its remote branch, as of the last fetch: `ahead` commits not
+    pushed, `behind` commits from your other machines, `dirty` uncommitted edits, `first_push` — the
+    remote has never had this branch (so every commit counts as not pushed yet).'''
+    name: str
+    branch: str
+    ahead: int = 0
+    behind: int = 0
+    dirty: bool = False
+    first_push: bool = False
+
+
 def state(ctx):
-    '''{name, branch, ahead, behind, dirty} for the primary against its remote branch (as of the last
-    fetch), or None (no primary, not a git checkout, not on a branch, no remote, --pretend). A primary
-    whose remote has never had that branch counts every commit as not pushed yet. Local and cheap.'''
+    '''The primary's `PrimaryState`, or None (no primary, not a git checkout, not on a branch, no
+    remote, --pretend). Local and cheap — `fetch` first to count what the remote has.'''
     try:
         pr = primary_root(ctx)
         if pr is None:
@@ -408,14 +420,14 @@ def state(ctx):
         branch = repo.branch()
         if not branch:
             return None
-        if repo.has_ref(f'origin/{branch}'):
+        first = not repo.has_ref(f'origin/{branch}')
+        if not first:
             ahead, behind = repo.ahead_behind(f'origin/{branch}')
         elif repo.text('remote', 'get-url', '--push', 'origin'):
             ahead, behind = int(repo.text('rev-list', '--count', 'HEAD') or 0), 0   # never pushed
         else:
             return None
-        return {'name': pr[1], 'branch': branch, 'ahead': ahead, 'behind': behind,
-                'dirty': bool(repo.dirty())}
+        return PrimaryState(pr[1], branch, ahead, behind, bool(repo.dirty()), first)
     except Exception:                                  # noqa: BLE001 — best-effort, never a crash
         return None
 
@@ -445,11 +457,11 @@ def glyphs(st):
     if not st:
         return ''
     out = []
-    if st['ahead']:
-        out.append(f'↑{st["ahead"]}')
-    if st['behind']:
-        out.append(f'↓{st["behind"]}')
-    if st['dirty']:
+    if st.ahead:
+        out.append(f'↑{st.ahead}')
+    if st.behind:
+        out.append(f'↓{st.behind}')
+    if st.dirty:
         out.append('●')
     return ' '.join(out)
 
@@ -457,15 +469,15 @@ def glyphs(st):
 def chip(st, *, hide_ahead=False):
     '''The header chip text, or '' when there's nothing to push or sync. `hide_ahead` (under
     `primary-push: auto` / `auto-on-quit`, where configsys pushes for you) leaves out the ↑ part.'''
-    ahead = 0 if hide_ahead or not st else st['ahead']
-    if not st or not (ahead or st['behind']):
+    ahead = 0 if hide_ahead or not st else st.ahead
+    if not st or not (ahead or st.behind):
         return ''
     parts = []
     if ahead:
-        parts.append(f'↑{st["ahead"]} to push')
-    if st['behind']:
-        parts.append(f'↓{st["behind"]} to sync')
-    return f'{st["name"]}: ' + ', '.join(parts)
+        parts.append(f'↑{st.ahead} to push')
+    if st.behind:
+        parts.append(f'↓{st.behind} to sync')
+    return f'{st.name}: ' + ', '.join(parts)
 
 
 def describe(st):
@@ -473,15 +485,15 @@ def describe(st):
     if not st:
         return ''
     parts = []
-    if st['ahead']:
-        parts.append(f'{st["ahead"]} change{"s" if st["ahead"] != 1 else ""} not pushed yet '
-                     f'(`plugin push` shares {"them" if st["ahead"] != 1 else "it"})')
-    if st['behind']:
-        parts.append(f'{st["behind"]} change{"s" if st["behind"] != 1 else ""} from your other '
+    if st.ahead:
+        parts.append(f'{st.ahead} change{"s" if st.ahead != 1 else ""} not pushed yet '
+                     f'(`plugin push` shares {"them" if st.ahead != 1 else "it"})')
+    if st.behind:
+        parts.append(f'{st.behind} change{"s" if st.behind != 1 else ""} from your other '
                      f'machines (as of the last fetch) — `plugin sync` brings them in')
-    if st['dirty']:
+    if st.dirty:
         parts.append('edits not committed yet')
-    if st['ahead'] and st['behind']:
+    if st.ahead and st.behind:
         parts.append('both sides changed — `plugin push` combines them')
     return '; '.join(parts)
 

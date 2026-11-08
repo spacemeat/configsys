@@ -41,7 +41,7 @@ def test_an_ambient_git_dir_never_redirects_the_primary(primary, tmp_path, monke
     monkeypatch.delenv('GIT_WORK_TREE')
     assert _log(clone).splitlines()[0] == 'picks add fzf'
     assert subprocess.run(['git', 'log'], cwd=dot, capture_output=True).returncode != 0   # nothing there
-    assert st['branch'] == 'main' and st['ahead'] == 1
+    assert st.branch == 'main' and st.ahead == 1
 
 
 @needs_git
@@ -60,7 +60,7 @@ def test_a_file_name_that_is_not_utf8_does_not_break_the_bracket(primary):
     assert primarygit.commit(ctx, snap, 'picks add fzf') == []
     assert _log(clone).splitlines()[0] == 'picks add fzf'
     assert os.path.exists(odd)                                     # left alone, still uncommitted
-    assert primarygit.state(ctx)['dirty'] is True
+    assert primarygit.state(ctx).dirty is True
 
 
 @needs_git
@@ -307,7 +307,7 @@ def test_a_primary_never_pushed_shows_its_commits_as_not_pushed(primary):
     base, clone, bare, other = primary
     _git(clone, 'update-ref', '-d', 'refs/remotes/origin/main')
     st = primarygit.state(_ctx(base))
-    assert st is not None and st['ahead'] == int(_git(clone, 'rev-list', '--count', 'HEAD')) >= 1
+    assert st is not None and st.first_push and st.ahead == int(_git(clone, 'rev-list', '--count', 'HEAD')) >= 1
 
 
 def test_a_markdown_underline_is_not_a_conflict_marker(tmp_path):

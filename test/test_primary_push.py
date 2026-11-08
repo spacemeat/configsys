@@ -3,6 +3,7 @@ with what your other machines pushed (asking per file when both changed the same
 the primary's branch — never leaving a half-done rebase, never sweeping in your hand edits unasked —
 plus the `primary-push: ask | auto | auto-on-quit | manual` setting and the TUI's quit prompt and `P` key.'''
 
+import dataclasses
 import shutil
 import subprocess
 
@@ -104,7 +105,7 @@ def test_push_publishes_configsys_commits(primary, capsys):
     out = capsys.readouterr().out
     assert 'pushed 1 change to' in out and 'next `configsys plugin sync`' in out
     assert 'fzf' in _remote_file(bare)
-    assert primarygit.state(_ctx(base))['ahead'] == 0
+    assert primarygit.state(_ctx(base)).ahead == 0
     assert main(base + ['plugin', 'push']) == 0
     assert 'nothing to push' in capsys.readouterr().out
 
@@ -292,9 +293,9 @@ def test_failures_are_explained_in_plain_words():
 
 
 def test_the_chip_hides_ahead_under_auto():
-    st = {'name': 'prim', 'branch': 'main', 'ahead': 2, 'behind': 1, 'dirty': False}
+    st = primarygit.PrimaryState('prim', 'main', ahead=2, behind=1)
     assert primarygit.chip(st, hide_ahead=True) == 'prim: ↓1 to sync'
-    assert primarygit.chip(dict(st, behind=0), hide_ahead=True) == ''
+    assert primarygit.chip(dataclasses.replace(st, behind=0), hide_ahead=True) == ''
 
 
 def test_the_setting_reads_and_defaults(tmp_path):
@@ -310,7 +311,7 @@ class _FakeCtx:
 
 
 def _quit(monkeypatch, *, ahead, mode, choice=None, push_ok=True):
-    st = {'name': 'prim', 'branch': 'main', 'ahead': ahead, 'behind': 0, 'dirty': False}
+    st = primarygit.PrimaryState('prim', 'main', ahead=ahead)
     monkeypatch.setattr(primarygit, 'state', lambda ctx: st)
     monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: mode)
     calls = []
