@@ -418,8 +418,9 @@ def push(ctx, ui=None):
 
 
 def _merge_driver(ctx, root):
-    '''(git -c options, env) that make `humerge` git's merge driver for `*.hu` for one command —
-    nothing is configured permanently. The attributes file carries your own global one along.'''
+    '''(git -c options, notes file) that make `humerge` git's merge driver for `*.hu` for one
+    command — nothing is configured permanently. The attributes file carries your own global one
+    along; the driver appends what's worth telling you to the notes file.'''
     import os
     import sys
     tmp = root / '.git' / 'configsys-merge'
@@ -436,14 +437,19 @@ def _merge_driver(ctx, root):
                      encoding='utf-8')
     notes = tmp / 'notes'
     notes.write_text('', encoding='utf-8')
+    # Git runs the driver from the top of the primary's work tree, and `python -m` would put that
+    # directory first on sys.path — so a `subprocess.py` or `configsys/` committed to the primary by
+    # whoever can push to its remote would run as you. Isolated mode (-I: no cwd, no PYTHON* env,
+    # no user site) plus an explicit path to this configsys keeps every import ours.
     pkg = str(Path(__file__).resolve().parent.parent)
-    env = dict(os.environ,
-               PYTHONPATH=pkg + (os.pathsep + os.environ['PYTHONPATH'] if os.environ.get('PYTHONPATH') else ''))
-    drv = f'{shlex.quote(sys.executable)} -m configsys.humerge {shlex.quote(str(notes))} %O %A %B %P'
+    boot = (f'import sys; sys.path.insert(0, {pkg!r}); from configsys.humerge import driver; '
+            f'sys.exit(driver(*sys.argv[1:6]))')
+    drv = (f'{shlex.quote(sys.executable)} -I -c {shlex.quote(boot)} '
+           f'{shlex.quote(str(notes))} %O %A %B %P')
     opts = (f'-c merge.configsys.name={shlex.quote("configsys .hu merge")} '
             f'-c merge.configsys.driver={shlex.quote(drv)} '
             f'-c core.attributesFile={shlex.quote(str(attrs))} ')
-    return opts, env, notes
+    return opts, notes
 
 
 def _driver_notes(notes):
@@ -465,8 +471,8 @@ def _combine(ctx, ui, name, root, branch, upstream):
     asked about — per key in a `.hu` file (`ui.resolve_value`), per file otherwise (`ui.resolve`) —
     and the two sides are merged with those answers. Returns (ok, [lines]).'''
     ident = _ident(ctx, root, name, [])
-    drv, env, notes = _merge_driver(ctx, root)
-    r = _git(ctx, root, f'{drv}{ident}rebase --quiet --autostash {shlex.quote(upstream)}', env=env)
+    drv, notes = _merge_driver(ctx, root)
+    r = _git(ctx, root, f'{drv}{ident}rebase --quiet --autostash {shlex.quote(upstream)}')
     if r is not None and r.ok:
         return True, [f'{name}: {n}' for n in _driver_notes(notes)]
     conflicted = _unmerged(ctx, root)
@@ -480,7 +486,7 @@ def _combine(ctx, ui, name, root, branch, upstream):
         s = _git(ctx, root, f'stash push --include-untracked --quiet -m {shlex.quote("configsys plugin push")}')
         stashed = s is not None and s.ok
     lines = []
-    m = _git(ctx, root, f'{drv}{ident}merge --no-ff --no-commit --quiet {shlex.quote(upstream)}', env=env)
+    m = _git(ctx, root, f'{drv}{ident}merge --no-ff --no-commit --quiet {shlex.quote(upstream)}')
     conflicted = _unmerged(ctx, root) if (m is None or not m.ok) else []
     if m is not None and not m.ok and not conflicted:
         _git(ctx, root, 'merge --abort')

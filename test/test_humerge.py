@@ -254,3 +254,30 @@ def test_the_cli_and_tui_ask_per_key(monkeypatch):
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 1)
     assert menu._TuiPushUI(None, None).resolve_value('prim', 'p.hu', 'words', 0, 2) == 'theirs'
     assert seen == ['p.hu (1/2): words']
+
+
+@needs_git
+def test_the_merge_driver_never_imports_code_from_the_primary(primary, tmp_path):
+    # Git runs the driver from the top of the primary's work tree. A `subprocess.py` or a
+    # `configsys/` package committed there by whoever can push to the remote must NOT shadow the
+    # real modules — that would be unreviewed, untrusted code running as you (review-2026-11
+    # primary-01).
+    base, clone, bare, other = primary
+    marker = tmp_path / 'planted-code-ran'
+    planted = f'open({str(marker)!r}, "w").write("ran")\n'
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / 'subprocess.py').write_text(planted)
+    (other / 'configsys').mkdir()
+    (other / 'configsys' / '__init__.py').write_text(planted)
+    (other / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(other, 'add', '-A')
+    _git(other, 'commit', '-qm', 'other: a pick, plus code')
+    _git(other, 'push', '-q', 'origin', 'main')
+    (clone / 'p.hu').write_text(BASE_P.replace('[ btop ]', '[ btop  fish ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+
+    ok, lines = primarygit.push(_ctx(base), Scripted('stop'))
+    assert not marker.exists(), 'code from the primary ran inside the merge driver'
+    assert ok, lines
+    picks = _data(_remote_file(bare))['picks']
+    assert 'fish' in picks['this-machine'] and picks['desk'] == ['jq', 'yq']   # the driver still merged
