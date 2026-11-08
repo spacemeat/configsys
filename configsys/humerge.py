@@ -8,16 +8,20 @@ as data and merged key by key:
 - a key only one side changed takes that side; both sides making the same change is no conflict;
 - maps merge per key, all the way down (`picks:` per machine column, `components:` / `profiles:` /
   `pins:` per name, scalar settings per key);
-- order-free name lists (a picks column, a profile's terms, `disabled-drivers:`, …) changed on both
-  sides take both sides' additions and both sides' removals;
+- order-free name lists (a picks column, `disabled-drivers:`, …) changed on both sides take both
+  sides' additions and both sides' removals;
+- a profile's terms are ORDERED (`+editors ~vim` ≠ `~vim +editors`): both sides' edits combine in
+  place where they don't overlap, and both adding at the same point keeps mine's then theirs';
+  overlapping edits that differ are a conflict;
 - `plugins:` entries merge per source; when both sides moved the same plugin to a different version,
   the newer one is kept and a note says so;
 - anything else both sides changed differently is a CONFLICT: a `Conflict` says what each side did
   in plain words, and `merge(..., answers={path: 'mine' | 'theirs'})` settles it.
 
 The merged text is built from MINE's text: every key whose value doesn't change keeps its text and
-comments; a key taken whole from theirs is copied from theirs' text verbatim; only a key combined from
-both sides is written fresh. The result is re-read and compared with the merged data, so a file this
+comments; a key taken whole from theirs is copied from theirs' text verbatim; a list combined from both
+sides is edited in place (items removed and inserted, its comments kept); only a map entry combined
+from both sides is written fresh. Theirs' text is taken whole only when this machine changed nothing. The result is re-read and compared with the merged data, so a file this
 can't rewrite faithfully raises `Unmergeable` (the caller falls back to asking about the whole file).
 
 Run as `python -m configsys.humerge NOTES BASE MINE THEIRS [PATH]` it is a git merge driver: the result goes to
@@ -29,6 +33,7 @@ its own rebase / merge (`git -c merge.configsys.driver=…`), so nothing is conf
 
 import subprocess
 import sys
+from difflib import SequenceMatcher
 
 GONE = object()                                       # "this side has no such key"
 
@@ -41,11 +46,16 @@ class Unmergeable(Exception):
 # '*' = any one key.
 SET_LISTS = (
     ('picks', '*'),
-    ('profiles', '*'),
     ('disabled-drivers',),
     ('orphans-ignore',),
     ('installer-shell-writes-allow',),
     ('components', '*', 'attrs'),
+)
+
+# Lists whose order IS meaning (a profile's term algebra: a later `+x` re-adds what `~x` removed):
+# merged as sequences, in order.
+ORDERED_LISTS = (
+    ('profiles', '*'),
 )
 
 
@@ -100,8 +110,57 @@ def _load(text):
     return data
 
 
+def _matches(path, patterns):
+    return any(len(p) == len(path) and all(a in ('*', b) for a, b in zip(p, path)) for p in patterns)
+
+
 def _set_like(path):
-    return any(len(p) == len(path) and all(a in ('*', b) for a, b in zip(p, path)) for p in SET_LISTS)
+    return _matches(path, SET_LISTS)
+
+
+def _merge_sequence(base, mine, theirs):
+    '''A three-way merge of ordered lists (diff3 over items): each side's edits against base, applied
+    where they don't overlap; both inserting at the same point keeps mine's then theirs' (theirs'
+    duplicates dropped); identical edits apply once. None when edits overlap and differ.'''
+    def ops(side, who):
+        sm = SequenceMatcher(a=base, b=side, autojunk=False)
+        return [(i1, i2, side[j1:j2], who) for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag != 'equal']
+    edits = sorted(ops(mine, 'm') + ops(theirs, 't'), key=lambda o: (o[0], o[1]))
+    groups = []
+    for op in edits:
+        if groups:
+            g = groups[-1]
+            gs, ge = min(o[0] for o in g), max(o[1] for o in g)
+            same_point = op[0] == op[1] == gs == ge
+            if op[0] < ge or same_point:
+                g.append(op)
+                continue
+        groups.append([op])
+
+    def apply(group, gs, ge, who):
+        seg, pos = [], gs
+        for i1, i2, rep_, w in group:
+            if w == who:
+                seg += base[pos:i1] + list(rep_)
+                pos = i2
+        return seg + base[pos:ge]
+
+    out, pos = [], 0
+    for g in groups:
+        gs, ge = min(o[0] for o in g), max(o[1] for o in g)
+        out += base[pos:gs]
+        vm, vt = apply(g, gs, ge, 'm'), apply(g, gs, ge, 't')
+        sides = {o[3] for o in g}
+        if len(sides) == 1:
+            out += vm if sides == {'m'} else vt
+        elif vm == vt:
+            out += vm
+        elif gs == ge:                                 # both inserted at the same point
+            out += vm + [x for x in vt if x not in vm]
+        else:
+            return None
+        pos = ge
+    return out + base[pos:]
 
 
 def _scalars(v):
@@ -154,6 +213,14 @@ class _Merge:
             bb = b if isinstance(b, list) else []
             dropped = {x for x in bb if x not in t}
             return [x for x in m if x not in dropped] + [x for x in t if x not in bb and x not in m]
+        if _matches(path, ORDERED_LISTS) and _scalars(m) and _scalars(t) and (b is GONE or _scalars(b)):
+            bb = b if isinstance(b, list) else []
+            shared = set(bb) & set(m) & set(t)
+            rb, rm, rt = ([x for x in seq if x in shared] for seq in (bb, m, t))
+            if not (rm != rb and rt != rb and rm != rt):   # both reordering differently: asked
+                got = _merge_sequence(bb, m, t)
+                if got is not None:
+                    return got
         self.conflicts.append(Conflict(path, b, m, t))
         return m
 
@@ -212,7 +279,7 @@ def merge(base_text, mine_text, theirs_text, answers=None):
         return Result(None, merged, conflicts, notes)
     if merged == m:
         return Result(mine_text, merged, [], notes)
-    if merged == t:
+    if merged == t and mine_text == base_text:         # this machine changed nothing, not even a comment
         return Result(theirs_text, merged, [], notes)
     text = _rewrite(mine_text, m, theirs_text, t, merged, 0)
     if _load(text) != merged:
@@ -333,6 +400,58 @@ def _insert(text, piece):
     return head + ('  ' if head[-1] != '{' else ' ') + piece + ' ' + text[c:]
 
 
+def _list_items(text):
+    '''[(value, start, end)] for each scalar item of the `[ … ]` starting at text[0] (comments and
+    separators between them skipped).'''
+    out, i, n = [], 1, len(text)
+    while True:
+        i = _skip(text, i)
+        if i >= n:
+            raise Unmergeable('an unclosed list')
+        if text[i] == ']':
+            return out
+        if text[i] == ',':
+            i += 1
+            continue
+        if text[i] in '{[':
+            raise Unmergeable('a list holding maps or lists')
+        j = _scalar_end(text, i)
+        tok = text[i:j]
+        val = tok[1:-1] if len(tok) >= 2 and tok[0] in '"\'`' and tok[-1] == tok[0] else tok
+        out.append((val, i, j))
+        i = j
+
+
+def _relist(text, old, new):
+    '''The list text `text` (holding `old`) edited in place to hold `new`: items that left are cut
+    out, items that came in are inserted beside their neighbours — every comment and line in it
+    stays.'''
+    from .troveio import _scalar
+    items = _list_items(text)
+    if [v for v, _s, _e in items] != [str(x) for x in old]:
+        raise Unmergeable('a list that does not read the way it parses')
+    sm = SequenceMatcher(a=[str(x) for x in old], b=[str(x) for x in new], autojunk=False)
+    for tag, i1, i2, j1, j2 in reversed(sm.get_opcodes()):
+        if tag == 'equal':
+            continue
+        for k in reversed(range(i1, i2)):                # cut, with the blanks after it on its line
+            _v, s, e = items[k]
+            while e < len(text) and text[e] in ' \t':
+                e += 1
+            text = text[:s] + text[e:]
+        if j1 < j2:
+            add = '  '.join(_scalar(x) for x in new[j1:j2])
+            if i1 < i2:
+                at = items[i1][1]
+                text = text[:at] + add + '  ' + text[at:]
+            elif i1 > 0:
+                at = items[i1 - 1][2]
+                text = text[:at] + '  ' + add + text[at:]
+            else:
+                text = text[:1] + ' ' + add + ('  ' if items else ' ') + text[1:].lstrip(' ')
+    return text
+
+
 def _rewrite(text, m, t_text, t, merged, depth):
     '''`text` (mine's map) rewritten to hold `merged`; t_text/t is theirs' map, or None.'''
     for k in [k for k in m if k not in merged]:
@@ -357,6 +476,8 @@ def _rewrite(text, m, t_text, t, merged, depth):
         start, vs, end = found
         if tv == nv and tspan:
             piece = t_text[tspan[0]:tspan[2]]
+        elif _scalars(mv) and _scalars(nv) and text[vs:vs + 1] == '[':
+            piece = text[start:vs] + _relist(text[vs:end], mv, nv)
         elif isinstance(mv, dict) and isinstance(nv, dict) and text[vs:vs + 1] == '{':
             sub_t = t_text[tspan[1]:tspan[2]] if (tspan and isinstance(tv, dict)
                                                  and t_text[tspan[1]:tspan[1] + 1] == '{') else None
@@ -379,6 +500,18 @@ def _line_merge(base, mine, theirs, marker_size=None):
         argv.append(f'--marker-size={marker_size}')
     r = subprocess.run(argv + [mine, base, theirs], capture_output=True)
     return r.returncode, r.stdout
+
+
+def _as_sets(data, path=()):
+    '''`data` with every order-free name list (SET_LISTS) as a set — to tell "git's clean merge only
+    duplicated or reordered a pick" from a real difference.'''
+    if isinstance(data, dict):
+        return {k: _as_sets(v, path + (k,)) for k, v in data.items()}
+    if isinstance(data, list) and _set_like(path) and _scalars(data):
+        return frozenset(data)
+    if isinstance(data, list):
+        return [_as_sets(v, path) for v in data]
+    return data
 
 
 def _note(path, lines):
@@ -415,15 +548,16 @@ def driver(notes, base, mine, theirs, name='', marker_size=None):
             f.write(lines)
         return 0 if clean else 1
     text = res.text
-    if clean:                                          # git's merge reads the same: keep its text
+    if clean:                                          # git's own clean merge is the authority …
         try:
-            if _load(lines.decode('utf-8')) == res.merged:
-                with open(mine, 'wb') as f:
-                    f.write(lines)
-                _note(notes, res.notes)
-                return 0
+            gits = _load(lines.decode('utf-8'))
         except (Unmergeable, UnicodeDecodeError):
-            pass
+            gits = None
+        if gits is not None and (gits == res.merged or _as_sets(gits) != _as_sets(res.merged)):
+            with open(mine, 'wb') as f:                # … unless it differs only by a name list's
+                f.write(lines)                         #   duplicates / order (both added one pick)
+            _note(notes, res.notes)
+            return 0
     if crlf:                                           # keep the file's own line ending
         text = text.replace('\r\n', '\n').replace('\n', '\r\n')
     with open(mine, 'wb') as f:

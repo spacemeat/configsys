@@ -9,7 +9,7 @@ rhel, fedora_atomic, void, void_musl (sandbox home); docaudit 0 findings
 Findings: 0 CRITICAL · 6 HIGH · 8 MED · 17 LOW · 3 NIT (after verification: 6 checked, 6 confirmed,
 0 plausible, 0 refuted; primary-01 CRITICAL → HIGH) · OS releases / components: not run
 
-**Status:** 20/37 items done (+ B1 in part), 0 declined, 16 open.
+**Status:** 22/37 items done (+ B1 in part), 0 declined, 14 open.
 
 The primary-push code (built 2026-10, phases 1–4) works on its tested paths — all 58 of its tests pass —
 but a review finds the failure paths are where it is weakest. `_combine` has five hand-written abort paths
@@ -74,8 +74,9 @@ The detail for every item — file:line, the reproduction, the proposed fix — 
 - B9: the driver's fallback is git's own result — labelled markers, the file's line endings, a binary
   file left untouched, no crash on invalid UTF-8 — `a4e5132`.
 - B10, B11: the humon text scanner knows backtick strings and has no backslash escapes (as humon);
-  `plugins:` order (layer precedence) is merged, a source declared twice isn't collapsed — merge
-  quality 2.
+  `plugins:` order (layer precedence) is merged, a source declared twice isn't collapsed — `3e8be8a`.
+- B4, B5: profile terms merged in order (decision 5); a combined list edited in place with its
+  comments; a comment-only edit of mine kept; git's clean merge preferred — merge quality 3.
 
 ## 0. Fixed during the review
 - **primary-01** — reported CRITICAL, confirmed by the lead (a planted `subprocess.py` ran inside the
@@ -127,9 +128,9 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B3 [MED] Your edits made during a long action are committed under configsys's message** (and pushed
   under `auto`). (primary-07; decision 2) · effort M · [open]
 - **B4 [MED] Profile term lists are merged as sets**, though their order matters — and the driver replaces
-  git's clean, order-correct result with the reordered one. (primary-08; decision 5) · effort S · [open]
+  git's clean, order-correct result with the reordered one. (primary-08; decision 5) · effort S · [done — merge quality 3]
 - **B5 [MED] The merge drops comments** in combined lists, and takes one side's whole text when the result
-  equals it. (primary-09) · effort M · [open]
+  equals it. (primary-09) · effort M · [done — merge quality 3]
 - **B6 [MED] The non-interactive ssh setup is wrong both ways**: push's `GIT_SSH_COMMAND` overrides your
   `core.sshCommand`; the background fetch has no `BatchMode`. (primary-10) · effort S · [done efa9c38]
 - **B7 [MED] Under `auto` / `auto-on-quit`, quitting the TUI can still pop push questions**, though the docs
@@ -139,9 +140,9 @@ Within the one area reviewed (the cross-area patterns need the other reviewers):
 - **B9 [LOW] The driver's "git's own result" isn't** — temp-file labels, CRLF → LF, a NUL truncates, invalid
   UTF-8 crashes it. (primary-16) · S · [done a4e5132]
 - **B10 [LOW] Backtick strings and `\` trip humerge's scanner** → a whole-file question. (primary-19) · S ·
-  [done — merge quality 2]
+  [done 3e8be8a]
 - **B11 [LOW] `plugins:` merged in mine's order** — theirs' reorder (layer precedence) is lost; a duplicate
-  source collapses. (primary-20) · S · [done — merge quality 2]
+  source collapses. (primary-20) · S · [done 3e8be8a]
 - **B12 [LOW] Per-key questions are numbered by file; "show me the file" discards answers already given.**
   (primary-21) · S · [done fd0e94f]
 - **B13 [LOW] `explain_git_failure` calls an HTTPS 403 "offline?" and gives GitHub fixes for GitLab.**

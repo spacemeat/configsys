@@ -365,3 +365,72 @@ def test_a_plugin_declared_twice_is_not_collapsed():
     dup = _plugins_text(('a', 'v1'), ('a', 'v2'))
     with pytest.raises(humerge.Unmergeable):
         humerge.merge(_plugins_text(('a', 'v1')), dup, _plugins_text(('a', 'v1'), ('b', 'v1')))
+
+
+# -- order-preserving profile terms (B4, decision 5) and comments kept (B5) --
+
+PROFILES = '''{
+    profiles: {
+        mine: [ btop  ~vim ]
+    }
+}
+'''
+
+
+def test_profile_terms_merge_in_order():
+    # theirs inserts `+editors` BEFORE `~vim` ("editors, but still no vim"); mine appends htop —
+    # a set merge put +editors last, bringing vim back (primary-08)
+    mine = PROFILES.replace('[ btop  ~vim ]', '[ btop  ~vim  htop ]')
+    theirs = PROFILES.replace('[ btop  ~vim ]', '[ btop  +editors  ~vim ]')
+    res = humerge.merge(PROFILES, mine, theirs)
+    assert _data(res.text)['profiles']['mine'] == ['btop', '+editors', '~vim', 'htop']
+
+
+def test_profile_terms_both_adding_at_the_end_combine():
+    mine = PROFILES.replace('[ btop  ~vim ]', '[ btop  ~vim  htop ]')
+    theirs = PROFILES.replace('[ btop  ~vim ]', '[ btop  ~vim  fzf ]')
+    assert _data(humerge.merge(PROFILES, mine, theirs).text)['profiles']['mine'] == \
+        ['btop', '~vim', 'htop', 'fzf']
+
+
+def test_profile_terms_both_reordering_differently_is_asked():
+    base = PROFILES.replace('[ btop  ~vim ]', '[ a  b  c ]')
+    res = humerge.merge(base, base.replace('[ a  b  c ]', '[ b  a  c ]'),
+                        base.replace('[ a  b  c ]', '[ a  c  b ]'))
+    assert res.text is None and [c.path for c in res.conflicts] == [('profiles', 'mine')]
+
+
+@needs_git
+def test_the_driver_keeps_gits_clean_order_correct_profile_merge(tmp_path):
+    # primary-08: git's line merge was clean and right; the driver used to replace it
+    base = PROFILES.replace('[ btop  ~vim ]', '[\n            btop\n            ~vim\n        ]')
+    mine = base.replace('~vim\n', '~vim\n            htop\n')
+    theirs = base.replace('btop\n', 'btop\n            +editors\n')
+    rc, out = _driver(tmp_path, base, mine, theirs)
+    assert rc == 0 and _data(out)['profiles']['mine'] == ['btop', '+editors', '~vim', 'htop']
+
+
+def test_a_combined_list_keeps_its_comments():
+    # primary-09: group comments inside a picks column survive both sides adding to it
+    base = '''{
+    picks: {
+        desk: [ zsh     // shells
+                neovim  // editors
+              ]
+    }
+}
+'''
+    mine = base.replace('neovim  // editors', 'neovim  helix  // editors')
+    theirs = base.replace('zsh     // shells', 'zsh  fish     // shells')
+    res = humerge.merge(base, mine, theirs)
+    assert '// shells' in res.text and '// editors' in res.text
+    assert sorted(_data(res.text)['picks']['desk']) == ['fish', 'helix', 'neovim', 'zsh']
+
+
+def test_a_comment_only_edit_of_mine_is_not_lost():
+    # primary-09: mine added only a comment; theirs changed the value — theirs' value, mine's comment
+    base = '{\n    splash: ocean\n    effects: full\n}\n'
+    mine = '{\n    splash: ocean   // the one I like\n    effects: full\n}\n'
+    theirs = base.replace('effects: full', 'effects: none')
+    res = humerge.merge(base, mine, theirs)
+    assert '// the one I like' in res.text and _data(res.text)['effects'] == 'none'

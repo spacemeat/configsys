@@ -535,11 +535,15 @@ your other machines, in three steps:
 Your primary's `.hu` files are merged by what they mean, not line by line, so most changes on two
 machines combine with no question. Each machine adding picks to its own column, both adding to the
 same column (additions and removals from both sides are kept), different settings, components or pins
-changed on each side, and plugins added on each side all combine. When both sides moved the same
-plugin to different version tags, the newer is kept and you're told. What's left is a real
+changed on each side, and plugins added on each side all combine. A profile's terms keep their order
+(`+editors ~vim` is not `~vim +editors`): edits from both sides combine where they don't overlap, and
+both machines reordering the same terms differently is asked. `plugins:` order is layer precedence,
+so one side's reordering is kept and both reordering differently is asked. When both sides moved the
+same plugin to different version tags, the newer is kept and you're told. What's left is a real
 disagreement, asked about one setting at a time: *This machine set `splash: plain`; your other machine
 set `splash: ocean`* — keep this one, keep the other, show me the file in your editor, or stop. The
-lines and comments around a setting are kept as they were.
+lines and comments around a setting are kept as they were, inside a combined list too; a comment
+your other machine added next to a setting you both changed is not carried over.
 
 When this machine and another changed the same lines of any other file (or a `.hu` file configsys
 can't read as a map), the replay is backed out completely
