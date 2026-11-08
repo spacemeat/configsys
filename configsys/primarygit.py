@@ -23,6 +23,7 @@ commit to another repository.
 import getpass
 import hashlib
 import os
+import re
 import shlex
 import socket
 import subprocess
@@ -421,32 +422,73 @@ def _count(n, word='change'):
     return f'{n} {word}{"s" if n != 1 else ""}'
 
 
+_CONTROL = re.compile(r'[\x00-\x08\x0b-\x1f\x7f-\x9f]')
+
+
+def _printable(text):
+    '''Text from a file or a remote, safe to show in a question: control characters (a terminal
+    escape could rewrite the prompt or your clipboard) shown as `\\xNN`, line breaks as ⏎.'''
+    text = str(text).replace('\r\n', '\n').replace('\n', ' ⏎ ')
+    return _CONTROL.sub(lambda m: f'\\x{ord(m.group()):02x}', text)
+
+
+def _source_host(source):
+    '''The host a source lives on (`github:x/y` -> github.com, `git@host:x/y`, `https://host/x`).'''
+    for scheme, host in (('github:', 'github.com'), ('gitlab:', 'gitlab.com')):
+        if source.startswith(scheme):
+            return host
+    m = re.match(r'(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)', source)
+    return m.group(1) if m else source
+
+
+# A refused fetch / push -> (what git said, the kind). First match wins: a "denied" 403 must not read
+# as "offline?", and a branch rule's `[remote rejected]` is not the `[rejected]` of a race.
+_FAILURES = (
+    (('permission to', 'denied to', 'error: 403', 'returned error: 403', '[remote rejected]'), 'denied'),
+    (('host key verification failed',), 'host-key'),
+    (('permission denied (publickey)', 'passphrase'), 'ssh-key'),
+    (('authentication failed', 'could not read username', 'terminal prompts disabled',
+      'invalid username or password'), 'sign-in'),
+    (('repository not found', 'does not appear to be a git repository'), 'missing'),
+    (('could not resolve host', 'network is unreachable', 'connection timed out', 'connection refused',
+      'unable to access'), 'offline'),
+    (('fetch first', 'non-fast-forward', '[rejected]'), 'race'),
+)
+
+
 def explain_git_failure(text, *, name, root, source):
-    '''A refused fetch or push, in plain words with the fix.'''
+    '''A refused fetch or push, in plain words with the fix for the host it lives on.'''
     import shutil
     t = (text or '').lower()
-    first = next((ln.strip() for ln in (text or '').splitlines() if ln.strip()), 'git failed')
-    if 'host key verification failed' in t:
-        return (f'{name}: this machine has never connected to that host over SSH, so the push was not '
-                f'sent. Connect once from a terminal (`ssh -T git@github.com`, answer yes), then push again.')
-    if 'permission denied (publickey)' in t or 'passphrase' in t:
-        return (f'{name}: the remote refused this machine\'s SSH key. Add a key to your account '
-                f'(`gh ssh-key add ~/.ssh/id_ed25519.pub`, or the website\'s SSH keys page), or load '
-                f'yours into ssh-agent (`ssh-add`), then push again.')
-    if ('authentication failed' in t or 'could not read username' in t
-            or 'terminal prompts disabled' in t or 'invalid username or password' in t):
-        if shutil.which('gh'):
-            return (f'{name}: the remote wants you signed in. Run `gh auth login` and `gh auth '
-                    f'setup-git`, then push again.')
-        return (f'{name}: the remote wants you signed in. Set up an SSH key, or a git credential '
-                f'helper with a token, then push again.')
-    if 'repository not found' in t or 'does not appear to be a git repository' in t:
+    first = _printable(next((ln.strip() for ln in (text or '').splitlines() if ln.strip()), 'git failed'))
+    kind = next((k for needles, k in _FAILURES if any(n in t for n in needles)), None)
+    host = _source_host(source)
+    if kind == 'denied':
+        return (f'{name}: {host} refused the push — your account can\'t write to {source}, or a branch '
+                f'rule there blocked it ("{first[:120]}"). Nothing was pushed. Check it is your own '
+                f'repository (`configsys plugin set-source {name} …` points at another), then push again.')
+    if kind == 'host-key':
+        return (f'{name}: this machine has never connected to {host} over SSH, so the push was not '
+                f'sent. Connect once from a terminal (`ssh -T git@{host}`, answer yes), then push again.')
+    if kind == 'ssh-key':
+        add = {'github.com': '`gh ssh-key add ~/.ssh/id_ed25519.pub`, or GitHub\'s SSH keys page',
+               'gitlab.com': '`glab ssh-key add ~/.ssh/id_ed25519.pub`, or GitLab\'s SSH Keys page'}.get(
+                   host, f'your account settings on {host}')
+        return (f'{name}: {host} refused this machine\'s SSH key. Add a key to your account ({add}), '
+                f'or load yours into ssh-agent (`ssh-add`), then push again.')
+    if kind == 'sign-in':
+        cli = {'github.com': ('gh', '`gh auth login` and `gh auth setup-git`'),
+               'gitlab.com': ('glab', '`glab auth login`')}.get(host)
+        if cli and shutil.which(cli[0]):
+            return f'{name}: {host} wants you signed in. Run {cli[1]}, then push again.'
+        return (f'{name}: {host} wants you signed in. Set up an SSH key, or a git credential helper '
+                f'with a token, then push again.')
+    if kind == 'missing':
         return (f'{name}: {source} doesn\'t exist yet (or you can\'t reach it). Create an empty '
                 f'repository there, then push again.')
-    if ('could not resolve host' in t or 'unable to access' in t or 'network is unreachable' in t
-            or 'connection timed out' in t or 'connection refused' in t):
-        return f'{name}: couldn\'t reach {source} — offline? Nothing was pushed; try again later.'
-    if 'fetch first' in t or 'non-fast-forward' in t or '[rejected]' in t:
+    if kind == 'offline':
+        return f'{name}: couldn\'t reach {host} — offline? Nothing was pushed; try again later.'
+    if kind == 'race':
         return (f'{name}: another machine pushed while this push ran. Nothing was lost — run '
                 f'`configsys plugin push` again to combine and push.')
     return f'{name}: git said "{first[:160]}" (in {root}).'
@@ -522,7 +564,7 @@ def push(ctx, ui=None):
                                f'or `git -C {root} {busy} --abort`, then push again.']
     mine, mine_left = repo.dirty() or set(), set()
     if mine:
-        if ui.include_own(name, sorted(mine)):
+        if ui.include_own(name, [_printable(p) for p in sorted(mine)]):
             ok, why = _commit_paths(repo, _ident(ctx, repo, name, lines), sorted(mine),
                                     'Edits made by hand', f'Included by configsys plugin push on {_host()}.')
             if not ok:
@@ -553,7 +595,7 @@ def push(ctx, ui=None):
         return True, lines + [msg]
     overlap = sorted(mine_left & repo.incoming(upstream)) if behind and mine_left else []
     if overlap:                                        # combining would leave conflict markers in them
-        if ui.overlapping(name, overlap) != 'include':
+        if ui.overlapping(name, [_printable(p) for p in overlap]) != 'include':
             return False, lines[:-1] + [
                 f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what your other '
                 f'machine pushed, so nothing was combined or pushed, and nothing here changed. Commit '
@@ -697,7 +739,7 @@ def _replay(ctx, ui, name, repo, upstream):
         settled = _settle_hu(ui, name, repo, path, i, len(conflicted))
         if settled == 'done':
             continue
-        choice = settled or ui.resolve(name, path, _what_changed(repo, path), i, len(conflicted))
+        choice = settled or ui.resolve(name, _printable(path), _what_changed(repo, path), i, len(conflicted))
         if choice in ('mine', 'theirs'):
             _take(repo, path, 'ours' if choice == 'mine' else 'theirs')
         elif choice == 'edit':
@@ -720,8 +762,10 @@ def _replay(ctx, ui, name, repo, upstream):
 
 def _settle_hu(ui, name, repo, path, i, n):
     '''A conflicted `.hu` file, key by key: each key both machines changed differently is asked about
-    (`ui.resolve_value`). Returns 'done' (merged and staged), 'edit' / 'stop' (the answer for the
-    whole file), or None (not a file this can merge: ask about the whole file).'''
+    (`ui.resolve_value`, numbered key k of this file's conflicts — a k past 0 means earlier keys were
+    answered, which "show me the file" sets aside, the UI says). Returns 'done' (merged and staged),
+    'edit' / 'stop' (the answer for the whole file), or None (not a file this can merge: ask about
+    the whole file).'''
     from . import humerge
     if not path.endswith('.hu'):
         return None
@@ -733,8 +777,8 @@ def _settle_hu(ui, name, repo, path, i, n):
     except Exception:                                  # noqa: BLE001 — Unmergeable, or a malformed
         return None                                    # text humerge can't read: the file question
     answers = {}
-    for c in res.conflicts:
-        choice = ui.resolve_value(name, path, c.words(), i, n)
+    for k, c in enumerate(res.conflicts):             # numbered by key within this file
+        choice = ui.resolve_value(name, _printable(path), _printable(c.words()), k, len(res.conflicts))
         if choice not in ('mine', 'theirs'):
             return choice if choice == 'edit' else 'stop'
         answers[c.path] = choice

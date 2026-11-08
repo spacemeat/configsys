@@ -316,3 +316,50 @@ def test_the_combine_leaves_no_copies_of_your_files_behind(primary):
     ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
     assert ok, lines
     assert not (clone / '.git' / 'configsys-merge').exists()
+
+
+def test_text_from_a_remote_is_made_safe_to_show():
+    # A5 / primary-17: a value carrying a terminal escape (OSC 52 writes your clipboard, \x1b[2K
+    # rewrites the prompt) must reach a question as visible text
+    shown = primarygit._printable('ocean\x1b]52;c;ZXZpbA==\x07\x1b[2K\rkeep it\nnext')
+    assert '\x1b' not in shown and '\x07' not in shown and '\r' not in shown
+    assert shown == 'ocean\\x1b]52;c;ZXZpbA==\\x07\\x1b[2K\\x0dkeep it ⏎ next'
+    assert primarygit._printable('a\tb') == 'a\tb'
+    said = primarygit.explain_git_failure('remote: \x1b[31mspoofed\x1b[0m\nfatal: weird', name='prim',
+                                          root='/r', source='github:me/prim')
+    assert '\x1b' not in said
+
+
+@needs_git
+def test_settings_in_one_file_are_numbered_by_setting(primary):
+    # B12 / primary-21: two keys conflict in one file — the questions say 1 of 2 and 2 of 2
+    base, clone, bare, other = primary
+    _other_pushes(other, 'p.hu', BASE_P.replace('} }', '}  splash: plain  effects: none }'))
+    (clone / 'p.hu').write_text(BASE_P.replace('} }', '}  splash: ocean  effects: full }'))
+    _git(clone, 'commit', '-qam', 'mine')
+    seen = []
+
+    class UI(Scripted):
+        def resolve_value(self, name, path, words, i, n):
+            seen.append((i, n))
+            return 'mine'
+    ok, lines = primarygit.push(_ctx(base), UI())
+    assert ok, lines
+    assert seen == [(0, 2), (1, 2)]
+
+
+def test_git_failures_name_the_right_cause_and_host():
+    # B13 / primary-22
+    def why(text, source='github:me/prim'):
+        return primarygit.explain_git_failure(text, name='prim', root='/r', source=source)
+    denied = why('remote: Permission to me/prim.git denied to bot.\nfatal: unable to access '
+                 "'https://github.com/me/prim.git/': The requested URL returned error: 403")
+    assert 'refused the push' in denied and 'offline' not in denied
+    assert 'branch rule' in why(' ! [remote rejected] main -> main (protected branch hook declined)')
+    assert 'another machine pushed' in why(' ! [rejected] main -> main (fetch first)')
+    assert 'ssh -T git@gitlab.com' in why('Host key verification failed.', source='gitlab:me/prim')
+    assert 'git@git.example.org' in why('Host key verification failed.',
+                                        source='git@git.example.org:me/prim.git')
+    assert "GitLab's SSH Keys page" in why('git@gitlab.com: Permission denied (publickey).',
+                                           source='gitlab:me/prim')
+    assert 'offline?' in why('fatal: unable to access ... Could not resolve host: github.com')

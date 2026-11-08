@@ -702,9 +702,10 @@ class _TuiPushUI(primarygit.PushUI):
         return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
 
     def resolve_value(self, name, path, words, i, n):
-        c = _popup_choose(self.stdscr, self.pal, f'{path} ({i + 1}/{n}): {words}',
+        edit = 'Show me the file in my editor' + (' (sets aside the answers above)' if i else '')
+        c = _popup_choose(self.stdscr, self.pal, f'{path}, setting {i + 1}/{n}: {words}',
                           [('Keep this one', 'm'), ("Keep the other machine's", 't'),
-                           ('Show me the file in my editor', 'e'), ('Stop — push nothing', 's')],
+                           (edit, 'e'), ('Stop — push nothing', 's')],
                           start=0, shortcuts={'m': 0, 't': 1, 'e': 2, 's': 3})
         return {0: 'mine', 1: 'theirs', 2: 'edit'}.get(c, 'stop')
 

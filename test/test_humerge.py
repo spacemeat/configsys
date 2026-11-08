@@ -253,7 +253,7 @@ def test_the_cli_and_tui_ask_per_key(monkeypatch):
     seen = []
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 1)
     assert menu._TuiPushUI(None, None).resolve_value('prim', 'p.hu', 'words', 0, 2) == 'theirs'
-    assert seen == ['p.hu (1/2): words']
+    assert seen == ['p.hu, setting 1/2: words']
 
 
 @needs_git

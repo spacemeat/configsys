@@ -3012,9 +3012,10 @@ class _CliPushUI:
         return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
 
     def resolve_value(self, name, path, words, i, n):
-        print(f'configsys: {name}: {path} ({i + 1} of {n}) — {words}')
-        ans = self._ask('  [m] keep this machine\'s  [t] keep the other machine\'s  [e] show me the '
-                        'file in your editor  [s] stop: ', 'mtes', 's')
+        print(f'configsys: {name}: {path}, setting {i + 1} of {n} — {words}')
+        dropped = ' (your answers above for this file are set aside)' if i else ''
+        ans = self._ask(f'  [m] keep this machine\'s  [t] keep the other machine\'s  [e] show me the '
+                        f'file in your editor{dropped}  [s] stop: ', 'mtes', 's')
         return {'m': 'mine', 't': 'theirs', 'e': 'edit'}.get(ans, 'stop')
 
     def edit(self, path):
