@@ -96,6 +96,32 @@ _SETUPS = {
 }
 
 
+# A faster existence check than namesweep's per-name query for the managers that can list their
+# whole catalog once: the setup dumps every available name to a file, the check greps it and falls
+# back to the manager's own (slower) query only for a miss — virtual names, provides, groups.
+_FAST_INDEX = {
+    'dnf': ("dnf -q repoquery --qf '%{name}\\n' 2>/dev/null | sort -u > /tmp/osaudit-names",
+            'grep -qxF "$p" /tmp/osaudit-names'),
+    'apt': ('apt-cache pkgnames 2>/dev/null | sort -u > /tmp/osaudit-names',
+            'grep -qxF "$p" /tmp/osaudit-names'),
+}
+
+
+def _check_for(manager):
+    import namesweep
+    slow = namesweep._CHECK[manager]
+    if manager in _FAST_INDEX:
+        return _FAST_INDEX[manager][1] + ' || ' + slow
+    return slow
+
+
+def _setup_for(line, manager):
+    setup = _SETUPS[line]
+    if manager in _FAST_INDEX:
+        setup = f'{setup}\n        {_FAST_INDEX[manager][0]}'
+    return setup
+
+
 # -- the registry -------------------------------------------------------------------------------
 
 def load():
@@ -145,7 +171,9 @@ def staleness(cascade, today, components=None):
             out.append({'line': block, 'kind': 'no-registry',
                         'message': f'{block}: `when:` compares its versions, but it has no '
                                    '`releases:` registry'})
+    import namesweep
     for line, table in lines(cascade).items():
+        sweepable = cascade.native(line) in namesweep._CHECK    # brew lines are compaudit's
         if not table:
             out.append({'line': line, 'kind': 'no-registry',
                         'message': f'{line}: a versioned line with no `releases:` registry'})
@@ -161,7 +189,7 @@ def staleness(cascade, today, components=None):
                 out.append({'line': line, 'release': version, 'kind': 'prerelease-past-ga',
                             'message': f'{line} {version}: still `prerelease` after its release date '
                                        f'{released} — recheck at GA and mark it released'})
-            if status in LIVE and not rel.get('image'):
+            if status in LIVE and not rel.get('image') and sweepable:
                 out.append({'line': line, 'release': version, 'kind': 'no-image',
                             'message': f'{line} {version}: live but no `image:` — the sweeps skip it'})
     return out
@@ -298,7 +326,7 @@ def pinned(cascade, components, only_lines=None, show_all=False):
                 if kind == 'from' and not show_all:
                     continue
                 out.append({'component': comp_name, 'binding': index, 'via': binding.via,
-                            'when': binding.when, 'line': line, 'kind': kind,
+                            'when': binding.when, 'line': line, 'kind': kind, 'exact': exact,
                             'covers': covered, 'newest': newest, 'source': comp.source})
     out.extend(_exact_gaps(out, registry))
     return out
@@ -310,7 +338,7 @@ def _exact_gaps(findings, registry):
     gaps = []
     per = {}
     for f in findings:
-        if f['kind'] in ('exact', 'stops-short', 'no-live-release') and '=' in (f['when'] or ''):
+        if f.get('exact'):
             per.setdefault((f['component'], f['line']), set()).update(f['covers'])
     for (comp, line), covered in sorted(per.items()):
         table = registry[line]
@@ -318,7 +346,9 @@ def _exact_gaps(findings, registry):
         if len(ordered) < 2:
             continue
         newest, previous = ordered[-1], ordered[-2]
-        if newest not in covered and previous in covered:
+        # pinned for the release before the newest but not the newest — or pinned only for releases
+        # that have all gone EOL, so no live release gets one
+        if newest not in covered and (previous in covered or not set(covered) & set(ordered)):
             gaps.append({'component': comp, 'line': line, 'kind': 'release-pin-gap',
                          'covers': sorted(covered, key=_vkey), 'newest': newest,
                          'when': None, 'via': None, 'binding': None, 'source': None})
@@ -426,7 +456,7 @@ def sweep(cascade, line, releases_wanted=None):
         if not image:
             per_release[version] = {'error': 'no image in the registry'}
             continue
-        names = namesweep._native_names(line, version, manager)
+        names = release_names(line, version, manager)
         names_by_release[version] = names
         candidates = arrival_candidates(line, version, manager)
         query = sorted(set(names) | set(candidates))
@@ -434,11 +464,20 @@ def sweep(cascade, line, releases_wanted=None):
               f'candidates in {image}', file=sys.stderr)
         try:
             missing, _rc = namesweep._run_verifier(
-                image, namesweep._build_snippet(_SETUPS[line], namesweep._CHECK[manager]), query)
+                image, namesweep._build_snippet(_setup_for(line, manager), _check_for(manager)), query)
         except subprocess.TimeoutExpired:
             per_release[version] = {'error': 'verifier timed out'}
             continue
         absent = set(missing)
+        # a name-only guess must be an exact package name: the slow fallback (`dnf provides`,
+        # `apt-cache show`) also matches files and virtual names (`clang-18` -> /usr/bin/clang-18)
+        guesses = sorted(p for p, c in candidates.items()
+                         if c['confidence'] == 'name-only' and p not in absent)
+        if guesses and manager in _FAST_INDEX:
+            exact_check = _FAST_INDEX[manager][1]
+            not_exact, _rc = namesweep._run_verifier(
+                image, namesweep._build_snippet(_setup_for(line, manager), exact_check), guesses)
+            absent |= set(not_exact)
         per_release[version] = {
             'image': image, 'checked': len(names),
             'missing': {p: names[p] for p in missing if p in names and p not in allow},
@@ -461,6 +500,32 @@ def sweep(cascade, line, releases_wanted=None):
 
 # vias that install no distro-packageable software of their own (companions, bundles)
 _NOT_PACKAGES = frozenset({'dotfiles', 'glue', 'service', 'group', 'parts'})
+
+
+# drivers that install a binding's `packages:` through the OS package manager (parallel toolchains)
+_NATIVE_BACKED = ('gcc', 'clang', 'gcc-toolset')
+
+
+def release_names(line, version, manager):
+    '''{package: [components]} to check on one release: namesweep's native names, plus the
+    `packages:` of units whose driver installs through the native manager (gcc / clang /
+    gcc-toolset) — namesweep keys on the manager's own driver, so it never sees those.'''
+    import namesweep
+    from configsys.resolve import ResolveError
+    from configsys.routes import Resolver
+    names = {p: list(c) for p, c in namesweep._native_names(line, version, manager).items()}
+    r = Resolver(ROUTES, line, version, CPU)
+    for comp in sorted(r.components):
+        try:
+            units = r.resolve_names([comp])
+        except ResolveError:
+            continue
+        for rc in units.values():
+            if rc.driver in _NATIVE_BACKED:
+                for pkg in rc.fields.get('packages') or []:
+                    if comp not in names.setdefault(pkg, []):
+                        names[pkg].append(comp)
+    return names
 
 
 def arrival_candidates(line, version, manager):
