@@ -57,9 +57,37 @@ def _nav_str():
                 f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
                 f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
                 f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
-                f"{g('lock')} lock · {g('push')} push · {g('quit')} ")
+                f"{g('lock')} lock · {g('push')} push · {g('history')} history · {g('quit')} ")
     return (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-            'v ref · t trust · T trust-all · L lock · P push · q ')
+            'v ref · t trust · T trust-all · L lock · P push · H history · q ')
+
+
+def _history(stdscr, pal, ctx, pl):
+    '''Plugins `H`: the primary's recent changes in a list (↑ not pushed, * made by configsys), with
+    "Undo …" for the newest configsys change on top. Returns the note to show.'''
+    from ... import primarygit
+    found = primarygit.history(ctx, 15)
+    if found is None:
+        return 'no synced primary plugin on a branch'
+    name, changes = found
+    last = primarygit.undoable(changes)
+    rows = [(f'{"↑" if not c.pushed else " "}{"*" if c.by_configsys else " "} {c.date}  {c.subject}', c.short)
+            for c in changes]
+    opts = ([(f'Undo "{last.subject}"', 'z')] if last else []) + rows
+    pick = menu._popup_choose(stdscr, pal, f'{name}: recent changes (↑ not pushed · * made by configsys)',
+                              opts, start=0, shortcuts={'z': 0} if last else None)
+    if not last or pick != 0:
+        return None
+    files = ', '.join(last.files[:4]) + (' …' if len(last.files) > 4 else '')
+    sure = menu._popup_choose(stdscr, pal, f'Undo "{last.subject}"? ({files})',
+                              [('Undo it', 'y'), ('Keep it', 'n')], start=1, shortcuts={'y': 0, 'n': 1})
+    if sure != 0:
+        return None
+    _ok, lines = primarygit.undo(ctx)
+    ctx.invalidate()
+    pl.reload()
+    pl._set_primary_state(primarygit.state(ctx))
+    return lines[-1] if lines else None
 
 
 def _sync_note(ctx, results):
@@ -353,6 +381,8 @@ class PluginsScreen(Screen):
                 pl.reload()
                 note = lines[-1] if lines else None
                 pending = lines[:-1]
+            elif pact == 'history':
+                note = _history(stdscr, pal, ctx, pl)
             elif pact == 'set-ref' and row:
                 ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                 if ref and ref.strip():

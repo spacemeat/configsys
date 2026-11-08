@@ -1215,6 +1215,9 @@ _HELP = {
                        'edit both), then push. Edits you made by hand are only included if you say so. '
                        'The primary-push setting decides whether quitting offers it (ask), does it '
                        '(auto; auto-on-quit also on Q) or leaves it to you (manual)'),
+            ('H history', 'your ★ primary\'s recent changes, newest first (↑ not pushed yet, * made by '
+                          'configsys), with "Undo" for the newest change configsys made: dropped if it '
+                          'was never pushed, else taken back by a new commit (undo again to redo)'),
             ('⊘ locked', 'L locks the plugin on this machine: no sync, update, bless or trust until L '
                          'unlocks it. A synced copy keeps loading as it is — x removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),

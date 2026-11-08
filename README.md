@@ -330,6 +330,11 @@ half-way through a git operation. The `primary-push` setting decides when this h
 - `auto-on-quit`: configsys pushes for you only when you quit the TUI (`Q` too).
 - `manual`: only when you run `plugin push` or press `P`.
 
+`plugin log` lists your primary's recent commits — which configsys made and which aren't pushed yet —
+and `plugin undo` takes back the newest change configsys made (`H` on the Plugins screen does both).
+A change you never pushed is simply dropped; one you pushed is taken back by a new commit, so undoing
+twice redoes it. Your own commits and uncommitted edits are never touched.
+
 ## Commands
 
 Run a command as `./configsys.sh <command>` from your clone (or `.venv/bin/python -m configsys

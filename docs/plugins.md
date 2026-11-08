@@ -159,6 +159,8 @@ so you can push a plugin you author without a token.
 | `configsys plugin remove <name>` | Undeclare the plugin (wherever it's declared) and delete its synced copy. |
 | `configsys plugin trust [name \| --all]` / `untrust <name>` | Approve / revoke a plugin's current content (§6). No name, or `--all`, trusts every currently untrusted or changed plugin. |
 | `configsys plugin bless <source>` / `unbless` | Make a plugin your primary (§8), or clear that. `bless none` also clears. |
+| `configsys plugin log [-n N]` | Your primary's last N commits (default 10), newest first, with the files each changed: `↑` not pushed yet (as of the last fetch), `*` made by configsys. |
+| `configsys plugin undo [--yes]` | Take back the newest change configsys committed to your primary (§8): dropped if it was never pushed and is the last commit, else reverted by a new `Undo: …` commit (undo again to redo). Refused while you have uncommitted edits to its files. Asks first on a terminal unless `--yes`. |
 | `configsys plugin push [--include-edits] [--yes]` | Publish your primary plugin (§8): commit, combine with what your other machines pushed (asking about any file both changed), list what will leave this machine and ask, then push to its branch. Edits you made by hand are included only if you say yes (or pass `--include-edits`); `--yes` pushes without the final question. |
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
 | `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
@@ -522,6 +524,14 @@ primary in the background to count `↓`. The Components header shows `<primary>
 sync` whenever there's something either way (under `primary-push: auto` or `auto-on-quit`, only the `↓` part), and
 `plugin list` says the same in words (`↓` there is as of the last fetch or sync; `plugin list --fetch`
 fetches first).
+
+**Seeing and undoing configsys's changes.** `configsys plugin log` (or `H` on the Plugins screen)
+lists the primary's recent commits, marking the ones configsys made (`*`) and the ones not pushed yet
+(`↑`). `configsys plugin undo` (or "Undo" at the top of `H`'s list) takes back the newest change
+configsys made: if it was never pushed and nothing came after it, it is dropped (`git reset --keep` —
+your uncommitted edits stay, and `git reflog` still has it); otherwise a new commit, `Undo: <what it
+did>`, reverses it — itself a configsys change, so a second undo redoes it. Your own commits are never
+undone, and an undo is refused while you have uncommitted edits to the files it would change.
 
 **Publishing it.** `configsys plugin push` (or `P` on the Plugins screen) shares your primary with
 your other machines, in three steps:

@@ -482,3 +482,82 @@ def test_a_file_that_became_a_folder_is_one_question(primary, choice):
     assert not any('~' in t for t in tree), tree
     assert ('notes.txt' in tree) == (choice == 'mine') and ('notes.txt/a' in tree) == (choice == 'theirs')
     _clean(clone)
+
+
+# -- G2: seeing and undoing configsys's own commits -------------------------------------------
+
+@needs_git
+def test_plugin_log_marks_unpushed_and_configsys_made(primary, capsys):
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    capsys.readouterr()
+    assert main(base + ['plugin', 'log']) == 0
+    out = capsys.readouterr().out
+    assert '↑* ' in out and 'picks add fzf' in out and '[p.hu]' in out
+    assert '`configsys plugin undo` takes back' in out
+    first = next(ln for ln in out.splitlines() if ' A' in ln and 'picks' not in ln)
+    assert first.lstrip().startswith(tuple('0123456789abcdef'))         # pushed, not configsys's: no marks
+
+
+@needs_git
+def test_undo_drops_an_unpushed_change(primary, capsys):
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    head = _git(clone, 'rev-parse', 'HEAD~1')
+    assert main(base + ['plugin', 'undo', '--yes']) == 0
+    assert 'never pushed, so it is simply gone' in capsys.readouterr().out
+    assert _git(clone, 'rev-parse', 'HEAD') == head and 'fzf' not in (clone / 'p.hu').read_text()
+    _clean(clone)
+
+
+@needs_git
+def test_undo_reverts_a_pushed_change_and_undo_again_redoes_it(primary, capsys):
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    assert main(base + ['plugin', 'push', '--yes']) == 0
+    assert main(base + ['plugin', 'undo', '--yes']) == 0
+    assert _git(clone, 'log', '-1', '--format=%s') == 'Undo: picks add fzf'
+    assert 'fzf' not in (clone / 'p.hu').read_text()
+    assert main(base + ['plugin', 'undo', '--yes']) == 0                # the undo is itself undoable
+    assert 'fzf' in (clone / 'p.hu').read_text()
+    _clean(clone)
+
+
+@needs_git
+def test_undo_never_takes_back_your_own_commits_or_edits(primary, capsys):
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    (clone / 'notes.txt').write_text('mine\n')
+    _git(clone, 'commit', '-qam', 'my own commit')
+    (clone / 'p.hu').write_text((clone / 'p.hu').read_text() + '// typing\n')
+    capsys.readouterr()
+    assert main(base + ['plugin', 'undo', '--yes']) == 1                # your edit to its file: refused
+    assert 'uncommitted edits (p.hu)' in capsys.readouterr().out
+    _git(clone, 'checkout', '-q', '--', 'p.hu')
+    assert main(base + ['plugin', 'undo', '--yes']) == 0                # reverts the configsys one …
+    assert (clone / 'notes.txt').read_text() == 'mine\n'                # … never yours
+    assert _git(clone, 'log', '-1', '--format=%s') == 'Undo: picks add fzf'
+
+
+@needs_git
+def test_undo_under_pretend_changes_nothing(primary, capsys):
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    head = _git(clone, 'rev-parse', 'HEAD')
+    capsys.readouterr()
+    assert main(base + ['--pretend', 'plugin', 'undo', '--yes']) == 0
+    assert '[pretend] would drop' in capsys.readouterr().out
+    assert _git(clone, 'rev-parse', 'HEAD') == head
+
+
+@needs_git
+def test_the_plugins_screen_history_key_undoes(primary, monkeypatch):
+    from configsys.tui.screens import plugins as plugscreen
+    base, clone, bare, other = primary
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    ctx = _ctx(base)
+    shown = []
+    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: shown.append((a[2], a[3])) or 0)
+    note = plugscreen._history(None, None, ctx, menu.PluginScreen(ctx))
+    assert shown[0][1][0] == ('Undo "picks add fzf"', 'z')
+    assert 'undid "picks add fzf"' in note and 'fzf' not in (clone / 'p.hu').read_text()

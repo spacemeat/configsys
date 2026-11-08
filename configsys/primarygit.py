@@ -865,6 +865,111 @@ def push(ctx, ui=None):
                           f'{_them(ahead)} on their next `configsys plugin sync`.']
 
 
+# -- seeing and undoing configsys's own commits (review-2026-11 G2: `plugin log` / `plugin undo`, Plugins `H`) --
+
+_MADE_BY = 'Made by configsys'                         # the body line of every configsys edit commit
+
+
+@dataclass(frozen=True)
+class Change:
+    '''One commit on the primary's branch: `pushed` — your remote has it; `by_configsys` — an edit
+    configsys made (not yours, not a combine), so `undo` may take it back.'''
+    sha: str
+    short: str
+    date: str
+    subject: str
+    files: tuple
+    pushed: bool
+    by_configsys: bool
+
+
+def history(ctx, n=10):
+    '''(name, [Change], newest first) for the last `n` commits on the primary's branch, or None (no
+    synced primary on a branch). Local only — "pushed" is as of the last fetch.'''
+    try:
+        found = _primary(ctx)
+        if found is None or not (found[3] / '.git').exists():
+            return None
+        name, repo = found[2], PrimaryRepo(found[3])
+        branch = repo.branch()
+        if not branch:
+            return None
+        upstream = f'origin/{branch}'
+        unpushed = set((repo.text('rev-list', 'HEAD', f'^{upstream}') if repo.has_ref(upstream)
+                        else repo.text('rev-list', 'HEAD')).split())
+        out = repo.git('log', f'-n{int(n)}', '--format=%H%x1f%h%x1f%as%x1f%s%x1f%b%x1f%P%x1e')
+        changes = []
+        for rec in (out.stdout.split('\x1e') if out.ok else []):
+            parts = rec.strip('\n').split('\x1f')
+            if len(parts) < 6:
+                continue
+            sha, short, date, subject, body, parents = parts[:6]
+            files = repo.git('diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', sha)
+            names = tuple(os.fsdecode(f) for f in files.out.split(b'\0') if f) if files.ok else ()
+            changes.append(Change(sha, short, date, _printable(subject), tuple(map(_printable, names)),
+                                  sha not in unpushed,
+                                  _MADE_BY in body and len(parents.split()) == 1))
+        return name, changes
+    except Exception:                                  # noqa: BLE001 — best-effort, never a crash
+        return None
+
+
+def undoable(changes):
+    '''The newest change configsys made (what `undo` takes back), or None.'''
+    return next((c for c in changes if c.by_configsys), None)
+
+
+def undo(ctx, confirm=None):
+    '''Take back the newest edit configsys committed to the primary. Not pushed yet and the last
+    commit: it is simply dropped (`git reset --keep`, so your uncommitted edits stay; the reflog still
+    has it). Otherwise it is reverted by a new commit, "Undo: <what it did>" — which is itself
+    undoable, so undo twice is redo. Refused while you have uncommitted edits to its files, or staged
+    changes, or the primary is mid-merge. `confirm(change)` may say no. (ok, [lines]).'''
+    found = history(ctx, 50)
+    if found is None:
+        return False, ['you have no synced primary plugin on a branch — nothing to undo.']
+    name, changes = found
+    change = undoable(changes)
+    if change is None:
+        return False, [f'{name}: none of the last {len(changes)} commits is an edit configsys made — '
+                       f'nothing to undo.']
+    if getattr(ctx.runner, 'pretend', False):
+        how = 'drop' if (change is changes[0] and not change.pushed) else 'revert'
+        return True, [f'[pretend] would {how} {change.short} {change.subject} ({", ".join(change.files)})']
+    repo = PrimaryRepo(_primary(ctx)[3])
+    busy = repo.in_progress()
+    if busy:
+        return False, [f'{name} is in the middle of a {busy} — finish it, or `git -C {repo.root} {busy} '
+                       f'--abort`, then undo again.']
+    yours = sorted((repo.dirty() or set()) & set(change.files))
+    staged = repo.text('diff', '--cached', '--name-only')
+    if yours or staged:
+        what = ', '.join(yours) if yours else 'changes staged by hand'
+        return False, [f'{name}: you have uncommitted edits ({what}), so "{change.subject}" was not '
+                       f'undone — commit or undo them first.']
+    if confirm is not None and not confirm(change):
+        return False, [f'{name}: left as is.']
+    if change is changes[0] and not change.pushed:
+        r = repo.git('reset', '--keep', '--quiet', 'HEAD~1')
+        if not r.ok:
+            return False, [f'{name}: could not undo "{change.subject}": {_err(r)}']
+        return True, [f'{name}: undid "{change.subject}" ({change.short}) — it was never pushed, so it is '
+                      f'simply gone (`git -C {repo.root} reflog` still has it).']
+    if not _has_ident(ctx, repo):
+        return False, [_no_ident(name, repo.root)]
+    r = repo.git('revert', '--no-commit', change.sha)
+    if not r.ok:
+        repo.git('revert', '--abort')
+        return False, [f'{name}: "{change.subject}" can\'t be undone cleanly — later changes build on '
+                       f'it ({_err(r)}). Nothing changed.']
+    c = repo.git('commit', '--quiet', '--no-verify', '-m', f'Undo: {change.subject}', '-m', _made_by(ctx))
+    if not c.ok:
+        repo.git('revert', '--abort')
+        return False, [f'{name}: could not commit the undo: {_err(c)}']
+    return True, [f'{name}: undid "{change.subject}" ({change.short}) with a new commit, '
+                  f'"Undo: {change.subject}"' + ('' if not change.pushed else ' — `plugin push` shares it.')]
+
+
 def _outgoing(repo, upstream):
     '''([commit lines], [files]) that a push would send: what HEAD has that `upstream` lacks (every
     commit and file when there is no upstream yet).'''

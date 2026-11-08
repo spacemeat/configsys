@@ -3008,6 +3008,45 @@ class _CliPushUI:
         pass
 
 
+def _plugin_log(ctx, args):
+    '''`plugin log`: the primary's recent commits, newest first, marked ↑ (not pushed) and * (made by
+    configsys — `plugin undo` takes back the newest of those).'''
+    found = primarygit.history(ctx, max(1, args.n))
+    if found is None:
+        print('configsys: you have no synced primary plugin on a branch.')
+        return 1
+    name, changes = found
+    print(f'{name}: the last {primarygit._count(len(changes), "commit")}   (↑ not pushed yet · * made by '
+          f'configsys)')
+    for c in changes:
+        files = ', '.join(c.files[:6]) + (f' … +{len(c.files) - 6}' if len(c.files) > 6 else '')
+        print(f'  {"↑" if not c.pushed else " "}{"*" if c.by_configsys else " "} {c.short} {c.date}  '
+              f'{c.subject}' + (f'   [{files}]' if files else ''))
+    last = primarygit.undoable(changes)
+    if last:
+        print(f'\n`configsys plugin undo` takes back {last.short} "{last.subject}".')
+    return 0
+
+
+def _plugin_undo(ctx, args):
+    '''`plugin undo`: show the newest configsys change, ask on a terminal (unless --yes), take it back.'''
+    def confirm(change):
+        if args.yes or not (sys.stdin.isatty() and sys.stdout.isatty()):
+            return True
+        print(f'configsys: undo {change.short} "{change.subject}"'
+              + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]')
+        try:
+            return input('Undo it? [y/N] ').strip().lower()[:1] == 'y'
+        except EOFError:
+            return False
+    ok, lines = primarygit.undo(ctx, confirm)
+    for line in lines:
+        print(f'configsys: {line}')
+    if ok and not ctx.runner.pretend:
+        _after_primary_commit(ctx)                     # under `auto` a revert is pushed like any edit
+    return 0 if ok else 1
+
+
 def _edit_conflict(path):
     '''Open a file holding conflict markers in $VISUAL/$EDITOR (else nano, else vi), on the terminal.'''
     import shlex as _shlex
@@ -3146,6 +3185,12 @@ def cmd_plugin(ctx, args):
         for line in lines:
             print(f'configsys: {line}')
         return 0 if ok else 1
+
+    if sub == 'log':
+        return _plugin_log(ctx, args)
+
+    if sub == 'undo':
+        return _plugin_undo(ctx, args)
 
     if sub == 'list':
         rows = plugins.status(ctx.paths.plugins_dir, eff,
@@ -3912,6 +3957,12 @@ def build_parser():
                      help='also commit and push edits you made by hand, without asking')
     ppu.add_argument('-y', '--yes', action='store_true',
                      help='push without listing the outgoing changes and asking first')
+    plg = plsub.add_parser('log', help="your primary plugin's recent commits: what each changed, which "
+                                       "configsys made, which aren't pushed yet")
+    plg.add_argument('-n', type=int, default=10, metavar='N', help='how many commits (default 10)')
+    pun = plsub.add_parser('undo', help='take back the newest change configsys committed to your '
+                                        'primary (dropped if never pushed, else reverted)')
+    pun.add_argument('-y', '--yes', action='store_true', help='undo without showing it and asking first')
     pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
                                         "dotfiles, your own glue, your config's component "
                                         'definitions), or merge that into your existing primary')
