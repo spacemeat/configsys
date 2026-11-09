@@ -1,8 +1,9 @@
-'''Render-regression for the Profiles screen (docs/done/d2-mvvm-plan.md), post-oracle style. Profiles'
-build_vm is light (titles/status/legends/nav) and its draw reads the model + the live catalog, so the
-assertions here pin the ROUTES-INDEPENDENT chrome (panel titles, status prefix, the footers, the note)
-rather than specific catalog rows — nothing drifts when routes.hu changes. The fixture is the hermetic
-`_sample_profiles_state` (its warm-cache thread is aborted + resolutions pre-seeded). Plus handle().'''
+'''Render-regression for the Profiles screen (docs/done/d2-mvvm-plan.md), post-oracle style. build_vm
+settles the whole frame (tree rows, detail lines, catalog cells), so draw is pinned against a HAND-BUILT
+ProfilesVM; the build_vm assertions pin the ROUTES-INDEPENDENT chrome (panel titles, status prefix, the
+footers, the note) rather than specific catalog rows — nothing drifts when routes.hu changes. The
+fixture is the hermetic `_sample_profiles_state` (its warm-cache thread is aborted + resolutions
+pre-seeded). Plus handle().'''
 
 import pytest
 
@@ -94,3 +95,27 @@ def test_res_cache_drops_when_ctx_routes_rebuilt(ctx):
     ctx.invalidate()                       # simulate a pin/route edit from anywhere -> routes rebuilt
     resolve(ps.catalog[1])                 # the next resolve sees the new routes id and clears stale
     assert name not in ps._res
+
+
+def test_draw_paints_a_hand_built_vm():
+    # D7 / tui-screens-07: the VM carries the whole frame, so a literal one paints with no ctx or model
+    from configsys.tui.screens.profiles import CatRow, LeftRow, ProfilesScreen, ProfilesVM
+    vm = ProfilesVM()
+    vm.top, vm.body_h, vm.lw, vm.desc_h = 1, 15, 30, 8
+    vm.left_rows = [LeftRow('▸ ▹ shells  ⁺2', True, False, [('⁺2', 'menu_new')]),
+                    LeftRow('    editors', False, True, [])]
+    vm.left_n, vm.left_max = 2, 14
+    vm.detail_title = 'ripgrep'
+    vm.detail_lines = [(0, 'recursive regex search', 'info'), (5, 'in profiles: ● finders', 'method_dim')]
+    vm.cat_header = [(2, 'COMPONENT', 'menu_header', False), (40, 'laptop', 'link', True)]
+    vm.cat_rows = [CatRow([(0, '#', 'component', None), (2, 'ripgrep', 'component', 'underline'),
+                           (42, '●', 'installed', 'bold')], True)]
+    vm.cat_n, vm.cat_w = 1, 60
+    vm.status, vm.nav1, vm.nav2 = ' browse: shells', ' NAV1', ' NAV2'
+    surf = BufferSurface(20, 100)
+    scr = ProfilesScreen.__new__(ProfilesScreen)
+    scr.draw(surf, RecordingPalette(), vm)
+    text = '\n'.join(surf.text_rows())
+    for want in ('shells  ⁺2', 'editors', 'recursive regex search', 'in profiles: ● finders',
+                 'COMPONENT', 'laptop', 'ripgrep', 'NAV1', 'NAV2', 'browse: shells'):
+        assert want in text, want

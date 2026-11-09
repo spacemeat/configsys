@@ -5,14 +5,13 @@ Dotfiles / Glue pattern-setters. The model is the existing `menu.ProfileScreen` 
 component catalog + matrix state, the overlay/probe machinery), composed unchanged; this adds the
 three MVVM seams:
 
-- build_vm: the PURE chrome content — the selected profile, the two panel titles, the status line
-  (sans the transient note), the two legend rows and the two nav rows. This screen's body reads
-  deeply from the model (per-row resolution, per-cell picks, badge counts), so the first pass keeps
-  the VM deliberately light and lets `draw` read the model for the heavy content — the primary win
-  here is the own-file Screen interface and a `handle` extracted from `run()`.
-- draw: reproduces menu._draw_profiles cell for cell (test_screen_profiles pins it against the
-  legacy painter). It reads `self.model.ctx` wherever the legacy painter read its `ctx` parameter,
-  so a sample overlay ctx (menu._sample_profiles_state) is honoured identically.
+- build_vm: the whole frame from the model + the frame size (review-2026-11-2 D7) — the panel
+  geometry, the profile tree's visible rows (text, `~` attribution, badges), the detail box's lines
+  and the catalog matrix's column spec + visible rows as positioned cells. It reads `self.model.ctx`
+  (a sample overlay ctx — menu._sample_profiles_state — is honoured), runs the overlay fold and the
+  coverage hint, and settles the scroll offsets (applied by commit).
+- draw: paints that VM — palette concerns only (the selection fill, the dim bar of an unfocused
+  cursor, reverse video on a low-colour terminal).
 - handle: the former `if screen == 'profiles'` dispatch, returning an Intent (note / dirty /
   pending_notes / open_where) instead of mutating loop-scope locals. The `machine-target` branch,
   which REBOUND the loop's `ps`, rebinds `self.model` internally.
@@ -31,8 +30,9 @@ from .base import Intent, Screen, ViewModel
 
 
 class ProfilesVM(ViewModel):
-    '''Pure chrome content for one Profiles frame — settled by build_vm, painted by draw. (The
-    catalog/table body is painted straight from the model this pass; see the module docstring.)'''
+    '''Everything one Profiles frame paints, settled by build_vm from the model + the frame size —
+    draw decides nothing (review-2026-11-2 D7 / tui-screens-07). Geometry is in terminal cells; the
+    pane contents are final text + element roles, so a test (or a Theme sample) can build one by hand.'''
 
     def __init__(self):
         self.prof = None           # the selected (browsed) profile, or None
@@ -47,6 +47,46 @@ class ProfilesVM(ViewModel):
         self.focus = 'left'
         self.overlay = (frozenset(), {}, frozenset())   # install-axis overlay (empty unless `O` on)
         self.cur_oses = None       # the catalog cursor's component has no method here: where it has one
+        # geometry
+        self.top = 1               # panels start below the screen chips
+        self.body_h = 1            # the panels' height (two status/legend rows + two nav rows below)
+        self.lw = 16               # the profiles pane's width; the right column is the rest
+        self.desc_h = 0            # the detail box's height (0 on a short terminal)
+        # LEFT: the profile tree — the visible window
+        self.left_rows = []        # [LeftRow]
+        self.left_n = 0            # every visible tree row (for the scrollbar)
+        self.ltop = 0
+        self.left_max = 0          # the widest row's length (the h-scroll range)
+        self.lhoff = 0             # the pane's horizontal char offset
+        # RIGHT TOP: the detail box
+        self.detail_title = ''
+        self.detail_lines = []     # [(row inside the box, text, role)]
+        # RIGHT BOTTOM: the catalog matrix
+        self.cat_header = []       # [(x, text, role, bold)]
+        self.cat_rows = []         # [CatRow] — the visible window
+        self.cat_n = 0
+        self.rtop = 0
+        self.rcol_left = 0         # horizontal offset into the matrix
+        self.cat_w = 0             # the matrix's virtual width
+        self.shown = []            # components on screen (commit probes them)
+
+
+class LeftRow:
+    '''One profile-tree row: its text (twisty, `~` attributions, name, badges), whether it is the
+    browsed profile, whether an excluded ancestor strikes it, and its count badges [(text, role)].'''
+    __slots__ = ('text', 'cur', 'struck', 'badges')
+
+    def __init__(self, text, cur, struck, badges):
+        self.text, self.cur, self.struck, self.badges = text, cur, struck, badges
+
+
+class CatRow:
+    '''One catalog row: [(x, text, role, attr flag)] cells (`attr` is 'underline' / 'bold' / None),
+    and whether it is the cursor row.'''
+    __slots__ = ('cells', 'cur')
+
+    def __init__(self, cells, cur):
+        self.cells, self.cur = cells, cur
 
 
 def _nav_strs():
@@ -75,6 +115,7 @@ class ProfilesScreen(Screen):
     def build_vm(self, ctx, size):
         ps = self.model
         mctx = ps.ctx                                  # the model's ctx (a sample overlay in tests)
+        h, w = size
         vm = ProfilesVM()
         vm.focus = ps.focus
         prof = ps.cur_curate()
@@ -94,59 +135,38 @@ class ProfilesScreen(Screen):
         # async scan, may start one) and the coverage matrix for an unavailable component (cached
         # per component) — happens here, never in draw
         vm.overlay = ps.overlay()
-        vcat = ps.vcatalog()
+        crows = ps._catalog_rows()                       # [(name, depth)] — parts children interleaved
+        vcat = [nm for nm, _dep in crows]
         cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
         if cur is not None and not ps.available(cur):
             vm.cur_oses = ps.available_oses(cur)
+
+        vm.top, vm.body_h = 1, max(1, h - 5)             # TWO status/legend rows, then TWO nav rows below
+        vm.lw = max(16, w // 6) + 6                      # profiles pane: narrow, leaving the grid room
+        rw = w - vm.lw - 1
+        vm.desc_h = 8 if vm.body_h >= 13 else 0          # one extra inner row for the "needs" line
+        self._left_vm(vm, ps, mctx, vm.body_h - 2, vm.lw - 2)
+        self._detail_vm(vm, ps, mctx, prof, cur, vm.desc_h - 2, rw - 2)
+        self._catalog_vm(vm, ps, mctx, crows, vm.body_h - vm.desc_h - 2, rw - 2)
         return vm
 
-    # -- draw -------------------------------------------------------------
-
-    def draw(self, stdscr, pal, vm):
-        ps = self.model
-        ctx = ps.ctx
-        h, w = self.begin_page(stdscr, pal)
-
-        top, body_h = 1, max(1, h - 5)                   # TWO status/legend rows, then TWO nav rows below
-        lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
-        rleft, rw = lw + 1, w - lw - 1
-        prof = vm.prof                                   # the selected profile
-        _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
-        ov_inst, ov_orph, ov_uninst = vm.overlay         # install-axis overlay data (empty unless `O` on)
-        _sel = pal.sel_bg_rgb
-        residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))   # dimmer bar: unfocused current row
-        low_color = not pal.have256    # 8/16-colour has no room for a dim tint -> reverse-video instead
-
-        # LEFT: profiles as a tree — top-level + inline `+include` children
+    def _left_vm(self, vm, ps, ctx, lih, liw):
+        '''The profile tree's visible window: each row's text, `~` attribution and badges.'''
         vnodes = ps.visible_pnodes()
-        lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, vm.ltitle,
-                                    ps.focus == 'left', h, w)
         ltop = ps.ltop
         if ps.reveal is not None:                        # a just-expanded node -> reveal its subtree
             ltop = _reveal_subtree([nd[2] for nd in vnodes], [nd[1] for nd in vnodes], ps.reveal,
                                    ltop, lih)
-        ltop = _scroll_top(ps.lcur, ltop, lih, len(vnodes))
-        _lho = getattr(ps, 'lhoff', 0)                   # browse-pane horizontal char offset
-        _lmax = 0                                        # widest visible row -> sets lhmax below
-        for vis, i in enumerate(range(ltop, min(len(vnodes), ltop + lih))):
+        ltop = _scroll_top(ps.lcur, ltop, max(1, lih), len(vnodes))
+        lmax = 0
+        for i in range(ltop, min(len(vnodes), ltop + max(1, lih))):
             name, depth, key, expandable, expanded, kind = vnodes[i][:6]
-            y = lit + vis
-            cur = i == ps.lcur
-            foc = cur and ps.focus == 'left'
-            rbg = residual_bg if (cur and not foc) else None   # dimmer bar for the current row unfocused
-            rev = curses.A_REVERSE if (low_color and rbg is not None) else 0
-            if foc:
-                _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
-            elif rbg is not None:
-                _put(stdscr, y, lil, ' ' * liw,
-                     curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
             exp = '▾' if expanded else ('▹' if expandable else ' ')
             scope = '▸' if i == ps.lcur else ' '         # marks the profile the catalog is showing
             prefix = list(f'{scope}{"  " * depth}{exp}')
-            # Exclusion attribution: paint a `~` in the at-fault ancestor's status-glyph column.
+            # Exclusion attribution: a `~` in the at-fault ancestor's status-glyph column.
             struck = False
-            _parts = key.split('\x00')
-            for ai, anc in enumerate(_parts[:-1]):                # ancestors; path index == their depth
+            for ai, anc in enumerate(key.split('\x00')[:-1]):     # ancestors; path index == their depth
                 try:
                     if name in ctx.config.profile_excludes(anc):
                         col = 2 + 2 * ai
@@ -158,138 +178,104 @@ class ProfilesScreen(Screen):
             nnew = ps.profile_new_count(name)
             nint = ps.profile_interesting_count(name)
             nunt = ps.profile_untracked_count(name)       # installed here but not tracked (claimable)
-            newtag = f'  ⁺{nnew}' if nnew else ''
-            inttag = f'  ☆ {nint}' if nint else ''
-            unttag = f'  ⊙ {nunt}' if nunt else ''
-            tag = newtag + inttag + unttag
+            badges = [(t, role) for t, role in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
+                                                (f'☆ {nint}' if nint else '', 'link'),
+                                                (f'⊙ {nunt}' if nunt else '', 'installed')) if t]
             disp = f'+{name}' if kind == 'include' else name  # `+`-mark a live include child
-            row = f'{"".join(prefix)} {disp}{tag}'
-            _lmax = max(_lmax, len(row))
-            _put(stdscr, y, lil, _fit(row[_lho:], liw),
-                 pal.style('profile', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
-                 | rev | (curses.A_DIM if struck and not foc else 0))
-            # tint the count badges in their own hues (⁺N new · ☆N interesting · ⊙N installed-untracked)
-            if not foc:
-                for _bstr, _hue in ((f'⁺{nnew}' if nnew else '', 'menu_new'),
-                                    (f'☆ {nint}' if nint else '', 'link'),
-                                    (f'⊙ {nunt}' if nunt else '', 'installed')):
-                    if _bstr:
-                        vx = row.rindex(_bstr) - _lho
-                        if 0 <= vx and vx + len(_bstr) <= liw:
-                            _put(stdscr, y, lil + vx, _bstr,
-                                 pal.style(_hue, y, lil + vx, h, w, bg=(None if low_color else rbg)) | rev)
-        lhmax = max(0, _lmax - liw)                      # clamp target for ←/→ (the handler reads it)
-        lhoff = min(_lho, lhmax)
-        vm.settle(ltop=ltop, reveal=None, lhmax=lhmax, lhoff=lhoff)
-        _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ltop, lih, len(vnodes), h, w)
-        if lhmax:                                        # horizontal thumb on the browse pane's bottom border
-            _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, lhoff, liw, _lmax, h, w)
+            text = f'{"".join(prefix)} {disp}' + ''.join(f'  {t}' for t, _r in badges)
+            lmax = max(lmax, len(text))
+            vm.left_rows.append(LeftRow(text, i == ps.lcur, struck, badges))
+        vm.left_n, vm.ltop, vm.left_max = len(vnodes), ltop, lmax
+        lhmax = max(0, lmax - liw)                       # clamp target for ←/→ (the handler reads it)
+        vm.lhoff = min(getattr(ps, 'lhoff', 0), lhmax)
+        vm.settle(ltop=ltop, reveal=None, lhmax=lhmax, lhoff=vm.lhoff)
 
-        # RIGHT TOP: detail for the highlighted component — description + methods
-        crows = ps._catalog_rows()                        # [(name, depth)] — parts children interleaved
-        vcat = [nm for nm, _dep in crows]
-        cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
-        desc_h = 8 if body_h >= 13 else 0    # one extra inner row for the parts/requires ("needs") line
-        # When the PROFILE pane is focused on a profile, the detail box shows that profile's RAW .hu
-        # DEFINITION — its top layer's authored term list; a note names lower layers.
-        _defs = ctx.config.profile_layer_defs(prof) if (desc_h and ps.focus == 'left' and prof) else []
-        if _defs:
-            _rowdef = _defs[-1]                                   # its top layer's definition
-            dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw,
-                                        f'profile: {prof}  [{_rowdef["role"]}]', False, h, w)
-            top_def = _rowdef                                     # show THIS layer's authored terms
+    def _detail_vm(self, vm, ps, ctx, prof, cur, dih, diw):
+        '''The detail box: the browsed profile's authored definition (left pane focused), else the
+        highlighted component's description, availability, needs, attrs, dependents and profiles.'''
+        if vm.desc_h <= 0:
+            vm.detail_title = None
+            return
+        lines = vm.detail_lines
+        defs = ctx.config.profile_layer_defs(prof) if (ps.focus == 'left' and prof) else []
+        if defs:                                         # the profile's RAW .hu definition, top layer
+            top_def = defs[-1]
+            vm.detail_title = f'profile: {prof}  [{top_def["role"]}]'
             shown = [f'"{t}"' if str(t).startswith('^') else str(t) for t in top_def['terms']]
             body = '[ ' + '  '.join(shown) + ' ]' if shown else '[ ]'
-            for k, line in enumerate(_wordwrap(body, diw)[:dih - 1]):
-                _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-            if len(_defs) > 1:                                    # name the lower layers that also define it
-                _layer_note = '(also in: ' + ', '.join(d['role'] for d in _defs[:-1]) + ')'
-                _put(stdscr, dit + dih - 1, dil, _fit(_layer_note, diw),
-                     pal.style('method_dim', dit + dih - 1, dil, h, w))
-        elif desc_h:
-            dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw, cur or 'component', False, h, w)
-            if cur:
-                comp = ctx.routes.components.get(cur)
-                desc = (comp.description if comp else '') or '(no description yet)'
-                _unavail = not ps.available(cur)
-                _desc_rows = (dih - 5) if _unavail else (dih - 4)
-                for k, line in enumerate(_wrap(desc, diw)[:max(0, _desc_rows)]):
-                    _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
-                if _unavail:
-                    _oses = vm.cur_oses
-                    _wtext = (f'⊘ no install method on {ctx.os_info.block} · available on: {", ".join(_oses)}'
-                              if _oses else f'⊘ no install method on {ctx.os_info.block} (declines on every '
-                              'modeled OS)')
-                    _put(stdscr, dit + dih - 5, dil, _fit(_wtext, diw),
-                         pal.style('issue_warning', dit + dih - 5, dil, h, w))
-                _parts_here = ps._parts(cur)
-                if _parts_here:
-                    _nlabel, _deps = 'parts', _parts_here
-                else:
-                    _nlabel = 'requires'
-                    _deps = [str(d) for d in (getattr(comp, 'requires', None) or [])]
+            lines.extend((k, line, 'info') for k, line in enumerate(_wordwrap(body, diw)[:dih - 1]))
+            if len(defs) > 1:                            # name the lower layers that also define it
+                lines.append((dih - 1, '(also in: ' + ', '.join(d['role'] for d in defs[:-1]) + ')',
+                              'method_dim'))
+            return
+        vm.detail_title = cur or 'component'
+        if not cur:
+            return
+        comp = ctx.routes.components.get(cur)
+        desc = (comp.description if comp else '') or '(no description yet)'
+        unavail = vm.cur_oses is not None
+        rows = (dih - 5) if unavail else (dih - 4)
+        lines.extend((k, line, 'info') for k, line in enumerate(_wrap(desc, diw)[:max(0, rows)]))
+        if unavail:
+            block = ctx.os_info.block
+            lines.append((dih - 5, f'⊘ no install method on {block} · available on: {", ".join(vm.cur_oses)}'
+                          if vm.cur_oses else f'⊘ no install method on {block} (declines on every '
+                          'modeled OS)', 'issue_warning'))
+        parts_here = ps._parts(cur)
+        if parts_here:
+            label, deps = 'parts', parts_here
+        else:
+            label, deps = 'requires', [str(d) for d in (getattr(comp, 'requires', None) or [])]
 
-                def _annot(d):
-                    if d in ctx.routes.components:
-                        _av, _via, _pin = ps._resolve(d)
-                        return f'{d}[{"*" if _pin else ""}{_via or "—"}]'
-                    return d                          # a capability, not an installable component
-                _ntext = (f'{_nlabel}: ' + '  '.join(_annot(d) for d in _deps)) if _deps \
-                    else f'{_nlabel}: (none)'
-                _put(stdscr, dit + dih - 4, dil, _fit(_ntext, diw),
-                     pal.style('dependents', dit + dih - 4, dil, h, w))
-                atags = getattr(comp, 'attrs', []) if comp else []
-                if atags:
-                    shown = [(('✓' if a.lower() in ps.attr_inc else '✗' if a.lower() in ps.attr_exc else '')
-                              + a) for a in atags]
-                    atext = 'attrs: ' + ' '.join(shown)
-                else:
-                    atext = 'attrs: (untagged)'
-                _put(stdscr, dit + dih - 3, dil, _fit(atext, diw),
-                     pal.style('method_dim', dit + dih - 3, dil, h, w))
-                try:
-                    deps = ctx.routes.dependents(cur)
-                except Exception:                       # noqa: BLE001 — never let the detail box break the screen
-                    deps = []
-                if deps:
-                    names = [(f'⎈ {n}' if is_drv else n) for n, is_drv in deps]
-                    dtext = 'required by: ' + ', '.join(names)
-                else:
-                    dtext = 'required by: (none)'
-                _put(stdscr, dit + dih - 2, dil, _fit(dtext, diw),
-                     pal.style('dependents', dit + dih - 2, dil, h, w))
-                try:
-                    direct, indirect = ctx.config.profiles_containing(cur)
-                except Exception:                       # noqa: BLE001 — never let the detail box break the screen
-                    direct, indirect = [], []
-                if direct or indirect:
-                    tags = ['● ' + p for p in direct] + ['↳ ' + p for p in indirect]
-                    ptext = 'in profiles: ' + ' '.join(tags)
-                else:
-                    ptext = 'in profiles: (none)'
-                _put(stdscr, dit + dih - 1, dil, _fit(ptext, diw),
-                     pal.style('method_dim', dit + dih - 1, dil, h, w))
+        def annot(d):
+            if d in ctx.routes.components:
+                _av, via, pin = ps._resolve(d)
+                return f'{d}[{"*" if pin else ""}{via or "—"}]'
+            return d                                     # a capability, not an installable component
+        lines.append((dih - 4, (f'{label}: ' + '  '.join(annot(d) for d in deps)) if deps
+                      else f'{label}: (none)', 'dependents'))
+        atags = getattr(comp, 'attrs', []) if comp else []
+        lines.append((dih - 3, ('attrs: ' + ' '.join(
+            ('✓' if a.lower() in ps.attr_inc else '✗' if a.lower() in ps.attr_exc else '') + a
+            for a in atags)) if atags else 'attrs: (untagged)', 'method_dim'))
+        try:
+            dependents = ctx.routes.dependents(cur)
+        except Exception:                                # noqa: BLE001 — never let the detail box break the screen
+            dependents = []
+        lines.append((dih - 2, ('required by: ' + ', '.join(f'⎈ {n}' if is_drv else n
+                                                             for n, is_drv in dependents))
+                      if dependents else 'required by: (none)', 'dependents'))
+        try:
+            direct, indirect = ctx.config.profiles_containing(cur)
+        except Exception:                                # noqa: BLE001 — never let the detail box break the screen
+            direct, indirect = [], []
+        lines.append((dih - 1, ('in profiles: ' + ' '.join(['● ' + p for p in direct]
+                                                          + ['↳ ' + p for p in indirect]))
+                      if (direct or indirect) else 'in profiles: (none)', 'method_dim'))
 
-        # RIGHT BOTTOM: the component catalog as a single vertical TABLE (the v3 matrix)
-        ctop, cath = top + desc_h, body_h - desc_h
+    def _catalog_vm(self, vm, ps, ctx, crows, rih, riw):
+        '''The catalog matrix: its column spec (header) and the visible window of rows, each a list
+        of positioned cells.'''
+        disp = ctx.config.dispositions()                 # {comp: seen|interesting} for the markers
+        _ov_inst, ov_orph, _ov_uninst = vm.overlay
         machines = ps.machines_list()
         tgset = ps.targets()
         picks_map = ctx.config.picks()
-        _uq = ctx.config.uninstall_queue()               # staged-for-uninstall -> ⮾ in the inst'd column
-        _cur_track = ctx.config.included()               # tracked on THIS box -> ● vs ⊙ (installed-untracked)
+        uq = ctx.config.uninstall_queue()                # staged-for-uninstall -> ⮾ in the inst'd column
+        tracked_here = ctx.config.included()             # tracked on THIS box -> ● vs ⊙ (installed-untracked)
         # an IGNORED orphan (orphans-ignore: — `.` toggles it) is dimmed: the user said "leave it be".
         # The overlay's async orphan classification carries `ignored` (glob over comp OR package key);
         # the config globs over the name cover the frames before that scan lands (and right after `.`).
         try:
-            _ign_globs = list(ctx.config.orphans_ignore() or ())
+            ign_globs = list(ctx.config.orphans_ignore() or ())
         except Exception:                                # noqa: BLE001 — never break the paint
-            _ign_globs = []
+            ign_globs = []
 
-        def _ignored_orphan(nm):
+        def ignored_orphan(nm):
             o = ov_orph.get(nm) if isinstance(ov_orph, dict) else None
-            return bool(getattr(o, 'ignored', False)) or any(fnmatchcase(nm, g) for g in _ign_globs)
-        rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, vm.ctitle, ps.focus == 'right', h, w)
-        n = len(vcat)
+            return bool(getattr(o, 'ignored', False)) or any(fnmatchcase(nm, g) for g in ign_globs)
+
+        n = len(crows)
         body_rows = max(1, rih - 1)                       # one row reserved for the column header
         rcur = max(0, min(ps.rcur, n - 1))
         rtop = _scroll_top(rcur, ps.rtop, body_rows, n)
@@ -298,71 +284,39 @@ class ProfilesScreen(Screen):
         via_w, org_w = 10, 14                             # `from` (origin) roomier — plugin names are long
         MGAP = 3
         mach_w = [max(6, min(14, len(m))) + MGAP for m in machines]
-        mach_block = sum(mach_w)
         fixed = 2 + (via_w + 1) + (org_w + 1) + (1 + state_w) + 1     # all but name + machines
         x_name = 2
-        name_w = max(16, min(30, riw - fixed - mach_block))
+        name_w = max(16, min(30, riw - fixed - sum(mach_w)))
         x_via = x_name + name_w + 1
         x_org = x_via + via_w + 1
         x_state = x_org + org_w + 1
         st_x = [x_state + sum(cw for _hd, cw in STATE[:j]) for j in range(len(STATE))]
         x_mach0 = x_state + state_w + 1
         m_base = [x_mach0 + sum(mach_w[:k]) for k in range(len(machines))]
-        total_w = x_mach0 + mach_block
-        rhoff, hbar = max(0, min(getattr(ps, 'rcol_left', 0), max(0, total_w - riw))), total_w > riw
-        # the key handler clamps ←/→ against rhmax; _probe_dirty is consumed (this frame reflects any
-        # folded-in probes)
-        vm.settle(rcur=rcur, rtop=rtop, rcol_left=rhoff, rhmax=max(0, total_w - riw), _probe_dirty=False)
+        vm.cat_w = x_mach0 + sum(mach_w)
+        vm.rcol_left = max(0, min(getattr(ps, 'rcol_left', 0), max(0, vm.cat_w - riw)))
+        vm.cat_n, vm.rtop = n, rtop
+        # the key handler clamps ←/→ against rhmax; _probe_dirty is consumed (this frame reflects
+        # any folded-in probes)
+        vm.settle(rcur=rcur, rtop=rtop, rcol_left=vm.rcol_left, rhmax=max(0, vm.cat_w - riw),
+                  _probe_dirty=False)
 
-        def _hput(y, xoff, text, attr):                 # draw at xoff-rhoff, clipping both edges
-            ax = xoff - rhoff
-            if ax >= riw:
-                return
-            if ax < 0:
-                text = text[-ax:]
-                ax = 0
-            if text:
-                _put(stdscr, y, ril + ax, _fit(text, riw - ax), attr)
-
-        # header row
-        hs = pal.style('menu_header', rit, ril, h, w)
-        _hput(rit, x_name, _fit('COMPONENT', name_w), hs)
-        _hput(rit, x_via, _fit('via', via_w), hs)
-        _hput(rit, x_org, _fit('from', org_w), hs)
-        for (word, cw), sx in zip(STATE, st_x):
-            _hput(rit, sx, _fit(word, cw), hs)
-        for mi, m in enumerate(machines):
-            is_tg = m in tgset
-            _hput(rit, m_base[mi], _fit(m, mach_w[mi] - MGAP),
-                  pal.style('link' if is_tg else 'method_dim', rit, ril, h, w) | (curses.A_BOLD if is_tg else 0))
-
-        _shown = []
-        for r in range(body_rows):
-            i = rtop + r
-            if i >= n:
-                break
+        vm.cat_header = ([(x_name, _fit('COMPONENT', name_w), 'menu_header', False),
+                          (x_via, _fit('via', via_w), 'menu_header', False),
+                          (x_org, _fit('from', org_w), 'menu_header', False)]
+                         + [(sx, _fit(word, cw), 'menu_header', False) for (word, cw), sx in zip(STATE, st_x)]
+                         + [(m_base[mi], _fit(m, mach_w[mi] - MGAP), 'link' if m in tgset else 'method_dim',
+                             m in tgset) for mi, m in enumerate(machines)])
+        for i in range(rtop, min(n, rtop + body_rows)):
             name, depth = crows[i]
-            y = rit + 1 + r
-            _shown.append(name)
-            _parts = ps._parts(name)
-            if _parts:
-                _shown.extend(_parts)                    # probe a parts-aggregator's members too
-            cur = i == rcur
-            foc = cur and ps.focus == 'right'
+            vm.shown.append(name)
+            vm.shown.extend(ps._parts(name))             # probe a parts-aggregator's members too
             avail, via, pinned = ps._resolve(name)
-            istate = ps.install_state(name)             # 'all' · 'some' (parts partial) · 'none'
-            installed = istate == 'all'
-            _d = _disp.get(name)
+            istate = ps.install_state(name)              # 'all' · 'some' (parts partial) · 'none'
+            d = disp.get(name)
             is_new = ctx.config.is_new(name)
-            rev = curses.A_REVERSE if (low_color and cur and not foc) else 0
-            if foc:
-                _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
-            elif rev:
-                _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
-            nelem = ('info_dim' if not avail else 'link' if _d == 'interesting'
-                     else 'menu_new' if is_new else 'info_dim' if _d == 'seen' else 'component')
-            _hput(y, 0, '#' if name in ps.selected_comps else ' ',
-                  pal.style('component', y, ril, h, w, selected=foc) | rev)
+            nelem = ('info_dim' if not avail else 'link' if d == 'interesting'
+                     else 'menu_new' if is_new else 'info_dim' if d == 'seen' else 'component')
             if depth:
                 prefix = '  ↳ '
             elif ps.is_expandable(name):
@@ -370,57 +324,121 @@ class ProfilesScreen(Screen):
             else:
                 prefix = '  '                            # align leaves with the twisty column
             pw = len(prefix)
-            _hput(y, x_name, prefix, pal.style(nelem, y, ril + x_name, h, w, selected=foc) | rev)
-            _hput(y, x_name + pw, _fit(name, max(0, name_w - pw)),
-                  pal.style(nelem, y, ril + x_name + pw, h, w, selected=foc)
-                  | rev | (curses.A_UNDERLINE if installed else 0))
             via_txt = (f'[{via}]' if pinned else via) if via else ('—' if not avail else '')
-            _hput(y, x_via, _fit(via_txt, via_w),
-                  pal.style('method_dim', y, ril + x_via, h, w, selected=foc) | rev)
-            _hput(y, x_org, _fit(ps.origin(name), org_w),
-                  pal.style('method_dim', y, ril + x_org, h, w, selected=foc) | rev)
-            # inst'd: ⮾ staged-for-uninstall · ● installed+tracked · ⊙ installed+untracked (dimmed when
-            # ignored) · ◐ partial · ○ none
-            if name in _uq:
-                inst_g, inst_role = '⮾', 'orphan_lurking'
+            # inst'd: ⮾ staged-for-uninstall · ● installed+tracked · ⊙ installed+untracked (dimmed
+            # when ignored) · ◐ partial · ⊘ no method on this OS · ○ none
+            if name in uq:
+                inst = ('⮾', 'orphan_lurking')
             elif istate == 'all':
-                inst_g = '●' if name in _cur_track else '⊙'
-                inst_role = ('installed' if name in _cur_track
-                             else 'info_dim' if _ignored_orphan(name) else 'orphan_lurking')
+                inst = ('●' if name in tracked_here else '⊙',
+                        'installed' if name in tracked_here
+                        else 'info_dim' if ignored_orphan(name) else 'orphan_lurking')
             elif istate == 'some':
-                inst_g, inst_role = '◐', 'installed'
-            elif not avail:                              # no install method on THIS OS
-                inst_g, inst_role = '⊘', 'info_dim'
+                inst = ('◐', 'installed')
+            elif not avail:
+                inst = ('⊘', 'info_dim')
             else:
-                inst_g, inst_role = '○', 'info_dim'
-            cells = [(inst_g, inst_role),
-                     ('◆' if is_new else ' ', 'menu_new'),
-                     ('☆' if _d == 'interesting' else '·' if _d == 'seen' else ' ',
-                      'link' if _d == 'interesting' else 'info_dim')]
-            for (glyph, role), sx in zip(cells, st_x):
-                _hput(y, sx, glyph, pal.style(role, y, ril + sx, h, w, selected=foc) | rev)
-            # per-machine Included cells (● picked · ○ not, centered) — a picked target machine is bold
-            for mi, m in enumerate(machines):
+                inst = ('○', 'info_dim')
+            cells = [(0, '#' if name in ps.selected_comps else ' ', 'component', None),
+                     (x_name, prefix, nelem, None),
+                     (x_name + pw, _fit(name, max(0, name_w - pw)), nelem,
+                      'underline' if istate == 'all' else None),
+                     (x_via, _fit(via_txt, via_w), 'method_dim', None),
+                     (x_org, _fit(ps.origin(name), org_w), 'method_dim', None)]
+            for (glyph, role), sx in zip([inst, ('◆' if is_new else ' ', 'menu_new'),
+                                          ('☆' if d == 'interesting' else '·' if d == 'seen' else ' ',
+                                           'link' if d == 'interesting' else 'info_dim')], st_x):
+                cells.append((sx, glyph, role, None))
+            for mi, m in enumerate(machines):            # per-machine tracked cells, centered
                 picked = name in picks_map.get(m, ())
                 gx = m_base[mi] + max(0, (mach_w[mi] - MGAP - 1)) // 2
-                _hput(y, gx, '●' if picked else '○',
-                      pal.style('installed' if picked else 'info_dim', y, ril + gx, h, w, selected=foc)
-                      | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
-        vm.shown = _shown                                # commit probes these rows (non-enumerable drivers)
-        _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, rtop, body_rows, n, h, w)
-        if hbar:                                          # horizontal thumb on the bottom border
-            _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, rhoff, riw, total_w, h, w)
+                cells.append((gx, '●' if picked else '○', 'installed' if picked else 'info_dim',
+                              'bold' if (picked and m in tgset) else None))
+            vm.cat_rows.append(CatRow(cells, i == rcur))
 
-        status = vm.status
-        if vm.note:
-            status += f'    {vm.note}'
-        legend1, legend2 = vm.legend1, vm.legend2
+    # -- draw -------------------------------------------------------------
+
+    def draw(self, stdscr, pal, vm):
+        h, w = self.begin_page(stdscr, pal)
+        top, body_h, lw = vm.top, vm.body_h, vm.lw
+        rleft, rw = lw + 1, w - lw - 1
+        _sel = pal.sel_bg_rgb
+        residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))   # dimmer bar: unfocused current row
+        low_color = not pal.have256    # 8/16-colour has no room for a dim tint -> reverse-video instead
+        rbg_of = lambda unfocused_cur: (None if low_color else residual_bg) if unfocused_cur else None
+
+        # LEFT: the profile tree
+        lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, vm.ltitle, vm.focus == 'left', h, w)
+        lho = vm.lhoff
+        for vis, row in enumerate(vm.left_rows):
+            y = lit + vis
+            foc = row.cur and vm.focus == 'left'
+            unfoc = row.cur and not foc
+            rbg = rbg_of(unfoc)
+            rev = curses.A_REVERSE if (low_color and unfoc) else 0
+            if foc:
+                _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+            elif unfoc:
+                _put(stdscr, y, lil, ' ' * liw,
+                     curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=residual_bg))
+            _put(stdscr, y, lil, _fit(row.text[lho:], liw),
+                 pal.style('profile', y, lil, h, w, selected=foc, bg=rbg)
+                 | rev | (curses.A_DIM if row.struck and not foc else 0))
+            if not foc:                                  # the count badges in their own hues
+                for text, hue in row.badges:
+                    vx = row.text.rindex(text) - lho
+                    if 0 <= vx and vx + len(text) <= liw:
+                        _put(stdscr, y, lil + vx, text, pal.style(hue, y, lil + vx, h, w, bg=rbg) | rev)
+        _scrollbar_v(stdscr, pal, lit, lw - 1, lih, vm.ltop, lih, vm.left_n, h, w)
+        if vm.left_max > liw:                            # horizontal thumb on the pane's bottom border
+            _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, lho, liw, vm.left_max, h, w)
+
+        # RIGHT TOP: the detail box
+        if vm.detail_title is not None:
+            dit, dil, _dih, diw = _panel(stdscr, pal, top, rleft, vm.desc_h, rw, vm.detail_title,
+                                         False, h, w)
+            for row, text, role in vm.detail_lines:
+                _put(stdscr, dit + row, dil, _fit(text, diw), pal.style(role, dit + row, dil, h, w))
+
+        # RIGHT BOTTOM: the catalog matrix
+        ctop, cath = top + vm.desc_h, body_h - vm.desc_h
+        rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, vm.ctitle, vm.focus == 'right', h, w)
+        rhoff = vm.rcol_left
+
+        def hput(y, xoff, text, attr):                   # draw at xoff-rhoff, clipping both edges
+            ax = xoff - rhoff
+            if ax >= riw:
+                return
+            if ax < 0:
+                text, ax = text[-ax:], 0
+            if text:
+                _put(stdscr, y, ril + ax, _fit(text, riw - ax), attr)
+
+        for x, text, role, bold in vm.cat_header:
+            hput(rit, x, text, pal.style(role, rit, ril, h, w) | (curses.A_BOLD if bold else 0))
+        flag_attr = {'underline': curses.A_UNDERLINE, 'bold': curses.A_BOLD, None: 0}
+        for r, row in enumerate(vm.cat_rows):
+            y = rit + 1 + r
+            foc = row.cur and vm.focus == 'right'
+            rev = curses.A_REVERSE if (low_color and row.cur and not foc) else 0
+            if foc:
+                _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
+            elif rev:
+                _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
+            for x, text, role, flag in row.cells:
+                hput(y, x, text, pal.style(role, y, ril + x, h, w, selected=foc) | rev | flag_attr[flag])
+        body_rows = max(1, rih - 1)
+        _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, vm.rtop, body_rows, vm.cat_n, h, w)
+        if vm.cat_w > riw:                               # horizontal thumb on the bottom border
+            _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, rhoff, riw, vm.cat_w, h, w)
+
+        status = vm.status + (f'    {vm.note}' if vm.note else '')
         _sty = lambda row, x: pal.style('status_line', row, x, h, w)
-        lg1_x = max(0, w - len(legend1))
-        lg2_x = max(0, w - len(legend2))
+        lg1_x = max(0, w - len(vm.legend1))
+        lg2_x = max(0, w - len(vm.legend2))
         _put(stdscr, h - 4, 0, _fit(status, max(1, lg1_x - 1)), _sty(h - 4, 0))
-        _put(stdscr, h - 4, lg1_x, _fit(legend1, w - lg1_x), _sty(h - 4, lg1_x))
-        _put(stdscr, h - 3, lg2_x, _fit(legend2, w - lg2_x), _sty(h - 3, lg2_x))
+        _put(stdscr, h - 4, lg1_x, _fit(vm.legend1, w - lg1_x), _sty(h - 4, lg1_x))
+        _put(stdscr, h - 3, lg2_x, _fit(vm.legend2, w - lg2_x), _sty(h - 3, lg2_x))
         self.end_page(stdscr, pal, None, [vm.nav1, vm.nav2], h, w)
 
     def commit(self, vm):
