@@ -109,11 +109,6 @@ class Categorical:
         return bool(self.values & ctx.categorical(self.ns))
 
 
-def Cpu(cpus):
-    '''Back-compat constructor: `cpu:` is just the categorical facet named 'cpu'.'''
-    return Categorical('cpu', cpus)
-
-
 def os_names(pred):
     '''Every OS block name a predicate's atoms reference (for validation — an unknown one
     is almost always a typo, since a `when:` naming a nonexistent OS silently never matches).'''

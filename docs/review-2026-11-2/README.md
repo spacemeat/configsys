@@ -276,7 +276,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   "--pretend, nothing written" conventions). (app-cli-24/29, config-layers-24, tui-core-21, tui-screens-23,
   actions-35) · [open]
 - **F5** Dead public names: `errors.ResolveError`, `predicate.Cpu`, `Resolver.candidates(include_unavailable)`.
-  (routing-29/30) · [open]
+  (routing-29/30) · [done — done — errors.ResolveError (never raised or imported; resolve.ResolveError is the live one), predicate.Cpu and Resolver.candidates(include_unavailable) (+ its test and _method_tags mark_unavailable) removed — none had a caller in configsys, tools, examples or the plugin repos]
 
 ### Tier G — features and parity
 - **G1 [MED]** TUI has no rebuild/reinstall, `set-version` or `fix-scope`; the method picker can't leave a

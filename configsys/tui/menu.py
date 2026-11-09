@@ -1007,18 +1007,15 @@ def _current_via(node, name):
     return None
 
 
-def _method_tags(cands, current_via, default_via, choice, mark_unavailable=False):
+def _method_tags(cands, current_via, default_via, choice):
     '''Render each candidate as a display tag. The CURRENT method (what installs now) is bracketed
     `[via]`; the auto-default is flagged `via *` ONLY when you're on something else (so an unmarked-
     but-not-bracketed list means "on the natural default", and a `*` elsewhere means "you've diverged"
-    — the no-surprises signal, whether the divergence is a pin or a detected install). `~` marks a
-    method not valid on this machine (Profiles' author-for-any-box view).'''
+    — the no-surprises signal, whether the divergence is a pin or a detected install).'''
     out = []
     for c in cands:
         via = c['via']
         tag = f'[{via}]' if (choice and via == current_via) else via   # a lone method needs no marker
-        if mark_unavailable and not c.get('available', True):
-            tag += '~'
         if choice and via == default_via and via != current_via:
             tag += ' *'
         out.append(tag)

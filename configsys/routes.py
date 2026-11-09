@@ -789,16 +789,14 @@ class Resolver:
         self.dropped_soft_pins = dropped
         return to_resolved_components(units), roots
 
-    def candidates(self, name, include_unavailable=False):
+    def candidates(self, name):
         '''The install methods for `name` -> [{via, when, default, pinned, available}] in binding
-        order. By default only methods VALID on this machine (`when:`-true) are listed — the honest
-        "what can I install here" set that feeds `where`, the pin CLI, and the method picker.
-        `include_unavailable=True` also lists methods gated out by `when:` (marked `available:
-        False`) — for the Profiles screen, where the user may be authoring for OTHER machines and
-        wants the whole menu. `default` is the one that resolves now (a pin, else the
+        order: the methods VALID on this machine (`when:`-true) — the honest "what can I install
+        here" set that feeds `where`, the pin CLI, and the method picker (`available` is always
+        True; kept for the row shape). `default` is the one that resolves now (a pin, else the
         preference-picked binding); `pinned` flags the via a binding-pin names; `auto` the one that
         would resolve with no pin (== default when unpinned). [] if the component
-        is unknown / removed / (when not including unavailable) unroutable here.'''
+        is unknown / removed / unroutable here.'''
         from .resolve import candidate_bindings, _select, via_representatives, ResolveError
         comp = self.components.get(name)
         if comp is None or not comp.bindings:
@@ -806,21 +804,13 @@ class Resolver:
         ctx = self.context()
         valid = candidate_bindings(comp, self.cascade, ctx)      # `when:`-true here (ignore pin filter)
         valid_vias = {b.via for b in valid}
-        if include_unavailable:
-            # every distinct via the component defines, valid here or not (first binding per via)
-            seen, reps = set(), []
-            for b in comp.bindings:
-                if b.via not in seen:
-                    seen.add(b.via)
-                    reps.append(b)
-        else:
-            if not valid:
-                return []
-            # The picker and pins choose a VIA (1:1 with a driver), not an individual binding — the
-            # resolver auto-picks the most-specific binding within a via. So collapse multiple
-            # same-via candidates (e.g. fastfetch's `when: debian` .deb binding subsumed by its bare
-            # `via: native`) to the one that resolves for that via — one row per real choice.
-            reps = via_representatives(valid, self.cascade)
+        if not valid:
+            return []
+        # The picker and pins choose a VIA (1:1 with a driver), not an individual binding — the
+        # resolver auto-picks the most-specific binding within a via. So collapse multiple
+        # same-via candidates (e.g. fastfetch's `when: debian` .deb binding subsumed by its bare
+        # `via: native`) to the one that resolves for that via — one row per real choice.
+        reps = via_representatives(valid, self.cascade)
         try:
             winner = _select(comp, self.cascade, ctx, self.pins, self.preference,
                              self.candidate_only)[0]
