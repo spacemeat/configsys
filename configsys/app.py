@@ -3113,7 +3113,7 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'remove':
-        ok, msg = actions.plugin_remove(ctx, args.name)
+        ok, msg = actions.plugin_remove(ctx, args.name, force=getattr(args, 'force', False))
         print(f'configsys: {msg}')
         if not ok:
             return 1
@@ -3916,9 +3916,13 @@ def build_parser():
                          'primary, portable to all machines)')
     pa.add_argument('--replace', action='store_true',
                     help='if a plugin of the same name is already declared from another source, '
-                         'drop that one and use this source instead')
-    pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy')
+                         'drop that one and use this source instead (a copy holding unpushed or '
+                         'uncommitted work is kept as <name>.replaced-<date>; a primary stays primary)')
+    pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy (refused '
+                                         'while the copy holds unpushed or uncommitted work)')
     pr.add_argument('name', help='plugin name, source, or dir')
+    pr.add_argument('--force', action='store_true',
+                    help='delete the synced copy even if it holds work found nowhere else')
     pu = plsub.add_parser('update',
                           help="re-sync a plugin, or all of them (--ref / --latest move its `ref:`)")
     pu.add_argument('name', nargs='?',

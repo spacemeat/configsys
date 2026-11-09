@@ -91,13 +91,13 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   and `/*` so a `locations:` path can come back as `~/apps` and be `rm -rf`'d (config-layers-02).
   **Fix:** scalar_end in hutext (humerge already has it) + re-parse-and-compare before every write
   (theme 4). Your files don't have the triggering shape today. (config-layers-01/02, plugins-02/03) ·
-  effort S–M · [done — hutext scalar spans end at the token; quoting covers // and /*; keys/lists quoted; depth-aware insert; remove_sections on hutext spans; every edit re-read before writing (refused, file untouched)]
+  effort S–M · [done f1ce9e7 — hutext scalar spans end at the token; quoting covers // and /*; keys/lists quoted; depth-aware insert; remove_sections on hutext spans; every edit re-read before writing (refused, file untouched)]
 - **A3 [CRITICAL] Removing or replacing a plugin destroys unpushed and uncommitted work.** `plugin remove`,
   `plugin add --replace`, and Plugins `x` (one keypress, no confirm) rmtree the clone without checking git;
   for the primary that is your journal commits and — after `plugin init` — the only copy of your captured
   dotfiles (live links dangle). `--replace` also drops `primary: true`. **Fix:** refuse with a list of what
   would be lost unless `--force`; keep a `.replaced-<date>` copy; confirm popup on `x`; carry
-  `primary`/`ref` on replace. (actions-01, tui-screens-01, parity-01) · effort M · [open]
+  `primary`/`ref` on replace. (actions-01, tui-screens-01, parity-01) · effort M · [done — plugin remove / Plugins x refuse a clone holding unpushed/uncommitted work, stashes, no remote or authored in place (naming it; --force); --replace keeps such a copy as <name>.replaced-<stamp> and keeps primary]
 - **A4 [HIGH] A dotfiles `src:` with `..` makes capture rmtree any directory — your home included.**
   Unvalidated route paths; on a first capture no `--force` is needed; in the TUI one `m`/Enter. Also:
   capture follows symlinks (`keys -> ~/.ssh`) into the store, past the secret scan, and into the primary.

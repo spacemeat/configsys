@@ -1252,9 +1252,17 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     pdir = ctx.paths.plugins_dir / new_dn
     backup = pdir.with_name(pdir.name + '.configsys-retarget-bak')
     moved = False
+    # work in the old clone that exists nowhere else (unpushed commits, edits, authored in place) is
+    # never deleted by a swap: that copy is KEPT, renamed `<name>.replaced-<stamp>` (A3)
+    kept_lost = primarygit.local_work(pdir, clashes[0]['source']) if retargeting else []
+    was_primary = retargeting and any(d.get('primary') for d in clashes)
     if retargeting and pdir.exists() and not ctx.runner.pretend:
         if backup.exists():
-            shutil.rmtree(backup)
+            if primarygit.local_work(backup):
+                import time as _time
+                backup.rename(backup.with_name(f'{pdir.name}.replaced-{_time.strftime("%Y%m%d-%H%M%S")}-old'))
+            else:
+                shutil.rmtree(backup)
         pdir.rename(backup)                              # clear the dir so the new source clones clean
         moved = True
 
@@ -1265,8 +1273,15 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
                 shutil.rmtree(pdir)
             backup.rename(pdir)
         return False, f'could not sync {source} — nothing changed {plugins.source_hint(source)}', results
+    kept_note = ''
     if moved and backup.exists():                        # new source synced OK -> discard the backup
-        shutil.rmtree(backup)
+        if kept_lost:                                    # ...unless it holds work found nowhere else
+            import time as _time
+            keep = pdir.with_name(f'{pdir.name}.replaced-{_time.strftime("%Y%m%d-%H%M%S")}')
+            backup.rename(keep)
+            kept_note = (f'\nkept the old copy at {keep} — it held ' + '; '.join(kept_lost))
+        else:
+            shutil.rmtree(backup)
 
     if pretend:                                      # a dry run declares nothing (no config writes)
         decls = plugins.declared(ctx.paths.user_config_file)
@@ -1300,6 +1315,10 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     else:
         cfg_file, cur = ctx.paths.user_config_file, decls
     target, existing = plugins.upsert_decl(cur, source, ref)
+    if was_primary:                                  # a swap keeps the primary designation (A3)
+        for d in cur:
+            d.pop('primary', None)
+        target['primary'] = True
     plugins.set_declared(cfg_file, cur)
     pin_msg = ''
     if pin:                                          # trust-on-first-use content pin
@@ -1317,26 +1336,36 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
                f'shares it with your other machines')
     else:
         msg = f'{verb} {source}{at}' + (' (this machine only)' if primary else '')
-    return True, lead + msg + pin_msg, results
+    return True, lead + msg + pin_msg + kept_note, results
 
 
-def plugin_remove(ctx, ident, *, keep_dir=False):
+def plugin_remove(ctx, ident, *, keep_dir=False, force=False):
     '''Undeclare a plugin (wherever it's declared) + delete its synced dir. `keep_dir` drops only the
     declaration and leaves the synced dir — used by a retarget, where the new source has just re-synced
-    into that same dir (dir_name is shared). Returns (ok, message).'''
+    into that same dir (dir_name is shared). A clone holding work that exists nowhere else (uncommitted
+    edits, unpushed commits, stashes, no remote, authored in place — `primarygit.local_work`) is
+    refused, naming what would be lost, unless `force` (review-2026-11-2 A3). Returns (ok, message).'''
     import shutil
     cfg_file, cur, target = _locate_decl(ctx, ident)
     if target is None:
         return False, f'no declared plugin matches {ident!r}'
+    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    # defense in depth: dir_name already guarantees a contained segment, but never rmtree a path
+    # that resolves outside the plugins dir (a symlinked plugins_dir, or a future dir_name change).
+    if pdir.exists() and pdir.resolve().parent != ctx.paths.plugins_dir.resolve():
+        return False, f'refusing to remove {pdir} — outside the plugins dir'
+    if not keep_dir and not force:
+        lost = primarygit.local_work(pdir, target['source'])
+        if lost:
+            name = plugins.dir_name(target['source'])
+            hint = ('push it first (configsys plugin push)' if target.get('primary')
+                    else 'commit and push it from that directory first')
+            return False, (f'not removing {name}: deleting {pdir} would lose ' + '; '.join(lost)
+                           + f' — {hint}, or re-run with --force to delete it anyway')
     if getattr(ctx.runner, 'pretend', False):
         return True, (f'[pretend] would remove {target["source"]}'
                       + ('' if keep_dir else ' and delete its synced dir'))
     plugins.set_declared(cfg_file, [d for d in cur if d is not target])
-    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
-    # defense in depth: dir_name already guarantees a contained segment, but never rmtree a path
-    # that resolves outside the plugins dir (a symlinked plugins_dir, or a future dir_name change).
-    if pdir.resolve().parent != ctx.paths.plugins_dir.resolve():
-        return False, f'refusing to remove {pdir} — outside the plugins dir'
     if pdir.exists() and not ctx.runner.pretend and not keep_dir:
         shutil.rmtree(pdir)
     ctx.invalidate()

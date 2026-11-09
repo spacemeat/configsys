@@ -423,6 +423,46 @@ class PrimaryState:
     first_push: bool = False
 
 
+def local_work(root, source=None):
+    """What deleting the checkout at `root` would lose for good — `[]` when nothing: one line each
+    for uncommitted changes, commits no remote has, stashes, a repo with no remote at all, and a
+    plugin authored in place (its `source:` IS this dir — `plugin init`). The guard every rmtree of a
+    plugin clone asks first (review-2026-11-2 A3). Best-effort: a git error reads as "can't tell",
+    which is reported as work (refuse rather than guess)."""
+    from . import plugins as _plugins
+    root = Path(root)
+    if not root.exists():
+        return []
+    lost = []
+    if source is not None and _plugins.is_local_authored(source, root):
+        lost.append('it is its own source (authored here, e.g. by `plugin init`) — the only copy')
+    if not (root / '.git').exists():
+        return lost
+    try:
+        repo = PrimaryRepo(root)
+        dirty = repo.dirty()
+        if dirty is None:
+            return lost + ['git could not read its status']
+        if dirty:
+            lost.append(f'{len(dirty)} uncommitted change(s): {", ".join(sorted(dirty)[:5])}'
+                        + (' …' if len(dirty) > 5 else ''))
+        remotes = repo.text('remote')
+        if not remotes:
+            n = repo.text('rev-list', '--count', '--all')
+            if n and n != '0' and not lost:
+                lost.append(f'no remote: its {n} commit(s) exist only here')
+        else:
+            n = repo.text('rev-list', '--count', 'HEAD', '--branches', '--not', '--remotes', '--tags')
+            if n and n != '0':
+                lost.append(f'{n} commit(s) not on any remote (not pushed yet)')
+        stashes = [s for s in repo.text('stash', 'list').splitlines() if s]
+        if stashes:
+            lost.append(f'{len(stashes)} stash(es)')
+    except Exception:                                  # noqa: BLE001
+        lost.append('git could not inspect it')
+    return lost
+
+
 def state(ctx):
     '''The primary's `PrimaryState`, or None (no primary, not a git checkout, not on a branch, no
     remote, --pretend). Local and cheap — `fetch` first to count what the remote has.'''
