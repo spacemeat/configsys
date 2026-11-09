@@ -246,7 +246,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **D3 One plan builder for CLI + TUI** (the rest of D3) — ends B1/B2/A7's divergence. (actions-15/16,
   app-cli-12/13) · effort M · [done — done — build_plan (B1) + fix-scope as a run_plan op + one set of pin writers (actions.set_pin/unset_pin/promote_pin/validate_pin, TUI promote row) + actions.target_label, the one wording an edit target gets real and under --pretend]
 - **D4 `LinkedContentDriver` + a `ShellSpec` table** (D7) — glue/dotfiles link/backup in Python, one place for
-  A8/A15. (dotfiles-glue-23) · L · [open]
+  A8/A15. (dotfiles-glue-23) · L · [done — done — drivers/_linked.py link/unlink (Python, pretend-aware, numbered backups, absorb, ownership judged once; another tool's link is now kept aside instead of replaced, glue only removes its own link and restores what it displaced); configsys/shells.py ShellSpec rows feed glue's tables and shellguard GUARDED/GUARDED_DIRS; spec_states returns SpecState; backup_cmd retired; plan docs/done/linked-content-plan.md]
 - **D5 Finish `ModuleDriver`** (D4) for the ten ecosystem installers; `GccToolset` onto `AltDriver`.
   (drivers-lang-17/18) · effort M · [done — done — configsys/drivers/_module.py ModuleDriver: TOOL / CMDS templates ({tool} {pkg} {ver} {spec} {scope} + per-op placeholders) / VERSION_SPEC / SCOPE_FLAGS / LIST_CMD + parse_list / BIN_DIR; the ten installers keep only their bespoke parts (commands byte-identical, test_module_driver pins them); GccToolset on AltDriver (inherits dnf latest via gcc-toolset-N-gcc, native_backed, index_key)]
 - **D6 `SelectionPolicy` + a stateless Resolver** (D6) — one caller already drops policy; TUI resolves

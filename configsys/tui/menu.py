@@ -4617,9 +4617,10 @@ class DotfilesScreen(_ContentRootLabelMixin):
             # a `managed`/`unmanaged` row is capture-ACTIONABLE only when a real file is actually
             # there — capture_plan tells us per spec.
             cap = {name: (action == 'copy') for name, _d, _de, action in self.df.capture_plan(rc)}
-            for name, tgt, state, src_root, src_rel, _here, _kind in self.df.spec_states(rc):
-                source = f'{self._root_label(src_root)}/{src_rel}' if src_root is not None else src_rel
-                cfg.append((rc, name, tgt, state, source, cap.get(name, False)))
+            for st in self.df.spec_states(rc):
+                source = (f'{self._root_label(st.src_root)}/{st.src_rel}' if st.src_root is not None
+                          else st.src_rel)
+                cfg.append((rc, st.name, st.target, st.state, source, cap.get(st.name, False)))
         self.rows = cfg
         self.display = [('row', k) for k in range(len(cfg))]   # single group -> no dividers
         self.cur = max(0, min(self.cur, len(self.rows) - 1))
@@ -4656,14 +4657,15 @@ class GlueScreen(_ContentRootLabelMixin):
         by_shell = {s: [] for s in shells}                   # shell -> [(rc, comp, tgt, state, src)]
         loader = {}                                          # shell -> loader-on|loader-off
         for rc in self.units:
-            for name, tgt, state, src_root, src_rel, _here, _kind in self.gd.spec_states(rc):
-                if name.endswith(' loader'):                 # the shell-glue substrate (loader: all)
-                    loader[name.split()[0]] = state
+            for st in self.gd.spec_states(rc):
+                if st.name.endswith(' loader'):              # the shell-glue substrate (loader: all)
+                    loader[st.name.split()[0]] = st.state
                     continue
-                sh = name.rsplit('@', 1)[1] if '@' in name else None   # a snippet row 'glue@shell'
+                sh = st.name.rsplit('@', 1)[1] if '@' in st.name else None   # a snippet row 'glue@shell'
                 if sh in by_shell:
-                    src = f'{self._root_label(src_root)}/{src_rel}' if src_root is not None else src_rel
-                    by_shell[sh].append((rc, rc.comp, tgt, state, src))
+                    src = (f'{self._root_label(st.src_root)}/{st.src_rel}' if st.src_root is not None
+                           else st.src_rel)
+                    by_shell[sh].append((rc, rc.comp, st.target, st.state, src))
         self.loader = loader
         user_by_shell = self._user_rows(by_shell)
         self.rows = []                                       # (rc, comp, tgt, state, src, shell[, True])

@@ -33,9 +33,10 @@ import shutil
 from pathlib import Path
 
 from .. import primarygit
+from ..shells import SHELLS
 from ..driver import Driver
 from ..runner import Result
-from .dotfiles import backup_cmd, free_backup
+from . import _linked
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 BACKUP_SUFFIX = '.pre-configsys'
@@ -45,14 +46,11 @@ BACKUP_SUFFIX = '.pre-configsys'
 _BASH_ALIASES_SRC = 'bash_aliases'
 _BASH_ABSORB = '~/.config/bash/conf.d/pre-configsys-aliases.sh'
 
-# snippets, keyed by shell. `_SHELL_EXT` = the file extension per shell; `_SHELL_CONFD` = the active
-# loader dir (uniform ~/.config/<shell>/conf.d/, mirroring fish's native one). Repo ships bash
-# variants today; other shells activate the moment their variant exists.
-_SHELL_EXT = {'bash': 'sh', 'zsh': 'zsh', 'fish': 'fish', 'nu': 'nu', 'elvish': 'elv'}
-_SHELL_CONFD = {'bash': '~/.config/bash/conf.d', 'zsh': '~/.config/zsh/conf.d',
-                'fish': '~/.config/fish/conf.d', 'nu': '~/.config/nushell/conf.d',
-                'elvish': '~/.config/elvish/conf.d'}
-_GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
+# Per-shell facts come from ONE table, configsys/shells.py (a ShellSpec row per shell); these are
+# its views. A shell activates the moment a snippet variant for it exists.
+_SHELL_EXT = {n: s.ext for n, s in SHELLS.items()}            # a snippet's file extension
+_SHELL_CONFD = {n: s.confd for n, s in SHELLS.items()}        # the dir its loader sources
+_GLUE_SHELLS = tuple(SHELLS)
 
 # The component-INDEPENDENT user-glue namespace: snippets under `<glue-root>/shell/<shell>/user.d/`
 # that the driver ALWAYS deploys into conf.d — the user's OWN startup, linked from the layer and
@@ -85,7 +83,7 @@ _USER_GLUE_HEADER = (
     '# Keep it in your primary plugin (or use `configsys glue add`) to share it across machines.\n')
 
 # the component that INSTALLS each shell (for the managed-install detection) — identity except nu.
-_SHELL_COMPONENT = {'nu': 'nushell'}
+_SHELL_COMPONENT = {n: s.component for n, s in SHELLS.items() if s.component != n}
 
 # loaders (`loader: <shell>`): hook a shell up to run its ~/.config/<shell>/conf.d/* snippets.
 # fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
@@ -93,8 +91,7 @@ _SHELL_COMPONENT = {'nu': 'nushell'}
 # are INLINE (see below). The markers make the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
-_SHELL_RC = {'bash': '~/.bashrc', 'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv',
-             'nu': '~/.config/nushell/config.nu'}
+_SHELL_RC = {n: s.rc for n, s in SHELLS.items() if s.rc}
 # a login bash reads the first of these; where none exists, one that sources ~/.bashrc is written
 # (Void/Alpine ship no skel profile), so a login shell gets the glue too
 _BASH_PROFILES = ('~/.bash_profile', '~/.bash_login', '~/.profile')
@@ -108,7 +105,7 @@ _BASH_PROFILE_BODY = '[ -f ~/.bashrc ] && . ~/.bashrc'
 # directly (so definitions land in the interactive scope), regenerated on every (de)activation. It's
 # also faster — one block, not N sourced files. (Consequence: an inline-rc shell's rc is glue-owned
 # and cannot be a dotfiles capture — capturing freezes the block — so these shells have no -dotfiles.)
-_INLINE_SHELLS = ('elvish', 'nu')
+_INLINE_SHELLS = tuple(n for n, s in SHELLS.items() if s.mode == 'inline')
 
 # A `#!cs-eval <cmd>` line makes a snippet a GENERATOR: the inline loader runs <cmd> at (de)activation
 # and inlines its stdout (an init-eval tool's shell code) instead of the snippet text — the bridge for
@@ -148,6 +145,7 @@ def _write_rc(path, text):
 class Glue(Driver):
     name = 'glue'
     targets_version = False   # glue has no version
+    notes_in_stdout = True    # install/uninstall stdout is human notes (activated, moved aside, …)
     privileged = False
     default_scope = 'user'
 
@@ -600,14 +598,7 @@ class Glue(Driver):
             except OSError:
                 pass
             tgt = confd / user_link_name(name)                           # the user band (90-, or NN- kept)
-            try:
-                if tgt.is_symlink():
-                    tgt.unlink()                                         # replace our/foreign link
-                elif tgt.exists():
-                    os.replace(tgt, free_backup(tgt))                    # keep a pre-existing real file
-                tgt.symlink_to(srcpath)
-            except OSError:
-                pass
+            _linked.link(self.runner, srcpath, tgt, ours=self._link_into_owned)   # your file kept aside
 
     def _resolve(self, src, rc):
         '''(resolved_src_path, tier, root) — the first content root that actually HAS `src` wins
@@ -964,8 +955,6 @@ class Glue(Driver):
         shells (bash/zsh/elvish/nushell) where those apply (fish needs only the dir).'''
         if not self._confd(shell).is_dir():
             return False
-        if shell == 'bash':
-            return self._rc_has_block(self._expand(_SHELL_RC['bash']))
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
             return False
@@ -1020,12 +1009,12 @@ class Glue(Driver):
         return 'linked'
 
     def spec_states(self, rc):
-        '''[(name, target_display, state, src_root, src_rel, here, kind)] for status views. `kind`
-        is always 'glue'. A loader component yields one row per hooked shell (loader-on/off).'''
+        '''[SpecState] for status views (name, target display path, state, src_root, src_rel, here,
+        kind — always 'glue'). A loader component yields one row per hooked shell (loader-on/off).'''
         out = []
         for shell in self._loader_shells(rc):
             state = 'loader-on' if self._loader_ok(shell) else 'loader-off'
-            out.append((f'{shell} loader', self.display_path(self._confd(shell)), state,
+            out.append(_linked.SpecState(f'{shell} loader', self.display_path(self._confd(shell)), state,
                         None, '', state == 'loader-on', 'glue'))
         for name, src, dst in self._specs(rc):
             srcpath, tier, root = self._resolve(src, rc)   # authoritative source (the SRC column)
@@ -1044,7 +1033,7 @@ class Glue(Driver):
                 rel = str(srcpath.relative_to(src_root)) if here else src
             except ValueError:
                 rel = src
-            out.append((name, self.display_path(tgt), state, src_root, rel, here, 'glue'))
+            out.append(_linked.SpecState(name, self.display_path(tgt), state, src_root, rel, here, 'glue'))
         return out
 
     def warnings(self, rc):
@@ -1109,28 +1098,20 @@ class Glue(Driver):
             if sh:
                 shells.add(sh)
             pairs.append((srcpath, src, store, self._expand(dst)))
-        lines = ['set -e']
-        for _srcpath, src, link_src, tgt in pairs:
-            # If conf.d is itself a dir-symlink to the store, the store file IS the deployed file;
-            # linking would resolve to a self-link (ELOOP). Skip when realpaths already coincide.
-            try:
-                if link_src != tgt and os.path.realpath(str(link_src)) == os.path.realpath(str(tgt)):
-                    continue
-            except OSError:
-                pass
-            s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
-            lines.append(f'if [ -e {s} ]; then')
-            lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
-            # a conf.d dir can be communal (fish): back up a pre-existing REAL file (not our own
-            # symlink) to a FREE <name>.pre-configsys[.N] instead of clobbering it (a second real file
-            # used to be removed by `ln -sfn` once the first backup existed — A15). -L skips symlinks
-            # (ours or another tool's link is replaced by ln -sfn).
-            lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then {backup_cmd(t)}; fi')
-            lines.append(f'  ln -sfn {s} {t}')
-            lines.append(f'else echo "glue: {rc.comp} not populated ({src} absent)" >&2; fi')
-        res = self.runner.run('\n'.join(lines), capture=False)
-        if res is not None and not res.ok:
-            return res
+        pretend = bool(getattr(self.runner, 'pretend', False))
+        notes = []
+        for srcpath, src, link_src, tgt in pairs:
+            # (under --pretend the store copy wasn't made: its authoritative source stands in)
+            if not (link_src.exists() or (pretend and srcpath.exists())):
+                notes.append(f'{rc.comp} not populated ({src} absent)')
+                continue
+            # a conf.d dir can be communal (fish): a pre-existing real file — or another tool's link —
+            # goes to a FREE <name>.pre-configsys[.N], never clobbered (A15); our own link is re-pointed
+            res = _linked.link(self.runner, link_src, tgt, ours=lambda d: self._link_into_owned(d, rc))
+            if not res.ok:
+                return res
+            if res.stdout:
+                notes.append(res.stdout)
         # Ensure the conf.d LOADER is wired for each shell this snippet deploys to, so it actually
         # sources — checked on every install AND update (upgrade == install). The snippet's own
         # `requires: shell-glue` covers the CLI pipeline, but a direct activate (TUI) bypasses it.
@@ -1142,8 +1123,8 @@ class Glue(Driver):
         msg = f'activated {rc.comp}'
         if updated:
             msg += f' ({updated} snippet(s) refreshed from source)'
-        if warns:                                           # a snippet the shell can't parse was left out
-            msg += '\n' + '\n'.join(warns)
+        if notes or warns:                                  # moved aside / unpopulated / left out
+            msg += '\n' + '\n'.join(notes + warns)
         return Result(f'glue install {rc.comp}', 0, stdout=msg)   # msg rides in stdout -> res.output
 
     def upgrade(self, rc):
@@ -1167,11 +1148,18 @@ class Glue(Driver):
             specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
         if not specs:
             return Result(f'glue: {rc.comp} has no snippet to remove', 0, advisory=True)
-        lines = []
+        kept = []
         for name, _src, dst in specs:
-            t = shlex.quote(str(self._expand(dst)))
-            lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')  # only our own symlink
-        res = self.runner.run('\n'.join(lines), capture=False)
+            tgt = self._expand(dst)
+            # only our own link goes (another tool's link at that name is left), and a file we had
+            # moved aside comes back into the gap
+            outcome, detail = _linked.unlink(self.runner, tgt, ours=lambda d: self._link_into_owned(d, rc))
+            if outcome == 'error':
+                return Result(f'glue uninstall {rc.comp}', 1, stderr=detail)
+            if outcome == 'kept':
+                kept.append(self.display_path(tgt))
+        res = Result(f'glue uninstall {rc.comp}', 0,
+                     stdout=('left in place (not configsys\'s link): ' + ', '.join(kept)) if kept else '')
         # inline (gestalt) shells snapshot conf.d into the rc block — regenerate it after removing
         # this snippet's file(s) so its content doesn't linger in the block.
         for shell in {self._shell_of(n) for n, _s, _d in specs} & set(_INLINE_SHELLS):

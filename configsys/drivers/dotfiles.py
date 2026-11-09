@@ -29,6 +29,8 @@ from pathlib import Path
 from .. import primarygit
 from ..driver import Driver
 from ..runner import Result
+from . import _linked
+from ._linked import BACKUP_SUFFIX, free_backup   # noqa: F401 — glue + the CLI read them from here
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 
@@ -81,16 +83,14 @@ def _private_key(path):
         return False
 
 
-def _inside(path, root):
-    rp, rr = os.path.realpath(path), os.path.realpath(root)
-    return rp == rr or rp.startswith(rr.rstrip(os.sep) + os.sep)
+_inside = _linked.inside
 
 
 def _contained(path, root):
     '''Refuse (RuntimeError) to delete or overwrite `path` unless it resolves inside `root`.'''
     if not _inside(path, root):
         raise RuntimeError(f'dotfiles: refusing to touch {path} — it resolves outside {root}')
-BACKUP_SUFFIX = '.pre-configsys'
+
 
 # config: an app's own user config lives under a `<component>.cfs/` MARKER dir in the content store,
 # content keyed by each spec's `src` name; a `manifest.hu` inside records the src->dst layout + the
@@ -106,26 +106,6 @@ MANIFEST_NAME = 'manifest.hu'
 #                (the source column / footer says which). `capturable` = there's an on-system file to adopt.
 #   no config  — nothing stored and nothing on-system yet.
 CONFIG_STATES = ('managed', 'unmanaged', 'no config')
-
-
-def free_backup(path):
-    '''The first free `<path>.pre-configsys`, `.pre-configsys.1`, `.2`, … — never an existing backup.'''
-    path = Path(path)
-    cand, n = path.with_name(path.name + BACKUP_SUFFIX), 0
-    while cand.exists() or cand.is_symlink():
-        n += 1
-        cand = path.with_name(f'{path.name}{BACKUP_SUFFIX}.{n}')
-    return cand
-
-
-def backup_cmd(t):
-    '''Shell fragment that moves the (already shell-quoted) path `t` aside to a FREE backup name:
-    `<t>.pre-configsys`, else `.pre-configsys.1`, `.2`, … — an earlier backup (the user's original
-    file, from a first `--force`) is never overwritten. `mv -n` as a belt-and-braces no-clobber.'''
-    return (f'_cfs_b={t}{BACKUP_SUFFIX}; _cfs_n=1; '
-            f'while [ -e "$_cfs_b" ] || [ -L "$_cfs_b" ]; do '
-            f'_cfs_b={t}{BACKUP_SUFFIX}.$_cfs_n; _cfs_n=$((_cfs_n+1)); done; '
-            f'mv -n {t} "$_cfs_b"')
 
 
 def config_display_state(raw, capturable):
@@ -149,6 +129,7 @@ class DotFiles(Driver):
     privileged = False
     default_scope = 'user'
     targets_version = False       # config has no version: set_version just re-links (actions.targets_version)
+    notes_in_stdout = True        # install/uninstall stdout is human notes (backups made, unpopulated)
 
     # -- specs & paths ----------------------------------------------------
 
@@ -388,8 +369,8 @@ class DotFiles(Driver):
                 for _n, src, dst, absorb in self._specs(rc)]
 
     def spec_states(self, rc):
-        '''[(name, target_display, state, src_root, src_rel, here, kind)] for `dotfiles status`.
-        `kind` is always 'config' (content you own). state is one of:
+        '''[SpecState] for `dotfiles status` (name, target display path, state, src_root, src_rel,
+        here, kind — always 'config', content you own). state is one of:
           linked    — our symlink is in place (managed & active)
           adopted   — your content exists in a user root; not linked yet (capture done)
           managed   — `.cfs` marker exists but no content captured yet (managed-when-empty, #5 — the
@@ -431,7 +412,7 @@ class DotFiles(Driver):
             else:                                          # managed/unmanaged/empty -> capture dest
                 src_root, here = capture_root, False       # a config lands under <comp>.cfs/<src>
                 rel = f'{rc.comp}{CFS_SUFFIX}/{src}'
-            out.append((name, self.display_path(tgt), state, src_root, rel, here, 'config'))
+            out.append(_linked.SpecState(name, self.display_path(tgt), state, src_root, rel, here, 'config'))
         return out
 
     def capture_plan(self, rc, force=False):
@@ -727,36 +708,26 @@ class DotFiles(Driver):
                     self._echo(f'[pretend] would copy {_srcpath} -> {_link_src}')
                 else:
                     self._materialize(_srcpath, src)
-        lines = ['set -e']
-        for _srcpath, _tier, src, link_src, tgt, absorb in pairs:
-            # If the deploy target already RESOLVES to the store copy, the store file IS the deployed
-            # file, and `ln -sfn store/x x` would resolve to a self-link (ELOOP). Skip the link/backup.
-            try:
-                if link_src != tgt and os.path.realpath(str(link_src)) == os.path.realpath(str(tgt)):
-                    continue
-            except OSError:
-                pass
-            import shlex
-            s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
+        roots = [str(r) for r, _tier in self._content_roots(rc)]
+        notes = []
+        for srcpath, _tier, src, link_src, tgt, absorb in pairs:
             # UNPOPULATED is not an error: a component may declare src/dst with no content shipped
             # (a personal dotfile awaiting capture). If the source is absent, skip that spec with a
-            # note instead of failing — configsys never invents content for you.
-            lines.append(f'if [ -e {s} ]; then')
-            lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
-            if absorb is not None:
-                # a pre-existing real dst is RELOCATED (made executable) — the user's own file isn't
-                # zapped. If the absorb target is already taken, fall back to a plain backup.
-                a, ap = shlex.quote(str(absorb)), shlex.quote(str(absorb.parent))
-                lines.append(
-                    f'  if [ -e {t} ] && [ ! -L {t} ]; then mkdir -p {ap}; '
-                    f'if [ -e {a} ]; then {backup_cmd(t)}; '
-                    f'else mv {t} {a} && chmod +x {a}; fi; fi')
-            else:
-                lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then {backup_cmd(t)}; fi')
-            lines.append(f'  ln -sfn {s} {t}')
-            lines.append(f'else echo "dotfiles: {rc.comp} not populated ({src} absent) — '
-                         f'capture to manage {tgt}" >&2; fi')
-        return self.runner.run('\n'.join(lines), capture=False)
+            # note instead of failing — configsys never invents content for you. (Under --pretend a
+            # template's store copy wasn't made: its authoritative source stands in.)
+            if not (link_src.exists() or (pretend and srcpath.exists())):
+                notes.append(f'{rc.comp} not populated ({src} absent) — capture to manage '
+                             f'{self.display_path(tgt)}')
+                continue
+            # a pre-existing real dst is backed up (or, for an `absorb-into` spec, RELOCATED there and
+            # made executable — the user's own file isn't zapped); another tool's link is kept too
+            res = _linked.link(self.runner, link_src, tgt, owned_roots=roots, absorb=absorb)
+            if not res.ok:
+                return res
+            if res.stdout:
+                notes.append(res.stdout)
+        return Result(f'dotfiles install {rc.comp}', 0, stdout='\n'.join(notes),
+                      pretended=pretend)
 
     def _echo(self, msg):
         echo = getattr(self.runner, 'echo', None)
@@ -772,34 +743,28 @@ class DotFiles(Driver):
         pairs = self._pairs(rc)
         if not pairs:
             return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
-        import shlex
-        lines, kept = [], []
         roots = [str(r) for r, _tier in self._content_roots(rc)]
+        kept, restored = [], []
         for _src, tgt, absorb in pairs:
-            t = shlex.quote(str(tgt))
             # Remove ONLY our own link — one that resolves into a configsys content root — and put
             # back what we displaced (the absorbed original, else the first `.pre-configsys` backup)
             # only into the gap it leaves. A real file there (an app that saves atomically replaced
             # our link with your current config) or someone else's link (stow, chezmoi) is yours:
             # left as it is, with the backup beside it, and named (dotfiles-glue-03).
-            ours = tgt.is_symlink() and any(_inside(str(tgt), r) for r in roots)
-            if not ours:
-                if tgt.is_symlink() or tgt.exists():
-                    kept.append(self.display_path(tgt))
-                continue
-            lines.append(f'rm -f {t}')
-            if absorb is not None:
-                a = shlex.quote(str(absorb))
-                lines.append(f'if [ -e {a} ]; then mv -n {a} {t}; '
-                             f'elif [ -e {t}{BACKUP_SUFFIX} ]; then mv -n {t}{BACKUP_SUFFIX} {t}; fi')
-            else:
-                lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv -n {t}{BACKUP_SUFFIX} {t}; fi')
-        res = self.runner.run('\n'.join(lines), capture=False) if lines else Result('(nothing linked)', 0)
-        if kept and res.ok:
-            note = ('left in place (not configsys\'s link — your file, or another tool\'s link; any '
-                    f'{BACKUP_SUFFIX} backup is beside it): ' + ', '.join(kept))
-            return Result(res.cmd, 0, stdout=note)
-        return res
+            outcome, detail = _linked.unlink(self.runner, tgt, owned_roots=roots, absorb=absorb)
+            if outcome == 'error':
+                return Result(f'dotfiles uninstall {rc.comp}', 1, stderr=detail)
+            if outcome == 'kept':
+                kept.append(self.display_path(tgt))
+            elif outcome == 'removed' and detail is not None:
+                restored.append(self.display_path(tgt))
+        lines = []
+        if restored:
+            lines.append('put back what configsys had moved aside: ' + ', '.join(restored))
+        if kept:
+            lines.append('left in place (not configsys\'s link — your file, or another tool\'s link; any '
+                         f'{BACKUP_SUFFIX} backup is beside it): ' + ', '.join(kept))
+        return Result(f'dotfiles uninstall {rc.comp}', 0, stdout='\n'.join(lines))
 
     def location(self, rc):
         targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]

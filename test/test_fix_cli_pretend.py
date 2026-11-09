@@ -10,7 +10,8 @@ import pytest
 from configsys import actions, app
 from configsys.app import main
 from configsys.componentObj import ResolvedComponent
-from configsys.drivers.dotfiles import DotFiles, backup_cmd
+from configsys.drivers import _linked
+from configsys.drivers.dotfiles import DotFiles
 from configsys.paths import Paths
 from configsys.runner import Result, Runner
 
@@ -133,17 +134,17 @@ def test_dotfiles_pretend_install_stamps_no_marker_or_store_copy(tmp_path):
 
 # -- 13: the .pre-configsys backup never overwrites an earlier one ------------------------------
 
-def test_backup_cmd_never_overwrites_existing_backups(tmp_path):
+def test_link_never_overwrites_existing_backups(tmp_path):
     t = tmp_path / 'f'
     (tmp_path / 'f.pre-configsys').write_text('original')
     (tmp_path / 'f.pre-configsys.1').write_text('second')
     t.write_text('third')
-    import shlex
-    subprocess.run(['sh', '-c', backup_cmd(shlex.quote(str(t)))], check=True)
+    (tmp_path / 'src').write_text('ours')
+    assert _linked.link(Runner(), tmp_path / 'src', t).ok
     assert (tmp_path / 'f.pre-configsys').read_text() == 'original'
     assert (tmp_path / 'f.pre-configsys.1').read_text() == 'second'
     assert (tmp_path / 'f.pre-configsys.2').read_text() == 'third'
-    assert not t.exists()
+    assert t.is_symlink() and t.read_text() == 'ours'
 
 
 @pytest.mark.real_runner

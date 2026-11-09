@@ -129,14 +129,20 @@ def test_dst_env_expansion_defaults_xdg(tmp_path):
     assert tgt == p.home / '.config' / 'nvim'   # $XDG_CONFIG_HOME default
 
 
-def test_install_command_has_symlink_and_backup(tmp_path):
-    r = Runner(pretend=True)
-    DotFiles(r, paths=paths_for(tmp_path)).install(df_unit())
-    cmd = r.calls[0]
-    assert 'ln -sfn' in cmd
-    assert '.pre-configsys' in cmd          # backs up an existing non-symlink
-    assert 'nvim' in cmd
-    assert 'sudo' not in cmd                # user-space
+def test_pretend_install_says_it_would_link_and_runs_nothing(tmp_path):
+    msgs = []
+    r = Runner(pretend=True, echo=msgs.append)
+    p = paths_for(tmp_path)
+    (p.dotfiles_dir / 'neovim').mkdir(parents=True)               # a shipped template …
+    (p.dotfiles_dir / 'neovim' / 'init.lua').write_text('template')
+    p.dotfiles_force = True                                       # … replacing a real dir (--force)
+    (p.home / '.config' / 'nvim').mkdir(parents=True)             # a real dir there -> moved aside
+    assert DotFiles(r, paths=p).install(df_unit()).ok
+    joined = '\n'.join(msgs)
+    assert 'would link' in joined and 'nvim' in joined
+    assert 'would move' in joined and '.pre-configsys' in joined  # backs up an existing non-symlink
+    assert not any('sudo' in c for c in r.calls)                  # user-space, and no shell at all
+    assert (p.home / '.config' / 'nvim').is_dir()                 # pretend touched nothing
 
 
 def test_no_specs_is_an_error(tmp_path):
@@ -238,19 +244,19 @@ def test_spec_states(tmp_path):
     df = DotFiles(Runner(pretend=False), paths=p)
 
     # empty: no content anywhere, dst absent
-    assert df.spec_states(df_unit())[0][2] == 'empty'
+    assert df.spec_states(df_unit())[0].state == 'empty'
 
     # unmanaged: a real on-system dst, nothing captured
     (p.home / '.config' / 'nvim').mkdir(parents=True)
-    assert df.spec_states(df_unit())[0][2] == 'unmanaged'
+    assert df.spec_states(df_unit())[0].state == 'unmanaged'
 
     # adopted: content now in the user store (dst still real, not linked)
     (p.user_dotfiles_dir / 'neovim').mkdir(parents=True)
-    assert df.spec_states(df_unit())[0][2] == 'adopted'
+    assert df.spec_states(df_unit())[0].state == 'adopted'
 
     # linked: install it -> our symlink
     assert df.install(df_unit()).ok
-    assert df.spec_states(df_unit())[0][2] == 'linked'
+    assert df.spec_states(df_unit())[0].state == 'linked'
 
 
 def test_spec_state_template(tmp_path):
@@ -258,7 +264,7 @@ def test_spec_state_template(tmp_path):
     p.home.mkdir(parents=True)
     (p.dotfiles_dir / 'neovim').mkdir(parents=True)        # a shipped template, dst absent
     df = DotFiles(Runner(pretend=False), paths=p)
-    assert df.spec_states(df_unit())[0][2] == 'template'
+    assert df.spec_states(df_unit())[0].state == 'template'
 
 
 # -- refuse-until-adopted: never clobber a real dotfile with a template ----

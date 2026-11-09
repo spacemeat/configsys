@@ -4667,13 +4667,14 @@ def cmd_dotfiles_status(ctx, args):
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         cap = ({n: (action == 'copy') for n, _d, _de, action in drv.capture_plan(rc)}
                if hasattr(drv, 'capture_plan') else {})
-        for name, tgt, state, src_root, src_rel, here, kind in drv.spec_states(rc):
-            src_rel = src_rel if src_root is not None else ('rc hookup' if here else 'not hooked up')
-            root = Path(src_root) if src_root is not None else None
-            if kind == 'config':                 # collapse to the 3 user-facing config states
-                cfg.append((config_display_state(state, cap.get(name, False)), tgt, rc.comp, root, src_rel, here))
+        for st in drv.spec_states(rc):
+            src_rel = st.src_rel if st.src_root is not None else ('rc hookup' if st.here else 'not hooked up')
+            root = Path(st.src_root) if st.src_root is not None else None
+            if st.kind == 'config':              # collapse to the 3 user-facing config states
+                cfg.append((config_display_state(st.state, cap.get(st.name, False)), st.target, rc.comp,
+                            root, src_rel, st.here))
             else:
-                glue.append((state, tgt, rc.comp, root, src_rel, here))
+                glue.append((st.state, st.target, rc.comp, root, src_rel, st.here))
     print(f'OS: {ctx.os_info.block}   install set: {_install_scope_label(ctx.config)}')
     gdrv = get_driver('glue', ctx.runner, ctx.paths)
     try:                                         # your own user.d snippets (`glue add`/activate) —

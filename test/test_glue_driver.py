@@ -432,14 +432,18 @@ def test_rc_block_with_backslashes_is_written_literally(tmp_path):
 
 def test_install_backs_up_a_real_file_in_a_communal_confd(tmp_path):
     # H1: a conf.d dir can be communal (fish); a pre-existing REAL file at the target is backed up to
-    # <name>.pre-configsys, not clobbered. Assert the generated shell does the guarded mv.
+    # <name>.pre-configsys, not clobbered — and put back when the glue is deactivated
     p = paths_for(tmp_path, shells='fish')
     (p.glue_dir / 'shell' / 'fish').mkdir(parents=True)
     (p.glue_dir / 'shell' / 'fish' / 'btop.fish').write_text('# btop\n')
-    r = Runner(pretend=True)
-    Glue(r, p).install(_glue_unit())
-    joined = '\n'.join(r.calls)
-    assert '.pre-configsys' in joined and 'mv -n' in joined and '! -L' in joined
+    g = Glue(Runner(), p)
+    tgt = g._expand(g._specs(_glue_unit())[0][2])
+    tgt.parent.mkdir(parents=True, exist_ok=True)
+    tgt.write_text('mine\n')
+    assert g.install(_glue_unit()).ok
+    assert tgt.is_symlink() and tgt.with_name(tgt.name + '.pre-configsys').read_text() == 'mine\n'
+    assert g.uninstall(_glue_unit()).ok
+    assert not tgt.is_symlink() and tgt.read_text() == 'mine\n'      # restored into the gap
 
 
 # -- user-glue namespace (user.d/) + 99-user home (docs/done/glue-customization-plan.md P0) --------------

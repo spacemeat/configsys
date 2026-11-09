@@ -30,19 +30,17 @@ import os
 import re
 from pathlib import Path
 
+from .shells import SHELLS
+
 # Guarded rc files (relative to $HOME) and which shell each one feeds. A reverted ~/.bashrc block is
 # bash glue; a ~/.zshrc block is zsh glue — routed by this mapping. Every shell configsys supports is
 # covered, login and env files included (rustup-style installers write ~/.zshenv; a safety feature
 # has uniform coverage or doesn't ship — review-2026-11-2 A15).
-GUARDED = [('.bashrc', 'bash'), ('.bash_profile', 'bash'), ('.bash_login', 'bash'), ('.profile', 'bash'),
-           ('.zshrc', 'zsh'), ('.zprofile', 'zsh'), ('.zshenv', 'zsh'), ('.zlogin', 'zsh'),
-           ('.config/fish/config.fish', 'fish'),
-           ('.config/nushell/config.nu', 'nu'), ('.config/nushell/env.nu', 'nu'),
-           ('.config/elvish/rc.elv', 'elvish')]
+GUARDED = [(rel, n) for n, spec in SHELLS.items() for rel in spec.guarded]
 
 # Directories a shell sources EVERY file of, where installers drop a file of their own: a new regular
 # file there (never a link — configsys's glue links live there too) is staged and taken back out.
-GUARDED_DIRS = [('.config/fish/conf.d', 'fish')]
+GUARDED_DIRS = [(rel, n) for n, spec in SHELLS.items() for rel in spec.guarded_dirs]
 
 _STAGE_DIR = 'staged-glue'          # under the state dir: <shell>/<component>.<ext> candidates
 
@@ -290,8 +288,8 @@ def finish(paths, component, snap):
 # -- staging: inactive glue candidates the user reviews + promotes --------
 
 def _ext(shell):
-    from .drivers.glue import _SHELL_EXT
-    return _SHELL_EXT.get(shell, 'sh')
+    spec = SHELLS.get(shell)
+    return spec.ext if spec else 'sh'
 
 
 def stage_dir(paths):

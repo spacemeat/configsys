@@ -516,6 +516,9 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                                           undetected=True))
             else:
                 on_line('  -> ok')
+                if getattr(drv, 'notes_in_stdout', False):   # a config driver's notes (moved aside, …)
+                    for line in (res.stdout or '').strip().splitlines():
+                        on_line(f'     {line}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, True))
             # install RECEIPT (stranded.py): remember what configsys installed so the install stays
             # findable + removable after routes stop offering that method; forget it on removal.
