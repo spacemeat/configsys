@@ -109,3 +109,98 @@ def test_config_settings_view_has_desc_and_man(tmp_path):
     assert s['adopt-installed']['kind'] == 'bool' and s['adopt-installed']['value'] is True
     assert s['dirs.sdk']['kind'] == 'dir' and s['dirs.sdk']['value'] == 'sdks'   # built-in default
     assert s['dirs.user']['value'] == '~'
+
+
+# -- review-2026-11-2 A2: edits never delete a neighbour or leave an unreadable file ------------------
+
+import pytest  # noqa: E402
+
+from configsys.errors import ConfigError  # noqa: E402
+
+
+def _cfg(tmp_path, text):
+    p = tmp_path / 'configsys.hu'
+    p.write_text(text)
+    return p
+
+
+def test_replacing_a_quoted_scalar_keeps_the_next_section(tmp_path):
+    p = _cfg(tmp_path, '{\n    machine: "laptop"\n    picks: { laptop: [ btop  ripgrep ]  desk: [ zsh ] }\n'
+                       '    pins: { btop: native }\n}\n')
+    plugins.set_scalar_section(p, 'machine', 'desk')
+    assert layers.materialize_string(p.read_text()) == {
+        'machine': 'desk', 'picks': {'laptop': ['btop', 'ripgrep'], 'desk': ['zsh']},
+        'pins': {'btop': 'native'}}
+
+
+def test_replacing_a_quoted_scalar_before_a_multiline_block(tmp_path):
+    p = _cfg(tmp_path, '{\n    scope: "user"\n    picks: {\n        laptop: [ btop  ripgrep ]\n    }\n}\n')
+    plugins.set_scalar_section(p, 'scope', 'system')
+    assert layers.materialize_string(p.read_text()) == {'scope': 'system',
+                                                        'picks': {'laptop': ['btop', 'ripgrep']}}
+
+
+def test_a_one_line_config_keeps_its_other_keys_and_brace(tmp_path):
+    p = _cfg(tmp_path, '{ scope: user  machine: laptop  picks: { laptop: [ btop ] }  pins: { btop: native } }')
+    plugins.set_scalar_section(p, 'scope', 'system')
+    assert layers.materialize_string(p.read_text()) == {
+        'scope': 'system', 'machine': 'laptop', 'picks': {'laptop': ['btop']}, 'pins': {'btop': 'native'}}
+
+
+def test_a_value_configsys_had_to_quote_can_be_edited_again(tmp_path):
+    p = _cfg(tmp_path, '{\n    scope: user\n}\n')
+    plugins.set_scalar_section(p, 'splash', 'my splash')       # quoted, and the last key
+    plugins.set_scalar_section(p, 'splash', 'plain')
+    assert layers.materialize_string(p.read_text()) == {'scope': 'user', 'splash': 'plain'}
+
+
+def test_a_trailing_comment_survives_a_scalar_edit(tmp_path):
+    p = _cfg(tmp_path, '{\n    scope: user  // keep me\n}\n')
+    plugins.set_scalar_section(p, 'scope', 'system')
+    assert '// keep me' in p.read_text() and layers.materialize_string(p.read_text()) == {'scope': 'system'}
+
+
+def test_insert_skips_a_brace_in_a_trailing_comment_and_fills_an_empty_file(tmp_path):
+    p = _cfg(tmp_path, '{\n    scope: user\n}\n// trailing } comment\n')
+    plugins.set_pins(p, {'a': 'b'})
+    assert layers.materialize_string(p.read_text()) == {'scope': 'user', 'pins': {'a': 'b'}}
+    for text in ('', '   \n', '// only a comment\n', '/* old: { x: y } */\n'):
+        p = _cfg(tmp_path, text)
+        plugins.set_scalar_section(p, 'effects', 'reduced')
+        assert layers.materialize_string(p.read_text()) == {'effects': 'reduced'}, text
+
+
+def test_remove_sections_removes_the_key_not_a_copy_in_a_comment(tmp_path):
+    p = _cfg(tmp_path, '{\n    // pins: { steam: flatpak }\n    scope: user\n    pins: { steam: flatpak }\n}\n')
+    assert plugins.remove_sections(p, ['pins']) == ['pins']
+    assert layers.materialize_string(p.read_text()) == {'scope': 'user'}
+    p = _cfg(tmp_path, '{\n    note: "pins: { steam: flatpak }"\n    pins: { steam: flatpak }\n}\n')
+    plugins.remove_sections(p, ['pins'])
+    assert layers.materialize_string(p.read_text()) == {'note': 'pins: { steam: flatpak }'}
+
+
+def test_list_values_and_map_keys_are_quoted_when_they_must_be(tmp_path):
+    p = _cfg(tmp_path, '{\n}\n')
+    plugins.set_list_section(p, 'orphans-ignore', ['my app', 'x'])
+    assert plugins.read_list_section(p, 'orphans-ignore') == ['my app', 'x']
+    plugins.set_picks(p, {'my laptop': ['btop']})
+    assert plugins.read_picks(p) == {'my laptop': ['btop']}
+    plugins.set_scalar_section(p, 'locations', 'ripgrep=/h/apps//ripgrep')
+    assert plugins.read_scalar_section(p, 'locations') == 'ripgrep=/h/apps//ripgrep'
+
+
+def test_an_unparseable_file_is_refused_not_edited(tmp_path):
+    p = _cfg(tmp_path, '{\n    scope: user\n')                  # missing its brace
+    with pytest.raises(ConfigError):
+        plugins.set_scalar_section(p, 'scope', 'system')
+    assert p.read_text() == '{\n    scope: user\n'
+
+
+def test_a_text_surgery_slip_is_refused_before_writing(tmp_path, monkeypatch):
+    p = _cfg(tmp_path, '{\n    scope: user\n    machine: laptop\n}\n')
+    text = p.read_text()
+    monkeypatch.setattr(plugins, '_locate_section_span',
+                        lambda t, s: (t.index('scope'), t.index('}')))   # a span that eats machine:
+    with pytest.raises(ConfigError, match='machine'):
+        plugins.set_scalar_section(p, 'scope', 'system')
+    assert p.read_text() == text

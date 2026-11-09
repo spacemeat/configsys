@@ -91,7 +91,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   and `/*` so a `locations:` path can come back as `~/apps` and be `rm -rf`'d (config-layers-02).
   **Fix:** scalar_end in hutext (humerge already has it) + re-parse-and-compare before every write
   (theme 4). Your files don't have the triggering shape today. (config-layers-01/02, plugins-02/03) ·
-  effort S–M · [open]
+  effort S–M · [done — hutext scalar spans end at the token; quoting covers // and /*; keys/lists quoted; depth-aware insert; remove_sections on hutext spans; every edit re-read before writing (refused, file untouched)]
 - **A3 [CRITICAL] Removing or replacing a plugin destroys unpushed and uncommitted work.** `plugin remove`,
   `plugin add --replace`, and Plugins `x` (one keypress, no confirm) rmtree the clone without checking git;
   for the primary that is your journal commits and — after `plugin init` — the only copy of your captured
@@ -149,7 +149,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   `sudo apt-get update`; tests read and write the real config (`--home` loses to ambient env), and a global
   git config breaks 105 tests; a fixed world-writable `/tmp/nohome` is trusted as a configsys home.
   **Fix:** an autouse conftest fixture that scrubs `CONFIGSYS_*`/`GIT_CONFIG*`/`HOME`, a fake `sudo` first on
-  PATH, and a per-test tmp home. (tests-tools-01/02/03) · effort S–M · [done — hermetic conftest: tmp HOME, CONFIGSYS_*/XDG_* scrubbed, git config isolated, fake sudo, Runner guard + real_runner marker; no fixed /tmp/nohome]
+  PATH, and a per-test tmp home. (tests-tools-01/02/03) · effort S–M · [done 53461a6 — hermetic conftest: tmp HOME, CONFIGSYS_*/XDG_* scrubbed, git config isolated, fake sudo, Runner guard + real_runner marker; no fixed /tmp/nohome]
 
 ### Tier B — correctness
 

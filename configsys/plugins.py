@@ -807,16 +807,68 @@ _scan_value_end = hutext.value_end
 _locate_section_span = hutext.section_span
 
 
+def _parsed(text, path):
+    try:
+        return layers.materialize_string(text) if text.strip() else {}
+    except Exception as e:                           # noqa: BLE001 — humon raises its own types
+        raise ConfigError(f'{path} does not parse ({e}); fix it by hand — configsys will not edit '
+                          'a file it cannot read back') from e
+
+
+def _checked_write(path, before_text, after_text, section, expect):
+    """Write `after_text` only if it reads back as `before_text` with exactly `section` changed —
+    every other top-level key materializes unchanged, and `section` is `expect` (or absent, for
+    `expect is _ABSENT`). Refuses (ConfigError, file untouched) otherwise: a text-surgery bug can
+    then never delete a neighbour or leave a file configsys itself can't load (review-2026-11-2 A2)."""
+    before, after = _parsed(before_text, path), _parsed_after(after_text, path)
+    others_b = {k: v for k, v in before.items() if k != section}
+    others_a = {k: v for k, v in after.items() if k != section}
+    ok = others_a == others_b and (section not in after if expect is _ABSENT
+                                   else after.get(section) == expect)
+    if not ok:
+        lost = sorted(set(others_b) - set(others_a)) or sorted(
+            k for k in others_b if others_a.get(k) != others_b[k])
+        raise ConfigError(f'refusing to write {path}: editing `{section}:` would also change '
+                          f'{", ".join(lost) or section} — please report this; the file is unchanged')
+    primarygit.will_write(path)
+    Path(path).write_text(after_text, encoding='utf-8')
+
+
+def _parsed_after(text, path):
+    try:
+        return layers.materialize_string(text) if text.strip() else {}
+    except Exception as e:                           # noqa: BLE001
+        raise ConfigError(f'refusing to write {path}: the edited text would not parse ({e}) — please '
+                          'report this; the file is unchanged') from e
+
+
+_ABSENT = object()
+
+
+def _checked_write_text(path, before_text, after_text, section):
+    """The `_checked_write` validation for a removal, without writing (remove_sections writes once,
+    after every key is out)."""
+    before, after = _parsed(before_text, path), _parsed_after(after_text, path)
+    if section in after or {k: v for k, v in after.items()} != {
+            k: v for k, v in before.items() if k != section}:
+        raise ConfigError(f'refusing to write {path}: removing `{section}:` would also change other '
+                          'settings — please report this; the file is unchanged')
+
+
 def set_section(user_config_file, section, emit):
     '''Rewrite one top-level `<section>:` node in a user config file in place, preserving every
     other line (comments and all): replace the existing `<section>: <value>` span exactly, or — if
-    there is none — insert before the root's closing brace. `emit(indent)` returns the full
+    there is none — insert before the root's closing brace (a depth-aware scan, so never into a
+    trailing comment; a file with no root map gets a fresh one). `emit(indent)` returns the full
     `<section>: ...` humon text at the given base indent. The single surgical write-back primitive
     shared by the plugin- and pins-config editors — the span is located by a comment/string-aware
     scan (NOT humon's node.source_text, whose comment-binding mis-reported the span and corrupted
-    the file), content via template emit, so every comment/line OUTSIDE the section survives.'''
+    the file), content via template emit, so every comment/line OUTSIDE the section survives. The
+    result is re-read before it is written (`_checked_write`).'''
     path = Path(user_config_file)
-    text = path.read_text(encoding='utf-8')
+    before = path.read_text(encoding='utf-8') if path.exists() else ''
+    _parsed(before, path)                            # refuse early on a file that doesn't parse
+    text = before
     span = _locate_section_span(text, section)
     if span is not None:
         start, end = span
@@ -824,10 +876,18 @@ def set_section(user_config_file, section, emit):
         indent = start - line_start                 # whitespace before the key on its line
         text = text[:start] + emit(indent) + text[end:]
     else:
-        idx = text.rstrip().rfind('}')              # before the root's closing brace
-        text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]
-    primarygit.will_write(path)
-    path.write_text(text, encoding='utf-8')
+        idx = hutext.root_close(text)               # the root's own closing brace
+        if idx is None:                              # empty / comment-only: give it a root map
+            sep = '' if (not text or text.endswith('\n')) else '\n'
+            text = f'{text}{sep}{{\n    {emit(4)}\n}}\n'
+        else:
+            line_start = text.rfind('\n', 0, idx) + 1
+            if text[line_start:idx].strip():         # `... }` on a content line: break it first
+                text = text[:idx].rstrip(' \t') + '\n    ' + emit(4) + '\n' + text[idx:]
+            else:
+                text = text[:idx] + '    ' + emit(4) + '\n' + text[idx:]
+    expect = _parsed_after('{\n    ' + emit(4) + '\n}\n', path).get(section)
+    _checked_write(path, before, text, section, expect)
 
 
 def set_declared(user_config_file, decls):
@@ -852,7 +912,7 @@ def _emit_pins(pins, indent):
     if not pins:
         return 'pins: {}'
     pad, inner = ' ' * indent, ' ' * (indent + 4)
-    body = [f'{inner}{k}: {_scalar(v)}' for k, v in pins.items()]
+    body = [f'{inner}{hutext.key(k)}: {_scalar(v)}' for k, v in pins.items()]
     return '\n'.join(['pins: {'] + body + [pad + '}'])
 
 
@@ -887,7 +947,7 @@ def _emit_map_packed(section, m, indent, width=96):
     inner = ' ' * (indent + 4)
     lines, cur = [], ''
     for k, v in m.items():
-        tok = f'{k}: {_scalar(v)}'
+        tok = f'{hutext.key(k)}: {_scalar(v)}'
         if cur and len(inner) + len(cur) + 2 + len(tok) > width:
             lines.append(inner + cur)
             cur = tok
@@ -925,8 +985,8 @@ def _emit_picks(picks, indent):
     pad, inner = ' ' * indent, ' ' * (indent + 4)
     lines = ['picks: {']
     for m, comps in picks.items():
-        lines.append(f'{inner}{m}: [ {"  ".join(_scalar(c) for c in comps)} ]' if comps
-                     else f'{inner}{m}: []')
+        lines.append(f'{inner}{hutext.key(m)}: [ {"  ".join(_scalar(c) for c in comps)} ]' if comps
+                     else f'{inner}{hutext.key(m)}: []')
     return '\n'.join(lines + [pad + '}'])
 
 
@@ -960,7 +1020,7 @@ def set_dirs(config_file, dirs):
     # set_section already places the FIRST line at `indent` (replacing in place, or inserting after its
     # own pad), so emit it bare — only the body/closing lines carry the indent.
     pad_body = lambda indent: '\n'.join(                       # noqa: E731 — small local emitter
-        ['dirs: {'] + [f'{" " * (indent + 4)}{k}: {_scalar(v)}' for k, v in dirs.items()]
+        ['dirs: {'] + [f'{" " * (indent + 4)}{hutext.key(k)}: {_scalar(v)}' for k, v in dirs.items()]
         + [' ' * indent + '}'])
     set_section(config_file, 'dirs', pad_body)
 
@@ -1008,7 +1068,7 @@ def set_list_section(config_file, key, items):
         remove_sections(config_file, [key])
         return
     set_section(config_file, key,
-                lambda indent: f'{key}: [ {"  ".join(str(i) for i in items)} ]')
+                lambda indent: f'{key}: [ {"  ".join(_scalar(i) for i in items)} ]')
 
 
 def _emit_kv(key, value, indent):
@@ -1016,15 +1076,15 @@ def _emit_kv(key, value, indent):
     section (colors / elements.<el>.<attr> / gradient). Bools emit as bare humon true/false.'''
     pad = ' ' * indent
     if isinstance(value, dict):
-        lines = [f'{pad}{key}: {{']
+        lines = [f'{pad}{hutext.key(key)}: {{']
         for k, v in value.items():
             lines.append(_emit_kv(k, v, indent + 4))
         return '\n'.join(lines + [pad + '}'])
     if isinstance(value, bool):
-        return f'{pad}{key}: {"true" if value else "false"}'
+        return f'{pad}{hutext.key(key)}: {"true" if value else "false"}'
     if isinstance(value, list):
-        return f'{pad}{key}: [ {"  ".join(_scalar(x) for x in value)} ]'
-    return f'{pad}{key}: {_scalar(value)}'
+        return f'{pad}{hutext.key(key)}: [ {"  ".join(_scalar(x) for x in value)} ]'
+    return f'{pad}{hutext.key(key)}: {_scalar(value)}'
 
 
 def read_theme(config_file):
@@ -1068,40 +1128,22 @@ def config_sections_text(user_config_file, keys):
 def remove_sections(user_config_file, keys):
     '''Remove the given top-level section nodes from the user config, preserving everything else
     (comments and all) — the counterpart to set_declared, for cleaning up config that has moved
-    into a plugin. Returns the keys actually removed. A comment sitting ABOVE a removed section is
-    left in place (we only delete the node's own span), so it may be orphaned — cheap to tidy by
-    hand, and safer than guessing which comments belonged to the section.'''
+    into a plugin. Returns the keys actually removed. Each span is located by the same
+    comment/string-aware scan set_section uses (`hutext.remove_span` — never by searching for the
+    node's text, which can also occur in a comment), and every removal is re-read before writing
+    (`_checked_write`). A comment sitting ABOVE a removed section is left in place, so it may be
+    orphaned — cheap to tidy by hand, and safer than guessing which comments belonged to it.'''
     path = Path(user_config_file)
     text = path.read_text(encoding='utf-8')
-    trove = humon.from_string(text)                  # keep alive while reading source_text
     removed = []
     for k in keys:
-        node = trove.root[k]
-        if node is None:
+        span = hutext.remove_span(text, k)
+        if span is None:
             continue
-        span = node.source_text                      # may PREFIX comment lines humon bound to the node
-        # humon attaches the comment block above a node to it; strip that lead so we delete only the
-        # `<key>: ...` span (not the comments), exactly as set_section does — else a section with a
-        # big leading comment (e.g. `profiles:` in the template) takes the whole file with it.
-        lines = span.split('\n')
-        ki = next((i for i, ln in enumerate(lines)
-                   if ln.lstrip().startswith(k + ':')
-                   and not ln.lstrip().startswith(('//', '/*', '*'))), 0)
-        lead = '\n'.join(lines[:ki])
-        key_span = '\n'.join(lines[ki:])
-        base = text.find(span)
-        if base < 0:
-            continue
-        idx = base + (len(lead) + 1 if lead else 0)   # jump past the bound comments to the key line
-        start = idx                                   # eat SAME-LINE leading whitespace only (so a
-        while start > 0 and text[start - 1] in ' \t':  # single-line `{ a  profiles:… }` is safe)
-            start -= 1
-        end = idx + len(key_span)                      # then trailing spaces + one optional newline
-        while end < len(text) and text[end] in ' \t':
-            end += 1
-        if end < len(text) and text[end] == '\n':
-            end += 1
-        text = text[:start] + text[end:]
+        start, end = span
+        new = text[:start] + text[end:]
+        _checked_write_text(path, text, new, k)
+        text = new
         removed.append(k)
     if removed:
         primarygit.will_write(path)

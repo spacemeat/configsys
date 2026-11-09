@@ -312,9 +312,7 @@ def _key(text, k):
         return None
     start, end = span
     colon = text.index(':', start + len(k))
-    vs = _skip(text, colon + 1)
-    if vs < len(text) and text[vs] not in '{[':         # a scalar ends at its token, not the line's
-        end = _scalar_end(text, vs)                     #   end (a one-line map closes on that line)
+    vs = _skip(text, colon + 1)                         # (section_span ends a scalar at its token)
     return start, vs, end
 
 

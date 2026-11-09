@@ -9,6 +9,13 @@ a backslash), `//` and `/* */` comments, and braces / brackets that only count o
 
 # Characters that force a scalar to be quoted (humon would otherwise mis-tokenize).
 UNSAFE = set(' \t\n\r{}[]:,"\'`\\@')
+# ...and the two-character comment openers: humon starts a comment at `//` or `/*` even inside a
+# bare word (`x//y` reads `x`), so a path with an empty `$VAR` in it must be quoted.
+_COMMENT_OPENERS = ('//', '/*')
+
+
+def _bare_ok(s):
+    return bool(s) and not any(c in UNSAFE for c in s) and not any(o in s for o in _COMMENT_OPENERS)
 
 
 def scalar(v):
@@ -18,7 +25,7 @@ def scalar(v):
     if v is None:
         return '""'
     s = str(v)
-    if s and not any(c in UNSAFE for c in s):
+    if _bare_ok(s):
         return s
     # Humon has no escapes; a delimiter that doesn't occur in the value works.
     if '"' not in s:
@@ -33,7 +40,7 @@ def scalar(v):
 
 def key(k):
     '''A map key as humon text (quoted only when it has to be).'''
-    return scalar(k) if (not k or any(c in UNSAFE for c in str(k))) else str(k)
+    return str(k) if _bare_ok(str(k)) else scalar(k)
 
 
 def skip_trivia(text, i):
@@ -63,14 +70,12 @@ def skip_trivia(text, i):
 
 def value_end(text, i):
     '''End index (exclusive) of the humon value beginning at `i` (after `<key>:`). A `{...}`/`[...]`
-    value brace-matches to its close (comment/string-aware); a bare scalar runs to end-of-line.'''
+    value brace-matches to its close (comment/string-aware); a scalar ends at its own token — past
+    its closing quote, or at the first delimiter / comment — never at the end of the line, so a
+    one-line map's later keys, a trailing comment and a root brace on the same line all survive.
+    (Only blanks and comments are skipped first: a quoted string here IS the value.)'''
     n = len(text)
-    while i < n:
-        j = skip_trivia(text, i)
-        if j != i:
-            i = j
-            continue
-        break
+    i = skip_blank(text, i)
     if i >= n:
         return n
     if text[i] in '{[':
@@ -89,8 +94,7 @@ def value_end(text, i):
                 stack.pop()
             i += 1
         return i
-    j = text.find('\n', i)                          # scalar value: to end of line
-    return n if j < 0 else j
+    return scalar_end(text, i)
 
 
 def section_span(text, section):
@@ -126,6 +130,44 @@ def section_span(text, section):
                 return i, value_end(text, k + 1)
         i += 1
     return None
+
+
+def root_close(text):
+    '''Index of the root map's closing `}` (the one that brings the depth back to 0), scanning
+    comment- and string-aware; None when the document has no root map (empty, comment-only). The
+    insert point for a new top-level key — never a `}` inside a trailing comment.'''
+    n, i, depth, close = len(text), 0, 0, None
+    while i < n:
+        j = skip_trivia(text, i)
+        if j != i:
+            i = j
+            continue
+        c = text[i]
+        if c in '{[':
+            depth += 1
+        elif c in '}]':
+            depth -= 1
+            if depth == 0 and c == '}':
+                close = i
+        i += 1
+    return close
+
+
+def remove_span(text, section):
+    '''(start, end) to delete for a top-level `<section>:` — its exact key→value span, widened over
+    the same-line whitespace before it and the blanks + one newline after it — or None. Located by
+    section_span (never by searching for the node's text, which can also occur in a comment).'''
+    span = section_span(text, section)
+    if span is None:
+        return None
+    start, end = span
+    while start > 0 and text[start - 1] in ' \t':
+        start -= 1
+    while end < len(text) and text[end] in ' \t':
+        end += 1
+    if end < len(text) and text[end] == '\n':
+        end += 1
+    return start, end
 
 
 def skip_blank(text, i):
