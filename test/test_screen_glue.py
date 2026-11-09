@@ -60,7 +60,8 @@ def test_build_vm_cells_roles_and_status():
     assert vm.widths[0] == len('zoxide-glue')
     assert vm.xs[1] == vm.widths[0] + 2
     assert vm.virt_w == sum(vm.widths) + 2 * (len(vm.widths) - 1)
-    assert vm.status == ' 3 glue snippet(s)   1 active   1 changed (A to re-activate)   1 inactive'
+    # an `available` (template) snippet is counted as available, not lumped in with inactive
+    assert vm.status == ' 3 glue snippet(s)   1 active   1 changed (A to re-activate)   1 available'
     assert vm.nav
 
 
@@ -71,7 +72,7 @@ def test_build_vm_empty():
     assert not vm.has_rows and not vm.cells and not vm.display
     assert vm.empty_header == 'component   state   conf.d   source'
     assert vm.empty_msg == '(no installed shells / no glue in the install set)'
-    assert vm.status == ' 0 glue snippet(s)   0 active   0 inactive'
+    assert vm.status == ' 0 glue snippet(s)   0 active'      # a zero bucket isn't listed
 
 
 # -- draw: where/how a HAND-BUILT ViewModel paints ----------------------------
@@ -304,3 +305,18 @@ def test_the_glue_headers_live_beside_their_cells():
     assert panes._GLUE_HEADERS == ['component', 'state', 'conf.d', 'source']
     assert menu._GLUE_HEADERS is panes._GLUE_HEADERS
     assert 'from ..menu import _GLUE_HEADERS' not in inspect.getsource(glue)
+
+
+def test_status_counts_available_and_inactive_apart():
+    # the Glue ? page and `dotfiles status` keep available (shipped, not linked) and inactive
+    # (its loader is off / a user snippet's link is missing) apart — so does the status line
+    scr = GlueScreen.__new__(GlueScreen)
+    m = _fake_model()
+    m.rows = m.rows + [(None, 'eza-glue', '~/.config/fish/conf.d/50-eza.fish', 'loader-off',
+                        '<repo>/shell/fish/eza.fish', 'fish'),
+                       (None, 'mine', '~/.config/fish/conf.d/90-mine.fish', 'unlinked',
+                        '<store>/user.d/fish/mine.fish', 'fish', True)]
+    scr.model = m
+    status = scr.build_vm(None, (40, 120)).status
+    assert status.startswith(' 5 glue snippet(s)   1 active   1 changed')
+    assert '   1 available   2 inactive' in status

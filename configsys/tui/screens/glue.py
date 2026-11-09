@@ -12,6 +12,8 @@ the three MVVM seams (docs/tui-architecture.md):
   model's own `dirty` SET.
 '''
 
+from collections import Counter
+
 from .. import menu
 from ...drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL
 from ..flows import _pretend_note
@@ -87,13 +89,15 @@ class GlueScreen(Screen):
                 else:
                     vm.display.append(('row', entry[1]))
             vm.cur_disp = next((d for d, e in enumerate(gs.display) if e == ('row', gs.cur)), 0)
-        n_active = sum(1 for r in gs.rows if r[3] in ('linked', 'loader-on'))
-        n_changed = sum(1 for r in gs.rows if r[3] == 'drifted')
-        n_inactive = len(gs.rows) - n_active - n_changed
-        status = f' {len(gs.rows)} glue snippet(s)   {n_active} active'
-        if n_changed:
-            status += f'   {n_changed} changed ({menu._keymap().glyph("glue", "activate-group")} to re-activate)'
-        status += f'   {n_inactive} inactive'
+        # tallied by the STATE column's own label (active / changed / available / inactive), as the
+        # Glue ? page and `dotfiles status` count them — available is not lumped in with inactive
+        n = Counter(_glue_cells(r)[1] for r in gs.rows)
+        status = f' {len(gs.rows)} glue snippet(s)   {n["active"]} active'
+        if n['changed']:
+            status += f'   {n["changed"]} changed ({menu._keymap().glyph("glue", "activate-group")} to re-activate)'
+        for label in ('available', 'inactive'):
+            if n[label]:
+                status += f'   {n[label]} {label}'
         n_user = sum(1 for r in gs.rows if _is_user_glue(r))
         if n_user:
             status += f'   ({n_user} your own user glue)'
