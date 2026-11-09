@@ -128,7 +128,9 @@ def test_draw_scrolls_to_keep_the_cursor_block_in_view():
     vm.status, vm.nav = ' s', ' n '
     surf = BufferSurface(20, 120)                                 # 12 blocks x 4 rows won't fit
     scr.draw(surf, RecordingPalette(), vm)
-    assert scr.model.top > 0                                      # keep-cursor scroll written back
+    assert scr.model.top == 0                                     # draw never writes the model…
+    scr.commit(vm)
+    assert scr.model.top > 0                                      # …commit applies the settled scroll
     assert 'setting-11' in '\n'.join(surf.text_rows())
 
 

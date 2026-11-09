@@ -84,10 +84,11 @@ class ComponentsVM(ViewModel):
     list (for the header attention badge). The tree/infoblock content is read from the model in draw
     (a deeper pure extraction is a later pass — this screen's win is the render seam + handle).'''
 
-    def __init__(self, note='', diags=(), primary_chip=''):
+    def __init__(self, note='', diags=(), primary_chip='', refresh_age=None):
         self.note = note
         self.diags = diags
         self.primary_chip = primary_chip           # "prim: ↑2 to push, ↓1 to sync", or ''
+        self.refresh_age = refresh_age             # days since the package index refresh (None: never)
 
 
 class ComponentsScreen(Screen):
@@ -103,7 +104,9 @@ class ComponentsScreen(Screen):
         from ... import primarygit
         policy = primarygit.PUSH_POLICY[getattr(ctx, '_primary_push_mode', 'ask')]
         chip = primarygit.chip(getattr(ctx, '_primary_state', None), hide_ahead=policy['hide_ahead'])
-        return ComponentsVM(self.note, self.diags, chip)
+        from ... import refreshstate
+        age = refreshstate.age_days(ctx.paths) if ctx is not None else None
+        return ComponentsVM(self.note, self.diags, chip, age)
 
     # -- draw (reproduces menu._draw for screen == 'components') -----------
 
@@ -123,8 +126,7 @@ class ComponentsScreen(Screen):
         sub += f'   view: {getattr(ms, "mode", "to-do")}'
         _put(surface, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
         rend = len(title) + len(sub)
-        from ... import refreshstate
-        age = refreshstate.age_days(ctx.paths)
+        age = vm.refresh_age
         if age is None:
             rtext, relem = 'index never refreshed', 'issue_warning'
         elif age < 1:
@@ -179,11 +181,12 @@ class ComponentsScreen(Screen):
 
         list_top = 3
         list_h = max(1, h - list_top - 6)
+        first = ms.top
         if ms.reveal is not None:                        # a just-expanded node -> reveal its subtree
-            ms.top = _reveal_subtree([n.id for n in ms.rows], [n.depth for n in ms.rows], ms.reveal,
-                                     ms.top, list_h)
-            ms.reveal = None
-        ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
+            first = _reveal_subtree([n.id for n in ms.rows], [n.depth for n in ms.rows], ms.reveal,
+                                    first, list_h)
+        first = _scroll_top(ms.cursor, first, list_h, len(ms.rows))
+        vm.settle(top=first, reveal=None)
 
         for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
             n = ms.rows[i]
@@ -234,7 +237,7 @@ class ComponentsScreen(Screen):
             else:
                 col('inst', n.installed_str(), 'info_dim' if dim else 'version')
                 col('latest', n.latest_str(), 'info_dim' if dim else 'version', pad=False)
-        _scrollbar_v(surface, pal, list_top, w - 1, list_h, ms.top, list_h, len(ms.rows), h, w)
+        _scrollbar_v(surface, pal, list_top, w - 1, list_h, first, list_h, len(ms.rows), h, w)
 
         _put(surface, h - 6, 0, _fit(_identity_line(ms, ctx, descriptions), w),
              pal.style('info', h - 6, 0, h, w))
@@ -295,10 +298,10 @@ class ComponentsScreen(Screen):
                 intent.open_where = (lines, _wname)
         elif act == 'filter':
             _filter_edit(stdscr, ms.filter, ms.set_filter,
-                         lambda: self.draw(stdscr, pal, self.build_vm(ctx, stdscr.getmaxyx())))
+                         lambda: self.render(stdscr, pal, ctx))
         elif act == 'find':
             _find_edit_tree(stdscr, ms,
-                            lambda: self.draw(stdscr, pal, self.build_vm(ctx, stdscr.getmaxyx())))
+                            lambda: self.render(stdscr, pal, ctx))
         elif act == 'confirm':
             ms.enter()
         elif act == 'right':
@@ -432,7 +435,7 @@ class ComponentsScreen(Screen):
                     pass
             curses.flushinp()
             self.note, self.diags = 'updating latest versions…', ms.states and self.diags
-            self.draw(stdscr, pal, self.build_vm(ctx, stdscr.getmaxyx()))
+            self.render(stdscr, pal, ctx)
             # the package index just changed -> the System Updates scan (group + header count chip) is
             # stale too: drop it BEFORE the reload (so the rebuilt tree doesn't re-inject the old rows;
             # the header shows the 'checking' spinner), then re-gather in the background — the router

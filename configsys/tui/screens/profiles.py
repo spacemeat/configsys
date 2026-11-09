@@ -45,6 +45,8 @@ class ProfilesVM(ViewModel):
         self.nav1 = ''
         self.nav2 = ''
         self.focus = 'left'
+        self.overlay = (frozenset(), {}, frozenset())   # install-axis overlay (empty unless `O` on)
+        self.cur_oses = None       # the catalog cursor's component has no method here: where it has one
 
 
 def _nav_strs():
@@ -88,6 +90,14 @@ class ProfilesScreen(Screen):
         vm.legend1 = "inst'd  ● trk  ⊙ untrk  ◐ part  ○ no  ⮾ uninst  ⊘ n/a-here "
         vm.legend2 = "flag  ☆ int  · seen    new  ◆    machine  ● tracked  ○ not    tree  ⊙ N "
         vm.nav1, vm.nav2 = _nav_strs()
+        # the work a frame needs that touches more than the model — the overlay (folds in a finished
+        # async scan, may start one) and the coverage matrix for an unavailable component (cached
+        # per component) — happens here, never in draw
+        vm.overlay = ps.overlay()
+        vcat = ps.vcatalog()
+        cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
+        if cur is not None and not ps.available(cur):
+            vm.cur_oses = ps.available_oses(cur)
         return vm
 
     # -- draw -------------------------------------------------------------
@@ -102,7 +112,7 @@ class ProfilesScreen(Screen):
         rleft, rw = lw + 1, w - lw - 1
         prof = vm.prof                                   # the selected profile
         _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
-        ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
+        ov_inst, ov_orph, ov_uninst = vm.overlay         # install-axis overlay data (empty unless `O` on)
         _sel = pal.sel_bg_rgb
         residual_bg = tuple(round(_sel[i] * 0.55) for i in range(3))   # dimmer bar: unfocused current row
         low_color = not pal.have256    # 8/16-colour has no room for a dim tint -> reverse-video instead
@@ -111,14 +121,14 @@ class ProfilesScreen(Screen):
         vnodes = ps.visible_pnodes()
         lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, vm.ltitle,
                                     ps.focus == 'left', h, w)
+        ltop = ps.ltop
         if ps.reveal is not None:                        # a just-expanded node -> reveal its subtree
-            ps.ltop = _reveal_subtree([nd[2] for nd in vnodes], [nd[1] for nd in vnodes], ps.reveal,
-                                      ps.ltop, lih)
-            ps.reveal = None
-        ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
+            ltop = _reveal_subtree([nd[2] for nd in vnodes], [nd[1] for nd in vnodes], ps.reveal,
+                                   ltop, lih)
+        ltop = _scroll_top(ps.lcur, ltop, lih, len(vnodes))
         _lho = getattr(ps, 'lhoff', 0)                   # browse-pane horizontal char offset
-        _lmax = 0                                        # widest visible row -> sets ps.lhmax below
-        for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
+        _lmax = 0                                        # widest visible row -> sets lhmax below
+        for vis, i in enumerate(range(ltop, min(len(vnodes), ltop + lih))):
             name, depth, key, expandable, expanded, kind = vnodes[i][:6]
             y = lit + vis
             cur = i == ps.lcur
@@ -168,11 +178,12 @@ class ProfilesScreen(Screen):
                         if 0 <= vx and vx + len(_bstr) <= liw:
                             _put(stdscr, y, lil + vx, _bstr,
                                  pal.style(_hue, y, lil + vx, h, w, bg=(None if low_color else rbg)) | rev)
-        ps.lhmax = max(0, _lmax - liw)                   # clamp target for ←/→ (nav reads this next frame)
-        ps.lhoff = min(_lho, ps.lhmax)
-        _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ps.ltop, lih, len(vnodes), h, w)
-        if ps.lhmax:                                     # horizontal thumb on the browse pane's bottom border
-            _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, ps.lhoff, liw, _lmax, h, w)
+        lhmax = max(0, _lmax - liw)                      # clamp target for ←/→ (the handler reads it)
+        lhoff = min(_lho, lhmax)
+        vm.settle(ltop=ltop, reveal=None, lhmax=lhmax, lhoff=lhoff)
+        _scrollbar_v(stdscr, pal, lit, lw - 1, lih, ltop, lih, len(vnodes), h, w)
+        if lhmax:                                        # horizontal thumb on the browse pane's bottom border
+            _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, lhoff, liw, _lmax, h, w)
 
         # RIGHT TOP: detail for the highlighted component — description + methods
         crows = ps._catalog_rows()                        # [(name, depth)] — parts children interleaved
@@ -205,7 +216,7 @@ class ProfilesScreen(Screen):
                 for k, line in enumerate(_wrap(desc, diw)[:max(0, _desc_rows)]):
                     _put(stdscr, dit + k, dil, _fit(line, diw), pal.style('info', dit + k, dil, h, w))
                 if _unavail:
-                    _oses = ps.available_oses(cur)
+                    _oses = vm.cur_oses
                     _wtext = (f'⊘ no install method on {ctx.os_info.block} · available on: {", ".join(_oses)}'
                               if _oses else f'⊘ no install method on {ctx.os_info.block} (declines on every '
                               'modeled OS)')
@@ -280,8 +291,8 @@ class ProfilesScreen(Screen):
         rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, vm.ctitle, ps.focus == 'right', h, w)
         n = len(vcat)
         body_rows = max(1, rih - 1)                       # one row reserved for the column header
-        ps.rcur = min(ps.rcur, max(0, n - 1))
-        ps.rtop = _scroll_top(ps.rcur, ps.rtop, body_rows, n)
+        rcur = max(0, min(ps.rcur, n - 1))
+        rtop = _scroll_top(rcur, ps.rtop, body_rows, n)
         STATE = [("inst'd", 7), ('new', 4), ('flag', 5)]   # tracked is the per-machine cells, not a col
         state_w = sum(cw for _hd, cw in STATE)
         via_w, org_w = 10, 14                             # `from` (origin) roomier — plugin names are long
@@ -298,9 +309,10 @@ class ProfilesScreen(Screen):
         x_mach0 = x_state + state_w + 1
         m_base = [x_mach0 + sum(mach_w[:k]) for k in range(len(machines))]
         total_w = x_mach0 + mach_block
-        ps.rcol_left = max(0, min(getattr(ps, 'rcol_left', 0), max(0, total_w - riw)))
-        rhoff, hbar = ps.rcol_left, total_w > riw
-        ps.rhmax = max(0, total_w - riw)                 # the key handler clamps ←/→ against this
+        rhoff, hbar = max(0, min(getattr(ps, 'rcol_left', 0), max(0, total_w - riw))), total_w > riw
+        # the key handler clamps ←/→ against rhmax; _probe_dirty is consumed (this frame reflects any
+        # folded-in probes)
+        vm.settle(rcur=rcur, rtop=rtop, rcol_left=rhoff, rhmax=max(0, total_w - riw), _probe_dirty=False)
 
         def _hput(y, xoff, text, attr):                 # draw at xoff-rhoff, clipping both edges
             ax = xoff - rhoff
@@ -324,10 +336,9 @@ class ProfilesScreen(Screen):
             _hput(rit, m_base[mi], _fit(m, mach_w[mi] - MGAP),
                   pal.style('link' if is_tg else 'method_dim', rit, ril, h, w) | (curses.A_BOLD if is_tg else 0))
 
-        ps._probe_dirty = False                          # consumed: this draw reflects any folded-in probes
         _shown = []
         for r in range(body_rows):
-            i = ps.rtop + r
+            i = rtop + r
             if i >= n:
                 break
             name, depth = crows[i]
@@ -336,7 +347,7 @@ class ProfilesScreen(Screen):
             _parts = ps._parts(name)
             if _parts:
                 _shown.extend(_parts)                    # probe a parts-aggregator's members too
-            cur = i == ps.rcur
+            cur = i == rcur
             foc = cur and ps.focus == 'right'
             avail, via, pinned = ps._resolve(name)
             istate = ps.install_state(name)             # 'all' · 'some' (parts partial) · 'none'
@@ -395,9 +406,8 @@ class ProfilesScreen(Screen):
                 _hput(y, gx, '●' if picked else '○',
                       pal.style('installed' if picked else 'info_dim', y, ril + gx, h, w, selected=foc)
                       | rev | (curses.A_BOLD if (picked and m in tgset) else 0))
-        if ps.show_install:                              # probe the just-drawn rows on non-enumerable drivers
-            ps.ensure_probes(_shown)
-        _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, ps.rtop, body_rows, n, h, w)
+        vm.shown = _shown                                # commit probes these rows (non-enumerable drivers)
+        _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, rtop, body_rows, n, h, w)
         if hbar:                                          # horizontal thumb on the bottom border
             _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, rhoff, riw, total_w, h, w)
 
@@ -413,14 +423,17 @@ class ProfilesScreen(Screen):
         _put(stdscr, h - 3, lg2_x, _fit(legend2, w - lg2_x), _sty(h - 3, lg2_x))
         self.end_page(stdscr, pal, None, [vm.nav1, vm.nav2], h, w)
 
+    def commit(self, vm):
+        super().commit(vm)
+        if self.model.show_install and getattr(vm, 'shown', None):
+            self.model.ensure_probes(vm.shown)          # probe the just-drawn rows, after the paint
+
     # -- handle -----------------------------------------------------------
 
     def _redraw(self, stdscr, pal, note):
         '''The modal redraw callback (filter/find edits) — re-render THIS screen so the modal paints
         over a current frame (no dependency on the legacy painter).'''
-        vm = self.build_vm(self.model.ctx, stdscr.getmaxyx())
-        vm.note = note
-        self.draw(stdscr, pal, vm)
+        self.render(stdscr, pal, self.model.ctx, note)
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model, runs the modals, returns an Intent(note, dirty, pending_notes,

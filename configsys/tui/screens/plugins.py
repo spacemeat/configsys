@@ -159,11 +159,12 @@ class PluginsScreen(Screen):
             vm.diff_msg = pl.diff_note or 'Tab here to review what an update would change'
             return
         vm.diff_has_files = True
-        pl.dfile = max(0, min(pl.dfile, len(files) - 1))
-        f = files[pl.dfile]
+        dfile = max(0, min(pl.dfile, len(files) - 1))
+        vm.settle(dfile=dfile)
+        f = files[dfile]
         added = sum(1 for k, _t in f['lines'] if k == 'add')
         removed = sum(1 for k, _t in f['lines'] if k == 'del')
-        vm.diff_header = (f'[{pl.dfile + 1}/{len(files)}] {f["path"]}   '
+        vm.diff_header = (f'[{dfile + 1}/{len(files)}] {f["path"]}   '
                           f'+{added} -{removed}   (Tab: next file)')
         vm.diff_lines = [(_DIFF_ELEM.get(k, 'info_dim'), t) for k, t in f['lines']]
         vm.diff_maxlen = max((len(t) for _k, t in f['lines']), default=0)
@@ -186,8 +187,9 @@ class PluginsScreen(Screen):
         if not vm.has_rows:
             _put(surface, tit, til, _fit(vm.empty_msg, tiw), pal.style('info_dim', tit, til, h, w))
             return
-        pl.top, pl.hscroll = table.draw_table(surface, pal, (tit, til, tih, tiw), vm, pl.cur,
-                                              pl.top, pl.hscroll, h, w)
+        top, hscroll = table.draw_table(surface, pal, (tit, til, tih, tiw), vm, pl.cur,
+                                        pl.top, pl.hscroll, h, w)
+        vm.settle(top=top, hscroll=hscroll)
 
     def _draw_diff(self, surface, pal, vm, h, w, top, diff_h):
         pl = self.model
@@ -199,14 +201,15 @@ class PluginsScreen(Screen):
         _put(surface, dit, dil, _fit(vm.diff_header, diw), pal.style('accent', dit, dil, h, w))
         body_h = dih - 1
         lines = vm.diff_lines
-        pl.dtop = max(0, min(pl.dtop, max(0, len(lines) - body_h)))
-        pl.dhscroll = max(0, min(pl.dhscroll, max(0, vm.diff_maxlen - diw)))
-        for vis, i in enumerate(range(pl.dtop, min(len(lines), pl.dtop + body_h))):
+        dtop = max(0, min(pl.dtop, max(0, len(lines) - body_h)))
+        dhscroll = max(0, min(pl.dhscroll, max(0, vm.diff_maxlen - diw)))
+        vm.settle(dtop=dtop, dhscroll=dhscroll)
+        for vis, i in enumerate(range(dtop, min(len(lines), dtop + body_h))):
             elem, txt = lines[i]
             y = dit + 1 + vis
-            _put(surface, y, dil, _fit(txt[pl.dhscroll:], diw), pal.style(elem, y, dil, h, w))
-        _scrollbar_v(surface, pal, dit + 1, dil + diw, body_h, pl.dtop, body_h, len(lines), h, w)
-        _scrollbar_h(surface, pal, dit + diff_h - 1, dil, diw, pl.dhscroll, diw, vm.diff_maxlen, h, w)
+            _put(surface, y, dil, _fit(txt[dhscroll:], diw), pal.style(elem, y, dil, h, w))
+        _scrollbar_v(surface, pal, dit + 1, dil + diw, body_h, dtop, body_h, len(lines), h, w)
+        _scrollbar_h(surface, pal, dit + dih, dil, diw, dhscroll, diw, vm.diff_maxlen, h, w)
 
     # -- handle -----------------------------------------------------------
 

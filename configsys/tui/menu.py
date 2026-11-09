@@ -4881,13 +4881,11 @@ def run(ctx):
                 try:
                     if screen == 'components':
                         scr.model, scr.note, scr.diags = ms, note, diags   # the live tree + frame inputs
-                        scr.draw(stdscr, pal, scr.build_vm(ctx, stdscr.getmaxyx()))
+                        scr.render(stdscr, pal, ctx)
                     else:
                         if screen == 'theme':
                             scr.sample_ms = ms     # the live Components state for its bottom sample slot
-                        vm = scr.build_vm(ctx, stdscr.getmaxyx())
-                        vm.note = note             # the transient status note the router owns
-                        scr.draw(stdscr, pal, vm)
+                        scr.render(stdscr, pal, ctx, note)   # + the transient note the router owns
                 except curses.error:
                     pass                           # a resize mid-paint: the next frame repaints
                 except Exception as e:             # noqa: BLE001 — a paint bug shows, never crashes (B16)

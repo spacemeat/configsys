@@ -102,8 +102,9 @@ class DotfilesScreen(Screen):
             _put(surface, it, il, _fit('   '.join(vm.headers), iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            ds.top, ds.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
-                                                  ds.top, ds.hscroll, h, w)
+            top, hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
+                                            ds.top, ds.hscroll, h, w)
+            vm.settle(top=top, hscroll=hscroll)
 
         self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 

@@ -7,7 +7,11 @@ and exposes three seams:
   ctx, does no drawing. `size` is the `(h, w)` tuple from `getmaxyx()`. This is what makes a screen
   renderable headlessly and testable.
 - `draw(surface, pal, vm)`: paint the ViewModel through a Surface. A dumb painter — it positions and
-  colours, but decides nothing the ViewModel and model didn't already settle.
+  colours, but decides nothing the ViewModel and model didn't already settle, writes nothing on the
+  model and starts no work. What the frame's geometry settles (a scroll offset clamped to the panel
+  height) it records with `vm.settle(...)`; `commit(vm)` applies that to the model after the paint
+  (and is where a screen starts post-paint work — Profiles' probes of the rows it showed). The router
+  runs all three through `render()`; a preview (the Theme samples) calls build_vm + draw only.
 - `handle(ch, ctx, stdscr, pal) -> Intent`: process one key (Components' takes `cfg, ledger` too —
   it re-runs the load pipeline). Mutates the model and may run modal loops inline on `stdscr`
   (popups, input boxes, the suspended confirm/execute prompt); asks the router, via the returned
@@ -25,7 +29,14 @@ from dataclasses import dataclass
 class ViewModel:
     '''Base for a screen's render model: plain data, no curses, no ctx. A screen subclasses this with
     the fields its `draw` paints (header text, rows, cells, scroll offsets, legend). Kept trivial on
-    purpose — the value is that it is INSPECTABLE and comparable, not that it enforces a schema.'''
+    purpose — the value is that it is INSPECTABLE and comparable, not that it enforces a schema.
+
+    The one thing a draw adds to it: the model attributes the frame's geometry settled (a scroll
+    offset clamped to the panel height, a horizontal-scroll limit), recorded with `settle(...)` and
+    applied to the model by `Screen.commit` after the paint — draw itself never writes the model.'''
+
+    def settle(self, **attrs):
+        self.__dict__.setdefault('settled', {}).update(attrs)
 
 
 @dataclass
@@ -61,6 +72,22 @@ class Screen:
 
     def handle(self, ch, ctx, stdscr, pal):
         raise NotImplementedError
+
+    def render(self, surface, pal, ctx, note=None):
+        '''One frame: build_vm -> draw -> commit. `note` (the router's transient status note) goes on
+        the VM when given. -> the VM.'''
+        vm = self.build_vm(ctx, surface.getmaxyx())
+        if note is not None:
+            vm.note = note
+        self.draw(surface, pal, vm)
+        self.commit(vm)
+        return vm
+
+    def commit(self, vm):
+        '''Apply what the draw settled (`vm.settle`) to the model — the scroll offsets the next
+        frame and the key handler start from.'''
+        for attr, value in vm.__dict__.get('settled', {}).items():
+            setattr(self.model, attr, value)
 
     # -- the page chrome every draw shares (review-2026-11-2 D7 / tui-screens-09) --
 

@@ -111,8 +111,9 @@ class GlueScreen(Screen):
             _put(surface, it, il, _fit(vm.empty_header, iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            gs.top, gs.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
-                                                  gs.top, gs.hscroll, h, w)
+            top, hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
+                                            gs.top, gs.hscroll, h, w)
+            vm.settle(top=top, hscroll=hscroll)
 
         self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 

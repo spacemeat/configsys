@@ -73,8 +73,10 @@ class ThemeScreen(Screen):
     def build_vm(self, ctx, size):
         from ... import actions
         ts = self.model
-        ts.reload()                          # legacy reloads at the top of every frame; build_vm
-        vm = ThemeVM()                       # runs immediately before draw, so this is that spot
+        if getattr(ts, '_loaded_cfg', None) is not ctx.config:   # an edit invalidated the Config:
+            ts.reload()                                       # re-read the theme (not every frame)
+            ts._loaded_cfg = ctx.config
+        vm = ThemeVM()
         vm.page = ALL_PAGES[ts.page]
         vm.focus = ts.focus
         for name in ts.map_names:
@@ -112,33 +114,35 @@ class ThemeScreen(Screen):
                                         ts.focus == 'map', h, w)
         ncols = 2 if m_iw >= 60 else 1
         rows_per_col = max(1, -(-len(vm.map_rows) // ncols))      # ceil
-        ts.map_ncols, ts.map_rows_per_col = ncols, rows_per_col
         col_w = m_iw // ncols
         nw = 12 if ncols == 2 else 14
-        ts.map_top = _scroll_top(ts.map_cur % rows_per_col, ts.map_top, m_ih, rows_per_col)
+        map_top = _scroll_top(ts.map_cur % rows_per_col, ts.map_top, m_ih, rows_per_col)
+        # the handler moves ←/→ between map columns by this frame's layout
+        vm.settle(map_ncols=ncols, map_rows_per_col=rows_per_col, map_top=map_top)
         for i, (name, rgb, mark) in enumerate(vm.map_rows):
             col, row = divmod(i, rows_per_col)
-            if not (ts.map_top <= row < ts.map_top + m_ih):
+            if not (map_top <= row < map_top + m_ih):
                 continue
-            y, x = m_it + (row - ts.map_top), m_il + col * col_w
+            y, x = m_it + (row - map_top), m_il + col * col_w
             sel = i == ts.map_cur and ts.focus == 'map'
             if sel:
                 _put(surface, y, x, ' ' * col_w, pal.fill(y, x, h, w, selected=True))
             _put(surface, y, x + 1, ' ██ ', pal.rgb_attr(rgb))
             _put(surface, y, x + 6, _fit(f'{mark}{name:{nw}} {_hex(rgb)}', col_w - 6),
                  pal.style('label' if sel else 'component', y, x + 6, h, w, selected=sel))
-        _scrollbar_v(surface, pal, m_it, m_il + m_iw, m_ih, ts.map_top, m_ih, rows_per_col, h, w)
+        _scrollbar_v(surface, pal, m_it, m_il + m_iw, m_ih, map_top, m_ih, rows_per_col, h, w)
 
         # -- List 2: the focused page's role styles (top-RIGHT), plus the gradient endpoints as rows --
         roles = vm.role_rows
-        ts.role_cur = min(ts.role_cur, max(0, len(roles) - 1))
+        role_cur = max(0, min(ts.role_cur, len(roles) - 1))
         r_it, r_il, r_ih, r_iw = _panel(surface, pal, 1, mw, list_h, w - mw,
                                         _fit(f'page roles — {page}  (F1-7)', (w - mw) - 4), ts.focus == 'roles',
                                         h, w)
-        ts.role_top = _scroll_top(ts.role_cur, ts.role_top, r_ih, len(roles))
-        for vis, i in enumerate(range(ts.role_top, min(len(roles), ts.role_top + r_ih))):
+        role_top = _scroll_top(role_cur, ts.role_top, r_ih, len(roles))
+        vm.settle(role_cur=role_cur, role_top=role_top)
+        for vis, i in enumerate(range(role_top, min(len(roles), role_top + r_ih))):
             rr, y = roles[i], r_it + vis
-            sel = i == ts.role_cur and ts.focus == 'roles'
+            sel = i == role_cur and ts.focus == 'roles'
             if sel:
                 _put(surface, y, r_il, ' ' * r_iw, pal.fill(y, r_il, h, w, selected=True))
             if rr[0] == 'grad':                                    # a gradient endpoint: one color, no fx
@@ -151,7 +155,7 @@ class ThemeScreen(Screen):
             _put(surface, y, r_il + 1, ' Aa ', sw | _eff_flags(effects))
             _put(surface, y, r_il + 6, _fit(txt, r_iw - 6),
                  pal.style('label' if sel else 'component', y, r_il + 6, h, w, selected=sel))
-        _scrollbar_v(surface, pal, r_it, r_il + r_iw, r_ih, ts.role_top, r_ih, len(roles), h, w)
+        _scrollbar_v(surface, pal, r_it, r_il + r_iw, r_ih, role_top, r_ih, len(roles), h, w)
 
         # -- the sample page (BOTTOM, full width): a live, compressed instance of the REAL page (no outer
         # frame — the mini page brings its own nav bar / panels / footer). The top-level render is

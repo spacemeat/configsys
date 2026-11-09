@@ -150,10 +150,10 @@ class ConfigScreen(Screen):
             return 1 + len(vm.descs[i]) + 1 + 1           # cols + desc + man + gap row
 
         avail = ih - 1                                    # header row consumes one
-        if cs.cur < cs.top:
-            cs.top = cs.cur
-        while cs.top < cs.cur and sum(block_h(i) for i in range(cs.top, cs.cur + 1)) > avail:
-            cs.top += 1                                   # keep the cursor's block in view
+        top = min(cs.top, cs.cur)
+        while top < cs.cur and sum(block_h(i) for i in range(top, cs.cur + 1)) > avail:
+            top += 1                                      # keep the cursor's block in view
+        vm.settle(top=top)
 
         # header row (lowercase column names)
         for cx, cw, label in ((nx, nw, 'name'), (vx, vw, 'value'), (dx, dw, 'default'),
@@ -161,7 +161,7 @@ class ConfigScreen(Screen):
             col(it, cx, label, cw, 'menu_header', False)
 
         y, shown = it + 1, 0
-        for i in range(cs.top, len(cs.keys)):
+        for i in range(top, len(cs.keys)):
             bh = block_h(i)
             if y + bh - 1 > it + ih:                      # the whole block wouldn't fit
                 break
@@ -182,7 +182,7 @@ class ConfigScreen(Screen):
                  pal.style('method_dim', dy, il, h, w))
             y += bh
             shown += 1
-        _scrollbar_v(surface, pal, it + 1, il + iw, ih - 1, cs.top, max(1, shown), len(cs.keys), h, w)
+        _scrollbar_v(surface, pal, it + 1, il + iw, ih - 1, top, max(1, shown), len(cs.keys), h, w)
         self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
     # -- handle -----------------------------------------------------------

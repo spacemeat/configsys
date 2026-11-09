@@ -105,3 +105,48 @@ def test_page_chrome_paints_status_above_the_legends():
     assert (h, w) == (10, 60)
     assert row(7).startswith('STATUS') and row(8).startswith('NAV1') and row(9).startswith('NAV2')
     assert 'Components' in row(0)                                   # the screen chips
+
+
+@pytest.mark.parametrize('screen', ['components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config',
+                                    'theme'])
+def test_draw_leaves_the_model_untouched(screen, tmp_path):
+    # tui-screens-06: what a frame's geometry settles goes on the VM (vm.settle) and Screen.commit
+    # applies it after the paint — draw itself writes nothing on the model
+    import copy
+    from _render_harness import build_ctx
+    ctx = build_ctx(tmp_path)
+    scr = _sample_screen(screen, ctx)
+    vm = scr.build_vm(scr.ctx, (40, 140))
+    mid = {k: copy.copy(v) for k, v in vars(scr.model).items() if _plain(v)}
+    scr.draw(BufferSurface(40, 140), RecordingPalette(), vm)
+    after = {k: v for k, v in vars(scr.model).items() if _plain(v)}
+    assert {k: v for k, v in after.items() if mid.get(k) != v} == {}
+
+
+def _sample_screen(screen, ctx):
+    from configsys.tui.screens.components import ComponentsScreen
+    from configsys.tui.screens.config import ConfigScreen
+    from configsys.tui.screens.dotfiles import DotfilesScreen
+    from configsys.tui.screens.glue import GlueScreen
+    from configsys.tui.screens.plugins import PluginsScreen
+    from configsys.tui.screens.profiles import ProfilesScreen
+    from configsys.tui.screens.theme import ThemeScreen
+    ms = menu._sample_components_state()
+    ts = menu.ThemeScreen(ctx)
+    state = ts.preview_state(ctx, screen, ms)
+    cls = {'components': ComponentsScreen, 'profiles': ProfilesScreen, 'plugins': PluginsScreen,
+           'glue': GlueScreen, 'dotfiles': DotfilesScreen, 'config': ConfigScreen}.get(screen)
+    if cls is None:
+        scr = ThemeScreen(ctx, state, sample_ms=ms)
+        scr.suppress_sample = True
+        return scr
+    if screen == 'profiles':
+        return cls(getattr(state, 'ctx', ctx), state)
+    scr = cls(ctx, state)
+    if screen == 'components':
+        scr.note, scr.diags = '', ()
+    return scr
+
+
+def _plain(v):
+    return isinstance(v, (int, float, str, bool, type(None), tuple))
