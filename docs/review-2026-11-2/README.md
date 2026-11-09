@@ -35,6 +35,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — B3 B12 B13 — bash loads glue everywhere, fish appends, zsh no longer leaks null_glob, the launcher works through symlinks / from your CWD / on EL 9.
 - 2026-11-08 — D8 — derivatives resolve like their base (Zorin/Mint/elementary/LMDE/MX).
 - 2026-11-08 — C1 — batched candidates for every native manager.
+- 2026-11-08 — C2 — Profiles triage keys no longer rebuild the Resolver.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -217,7 +218,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **C1 [HIGH] No batched candidate index for dnf/zypper/pacman/apk/brew/snap** — 100 Fedora packages: 29.5 s
   / 201 spawns vs 3.0 s batched (plus a batched held set). (drivers-os-02) · effort M · [done — Driver.latest_index (frozen hook) + the default batch_index carries candidate + held; dnf repoquery / zypper info / pacman -Si / apk list / brew info --json answer every unit in one query; dnf held_keys parses dnf4 too]
 - **C2 [HIGH] Every Profiles triage key drops the resolve cache** — 0.4–4.5 s per key vs 15 ms. (tui-screens-02)
-  · effort S · [open]
+  · effort S · [done — Context.invalidate_config: picks/dispositions/uninstall/machine writers keep the Resolver; the Profiles warm cache re-warms only for the current routes]
 - **C3 [MED] Re-resolution on the startup path:** `when:` grid per Resolver build (~1 s), provider index per
   resolve (81% of a single-name resolve), Resolver discarded per config edit, `diagnostics()` twice per
   inspect, Config re-merges per call (77 ms → 0.9 ms). (routing-16/17, app-cli-10/11, config-layers-09) ·

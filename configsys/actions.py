@@ -538,6 +538,11 @@ def _nature_target(ctx, key, lives_in, *, create=False):
 UNINSTALL_PROFILE = '!uninstall'
 
 
+def _invalidate_config(ctx):
+    '''Config-only invalidation (Context.invalidate_config) where the context has it.'''
+    getattr(ctx, 'invalidate_config', ctx.invalidate)()
+
+
 def stage_uninstall(ctx, comp, *, on=True):
     '''Stage (`on`) or unstage (`on=False`) `comp` in the top-level `uninstall:` queue — a
     machine-local (top-config) pending-removal list. Returns (changed, label). The TUI `x` calls
@@ -553,7 +558,7 @@ def stage_uninstall(ctx, comp, *, on=True):
     else:
         return False, ('already staged' if on else 'not staged')
     plugins.set_list_section(tfile, 'uninstall', cur)
-    ctx.invalidate()
+    _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return True, Path(tfile).name
 
 
@@ -585,7 +590,7 @@ def set_disposition(ctx, comp, state):
     else:
         disp[comp] = want
     plugins.set_dispositions(tfile, disp)
-    ctx.invalidate()
+    _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return True, label
 
 
@@ -626,7 +631,7 @@ def set_included(ctx, comp, machines, on):
             labels.add(label)
     if changed:
         invalidate_location_cache(ctx)               # the install set changed -> recompute glue locs
-        ctx.invalidate()
+        _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return changed, ' + '.join(sorted(labels)) if labels else 'picks'
 
 
@@ -646,7 +651,7 @@ def set_included_clear_machine(ctx, machine):
             changed = True
     if changed:
         invalidate_location_cache(ctx)
-        ctx.invalidate()
+        _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return changed, 'picks'
 
 
@@ -667,7 +672,7 @@ def move_picks_to_primary(ctx):
     effective = ctx.config.picks()                   # merged truth (a local list already wins per machine)
     plugins.set_picks(prim_file, effective)          # primary now carries the full effective set
     plugins.set_picks(local_file, {})                # ...and drop the local shadow
-    ctx.invalidate()
+    _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return sum(len(v) for v in local.values()), label
 
 
@@ -686,7 +691,7 @@ def mark_all_seen(ctx, names):
             added += 1
     if added:
         plugins.set_dispositions(tfile, disp)
-        ctx.invalidate()
+        _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return added
 
 
@@ -717,7 +722,7 @@ def clear_uninstall(ctx):
     n = len(ctx.config.uninstall_queue())
     if n:
         plugins.set_list_section(str(ctx.paths.user_config_file), 'uninstall', [])
-        ctx.invalidate()
+        _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return n
 
 
@@ -736,7 +741,7 @@ def add_machine(ctx, name):
     picks = plugins.read_picks(tfile)
     picks[name] = picks.get(name, [])                      # an empty column
     plugins.set_picks(tfile, picks)
-    ctx.invalidate()
+    _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     return True, label
 
 
@@ -776,7 +781,7 @@ def rename_machine(ctx, old, new):
         picks = plugins.read_picks(tfile)
         picks[new] = []
         plugins.set_picks(tfile, picks)
-    ctx.invalidate()
+    _invalidate_config(ctx)   # the Resolver never reads these sections (C2)
     if was_current or ctx.config.selected_machine() == old:   # re-point this box's selection
         set_config_setting(ctx, 'machine', [new])
     return True, new

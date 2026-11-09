@@ -3581,8 +3581,9 @@ class ProfileScreen:
         '''Populate _resolve for the whole catalog on a daemon thread. The menu loop blocks in
         getch() (GIL released) while idle, so this fills within a few seconds of opening the screen
         without stuttering the UI. A generation guard makes a later reload() abandon this sweep.'''
-        if all(nm in self._res for nm in self.catalog):
-            return                                   # already warm (the cache survives reloads)
+        if (getattr(self, '_res_rid', None) == id(self.ctx.routes)
+                and all(nm in self._res for nm in self.catalog)):
+            return                                   # already warm FOR THESE routes (survives reloads)
         self._warm_gen = getattr(self, '_warm_gen', 0) + 1
         gen, catalog = self._warm_gen, list(self.catalog)
 

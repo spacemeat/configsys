@@ -377,6 +377,13 @@ class Context:
         self._plugin_code_loaded = False  # re-register trusted plugin drivers (idempotent overwrite)
         self._os_refined = False          # a plugin may add a derivative-distro os block w/ a detect: marker
 
+    def invalidate_config(self):
+        '''Drop only the merged Config — for an edit to a section the Resolver never reads (picks,
+        dispositions, the uninstall queue, orphans-ignore, the machine registry). The cached
+        Resolver (and every screen cache keyed on it) survives, so a Profiles triage key costs
+        milliseconds, not a 0.5 s Resolver rebuild and a cold catalog (review-2026-11-2 C2).'''
+        self._config = None
+
     def apply_scope_default(self, units):
         '''Stamp the machine-wide scope default onto units whose driver *honors*
         scope and that don't set `scope` in their route (component field wins). Apt
