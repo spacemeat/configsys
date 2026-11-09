@@ -102,7 +102,9 @@ def test_branch_ahead_and_diverged_are_reported(tmp_path, remote):
     (clone / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ]  x: 1 }\n')
     _git(clone, 'commit', '-qam', 'local')
     assert _sync(pdir, decl) == [('prim', 'ahead')]
-    assert plugins.branch_state(Runner(pretend=False), clone, 'main') == ('main', 1, 0, False)
+    from configsys.primarygit import PrimaryRepo
+    repo = PrimaryRepo(clone)
+    assert (repo.branch(), repo.ahead_behind('origin/main'), bool(repo.dirty())) == ('main', (1, 0), False)
     _push_change(other, '{ picks: { laptop: [ htop ] } }\n')              # another machine pushed
     assert _sync(pdir, decl) == [('prim', 'diverged')]
     assert 'another machine' in plugins.sync_note('prim', 'diverged', pdir)

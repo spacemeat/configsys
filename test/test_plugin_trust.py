@@ -25,13 +25,17 @@ def test_trust_store_round_trip(tmp_path):
     assert plugins.read_trust(tf) == {'opensuse-support': 'abc123'}
 
 
-def test_is_trusted_requires_exact_commit(tmp_path):
+def test_approval_requires_exact_content(tmp_path):
+    pdir = tmp_path / 'p'
+    pdir.mkdir()
+    (pdir / 'plugin.hu').write_text('{ name: p }')
     tf = tmp_path / 'plugin-trust.hu'
-    plugins.set_trust(tf, 'p', 'sha-1')
-    assert plugins.is_trusted(tf, 'p', 'sha-1')
-    assert not plugins.is_trusted(tf, 'p', 'sha-2')           # code moved -> not trusted
-    assert not plugins.is_trusted(tf, 'other', 'sha-1')       # different plugin
-    assert not plugins.is_trusted(tf, 'p', None)              # unsynced / unknown -> never
+    plugins.set_trust(tf, 'p', plugins.plugin_identity(pdir))
+    assert plugins.approval_matches(plugins.read_trust(tf).get('p'), pdir)
+    (pdir / 'plugin.hu').write_text('{ name: p  x: 1 }')
+    assert not plugins.approval_matches(plugins.read_trust(tf).get('p'), pdir)   # content moved
+    assert not plugins.approval_matches(plugins.read_trust(tf).get('other'), pdir)   # never approved
+    assert not plugins.approval_matches(None, tmp_path / 'absent')    # unsynced / unknown -> never
 
 
 def test_corrupt_store_trusts_nothing(tmp_path):
@@ -236,9 +240,9 @@ def test_trust_untrust_actions(tmp_path):
     ok, note = actions.plugin_trust(ctx, 'codeplug')
     assert ok and 'trusted' in note
     ident = plugins.plugin_identity(pdir / 'codeplug')
-    assert plugins.is_trusted(tf, 'codeplug', ident)
+    assert plugins.read_trust(tf).get('codeplug') == ident
     ok2, _n = actions.plugin_untrust(ctx, 'codeplug')
-    assert ok2 and not plugins.is_trusted(tf, 'codeplug', ident)
+    assert ok2 and 'codeplug' not in plugins.read_trust(tf)
     # a data-only plugin has nothing to trust
     ok3, note3 = actions.plugin_trust(ctx, 'nocode')
     assert ok3 is False and 'no code' in note3
@@ -272,7 +276,7 @@ def test_trust_all_action_trusts_every_untrusted_code_plugin(tmp_path):
     n, note = actions.plugin_trust_all(ctx)
     assert n == 2 and 'trusted 2' in note
     for nm in ('one', 'two'):
-        assert plugins.is_trusted(tf, nm, plugins.plugin_identity(pdir / nm))
+        assert plugins.read_trust(tf).get(nm) == plugins.plugin_identity(pdir / nm)
     # idempotent: a second run finds nothing untrusted
     n2, note2 = actions.plugin_trust_all(ctx)
     assert n2 == 0 and 'no untrusted' in note2

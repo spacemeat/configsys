@@ -589,12 +589,6 @@ def remove_trust(trust_file, name):
     return existed
 
 
-def is_trusted(trust_file, name, identity):
-    '''True iff the store records EXACTLY this identity for this plugin. A None identity
-    (unsynced / unknown) is never trusted.'''
-    return identity is not None and read_trust(trust_file).get(name) == identity
-
-
 def plugin_of_source(paths, source):
     '''The plugin dir name whose tree a binding's `source` file lives under, or None when the
     source is core (routes.hu/config.hu), the user's own config, or an include of those.'''
@@ -1669,25 +1663,6 @@ def _ahead_behind(runner, dq, upstream):
         return int(a), int(b)
     except (AttributeError, ValueError):
         return 0, 0
-
-
-def branch_state(runner, dest, ref=None):
-    '''Where a branch-following checkout stands against its remote: (branch, ahead, behind, dirty),
-    or None when `dest` isn't on a branch tracking `origin/<branch>` (a tag/commit pin, unsynced).
-    Read-only — compares with whatever was last fetched.'''
-    dq = shlex.quote(str(dest))
-    cur = runner.run(f'git -C {dq} symbolic-ref --short -q HEAD', capture=True)
-    branch = (cur.stdout or '').strip() if cur is not None and cur.ok else ''
-    if not branch or (ref and ref != branch):
-        return None
-    up = runner.run(f'git -C {dq} rev-parse --verify --quiet {shlex.quote("origin/" + branch)}',
-                    capture=True)
-    if up is None or not up.ok or getattr(up, 'pretended', False):
-        return None
-    ahead, behind = _ahead_behind(runner, dq, f'origin/{branch}')
-    st = runner.run(f'git --no-optional-locks -C {dq} status --porcelain', capture=True)   # may run on a thread
-    dirty = bool((st.stdout or '').strip()) if st is not None and st.ok else False
-    return branch, ahead, behind, dirty
 
 
 def default_branch(runner, dest):
