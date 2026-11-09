@@ -684,11 +684,16 @@ def build_parser():
                                       'scripts, glue, dotfiles, package-repo setup, facet probes, '
                                       'keybindings. Until then only its plain package names are used. '
                                       'Content that changes later needs trusting again. With no name '
-                                      '(or --all), every plugin that needs it is trusted.')
+                                      '(or --all), every plugin that needs it is listed with what '
+                                      'it ships, and trusted once you say yes; off a terminal that '
+                                      'takes --all --yes.')
     pt.add_argument('name', nargs='?', help='plugin name, source, or dir (omit, or use --all, to '
                                             'trust every plugin that needs it)')
     pt.add_argument('--all', action='store_true',
-                    help='trust every plugin that is currently untrusted or changed since trusted')
+                    help='trust every plugin that is currently untrusted or changed since trusted '
+                         '(lists them and asks first)')
+    pt.add_argument('--yes', action='store_true',
+                    help="with --all: trust them without asking (what a script needs)")
     p_plugin_untrust = plsub.add_parser('untrust', help="revoke a plugin's trust",
                                         description="Revoke a plugin's trust: its code and "
                                                     'command-carrying data stop running.')

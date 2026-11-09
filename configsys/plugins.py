@@ -759,6 +759,14 @@ def code_state(manifest, synced, approved, identity, *, trustable=None):
     return 'untrusted' if approved is None else 'changed'
 
 
+def trust_what(has_code, has_recipes):
+    '''What a plugin's trust lets run, in words — 'code + recipes' | 'code' | 'recipes' (None: nothing).
+    The one wording `plugin list`, `plugin trust` and the Plugins screen share.'''
+    if has_code and has_recipes:
+        return 'code + recipes'
+    return 'code' if has_code else 'recipes' if has_recipes else None
+
+
 # What a plugin brings, derived from what it SHIPS (not only the manifest's informational
 # `provides:`, which names just the code registrations): each data file's top-level sections, the
 # manifest's `provides:` and `plugins:`, and its `dotfiles/` / `glue/` content. (key, code, label)

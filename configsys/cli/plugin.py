@@ -426,6 +426,19 @@ def _plugin_undo(ctx, args):
     return 0 if ok else 1
 
 
+def _print_trust_pending(rows):
+    '''The plugins a bulk `plugin trust` would approve: each one's state, what would then run, and
+    what it brings (`plugins.provisions`).'''
+    from .. import plugins
+    print(f'configsys: {len(rows)} plugin(s) wait for trust:')
+    for r in rows:
+        state = 'changed since trust' if r['code_state'] == 'changed' else 'untrusted'
+        what = plugins.trust_what(r.get('has_code'), r.get('has_recipes')) or 'recipes'
+        print(f'  {r["name"]:22} {state} — its {what} would run')
+        if r.get('provisions'):
+            print(f'  {"":22} provides: {", ".join(r["provisions"])}')
+
+
 def _edit_conflict(path):
     '''Open a file holding conflict markers in $VISUAL/$EDITOR (else nano, else vi), on the terminal.'''
     import shlex as _shlex
@@ -537,6 +550,19 @@ def cmd_plugin(ctx, args):
         # both run only once its current content is approved. Thin skin over the shared action layer.
         from .. import actions
         if getattr(args, 'all', False) or not args.name:
+            # review §7.19: name each plugin and what would run, then ask — never a silent bulk trust
+            pend = actions.plugin_trust_pending(ctx)
+            if pend:
+                _print_trust_pending(pend)
+            if pend and not ctx.runner.pretend:
+                go = ask(f'Trust {len(pend)} plugin(s)? [y/N] ', yes=getattr(args, 'yes', False),
+                         refuse_note='configsys: not a terminal — re-run with --all --yes to trust '
+                                     'them.')
+                if go is None:
+                    return 1
+                if not go:
+                    print('configsys: trust cancelled — nothing trusted')
+                    return 0
             n, note = actions.plugin_trust_all(ctx)
             print(f'configsys: {note}')
             return 0

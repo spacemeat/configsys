@@ -810,7 +810,8 @@ $ ./configsys.sh plugin trust <name>     # approves its current content; after a
 ```
 
 `plugin list` shows which plugins are waiting for trust (`plugin trust` with no name, or `--all`,
-trusts every one waiting); `plugin untrust <name>` revokes it.
+lists every one waiting with what it ships and trusts them once you say yes — `--all --yes` off a
+terminal); `plugin untrust <name>` revokes it.
 
 Your primary plugin is yours, so by default its recipes, glue, dotfiles and key bindings run
 without `plugin trust` (code it ships still needs trust). Two settings tighten that — read only

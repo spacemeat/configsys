@@ -96,7 +96,8 @@ def test_trust_untrust_cli_lifecycle(tmp_path, capsys):
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys):
+def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys, monkeypatch):
+    import sys
     from configsys.app import main
 
     def make_src(name, *, code):
@@ -120,11 +121,34 @@ def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys):
         assert main(home + ['plugin', 'add', str(s), '--ref', 'v1']) == 0
     capsys.readouterr()
 
-    # trust --all: both code plugins trusted, the inert data-only one untouched
+    trust_file = tmp_path / '.config' / 'configsys' / 'plugin-trust.hu'
+
+    # review §7.19: bulk trust names each plugin and what would run, and never trusts unasked —
+    # unattended it refuses without --yes (bare or --all alike)
+    for argv in (['plugin', 'trust'], ['plugin', 'trust', '--all']):
+        assert main(home + argv) == 1
+        out = capsys.readouterr().out
+        assert 'codeplug-a' in out and 'codeplug-b' in out and 'code' in out
+        assert 'provides: components' in out and '--all --yes' in out
+        assert not trust_file.exists()
+
+    # on a terminal it asks; no = nothing trusted
+    monkeypatch.setattr(sys.stdin, 'isatty', lambda: True, raising=False)
+    monkeypatch.setattr(sys.stdout, 'isatty', lambda: True, raising=False)
+    monkeypatch.setattr('builtins.input', lambda _p: 'n')
     assert main(home + ['plugin', 'trust', '--all']) == 0
+    assert 'nothing trusted' in capsys.readouterr().out and not trust_file.exists()
+    monkeypatch.setattr('builtins.input', lambda _p: 'y')
+    assert main(home + ['plugin', 'trust', '--all']) == 0
+    assert 'trusted 2 plugin' in capsys.readouterr().out
+    plugins.remove_trust(trust_file, plugins.dir_name(str(a)))
+    plugins.remove_trust(trust_file, plugins.dir_name(str(b)))
+    monkeypatch.undo()
+
+    # trust --all --yes (a script): both code plugins trusted, the inert data-only one untouched
+    assert main(home + ['plugin', 'trust', '--all', '--yes']) == 0
     out = capsys.readouterr().out
     assert 'trusted 2 plugin' in out and 'dataonly' not in out
-    trust_file = tmp_path / '.config' / 'configsys' / 'plugin-trust.hu'
     trust = plugins.read_trust(trust_file)
     assert plugins.dir_name(str(a)) in trust and plugins.dir_name(str(b)) in trust
     assert plugins.dir_name(str(d)) not in trust     # native-only data plugin: nothing to trust
@@ -138,7 +162,7 @@ def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys):
     (pdir / 'driver.py').write_text('# tampered\n')
     assert main(home + ['plugin', 'list']) == 0
     assert 'code changed since trust' in capsys.readouterr().out
-    assert main(home + ['plugin', 'trust']) == 0
+    assert main(home + ['plugin', 'trust', '--yes']) == 0
     out2 = capsys.readouterr().out
     assert 're-approved' in out2 and 'codeplug-a' in out2
 
