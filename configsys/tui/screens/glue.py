@@ -16,9 +16,10 @@ composed unchanged; this adds the three MVVM seams:
 
 from .. import menu
 from ..menu import (_DF_STATE_ELEM, _GLUE_HEADERS, _GLUE_STATE_LABEL, GlueScreen as _GlueModel,
-                    _draw_nav, _fill_bg, _fit, _is_user_glue, _page_rows, _panel, _glue_cells, _put,
-                    _pretend_note, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
+                    _draw_nav, _fill_bg, _fit, _is_user_glue, _page_rows, _panel, _glue_cells,
+                    _put, _pretend_note)
 from ..screen import suspended
+from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note
 
 
@@ -77,13 +78,7 @@ class GlueScreen(Screen):
             vm.empty_msg = '(no installed shells / no glue in the install set)'
         else:
             vm.cells = [_glue_cells(r) for r in gs.rows]
-            vm.widths = [max(len(_GLUE_HEADERS[c]), max((len(cs[c]) for cs in vm.cells), default=0))
-                         for c in range(len(_GLUE_HEADERS))]
-            vx = 0
-            for wd in vm.widths:
-                vm.xs.append(vx)
-                vx += wd + 2
-            vm.virt_w = vx - 2
+            vm.widths, vm.xs, vm.virt_w = table.layout(_GLUE_HEADERS, vm.cells)
             vm.elems = [_DF_STATE_ELEM.get(r[3], 'component') for r in gs.rows]
             for entry in gs.display:
                 if entry[0] == 'hdr':            # a per-shell section header + its loader status
@@ -122,32 +117,8 @@ class GlueScreen(Screen):
             _put(surface, it, il, _fit(vm.empty_header, iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            has_hbar = vm.virt_w > iw
-            rows_h = ih - 1 - (1 if has_hbar else 0)
-            gs.hscroll = max(0, min(gs.hscroll, max(0, vm.virt_w - iw)))
-            for hdr, vx0 in zip(vm.headers, vm.xs):
-                _put_hscroll(surface, it, il, iw, vx0, gs.hscroll, hdr,
-                             pal.style('menu_header', it, il, h, w))
-            disp = vm.display
-            gs.top = _scroll_top(vm.cur_disp, gs.top, rows_h, len(disp))
-            for vis, d in enumerate(range(gs.top, min(len(disp), gs.top + rows_h))):
-                y = it + 1 + vis
-                entry = disp[d]
-                if entry[0] == 'hdr':
-                    rule = entry[1]
-                    rule += '─' * max(0, iw - len(rule))
-                    _put(surface, y, il, _fit(rule, iw), pal.style('menu_header', y, il, h, w))
-                    continue
-                i, sel = entry[1], entry[1] == vm.cur
-                if sel:
-                    _put(surface, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-                elem = 'label' if sel else vm.elems[i]
-                style = pal.style(elem, y, il, h, w, selected=sel)
-                for cell, wd, vx0 in zip(vm.cells[i], vm.widths, vm.xs):
-                    _put_hscroll(surface, y, il, iw, vx0, gs.hscroll, cell.ljust(wd), style)
-            _scrollbar_v(surface, pal, it + 1, il + iw, rows_h, gs.top, rows_h, len(disp), h, w)
-            if has_hbar:
-                _scrollbar_h(surface, pal, it + ih - 1, il, iw, gs.hscroll, iw, vm.virt_w, h, w)
+            gs.top, gs.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
+                                                  gs.top, gs.hscroll, h, w)
 
         _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
              pal.style('status_line', h - 2, 0, h, w))

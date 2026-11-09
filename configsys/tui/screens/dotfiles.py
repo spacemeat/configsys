@@ -19,10 +19,10 @@ from pathlib import Path
 from ...drivers.dotfiles import config_display_state
 from .. import menu
 from ..menu import (_DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel, _df_cells,
-                    _draw_nav, _fill_bg, _fit, _page_rows, _panel, _popup_choose, _put,
-                    _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
+                    _draw_nav, _fill_bg, _fit, _page_rows, _panel, _popup_choose, _put)
 from ..menu import _pretend_note
 from ..screen import suspended
+from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note
 
 
@@ -74,13 +74,7 @@ class DotfilesScreen(Screen):
             # one cell-set per row; each column is sized to its longest cell so nothing is truncated —
             # horizontal scroll (h/l) reaches anything wider than the panel.
             vm.cells = [_df_cells(r) for r in ds.rows]
-            vm.widths = [max(len(_DF_HEADERS[c]), max((len(cs[c]) for cs in vm.cells), default=0))
-                         for c in range(len(_DF_HEADERS))]
-            vx = 0
-            for wd in vm.widths:
-                vm.xs.append(vx)
-                vx += wd + 2                     # two spaces between columns for breathing room
-            vm.virt_w = vx - 2
+            vm.widths, vm.xs, vm.virt_w = table.layout(_DF_HEADERS, vm.cells)
             vm.elems = [_DF_STATE_ELEM.get(config_display_state(r[3], r[5]), 'component')
                         for r in ds.rows]
             vm.display = list(ds.display)
@@ -113,33 +107,8 @@ class DotfilesScreen(Screen):
             _put(surface, it, il, _fit('   '.join(vm.headers), iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            has_hbar = vm.virt_w > iw
-            rows_h = ih - 1 - (1 if has_hbar else 0)
-            ds.hscroll = max(0, min(ds.hscroll, max(0, vm.virt_w - iw)))   # clamp: no scrolling past the end
-            for hdr, vx0 in zip(vm.headers, vm.xs):    # sticky header, scrolls horizontally with the rows
-                _put_hscroll(surface, it, il, iw, vx0, ds.hscroll, hdr, pal.style('menu_header', it, il, h, w))
-            # scroll over the DISPLAY list (group headers + rows); the cursor tracks the actionable row.
-            disp = vm.display
-            cur_disp = next((d for d, e in enumerate(disp) if e == ('row', ds.cur)), 0)
-            ds.top = _scroll_top(cur_disp, ds.top, rows_h, len(disp))
-            for vis, d in enumerate(range(ds.top, min(len(disp), ds.top + rows_h))):
-                y = it + 1 + vis
-                etype, val = disp[d]
-                if etype == 'hdr':                   # a group divider (drawn inline, non-selectable)
-                    rule = f'{val} '
-                    rule += '─' * max(0, iw - len(rule))
-                    _put(surface, y, il, _fit(rule, iw), pal.style('menu_header', y, il, h, w))
-                    continue
-                i, sel = val, val == ds.cur
-                if sel:
-                    _put(surface, y, il, ' ' * iw, pal.fill(y, il, h, w, selected=True))
-                elem = 'label' if sel else vm.elems[i]
-                style = pal.style(elem, y, il, h, w, selected=sel)
-                for cell, wd, vx0 in zip(vm.cells[i], vm.widths, vm.xs):
-                    _put_hscroll(surface, y, il, iw, vx0, ds.hscroll, cell.ljust(wd), style)
-            _scrollbar_v(surface, pal, it + 1, il + iw, rows_h, ds.top, rows_h, len(disp), h, w)
-            if has_hbar:
-                _scrollbar_h(surface, pal, it + ih - 1, il, iw, ds.hscroll, iw, vm.virt_w, h, w)
+            ds.top, ds.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
+                                                  ds.top, ds.hscroll, h, w)
 
         _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
              pal.style('status_line', h - 2, 0, h, w))

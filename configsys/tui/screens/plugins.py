@@ -19,8 +19,9 @@ import os
 from .. import menu
 from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _draw_nav, _fill_bg, _fit,
                     _input_box, _page_rows, _panel, _plugin_cells, _plugin_code_elem,
-                    _plugin_remote_elem, _put, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
+                    _plugin_remote_elem, _put, _scrollbar_h, _scrollbar_v)
 from ..screen import suspended
+from . import table
 from .base import Intent, Screen, ViewModel, results_note
 
 
@@ -37,6 +38,7 @@ class PluginsVM(ViewModel):
         self.virt_w = 0
         self.elems = []            # list[list[str]] — role name per cell
         self.headers = _PLUGIN_HEADERS
+        self.display = None        # rows in order (no section rules)
         # diff content
         self.diff_title = 'diff'
         self.diff_has_files = False
@@ -128,13 +130,7 @@ class PluginsScreen(Screen):
             remotes = [pl.remote.get(plugins.dir_name(r['source'])) for r in pl.rows]
             pst = getattr(pl, 'primary_state', None)
             vm.cells = [_plugin_cells(r, pl.tree[i], remotes[i], pst) for i, r in enumerate(pl.rows)]
-            vm.widths = [max(len(_PLUGIN_HEADERS[c]), max((len(cs[c]) for cs in vm.cells), default=0))
-                         for c in range(len(_PLUGIN_HEADERS))]
-            vx = 0
-            for wd in vm.widths:
-                vm.xs.append(vx)
-                vx += wd + 1
-            vm.virt_w = vx - 1
+            vm.widths, vm.xs, vm.virt_w = table.layout(_PLUGIN_HEADERS, vm.cells, gutter=1)
             for i, row in enumerate(pl.rows):
                 healthy = row['synced'] and row['abi_ok'] and row['checksum'] != 'mismatch'
                 base = 'component' if healthy else 'info_dim'
@@ -198,21 +194,8 @@ class PluginsScreen(Screen):
         if not vm.has_rows:
             _put(surface, tit, til, _fit(vm.empty_msg, tiw), pal.style('info_dim', tit, til, h, w))
             return
-        pl.hscroll = max(0, min(pl.hscroll, max(0, vm.virt_w - tiw)))
-        for hdr, vx0 in zip(vm.headers, vm.xs):
-            _put_hscroll(surface, tit, til, tiw, vx0, pl.hscroll, hdr,
-                         pal.style('menu_header', tit, til, h, w))
-        rows_h = tih - 1
-        pl.top = _scroll_top(pl.cur, pl.top, rows_h, len(pl.rows))
-        for vis, i in enumerate(range(pl.top, min(len(pl.rows), pl.top + rows_h))):
-            y, sel = tit + 1 + vis, i == pl.cur
-            if sel:
-                _put(surface, y, til, ' ' * tiw, pal.fill(y, til, h, w, selected=True))
-            for cell, wd, vx0, el in zip(vm.cells[i], vm.widths, vm.xs, vm.elems[i]):
-                style = pal.style('label' if sel else el, y, til, h, w, selected=sel)
-                _put_hscroll(surface, y, til, tiw, vx0, pl.hscroll, cell.ljust(wd), style)
-        _scrollbar_v(surface, pal, tit + 1, til + tiw, rows_h, pl.top, rows_h, len(pl.rows), h, w)
-        _scrollbar_h(surface, pal, tit + table_h - 1, til, tiw, pl.hscroll, tiw, vm.virt_w, h, w)
+        pl.top, pl.hscroll = table.draw_table(surface, pal, (tit, til, tih, tiw), vm, pl.cur,
+                                              pl.top, pl.hscroll, h, w)
 
     def _draw_diff(self, surface, pal, vm, h, w, top, diff_h):
         pl = self.model
