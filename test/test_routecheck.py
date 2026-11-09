@@ -255,10 +255,11 @@ def test_validate_removed_component_provides_nothing(cascade):
 
 def test_validate_warns_on_undecidable_method_tie(cascade):
     # two cross-via methods that overlap AND tie under the default preference (neither ranked,
-    # no prefer:) would error at resolve time -> validate() surfaces it as a heads-up warning
+    # no standing: rank) would error at resolve time -> validate() surfaces it as a heads-up warning
     issues = _validate(cascade, {'x': _comp('x', {'install': [{'via': 'cargo'}, {'via': 'gem'}]})})
     xs = [i for i in issues if i.component == 'x' and i.kind == 'method-tie']
-    assert xs and not xs[0].is_error and 'prefer' in xs[0].message
+    assert xs and not xs[0].is_error
+    assert '`driver-preference` order' in xs[0].message and '`standing:` rank' in xs[0].message
 
 
 def test_validate_no_method_tie_when_preference_decides(cascade):

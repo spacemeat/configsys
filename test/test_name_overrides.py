@@ -24,7 +24,7 @@ def _pkg(units, key):
 
 
 def test_no_section_is_a_noop(tmp_path):
-    r = _resolver(tmp_path, '{ configs: [ dev ] }')
+    r = _resolver(tmp_path, '{ picks: { this-machine: [ btop ] } }')   # a layer with no component-names
     assert _pkg(r.resolve_names(['btop']), 'apt\\btop') == 'btop'
 
 

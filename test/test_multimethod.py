@@ -1,7 +1,7 @@
 '''Multi-method selection (Phase 1): a component may offer several install methods valid in the
 SAME context (native + flatpak, etc.). `when:` decides VALIDITY only; a separate, total
 preference channel picks the default — most-specific when: (same-method specialization), then a
-driver-preference order (global or per-OS), then a per-binding `prefer:`. A genuine tie errors
+per-binding `standing:` rank, then a driver-preference order (global or per-OS). A genuine tie errors
 toward the preference channel, never toward narrowing `when:`. A binding-pin picks any candidate.'''
 
 import pytest
@@ -48,14 +48,14 @@ def test_default_follows_driver_preference(tmp_path):
     assert winner.via == 'native' and reason == 'driver-preference' and len(cands) == 2
 
 
-def test_prefer_overrides_the_global_order(tmp_path):
+def test_standing_overrides_the_global_order(tmp_path):
     comps = 'browser: { install: [ { via: native } { via: flatpak  app: X  standing: 10 } ] }'
     assert _resolve(tmp_path, comps, ['browser']) == {'flatpak\\browser'}
-    # prefer: is resolver-only — it must NOT leak into the driver's install fields
+    # standing: is resolver-only — it must NOT leak into the driver's install fields
     cascade, cs, _ = _load(tmp_path, comps)
     winner = select_binding(cs['browser'], cascade, cascade.context('debian', '12', None))
     from configsys.resolve import _install_fields
-    assert 'prefer' not in _install_fields(winner.details, 'X')
+    assert 'standing' in winner.details and 'standing' not in _install_fields(winner.details, 'X')
 
 
 def test_per_os_block_preference_override(tmp_path):
@@ -76,12 +76,12 @@ def test_binding_pin_picks_a_non_default_candidate(tmp_path):
 
 
 def test_true_tie_errors_toward_preference_not_when(tmp_path):
-    # two methods neither ranked by the default order nor separated by prefer: -> undecidable
+    # two methods neither ranked by the default order nor separated by a standing: rank -> undecidable
     comps = 'tool: { install: [ { via: cargo } { via: gem } ] }'
     with pytest.raises(ResolveError) as e:
         _resolve(tmp_path, comps, ['tool'])
     msg = str(e.value)
-    assert 'driver-preference' in msg and 'prefer' in msg
+    assert '`driver-preference` order' in msg and '`standing:` rank' in msg   # both fixes named
     assert 'do not narrow' in msg.lower()                 # points AWAY from when:
 
 
