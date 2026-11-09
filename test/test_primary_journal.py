@@ -3,6 +3,8 @@ writer into the primary says what it writes (`primarygit.will_write`), and the b
 that — so a writer nobody wired in is a visible note and a failure here, an edit you make while a
 command runs is never swept in, and an action that writes nothing costs no git call.'''
 
+from pathlib import Path
+
 import os
 import shutil
 import subprocess
@@ -116,8 +118,9 @@ def _ctx(base):
     return Context(build_parser().parse_args(base + ['inspect']))
 
 
-def test_tui_relocate_commits_the_move_out_of_the_primary(primary):
-    # TUI Dotfiles move-store: content leaves the primary — its deletion is a write to it too
+def test_tui_relocate_to_local_copies_and_leaves_the_primary(primary):
+    # TUI Dotfiles move-store primary -> local: a COPY (§7.15) — the primary keeps it for your other
+    # machines, so nothing is written (or committed) there
     from configsys import actions
     from configsys.drivers import get_driver
     base, clone, home = primary
@@ -131,8 +134,8 @@ def test_tui_relocate_commits_the_move_out_of_the_primary(primary):
     df = get_driver('dotfiles', ctx.runner, ctx.paths)
     assert df.relocate(btop, ctx.paths.user_dotfiles_dir)
     assert primarygit.commit(ctx, snap, 'dotfiles: move to local store') == []
-    assert not any(p.startswith('dotfiles/btop-dotfiles.cfs/')
-                   for p in _git(clone, 'ls-files').splitlines())
+    assert any(p.startswith('dotfiles/btop-dotfiles.cfs/') for p in _git(clone, 'ls-files').splitlines())
+    assert (Path(ctx.paths.user_dotfiles_dir) / 'btop-dotfiles.cfs').is_dir()      # the local copy
     assert _git(clone, 'status', '--porcelain', '--untracked-files=all') == ''
 
 

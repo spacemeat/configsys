@@ -9,7 +9,8 @@
 4. conf.d load order: 00-configsys -> 50-<component> -> 90-<user> -> 99-user, with migration of
    pre-band (unprefixed) links configsys owns, and uninstall of both.
 5. staged glue is machine-local state; `activate` turns it into ordinary user glue (user.d, correct
-   per-shell extension, the user band), and the old capture-root layout migrates.
+   per-shell extension, the user band); legacy links and the old capture-root layout are no longer
+   migrated (§7.16).
 '''
 
 import os
@@ -305,38 +306,24 @@ def _legacy_deploy(p, shell, glue, ext, text):
 
 
 @pytest.mark.real_runner
-def test_install_migrates_a_legacy_unprefixed_link(tmp_path):
+def test_a_legacy_unprefixed_link_is_left_and_named(tmp_path):
+    # §7.16: the pre-band migration is retired — install deploys the banded link, leaves the old one,
+    # and legacy_links() (check) names it
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# bat\n')
-    legacy, old_mirror = _legacy_deploy(p, 'bash', 'bat', 'sh', '# bat\n')
+    legacy, _old_mirror = _legacy_deploy(p, 'bash', 'bat', 'sh', '# bat\n')
     g = Glue(Runner(pretend=False), p)
     rc = glue_unit('bat-glue', 'bat')
     assert g.install(rc).ok
     new = p.home / '.config' / 'bash' / 'conf.d' / '50-bat.sh'
-    assert not legacy.exists() and not legacy.is_symlink()
     assert new.is_symlink() and new.read_text() == '# bat\n'
-    assert not old_mirror.exists()
-    assert (p.user_glue_dir / 'bash' / 'conf.d' / '50-bat.sh').is_file()
+    assert legacy.is_symlink()
+    assert [str(lk) for lk, _t in g.legacy_links()] == [str(legacy)]
     assert g.get_version(rc) == 'linked'
 
 
-def test_status_migrates_a_legacy_link_and_keeps_it_active(tmp_path):
-    p = paths_for(tmp_path, shells='bash')
-    ship(p, 'bash', 'bat.sh', '# bat\n')
-    legacy, _ = _legacy_deploy(p, 'bash', 'bat', 'sh', '# bat\n')
-    rc = glue_unit('bat-glue', 'bat')
-    # a dry run reports it active without writing anything
-    assert Glue(Runner(pretend=True), p).get_version(rc) == 'linked'
-    assert legacy.is_symlink()
-    g = Glue(Runner(pretend=False), p)
-    states = g.spec_states(rc)                                 # status view migrates
-    assert [s[2] for s in states] == ['linked']
-    assert not legacy.is_symlink()
-    assert (p.home / '.config' / 'bash' / 'conf.d' / '50-bat.sh').is_symlink()
-
-
 @pytest.mark.real_runner
-def test_migration_never_touches_foreign_files_or_links(tmp_path):
+def test_install_never_touches_foreign_files_or_links(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# bat\n')
     ship(p, 'bash', 'fd.sh', '# fd\n')
@@ -356,21 +343,9 @@ def test_migration_never_touches_foreign_files_or_links(tmp_path):
     assert (confd / 'fd.sh').is_symlink()                      # still not ours to remove
 
 
-@pytest.mark.real_runner
-def test_uninstall_removes_banded_and_legacy_links(tmp_path):
-    p = paths_for(tmp_path, shells='bash')
-    ship(p, 'bash', 'bat.sh', '# bat\n')
-    g = Glue(Runner(pretend=False), p)
-    rc = glue_unit('bat-glue', 'bat')
-    assert g.install(rc).ok
-    confd = p.home / '.config' / 'bash' / 'conf.d'
-    # a stray pre-band link of ours appears (e.g. restored from a backup)
-    (confd / 'bat.sh').symlink_to(p.glue_dir / 'shell' / 'bash' / 'bat.sh')
-    assert g.uninstall(rc).ok
-    assert not (confd / '50-bat.sh').is_symlink() and not (confd / 'bat.sh').is_symlink()
-
-
-def test_user_glue_legacy_unprefixed_link_is_migrated(tmp_path):
+def test_a_pre_band_link_is_left_and_named_not_migrated(tmp_path):
+    # §7.16: the pre-band migration is retired — the old unprefixed link stays, and legacy_links()
+    # (check) names it so you can delete it
     p = paths_for(tmp_path, shells='bash')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), p)
@@ -379,8 +354,9 @@ def test_user_glue_legacy_unprefixed_link_is_migrated(tmp_path):
     confd.mkdir(parents=True)
     (confd / 'mine.sh').symlink_to(path)                       # the pre-band user link
     g.deploy_user_glue('bash')
-    assert not (confd / 'mine.sh').is_symlink()
+    assert (confd / 'mine.sh').is_symlink()
     assert os.path.realpath(confd / '90-mine.sh') == os.path.realpath(path)
+    assert [str(lk) for lk, _t in g.legacy_links()] == [str(confd / 'mine.sh')]
 
 
 @pytest.mark.real_runner
@@ -400,7 +376,7 @@ def test_override_follows_the_banded_name(tmp_path):
     assert [d[0] for d in g.override_drift(rc)] == ['bash']
 
 
-# -- 5. staged glue: machine-local, activates as user glue, migrates ----------------------------
+# -- 5. staged glue: machine-local, activates as user glue -------------------------------------
 
 def test_staging_is_machine_local_even_with_a_primary_plugin(tmp_path):
     p = paths_for(tmp_path, shells='bash')
@@ -466,38 +442,22 @@ def test_reactivation_appends_and_never_clobbers_user_edits(tmp_path):
     assert 'export ONE=1' in text and 'alias mine=1' in text and 'export TWO=2' in text
 
 
-def test_migrates_old_layout_staged_and_activated_blocks(tmp_path):
-    p = paths_for(tmp_path, shells='bash,zsh')
-    p.home.mkdir(parents=True)
-    cap = p.user_dotfiles_dir
-    hdr = '# from ~/.bashrc (captured by configsys — installer wanted to write this)\n'
-    # old staged
-    (cap / 'staged-glue').mkdir(parents=True)
-    (cap / 'staged-glue' / 'nvm.bash.sh').write_text(hdr + 'export NVM_DIR=x\n')
-    (cap / 'staged-glue' / 'nvm.zsh.sh').write_text(hdr + 'export NVM_Z=x\n')
-    # old activated (bash link worked; zsh link never loaded)
-    for shell, comp in (('bash', 'sdkman'), ('zsh', 'rustup')):
-        f = cap / 'shell' / shell / f'{comp}.sh'
-        f.parent.mkdir(parents=True)
-        f.write_text(hdr + f'export {comp.upper()}=1\n')
-        confd = p.home / '.config' / shell / 'conf.d'
-        confd.mkdir(parents=True, exist_ok=True)
-        (confd / f'{comp}.sh').symlink_to(f)
-    # a non-guard file under the old shell/ dir (e.g. hand-made) is not ours to move
-    (cap / 'shell' / 'bash' / 'handmade.sh').write_text('echo mine\n')
 
-    notes = shellguard.migrate_legacy(p, Runner(pretend=False))
-    assert len(notes) == 4, notes
-    # staged moved to state, ext per shell
-    assert sorted((c, s) for c, s, _ in shellguard.list_staged(p)) == [('nvm', 'bash'), ('nvm', 'zsh')]
-    assert (p.state_dir / 'staged-glue' / 'zsh' / 'nvm.zsh').read_text().endswith('export NVM_Z=x\n')
-    assert not (cap / 'staged-glue').exists()
-    # activated converted to user glue, old links + files gone
-    confd_b = p.home / '.config' / 'bash' / 'conf.d'
-    confd_z = p.home / '.config' / 'zsh' / 'conf.d'
-    assert not (confd_b / 'sdkman.sh').is_symlink() and not (confd_z / 'rustup.sh').is_symlink()
-    assert 'export SDKMAN=1' in (confd_b / '90-sdkman.sh').read_text()
-    assert 'export RUSTUP=1' in (confd_z / '90-rustup.zsh').read_text()
-    assert not (cap / 'shell' / 'bash' / 'sdkman.sh').exists()
-    assert (cap / 'shell' / 'bash' / 'handmade.sh').read_text() == 'echo mine\n'
-    assert shellguard.migrate_legacy(p, Runner(pretend=False)) == []    # one-time: idempotent
+
+@pytest.mark.real_runner
+def test_a_second_displaced_real_file_gets_its_own_backup(tmp_path):
+    # A15 / dotfiles-glue-06: with a backup already there, `mv -n` skipped and `ln -sfn` removed
+    # the second real file
+    p = paths_for(tmp_path, shells='bash')
+    ship(p, 'bash', 'bat.sh', '# bat\n')
+    confd = p.home / '.config' / 'bash' / 'conf.d'
+    confd.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    rc = glue_unit('bat-glue', 'bat')
+    (confd / '50-bat.sh').write_text('MY FIRST\n')
+    assert g.install(rc).ok
+    (confd / '50-bat.sh').unlink()
+    (confd / '50-bat.sh').write_text('MY SECOND\n')
+    assert g.install(rc).ok
+    backups = sorted(x.read_text() for x in confd.glob('50-bat.sh.pre-configsys*'))
+    assert backups == ['MY FIRST\n', 'MY SECOND\n']

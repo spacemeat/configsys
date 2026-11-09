@@ -2698,6 +2698,15 @@ def cmd_check(ctx, args):
                           for c, p in sorted(refreshstate.read_stale_pins(ctx.paths).items())
                           if isinstance(p, (list, tuple)) and len(p) == 2]
 
+    # pre-band conf.d links of ours (from before the load-order bands): no longer migrated (§7.16) —
+    # the banded link loads the same snippet, so the old one double-loads it until you delete it
+    try:
+        for _lk, _tg in get_driver('glue', ctx.runner, ctx.paths).legacy_links():
+            removal_warnings.append(f'{_lk}: a pre-band glue link (from an older configsys) — the '
+                                    f'banded 50-/90- link loads it now; delete this one')
+    except Exception:                                    # noqa: BLE001 — a lint never breaks check
+        pass
+
     # glue-override drift (docs/done/glue-customization-plan.md P2): a user override whose SHIPPED source
     # has since changed. Advisory — the override stays authoritative; nudge to refresh if wanted.
     glue_drift_warnings = []
@@ -4488,19 +4497,9 @@ def cmd_glue_add(ctx, args):
     return 0
 
 
-def _migrate_staged_glue(ctx):
-    '''Carry the old staged/activated-glue layout over to the current one (shellguard.migrate_legacy),
-    printing what moved. Skipped under --pretend (it writes); returns nothing either way.'''
-    if ctx.runner.pretend:
-        return
-    for note in shellguard.migrate_legacy(ctx.paths, ctx.runner):
-        print(f'migrated: {note}')
-
-
 def cmd_dotfiles_staged(ctx, args):
     '''List the glue candidates the shell-writes guard captured — each is an rc-file block an
     installer tried to write, held INACTIVE until you review and activate it.'''
-    _migrate_staged_glue(ctx)
     rows = shellguard.list_staged(ctx.paths)
     if not rows:
         print('no staged glue — nothing has tried to write your shell rc files.')
@@ -4521,7 +4520,6 @@ def cmd_dotfiles_activate(ctx, args):
     '''Promote staged glue to your own USER glue: each block becomes a user.d snippet (primary plugin
     unless --local, else the local store — where `glue add` writes), linked into conf.d as
     90-<name>, and leaves staging.'''
-    _migrate_staged_glue(ctx)
     local = getattr(args, 'local', False)
     rc = 0
     for name in args.names:
@@ -4546,7 +4544,6 @@ def cmd_dotfiles_activate(ctx, args):
 
 
 def cmd_dotfiles_discard(ctx, args):
-    _migrate_staged_glue(ctx)
     rc = 0
     for name in args.names:
         if ctx.runner.pretend:

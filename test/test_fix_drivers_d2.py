@@ -179,31 +179,3 @@ def test_pretend_hookup_records_nothing(tmp_path):
 
 # -- 3. listing staged glue is read-only (safe under --pretend) ---------------------------------
 
-def test_list_staged_does_not_migrate_unless_asked(tmp_path):
-    from configsys import shellguard
-    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo')})
-    old = p.user_dotfiles_dir / 'staged-glue' / 'nvm.bash.sh'
-    old.parent.mkdir(parents=True)
-    old.write_text('export NVM_DIR=x\n')
-    shellguard.stage(p, 'sdkman', {'bash': 'export SDKMAN_DIR=x\n'})
-
-    rows = shellguard.list_staged(p)                       # default: pure listing
-    assert ('nvm', 'bash', old) in rows                    # the old-layout block, listed in place
-    assert ('sdkman', 'bash', p.state_dir / 'staged-glue' / 'bash' / 'sdkman.sh') in rows
-    assert old.is_file()                                   # nothing moved
-    assert not (p.state_dir / 'staged-glue' / 'bash' / 'nvm.sh').exists()
-    assert shellguard.staged_for(p, 'nvm') == [('bash', old)] and old.is_file()
-
-    rows = shellguard.list_staged(p, migrate=True)         # explicit: moves it into state
-    assert not old.exists()
-    assert ('nvm', 'bash', p.state_dir / 'staged-glue' / 'bash' / 'nvm.sh') in rows
-
-
-def test_discard_migrates_then_drops_an_old_layout_block(tmp_path):
-    from configsys import shellguard
-    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo')})
-    old = p.user_dotfiles_dir / 'staged-glue' / 'nvm.bash.sh'
-    old.parent.mkdir(parents=True)
-    old.write_text('x\n')
-    assert shellguard.discard(p, 'nvm') == 1
-    assert shellguard.list_staged(p) == []

@@ -108,6 +108,16 @@ MANIFEST_NAME = 'manifest.hu'
 CONFIG_STATES = ('managed', 'unmanaged', 'no config')
 
 
+def free_backup(path):
+    '''The first free `<path>.pre-configsys`, `.pre-configsys.1`, `.2`, … — never an existing backup.'''
+    path = Path(path)
+    cand, n = path.with_name(path.name + BACKUP_SUFFIX), 0
+    while cand.exists() or cand.is_symlink():
+        n += 1
+        cand = path.with_name(f'{path.name}{BACKUP_SUFFIX}.{n}')
+    return cand
+
+
 def backup_cmd(t):
     '''Shell fragment that moves the (already shell-quoted) path `t` aside to a FREE backup name:
     `<t>.pre-configsys`, else `.pre-configsys.1`, `.2`, … — an earlier backup (the user's original
@@ -545,7 +555,8 @@ class DotFiles(Driver):
 
     def relocate(self, rc, target):
         '''Move this component's captured CONFIG content to the `target` content root (a Path — the
-        machine-local store, or the primary plugin's dotfiles/ so it travels), normalizing any legacy
+        machine-local store, or the primary plugin's dotfiles/ so it travels; FROM the primary it is a
+        copy — the primary keeps it for your other machines), normalizing any legacy
         bare layout into `<comp>.cfs/<src>` and re-pointing the live symlink. A no-op for specs with
         no user-captured content (templates / uncaptured). Returns [(name, new_path)] relocated.'''
         target = Path(target)
@@ -565,7 +576,11 @@ class DotFiles(Driver):
                 continue                                   # already at the target
             _contained(newpath.parent, target_cfs)         # both ends stay inside their content roots
             _contained(srcpath.parent, root)
-            for side in (newpath, srcpath, root / f'{rc.comp}{CFS_SUFFIX}'):   # either may be the primary
+            # primary -> local is a COPY: the primary keeps it for your other machines (deleting it
+            # there would make every other box's link dangle on its next sync — A15 / §7.15)
+            prim = getattr(self.paths, 'primary_dotfiles_dir', None) if self.paths is not None else None
+            from_primary = bool(prim) and os.path.realpath(root) == os.path.realpath(prim)
+            for side in ((newpath,) if from_primary else (newpath, srcpath, root / f'{rc.comp}{CFS_SUFFIX}')):
                 primarygit.will_write(side)
             newpath.parent.mkdir(parents=True, exist_ok=True)
             if newpath.is_symlink() or newpath.is_file():
@@ -580,12 +595,14 @@ class DotFiles(Driver):
             if tgt.is_symlink():
                 tgt.unlink()
                 tgt.symlink_to(newpath)
-            if srcpath.is_dir() and not srcpath.is_symlink():   # drop the old content
+            if from_primary:
+                pass                                        # the primary's copy stays (it travels)
+            elif srcpath.is_dir() and not srcpath.is_symlink():   # drop the old content
                 shutil.rmtree(srcpath)
             elif srcpath.exists() or srcpath.is_symlink():
                 srcpath.unlink()
             old_cfs = root / f'{rc.comp}{CFS_SUFFIX}'      # prune an emptied source .cfs (manifest/.gitignore)
-            if old_cfs != target_cfs and old_cfs.is_dir():
+            if not from_primary and old_cfs != target_cfs and old_cfs.is_dir():
                 for leftover in list(old_cfs.iterdir()):
                     if leftover.name in (MANIFEST_NAME, '.gitignore'):
                         leftover.unlink()

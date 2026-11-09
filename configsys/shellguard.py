@@ -21,8 +21,8 @@ installer write: they are excluded from the diff and carried through the revert 
 Staged blocks are MACHINE-LOCAL state, `<state>/staged-glue/<shell>/<component>.<ext>` (never in a
 plugin tree). `activate` turns one into ordinary USER glue — the `user.d` namespace `configsys glue
 add` writes (drivers/glue.py `Glue.add_user_glue`), linked into conf.d in the user band — and
-`discard` deletes it. `migrate_legacy` carries blocks staged/activated by the old layout (under the
-dotfiles capture root) over to that design.
+`discard` deletes it. (The old layout's one-time migration — blocks staged/activated under the
+dotfiles capture root — is retired, review-2026-11-2 §7.16.)
 '''
 
 import difflib
@@ -42,8 +42,8 @@ _STAGE_DIR = 'staged-glue'          # under the state dir: <shell>/<component>.<
 _CS_BEGIN = re.compile(r'^\s*# >>> configsys(?P<tag>(?:\s.*?)?) >>>\s*$')
 _CS_END = '# <<< configsys{tag} <<<'
 
-# The header _format_block writes on every captured block — how migrate_legacy recognizes an
-# old-layout ACTIVATED block among other files.
+
+# The header _format_block writes on every captured block (merging skips re-adding it).
 _CAPTURE_MARK = '(captured by configsys'
 
 
@@ -292,13 +292,8 @@ def stage(paths, component, per_shell):
     return out
 
 
-def list_staged(paths, migrate=False):
-    '''[(component, shell, path)] for every staged candidate, sorted. READ-ONLY by default (safe under
-    --pretend): blocks still sitting in the OLD layout (`<capture-root>/staged-glue/<comp>.<shell>.sh`)
-    are listed where they are. `migrate=True` first moves those into the state dir (_migrate_staged);
-    activate/discard do that themselves, and `migrate_legacy` does it for the CLI.'''
-    if migrate:
-        _migrate_staged(paths)
+def list_staged(paths):
+    """[(component, shell, path)] for every staged candidate, sorted. Read-only (safe under --pretend)."""
     out = []
     root = stage_dir(paths)
     if root.is_dir():
@@ -308,14 +303,11 @@ def list_staged(paths, migrate=False):
                 comp = path.name[:-(len(ext) + 1)]
                 if comp:
                     out.append((comp, shell, path))
-    if not migrate:
-        out.extend(_legacy_staged(paths))
     return sorted(out)
 
 
-def staged_for(paths, component, migrate=False):
-    return [(shell, path) for comp, shell, path in list_staged(paths, migrate=migrate)
-            if comp == component]
+def staged_for(paths, component):
+    return [(shell, path) for comp, shell, path in list_staged(paths) if comp == component]
 
 
 def _glue_driver(paths, runner):
@@ -335,7 +327,7 @@ def activate(paths, component, runner=None, local=False):
     Returns [(shell, conf.d_link)] activated.'''
     drv = _glue_driver(paths, runner)
     done = []
-    for shell, staged_path in staged_for(paths, component, migrate=True):
+    for shell, staged_path in staged_for(paths, component):
         body = _read(staged_path)
         if body is None:
             continue
@@ -353,128 +345,10 @@ def activate(paths, component, runner=None, local=False):
 def discard(paths, component):
     '''Drop a component's staged candidate(s) without activating. Returns the count removed.'''
     n = 0
-    for _shell, path in staged_for(paths, component, migrate=True):
+    for _shell, path in staged_for(paths, component):
         try:
             path.unlink()
             n += 1
         except OSError:
             pass
     return n
-
-
-# -- one-time migration from the old layout (staged/activated under the dotfiles capture root) ------
-
-def _legacy_capture_roots(paths):
-    '''The capture roots the old layout staged under: the primary plugin's dotfiles/ (when set) and
-    the machine-local dotfiles store.'''
-    roots = []
-    for attr in ('primary_dotfiles_dir', 'user_dotfiles_dir'):
-        d = getattr(paths, attr, None)
-        if d is not None and Path(d) not in roots:
-            roots.append(Path(d))
-    return roots
-
-
-def _legacy_staged(paths):
-    '''[(comp, shell, path)] for blocks still in the old layout — listed in place, nothing moved.'''
-    out = []
-    for root in _legacy_capture_roots(paths):
-        old_dir = root / _STAGE_DIR
-        if not old_dir.is_dir() or old_dir == stage_dir(paths):
-            continue
-        for path in sorted(old_dir.glob('*.sh')):
-            comp, _, shell = path.name[:-3].rpartition('.')
-            if comp and shell:
-                out.append((comp, shell, path))
-    return out
-
-
-def _migrate_staged(paths):
-    '''Move blocks the old layout staged at `<capture-root>/staged-glue/<component>.<shell>.sh` to
-    `<state>/staged-glue/<shell>/<component>.<ext>` (merging into a same-named block already there,
-    never dropping either). Removes the old dir only once it is empty. Returns [(comp, shell, new)].'''
-    moved = []
-    for root in _legacy_capture_roots(paths):
-        old_dir = root / _STAGE_DIR
-        if not old_dir.is_dir() or old_dir == stage_dir(paths):
-            continue
-        for path in sorted(old_dir.glob('*.sh')):
-            comp, _, shell = path.name[:-3].rpartition('.')
-            text = _read(path)
-            if not comp or not shell or text is None:
-                continue
-            dest = _merge_into(stage_dir(paths) / shell / f'{comp}.{_ext(shell)}', text)
-            try:
-                path.unlink()
-            except OSError:
-                continue
-            moved.append((comp, shell, dest))
-        try:
-            old_dir.rmdir()                     # only when empty — anything else stays put
-        except OSError:
-            pass
-    return moved
-
-
-def migrate_legacy(paths, runner=None):
-    '''One-time carry-over of the old staged-glue layout. (1) Staged blocks move to the state dir
-    (_migrate_staged). (2) ACTIVATED blocks — `<capture-root>/shell/<shell>/<component>.sh` files
-    carrying the guard's capture header — become user glue (`Glue.add_user_glue`; a primary
-    capture root's land in the primary glue root, the local store's stay local), their old
-    `conf.d/<component>.sh` link is removed when it points at that file, and the old file is removed
-    only after its content was written to user glue. Files without the capture header are never
-    touched. Returns human-readable lines describing what moved (empty = nothing to do).'''
-    notes = [f'moved staged {shell} glue for {comp} to {dest}'
-             for comp, shell, dest in _migrate_staged(paths)]
-    drv = None
-    home = Path(paths.home)
-    primary = getattr(paths, 'primary_dotfiles_dir', None)
-    for root in _legacy_capture_roots(paths):
-        shell_root = root / 'shell'
-        if not shell_root.is_dir():
-            continue
-        local = not (primary is not None and Path(primary) == root)
-        for shell_dir in sorted(p for p in shell_root.iterdir() if p.is_dir()):
-            shell = shell_dir.name
-            for path in sorted(shell_dir.glob('*.sh')):
-                text = _read(path)
-                if text is None or _CAPTURE_MARK not in text:
-                    continue                    # not a guard-activated block — not ours to move
-                comp = path.name[:-3]
-                if drv is None:
-                    drv = _glue_driver(paths, runner)
-                old_link = _old_confd(home, shell) / f'{comp}.sh'
-                points_here = False
-                try:
-                    points_here = (old_link.is_symlink()
-                                   and os.path.realpath(old_link) == os.path.realpath(path))
-                except OSError:
-                    pass
-                if points_here:                 # drop the old link first so it can't double-load
-                    try:
-                        old_link.unlink()
-                    except OSError:
-                        pass
-                _src, link = drv.add_user_glue(comp, shell, text, local=local)
-                if link is None:
-                    continue                    # couldn't write user glue: leave the old file
-                try:
-                    path.unlink()
-                except OSError:
-                    pass
-                notes.append(f'converted activated {shell} glue for {comp} to user glue -> {link}')
-            try:
-                shell_dir.rmdir()               # only when empty
-            except OSError:
-                pass
-        try:
-            shell_root.rmdir()
-        except OSError:
-            pass
-    return notes
-
-
-def _old_confd(home, shell):
-    # the conf.d dir the old activate linked into (its own map: `nu` -> nushell)
-    sub = {'bash': 'bash', 'zsh': 'zsh', 'fish': 'fish', 'nu': 'nushell'}.get(shell, shell)
-    return Path(home) / '.config' / sub / 'conf.d'

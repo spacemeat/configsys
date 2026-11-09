@@ -35,6 +35,7 @@ from pathlib import Path
 from .. import primarygit
 from ..driver import Driver
 from ..runner import Result
+from .dotfiles import backup_cmd, free_backup
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 BACKUP_SUFFIX = '.pre-configsys'
@@ -63,8 +64,8 @@ _GLUE_SHELLS = ('bash', 'zsh', 'fish', 'nu', 'elvish')
 # prefix) -> `50-` component glue -> `90-` user glue (user.d snippets: `glue add`, activated staged
 # blocks), with the blessed `99-user` home last. A name that already starts with a two-digit `NN-`
 # keeps it (00-configsys, 99-user, a user's deliberate `10-early`). Links made before the bands
-# existed (unprefixed `<name>.<ext>`) are migrated on install / relink / status when they point into
-# a glue root configsys owns; anything else in conf.d is never touched.
+# existed (unprefixed `<name>.<ext>`) are no longer migrated (§7.16) — `check` names any left
+# (legacy_links); anything else in conf.d is never touched.
 _ORDER_PREFIX = re.compile(r'^\d\d-')
 COMPONENT_PREFIX = '50-'
 USER_PREFIX = '90-'
@@ -230,7 +231,7 @@ class Glue(Driver):
     def _glue_variants(self, glue, rc):
         '''(shell, ext, src) for each INSTALLED shell that has a snippet for this glue name. The
         SOURCE is the AUTHORITATIVE shipped copy — the highest content root (your plugin > the repo
-        template) carrying the `shell/<shell>/<name>.<ext>` (or legacy `bash.d/<name>.sh`) authoring
+        template) carrying the `shell/<shell>/<name>.<ext>` authoring
         layout — NOT the machine-local store DEPLOY mirror (`<shell>/conf.d/`). That's deliberate:
         the store is a cache, so resolving to the authoritative source lets install re-materialize
         over a STALE cached copy when the repo/plugin snippet has changed. Only when no authoritative
@@ -243,8 +244,6 @@ class Glue(Driver):
                 continue
             ext = _SHELL_EXT[shell]
             auth = [f'shell/{shell}/{glue}.{ext}']         # repo/plugin authoring layout (authoritative)
-            if shell == 'bash':
-                auth.append(f'bash.d/{glue}.sh')           # legacy authoring layout (authoritative)
             chosen = None
             for root, _tier in self._content_roots(rc):    # store, primary plugin, then repo template
                 for src in auth:
@@ -254,8 +253,7 @@ class Glue(Driver):
                 if chosen:
                     break
             if chosen is None:                             # fallback: an existing store deploy mirror
-                for mirror in dict.fromkeys((f'{shell}/conf.d/{component_link_stem(glue)}.{ext}',
-                                             f'{shell}/conf.d/{glue}.{ext}')):   # banded, then legacy
+                for mirror in (f'{shell}/conf.d/{component_link_stem(glue)}.{ext}',):
                     for root, _tier in self._content_roots(rc):
                         if (root / mirror).exists():
                             chosen = mirror
@@ -540,61 +538,27 @@ class Glue(Driver):
                     return True
         return False
 
-    def _migrate_legacy_component(self, rc, only_shells=None):
-        '''Move a component's pre-band deployment to the `50-` band: the store mirror
-        `<store>/<shell>/conf.d/<glue>.<ext>` becomes `.../50-<glue>.<ext>` (it is configsys's cache),
-        and an unprefixed `~/.config/<shell>/conf.d/<glue>.<ext>` link that points into an owned glue
-        root (not a user.d snippet) is replaced by the banded link. A real file, or a link elsewhere,
-        is left alone. No-op under --pretend. Returns the number of links migrated.'''
-        if getattr(self.runner, 'pretend', False):
-            return 0
-        store = getattr(self.paths, 'user_glue_dir', None) if self.paths is not None else None
-        moved = 0
-        for glue in self._glue_names(rc):
-            stem = component_link_stem(glue)
-            if stem == glue:
+    def legacy_links(self):
+        """[(link, target)] — unprefixed links in a shell's conf.d that point into a glue root
+        configsys owns: deployments from before the load-order bands. Read-only: they are no longer
+        migrated (review-2026-11-2 §7.16); `check` names them so you can delete each (the banded
+        `50-`/`90-` link loads the same snippet)."""
+        out = []
+        for shell in _GLUE_SHELLS:
+            confd = self._confd(shell)
+            try:
+                entries = sorted(confd.iterdir()) if confd.is_dir() else []
+            except OSError:
                 continue
-            for shell in _GLUE_SHELLS:
-                if only_shells is not None and shell not in only_shells:
+            for link in entries:
+                if _ORDER_PREFIX.match(link.name) or not link.is_symlink():
                     continue
-                ext = _SHELL_EXT[shell]
-                confd = self._confd(shell)
-                legacy, new = confd / f'{glue}.{ext}', confd / f'{stem}.{ext}'
-                owned = self._link_into_owned(legacy, rc, user_d=False)
-                new_mirror = None
-                if store is not None:
-                    old_mirror = Path(store) / shell / 'conf.d' / f'{glue}.{ext}'
-                    new_mirror = Path(store) / shell / 'conf.d' / f'{stem}.{ext}'
+                if self._link_into_owned(link):
                     try:
-                        if old_mirror.is_file() and not old_mirror.is_symlink():
-                            if new_mirror.exists() or new_mirror.is_symlink():
-                                old_mirror.unlink()          # a stale duplicate of our own cache
-                            else:
-                                old_mirror.rename(new_mirror)
+                        out.append((link, os.readlink(link)))
                     except OSError:
                         pass
-                if not owned:
-                    continue
-                try:
-                    legacy.unlink()
-                    if (new_mirror is not None and new_mirror.exists()
-                            and not (new.exists() or new.is_symlink())):
-                        new.symlink_to(new_mirror)
-                    moved += 1
-                except OSError:
-                    pass
-        return moved
-
-    def _legacy_linked(self, rc, name):
-        '''--pretend view of an un-migrated deployment: True when the unprefixed legacy link for spec
-        `name` (`<glue>@<shell>`) is ours and resolves to a file — so a dry run doesn't misreport an
-        active snippet as inactive just because the migration (a write) hasn't run.'''
-        glue, _, shell = name.rpartition('@')
-        ext = _SHELL_EXT.get(shell)
-        if not glue or ext is None or component_link_stem(glue) == glue:
-            return False
-        legacy = self._confd(shell) / f'{glue}.{ext}'
-        return self._link_into_owned(legacy, rc, user_d=False) and legacy.exists()
+        return out
 
     def _deploy_user_glue(self, shell):
         '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time
@@ -636,17 +600,11 @@ class Glue(Driver):
             except OSError:
                 pass
             tgt = confd / user_link_name(name)                           # the user band (90-, or NN- kept)
-            legacy = confd / name
-            if legacy != tgt and self._link_into_owned(legacy, user_d=True):
-                try:
-                    legacy.unlink()                                      # pre-band link to a user.d file
-                except OSError:
-                    pass
             try:
                 if tgt.is_symlink():
                     tgt.unlink()                                         # replace our/foreign link
                 elif tgt.exists():
-                    tgt.rename(tgt.with_name(name + BACKUP_SUFFIX))      # keep a pre-existing real file
+                    os.replace(tgt, free_backup(tgt))                    # keep a pre-existing real file
                 tgt.symlink_to(srcpath)
             except OSError:
                 pass
@@ -833,10 +791,7 @@ class Glue(Driver):
             return True
         rc_path = self._expand(rc_rel)
         if rc_path.is_symlink():                            # a captured/managed rc owns its source line
-            if shell == 'bash' and self._sources_bash_aliases(rc_path):
-                self._link_bash_aliases(rc)                 # (legacy: a captured Debian-skel bashrc)
-                return True
-            return self._rc_has_block(rc_path)
+            return self._rc_has_block(rc_path)             # (install advises what to add to it)
         if shell == 'bash':
             # bash used to ride the Debian-only `~/.bash_aliases` convention (nothing else sources it —
             # Fedora/EL/Arch/Void/Alpine never loaded bash glue: B3). Now it's a ~/.bashrc block like
@@ -880,12 +835,6 @@ class Glue(Driver):
         except OSError:
             pass
 
-    def _sources_bash_aliases(self, rc_path):
-        try:
-            return 'bash_aliases' in Path(rc_path).read_text(errors='replace')
-        except OSError:
-            return False
-
     def _retire_bash_aliases_link(self):
         '''Drop OUR ~/.bash_aliases link (one into the glue store); a real file or another link stays.'''
         dst = self._home() / '.bash_aliases'
@@ -905,53 +854,13 @@ class Glue(Driver):
         prof = self._expand(_BASH_PROFILES[0])
         prof.write_text(f'{_RC_BEGIN}\n{_BASH_PROFILE_BODY}\n{_RC_END}\n')
 
-    def _link_bash_aliases(self, rc):
-        '''Link ~/.bash_aliases to the shipped `bash_aliases` loader (materialized into the store, so
-        the link never points at the repo), absorbing any pre-existing real ~/.bash_aliases into
-        conf.d/pre-configsys-aliases.sh (made a+x so the loader keeps sourcing it); a plain
-        `.pre-configsys` backup if that absorb target is already taken. No-op if no bash_aliases is
-        shipped in any content root (nothing to link).'''
-        if rc is None:
-            return
-        srcpath, _tier, _root = self._resolve(_BASH_ALIASES_SRC, rc)
-        if not srcpath.exists():
-            return
-        store = self._store_path(_BASH_ALIASES_SRC)
-        link_src = self._materialize_to(srcpath, store) if store is not None else srcpath
-        dst = self._home() / '.bash_aliases'
-        if dst.is_symlink():                               # our (or a foreign) link -> replace
-            dst.unlink()
-        elif dst.exists():                                 # a real file -> absorb it, don't zap
-            absorb = self._expand(_BASH_ABSORB)
-            if absorb.exists():
-                dst.rename(dst.with_name(dst.name + BACKUP_SUFFIX))
-            else:
-                absorb.parent.mkdir(parents=True, exist_ok=True)
-                dst.rename(absorb)
-                os.chmod(absorb, os.stat(absorb).st_mode | 0o111)
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.symlink_to(link_src)
-
-    def _remove_bash_aliases(self):
-        '''Remove our ~/.bash_aliases symlink and restore what we displaced (the absorbed file, else
-        a `.pre-configsys` backup). Leaves the conf.d dir + snippet content alone.'''
-        dst = self._home() / '.bash_aliases'
-        if dst.is_symlink():
-            dst.unlink()
-        absorb = self._expand(_BASH_ABSORB)
-        backup = dst.with_name(dst.name + BACKUP_SUFFIX)
-        if absorb.exists():
-            absorb.rename(dst)
-        elif backup.exists():
-            backup.rename(dst)
-
     def _remove_shell_loader(self, shell):
         '''Remove our hookup for a shell: bash's ~/.bash_aliases link, or zsh's rc block. Leaves the
         conf.d dir + any snippet content alone.'''
         if getattr(self.runner, 'pretend', False):         # --pretend: write nothing
             return
         if shell == 'bash':
-            self._remove_bash_aliases()                    # (a legacy hookup, if one is left)
+            self._retire_bash_aliases_link()               # drop OUR old link, if one is left
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is None:
             return
@@ -971,17 +880,12 @@ class Glue(Driver):
         _write_rc(rc_path, new)
 
     def _loader_ok(self, shell):
-        '''True if `shell`'s loader is fully hooked: dir present, plus bash's ~/.bash_aliases link /
-        the rc block for the rc-driven shells (zsh/elvish/nushell) where those apply (fish needs only
-        the dir).'''
+        '''True if `shell`'s loader is fully hooked: dir present, plus the rc block for the rc-driven
+        shells (bash/zsh/elvish/nushell) where those apply (fish needs only the dir).'''
         if not self._confd(shell).is_dir():
             return False
-        if shell == 'bash':                                # the block — or a legacy link something sources
-            rc_path = self._expand(_SHELL_RC['bash'])
-            if self._rc_has_block(rc_path):
-                return True
-            return ((self._home() / '.bash_aliases').is_symlink()
-                    and self._sources_bash_aliases(rc_path))
+        if shell == 'bash':
+            return self._rc_has_block(self._expand(_SHELL_RC['bash']))
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
             return False
@@ -1021,7 +925,6 @@ class Glue(Driver):
         loaders = self._loader_shells(rc)
         if loaders:
             return 'linked' if all(self._loader_ok(s) for s in loaders) else None
-        self._migrate_legacy_component(rc)                 # pre-band links -> the 50- band
         specs = self._specs(rc)
         if not specs:
             return None
@@ -1030,8 +933,6 @@ class Glue(Driver):
             tgt = self._expand(dst)
             if not (ref.exists()
                     and os.path.realpath(str(tgt)) == os.path.realpath(str(ref))):
-                if getattr(self.runner, 'pretend', False) and self._legacy_linked(rc, name):
-                    continue                               # dry run: the migration would keep it active
                 return None
         return 'linked'
 
@@ -1043,7 +944,6 @@ class Glue(Driver):
             state = 'loader-on' if self._loader_ok(shell) else 'loader-off'
             out.append((f'{shell} loader', self.display_path(self._confd(shell)), state,
                         None, '', state == 'loader-on', 'glue'))
-        self._migrate_legacy_component(rc)                 # pre-band links -> the 50- band
         for name, src, dst in self._specs(rc):
             srcpath, tier, root = self._resolve(src, rc)   # authoritative source (the SRC column)
             tgt = self._expand(dst)
@@ -1103,7 +1003,6 @@ class Glue(Driver):
                 return Result(head + 'not hooked: ' + ', '.join(not_hooked), 1,
                               stderr='\n'.join(lines), advisory=True)
             return Result(f'glue: conf.d loader hooked up ({", ".join(hooked)})', 0)
-        self._migrate_legacy_component(rc, only_shells)    # pre-band links -> the 50- band
         specs = self._specs(rc)
         if only_shells is not None:
             specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
@@ -1137,13 +1036,13 @@ class Glue(Driver):
             except OSError:
                 pass
             s, t = shlex.quote(str(link_src)), shlex.quote(str(tgt))
-            bak = shlex.quote(str(tgt) + BACKUP_SUFFIX)
             lines.append(f'if [ -e {s} ]; then')
             lines.append(f'  mkdir -p {shlex.quote(str(tgt.parent))}')
             # a conf.d dir can be communal (fish): back up a pre-existing REAL file (not our own
-            # symlink) to <name>.pre-configsys instead of clobbering it. -L skips symlinks (ours or
-            # another tool's link is replaced by ln -sfn); -n never overwrites an existing backup.
-            lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then mv -n {t} {bak}; fi')
+            # symlink) to a FREE <name>.pre-configsys[.N] instead of clobbering it (a second real file
+            # used to be removed by `ln -sfn` once the first backup existed — A15). -L skips symlinks
+            # (ours or another tool's link is replaced by ln -sfn).
+            lines.append(f'  if [ -e {t} ] && [ ! -L {t} ]; then {backup_cmd(t)}; fi')
             lines.append(f'  ln -sfn {s} {t}')
             lines.append(f'else echo "glue: {rc.comp} not populated ({src} absent)" >&2; fi')
         res = self.runner.run('\n'.join(lines), capture=False)
@@ -1184,12 +1083,6 @@ class Glue(Driver):
         for name, _src, dst in specs:
             t = shlex.quote(str(self._expand(dst)))
             lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')  # only our own symlink
-            glue, _, shell = name.rpartition('@')
-            legacy = self._confd(shell) / f'{glue}.{_SHELL_EXT[shell]}' if shell in _SHELL_EXT else None
-            if (legacy is not None and component_link_stem(glue) != glue
-                    and self._link_into_owned(legacy, rc, user_d=False)):
-                lq = shlex.quote(str(legacy))               # a pre-band link of ours: remove it too
-                lines.append(f'if [ -L {lq} ]; then rm -f {lq}; fi')
         res = self.runner.run('\n'.join(lines), capture=False)
         # inline (gestalt) shells snapshot conf.d into the rc block — regenerate it after removing
         # this snippet's file(s) so its content doesn't linger in the block.

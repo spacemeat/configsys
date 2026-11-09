@@ -296,13 +296,13 @@ def test_shell_glue_bash_leaves_your_own_bash_aliases_alone(tmp_path):
     assert (p.home / '.bashrc').read_text().rstrip() == '# fedora skel\n. ~/.bashrc.d/x 2>/dev/null'
 
 
-def test_bash_hookup_migrates_the_legacy_link_and_writes_a_login_profile(tmp_path):
+def test_bash_hookup_retires_our_old_link_and_writes_a_login_profile(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     p.glue_dir.mkdir(parents=True)
     (p.glue_dir / 'bash_aliases').write_text('# legacy loader\n')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), paths=p)
-    g._link_bash_aliases(_loader_unit('all'))               # what an older configsys left behind
+    (p.home / '.bash_aliases').symlink_to(p.glue_dir / 'bash_aliases')   # what an older configsys left
     assert (p.home / '.bash_aliases').is_symlink()
     assert g.install(_loader_unit('all')).ok
     assert not (p.home / '.bash_aliases').exists()           # our old link retired
