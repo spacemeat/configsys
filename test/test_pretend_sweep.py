@@ -61,6 +61,7 @@ def sandbox(tmp_path, monkeypatch):
     for args in (['picks', 'add', 'btop'], ['picks', 'add', 'fzf'], ['picks', 'add', 'bash'],
                  ['plugin', 'add', str(src), '--ref', 'v1', '--local'], ['plugin', 'trust', 'codeplug'],
                  ['machine', 'add', 'laptop'], ['pin', 'set', 'fzf', 'native'],
+                 ['picks', 'add', 'syncthing'], ['pin', 'set', 'syncthing', 'tarball'],   # a github version source (A14)
                  ['dotfiles', 'capture', 'btop', '--yes'], ['glue', 'add', 'mine', '--shell', 'bash']):
         assert main(base + args) == 0, args
     state = home / '.config' / 'configsys'

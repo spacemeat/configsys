@@ -146,7 +146,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   06/07/08) · effort M · [done — done — an ignored file the remote now tracks is moved aside before a combine (back on Stop, kept as .pre-configsys on success); the tag→branch switch runs through PrimaryRepo alone (no plugins.sync fan-out, scrubbed env, signature check); stash by identity (a dirty-but-unstashable tree never pops your older stash); an interrupted command is committed as "(interrupted)" and never pushed; undo saves the files a commit added to <state>/undo/<sha>/ first]
 - **A14 [MED] `--pretend refresh` hits the network and writes the version cache; `refresh` offers to delete
   the vendor source of an installed-but-unpicked component** (it prompts under --pretend against the real
-  /etc). (app-cli-02/03) · effort S · [open]
+  /etc). (app-cli-02/03) · effort S · [done — done — --pretend refresh discovers offline (no network, no versions.hu); a managed source is "stale" only when its component is neither picked, receipted nor installed; under --pretend refresh prints what it would offer and asks nothing; with --home it says the source dirs are the real ones; the pretend sweep sandbox picks a github-sourced tarball]
 - **A15 [MED] Glue/dotfiles safety, the rest:** glue backs up a displaced file only once (second real file
   clobbered); a shell start can trigger a bootstrap repair incl. `sudo apt-get`; the shell-writes guard
   covers 5 bash/zsh files only; nu/elvish inline blocks go stale silently; "move to local" deletes the config

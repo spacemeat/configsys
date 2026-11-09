@@ -1419,6 +1419,30 @@ def _orphaned_managed_sources(ctx, wanted, disk_files):
     return sorted((f, owned[f]) for f in disk_files if f in owned and owned[f] not in wanted)
 
 
+def _installed_owners(ctx):
+    '''Components a managed source may still serve though they aren't picked: everything configsys
+    holds an install receipt for, and each source owner whose package reads installed here — `install
+    X` never adds a pick, and pre-matrix installs aren't picked (A14 / app-cli-03).'''
+    out = set()
+    try:
+        for key, rec in Ledger.load(ctx.paths).records.items():
+            if rec.get('receipt'):
+                out.add(key.split('\\', 1)[-1])
+    except Exception:                                    # noqa: BLE001
+        pass
+    for comp in set(_owned_index_sources(ctx).values()) - out:
+        try:
+            units, _e = ctx.routes.resolve_resilient([comp])
+            for rc in units.values():
+                drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+                if rc.comp == comp and drv is not None and drv.get_version(rc):
+                    out.add(comp)
+                    break
+        except Exception:                                # noqa: BLE001 — unknown: treat as in use
+            out.add(comp)
+    return out
+
+
 def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
     '''Phase 3 reconciliation (advisory, component-scoped): offer (prompt, plan Q1) to remove
     configsys-managed apt/dnf sources whose owning component is no longer in the active config — the
@@ -1440,9 +1464,17 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
                 return False
     import shlex
     removed = 0
-    print('\n── stale managed package sources (owning component no longer in your config) ──')
+    print('\n── stale managed package sources (their component is neither picked nor installed here) ──')
+    home = getattr(getattr(ctx, 'paths', None), 'home', None)
+    if home is not None and Path(home) != Path.home():
+        print('  (these are the REAL system source dirs, whatever --home says)')
+    if getattr(ctx.runner, 'pretend', False):                               # a dry run asks nothing it can't act on
+        for f, comp in orphans:
+            print(f'  [pretend] would offer to remove {f} (written for `{comp}`)')
+        return 0
     for f, comp in orphans:
-        if ask(f'  remove {f} — configsys wrote it for `{comp}`, which you no longer use? [y/N] '):
+        if ask(f'  remove {f} — configsys wrote it for `{comp}`, which is neither picked nor installed '
+               f'here? [y/N] '):
             ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
             removed += 1
     return removed
@@ -1578,7 +1610,7 @@ def cmd_refresh(ctx, args):
         sk = source_key(spec)
         if sk in seen:
             continue
-        seen[sk] = discover(spec, ctx.paths, refresh=True)
+        seen[sk] = discover(spec, ctx.paths, refresh=True, offline=ctx.runner.pretend)   # A14: a dry run asks nothing
         print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
         print('  (no discoverable versions among your tracked components)')
@@ -1603,7 +1635,7 @@ def cmd_refresh(ctx, args):
         seen_lc.add(rc.comp)
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         pinned = drv.resolve_version(rc) if drv is not None else None
-        upstream = _discover_latest(lc, ctx.paths, refresh=True)
+        upstream = _discover_latest(lc, ctx.paths, refresh=True, offline=ctx.runner.pretend)
         pu, pp = _pv(upstream), _pv(pinned)
         if pu is not None and pp is not None and pu > pp:
             stale[rc.comp] = [str(pinned), str(upstream)]
@@ -1644,7 +1676,7 @@ def cmd_refresh(ctx, args):
         # P3 reconciliation: offer to remove stale managed sources whose owning component is no
         # longer in your config. If an orphan like that was WHY the refresh failed, cleaning it up
         # fixes it — so re-run the index once after a removal.
-        wanted = {units[k].comp for k in units}
+        wanted = {units[k].comp for k in units} | _installed_owners(ctx)
         if _reconcile_managed_sources(ctx, pm, wanted) and not ok:
             print(f'\nRe-running the {pm} index refresh after cleanup...')
             res = _run_native_refresh(ctx, pm, native)
