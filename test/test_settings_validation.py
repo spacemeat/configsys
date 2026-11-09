@@ -147,3 +147,13 @@ def test_search_and_version(tmp_path, capsys):
     with pytest.raises(SystemExit) as e:
         app.main(['--version'])
     assert e.value.code == 0 and capsys.readouterr().out.startswith('configsys ')
+
+
+def test_a_local_edit_names_its_target_the_same_real_and_pretend(tmp_path, capsys):
+    # D3 / app-cli-13: `config set --local` printed the absolute path for real, `top config` dry
+    assert app.main(['--home', str(tmp_path), '--os', 'pop_os!:24.04', '--pretend',
+                     'config', 'set', 'splash', 'plain', '--local']) == 0
+    dry = capsys.readouterr().out
+    assert _cs(tmp_path, 'config', 'set', 'splash', 'plain', '--local') == 0
+    real = capsys.readouterr().out
+    assert '(in top config)' in dry and '(in top config)' in real

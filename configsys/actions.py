@@ -648,6 +648,24 @@ def unset_pin(ctx, name):
     return True, where
 
 
+def target_label(ctx, path):
+    """How an edit's file is NAMED to you — `top config` for this machine's config file, else the
+    primary's name for its data file, else the path — the one wording the real write and its
+    `--pretend` preview share (D3 / app-cli-13: `config set --local` printed the absolute path for real
+    and `top config` under --pretend)."""
+    if path is None:
+        return None
+    try:
+        if Path(str(path)).resolve() == Path(str(ctx.paths.user_config_file)).resolve():
+            return 'top config'
+    except OSError:
+        pass
+    pfile, pname = _primary_data_file(ctx)
+    if pfile and str(path) == str(pfile):
+        return pname
+    return str(path)
+
+
 def edit_target(ctx, *, create=False):
     '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
     synced (so edits travel to your other machines), else this machine's top config. NOTE: the
@@ -1253,7 +1271,7 @@ def set_config_setting(ctx, key, values, *, target=None):
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
     kind = CONFIG_SETTINGS[key][0]
-    tfile, label = (target, target) if target else _setting_target(ctx, key, create=True)
+    tfile, label = (target, target_label(ctx, target)) if target else _setting_target(ctx, key, create=True)
     if kind == 'bool' and values and not layers.is_bool_token(values[0]):
         raise ValueError(f'{key} takes true or false (not {values[0]!r})')
     if (key in ('dirs.user', 'dirs.system') and values
@@ -1360,7 +1378,7 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
             raise ValueError(f'theme {bad[0][0]}: {bad[0][1]}')
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
-    tfile, label = (target, target) if target else theme_target(ctx, dotted_key, create=True)
+    tfile, label = (target, target_label(ctx, target)) if target else theme_target(ctx, dotted_key, create=True)
     theme = plugins.read_theme(tfile)
     parts = dotted_key.split('.')
     node = theme
@@ -1472,7 +1490,7 @@ def load_theme(ctx, name, *, target=None, reset=False):
     theme = _plugin_theme(Path(ctx.paths.plugins_dir) / name)
     if not theme:
         return False, None
-    tfile, label = (target, target) if target else edit_target(ctx, create=True)
+    tfile, label = (target, target_label(ctx, target)) if target else edit_target(ctx, create=True)
     if not reset:
         theme = _overlay_theme(theme, plugins.read_theme(tfile))
     plugins.set_theme(tfile, theme)
