@@ -107,6 +107,22 @@ def test_dispatch_op_prints_the_failure_reason_to_the_console(tmp_path, capsys, 
     assert 'optix-root ~/sdks/optix has no include/optix.h' in out   # the WHY is on the console
 
 
+def test_a_failed_op_shows_its_cause_after_the_exit_code(tmp_path, capsys):
+    # the console line names the failure category + fix, as README promises — not only the TUI
+    # summary and `upgrade --system` (both read fail_detail)
+    from configsys.actions import run_plan
+
+    class R(FakeRunner):
+        def run(self, cmd, **kw):
+            res = super().run(cmd, **kw)
+            return Result(res.cmd, res.returncode, stderr='E: Unable to locate package btop'
+                          if res.returncode else '')
+    ctx = ctx_for(tmp_path, R(fail_substrings=['apt-get install -y btop']))
+    run_plan(ctx, [('install', 'apt\\btop', unit('btop'))], ledger=Ledger())
+    out = capsys.readouterr().out
+    assert "-> FAILED (exit 100)  [dependency-missing] — the package name didn't resolve" in out
+
+
 def test_summary_note_formatting():
     class O:
         def __init__(self, ok):

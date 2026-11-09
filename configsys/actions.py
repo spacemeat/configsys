@@ -108,10 +108,14 @@ def fail_detail(res):
         return 'no result'
     why = failure_excerpt(res.stderr or res.captured or res.stdout or '')
     base = f'exit {res.returncode}: {why}' if why else f'exit {res.returncode}'
-    cat, rem = res.classified()
-    if cat:
-        base += f'  [{cat}]' + (f' — {rem}' if rem else '')
-    return base
+    return base + fail_cause(res)
+
+
+def fail_cause(res):
+    '''The failure taxonomy tag of a driver Result as `  [category] — fix` (Result.classified), or ''
+    when unrecognised — the bracketed cause after the error, on the console and in fail_detail.'''
+    cat, rem = res.classified() if res is not None else (None, None)
+    return (f'  [{cat}]' + (f' — {rem}' if rem else '')) if cat else ''
 
 
 _UNPROBED = object()
@@ -527,7 +531,7 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
                 else:
                     exit_code = res.returncode or 1
                     n_fatal += 1
-                    on_line(f'  -> FAILED (exit {res.returncode})')
+                    on_line(f'  -> FAILED (exit {res.returncode}){fail_cause(res)}')
                     outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res)))
                 for line in (res.output or res.cmd or '').strip().splitlines():
                     on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
