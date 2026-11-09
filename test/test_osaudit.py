@@ -1,7 +1,8 @@
 '''tools/osaudit.py — the /update-os mechanics against a small synthetic routes file: registry
 staleness, the per-release resolution delta, version-bounded bindings and release-pin gaps, the
-release-dependent sources a new release must be probed for, and the sweep's refusal paths. (The
-podman sweep and the network probes themselves are exercised by running the skill.)'''
+release-dependent sources a new release must be probed for, and the sweep's refusal paths and its
+verdicts over a faked container check. (The real podman runs and the network probes are exercised by
+running the skill.)'''
 
 import importlib.util
 from pathlib import Path
@@ -138,6 +139,41 @@ def test_sweep_refuses_lines_it_cannot_check(loaded):
     cascade, _ = loaded
     assert 'no container check' in oa.sweep(cascade, 'fedora_atomic')['error']   # brew: compaudit's
     assert 'no repo setup' in oa.sweep(cascade, 'zorin')['error']
+
+
+def test_release_names_reads_the_routes_flag_for_the_namesweep_half(loaded):
+    # tests-tools-10: `--routes F` rebinds osaudit.ROUTES; the native names namesweep computes
+    # must come from that file too, not from namesweep's own default (the repo's routes.hu)
+    names = oa.release_names('fedora', '44', 'dnf')
+    assert 'java-25-openjdk-devel' in names                     # only the synthetic file names it
+    assert names['headscale'] == ['headscale']
+    assert 'java-21-openjdk-devel' not in names                 # gated off 44 in the synthetic file
+
+
+def test_sweep_reports_missing_names_arrivals_boundaries_and_outages(loaded, monkeypatch):
+    # tests-tools-16: the sweep's verdicts, over a faked container check — a name missing on 44 but
+    # present on 43 is a release boundary; an outage on 45 is an error, never "0 missing"
+    import namesweep
+    cascade, _ = loaded
+    names = {'curl': ['curl'], 'gcc14': ['gcc-old']}
+    monkeypatch.setattr(oa.shutil, 'which', lambda _x: '/usr/bin/podman')
+    monkeypatch.setattr(oa, 'release_names', lambda line, v, mgr: dict(names))
+    monkeypatch.setattr(oa, 'arrival_candidates', lambda line, v, mgr: {} if v != '44' else {
+        'newpkg': {'components': ['newpkg'], 'confidence': 'release-gated', 'when': 'fedora < 44'}})
+    monkeypatch.setattr(namesweep, '_load_allowlist', lambda *a: {})
+
+    def verifier(image, _snippet, query):
+        if image.endswith(':45'):
+            raise namesweep.VerifierFailed('manifest unknown')
+        return (['gcc14'] if image.endswith(':44') else []), 0
+    monkeypatch.setattr(namesweep, '_run_verifier', verifier)
+    out = oa.sweep(cascade, 'fedora', ['43', '44', '45'])
+    rel = out['releases']
+    assert rel['43']['missing'] == {} and rel['44']['missing'] == {'gcc14': ['gcc-old']}
+    assert list(rel['44']['arrivals']) == ['newpkg']
+    assert rel['45'] == {'error': 'manifest unknown'}
+    assert out['boundaries'] == {'gcc14': {'components': ['gcc-old'], 'missing_on': ['44'],
+                                           'present_on': ['43']}}
 
 
 def test_fixtures_reads_the_real_golden_contexts_and_containerfiles():

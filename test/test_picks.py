@@ -53,11 +53,11 @@ def _ctx(tmp_path):
 
 
 def test_requested_includes_picks(tmp_path):
-    # phase B: the current machine's picks feed requested() (the install set), additively with configs
+    # the current machine's picks ARE requested() (the install set)
     from configsys.app import Context, build_parser
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True, exist_ok=True)
-    (d / 'configsys.hu').write_text('{ configs: [] }')          # no active profiles -> picks-only
+    (d / 'configsys.hu').write_text('{ }')                      # nothing picked yet
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     assert 'btop' not in ctx.config.requested()
     actions.set_included(ctx, 'btop', [ctx.config.current_machine()], True)

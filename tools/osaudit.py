@@ -563,7 +563,8 @@ def release_names(line, version, manager):
     import namesweep
     from configsys.resolve import ResolveError
     from configsys.routes import Resolver
-    names = {p: list(c) for p, c in namesweep._native_names(line, version, manager).items()}
+    names = {p: list(c) for p, c in namesweep._native_names(line, version, manager,
+                                                                       routes_path=ROUTES).items()}
     r = Resolver(ROUTES, line, version, CPU)
     for comp in sorted(r.components):
         try:

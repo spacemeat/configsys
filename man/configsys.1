@@ -252,10 +252,10 @@ open the interactive TUI (the default; prints \fBinspect\fR output when not on a
 .SH FILES
 .TP
 \fB~/.config/configsys/configsys.hu\fR
-per-machine config (profiles, pins, plugins).
+the top user config: this machine's picks, machine settings, pins and plugins (see configsys.hu(5)).
 .TP
-\fB~/.config/configsys/dotfiles/\fR
-machine-local dotfiles content store (see dotfiles capture).
+\fB~/.config/configsys/state.hu\fR
+ledger: version-lock intent, install receipts and bookkeeping.
 .TP
 \fB~/.config/configsys/plugins/\fR
 synced plugin repos (one dir per plugin).
@@ -263,10 +263,49 @@ synced plugin repos (one dir per plugin).
 \fB~/.config/configsys/plugin-trust.hu\fR
 approved content hashes for code plugins.
 .TP
-\fB~/.config/configsys/state.hu\fR
-ledger: version-lock intent + bookkeeping.
+\fB~/.config/configsys/plugin-locks.hu\fR
+locked plugins, held back from sync, update and trust.
+.TP
+\fB~/.config/configsys/plugin-review/\fR
+inert bare repos the pre-sync review diff fetches into.
+.TP
+\fB~/.config/configsys/dotfiles/\fR
+machine-local dotfiles content store (see dotfiles capture).
+.TP
+\fB~/.config/configsys/glue/\fR
+machine-local glue store: the shell snippets linked into each shell's conf.d.
+.TP
+\fB~/.config/configsys/staged-glue/\fR
+rc-file edits an installer made, reverted and staged for review (see dotfiles activate).
+.TP
+\fB~/.config/configsys/launcher\fR
+the configsys.sh the shell glue's \fBconfigsys\fR function runs.
+.TP
+\fB~/.config/configsys/last-failure.hu\fR
+the last failed operation, for \fBconfigsys report\fR.
+.TP
+\fB~/.config/configsys/last-refresh\fR
+when \fBconfigsys refresh\fR last ran.
 .TP
 \fB~/.config/configsys/versions.hu\fR
 discovered-version cache (24h TTL).
+.TP
+\fB~/.config/configsys/method-versions.hu\fR
+per-method latest-version cache.
+.TP
+\fB~/.config/configsys/stale-pins.json\fR
+manual version pins behind upstream, as of the last refresh.
+.TP
+\fB~/.config/configsys/glue-locations.tsv\fR
+install-location cache the shell glue reads at startup.
+.TP
+\fB~/.config/configsys/flatpak-remote-ls.json\fR
+cache of the flatpak remotes' pending updates.
+.TP
+\fB~/.config/configsys/grid-memo.json\fR
+cache of \fBwhen:\fR specificity answers.
+.TP
+\fB~/.config/configsys/startup-timing.json\fR
+learned startup phase durations (splash pacing).
 .SH SEE ALSO
 .BR configsys.hu (5)

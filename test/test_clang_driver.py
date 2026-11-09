@@ -3,7 +3,9 @@ import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.clang import Clang
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
+
+from fakes import FakeRunner
 
 
 @pytest.fixture(autouse=True)
@@ -15,20 +17,6 @@ def _force_apt(monkeypatch):
 def clang_unit(comp='clang-18', fields=None):
     return ResolvedComponent(key=f'clang\\{comp}', driver='clang', comp=comp,
                              fields=fields or {})
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
 
 
 def test_registered_system_scoped():

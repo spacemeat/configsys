@@ -5,8 +5,6 @@ predicate is strictly narrower than a broad one; disjoint facet values don't ove
 
 import os
 
-import pytest
-
 from configsys import routes
 from configsys.predicate import (ALWAYS, Categorical, Context, Os, comparable, overlap, parse,
                                  subset)

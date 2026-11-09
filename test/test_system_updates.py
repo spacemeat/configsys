@@ -4,7 +4,6 @@ apt + flatpak + snap. Fake runner returns canned manager output.'''
 
 from configsys import sysupdates
 from configsys.sysupdates import UpdateRow
-from configsys.componentObj import ResolvedComponent
 from configsys.driver import tier_by_name
 from configsys.drivers.apt import Apt
 from configsys.drivers.apk import Apk

@@ -406,7 +406,6 @@ def test_pretend_install_touches_no_files(tmp_path):
     (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('# btop glue\n')
     drv = Glue(Runner(pretend=True), p)
     drv.install(_glue_unit())
-    store = p.glue_store_dir / 'bash' / 'conf.d' / '50-btop.sh' if hasattr(p, 'glue_store_dir') else None
     # nothing was written into the store conf.d mirror
     mirror = list((p.state_dir).rglob('conf.d/*.sh')) if p.state_dir.exists() else []
     assert mirror == []

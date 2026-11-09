@@ -14,38 +14,11 @@ from configsys.app import Context, build_parser, main
 from configsys.tui import menu
 from configsys.tui import flows as flows_mod
 
+from fakes import BASE_P, git as _git           # the `primary` fixture is conftest's
+
 pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
 
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-
-BASE_P = '{ picks: {\n    this-machine: [ btop ]\n    laptop: [ htop ]\n    desk: [ jq ]\n} }\n'
-
-
-def _git(cwd, *a):
-    return subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
-
-
-@pytest.fixture
-def primary(tmp_path, monkeypatch):
-    '''A sandbox home with a blessed primary `prim` cloned from bare remote `bare`, plus `other`: a
-    second clone standing in for your other machine.'''
-    for k, v in (('GIT_AUTHOR_NAME', 't'), ('GIT_AUTHOR_EMAIL', 't@t'), ('GIT_COMMITTER_NAME', 't'),
-                 ('GIT_COMMITTER_EMAIL', 't@t')):
-        monkeypatch.setenv(k, v)
-    bare = tmp_path / 'prim'
-    subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(bare)], check=True)
-    other = tmp_path / 'other'
-    subprocess.run(['git', 'clone', '-q', str(bare), str(other)], check=True, capture_output=True)
-    (other / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ] }\n')
-    (other / 'p.hu').write_text(BASE_P)
-    (other / 'notes.txt').write_text(BASE_P)                  # a plain file: git's line merge only
-    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'A'); _git(other, 'push', '-q', 'origin', 'main')
-    home = tmp_path / 'home'
-    base = ['--home', str(home), '--os', 'pop', '-q']
-    assert main(base + ['plugin', 'bless', str(bare)]) == 0
-    clone = home / '.config' / 'configsys' / 'plugins' / 'prim'
-    return base, clone, bare, other
-
 
 def _ctx(base):
     return Context(build_parser().parse_args(base + ['inspect']))

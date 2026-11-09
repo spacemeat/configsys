@@ -7,7 +7,6 @@ from configsys.tui import menu
 from configsys.tui import modals as modals_mod
 from configsys.tui.surface import BufferSurface
 
-import curses
 import pytest
 
 

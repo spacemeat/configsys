@@ -2,7 +2,6 @@
 revert-to-prior-bytes + stage the removed block as an inactive glue candidate for review.'''
 
 import os
-from pathlib import Path
 
 from configsys import shellguard
 from configsys.runner import Runner

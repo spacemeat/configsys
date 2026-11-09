@@ -3,6 +3,8 @@ Splash base contract, and load_code registering a plugin's `SPLASHES = [...]` ex
 checksum/ABI/trust gates as DRIVERS. Curses-free — the host frame loop (tui/splash.run_splash) is
 exercised by hand.'''
 
+import importlib
+
 import pytest
 
 from configsys import plugins, splashes
@@ -96,7 +98,7 @@ def test_load_code_registers_trusted_splashes(tmp_path):
 
 
 def test_load_code_flags_splash_shadowing_a_builtin(tmp_path):
-    import configsys.tui.splash  # noqa: F401 — ensure 'braille-bar' is a known built-in
+    importlib.import_module('configsys.tui.splash')   # ensure 'braille-bar' is a known built-in
     shadow = SPLASH_PY.replace("name = 'aquarium'", "name = 'braille-bar'").replace('Aquarium', 'Plain')
     pdir = _plugin(tmp_path / 'plugins' / 'shdw',
                    '{ name: shdw  requires-abi: 1  code: splash.py }',
@@ -167,7 +169,7 @@ def test_run_splash_drives_a_raw_truecolor_provider(monkeypatch):
         min_duration = 0.0
         def render(self, frame):
             self.at_rest = frame.progress >= 1.0
-            return f'\033[1;1H\033[48;2;10;20;30m \033[0m'   # a truecolor frame string
+            return '\033[1;1H\033[48;2;10;20;30m \033[0m'   # a truecolor frame string
 
     win = _FakeWin()
     hostmod.run_splash(win, pal=None, provider_cls=Raw, is_done=lambda: True,
@@ -370,7 +372,7 @@ def test_inspect_worker_frac_is_time_paced_per_phase():
     # each phase's band is paced by ELAPSED TIME toward its learned duration (so the front-loaded scans
     # advance smoothly, not by lurching counts). Real ticks mark where each phase STARTS.
     import time
-    from configsys.tui.menu import _InspectWorker, _PACE_CAP
+    from configsys.tui.menu import _PACE_CAP
     est = {'head': 0.3, 'detect': 1.6, 'batch': 1.8, 'inspect': 1.6}
     w = _paced_worker(est)
     tot = sum(est.values())

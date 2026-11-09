@@ -1,8 +1,6 @@
 '''Regression tests: --pretend is a TRUE dry run (ledger, failure capture, dotfiles marker, offline
 version placeholders, and every config-editing command), plus the dotfiles backup-never-clobbers fix.'''
 
-import os
-import subprocess
 import types
 
 import pytest

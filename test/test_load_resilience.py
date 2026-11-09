@@ -6,7 +6,6 @@ constraint abstains (never met) instead of a TypeError.'''
 import pytest
 
 from configsys import routecheck, routes
-from configsys.errors import ConfigError
 from configsys.routes import Resolver
 
 OS = 'os: { linux: {}  debian: { using: linux  native: apt  scale-root: true } }'

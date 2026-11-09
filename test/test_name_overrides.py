@@ -6,7 +6,6 @@ r->R, nmap absent). Driver-keyed, so it does NOT touch same-driver splits (Ubunt
 
 import os
 
-from configsys.resolve import ResolveError
 from configsys.routes import Resolver
 
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')

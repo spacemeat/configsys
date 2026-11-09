@@ -17,31 +17,55 @@ Usage:
     python tools/regsweep.py [--emit report.json] [--only cargo,flatpak,pipx,npm]
 Networked; safe to run anytime. Prints a summary; --emit writes the full JSON report.
 """
-import argparse, json, re, time, urllib.request, urllib.error
+import argparse
+import json
+import re
+import urllib.error
+import urllib.parse
+import urllib.request
 
-UA = "configsys-regsweep (https://github.com/; spacemeat@gmail.com)"
-_CACHE = {}
+import compaudit            # tools/ is the script's dir: its disk-cached, per-host-throttled Fetcher
 
-def _get(url, is_json=True, method="GET", data=None, timeout=12):
-    key = (url, method, data)
-    if key in _CACHE:
-        return _CACHE[key]
-    req = urllib.request.Request(url, method=method,
-                                 data=(data.encode() if data else None),
-                                 headers={"User-Agent": UA,
-                                          "Accept": "application/json",
-                                          **({"Content-Type": "application/json"} if data else {})})
+UA = compaudit.UA.replace('compaudit', 'regsweep')   # the project URL — no personal address
+_FETCHER = None
+
+
+def _fetcher():
+    global _FETCHER
+    if _FETCHER is None:
+        _FETCHER = compaudit.Fetcher()
+    return _FETCHER
+
+
+def _get(url):
+    """GET a JSON document through compaudit's Fetcher -> (parsed or None, status or None)."""
+    status, _final, body = _fetcher().get(url)
+    if status != 200 or body is None:
+        return None, status
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            body = r.read()
-        out = (json.loads(body) if is_json else body.decode("utf-8", "replace")), r.status
-    except urllib.error.HTTPError as e:
-        out = None, e.code
-    except Exception as e:                                    # network/timeout/json
-        out = None, str(e)
-    _CACHE[key] = out
-    time.sleep(0.25)                                          # be polite to the registries
-    return out
+        return json.loads(body), status
+    except ValueError:
+        return None, status
+
+
+_POSTS = {}
+
+
+def _post(url, payload, timeout=12):
+    """POST a JSON query (Flathub's search; the Fetcher is GET-only) -> (parsed or None, status)."""
+    key = (url, payload)
+    if key not in _POSTS:
+        req = urllib.request.Request(url, method="POST", data=payload.encode(),
+                                     headers={"User-Agent": UA, "Accept": "application/json",
+                                              "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                _POSTS[key] = json.loads(r.read()), r.status
+        except urllib.error.HTTPError as e:
+            _POSTS[key] = None, e.code
+        except (urllib.error.URLError, TimeoutError, OSError, ValueError) as e:   # network / bad JSON
+            _POSTS[key] = None, str(e)
+    return _POSTS[key]
 
 
 # crate/pypi names that differ from the component name (the tool still VERIFIES the repo
@@ -97,8 +121,7 @@ def npm_probe(name):
 
 
 def flathub_search(query):
-    d, st = _get("https://flathub.org/api/v2/search", method="POST",
-                 data=json.dumps({"query": query}))
+    d, st = _post("https://flathub.org/api/v2/search", json.dumps({"query": query}))
     return (d or {}).get("hits", []) if st == 200 else []
 
 
@@ -111,9 +134,6 @@ def flathub_urls(app_id):
 
 
 # ---- candidate generation --------------------------------------------------
-
-import urllib.parse  # noqa: E402
-
 
 def load_catalog():
     import tempfile

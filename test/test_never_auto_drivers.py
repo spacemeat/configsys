@@ -4,7 +4,6 @@ here. This lets snap — which must be gated `when: ubuntu` for validity, making
 than a broad native binding and so the specificity winner — be offered without hijacking the
 Ubuntu default. A binding-pin still forces it; if it is the only valid method it wins.'''
 
-from configsys import routes
 from configsys.resolve import candidate_bindings, _select
 from configsys.routes import Resolver
 

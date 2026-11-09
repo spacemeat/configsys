@@ -1,6 +1,5 @@
 '''review-2026-11-2 tests-tools-06 — the package-name sweeps never read an outage as "OK".'''
 
-import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -34,7 +33,7 @@ def test_the_snippet_ends_with_the_sentinel():
 
 def test_sweep_exits_nonzero_when_a_manager_was_not_checked(monkeypatch, capsys):
     monkeypatch.setattr(namesweep.shutil, 'which', lambda _x: '/usr/bin/podman')
-    monkeypatch.setattr(namesweep, 'extract', lambda: {'apk': {'curl': ['curl']}})
+    monkeypatch.setattr(namesweep, 'extract', lambda **_k: {'apk': {'curl': ['curl']}})
     monkeypatch.setattr(namesweep, '_load_allowlist', lambda *a: {'apk': {'rocm-hip'}})
     _fake_podman(monkeypatch, '', 125, 'manifest unknown')
     assert namesweep.sweep(only={'apk'}) == 2
@@ -46,3 +45,15 @@ def test_sweep_rejects_an_unknown_manager(monkeypatch, capsys):
     monkeypatch.setattr(namesweep.shutil, 'which', lambda _x: '/usr/bin/podman')
     assert namesweep.sweep(only={'fedora'}) == 2                       # a block, not a manager
     assert 'unknown manager' in capsys.readouterr().err
+
+
+def test_sweep_resolves_only_the_managers_it_sweeps(monkeypatch):
+    # tests-tools-22: `--only apk` resolves the catalog once (for apk), not for every manager
+    seen = []
+    monkeypatch.setattr(namesweep.shutil, 'which', lambda _x: '/usr/bin/podman')
+    monkeypatch.setattr(namesweep, '_native_names',
+                        lambda block, ver, mgr, **_k: seen.append(mgr) or {'curl': ['curl']})
+    monkeypatch.setattr(namesweep, '_load_allowlist', lambda *a: {})
+    _fake_podman(monkeypatch, f'{namesweep.DONE}\n')
+    assert namesweep.sweep(only={'apk'}) == 0
+    assert seen == ['apk']

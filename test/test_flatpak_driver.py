@@ -1,7 +1,9 @@
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.flatpak import Flatpak
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
+
+from fakes import FakeRunner
 
 
 def fp(name='org.mozilla.firefox', hub='flathub', **extra):
@@ -9,20 +11,6 @@ def fp(name='org.mozilla.firefox', hub='flathub', **extra):
     fields.update(extra)
     return ResolvedComponent(key=f'flatpak\\{name}', driver='flatpak', comp=name,
                              fields=fields)
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
 
 
 REMOTE_ADD = ('flatpak remote-add --user --if-not-exists flathub '

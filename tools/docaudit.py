@@ -27,6 +27,8 @@ keeps it current, like test_manpages.py keeps the man pages).
 '''
 
 import argparse
+import contextlib
+import io
 import json
 import os
 import re
@@ -182,13 +184,35 @@ _STATUS_WORDS = re.compile(r'\b(NOT BUILT|NOT YET BUILT|PLAN(?:NING)?(?: ONLY)?|
                            r'SUPERSEDED|DEFERRED|IN PROGRESS|COMPLETE)\b')
 
 
-def _git_dates(path):
-    def run(args):
-        r = subprocess.run(['git', '-C', str(ROOT)] + args, capture_output=True, text=True)
-        return r.stdout.strip().splitlines()
-    created = run(['log', '--follow', '--diff-filter=A', '--format=%as', '--', rel(path)])
-    modified = run(['log', '-1', '--format=%as', '--', rel(path)])
-    return (created[-1] if created else None), (modified[0] if modified else None)
+def _git_dates_all():
+    '''{repo-relative path: (created, modified)} for every markdown file, from ONE `git log` walk
+    (newest first) — a per-file `log --follow` + `log -1` pair was ~200 git processes per run.
+    A rename (`R`) maps the old path onto the file's current one, so `created` follows it back to
+    the first add; `modified` is the newest commit touching the file under any of its names.'''
+    r = subprocess.run(['git', '-C', str(ROOT), '-c', 'core.quotePath=false', 'log', '--format=@%as',
+                        '--name-status', '-M', '--', '*.md'], capture_output=True, text=True)
+    return _parse_git_dates(r.stdout)
+
+
+def _parse_git_dates(log):
+    current = {}                                         # a path at this point in history -> its name now
+    created, modified = {}, {}
+    date = None
+    for line in log.splitlines():
+        if line.startswith('@'):
+            date = line[1:].strip()
+            continue
+        parts = line.split('\t')
+        if len(parts) < 2 or date is None:
+            continue
+        status, paths = parts[0], parts[1:]
+        now = current.get(paths[-1], paths[-1])
+        if status.startswith('R') and len(paths) == 2:
+            current[paths[0]] = now                      # older commits name it by its old path
+        modified.setdefault(now, date)
+        if status.startswith('A'):
+            created[now] = date                          # walking back: the oldest add wins
+    return {p: (created.get(p), modified.get(p)) for p in modified}
 
 
 def doc_class(path, status):
@@ -213,6 +237,7 @@ def doc_class(path, status):
 
 def inventory():
     out = []
+    dates = _git_dates_all()
     for p in markdown_files():
         text = p.read_text(encoding='utf-8', errors='replace')
         lines = text.splitlines()
@@ -229,7 +254,7 @@ def inventory():
                 if m:
                     status = l.strip()[:160]
                     break
-        created, modified = _git_dates(p)
+        created, modified = dates.get(rel(p).replace(os.sep, '/'), (None, None))
         out.append({'path': rel(p), 'title': title, 'status': status, 'class': doc_class(p, status),
                     'created': created, 'modified': modified, 'lines': len(lines)})
     return out
@@ -364,9 +389,13 @@ def _check_retired(path, lines, retired):
     return out
 
 
-_RETIREMENT_WORDS = re.compile(r'\b(retired|formerly|replaced|replaces|gone|renamed|deleted|removed|'
-                               r'superseded|predates|no longer|instead of|used to|was |were |old |'
-                               r'avoid|must not)')         # ... or cites it as a counter-example
+# narration PHRASES, not bare `was` / `old` / `gone`: a generic word in the ±1-line window blinded
+# about a tenth of the live doc lines ("That was the easy part." hid a retired key beside it)
+_RETIREMENT_WORDS = re.compile(r'\b(retired|formerly|replaced|replaces|renamed|deleted|removed|'
+                               r'superseded|predates|no longer|used to|the old |'
+                               r'(?:was|were) (?:`|renamed|replaced|removed|retired|dropped)|'
+                               r'(?:is|are) gone|instead of the old|'
+                               r'must not)')               # ... or cites it as a counter-example
 
 
 def _check_examples(path, lines, parser):
@@ -385,10 +414,14 @@ def _check_examples(path, lines, parser):
             except ValueError:
                 continue
             try:
-                parser.parse_args(args)
-            except SystemExit:
-                out.append(_fd('error', 'bad-example', rel(path), start + k + 1,
-                               f'example does not parse against the CLI: {s!r}'))
+                # argparse prints --help (to stdout — it would corrupt `check --json`) and usage
+                # errors (stderr); swallow both. `--help` exits 0: a valid example, not a failure.
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    parser.parse_args(args)
+            except SystemExit as e:
+                if e.code not in (0, None):
+                    out.append(_fd('error', 'bad-example', rel(path), start + k + 1,
+                                   f'example does not parse against the CLI: {s!r}'))
             except Exception:                            # noqa: BLE001
                 pass
     return out
@@ -473,6 +506,22 @@ def _command_mentions(text):
     return out
 
 
+def _subcommand(words):
+    '''The subcommand word of `configsys …` words: the first that is neither a flag nor the VALUE
+    of a global value option (`configsys --os fedora where steam` -> `where`, not `fedora`).'''
+    from configsys.app import _GLOBAL_VALUE_OPTS
+    i = 0
+    while i < len(words):
+        w = words[i]
+        if w in _GLOBAL_VALUE_OPTS:
+            i += 2                                       # the option and its value
+            continue
+        if not w.startswith('-'):
+            return w
+        i += 1                                           # a boolean flag, or --opt=value
+    return None
+
+
 def _check_cli_coverage():
     out = []
     readme = README.read_text(encoding='utf-8')
@@ -481,8 +530,7 @@ def _check_cli_coverage():
     flags = {f for c in tree for o in c['options'] for f in o['flags']}
     mentioned = set()
     for n, cmd in _command_mentions(readme):
-        words = [w for w in cmd.split()[1:]]
-        sub = next((w for w in words if not w.startswith('-')), None)
+        sub = _subcommand(cmd.split()[1:])
         # synopsis forms: `configsys [tui]` (optional) and `configsys lock|unlock` (alternatives)
         for alt in (sub or '').strip('[]').split('|'):
             if alt and re.match(r'^[a-z][\w-]*$', alt):

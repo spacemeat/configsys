@@ -12,10 +12,13 @@ import shutil
 import pytest
 
 from _render_harness import RecordingPalette
-from test_pretend_sweep import _changes, _pretend_ctx, _snapshot, sandbox  # noqa: F401 — the fixture
+import test_pretend_sweep
+from test_pretend_sweep import _changes, _pretend_ctx, _snapshot
 
 from configsys.tui import flows, keyspec, menu, modals
 from configsys.tui.surface import BufferSurface
+
+sandbox = test_pretend_sweep.sandbox           # the CLI sweep's populated home, as a fixture here
 
 pytestmark = [pytest.mark.real_runner, pytest.mark.skipif(shutil.which('git') is None, reason='git not available')]
 

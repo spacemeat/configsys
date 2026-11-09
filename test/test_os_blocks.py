@@ -160,7 +160,6 @@ def test_fedora_atomic_routes_cli_to_brew_apps_to_flatpak():
 
 
 def test_fedora_atomic_audit_fixes():
-    R = 'routes.hu'
     def unit(name):
         return list(Resolver(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'),
                              'fedora_atomic', '40').resolve_names([name]))

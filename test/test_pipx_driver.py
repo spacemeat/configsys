@@ -3,7 +3,9 @@ import json
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.pipx import Pipx
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
+
+from fakes import FakeRunner
 
 
 def dist(comp='apod', name='termapod', version_spec=None, python=None):
@@ -13,23 +15,6 @@ def dist(comp='apod', name='termapod', version_spec=None, python=None):
     if python is not None:
         fields['python'] = python
     return ResolvedComponent(key=f'pipx\\{comp}', driver='pipx', comp=comp, fields=fields)
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
-
-    def echo(self, msg):
-        pass                       # the driver's backend note; a no-op for the stub
 
 
 def _pipx_list(name='termapod', version='0.1.3'):

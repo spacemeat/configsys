@@ -55,8 +55,8 @@ def test_nested_profile_flattened_to_leaves():
     assert c.profile_components('dev') == ['btop', 'fzf', 'ripgrep']
 
 
-def test_selected_but_undefined_profile_errors():
-    c = cfg('{ configs: [ ghost ] }')
+def test_expanding_an_undefined_profile_errors():
+    c = cfg('{ profiles: { real: [ btop ] } }')
     with pytest.raises(ConfigError):
         c.profile_components('ghost')
 

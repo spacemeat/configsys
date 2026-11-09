@@ -16,6 +16,7 @@ def test_one_line_import_surface():
     assert ABI_VERSION in ABI_SUPPORTED
     assert isinstance(ABI_VERSION, int)
     assert Result('ok', 0).ok and not Result('no', 1).ok      # the mutating-op return type
+    assert isinstance(Driver, type) and callable(register_driver)
     assert callable(register_version_source) and callable(register_transport)
     for name in ('Driver', 'register_driver', 'register_version_source', 'register_transport',
                  'Result', 'ABI_VERSION', 'ABI_SUPPORTED'):

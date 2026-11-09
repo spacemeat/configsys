@@ -80,10 +80,11 @@ def _native_names(block, ver, manager, plugin_files=(), routes_path=ROUTES):
     return {p: sorted(cs) for p, cs in pkgs.items()}
 
 
-def extract(routes_path=ROUTES):
-    '''-> {manager: {package_name: sorted[components that map to it here]}}.'''
+def extract(routes_path=ROUTES, only=None):
+    '''-> {manager: {package_name: sorted[components that map to it here]}}. `only` (a set of
+    managers) resolves just those — each manager is a whole-catalog resolve.'''
     return {mgr: _native_names(block, ver, mgr, routes_path=routes_path)
-            for mgr, block, ver in MANAGERS}
+            for mgr, block, ver in MANAGERS if only is None or mgr in only}
 
 
 # -- container-side verifiers ---------------------------------------------
@@ -185,14 +186,14 @@ def sweep(only=None):
     if not shutil.which('podman'):
         print('namesweep: podman not found', file=sys.stderr)
         return 2
-    data = extract()
-    allow = _load_allowlist()
     targets = only or set(_DEFAULT_MANAGERS)
     unknown = sorted(set(targets) - set(_VERIFIERS))
     if unknown:                                  # `--only fedora` (a block, not a manager) swept nothing
         print(f'namesweep: unknown manager(s) {", ".join(unknown)} — known: '
               f'{", ".join(sorted(_VERIFIERS))}', file=sys.stderr)
         return 2
+    data = extract(only=set(targets))            # resolve only the managers being swept
+    allow = _load_allowlist()
     drift, stale, failed = {}, {}, []
     versions = {m: v for m, _b, v in MANAGERS}
     for mgr, (image, setup) in _VERIFIERS.items():

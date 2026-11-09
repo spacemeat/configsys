@@ -1,21 +1,8 @@
 from configsys.componentObj import ResolvedComponent
 from configsys.installState import ComponentState, InstallState
 from configsys.ledger import Ledger
-from configsys.runner import Result
 
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
+from fakes import FakeRunner
 
 
 def apt_unit(name='btop'):

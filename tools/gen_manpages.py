@@ -52,6 +52,34 @@ def _th(name, section, desc):
 
 # -- section 1: from the argparse parser ----------------------------------
 
+# configsys(1) FILES: everything configsys keeps in its state dir, relative to it. Directories end
+# in `/`. test_manpages checks every state-dir location `Paths` defines is listed here.
+STATE = '~/.config/configsys'
+FILES = [
+    ('configsys.hu', 'the top user config: this machine\'s picks, machine settings, pins and plugins '
+                     '(see configsys.hu(5)).'),
+    ('state.hu', 'ledger: version-lock intent, install receipts and bookkeeping.'),
+    ('plugins/', 'synced plugin repos (one dir per plugin).'),
+    ('plugin-trust.hu', 'approved content hashes for code plugins.'),
+    ('plugin-locks.hu', 'locked plugins, held back from sync, update and trust.'),
+    ('plugin-review/', 'inert bare repos the pre-sync review diff fetches into.'),
+    ('dotfiles/', 'machine-local dotfiles content store (see dotfiles capture).'),
+    ('glue/', 'machine-local glue store: the shell snippets linked into each shell\'s conf.d.'),
+    ('staged-glue/', 'rc-file edits an installer made, reverted and staged for review '
+                     '(see dotfiles activate).'),
+    ('launcher', 'the configsys.sh the shell glue\'s `configsys` function runs.'),
+    ('last-failure.hu', 'the last failed operation, for `configsys report`.'),
+    ('last-refresh', 'when `configsys refresh` last ran.'),
+    ('versions.hu', 'discovered-version cache (24h TTL).'),
+    ('method-versions.hu', 'per-method latest-version cache.'),
+    ('stale-pins.json', 'manual version pins behind upstream, as of the last refresh.'),
+    ('glue-locations.tsv', 'install-location cache the shell glue reads at startup.'),
+    ('flatpak-remote-ls.json', 'cache of the flatpak remotes\' pending updates.'),
+    ('grid-memo.json', 'cache of `when:` specificity answers.'),
+    ('startup-timing.json', 'learned startup phase durations (splash pacing).'),
+]
+
+
 def _subparsers(parser):
     for a in parser._actions:
         if isinstance(a, argparse._SubParsersAction):
@@ -93,13 +121,9 @@ def gen_man1():
         if m:
             out += [f'.SH {heading}', '.nf'] + [_code(l) for l in m.group(1).rstrip().splitlines()] + ['.fi']
 
-    out += ['.SH FILES',
-            '.TP', '\\fB~/.config/configsys/configsys.hu\\fR', 'per-machine config (profiles, pins, plugins).',
-            '.TP', '\\fB~/.config/configsys/dotfiles/\\fR', 'machine-local dotfiles content store (see dotfiles capture).',
-            '.TP', '\\fB~/.config/configsys/plugins/\\fR', 'synced plugin repos (one dir per plugin).',
-            '.TP', '\\fB~/.config/configsys/plugin-trust.hu\\fR', 'approved content hashes for code plugins.',
-            '.TP', '\\fB~/.config/configsys/state.hu\\fR', 'ledger: version-lock intent + bookkeeping.',
-            '.TP', '\\fB~/.config/configsys/versions.hu\\fR', 'discovered-version cache (24h TTL).']
+    out.append('.SH FILES')
+    for rel, purpose in FILES:
+        out += ['.TP', f'\\fB{STATE}/{rel}\\fR', _inline(purpose)]
     out += ['.SH SEE ALSO', '.BR configsys.hu (5)']
     return '\n'.join(out) + '\n'
 

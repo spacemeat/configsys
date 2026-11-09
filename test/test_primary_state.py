@@ -3,7 +3,6 @@ remote — ↑N to push, ↓N to sync, ● uncommitted — on its Plugins row, i
 in words in `plugin list`.'''
 
 import shutil
-import subprocess
 
 import pytest
 
@@ -11,32 +10,19 @@ from configsys import primarygit
 from configsys.app import Context, build_parser, main
 from configsys.tui import menu
 
+from fakes import git as _git, primary_remote
+
 pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
 
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 
 
-def _git(cwd, *a):
-    return subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
-
-
 @pytest.fixture
-def primary(tmp_path, monkeypatch):
-    for k, v in (('GIT_AUTHOR_NAME', 't'), ('GIT_AUTHOR_EMAIL', 't@t'), ('GIT_COMMITTER_NAME', 't'),
-                 ('GIT_COMMITTER_EMAIL', 't@t')):
-        monkeypatch.setenv(k, v)
-    bare = tmp_path / 'prim'
-    subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(bare)], check=True)
-    other = tmp_path / 'other'
-    subprocess.run(['git', 'clone', '-q', str(bare), str(other)], check=True, capture_output=True)
-    (other / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ] }\n')
-    (other / 'p.hu').write_text('{ picks: { this-machine: [ btop ] } }\n')
-    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'A'); _git(other, 'push', '-q', 'origin', 'main')
-    home = tmp_path / 'home'
-    base = ['--home', str(home), '--os', 'pop', '-q']
-    assert main(base + ['plugin', 'bless', str(bare)]) == 0
+def primary(tmp_path):
+    base, clone, _bare, other = primary_remote(tmp_path, {'p.hu': '{ picks: { this-machine: [ btop ] } }\n'},
+                                               seed='other')
     ctx = Context(build_parser().parse_args(base + ['inspect']))
-    return base, ctx, home / '.config' / 'configsys' / 'plugins' / 'prim', other
+    return base, ctx, clone, other
 
 
 def _st(ahead=0, behind=0, dirty=False):

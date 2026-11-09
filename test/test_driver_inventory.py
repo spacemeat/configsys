@@ -231,6 +231,8 @@ def test_orphan_scan_list_matches_installed_index_overrides():
 # -- tests and skill freshness ----------------------------------------------------------------------
 
 def test_every_driver_has_a_test():
+    # a mention is the floor; test_driver_injection.py drives every built-in driver's install and
+    # uninstall under a recording FakeRunner (or names it in SHALLOW with why)
     texts = [p.read_text() for p in (ROOT / 'test').glob('test_*.py') if p.name != Path(__file__).name]
     untested = []
     for name, cls in _REGISTRY.items():

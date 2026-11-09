@@ -2,7 +2,6 @@
 with the user's privileges during installs, so its code is gated on per-commit approval. This
 slice covers the store + commands + `plugin list` surfacing (the import gate itself is next).'''
 
-import os
 import shutil
 import subprocess
 

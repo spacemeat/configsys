@@ -70,3 +70,52 @@ def test_inventory_classifies_docs():
     assert by['README.md']['class'] == 'public'
     assert by['docs/principles.md']['class'] == 'reference'
     assert by['docs/principles.md']['created']          # git history recovers the creation date
+
+
+def test_inventory_dates_come_from_one_git_walk(monkeypatch):
+    # tests-tools-13: one `git log` for every doc, not two per file
+    real, calls = da.subprocess.run, []
+    monkeypatch.setattr(da.subprocess, 'run', lambda *a, **k: calls.append(a) or real(*a, **k))
+    da.inventory()
+    assert len(calls) == 1
+
+
+def test_git_dates_follow_a_rename_back_to_the_first_add():
+    log = ('@2026-11-02\nM\tdocs/done/x-plan.md\n'
+           '@2026-10-01\nR100\tdocs/todo/x-plan.md\tdocs/done/x-plan.md\n'
+           '@2026-09-15\nM\tdocs/todo/x-plan.md\nA\tdocs/y.md\n'
+           '@2026-09-01\nA\tdocs/todo/x-plan.md\n')
+    dates = da._parse_git_dates(log)
+    assert dates['docs/done/x-plan.md'] == ('2026-09-01', '2026-11-02')
+    assert dates['docs/y.md'] == ('2026-09-15', '2026-09-15')
+
+
+def test_a_global_value_option_is_not_the_subcommand():
+    # tests-tools-12: `configsys --os fedora where steam` documents `where`, not a `fedora` command
+    assert da._subcommand(['--os', 'fedora', 'where', 'steam']) == 'where'
+    assert da._subcommand(['--home=/tmp/h', '--pretend', 'install', 'x']) == 'install'
+    assert da._subcommand(['--machine', 'laptop']) is None
+
+
+def test_cli_coverage_accepts_global_options_in_examples(tmp_path, monkeypatch):
+    readme = tmp_path / 'README.md'
+    readme.write_text('Run `configsys --os fedora where steam`.\n')
+    monkeypatch.setattr(da, 'README', readme)
+    assert not [f for f in da._check_cli_coverage() if f['kind'] == 'cli-unknown']
+
+
+def test_a_help_example_parses_and_prints_nothing(tmp_path, capsys):
+    from configsys.app import build_parser
+    p = tmp_path / 'doc.md'
+    p.write_text('```sh\nconfigsys plugin --help\n```\n')
+    assert da._check_examples(p, p.read_text().splitlines(), build_parser()) == []
+    out = capsys.readouterr()
+    assert out.out == '' and out.err == ''              # `check --json` stays valid JSON
+
+
+def test_a_generic_was_beside_a_retired_term_does_not_hide_it(tmp_path):
+    p = tmp_path / 'x.md'
+    p.write_text('Add your install list to `configs:`.\nThat was the easy part.\n')
+    _terms, retired = da.load_glossary()
+    hits = da._check_retired(p, p.read_text().splitlines(), retired)
+    assert [h['line'] for h in hits] == [1]

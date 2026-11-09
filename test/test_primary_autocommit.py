@@ -3,38 +3,22 @@ the primary plugin, locally, with a message saying what it did — and never swe
 making by hand.'''
 
 import shutil
-import subprocess
 
 import pytest
 
 from configsys import primarygit
 from configsys.app import main
 
+from fakes import git as _git, primary_remote
+
 pytestmark = [pytest.mark.real_runner, pytest.mark.skipif(shutil.which('git') is None, reason='git not available')]
 
 
-def _git(cwd, *a):
-    return subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
-
-
 @pytest.fixture
-def primary(tmp_path, monkeypatch):
+def primary(tmp_path):
     '''A sandbox home whose blessed primary `prim` is cloned from a bare remote; git identity is the
-    test's own (GIT_* env), so commits never depend on the developer's ~/.gitconfig.'''
-    for k, v in (('GIT_AUTHOR_NAME', 't'), ('GIT_AUTHOR_EMAIL', 't@t'), ('GIT_COMMITTER_NAME', 't'),
-                 ('GIT_COMMITTER_EMAIL', 't@t')):
-        monkeypatch.setenv(k, v)
-    bare = tmp_path / 'prim'
-    subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(bare)], check=True)
-    seed = tmp_path / 'seed'
-    subprocess.run(['git', 'clone', '-q', str(bare), str(seed)], check=True, capture_output=True)
-    (seed / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ] }\n')
-    (seed / 'p.hu').write_text('{ picks: { this-machine: [ btop ] } }\n')
-    _git(seed, 'add', '-A'); _git(seed, 'commit', '-qm', 'A'); _git(seed, 'push', '-q', 'origin', 'main')
-    home = tmp_path / 'home'
-    base = ['--home', str(home), '--os', 'pop', '-q']
-    assert main(base + ['plugin', 'bless', str(bare)]) == 0
-    clone = home / '.config' / 'configsys' / 'plugins' / 'prim'
+    test's own (conftest's `_hermetic`), so commits never depend on the developer's ~/.gitconfig.'''
+    base, clone, _bare, _seed = primary_remote(tmp_path, {'p.hu': '{ picks: { this-machine: [ btop ] } }\n'})
     return base, clone
 
 

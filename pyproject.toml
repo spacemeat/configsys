@@ -2,12 +2,13 @@
 # git-clone-first (via ./configsys.sh); this makes an installable wheel possible WITHOUT
 # changing that: no data files move, and paths.py still prefers the source tree in a checkout
 # (see Paths._locate_data_root). The wheel force-includes the repo-root data (routes.hu /
-# config.hu / dotfiles/ / man/) into configsys/data/, where the installed-mode lookup finds it.
+# config.hu / glue/ / man/) into configsys/data/, where the installed-mode lookup finds it.
+# (Dotfiles content isn't shipped: it lives in the user's store and in plugins.)
 #
 # NOT published yet. Distribution name is `configsys-cli` because `configsys` is taken on PyPI
 # by an unrelated project; the command it installs is still `configsys`. Before publishing:
-# add a LICENSE + the `license`/`classifiers` fields, bump the version off `.dev0`, and make
-# sure dotfiles/ holds only shippable templates (the build bundles it verbatim).
+# add a LICENSE + the `license`/`classifiers` fields and bump the version off `.dev0`.
+# test/test_packaging.py checks every force-include source exists.
 
 [build-system]
 requires = ["hatchling"]
@@ -43,19 +44,22 @@ packages = ["configsys"]
 [tool.hatch.build.targets.wheel.force-include]
 "routes.hu" = "configsys/data/routes.hu"
 "config.hu" = "configsys/data/config.hu"
-"dotfiles" = "configsys/data/dotfiles"
+"glue" = "configsys/data/glue"
 "man" = "configsys/data/man"
 
 # The sdist keeps the data at the repo root (where it lives); a wheel built from it re-applies
-# the force-include above. Ship the tests too so the sdist is self-checking.
+# the force-include above. Ship the tests too — and the tools/ and examples/ they exercise — so
+# the sdist is self-checking.
 [tool.hatch.build.targets.sdist]
 include = [
     "configsys",
     "routes.hu",
     "config.hu",
-    "dotfiles",
+    "glue",
     "man",
     "test",
+    "tools",
+    "examples",
     "docs",
     "README.md",
     "CLAUDE.md",

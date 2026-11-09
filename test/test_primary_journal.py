@@ -5,55 +5,36 @@ command runs is never swept in, and an action that writes nothing costs no git c
 
 from pathlib import Path
 
-import os
 import shutil
-import subprocess
 
 import pytest
 
 from configsys import primarygit
 from configsys.app import Context, _command_words, build_parser, main
 
+from fakes import git as _git, primary_remote
+
 pytestmark = [pytest.mark.real_runner, pytest.mark.skipif(shutil.which('git') is None, reason='git not available')]
-
-
-def _git(cwd, *a):
-    return subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
 @pytest.fixture
 def primary(tmp_path, monkeypatch):
     '''A populated sandbox home with a blessed, synced primary `prim` that has dotfiles/ and glue/
     roots — so capture, glue add/override and activate all land in it.'''
-    for k in list(os.environ):
-        if k.startswith(('CONFIGSYS_', 'XDG_')):
-            monkeypatch.delenv(k)
-    for k, v in (('GIT_AUTHOR_NAME', 't'), ('GIT_AUTHOR_EMAIL', 't@t'), ('GIT_COMMITTER_NAME', 't'),
-                 ('GIT_COMMITTER_EMAIL', 't@t')):
-        monkeypatch.setenv(k, v)
     home = tmp_path / 'home'
     home.mkdir()
     monkeypatch.setenv('HOME', str(home))
     monkeypatch.setattr('builtins.input', lambda *a: 'y')
-    bare = tmp_path / 'prim'
-    subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(bare)], check=True)
-    seed = tmp_path / 'seed'
-    subprocess.run(['git', 'clone', '-q', str(bare), str(seed)], check=True, capture_output=True)
-    (seed / 'plugin.hu').write_text('{ name: prim  requires-abi: 1  data: [ p.hu ] }\n')
-    (seed / 'p.hu').write_text('{ picks: { this-machine: [ btop  fzf  bash ] }  effects: reduced }\n')
-    for d in ('dotfiles', 'glue'):
-        (seed / d).mkdir()
-        (seed / d / 'README').write_text(f'{d} that travel\n')
-    _git(seed, 'add', '-A'); _git(seed, 'commit', '-qm', 'A'); _git(seed, 'push', '-q', 'origin', 'main')
     (home / '.bashrc').write_text('# bashrc\n')
     (home / '.config' / 'btop').mkdir(parents=True)
     (home / '.config' / 'btop' / 'btop.conf').write_text('color_theme = "x"\n')
-    base = ['--home', str(home), '--os', 'pop_os!:22.04', '-q']
-    assert main(base + ['plugin', 'bless', str(bare)]) == 0
+    files = {'p.hu': '{ picks: { this-machine: [ btop  fzf  bash ] }  effects: reduced }\n'}
+    files.update({f'{d}/README': f'{d} that travel\n' for d in ('dotfiles', 'glue')})
+    base, clone, _bare, _seed = primary_remote(tmp_path, files, home=home, os_arg='pop_os!:22.04')
     state = home / '.config' / 'configsys'
     (state / 'staged-glue' / 'bash').mkdir(parents=True)
     (state / 'staged-glue' / 'bash' / 'rustup.sh').write_text('export PATH="$HOME/.cargo/bin:$PATH"\n')
-    return base, state / 'plugins' / 'prim', home
+    return base, clone, home
 
 
 def _log(clone):

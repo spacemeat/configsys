@@ -5,25 +5,12 @@ void-glibc container.'''
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver
 from configsys.drivers.xbps import Xbps, _split_pkgver, _version_from_pkgver
-from configsys.runner import Result
+
+from fakes import FakeRunner
 
 
 def rc(name='curl'):
     return ResolvedComponent(key=f'xbps\\{name}', driver='xbps', comp=name, fields={})
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None, presudo=False):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
 
 
 INSTALLED = ('ii acl-2.3.2_1                      Access Control List filesystem support\n'

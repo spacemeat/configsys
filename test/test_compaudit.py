@@ -3,7 +3,6 @@ fake fetcher, scope loading against the real routes.hu + a throwaway plugin dir.
 
 import importlib.util
 import json
-import os
 from pathlib import Path
 
 import pytest

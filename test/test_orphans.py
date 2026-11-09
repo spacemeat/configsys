@@ -3,8 +3,6 @@ lurking / forgotten / foreign (see docs/done/managed-orphans-plan.md). The class
 against a hand-built Config; the full scan is exercised against a real routes context with a
 fabricated installed-index cache (so it's deterministic — no real subprocess enumeration).'''
 
-import pytest
-
 from configsys import layers, orphans as O
 from configsys.config import Config
 from configsys.app import Context, build_parser

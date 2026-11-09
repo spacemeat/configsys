@@ -87,8 +87,9 @@ def test_dispatch_op_prints_the_failure_reason_to_the_console(tmp_path, capsys, 
 
     # modules that bind `get_driver` at import must import BEFORE the patch, or they keep the stub
     # for every later test in the session
-    import configsys.versionreport, configsys.orphans, configsys.stranded  # noqa: F401,E401
-    import configsys.detection, configsys.sysupdates, configsys.installState  # noqa: F401,E401
+    import importlib
+    for mod in ('versionreport', 'orphans', 'stranded', 'detection', 'sysupdates', 'installState'):
+        importlib.import_module(f'configsys.{mod}')
     import configsys.drivers as drivers_mod           # run_plan (in actions) resolves get_driver here
     monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: StubDrv())
     monkeypatch.setattr(app, 'get_driver', lambda *a, **k: StubDrv())   # prepare_units' scope check

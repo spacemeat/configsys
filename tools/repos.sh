@@ -7,18 +7,28 @@
 # Usage:
 #   tools/repos.sh [status]     report each repo: HEAD, ahead/behind origin, latest vX.Y.Z tag,
 #                               and any staged/unstaged/untracked files                (read-only)
-#   tools/repos.sh push         push each repo's current branch to origin
-#   tools/repos.sh tag | tag-patch | tag-minor | tag-major
+#   tools/repos.sh push [--yes] push each repo's current branch to origin
+#   tools/repos.sh tag | tag-patch | tag-minor | tag-major [--yes]
 #                               bump the latest vX.Y.Z tag (patch / minor+reset / major+reset), then
 #                               push the BRANCH and the new tag together (so the tag lands on a commit
 #                               that's actually on origin's branch, not one reachable only via the
-#                               tag). Skips a repo with no commits since its latest tag, and any repo
-#                               with no tag yet (configsys stays tagless until 1.0).
+#                               tag). Skips a repo with no commits since its latest tag, any repo with
+#                               no tag yet (configsys stays tagless until 1.0), and any repo with
+#                               uncommitted or untracked files. Keeps the tag's style: 1.2.3 -> 1.2.4,
+#                               v1.2.3 -> v1.2.4.
 #
-# Every mode prints the status report first, so you see the state before anything is pushed/tagged.
+# Every mode prints the status report first, so you see the state before anything is pushed/tagged;
+# push and tag then ask before touching any repo (`--yes` skips the question).
 set -uo pipefail
 
-cmd=${1:-status}
+cmd='' yes=0
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes) yes=1 ;;
+    *) [ -z "$cmd" ] && cmd=$arg || { echo "repos.sh: unexpected argument '$arg'" >&2; exit 2; } ;;
+  esac
+done
+cmd=${cmd:-status}
 case "$cmd" in
   status|'')            action=report ;;
   push)                 action=push ;;
@@ -54,16 +64,16 @@ latest_tag() {
     | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n1
 }
 
-# bump <vX.Y.Z> <patch|minor|major> -> new vX.Y.Z (fails on an unparseable tag)
+# bump <[v]X.Y.Z> <patch|minor|major> -> the new tag, in the same style (fails on an unparseable tag)
 bump() {
-  [[ $1 =~ ^v?([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || return 1
-  local M=${BASH_REMATCH[1]} m=${BASH_REMATCH[2]} p=${BASH_REMATCH[3]}
+  [[ $1 =~ ^(v?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || return 1
+  local v=${BASH_REMATCH[1]} M=${BASH_REMATCH[2]} m=${BASH_REMATCH[3]} p=${BASH_REMATCH[4]}
   case $2 in
     patch) p=$((p + 1)) ;;
     minor) m=$((m + 1)); p=0 ;;
     major) M=$((M + 1)); m=0; p=0 ;;
   esac
-  printf 'v%s.%s.%s' "$M" "$m" "$p"
+  printf '%s%s.%s.%s' "$v" "$M" "$m" "$p"
 }
 
 # -- report --------------------------------------------------------------------------------------
@@ -129,6 +139,11 @@ do_tag() {
   # nothing to tag if there are no commits since the latest tag
   n=$(g "$repo" rev-list --count "${tag}..HEAD" 2>/dev/null); n=${n:-0}
   [ "$n" -eq 0 ] && { printf '    %sskip — no commits since %s%s\n' "$DIM" "$tag" "$RST"; return; }
+  # a tag names a commit, not your worktree: tagging over uncommitted work releases something
+  # other than what you see
+  if [ -n "$(g "$repo" status --porcelain 2>/dev/null)" ]; then
+    printf '    %sskip — uncommitted or untracked files (commit or stash them first)%s\n' "$YEL" "$RST"; return
+  fi
   new=$(bump "$tag" "$kind") || { printf '    %sskip — unparseable tag %s%s\n' "$YEL" "$tag" "$RST"; return; }
   if g "$repo" rev-parse -q --verify "refs/tags/$new" >/dev/null 2>&1; then
     printf '    %sskip — %s already exists%s\n' "$YEL" "$new" "$RST"; return
@@ -153,6 +168,11 @@ do_tag() {
 for repo in "${repos[@]}"; do report "$repo"; done
 
 if [ "$action" != report ]; then
+  if [ "$yes" -ne 1 ]; then
+    printf '\n'
+    read -r -p "$cmd ${#repos[@]} repos? [y/N] " answer || answer=''
+    [[ $answer == [yY] || $answer == [yY][eE][sS] ]] || { echo 'nothing done'; exit 0; }
+  fi
   printf '\n%s=== %s ===%s\n' "$BOLD" "$cmd" "$RST"
   for repo in "${repos[@]}"; do
     printf '%s%s%s\n' "$BOLD" "$(basename "$repo")" "$RST"

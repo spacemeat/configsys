@@ -11,7 +11,8 @@ import pytest
 
 from configsys import primarygit
 
-from test_primary_push import BASE_P, _ctx, _git, primary  # noqa: F401
+from fakes import BASE_P, git as _git
+from test_primary_push import _ctx
 from configsys.tui import flows as flows_mod
 
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')

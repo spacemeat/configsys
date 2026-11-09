@@ -6,7 +6,9 @@ import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers.clang import Clang
 from configsys.drivers.gcc import Gcc
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
+
+from fakes import FakeRunner
 
 
 @pytest.fixture(autouse=True)
@@ -25,20 +27,6 @@ def gcc_fedora(comp='gcc-13'):
 def clang_fedora(comp='clang-18'):
     return ResolvedComponent(key=f'clang\\{comp}', driver='clang', comp=comp,
                              fields={'packages': ['clang18']})
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
 
 
 def test_gcc_install_uses_dnf_no_repo_no_alternatives():

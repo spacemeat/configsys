@@ -1,7 +1,8 @@
 '''Shared pytest fixtures and path setup.
 
 Ensures the repo root is importable (so `import configsys...` works without an
-installed package) and provides a fixtures directory helper.
+installed package). Shared test doubles and builders live in test/fakes.py; the `primary` fixture
+(a blessed primary with a bare remote and a second clone) is built on its `primary_remote`.
 
 Every test is HERMETIC by default (`_hermetic`, autouse — review-2026-11-2 A17): it can't reach the
 developer's machine through configsys or git.
@@ -29,8 +30,6 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-
-FIXTURES = Path(__file__).resolve().parent / 'fixtures'
 
 _FAKE_SUDO = '''#!/bin/sh
 # configsys test suite: sudo is disabled (test/conftest.py). Log the attempt and fail.
@@ -137,5 +136,10 @@ def _hermetic(request, monkeypatch, tmp_path_factory, _fake_sudo_dir):
 
 
 @pytest.fixture
-def fixtures_dir():
-    return FIXTURES
+def primary(tmp_path):
+    '''A sandbox home with a blessed primary `prim` cloned from bare remote `bare`, plus `other`: a
+    second clone standing in for your other machine. -> (base argv, clone, bare, other). A module
+    that needs a different primary defines its own `primary` fixture, which overrides this one.'''
+    from fakes import BASE_P, primary_remote
+    return primary_remote(tmp_path, {'p.hu': BASE_P, 'notes.txt': BASE_P},   # notes: git's line merge only
+                          seed='other')

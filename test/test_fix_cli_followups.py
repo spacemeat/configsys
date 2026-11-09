@@ -2,13 +2,10 @@
 glue add's 90-<name> link, user glue in `dotfiles status`, `configsys keys` rebind-wins, and the
 actions-level --pretend refusal the TUI relies on.'''
 
-import types
-
 import pytest
 
 from configsys import actions
 from configsys.app import Context, build_parser, main
-from configsys.runner import Runner
 
 
 @pytest.fixture

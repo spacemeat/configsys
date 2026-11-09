@@ -8,7 +8,7 @@ import pytest
 from configsys import routes
 from configsys.routecheck import AmbiguityError, check_all, check_component
 from configsys.predicate import comparable, overlap, parse, subset
-from configsys.routes import Binding, Component
+from configsys.routes import Component
 
 
 @pytest.fixture(scope='module')

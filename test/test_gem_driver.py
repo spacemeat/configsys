@@ -1,7 +1,9 @@
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.gem import Gem
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
+
+from fakes import FakeRunner
 
 
 def gem(name='bundler', scope=None):
@@ -9,20 +11,6 @@ def gem(name='bundler', scope=None):
     if scope:
         fields['scope'] = scope
     return ResolvedComponent(key=f'gem\\{name}', driver='gem', comp=name, fields=fields)
-
-
-class FakeRunner:
-    def __init__(self, responses=None):
-        self.responses = responses or []
-        self.calls = []
-
-    def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None):
-        full = f'sudo {cmd}' if sudo else cmd
-        self.calls.append(full)
-        for needle, code, out in self.responses:
-            if needle in cmd:
-                return Result(full, code, stdout=out)
-        return Result(full, 0, stdout='')
 
 
 def test_registered_and_scope_honoring():

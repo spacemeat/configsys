@@ -11,7 +11,8 @@ import pytest
 
 from configsys import humerge, layers, primarygit
 
-from test_primary_push import BASE_P, Scripted, _clean, _ctx, _git, _other_pushes, _remote_file, primary  # noqa: F401
+from fakes import BASE_P, git as _git
+from test_primary_push import Scripted, _clean, _ctx, _other_pushes, _remote_file
 from configsys.tui import flows as flows_mod
 
 pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)

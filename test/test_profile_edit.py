@@ -104,7 +104,6 @@ def test_parts_component_installed_iff_all_parts(tmp_path):
 def test_install_probe_underlines_nonenumerable(tmp_path):
     # the install-underline probe: a tarball/script component (no batch installed_index) that's on
     # disk is detected by an individual get_version probe, so it underlines like a native package.
-    import time
     from configsys.drivers import get_driver
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
@@ -119,10 +118,10 @@ def test_install_probe_underlines_nonenumerable(tmp_path):
     ps.show_install = 1
     ps._overlay = (frozenset(), {}, frozenset())                 # batch overlay ran; adguardhome not in it
     ps.ensure_probes(['adguardhome', 'fzf'])                          # fzf is native -> enumerable -> skipped
-    for _ in range(50):
-        if not ps.probe_busy():
-            break
-        time.sleep(0.1)
+    # join the worker: probe_busy() stays True until the menu loop repaints (clears _probe_dirty),
+    # so polling it here always burned the full timeout
+    assert ps._probe_thread is not None
+    ps._probe_thread.join(timeout=5)
     assert ps._probe_installed.get('adguardhome') is True             # probe found it -> will underline
     assert 'fzf' not in ps._probe_installed                      # enumerable driver, not probed
 

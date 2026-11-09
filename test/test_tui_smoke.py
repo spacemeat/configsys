@@ -43,11 +43,11 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
 
     # pre-create the user config so first-run onboarding (the primary-plugin prompt) doesn't
     # fire under the PTY and consume the TUI keystrokes — this test is about TUI nav, not setup.
-    # an active profile with an unroutable component -> a real diagnostic, so the `!` page has
-    # content to render (a resilient error row, not a brick).
+    # a picked unroutable component -> a real resilient error row on the `!` page (content to
+    # render, not a brick)
     cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
     cfg.parent.mkdir(parents=True, exist_ok=True)
-    cfg.write_text('{ configs: [ mine ]  profiles: { mine: [ ghost-tool ] } }\n')
+    cfg.write_text('{ picks: { this-machine: [ ghost-tool ] } }\n')
 
     env = dict(os.environ)
     env.update({
@@ -68,6 +68,7 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     # drive: down, open diagnostics page, scroll, close it, select, then quit — `q` opens a
     # "Really quit?" modal (default No), so `k` moves to "Yes, quit" and Enter confirms. Runs in
     # three color modes (auto / --nocolor / --color 16) so a low-color render crash can't slip in.
+    issues_page, bangs = b'', 0
     for keys in (b'j', b'!', b'j', b'!', b'?', b'j', b'4', b'5', b'q', b' ', b'q', b'k', b'\r'):
         try:
             os.write(master, keys)
@@ -75,7 +76,10 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
             break
         # DRAIN while driving: truecolor + the help modal emit a lot of output; if we don't read the
         # PTY the buffer fills and curses blocks on write (looks like a hang).
-        _drain(master, time.monotonic() + 0.15)
+        out = _drain(master, time.monotonic() + 0.15)
+        bangs += keys == b'!'
+        if bangs == 1:                               # while the `!` page is open (first ! .. second !)
+            issues_page += out
 
     try:
         proc.wait(timeout=8)
@@ -89,6 +93,19 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
     assert proc.returncode == 0
     # curses drew something (alt-screen or SGR); at minimum it produced output.
     assert first, 'TUI produced no terminal output'
+    assert b'ghost-tool' in issues_page, 'the ! page did not show the unroutable pick'
+
+
+def test_the_smoke_seed_is_a_resilient_resolve_error(tmp_path):
+    # the seed above exercises what its comment says: a pick that can't route here is an error row
+    from configsys.app import Context, build_parser
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    cfg.write_text('{ picks: { this-machine: [ ghost-tool ] } }\n')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', '--pretend', 'inspect']))
+    assert 'ghost-tool' in ctx.config.requested()
+    _units, errors = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    assert 'ghost-tool' in errors
 
 
 def test_tui_machine_target_selector(tmp_path):

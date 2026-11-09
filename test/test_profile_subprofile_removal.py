@@ -2,8 +2,6 @@
 subtracts that whole profile's expanded member set (order-sensitive, mirroring `~component`),
 so an extension profile can take a SUBSET of an included meta-profile's subprofiles.'''
 
-import pytest
-
 from configsys import layers
 from configsys.config import Config
 
