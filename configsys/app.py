@@ -1042,21 +1042,13 @@ def cmd_fix_scope(ctx, args):
         if names and rc.comp not in names and key not in names:
             continue
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if drv is None or not drv.honors_scope:
-            continue
-        target = drv.scope(rc)
-        if st.scope == target:
-            continue                                  # already where it's declared
-        print(f'fix-scope {key}: {st.scope} -> {target} ...')
-        res = drv.reconcile_scope(rc, st.scope, target)
-        if res.ok:
-            print('  -> ok')
-            fixed += 1
-        else:
-            print(f'  -> FAILED (exit {res.returncode})')
-            for line in (res.output or res.cmd or '').strip().splitlines():
-                print(f'     {line}')
-            failed += 1
+        if drv is None or not drv.honors_scope or st.scope == drv.scope(rc):
+            continue                                  # one fixed scope, or already where it's declared
+        print(f'fix-scope {key}: {st.scope} -> {drv.scope(rc)} ...')
+        from . import actions
+        ok, msg = actions.fix_scope(ctx, rc, st.scope)    # the step the TUI `v` row shares
+        print(f'  -> {"ok" if ok else msg}')
+        fixed, failed = fixed + ok, failed + (not ok)
     if not fixed and not failed:
         print('configsys: no scope mismatches to fix')
     return 1 if failed else 0

@@ -136,7 +136,7 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})
     monkeypatch.setattr(sysupdates, 'apply_bulk', lambda c, mgrs, refresh=True: (
         seen.append(('bulk', refresh)) or [(m, SimpleNamespace(ok=True)) for m in mgrs]))
-    monkeypatch.setattr(menu, 'execute_plan', lambda c, plan, led, refresh=True: (
+    monkeypatch.setattr(menu, 'execute_plan', lambda c, plan, led, refresh=True, version=None: (
         seen.append(('plan', refresh)) or []))
     monkeypatch.setattr(app, 'published_pending', lambda c, fresh: sorted(fresh))
     menu._confirm_and_execute(None, None, ms, ctx, Ledger())

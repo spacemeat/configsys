@@ -39,6 +39,8 @@ OPS = {
     'lock':    ('L', 'op_lock',    lambda s: s.supported and s.present and not s.locked
                                              and s.holds_version),   # not on rolling managers (pacman/apk)
     'unlock':  ('l', 'op_unlock',  lambda s: s.supported and s.locked),
+    # staged only from the `v` picker (MenuState.stage_unit), never by a bulk key
+    'set-version': ('V', 'op_upgrade', lambda s: s.supported and s.present),
 }
 
 KEY_TO_OP = {
@@ -199,6 +201,7 @@ class MenuState:
         self._uninstall_q = frozenset()
         self._overlay_caches = {}
         self._extra_keys = set()
+        self.staged_versions = {}          # unit key -> version for a staged set-version
         self._refresh()
 
     def adopt_view(self, old, *, errors=True, descriptions=True):
@@ -210,6 +213,8 @@ class MenuState:
         ids = {n.id for n in self._all_nodes()}
         self.selected = {i for i in old.selected if i in ids}
         self.staged = {k: op for k, op in old.staged.items() if k in self.states}
+        self.staged_versions = {k: v for k, v in (getattr(old, 'staged_versions', None) or {}).items()
+                                if self.staged.get(k) == 'set-version'}
         if errors:
             self.errors = {k: e for k, e in old.errors.items() if k in self.states}
         if descriptions:
@@ -629,6 +634,21 @@ class MenuState:
     def plan(self):
         return [(op, k, self.states[k].component) for k, op in sorted(self.staged.items())]
 
+    def plan_versions(self):
+        '''{unit key: version} for the staged set-version ops (run_plan's per-unit `version=`).'''
+        sv = getattr(self, 'staged_versions', None) or {}
+        return {k: v for k, v in sv.items() if self.staged.get(k) == 'set-version'}
+
+    def stage_unit(self, key, op, version=None):
+        '''Stage `op` on ONE unit, whatever OPS' predicates say — the `v` picker's explicit rebuild
+        (an `install` of a present unit) and set-version. Returns True when staged.'''
+        if key not in self.states:
+            return False
+        self.staged[key] = op
+        if op == 'set-version':
+            self.__dict__.setdefault('staged_versions', {})[key] = version
+        return True
+
     def node_op(self, node):
         ops = {self.staged[m.key] for m in node.members if m.key in self.staged}
         if not ops:
@@ -878,7 +898,8 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             if not getattr(ctx.runner, 'pretend', False):   # the ! page + `report` see it too
                 reportgen.record_run(ctx.paths, bulk_failures, bulk_keys)
         if plan:                                          # then the per-component ops, against the fresh base
-            outcomes += execute_plan(ctx, plan, ledger, refresh=False)
+            outcomes += execute_plan(ctx, plan, ledger, refresh=False,
+                                     version=(getattr(ms, 'plan_versions', dict)() or None))
         # drain the persisted !uninstall queue for components we just removed (shared with the CLI)
         from ..actions import after_run
         after_run(ctx, outcomes, units)
@@ -2053,6 +2074,20 @@ def _pick_choices(stdscr, pal, ms, ctx):
         axes.append((f'install method — {name}', 'method', None))
     for cap, provs in _capability_choices(routes, name):
         axes.append((f'provider for {cap}', 'provider', (cap, provs)))
+    # what you can DO to its installed unit here (§7.17 — CLI parity: `install` re-runs, set-version,
+    # fix-scope), staged like any op and run with X
+    unit = next((k for k, st in (getattr(ms, 'states', None) or {}).items()
+                 if st.component.comp == name and st.present and not _is_system_update(st)), None)
+    if unit is not None:
+        st = ms.states[unit]
+        from ..actions import targets_version
+        drv = get_driver(st.component.driver, ctx.runner, ctx.paths)
+        axes.append((f'rebuild / reinstall {name} (X runs it)', 'rebuild', unit))
+        if drv is not None and targets_version(drv):
+            axes.append((f'pin {name} to a version…', 'set-version', unit))
+        want = drv.scope(st.component) if drv is not None else None
+        if st.scope and want and st.scope != want:
+            axes.append((f'fix scope: move it from {st.scope} to {want}', 'fix-scope', unit))
     if not axes:
         return False, f'{name}: nothing to choose (one method, no multi-provider capability)', None
     if len(axes) == 1:
@@ -2064,8 +2099,47 @@ def _pick_choices(stdscr, pal, ms, ctx):
         _label, kind, payload = axes[idx]
     if kind == 'method':
         return _pick_method_name(stdscr, pal, ctx, name)
+    if kind == 'rebuild':
+        ms.stage_unit(payload, 'install')
+        ms._refresh()
+        return False, f'staged a rebuild of {name} — X runs it (missing dependencies too)', None
+    if kind == 'set-version':
+        return _stage_set_version(stdscr, pal, ms, ctx, name, payload)
+    if kind == 'fix-scope':
+        return _fix_scope_row(stdscr, pal, ms, ctx, name, payload)
     cap, provs = payload
     return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
+
+
+def _stage_set_version(stdscr, pal, ms, ctx, name, key):
+    '''Ask for a version (offering what the method can install, newest first) and stage a
+    set-version of `key` at it.'''
+    offers = []
+    try:
+        from .. import versionreport
+        rep = versionreport.report(ctx, name)
+        offers = [m.latest for m in rep.methods if getattr(m, 'latest', None)]
+    except Exception:  # noqa: BLE001 — a probe failure just means no suggestions
+        pass
+    seed = clean_version(offers[0]) if offers else ''
+    ver = _input_box(stdscr, pal, f'pin {name} to version', seed)
+    if not ver or not ver.strip():
+        return False, 'unchanged', None
+    ms.stage_unit(key, 'set-version', ver.strip())
+    ms._refresh()
+    return False, f'staged {name} → {ver.strip()} (set-version; X runs it, a lock follows it)', None
+
+
+def _fix_scope_row(stdscr, pal, ms, ctx, name, key):
+    '''Reinstall `key` at the scope your config declares (`configsys fix-scope`), after a confirm.'''
+    st = ms.states[key]
+    if _popup_choose(stdscr, pal, f'move {name} from {st.scope} to the scope your config declares?',
+                     [('cancel', ''), ('move it (reinstall there, then remove the old one)', '')], 0) != 1:
+        return False, 'unchanged', None
+    from .. import actions
+    with suspended(stdscr):
+        ok, msg = actions.fix_scope(ctx, st.component)
+    return ok, _pretend_note(ctx, msg, ok), None
 
 
 def _is_companion_comp(routes, comp):

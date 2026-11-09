@@ -96,3 +96,38 @@ def test_results_note_reports_failures_and_pretend():
         'activated 2 of 3 snippet(s) — fd-glue failed: no such shell'
     assert results_note(dry, 'activated', res[:1]).startswith('[pretend] nothing changed')
     assert results_note(live, 'activated', [], nothing='none') == 'none'
+
+
+def test_rebuild_and_set_version_stage_on_a_present_unit():
+    # G1 / §7.17: the `v` picker's rebuild + set-version rows stage on an installed, current unit
+    states = {'source\\rg': _st('source\\rg', 'rg', ['rg'], True)}
+    ms = menu.MenuState(states, [('p', ['rg'])])
+    assert ms.stage_unit('source\\rg', 'install')
+    assert ms.plan()[0][:2] == ('install', 'source\\rg')
+    assert ms.stage_unit('source\\rg', 'set-version', '14.0.0')
+    assert ms.plan_versions() == {'source\\rg': '14.0.0'}
+
+
+def test_run_plan_takes_a_version_per_unit(tmp_path, monkeypatch):
+    import configsys.drivers as drivers_mod
+    from configsys import actions
+    from configsys.paths import Paths
+    from configsys.runner import Result as R
+    got = {}
+
+    class D:
+        honors_scope = False
+        def set_version(self, rc, v):
+            got[rc.comp] = v
+            return R('', 0)
+        def get_version(self, rc):
+            return None
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: D())
+    monkeypatch.setattr(actions, 'targets_version', lambda d: True)
+    c = types.SimpleNamespace(runner=types.SimpleNamespace(pretend=False, end_sudo=lambda: None),
+                              paths=Paths(env={'HOME': str(tmp_path)}))
+    a = ResolvedComponent(key='pip\\a', driver='pip', comp='a', fields={})
+    b = ResolvedComponent(key='pip\\b', driver='pip', comp='b', fields={})
+    actions.run_plan(c, [('set-version', 'pip\\a', a), ('set-version', 'pip\\b', b)],
+                     version={'pip\\a': '1.0', 'pip\\b': '2.0'}, on_line=lambda *_: None)
+    assert got == {'a': '1.0', 'b': '2.0'}

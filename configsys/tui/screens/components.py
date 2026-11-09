@@ -212,7 +212,7 @@ class ComponentsScreen(Screen):
             op = ms.node_op(n)
             err = ms.row_error(n)
             if op:
-                bch, belem = (op if op == '*' else OPS[op][0]), ('op_mixed' if op == '*' else 'op_' + op)
+                bch, belem = (op if op == '*' else OPS[op][0]), ('op_mixed' if op == '*' else OPS[op][1])
             elif err:
                 bch, belem = '✗', 'row_error'
             else:

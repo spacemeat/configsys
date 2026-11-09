@@ -345,6 +345,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     offer stays with each surface.'''
     from . import reportgen, shellguard
     from .drivers import get_driver
+    versions = version if isinstance(version, dict) else None   # per-unit (a TUI batch) or one for all
     outcomes, failures, n_fatal, rc_code, interrupted = [], [], 0, 0, False
     pretend = bool(getattr(ctx.runner, 'pretend', False))   # --pretend: print, never record anything
     begin = getattr(ctx.runner, 'begin_sudo', None)
@@ -353,6 +354,8 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     try:
         swapped_locks = set()            # comps whose locked install a swap removed: the new one is held too
         for cur_op, key, rc in plan:
+            if versions is not None:
+                version = versions.get(key)
             drv = get_driver(rc.driver, ctx.runner, ctx.paths)
             if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
                 on_line(f'skip {key}: {rc.comp} has no install method on this machine')
@@ -518,6 +521,24 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
         if not pretend:            # the unresolved-failures record (! page, `report`): this run's in, fixed ones out
             reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
+
+
+def fix_scope(ctx, rc, current):
+    """Reinstall `rc` at the scope your config declares (it is installed at `current`) — the ONE
+    reconcile step `configsys fix-scope` and the TUI `v` picker's "fix scope" row share. Returns
+    (ok, message). Never edits the config."""
+    from .drivers import get_driver
+    drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+    if drv is None or not drv.honors_scope:
+        return False, f'{rc.comp}: its install method has one fixed scope'
+    target = drv.scope(rc)
+    if current == target:
+        return False, f'{rc.comp} is already installed at {target} scope'
+    res = drv.reconcile_scope(rc, current, target)
+    if res.ok:
+        return True, f'{rc.comp}: moved from {current} to {target} scope'
+    out = (res.output or res.cmd or '').strip().splitlines()
+    return False, f'{rc.comp}: fix-scope failed (exit {res.returncode})' + (f': {out[-1]}' if out else '')
 
 
 def unset_pin(ctx, name):
