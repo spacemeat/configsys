@@ -605,6 +605,7 @@ def cmd_plugin(ctx, args):
             print('configsys: no plugins declared')
             return 0
         top = {plugins.dir_name(d['source']) for d in decls}
+        declared_by = plugins.declarers(ctx.paths.user_config_file, ctx.paths.plugins_dir)
         for r in rows:
             if not r['synced']:
                 state = 'not synced (run: configsys plugin sync)'
@@ -629,8 +630,9 @@ def cmd_plugin(ctx, args):
                     state += (f'  [{what} changed since trust — re-approve: '
                               f'configsys plugin trust {r["name"]}]')
             ref = f' @{r["ref"]}' if r['ref'] else ''
+            via = declared_by.get(plugins.dir_name(r['source']))
             tags = ('  [primary]' if r['primary'] else
-                    ('  [via primary]' if plugins.dir_name(r['source']) not in top else ''))
+                    (f'  [via {via}]' if via and plugins.dir_name(r['source']) not in top else ''))
             if r.get('locked'):
                 state += f'  [locked since {r["locked"]} — no sync/update/trust; configsys plugin unlock {r["name"]}]'
             if r['primary'] and r['synced']:

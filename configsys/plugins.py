@@ -105,20 +105,34 @@ def effective_declared(user_config_file, plugins_dir):
     bootstraps from a one-line top config. Transitive decls never carry `primary` (that grant is
     the top config's alone); an unsynced transitive plugin simply isn't discovered until the next
     sync populates its parent's manifest.'''
-    out, seen = [], set()
-    stack = list(declared(user_config_file))
+    return _effective(user_config_file, plugins_dir)[0]
+
+
+def declarers(user_config_file, plugins_dir):
+    '''{plugin dir: the NAME of the plugin whose manifest declared it} for every transitively
+    declared plugin (the first declarer effective_declared reached it through); top-config plugins
+    are absent. What `plugin list`'s `[via <plugin>]` tag shows (review §7.10).'''
+    return _effective(user_config_file, plugins_dir)[1]
+
+
+def _effective(user_config_file, plugins_dir):
+    out, seen, via = [], set(), {}
+    stack = [(d, None) for d in declared(user_config_file)]
     while stack:
-        d = stack.pop(0)
+        d, parent = stack.pop(0)
         key = dir_name(d['source'])
         if key in seen:
             continue
         seen.add(key)
         out.append(d)
-        for sub in (read_manifest(plugins_dir / key).get('plugins') or []):
+        if parent is not None:
+            via[key] = parent
+        manifest = read_manifest(plugins_dir / key)
+        for sub in (manifest.get('plugins') or []):
             nd = _decl(sub)                          # transitive: primary stripped
             if nd and dir_name(nd['source']) not in seen:
-                stack.append(nd)
-    return out
+                stack.append((nd, manifest.get('name', key)))
+    return out, via
 
 
 def declared_tree(user_config_file, plugins_dir):

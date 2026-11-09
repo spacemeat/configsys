@@ -140,6 +140,28 @@ def test_machine_level_plugin_declared_in_top_config_and_pulls_transitive(tmp_pa
     assert any(f.endswith('app/routes.hu') and role == 'plugin' for f, role in files)
 
 
+def test_plugin_list_names_the_real_declarer(tmp_path, capsys):
+    # review §7.10: a plugin another (non-primary) plugin declares is tagged with THAT plugin, not
+    # `[via primary]`; one the primary declares reads `[via <primary>]`
+    from configsys.app import main
+    state = tmp_path / '.config' / 'configsys'
+    pdir = state / 'plugins'
+    _plugin(pdir, 'cfg', '{ name: cfg  requires-abi: 1  plugins: [ { source: "github:x/blender" } ] }', {})
+    _plugin(pdir, 'blender', '{ name: blender  requires-abi: 1 }', {})
+    _plugin(pdir, 'app', '{ name: app  requires-abi: 1  plugins: [ { source: "github:x/dep" } ] }', {})
+    _plugin(pdir, 'dep', '{ name: dep  requires-abi: 1 }', {})
+    (state / 'configsys.hu').write_text('{ plugins: [ { source: "github:me/cfg"  primary: true }'
+                                        '             { source: "github:me/app" } ] }')
+    assert plugins.declarers(state / 'configsys.hu', pdir) == {'blender': 'cfg', 'dep': 'app'}
+    assert main(['--home', str(tmp_path), '--os', 'pop', 'plugin', 'list']) == 0
+    lines = capsys.readouterr().out.splitlines()
+    tag = {ln.split()[0]: ln for ln in lines if ln.startswith('  ') and ln.split()[0] in
+           ('cfg', 'blender', 'app', 'dep')}
+    assert '[primary]' in tag['cfg'] and '[via' not in tag['app']
+    assert '[via cfg]' in tag['blender'] and '[via app]' in tag['dep']
+    assert 'via primary' not in '\n'.join(lines)
+
+
 # -- resolution: plugin adds a component AND an os block (derivative distro) --
 
 def test_plugin_component_and_os_block_resolve(tmp_path):
