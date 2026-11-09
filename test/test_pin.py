@@ -62,7 +62,7 @@ def test_pin_promote_moves_pin_into_primary(tmp_path, capsys):
 
     assert _run(tmp_path, 'pin', 'promote', 'steam') == 0
     out = capsys.readouterr().out
-    assert 'into primary plugin me' in out and 'commit & push' in out
+    assert 'into primary plugin me' in out and 'plugin push' in out      # configsys commits; you push
     # moved: gone from the top config, now in the primary's data file
     assert plugins.read_pins(str(cfgdir / 'configsys.hu')) == {}
     assert plugins.read_pins(str(pdir / 'me.hu')) == {'steam': 'flatpak'}

@@ -205,3 +205,21 @@ def test_a_failed_reinstall_of_an_unchanged_install_is_a_failure(tmp_path, monke
     res = _run(tmp_path, monkeypatch, drv, [('install', 'source\\folly', _unit('folly', 'source'))])
     o = res.outcomes[0]
     assert not o.ok and not o.installed_with_warning and res.n_fatal == 1 and res.rc_code == 2
+
+
+def test_fix_scope_runs_in_the_loop_and_refreshes_the_receipt(tmp_path, monkeypatch):
+    # D3 / actions-15: fix-scope is a run_plan op (guard, failure record) and the receipt moves too
+    from configsys.ledger import Ledger
+    drv = StubDrv()
+    drv.honors_scope = True
+    drv.get_installed = lambda rc: ('1.0', 'user')
+    drv.scope = lambda rc: rc.fields.get('scope') or 'system'
+    calls = []
+    drv.reconcile_scope = lambda rc, a, b: (calls.append((a, b)), Result('', 0))[1]
+    led = Ledger()
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: drv)
+    rc = _unit('tool', 'tarball')
+    ctx = _ctx(tmp_path)
+    res = actions.run_plan(ctx, [('fix-scope', rc.key, rc)], ledger=led, on_line=lambda *_a: None)
+    assert res.outcomes[0].ok and calls == [('user', 'system')]
+    assert Ledger.load(ctx.paths).records[rc.key]['receipt']['fields']['scope'] == 'system'

@@ -1058,9 +1058,10 @@ def _offer_report(ctx, failures, fatal=None):
 def cmd_fix_scope(ctx, args):
     '''Reconcile installed units whose ACTUAL scope differs from their DECLARED scope — make the
     install match the config (never edits the config). No args = every mismatched active unit.'''
-    _cfg, _req, _units, _ledger, states = ctx.load_pipeline()
+    from . import actions
+    _cfg, _req, _units, ledger, states = ctx.load_pipeline()
     names = set(getattr(args, 'names', None) or [])
-    fixed = failed = 0
+    plan = []
     for key in sorted(states):
         st = states[key]
         rc = st.component
@@ -1071,14 +1072,15 @@ def cmd_fix_scope(ctx, args):
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None or not drv.honors_scope or st.scope == drv.scope(rc):
             continue                                  # one fixed scope, or already where it's declared
-        print(f'fix-scope {key}: {st.scope} -> {drv.scope(rc)} ...')
-        from . import actions
-        ok, msg = actions.fix_scope(ctx, rc, st.scope)    # the step the TUI `v` row shares
-        print(f'  -> {"ok" if ok else msg}')
-        fixed, failed = fixed + ok, failed + (not ok)
-    if not fixed and not failed:
+        plan.append(('fix-scope', key, rc))
+    if not plan:
         print('configsys: no scope mismatches to fix')
-    return 1 if failed else 0
+        return 0
+    # ONE run_plan batch (D3): the up-front sudo, the guard, ^C, every failure recorded for `report`
+    result = actions.run_plan(ctx, plan, ledger=ledger)
+    if result.failures:
+        _offer_report(ctx, result.failures, result.n_fatal)
+    return result.rc_code
 
 
 def _picks_selection(ctx, op):
@@ -2451,24 +2453,8 @@ def cmd_versions(ctx, args):
 # -- pin: view / set / promote install-method (and provider) pins ----------
 
 def _validate_pin(ctx, name, value):
-    '''(ok, note). A binding-pin (value is a via) needs `name` to be a component that HAS a
-    binding with that via; a note warns if that via isn't available on THIS machine. A provider-
-    pin (value is a component) is accepted if the component exists. Otherwise not-ok with why.'''
-    from .resolve import pin_via_names
-    r = ctx.routes
-    if value in pin_via_names():                                    # binding-pin (via-name-first)
-        comp = r.components.get(name)
-        if comp is None:
-            return False, f'{name!r} is not a known component (a binding-pin needs one)'
-        vias = {b.via for b in comp.bindings}
-        if value not in vias:
-            return False, f'{name!r} has no via:{value} binding (its methods: {sorted(vias) or "none"})'
-        if value not in {c['via'] for c in r.candidates(name)}:
-            return True, f'via:{value} is a valid method for {name} but not available on this machine right now'
-        return True, ''
-    if value in r.components:                                        # provider-pin
-        return True, ''
-    return False, f'{value!r} is neither a known via/driver nor a known component'
+    from . import actions
+    return actions.validate_pin(ctx, name, value)
 
 
 def _pin_list(ctx):
@@ -2485,21 +2471,15 @@ def _pin_list(ctx):
 
 
 def _pin_set(ctx, name, value):
-    from . import plugins
-    ok, note = _validate_pin(ctx, name, value)
+    from . import actions
+    ok, label, note = actions.set_pin(ctx, name, value)
     if not ok:
         print(f'configsys: {note}', file=sys.stderr)
         return 1
-    if ctx.runner.pretend:
+    if label == actions.PRETEND_NOT_SAVED:
         print(f'configsys: [pretend] would pin {name} -> {value} in your top config')
         return 0
-    ctx.ensure_user_config()
-    pins = plugins.read_pins(ctx.paths.user_config_file)
-    pins[name] = value
-    plugins.set_pins(ctx.paths.user_config_file, pins)
-    invalidate_location_cache(ctx)                    # a method switch can change where `name` installs
-    print(f'configsys: pinned {name} -> {value} '
-          f'(local, in {_layer_label(ctx.paths.user_config_file, ctx.paths)})')
+    print(f'configsys: pinned {name} -> {value} (local, in {label})')
     if note:
         print(f'  note: {note}')
     _swap_headsup(ctx, name, value)
@@ -2536,38 +2516,12 @@ def _pin_unset(ctx, name):
 
 def _pin_promote(ctx, name):
     '''Move a top-config pin up into the primary plugin, so it travels to other machines.'''
-    from . import plugins
-    local = plugins.read_pins(ctx.paths.user_config_file)
-    if name not in local:
-        print(f'configsys: {name} is not pinned in your top config (nothing to promote)',
-              file=sys.stderr)
-        return 1
-    decls = plugins.declared(ctx.paths.user_config_file)
-    prim = plugins.primary_name(decls)
-    if prim is None:
-        print('configsys: no primary plugin set — bless one first '
-              '(`configsys plugin bless <source>`)', file=sys.stderr)
-        return 1
     from . import actions
-    # a primary with no data file yet gets an empty one on demand (never under --pretend)
-    target, _pn = (actions._primary_target_label(ctx) if ctx.runner.pretend
-                   else actions._writable_primary_file(ctx))
-    if not target:
-        print(f'configsys: primary plugin {prim!r} has no synced data file to hold the pin '
-              '(add one to it first)', file=sys.stderr)
-        return 1
-    value = local[name]
-    if ctx.runner.pretend:
-        print(f'configsys: [pretend] would move pin {name} -> {value} into primary plugin {prim}')
-        return 0
-    ppins = plugins.read_pins(target)
-    ppins[name] = value
-    plugins.set_pins(target, ppins)
-    del local[name]
-    plugins.set_pins(ctx.paths.user_config_file, local)
-    print(f'configsys: moved pin {name} -> {value} into primary plugin {prim}')
-    print(f'  commit & push {prim} so it travels to your other machines')
-    return 0
+    ok, msg = actions.promote_pin(ctx, name)
+    print(f'configsys: {msg}', file=None if ok else sys.stderr)
+    if ok and not ctx.runner.pretend:
+        print('  it travels to your other machines with the primary (`configsys plugin push`)')
+    return 0 if ok else 1
 
 
 def cmd_pin(ctx, args):

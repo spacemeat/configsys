@@ -1854,22 +1854,18 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=())
 
 
 def _apply_method_pin(ctx, name, via, already_pinned):
-    '''Write a binding-pin name->via to the top config. Returns (changed, note, deferred): the
-    footer note is immediate; the deferred message (promote hint) is printed on TUI exit.'''
-    from .. import plugins
+    '''Write a binding-pin name->via through actions.set_pin (the writer `configsys pin set` uses —
+    validated the same way). Returns (changed, note, deferred).'''
+    from .. import actions
     if already_pinned:
         return False, f'{name} already uses {via}', None
-    if ctx.runner.pretend:
+    ok, label, note = actions.set_pin(ctx, name, via)
+    if not ok:
+        return False, f'{name}: {note}', None
+    if label == actions.PRETEND_NOT_SAVED:
         return False, f'[pretend] would pin {name} → {via}', None
-    ctx.ensure_user_config()
-    pins = plugins.read_pins(ctx.paths.user_config_file)
-    pins[name] = via
-    plugins.set_pins(ctx.paths.user_config_file, pins)
-    from .. import actions
-    actions.invalidate_location_cache(ctx)           # a method switch can change where `name` installs
-    hint = (f'pinned {name} → {via} (local); '
-            f'run `configsys pin promote {name}` to make it portable via your primary plugin.')
-    return True, f'pinned {name} → {via}', hint
+    return True, f'pinned {name} → {via}' + (f' — {note}' if note else ''), \
+        f'pinned {name} → {via} (local); `v` → "promote the pin" makes it portable via your primary.'
 
 
 def _offer_method_swap(stdscr, pal, ms, ctx):
@@ -1939,8 +1935,13 @@ def _pick_method_name(stdscr, pal, ctx, name):
     options = [(f"via {via:<{via_w}}   {ver:<{ver_w}}   {when}".rstrip(), tags)
                for via, ver, when, tags in rows]
     pinned = next((c['via'] for c in cands if c['pinned']), None)
+    from .. import plugins as _pl
+    promotable = bool(pinned) and name in _pl.read_pins(ctx.paths.user_config_file) \
+        and _pl.primary_name(_pl.declared(ctx.paths.user_config_file)) is not None
     if pinned:                       # "auto — unpin": drop the pin, follow the routes again (B16; §7.17)
         options.append(('auto — unpin (follow the routes\' default again)', ''))
+    if promotable:                   # a local pin into the primary, so it travels (D3 / parity-04)
+        options.append(('promote the pin into your primary (travels)', ''))
     title = f'install method — {name}' + (f'   (tip {clean_version(tip)})' if tip else '')
     start = next((i for i, c in enumerate(cands) if c['pinned'] or c['default']), 0)
     idx = _popup_choose(stdscr, pal, title, options, start)
@@ -1951,6 +1952,10 @@ def _pick_method_name(stdscr, pal, ctx, name):
         changed, label = actions.unset_pin(ctx, name)
         return changed, (_pretend_note(ctx, f'{name}: unpinned — the default method applies again',
                                        True) if changed else f'{name}: {label}'), None
+    if promotable and idx == len(cands) + 1:
+        from .. import actions
+        ok, msg = actions.promote_pin(ctx, name)
+        return ok and not ctx.runner.pretend, msg, None
     chosen = cands[idx]
     if chosen.get('auto') and not chosen['pinned'] and not pinned:
         return False, f'{name}: already on the default method (no pin to write)', None
@@ -1991,22 +1996,18 @@ def _capability_choices(routes, name):
 
 
 def _apply_provider_pin(ctx, cap, provider, current):
-    '''Write a provider-pin (capability `cap` -> component `provider`) to the top config — "whatever
-    needs `cap`, use `provider`". Returns (changed, note, deferred); the promote hint is deferred.'''
-    from .. import plugins
+    '''Write a provider-pin (capability `cap` -> component `provider`) through actions.set_pin —
+    "whatever needs `cap`, use `provider`". Returns (changed, note, deferred).'''
+    from .. import actions
     if provider == current:
         return False, f'{cap} already provided by {provider}', None
-    if ctx.runner.pretend:
+    ok, label, note = actions.set_pin(ctx, cap, provider)
+    if not ok:
+        return False, f'{cap}: {note}', None
+    if label == actions.PRETEND_NOT_SAVED:
         return False, f'[pretend] would set provider {cap} → {provider}', None
-    ctx.ensure_user_config()
-    pins = plugins.read_pins(ctx.paths.user_config_file)
-    pins[cap] = provider
-    plugins.set_pins(ctx.paths.user_config_file, pins)
-    from .. import actions
-    actions.invalidate_location_cache(ctx)           # a provider switch can change install locations
-    hint = (f'set provider {cap} → {provider} (local); '
-            f'run `configsys pin promote {cap}` to make it portable via your primary plugin.')
-    return True, f'{cap} now provided by {provider}', hint
+    return True, f'{cap} now provided by {provider}', \
+        f'set provider {cap} → {provider} (local); `configsys pin promote {cap}` makes it portable.'
 
 
 def _pick_provider(stdscr, pal, ms, ctx):

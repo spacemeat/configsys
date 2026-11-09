@@ -249,7 +249,7 @@ def _format_block(blocks):
 
 # -- op-loop orchestration (shared by the CLI _dispatch_op and the TUI execute_plan) --------
 
-_GUARDED_OPS = ('install', 'upgrade', 'set-version')
+_GUARDED_OPS = ('install', 'upgrade', 'set-version', 'fix-scope')   # (a reinstall too)
 
 
 _OWN_DRIVERS = frozenset({'dotfiles', 'glue'})       # configsys's own config drivers: not "installers"

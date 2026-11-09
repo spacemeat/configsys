@@ -41,7 +41,7 @@ CLI_VERBS = {
     'pin list': ('components', 'method'),
     'pin set': ('components', 'method'),
     'pin unset': ('components', 'method'),                 # "auto — unpin"
-    'pin promote': 'tui-gap: parity-04 (promote a local pin into the primary)',
+    'pin promote': ('components', 'method'),              # the picker's "promote the pin" row
     'profile list': ('profiles', '(the profile tree)'),
     'profile show': ('profiles', '(the profile tree)'),
     'config show': ('config', '(the settings list)'),

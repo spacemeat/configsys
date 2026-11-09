@@ -442,6 +442,19 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                         res = drv.unlock(rc)
                         if res.ok and ledger is not None and not pretend:
                             ledger.set_lock(key, False)
+                    elif cur_op == 'fix-scope':
+                        # reinstall at the declared scope, then drop the old one (Driver.reconcile_scope)
+                        # — inside the loop like any op: the batch's sudo, the shell-writes guard, the
+                        # failure record, and the receipt refreshed to the NEW scope (D3 / actions-15)
+                        _v, detected = drv.get_installed(rc)
+                        target = drv.scope(rc)
+                        if detected is None or detected == target:
+                            from .runner import Result
+                            res = Result('', 0, stdout=f'{rc.comp}: already at {target} scope')
+                        else:
+                            res = drv.reconcile_scope(rc, detected, target)
+                            if res.ok:
+                                rc.fields['scope'] = target
                 finally:
                     # revert + stage even on failure/abort — a half-finished installer may have written
                     _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
@@ -508,7 +521,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             # findable + removable after routes stop offering that method; forget it on removal.
             if (ledger is not None and not pretend
                     and outcomes and outcomes[-1].key == key and outcomes[-1].ok):
-                if cur_op in ('install', 'upgrade', 'set-version'):
+                if cur_op in ('install', 'upgrade', 'set-version', 'fix-scope'):
                     ledger.set_receipt(rc)
                 elif cur_op == 'remove':
                     ledger.clear_receipt(key)
@@ -523,22 +536,90 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
 
 
-def fix_scope(ctx, rc, current):
-    """Reinstall `rc` at the scope your config declares (it is installed at `current`) — the ONE
-    reconcile step `configsys fix-scope` and the TUI `v` picker's "fix scope" row share. Returns
-    (ok, message). Never edits the config."""
+def fix_scope(ctx, rc, current, *, on_line=print):
+    """Reinstall `rc` at the scope your config declares (it is installed at `current`) through
+    run_plan's `fix-scope` op — the ONE reconcile step `configsys fix-scope` and the TUI `v` picker's
+    "fix scope" row share. Returns (ok, message). Never edits the config."""
     from .drivers import get_driver
+    from .ledger import Ledger
     drv = get_driver(rc.driver, ctx.runner, ctx.paths)
     if drv is None or not drv.honors_scope:
         return False, f'{rc.comp}: its install method has one fixed scope'
     target = drv.scope(rc)
     if current == target:
         return False, f'{rc.comp} is already installed at {target} scope'
-    res = drv.reconcile_scope(rc, current, target)
-    if res.ok:
+    result = run_plan(ctx, [('fix-scope', rc.key, rc)], ledger=Ledger.load(ctx.paths), on_line=on_line)
+    o = result.outcomes[0] if result.outcomes else None
+    if o is not None and o.ok:
         return True, f'{rc.comp}: moved from {current} to {target} scope'
-    out = (res.output or res.cmd or '').strip().splitlines()
-    return False, f'{rc.comp}: fix-scope failed (exit {res.returncode})' + (f': {out[-1]}' if out else '')
+    return False, f'{rc.comp}: fix-scope failed' + (f': {o.detail}' if o is not None and o.detail else '')
+
+
+def validate_pin(ctx, name, value):
+    '''(ok, note). A binding-pin (value is a via) needs `name` to be a component that HAS a
+    binding with that via; a note warns if that via isn't available on THIS machine. A provider-
+    pin (value is a component) is accepted if the component exists. Otherwise not-ok with why.'''
+    from .resolve import pin_via_names
+    r = ctx.routes
+    if value in pin_via_names():                                    # binding-pin (via-name-first)
+        comp = r.components.get(name)
+        if comp is None:
+            return False, f'{name!r} is not a known component (a binding-pin needs one)'
+        vias = {b.via for b in comp.bindings}
+        if value not in vias:
+            return False, f'{name!r} has no via:{value} binding (its methods: {sorted(vias) or "none"})'
+        if value not in {c['via'] for c in r.candidates(name)}:
+            return True, f'via:{value} is a valid method for {name} but not available on this machine right now'
+        return True, ''
+    if value in r.components:                                        # provider-pin
+        return True, ''
+    return False, f'{value!r} is neither a known via/driver nor a known component'
+
+
+def set_pin(ctx, name, value, *, validate=True):
+    """Pin `name` -> `value` (a via = binding-pin, a component = provider-pin) in your top config —
+    the ONE pin writer the CLI (`pin set`) and the TUI method / provider pickers share (D3 /
+    app-cli-12). Returns (ok, label, note): label = where it was written (or PRETEND_NOT_SAVED),
+    note = validate_pin's warning, or why not ok."""
+    if validate:
+        ok, note = validate_pin(ctx, name, value)
+        if not ok:
+            return False, '', note
+    else:
+        note = ''
+    if _pretend(ctx):
+        return True, PRETEND_NOT_SAVED, note
+    ctx.ensure_user_config()
+    top = ctx.paths.user_config_file
+    pins = plugins.read_pins(top)
+    pins[name] = value
+    plugins.set_pins(top, pins)
+    invalidate_location_cache(ctx)                # a method switch can change where `name` installs
+    _invalidate_for(ctx, 'pins')
+    return True, 'top config', note
+
+
+def promote_pin(ctx, name):
+    """Move a top-config pin into the primary plugin (it then travels). Returns (ok, message)."""
+    local = plugins.read_pins(ctx.paths.user_config_file)
+    if name not in local:
+        return False, f'{name} is not pinned in your top config (nothing to promote)'
+    prim = plugins.primary_name(plugins.declared(ctx.paths.user_config_file))
+    if prim is None:
+        return False, 'no primary plugin set — bless one first (`configsys plugin bless <source>`)'
+    if _pretend(ctx):
+        return True, f'[pretend] would move pin {name} -> {local[name]} into primary plugin {prim}'
+    target, _pn = _writable_primary_file(ctx)
+    if not target:
+        return False, f'primary plugin {prim!r} has no synced data file to hold the pin'
+    value = local[name]
+    ppins = plugins.read_pins(target)
+    ppins[name] = value
+    plugins.set_pins(target, ppins)
+    del local[name]
+    plugins.set_pins(ctx.paths.user_config_file, local)
+    _invalidate_for(ctx, 'pins')
+    return True, f'moved pin {name} -> {value} into primary plugin {prim}'
 
 
 def unset_pin(ctx, name):
