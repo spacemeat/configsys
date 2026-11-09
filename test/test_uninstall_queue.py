@@ -9,7 +9,8 @@ from configsys.app import Context, build_parser
 
 
 def _cfg(text):
-    return Config([layers.Layer('config.hu', 'repo', layers.materialize_string(text))])
+    # the top config: `uninstall:` is read from it alone (layers.TOP_CONFIG_ONLY)
+    return Config([layers.Layer('configsys.hu', 'user', layers.materialize_string(text))])
 
 
 def _ctx(tmp_path, body='{ configs: [ dev ]  profiles: { dev: [ htop  bat ] } }'):

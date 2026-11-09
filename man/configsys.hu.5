@@ -19,7 +19,7 @@ What each layer may contribute follows one rule: \fBevery layer may define thing
 .IP \(bu 2
 \fBDefinitions\fR come from any layer, including an ordinary plugin, a file you include, and your top config: \fBcomponents:\fR, \fBprofiles:\fR, \fBos:\fR blocks, \fBdrivers:\fR, \fBcomponent-names:\fR, \fBversion-floors:\fR and \fBfacets:\fR probes. A facet probe runs a command, so one from a plugin is used only once you trust that plugin.
 .IP \(bu 2
-\fBMachine settings\fR (\fBpicks:\fR, \fBmachine:\fR, \fBscope:\fR, \fBpins:\fR, \fBdispositions:\fR, \fBuninstall:\fR, \fBdriver-preference:\fR, \fBdisabled-drivers:\fR, \fBdirs:\fR, \fBlocations:\fR and the rest of "Machine settings" below) are read from the repo, your primary plugin and your top config. An ordinary plugin or an included file that sets one is ignored, and \fBconfigsys check\fR warns about it.
+\fBMachine settings\fR (\fBpicks:\fR, \fBmachine:\fR, \fBscope:\fR, \fBpins:\fR, \fBdispositions:\fR, \fBuninstall:\fR, \fBdriver-preference:\fR, \fBdisabled-drivers:\fR, \fBdirs:\fR, \fBlocations:\fR and the rest of "Machine settings" below) are read from the repo, your primary plugin and your top config. An ordinary plugin or an included file that sets one is ignored, and \fBconfigsys check\fR warns about it. \fBmachine:\fR, \fBuninstall:\fR, \fBprimary-verify:\fR and \fBprimary-trust:\fR are read only from your top config.
 .IP \(bu 2
 \fB\fBplugins:\fR\fR is read from your top config (and from plugin manifests); see "Plugins and includes". Any other layer's \fBplugins:\fR is ignored, and \fBcheck\fR warns.
 .IP \(bu 2
@@ -80,12 +80,12 @@ Your top config is \fB$XDG_CONFIG_HOME/configsys/configsys.hu\fR (by default \fB
 .RE
 .SH MACHINE SETTINGS
 .PP
-A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\fR, which decides where an edit lands by default (see "Where a machine-setting edit lands"): a \fBuniform\fR setting belongs in your primary plugin, a \fBmachine\fR setting in your top config. Machine settings are read from the repo, your primary plugin and your top config; an ordinary plugin or an included file can't set them (it is ignored, and \fBcheck\fR warns). Two settings, \fBprimary-verify\fR and \fBprimary-trust\fR, are read only from your top config. \fBconfigsys config show\fR lists every setting below with its effective value, what it does, and where an edit to it lands.
+A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\fR, which decides where an edit lands by default (see "Where a machine-setting edit lands"): a \fBuniform\fR setting belongs in your primary plugin, a \fBmachine\fR setting in your top config. Machine settings are read from the repo, your primary plugin and your top config; an ordinary plugin or an included file can't set them (it is ignored, and \fBcheck\fR warns). Four, \fBmachine\fR, \fBuninstall\fR, \fBprimary-verify\fR and \fBprimary-trust\fR, are read only from your top config (anywhere else they are ignored, and \fBcheck\fR warns): a primary that set \fBmachine:\fR would name every box it syncs to. \fBconfigsys config show\fR lists every setting below with its effective value, what it does, and where an edit to it lands.
 .PP
 A setting that takes one of a few words (\fBscope\fR, \fBrefresh-before-execute\fR, \fBprimary-push\fR, \fBprimary-verify\fR, \fBprimary-trust\fR, \fBeffects\fR, \fBinstaller-shell-writes\fR) takes only those: \fBconfig set\fR refuses any other, and \fBcheck\fR warns about one in a file (configsys then uses the default). A bool setting takes \fBtrue\fR, \fByes\fR, \fBon\fR or \fB1\fR, or \fBfalse\fR, \fBno\fR, \fBoff\fR or \fB0\fR, in any case; any other value is likewise refused, warned about, and read as the default.
 .SS Settings you change with config set
 .IP \(bu 2
-\fB\fBmachine\fR\fR (scalar, machine; default \fBthis-machine\fR): this box's machine name, i.e. which \fBpicks:\fR column is "this machine". \fBconfigsys machine use <name>\fR sets it. A name with no \fBpicks:\fR column installs nothing, and \fBcheck\fR warns.
+\fB\fBmachine\fR\fR (scalar, machine; default \fBthis-machine\fR): this box's machine name, i.e. which \fBpicks:\fR column is "this machine". \fBconfigsys machine use <name>\fR sets it. Read only from your top config. A name with no \fBpicks:\fR column installs nothing, and \fBcheck\fR warns.
 .IP \(bu 2
 \fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs sudo).
 .IP \(bu 2
@@ -149,7 +149,7 @@ Notes:
 .IP \(bu 2
 \fBmachine\fR settings are a fact about \fIthis\fR box, so an edit defaults to your \fBtop config\fR, local and unshared. \fBdispositions:\fR (your seen/interesting triage), the \fBuninstall:\fR queue and \fBpins:\fR are machine too: \fBconfigsys pin set\fR (and the TUI's \fBv\fR) writes a pin to your top config, and \fBpin promote\fR moves one into your primary plugin.
 .IP \(bu 2
-\fBprimary-verify\fR and \fBprimary-trust\fR are read only from your top config, so their edits always land there, and \fBconfig move\fR refuses them.
+\fBmachine\fR, \fBuninstall\fR, \fBprimary-verify\fR and \fBprimary-trust\fR are read only from your top config, so their edits always land there, and \fBconfig move\fR refuses them.
 .PP
 When you have no primary plugin (or it isn't synced), everything lands in your top config. An edit to a setting you've \fIalready\fR set goes to the layer it lives in, so a lower layer can't silently shadow it. The Config screen shows, for each setting, whether it is at its built-in default, set by you, or overridden by an environment variable, and its store (your primary plugin or your top config), which is where an edit lands; \fBconfig show\fR prints the same.
 .IP \(bu 2

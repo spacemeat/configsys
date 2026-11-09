@@ -59,7 +59,8 @@ def is_bool_token(v):
 # Settings read ONLY from this machine's top config: a value in your primary plugin (or anywhere
 # else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, and
 # `primary-trust` decides whether its commands run without a re-trust, so a commit pushed to the
-# primary must not be able to change either.
+# primary must not be able to change either. `machine:` names THIS box (a primary's would name every
+# box that syncs it) and `uninstall:` is this box's staged removals.
 TOP_CONFIG_ONLY = settings.TOP_ONLY                    # (D1: derived)
 
 

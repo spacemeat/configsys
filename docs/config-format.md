@@ -30,6 +30,8 @@ config and your primary plugin may set machine settings.**
   `driver-preference:`, `disabled-drivers:`, `dirs:`, `locations:` and the rest of "Machine
   settings" below) are read from the repo, your primary plugin and your top config. An ordinary
   plugin or an included file that sets one is ignored, and `configsys check` warns about it.
+  `machine:`, `uninstall:`, `primary-verify:` and `primary-trust:` are read only from your top
+  config.
 - **`plugins:`** is read from your top config (and from plugin manifests); see "Plugins and
   includes". Any other layer's `plugins:` is ignored, and `check` warns.
 - **`theme:`** and **`keys:`** are cosmetic: every layer may contribute them. A plugin's `keys:`
@@ -104,8 +106,9 @@ A machine setting has a **kind** (scalar, bool, list or map) and a **nature**, w
 an edit lands by default (see "Where a machine-setting edit lands"): a **uniform** setting belongs
 in your primary plugin, a **machine** setting in your top config. Machine settings are read from the
 repo, your primary plugin and your top config; an ordinary plugin or an included file can't set
-them (it is ignored, and `check` warns). Two settings, `primary-verify` and `primary-trust`, are
-read only from your top config. `configsys config show` lists every setting below with its
+them (it is ignored, and `check` warns). Four, `machine`, `uninstall`, `primary-verify` and
+`primary-trust`, are read only from your top config (anywhere else they are ignored, and `check`
+warns): a primary that set `machine:` would name every box it syncs to. `configsys config show` lists every setting below with its
 effective value, what it does, and where an edit to it lands.
 
 A setting that takes one of a few words (`scope`, `refresh-before-execute`, `primary-push`,
@@ -117,8 +120,8 @@ other value is likewise refused, warned about, and read as the default.
 ### Settings you change with config set
 
 - **`machine`** (scalar, machine; default `this-machine`): this box's machine name, i.e. which
-  `picks:` column is "this machine". `configsys machine use <name>` sets it. A name with no `picks:`
-  column installs nothing, and `check` warns.
+  `picks:` column is "this machine". `configsys machine use <name>` sets it. Read only from your
+  top config. A name with no `picks:` column installs nothing, and `check` warns.
 - **`scope`** (`user` or `system`, machine; default `user`): the install scope for scope-honoring
   drivers when a binding doesn't set one. `user` installs under `~`, `system` under `/opt` (needs
   sudo).
@@ -253,8 +256,8 @@ Notes:
   local and unshared. `dispositions:` (your seen/interesting triage), the `uninstall:` queue and
   `pins:` are machine too: `configsys pin set` (and the TUI's `v`) writes a pin to your top config,
   and `pin promote` moves one into your primary plugin.
-- `primary-verify` and `primary-trust` are read only from your top config, so their edits always
-  land there, and `config move` refuses them.
+- `machine`, `uninstall`, `primary-verify` and `primary-trust` are read only from your top config,
+  so their edits always land there, and `config move` refuses them.
 
 When you have no primary plugin (or it isn't synced), everything lands in your top config. An edit
 to a setting you've *already* set goes to the layer it lives in, so a lower layer can't silently

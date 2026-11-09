@@ -27,7 +27,8 @@ _leaves = layers.leaves          # flatten a profile / picks / list value to its
 
 
 def _selected_machine(layer_list):
-    v = layers.merge_scalar(layer_list, 'machine', _MACHINE_ROLES)
+    # top config ONLY (layers.TOP_CONFIG_ONLY): a primary's `machine:` would name every box it syncs to
+    v = layers.merge_scalar(layer_list, 'machine', ('user',))
     return v.strip() if isinstance(v, str) and v.strip() else None
 
 
@@ -527,9 +528,10 @@ class Config:
         '''Component names staged for uninstall — the top-level `uninstall:` list, a machine-local
         (top-config) pending-removal queue (`x` in the TUI adds here; TUI::Components executes or
         clears them). It's a plain machine setting, not a profile, so it never resolves for install;
-        the synthetic `!uninstall` lens (UNINSTALL_PROFILE) only browses it. Read like other machine
-        settings (repo < primary < top config, highest wins). Empty/undefined -> empty set.'''
-        return set(_leaves(layers.merge_scalar(self._layers, 'uninstall', _MACHINE_ROLES)))
+        the synthetic `!uninstall` lens (UNINSTALL_PROFILE) only browses it. Read from the top config
+        ONLY (layers.TOP_CONFIG_ONLY) — another box's staged removals never land here. Empty/undefined
+        -> empty set.'''
+        return set(_leaves(layers.merge_scalar(self._layers, 'uninstall', ('user',))))
 
     def profiles_containing(self, name):
         '''Profiles that contain `name`, split into `(direct, indirect)`. DIRECT = the profile declares

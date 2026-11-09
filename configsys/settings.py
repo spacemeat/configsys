@@ -85,9 +85,9 @@ _ROWS = [
     Setting('orphans-ignore', 'list', 'machine', getter='orphans_ignore',
             desc=('Name-or-glob patterns whose matching orphans stay quiet in `configsys orphans` '
                  '(matches a component name OR installed key).')),
-    Setting('machine', 'scalar', 'machine', layout=True, getter='selected_machine',
+    Setting('machine', 'scalar', 'machine', top_only=True, layout=True, getter='selected_machine',
             desc=('This box\'s machine name — which `picks:` column is "this machine". Unset defaults to '
-                 '`this-machine`.')),
+                 '`this-machine`. Read only from your top config.')),
     Setting('detect-coexisting', 'bool', 'uniform', getter='detect_coexisting',
             desc=('After inspect, also detect installs of a component via its OTHER (unmanaged) methods '
                  'and show them as "also present". On by default.')),
@@ -113,7 +113,7 @@ _ROWS = [
     Setting('picks', 'section', 'uniform', editable=False, layout=True, desc='the component × machine matrix: what each machine installs'),
     Setting('pins', 'section', 'machine', editable=False, routing=True, layout=True, desc='binding- and provider-pins (`configsys pin`)'),
     Setting('dispositions', 'section', 'machine', editable=False, desc='seen / interesting triage of the catalog'),
-    Setting('uninstall', 'section', 'machine', editable=False, desc='this box\'s staged removals (`configsys uninstall`)'),
+    Setting('uninstall', 'section', 'machine', top_only=True, editable=False, desc='this box\'s staged removals (`configsys uninstall`)'),
     Setting('facets', 'section', 'machine', editable=False, routing=True, machine_section=False, desc='facet values (`gpu:`…) — any layer'),
 ]
 

@@ -323,3 +323,22 @@ def test_profiles_containing_excludes_a_removed_component():
     } }''')
     # `nope` drops ripgrep -> not its own AND not in its expansion, so neither direct nor indirect
     assert c.profiles_containing('ripgrep') == (['dev'], [])
+
+
+def test_machine_and_uninstall_are_read_only_from_the_top_config():
+    # review §7: a primary that sets `machine:` would name EVERY box that syncs it, and `uninstall:`
+    # is this box's staged removals — both are read from the top config alone (TOP_CONFIG_ONLY)
+    def stack(primary_text, user_text='{ }'):
+        return Config([layers.Layer('config.hu', 'repo', layers.materialize_string('{ }')),
+                       layers.Layer('me.hu', 'primary', layers.materialize_string(primary_text)),
+                       layers.Layer('user.hu', 'user', layers.materialize_string(user_text))])
+    c = stack('{ machine: laptop  uninstall: [ btop ] }')
+    assert c.selected_machine() is None and c.current_machine() == 'this-machine'
+    assert c.uninstall_queue() == set()
+    assert c.machine_setting_source('machine') is None
+    c = stack('{ machine: laptop  uninstall: [ btop ] }', '{ machine: desk  uninstall: [ fzf ] }')
+    assert c.selected_machine() == 'desk' and c.uninstall_queue() == {'fzf'}
+    warns = layers.setting_value_warnings(c._layers)
+    assert any('me.hu' in w and '`machine:`' in w and 'top config' in w for w in warns)
+    assert any('me.hu' in w and '`uninstall:`' in w for w in warns)
+    assert not any('user.hu' in w for w in warns)
