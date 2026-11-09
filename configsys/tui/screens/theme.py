@@ -68,6 +68,8 @@ class ThemeScreen(Screen):
     def __init__(self, ctx, model=None, sample_ms=None):
         self.ctx = ctx
         self.model = model if model is not None else _ThemeModel(ctx)
+        if model is None:
+            self.model._loaded_cfg = ctx.config   # the theme it just read
         self.sample_ms = sample_ms          # the session's live Components state (for its sample)
         self.suppress_sample = False        # True when THIS theme render is itself a sample sub-page
         # (theme-previewing-theme) -> draw the placeholder slot instead of recursing into the sample.
@@ -75,14 +77,20 @@ class ThemeScreen(Screen):
     def reload(self):
         self.model.reload()
 
+    def sync_config(self, ctx):
+        '''Re-read the theme if the Config changed since the model last read it (an edit — here or on
+        another screen — invalidated it). Called where a change is observed: after each key here and
+        by the router on entering Theme; never from build_vm, which stays pure.'''
+        ts = self.model
+        if getattr(ts, '_loaded_cfg', None) is not ctx.config:
+            ts.reload()
+            ts._loaded_cfg = ctx.config
+
     # -- build_vm ---------------------------------------------------------
 
     def build_vm(self, ctx, size):
         from ... import actions
         ts = self.model
-        if getattr(ts, '_loaded_cfg', None) is not ctx.config:   # an edit invalidated the Config:
-            ts.reload()                                       # re-read the theme (not every frame)
-            ts._loaded_cfg = ctx.config
         vm = ThemeVM()
         vm.page = ALL_PAGES[ts.page]
         vm.focus = ts.focus
@@ -408,4 +416,5 @@ class ThemeScreen(Screen):
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
             wrote.clear()                           # a failure is reported as such, not as "not saved"
+        self.sync_config(ctx)                       # an edit just invalidated the Config -> re-read
         return Intent(note=menu._pretend_note(ctx, note, bool(wrote)), new_pal=new_pal)

@@ -102,3 +102,24 @@ def test_handle_page_key_switches_sample_page(ctx):
     f2 = next(k for k in range(1, 600) if km.action_for('theme', k) == 'page-2')
     scr.handle(f2, ctx, None, None)
     assert scr.model.page == 1 and scr.model.page_name() == 'profiles'
+
+
+def test_build_vm_is_pure_and_handle_rereads_a_changed_config(tmp_path):
+    # build_vm never reloads the model (base.py's pure contract); a Config change made elsewhere is
+    # picked up where it is observed — the next key on Theme, or entering it (sync_config)
+    c = build_ctx(tmp_path)
+    scr = ThemeScreen(c, _model(c, 'map', 0))
+    reloads = []
+    orig = scr.model.reload
+    scr.model.reload = lambda: (reloads.append(1), orig())[1]
+    c.invalidate()                                    # an edit on another screen dropped the Config
+    scr.build_vm(c, (40, 120))
+    assert reloads == []
+    scr.sync_config(c)
+    assert reloads == [1]
+    scr.sync_config(c)                                # unchanged since: no second read
+    assert reloads == [1]
+    c.invalidate()
+    tab = next(k for k in range(1, 400) if menu._KEYMAP.action_for('theme', k) == 'switch-pane')
+    scr.handle(tab, c, None, None)
+    assert reloads == [1, 1]

@@ -268,6 +268,8 @@ def run(ctx):
                     _dscr.reload()                            # install/capture elsewhere may have changed it
                 if dest == 'glue' and _gscr is not None:      # re-read glue state on entry likewise
                     _gscr.reload()
+                if dest == 'theme' and _reg.get('theme') is not None:   # a Config edit elsewhere ->
+                    _reg['theme'].sync_config(ctx)                     # re-read the theme on entry
                 return dest
 
             from .. import sysupdates

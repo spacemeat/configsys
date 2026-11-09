@@ -53,7 +53,8 @@ seams:
   (the `(h, w)` from `getmaxyx()`): text, positioned cells, element roles, scroll offsets. No curses.
   The work a frame needs beyond the model happens here, never in `draw`: Profiles folds a finished
   background overlay scan (and may start one) and reads the cached coverage hint; Components reads the
-  refresh age; Theme re-reads the theme only when `ctx.config` changed.
+  refresh age. (Theme's re-read of a changed `ctx.config` is not here: its `sync_config` runs after
+  each key and on entering the screen.)
 - **`draw(surface, pal, vm)`** — paints the VM and nothing else: palette concerns only (the selection
   fill, reverse video on a low-colour terminal). **A draw writes nothing on the model and starts no
   work.** What the frame's geometry settles (a scroll offset clamped to the panel height, a
@@ -177,7 +178,8 @@ On entering Components (`_enter`) the router reloads (`_reload`, behind a "rebui
 of: an Intent set `dirty`, the Dotfiles/Glue models report mutated units (`model.dirty`), the
 uninstall queue differs from `ms._uninstall_q`, or `config.requested()` differs from `ms._req_sig`
 (picks or the current machine changed). Entering Dotfiles/Glue calls their `reload()` (link state
-may have changed elsewhere). After the loop exits (also on Ctrl-C or an escaping error):
+may have changed elsewhere), entering Theme its `sync_config` (the theme re-read when `ctx.config`
+changed). After the loop exits (also on Ctrl-C or an escaping error):
 `reporter.resume()`, the session summary (on a normal quit), each `pending_notes` line once, and a
 `configsys report` nudge if an op failed.
 
