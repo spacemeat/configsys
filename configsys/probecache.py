@@ -21,7 +21,7 @@ class ProbeCache:
     def __init__(self):
         self._lock = threading.Lock()
         self._index = {}            # driver name -> installed_index() dict, or None (no index / failed)
-        self._version = {}          # (driver name, unit key) -> get_version() result (None = absent)
+        self._version = {}          # (driver name, unit key, package) -> get_version() (None = absent)
 
     def installed_index(self, drv):
         '''drv.installed_index(), enumerated once per driver (a slow subprocess, run outside the lock —
@@ -43,7 +43,7 @@ class ProbeCache:
         idx = self.installed_index(drv)
         if idx is not None:
             return idx.get(drv.index_key(rc))
-        key = (_name(drv), rc.key)
+        key = (_name(drv), rc.key, getattr(rc, 'name', None))   # one unit key can name two packages (p7zip)
         with self._lock:
             if key in self._version:
                 return self._version[key]

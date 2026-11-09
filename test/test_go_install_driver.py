@@ -104,7 +104,7 @@ def test_pseudo_versions_compare_by_commit_time():
     def st(inst, latest):
         return ComponentState(component=rc, supported=True, present=True,
                               installed_version=inst, latest_version=latest, locked=False,
-                              lock_source=None, managed=True, error=None)
+                              lock_source=None, error=None)
     assert st('0.0.0-20260819035418-d1f67621141c', '0.0.0-20260926000522-08b41176c060').outdated
     assert not st('0.0.0-20260926000522-08b41176c060', '0.0.0-20260926000522-08b41176c060').outdated
 

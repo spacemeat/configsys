@@ -46,7 +46,7 @@ def _state(installed, latest):
     return ComponentState(
         component=ResolvedComponent(key='apt\\x', driver='apt', comp='x'),
         supported=True, present=True, installed_version=installed, latest_version=latest,
-        locked=False, lock_source=None, managed=True, error=None)
+        locked=False, lock_source=None, error=None)
 
 
 def test_outdated_normalizes_across_schemes():
@@ -118,12 +118,9 @@ def test_both_lock_sources():
 
 def test_unsupported_family_degrades():
     fr = FakeRunner()
-    led = Ledger()
-    led.set_managed('nosuchvia\\foo', True)
-    st = InstallState(fr, led).inspect_one(unsupported_unit())
+    st = InstallState(fr, Ledger()).inspect_one(unsupported_unit())
     assert not st.supported
     assert st.status == 'unsupported'
-    assert st.managed is True
     assert 'nosuchvia' in st.error
     # a degraded inspection must not have shelled out
     assert fr.calls == []
@@ -201,8 +198,7 @@ def test_untrusted_version_cells_show_question_not_dash():
         rc = ResolvedComponent(key='kicad-build\\kicad', driver='kicad-build', comp='kicad',
                                fields={'name': 'kicad'})
         st = ComponentState(component=rc, supported=False, present=False, installed_version=None,
-                            latest_version=None, locked=False, lock_source=None, managed=False,
-                            error='trust it', untrusted=untrusted)
+                            latest_version=None, locked=False, lock_source=None, error='trust it', untrusted=untrusted)
         return Node(UNIT, 'u', 'kicad', 1, [st])
 
     n = node(True)

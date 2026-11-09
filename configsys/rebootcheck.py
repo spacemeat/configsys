@@ -4,8 +4,9 @@ Uses each family's NATIVE check (no needrestart dependency):
   * apt     — /run/reboot-required (a file update-notifier-common drops on kernel/libc/systemd/… bumps)
   * dnf     — `dnf needs-restarting -r` (exit 1 = reboot advised) / `-s` (services)
   * zypper  — `zypper needs-rebooting`  (exit 102 = reboot needed) / `zypper ps -sss` (services)
-  * pacman/apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel is installed than the
-    running one). Conservative — compares only MAJOR.MINOR.PATCH so a distro suffix can't false-fire.
+  * pacman/apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel of the running one's
+    series is installed). Conservative — compares only MAJOR.MINOR.PATCH so a distro suffix can't
+    false-fire, and never against another flavor/series you may boot on purpose.
   * brew    — none, declared in _NO_REBOOT_CHECK (user-space; rpm-ostree reports its own reboots).
 Service lists use the native tool where cheap, else `needrestart` IF it happens to be installed
 (opportunistic — never required). Everything is best-effort + non-fatal; pretend runs report nothing.'''
@@ -104,33 +105,59 @@ def _kver(s):
     return tuple(int(x) for x in m.groups()) if m else None
 
 
+def _flavor(raw):
+    '''The kernel FLAVOR a `uname -r` names by its trailing token — `6.6.30-1-lts` -> `lts`,
+    `6.6.7-0-virt` -> `virt`, `6.12.1-zen1-1-zen` -> `zen` — or '' for a plain one (`6.12.1-arch1-1`,
+    Void's `6.12.111_1`), whose last token isn't a word.'''
+    tail = raw.rsplit('-', 1)[-1] if '-' in raw else ''
+    return tail if tail.isalpha() else ''
+
+
 def _kernel_heuristic(ctx, pm):
+    '''A newer kernel than the running one, of the SERIES it was booted from: a box that boots
+    linux-lts on purpose with a newer `linux` also installed (or Alpine's linux-lts beside
+    linux-edge) must not read "reboot advised" forever — a reboot wouldn't clear it. pacman: the
+    `linux-<flavor>` package `uname -r` names (bare `linux` when it names none); apk: the
+    `linux-<flavor>-` package; xbps: the `linuxM.N` series package of the running MAJOR.MINOR, plus
+    the series the `linux` meta package now points at (an update that moved your default series is
+    one a reboot picks up).'''
     run = _run(ctx, 'uname -r')
-    running = _kver(run.stdout.strip()) if (run and run.ok) else None
+    raw = run.stdout.strip() if (run and run.ok) else ''
+    running = _kver(raw)
     if running is None:
         return (False, '')
+    flavor = _flavor(raw)
     vers = []
     if pm == 'pacman':
-        q = _run(ctx, 'pacman -Q linux linux-lts linux-zen linux-hardened')
+        pkg = f'linux-{flavor}' if flavor else 'linux'
+        q = _run(ctx, f'pacman -Q {pkg}')
         for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
             parts = ln.split()
-            if len(parts) == 2:
+            if len(parts) == 2 and parts[0] == pkg:
                 vers.append(parts[1])                    # "linux 6.9.1.arch1-1" -> "6.9.1.arch1-1"
     elif pm == 'xbps':
         q = _run(ctx, 'xbps-query -l')                   # "ii linux6.12-6.12.111_1  The Linux kernel…"
+        series, meta = {}, None
         for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
             parts = ln.split()
-            m = re.match(r'linux\d+\.\d+-(\d.*)$', parts[1]) if len(parts) >= 2 else None
+            name = parts[1] if len(parts) >= 2 else ''
+            m = re.match(r'linux(\d+\.\d+)-(\d.*)$', name)
+            mm = re.match(r'linux-(\d+\.\d+)', name)    # "linux-6.18_1": the meta's default series
             if m:
-                vers.append(m.group(1))                  # series packages; the bare `linux` meta is skipped
+                series[m.group(1)] = m.group(2)
+            elif mm:
+                meta = mm.group(1)
+        wanted = {f'{running[0]}.{running[1]}'} | ({meta} if meta else set())
+        vers = [v for mm, v in series.items() if mm in wanted]
     else:                                                # apk
+        if not flavor:
+            return (False, '')                           # every Alpine kernel names its flavor
+        pre = f'linux-{flavor}-'
         q = _run(ctx, 'apk list --installed')
         for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
             tok = ln.split()[0] if ln.split() else ''    # "linux-lts-6.6.7-r0 x86_64 {…}"
-            for pre in ('linux-lts-', 'linux-virt-', 'linux-edge-', 'linux-rpi-', 'linux-'):
-                if tok.startswith(pre):
-                    vers.append(tok[len(pre):])
-                    break
+            if tok.startswith(pre):
+                vers.append(tok[len(pre):])
     best = None
     for v in vers:
         kv = _kver(v)

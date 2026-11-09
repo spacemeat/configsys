@@ -225,6 +225,27 @@ def test_fix_scope_runs_in_the_loop_and_refreshes_the_receipt(tmp_path, monkeypa
     assert Ledger.load(ctx.paths).records[rc.key]['receipt']['fields']['scope'] == 'system'
 
 
+def test_a_skipped_step_fails_the_exit_status(tmp_path, monkeypatch):
+    # review-2026-11-2 actions-18: no driver / a dangling row used to print "skip" and exit 0
+    lines = []
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: None)
+    res = actions.run_plan(_ctx(tmp_path), [('install', 'nope\\x', _unit('x', 'nope'))], on_line=lines.append)
+    assert res.rc_code == 1 and 'not yet supported' in lines[0]
+    res = actions.run_plan(_ctx(tmp_path), [('install', '—\\x', _unit('x', '—'))], on_line=lines.append)
+    assert res.rc_code == 1 and 'no install method' in lines[-1]
+
+
+def test_an_untrusted_plugins_driver_says_trust_it(tmp_path, monkeypatch):
+    lines = []
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: None)
+    ctx = _ctx(tmp_path)
+    ctx.plugin_pending_vias = {'blender-build'}
+    res = actions.run_plan(ctx, [('install', 'blender-build\\blender-5.2', _unit('blender-5.2', 'blender-build'))],
+                           on_line=lines.append)
+    assert res.rc_code == 1 and res.outcomes[0].advisory
+    assert '`configsys plugin trust <name>`' in lines[0] and 'not yet supported' not in lines[0]
+
+
 def test_set_version_refuses_a_non_version_before_any_driver_runs(tmp_path, monkeypatch):
     # drivers-lang-28: a script's set-version-cmd / a source build splice $VERSION raw — the requested
     # version is checked once, here, for every driver and both surfaces

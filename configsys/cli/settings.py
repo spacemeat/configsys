@@ -303,7 +303,11 @@ def cmd_theme(ctx, args):
         print(f'configsys: {"cleared " + args.key if val is None else verb}  (in {label})')
         return 0
     if sub == 'save':
-        pdir, existed = actions.save_theme_plugin(ctx, args.name, force=args.force)
+        try:
+            pdir, existed = actions.save_theme_plugin(ctx, args.name, force=args.force)
+        except ValueError as e:
+            print(f'configsys: {e}', file=sys.stderr)
+            return 1
         if existed and not args.force:
             print(f'configsys: theme plugin {args.name!r} already exists at {pdir} — '
                   f'use --force to overwrite', file=sys.stderr)

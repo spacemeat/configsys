@@ -109,6 +109,46 @@ def parse_constraint(text):
     return clauses or None
 
 
+def meets(version, constraint):
+    '''Does version STRING `version` satisfy constraint TEXT `constraint` (`>=1.96`, `>1.0`, a bare
+    `2.0` = exact, `,`-AND ranges)? Compared cross-scheme (parse_loose: a Debian epoch / leading `v`
+    stripped). False when either is unparseable — an unverifiable floor is treated as NOT met
+    (surfaced, not assumed ok). The one constraint check the floor subsystem uses.'''
+    pv = parse_loose(version)
+    clauses = parse_constraint(str(constraint)) if constraint is not None else None
+    if pv is None or not clauses or any(target is None for _op, target in clauses):
+        return False                                   # an unreadable operand abstains, never crashes (B4)
+    return all(_CMP[op](pv, target) for op, target in clauses)
+
+
+def _interval(clauses):
+    '''(lo, lo_open, hi, hi_open) — the version range a parsed constraint admits (None = unbounded).'''
+    lo = hi = None
+    lo_open = hi_open = False
+    for op, v in clauses:
+        if op in ('=', '>=', '>') and (lo is None or v > lo or (v == lo and op == '>')):
+            lo, lo_open = v, op == '>'
+        if op in ('=', '<=', '<') and (hi is None or v < hi or (v == hi and op == '<')):
+            hi, hi_open = v, op == '<'
+    return lo, lo_open, hi, hi_open
+
+
+def implies(promise, floor):
+    '''Does every version satisfying constraint text `promise` satisfy `floor`? — a method's declared
+    `provides: { cap: ">=9.4" }` meets a floor `>=9.2` but not `>=9.10`, and an upper bound `<9`
+    guarantees no `>=8` at all. False when either is unparseable.'''
+    pc, fc = parse_constraint(str(promise or '')), parse_constraint(str(floor or ''))
+    if not pc or not fc or any(v is None for _op, v in pc + fc):
+        return False
+    plo, plo_open, phi, phi_open = _interval(pc)
+    flo, flo_open, fhi, fhi_open = _interval(fc)
+    if flo is not None and (plo is None or plo < flo or (plo == flo and flo_open and not plo_open)):
+        return False
+    if fhi is not None and (phi is None or phi > fhi or (phi == fhi and fhi_open and not phi_open)):
+        return False
+    return True
+
+
 def satisfies(constraint, version):
     '''True if `version` (tuple) meets every clause of `constraint`.'''
     if version is None or not constraint:

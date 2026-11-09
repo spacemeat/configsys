@@ -117,6 +117,32 @@ def test_move_guards(tmp_path):
     assert not ok and 'primary' in msg
 
 
+def test_config_settings_resolves_the_primary_once(tmp_path, monkeypatch):
+    # review-2026-11-2 actions-26: plugins.declared + layer_files ran twice per setting (45 each)
+    ctx, user, prim = _ctx_with_primary(tmp_path)
+    actions.set_config_setting(ctx, 'driver-preference', ['native'])          # -> primary
+    actions.set_config_setting(ctx, 'scope', ['system'])                      # -> top config
+    actions.set_config_setting(ctx, 'locations', ['btop=/opt/btop'])          # a map, local
+    actions.set_config_setting(ctx, 'dirs.app', ['~/apps'])                   # a dir, primary
+    # the per-setting answer each row used to compute on its own — what the one pass must equal
+    expect = {k: (actions._setting_home(ctx, k), actions._setting_target(ctx, k)[1])
+              for k in actions.CONFIG_SETTINGS}
+    calls = {'declared': 0, 'layer_files': 0, 'parse': 0}
+    for name in ('declared', 'layer_files'):
+        real = getattr(plugins, name)
+        monkeypatch.setattr(plugins, name, lambda *a, _r=real, _n=name, **k: (
+            calls.__setitem__(_n, calls[_n] + 1), _r(*a, **k))[1])
+    real_mat = layers.materialize_string
+    monkeypatch.setattr(layers, 'materialize_string', lambda *a, **k: (
+        calls.__setitem__('parse', calls['parse'] + 1), real_mat(*a, **k))[1])
+    s = actions.config_settings(ctx)
+    assert calls['declared'] == 1 and calls['layer_files'] == 1
+    assert calls['parse'] <= 2                                 # the top config + the primary, once each
+    got = {k: ((v['home'], v['home_label']), v['target']) for k, v in s.items()}
+    assert got == expect
+    assert s['locations']['home'] == 'local' and s['dirs.app']['home'] == 'primary'
+
+
 # -- review-2026-11-2 config-layers-17: a top-config-only setting never "lives" in the primary --------
 
 def test_a_top_config_only_setting_in_the_primary_reads_ignored(tmp_path):

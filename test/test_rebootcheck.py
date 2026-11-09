@@ -88,3 +88,44 @@ def test_xbps_newer_kernel_series_advises_reboot():
     assert a.reboot and '6.18.4_1' in a.reason
     b = rebootcheck.advisory(_ctx('xbps', {'uname -r': (0, '6.18.4_1\n'), 'xbps-query -l': (0, idx)}))
     assert not b.reboot
+
+
+# -- the running kernel's own series only (review-2026-11-2 subsystems-06) ---------------------------
+
+def _pacman(uname, q):
+    return _ctx('pacman', {'uname -r': (0, uname + '\n'), 'pacman -Q linux-lts': (0, q),
+                           'pacman -Q linux': (0, q)})
+
+
+def test_pacman_lts_booted_beside_a_newer_mainline_is_no_reboot():
+    q = 'linux 6.12.1.arch1-1\nlinux-lts 6.6.30-1\n'
+    assert rebootcheck.reboot_pending(_pacman('6.6.30-1-lts', q)) == (False, '')
+
+
+def test_pacman_lts_upgraded_in_its_own_series_is_a_reboot():
+    reboot, reason = rebootcheck.reboot_pending(_pacman('6.6.30-1-lts', 'linux-lts 6.6.31-1\n'))
+    assert reboot and '6.6.31-1' in reason
+
+
+def test_pacman_mainline_ignores_an_installed_lts():
+    q = 'linux 6.12.1.arch1-1\nlinux-lts 6.13.0-1\n'      # (a lts newer than mainline: still not ours)
+    assert rebootcheck.reboot_pending(_pacman('6.12.1-arch1-1', q)) == (False, '')
+
+
+def test_apk_lts_booted_beside_a_newer_edge_is_no_reboot():
+    idx = 'linux-lts-6.6.7-r0 x86_64 {linux-lts}\nlinux-edge-6.12.1-r0 x86_64 {linux-edge}\n'
+    c = _ctx('apk', {'uname -r': (0, '6.6.7-0-lts\n'), 'apk list --installed': (0, idx)})
+    assert rebootcheck.reboot_pending(c) == (False, '')
+    idx2 = 'linux-lts-6.6.9-r0 x86_64 {linux-lts}\nlinux-edge-6.12.1-r0 x86_64 {linux-edge}\n'
+    c2 = _ctx('apk', {'uname -r': (0, '6.6.7-0-lts\n'), 'apk list --installed': (0, idx2)})
+    assert rebootcheck.reboot_pending(c2)[0] is True
+
+
+def test_xbps_another_series_without_the_meta_is_no_reboot():
+    idx = ('ii linux6.6-6.6.30_1              The Linux kernel and modules (6.6 series)\n'
+           'ii linux6.12-6.12.111_1           The Linux kernel and modules (6.12 series)\n')
+    c = _ctx('xbps', {'uname -r': (0, '6.6.30_1\n'), 'xbps-query -l': (0, idx)})
+    assert rebootcheck.reboot_pending(c) == (False, '')
+    idx2 = idx.replace('6.6.30_1 ', '6.6.31_1 ')
+    c2 = _ctx('xbps', {'uname -r': (0, '6.6.30_1\n'), 'xbps-query -l': (0, idx2)})
+    assert rebootcheck.reboot_pending(c2)[0] is True

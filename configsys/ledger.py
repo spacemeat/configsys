@@ -2,19 +2,15 @@
 
 The system is the source of truth for what's installed; the ledger only stores
 what the OS can't tell us: version-lock *intent* (portable across drivers that
-have no native hold), whether configsys manages a component (appImages/fonts it
-dropped in), and an install RECEIPT — the unit configsys installed (`via`, package
-`name`, the driver `fields`) — so an install stays findable and removable after
-routes stop offering that method (an AUR package promoted to pacman, a dropped
-AppImage; see stranded.py). Keyed by unit key `driver\\comp`. Troves are read-only,
-so writes go through troveio.emit_hu.
+have no native hold), and an install RECEIPT — the unit configsys installed (`via`,
+package `name`, the driver `fields`) — so an install stays findable and removable
+after routes stop offering that method (an AUR package promoted to pacman, a
+dropped AppImage; see stranded.py). Keyed by unit key `driver\\comp`; a record with
+neither a lock nor a receipt is dropped on save. Troves are read-only, so writes go
+through troveio.emit_hu.
 '''
 
-import humon as h
-
-from .troveio import emit_hu, load
-
-DICT = h.NodeKind.DICT
+from .troveio import emit_hu
 
 
 def _to_bool(s):
@@ -23,7 +19,7 @@ def _to_bool(s):
 
 
 def _blank_record():
-    return {'locked': False, 'managed': False, 'pinned_version': '', 'receipt': None}
+    return {'locked': False, 'receipt': None}
 
 
 # config drivers: what they link isn't an install METHOD of the component, so no receipt
@@ -50,31 +46,28 @@ class Ledger:
 
     @classmethod
     def _parse(cls, p):
-        trove = load(p)
-        root = trove.root
-        try:                                       # receipts are nested maps: read them materialized
-            from .layers import materialize_string
-            raw = materialize_string(p.read_text(encoding='utf-8-sig')) or {}
-        except Exception:                          # noqa: BLE001 — a bad receipt never loses locks
+        '''{key: record} from ONE materialized parse (locks and the nested receipts alike). A
+        garbled file raises — Ledger.load turns that into an empty, `corrupt` ledger (B10). Keys an
+        older configsys wrote (`managed`, `pinned_version`) are ignored.'''
+        from .layers import materialize_string
+        raw = materialize_string(p.read_text(encoding='utf-8-sig'))
+        if raw is None:
             raw = {}
+        if not isinstance(raw, dict):
+            raise ValueError(f'{p}: not a map of records')
         recs = {}
-        for i in range(root.num_children):
-            ch = root[i]
+        for key, ch in raw.items():
             rec = _blank_record()
-            if ch.kind == DICT:
-                if ch['locked'] is not None:
-                    rec['locked'] = _to_bool(ch['locked'].value)
-                if ch['managed'] is not None:
-                    rec['managed'] = _to_bool(ch['managed'].value)
-                if ch['pinned_version'] is not None:
-                    rec['pinned_version'] = ch['pinned_version'].value or ''
-                r = (raw.get(ch.key) or {}).get('receipt') if isinstance(raw.get(ch.key), dict) else None
+            if isinstance(ch, dict):
+                if ch.get('locked') is not None:
+                    rec['locked'] = _to_bool(ch['locked'])
+                r = ch.get('receipt')
                 if isinstance(r, dict) and r.get('via') and r.get('name'):
                     rec['receipt'] = {'via': str(r['via']), 'name': str(r['name']),
                                       'fields': r.get('fields') if isinstance(r.get('fields'), dict) else {}}
                     if r.get('source'):            # the defining layer (A1 — kept across a reload)
                         rec['receipt']['source'] = str(r['source'])
-            recs[ch.key] = rec
+            recs[key] = rec
         return recs
 
     def save(self, paths):
@@ -104,10 +97,12 @@ class Ledger:
 
     def _write(self, paths):
         import os
+        # a record holding neither a lock nor a receipt says nothing: drop it (an unlocked unit
+        # whose receipt a removal cleared would otherwise stay as a blank record forever)
+        self.records = {k: r for k, r in self.records.items() if r.get('locked') or r.get('receipt')}
         obj = {}
         for key, rec in sorted(self.records.items()):
-            out = {'locked': rec['locked'], 'managed': rec['managed'],
-                   'pinned_version': rec['pinned_version']}
+            out = {'locked': rec['locked']}
             if rec.get('receipt'):
                 out['receipt'] = rec['receipt']
             obj[key] = out
@@ -127,20 +122,8 @@ class Ledger:
     def is_locked(self, key):
         return self.records.get(key, {}).get('locked', False)
 
-    def is_managed(self, key):
-        return self.records.get(key, {}).get('managed', False)
-
-    def pinned_version(self, key):
-        return self.records.get(key, {}).get('pinned_version', '')
-
     def set_lock(self, key, value):
         self._rec(key)['locked'] = bool(value)
-
-    def set_managed(self, key, value):
-        self._rec(key)['managed'] = bool(value)
-
-    def set_pinned(self, key, value):
-        self._rec(key)['pinned_version'] = value or ''
 
     # -- install receipts (see stranded.py) --------------------------------
 

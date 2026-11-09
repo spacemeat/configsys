@@ -74,3 +74,26 @@ def test_clean_version_keeps_snapshot_after_bare_zero_tilde():
     assert clean_version('0~20210324.2-2ubuntu0.3') == '0~20210324.2'   # snapshot kept (not "0")
     assert clean_version('1.2.3~0ubuntu2') == '1.2.3'                   # real version -> suffix dropped
     assert clean_version('1.2.3~rc1') == '1.2.3'
+
+
+# -- the one constraint check + promise implication (review-2026-11-2 subsystems-12) ---------------
+
+def test_meets():
+    from configsys.osversion import meets
+    assert meets('9.4', '>=9.4') is True and meets('9.3', '>=9.4') is False
+    assert meets('9.9', '<10') is True and meets('10.0', '<10') is False
+    assert meets('v1.4.7', '>=1.4') is True and meets('2:1.26~0ubuntu2', '>=1.25.0') is True
+    assert meets('2.5', '>=2.0,<3.0') is True and meets('1.96', '1.96') is True
+    assert meets(None, '>=1') is False and meets('nightly', '>=1') is False and meets('1', None) is False
+
+
+def test_implies_reads_the_operator():
+    from configsys.osversion import implies
+    assert implies('>=9.4', '>=9.2') is True
+    assert implies('>=9.4', '>=9.4') is True
+    assert implies('>=9.4', '>=9.10') is False
+    assert implies('9.4', '>=9.2') is True and implies('9.4', '<9') is False
+    assert implies('<9', '>=8') is False                  # an upper bound guarantees no floor
+    assert implies('>=8,<9', '<10') is True
+    assert implies('>9.4', '>9.4') is True and implies('>=9.4', '>9.4') is False
+    assert implies('garbage', '>=1') is False

@@ -85,7 +85,7 @@ def _ms_with_nested_dep():
         rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp},
                                requested_as=set(reqas))
         return ComponentState(component=rc, supported=True, present=True, installed_version='1',
-                              latest_version='1', locked=False, managed=False, error=None,
+                              latest_version='1', locked=False, error=None,
                               lock_source=None)
     states = {'apt\\neovim': cs('apt\\neovim', ['neovim']),
               'apt\\ripgrep': cs('apt\\ripgrep', ['neovim'])}   # ripgrep = a dep unit UNDER neovim

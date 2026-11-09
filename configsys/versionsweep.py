@@ -15,16 +15,7 @@ Networked + slow -> a maintenance tool, not part of pytest — like the name swe
 from . import osversion
 
 _pv = osversion.parse_loose   # strips a Debian epoch + leading `v` for cross-scheme compare
-
-
-def meets(version, constraint):
-    '''Does `version` satisfy `constraint` (`>=1.96`, `>1.0`, `=2.0`, `,`-AND ranges)? False when
-    either is unparseable — an unverifiable floor is treated as NOT met (surfaced, not assumed ok).'''
-    pv = _pv(version)
-    clauses = osversion.parse_constraint(constraint)
-    if pv is None or not clauses or any(target is None for _op, target in clauses):
-        return False                                   # an unreadable operand abstains, never crashes (B4)
-    return all(osversion._CMP[op or '='](pv, target) for op, target in clauses)
+meets = osversion.meets        # the one constraint check (re-exported: resolve/flooradvise import it here)
 
 
 def collect_requirement_floors(components, drivers=None):
@@ -91,24 +82,11 @@ def sweep_ctx(ctx):
     Returns the findings list. Caches a report per component so shared providers aren't re-queried.'''
     from . import versionreport
     r = ctx.routes
-    reports = {}
-
-    def rep(nm):
-        if nm not in reports:
-            try:
-                reports[nm] = versionreport.report(ctx, nm)
-            except Exception:  # noqa: BLE001 — an unroutable provider just yields "unknown"
-                reports[nm] = None
-        return reports[nm]
+    rep = versionreport.Reports(ctx)
 
     def best_version(cap):
-        best, bestp = None, None
-        for p in providers_of(r.components, cap):
-            rp = rep(p)
-            pv = _pv(rp.tip) if (rp and rp.tip) else None
-            if pv is not None and (bestp is None or pv > bestp):
-                best, bestp = rp.tip, pv
-        return best
+        return versionreport.max_version(
+            [rp.tip for rp in (rep(p) for p in providers_of(r.components, cap)) if rp])
 
     def method_version(name, where):
         rp = rep(name)

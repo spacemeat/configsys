@@ -197,7 +197,7 @@ def test_classify_unmet_vs_dangling(plugin):
 def test_status_precedence():
     rc = ResolvedComponent(key='pacman\\lw', driver='pacman', comp='lw')
     st = ComponentState(component=rc, supported=True, present=True, installed_version='1',
-                        latest_version='2', locked=False, lock_source=None, managed=False, error=None)
+                        latest_version='2', locked=False, lock_source=None, error=None)
     assert st.status == 'outdated'
     st.route_status = 'switch'
     assert st.status == 'switch'                 # routing state outranks version state
@@ -212,7 +212,7 @@ def test_augment_marks_switch_and_feeds_the_swap_offer(plugin, monkeypatch):
     rc = ResolvedComponent(key='pacman\\lw', driver='pacman', comp='lw', via='native',
                            requested_as={'lw'})
     st = ComponentState(component=rc, supported=True, present=False, installed_version=None,
-                        latest_version='2', locked=False, lock_source=None, managed=False, error=None)
+                        latest_version='2', locked=False, lock_source=None, error=None)
     states = {rc.key: st}
     stranded.augment(ctx, states, led, cache=FakeCache({('aur', 'lw-bin'): '2.0'}))
     assert st.status == 'switch' and st.also_present == (('aur', 'lw-bin', '2.0'),)
@@ -265,7 +265,7 @@ def test_tui_staging_rules_for_route_statuses():
 
     def st(present, route_status):
         return ComponentState(component=rc, supported=True, present=present, installed_version='1' if present else None,
-                              latest_version='1', locked=False, lock_source=None, managed=False, error=None,
+                              latest_version='1', locked=False, lock_source=None, error=None,
                               route_status=route_status)
     install, remove = OPS['install'][2], OPS['remove'][2]
     assert install(st(False, None)) and not install(st(True, None))   # unchanged: install = absent

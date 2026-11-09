@@ -1,3 +1,4 @@
+import contextlib
 from types import SimpleNamespace
 
 from configsys.componentObj import ResolvedComponent
@@ -24,6 +25,10 @@ class FakeRunner:
 
     def end_sudo(self):
         pass                       # batch sudo-session release; a no-op for the stub
+
+    @contextlib.contextmanager
+    def sudo_session(self):
+        yield                      # (Runner.sudo_session's release is end_sudo, above)
 
 
 def unit(name, driver='apt'):

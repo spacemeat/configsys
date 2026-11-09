@@ -309,7 +309,7 @@ def unroutable_states(ctx, classes, ledger, cache=None):
             present, ver = False, None
         out[rc.key] = ComponentState(
             component=rc, supported=True, present=present, installed_version=ver,
-            latest_version=None, locked=False, lock_source=None, managed=False, error=None,
+            latest_version=None, locked=False, lock_source=None, error=None,
             route_status=status, route_detail=detail, stranded=tuple(found))
     return out
 

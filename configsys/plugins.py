@@ -1694,11 +1694,13 @@ def find_decl(decls, plugins_dir, ident):
 
 
 def upsert_decl(decls, source, ref):
-    '''Add `source` to a decls list, or re-pin its ref if already there. Returns (target, existed);
-    target is a live element of `decls`.'''
+    '''Add `source` to a decls list, or re-pin its ref if already there (`ref=None` leaves an
+    existing decl's ref alone — dropping a pin is explicit). Returns (target, existed); target is a
+    live element of `decls`.'''
     target = next((d for d in decls if d['source'] == source), None)
     if target is not None:
-        target['ref'] = ref
+        if ref is not None:
+            target['ref'] = ref
         return target, True
     target = {'source': source, 'ref': ref}
     decls.append(target)

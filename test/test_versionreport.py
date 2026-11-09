@@ -154,3 +154,58 @@ def test_unknown_component_raises(tmp_path, monkeypatch):
     import pytest
     with pytest.raises(ResolveError):
         versionreport.report(_ctx(tmp_path), 'no-such-component-xyz')
+
+
+# -- one slot per package (review-2026-11-2 subsystems-07) ----------------------------------------
+
+def test_two_bindings_of_one_driver_with_different_names_keep_their_own_versions(tmp_path, monkeypatch):
+    # p7zip on ubuntu 24.04: `via: native` p7zip-full (not rhel) and 7zip (ubuntu >= 22.04), both apt
+    class PerPackage(_FakeDriver):
+        name = 'apt'
+
+        def get_latest(self, rc):
+            return {'p7zip-full': '16.02+dfsg-8', '7zip': '23.01+dfsg-11'}[rc.name]
+
+        def installed_index(self):
+            return None                           # per-unit get_version: the probe-cache slot under test
+
+        def get_version(self, rc):
+            return {'p7zip-full': None, '7zip': '23.01+dfsg-11'}[rc.name]
+
+    _mock_drivers(monkeypatch, {'apt': PerPackage()})
+    ctx = _ctx(tmp_path)
+    for _ in range(2):                            # the second report reads the cache back
+        rep = versionreport.report(ctx, 'p7zip', now=1000)
+        apt = {m.package: m for m in rep.methods if m.driver == 'apt'}
+        assert apt['p7zip-full'].latest == '16.02+dfsg-8' and apt['7zip'].latest == '23.01+dfsg-11'
+        assert apt['p7zip-full'].installed is None and apt['7zip'].installed == '23.01+dfsg-11'
+    cache = versionreport._LatestCache.load(ctx.paths)
+    assert {'apt\\p7zip\\p7zip-full', 'apt\\p7zip\\7zip'} <= set(cache.records)
+
+
+def test_bindings_naming_the_same_package_fold_into_one_row(tmp_path, monkeypatch):
+    two = ('{ components: { dupy: { install: [ { via: native  name: dupy }'
+           '  { via: native  when: "ubuntu"  name: dupy } ] } } }')
+    pf = tmp_path / 'dup.hu'
+    pf.write_text(two, encoding='utf-8')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[(str(pf), 'plugin')])
+    ctx = _Ctx(r, Paths(env={'CONFIGSYS_HOME': str(tmp_path), 'HOME': str(tmp_path)}))
+    _mock_drivers(monkeypatch, {'apt': _FakeDriver(latest='1.0')})
+    rep = versionreport.report(ctx, 'dupy', now=1000)
+    assert [(m.driver, m.package) for m in rep.methods] == [('apt', 'dupy')]
+    assert rep.methods[0].is_default
+
+
+def test_reports_memo_asks_once_and_never_raises(monkeypatch):
+    calls = []
+
+    def fake(ctx, name, **k):
+        calls.append(name)
+        if name == 'bad':
+            raise versionreport.ResolveError('unknown component "bad"')
+        return name.upper()
+    monkeypatch.setattr(versionreport, 'report', fake)
+    rep = versionreport.Reports(object())
+    assert rep('go') == 'GO' and rep('go') == 'GO' and rep('bad') is None and rep('bad') is None
+    assert calls == ['go', 'bad']
+    assert versionreport.max_version(['1.2', 'v1.10', None]) == 'v1.10'

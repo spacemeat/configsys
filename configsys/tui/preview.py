@@ -25,7 +25,7 @@ def _sample_components_state():
         rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp}, requested_as=set(req))
         return ComponentState(component=rc, supported=supported, present=present, installed_version=iv,
                               latest_version=lv, locked=locked, lock_source=('native' if locked else None),
-                              managed=False, error=error, scope=scope)
+                              error=error, scope=scope)
     states = {
         'apt\\ripgrep':     st('apt\\ripgrep', ['ripgrep'], present=True, iv='14.1.0', lv='14.1.0'),   # installed
         'cargo\\bottom':    st('cargo\\bottom', ['bottom'], present=True, iv='0.9.6', lv='0.10.2'),     # outdated

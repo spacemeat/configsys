@@ -16,20 +16,20 @@ import threading
 from .driver import UPDATE_TIERS
 from .drivers import get_driver
 
-# The cross-distro app managers we aggregate alongside the OS's native pm. P0 proves the pipeline on
-# apt + flatpak + snap; P3 extends upgradable_index/upgrade_all to the rest (dnf/pacman/zypper/…).
+# The cross-distro app managers we aggregate alongside the OS's native pm. Every native manager
+# (apt/dnf/pacman/zypper/apk/xbps/brew) implements upgradable_index/upgrade_all; rpm-ostree is omitted.
 _APP_MANAGERS = ('flatpak', 'snap')
 
-# TUI (P2): the synthetic Components group + its per-tier subgroup labels.
+# TUI (P2): the synthetic Components group (its subgroups are the UPDATE_TIERS themselves).
 SYSTEM_UPDATES_GROUP = 'System Updates'
-_TIER_TOKEN = {'kernel': 'kernel', 'core': 'core', 'standard': 'standard', 'apps': 'apps'}
 
 
 class UpdateRow:
     '''One upgradable package in the System Updates lane — the manager's own report, not a component.'''
-    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held', 'tier', 'explicit')
+    __slots__ = ('manager', 'key', 'installed', 'candidate', 'held', 'tier', 'explicit', 'scope')
 
-    def __init__(self, manager, key, installed, candidate, held, tier='apps', explicit=True):
+    def __init__(self, manager, key, installed, candidate, held, tier='apps', explicit=True,
+                 scope='system'):
         self.manager = manager
         self.key = key
         self.installed = installed
@@ -37,6 +37,7 @@ class UpdateRow:
         self.held = held
         self.tier = tier
         self.explicit = explicit         # user-installed (manager's explicit set) vs auto-pulled dep
+        self.scope = scope               # the installation it lives in (flatpak: --user or --system)
 
 
 def _native_pm(ctx):
@@ -86,8 +87,11 @@ def gather(ctx, notes_out=None):
     manager that can't enumerate (absent / query failed) or reports nothing upgradable is omitted.
     `notes_out` (a list) collects each manager's `upgradable_advisory()` — the optional hook a driver
     exposes when its list may be incomplete (pacman without checkupdates reads a stale sync DB) —
-    as "<manager>: <why>", even when that manager listed nothing.'''
+    as "<manager>: <why>", even when that manager listed nothing. The OS's OWN manager answering
+    None is certainly installed, so its query failed: that is a note too, never a silent "no
+    updates" (an app manager answering None is simply absent).'''
     managed = managed_keys(ctx)
+    native = _native_pm(ctx)
     out = {}
     for drv in machine_managers(ctx):
         idx = drv.upgradable_index()
@@ -95,8 +99,11 @@ def gather(ctx, notes_out=None):
         note = adv() if callable(adv) else None
         if note and notes_out is not None:
             notes_out.append(f'{drv.name}: {note}')
+        if idx is None and drv.name == native and notes_out is not None:
+            notes_out.append(f'{drv.name}: could not list upgradable packages')
         if not idx:                                      # None (absent/failed) or {} (up to date)
             continue
+        scopes = getattr(drv, 'update_scopes', None) or {}   # flatpak: which installation each ref is in
         held = drv.held_keys() or set()
         tiers = drv.classify_index(list(idx))          # {key: UPDATE_TIER}
         explicit = drv.explicit_keys()                 # user-installed set (None = manager has no notion)
@@ -110,7 +117,7 @@ def gather(ctx, notes_out=None):
             # all as user-chosen, so nothing is dimmed).
             is_explicit = True if explicit is None else (dedup in explicit or key in explicit)
             rows.append(UpdateRow(drv.name, key, inst, cand, dedup in held or key in held,
-                                  tiers.get(key, 'apps'), is_explicit))
+                                  tiers.get(key, 'apps'), is_explicit, scopes.get(key, 'system')))
         if rows:
             out[drv.name] = rows
     return out
@@ -126,8 +133,14 @@ def start_scan(ctx):
     queries never blocks TUI startup — the System Updates group folds into the Components tree once
     ready (the run loop polls scan_busy/take_dirty). No-op if a result is already cached or a scan of
     the CURRENT generation is in flight. A scan started before the last invalidate() is superseded:
-    a fresh one starts, and the stale thread's result is discarded when it lands (see invalidate).'''
+    a fresh one starts, and the stale thread's result is discarded when it lands (see invalidate).
+    Under --pretend nothing is scanned (the runner would echo every query over the curses screen, and
+    a dry run reads nothing anyway): the group is simply empty. A gather that raises leaves a
+    `scan failed` note for the `!` page instead of reading as "no updates".'''
     if getattr(ctx, '_sysupd_groups', None) is not None:
+        return
+    if getattr(getattr(ctx, 'runner', None), 'pretend', False):
+        ctx._sysupd_groups = {}
         return
     gen = getattr(ctx, '_sysupd_gen', 0)
     t = getattr(ctx, '_sysupd_thread', None)
@@ -139,8 +152,8 @@ def start_scan(ctx):
         notes = []
         try:
             g = gather(ctx, notes)
-        except Exception:                                # noqa: BLE001 — never let the scan brick the TUI
-            g = {}
+        except Exception as e:                           # noqa: BLE001 — never let the scan brick the TUI
+            g, notes = {}, [f'system-updates: scan failed: {e}']
         with _SCAN_LOCK:                                 # atomic vs invalidate()'s bump + clear
             if getattr(ctx, '_sysupd_gen', 0) != gen:
                 return                                   # superseded by an invalidate(): drop it
@@ -193,24 +206,50 @@ def is_synthetic(state):
     return bool(getattr(getattr(state, 'component', None), 'fields', {}).get('system_update'))
 
 
-def apply_bulk(ctx, manager_names, *, refresh=True, on_start=None):
-    '''Run each named manager's own bulk upgrade (Driver.upgrade_all) — the System Updates apply step
-    the TUI execute path calls after the shared confirm. Refreshes the native index once up front so
-    candidates are current (`refresh=False` when the caller already refreshed for the whole batch),
-    then invalidates the cache + restarts the scan so the group refreshes.
-    Returns [(manager, Result_or_None)].'''
+def apply_bulk(ctx, manager_names, *, refresh=True, on_start=None, on_line=print):
+    '''Run each named manager's own bulk upgrade (Driver.upgrade_all) — the ONE System Updates apply
+    step `upgrade --system` and the TUI execute path share. Refreshes the native index once up front
+    so candidates are current (`refresh=False` when the caller already refreshed for the whole
+    batch), then drops the cached scan (invalidate); rescanning is the caller's (the TUI re-gathers
+    after its component ops, the CLI exits).
+    Returns an actions.RunResult like run_plan's: one OpOutcome per manager, keyed
+    `system-updates\\<mgr>` (a manager with no bulk-upgrade command is an advisory outcome, not a
+    failure), the failure records — already folded into the ! page / `report` record, except under
+    --pretend — and interrupted=True (rc 130, the remaining managers skipped) after a ^C.'''
+    from . import reportgen
+    from .actions import OpOutcome, RunResult, fail_detail
     if refresh:
         from .cli.refresh import refresh_native_index             # lazy: app imports this module
         refresh_native_index(ctx)                         # non-fatal
-    results = []
+    outcomes, failures, n_fatal, exit_code, interrupted = [], [], 0, 0, False
     for mgr in manager_names:
+        key = f'system-updates\\{mgr}'
         if on_start is not None:
             on_start(mgr)                                 # (the CLI prints a header per manager)
         drv = get_driver(mgr, ctx.runner, ctx.paths)
-        results.append((mgr, drv.upgrade_all() if drv is not None else None))
+        try:
+            res = drv.upgrade_all() if drv is not None else None
+        except KeyboardInterrupt:                         # like run_plan: ^C stops the whole batch
+            on_line(f'\n  ^C — aborted; the {mgr} upgrade may be partially applied. Skipping the rest.')
+            outcomes.append(OpOutcome('upgrade', key, mgr, False, 'interrupted (^C)'))
+            exit_code, interrupted = 130, True
+            break
+        if res is None:
+            on_line(f'  ({mgr} has no bulk-upgrade command — skipped)')
+            outcomes.append(OpOutcome('upgrade', key, mgr, False, 'no bulk-upgrade command',
+                                      advisory=True))
+        elif not res.ok:
+            on_line(f'  -> {mgr} upgrade FAILED (exit {res.returncode}): {fail_detail(res)}')
+            outcomes.append(OpOutcome('upgrade', key, mgr, False, fail_detail(res)))
+            failures.append(reportgen.failure_from_result(key, mgr, 'upgrade', res))
+            exit_code = exit_code or res.returncode or 1
+            n_fatal += 1
+        else:
+            outcomes.append(OpOutcome('upgrade', key, mgr, True))
+    if not getattr(ctx.runner, 'pretend', False):         # the ! page + `report` see a failure
+        reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
     invalidate(ctx)
-    start_scan(ctx)
-    return results
+    return RunResult(outcomes, failures, n_fatal, exit_code, interrupted)
 
 
 def _synthetic_state(row):
@@ -219,8 +258,8 @@ def _synthetic_state(row):
     can't collide with a real unit key.'''
     from .componentObj import ResolvedComponent
     from .installState import ComponentState
-    token = _TIER_TOKEN.get(row.tier, 'apps')
-    scope = 'user' if row.manager == 'flatpak' else 'system'
+    token = row.tier if row.tier in UPDATE_TIERS else 'apps'
+    scope = row.scope
     # su_auto flags an auto-pulled dependency (not in the manager's user-installed set) — the painter
     # dims those in the standard/apps tiers so the handful you actually chose stand out.
     rc = ResolvedComponent(
@@ -231,7 +270,7 @@ def _synthetic_state(row):
         component=rc, supported=True, present=True,
         installed_version=row.installed, latest_version=row.candidate,
         locked=row.held, lock_source=('native' if row.held else None),
-        managed=False, error=None, scope=scope, outdated_override=True)
+        error=None, scope=scope, outdated_override=True)
 
 
 def tree_injection(groups):
@@ -250,9 +289,8 @@ def tree_injection(groups):
     items, transitive_names = [], []
     for tier in UPDATE_TIERS:
         if by_tier[tier]:
-            token = _TIER_TOKEN[tier]
-            items.append(('component', token))
-            transitive_names.append(token)
+            items.append(('component', tier))
+            transitive_names.append(tier)
     if not items:
         return {}, [], {}
     return states, [(SYSTEM_UPDATES_GROUP, items)], {SYSTEM_UPDATES_GROUP: transitive_names}

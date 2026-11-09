@@ -32,8 +32,7 @@ class StubRunner:
 def _managed_state(units):
     (key, rc), = units.items()
     return key, ComponentState(component=rc, supported=True, present=False, installed_version=None,
-                               latest_version=None, locked=False, lock_source=None, managed=False,
-                               error=None)
+                               latest_version=None, locked=False, lock_source=None, error=None)
 
 
 def test_coexisting_flatpak_surfaced_while_native_is_managed(tmp_path):

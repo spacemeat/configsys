@@ -51,11 +51,17 @@ def build_reverse_index(ctx):
     '''{ (driver, package_key): [component_name, ...] } for THIS machine's context — every package
     key each component could install under, across ALL its valid bindings (per-driver `name:` maps
     applied, and every same-`via:` alternative, so both `p7zip-full` and `7zip` map to one
-    component). This is what tells a `known` key (maps to a real component) from a `foreign` one.'''
+    component). This is what tells a `known` key (maps to a real component) from a `foreign` one.
+    Built once per loaded Resolver and kept on ctx (an orphan pass, the overlays and the System
+    Updates exclusion all ask; a reload builds a new Resolver, so an edit is never served stale).
+    Callers only read it.'''
     r = ctx.routes
+    held = getattr(ctx, '_rindex_cache', None)
+    if held is not None and held[0] is r:
+        return held[1]
     cx = r.context()
     native_mgr = _native_manager(ctx)
-    index = {}
+    index, drivers = {}, {}                     # drivers: one instance per name for the whole walk
     for name, comp in r.components.items():
         try:
             cands = candidate_bindings(comp, r.cascade, cx, None)   # ALL valid bindings, not one/via
@@ -66,13 +72,19 @@ def build_reverse_index(ctx):
             if unit is None:
                 continue
             rc = to_resolved_component(unit)
-            drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+            if rc.driver not in drivers:
+                drivers[rc.driver] = get_driver(rc.driver, ctx.runner, ctx.paths)
+            drv = drivers[rc.driver]
             if drv is None:
                 continue
             for (dn, key) in _index_pairs(rc, drv, native_mgr):
                 index.setdefault((dn, key), [])
                 if name not in index[(dn, key)]:
                     index[(dn, key)].append(name)
+    try:
+        ctx._rindex_cache = (r, index)
+    except AttributeError:                      # a frozen/bare context: just don't keep it
+        pass
     return index
 
 
@@ -132,7 +144,7 @@ def _rank(kind):
 
 
 def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
-                 include_foreign_native=False, include_auto=False, include_system=False):
+                 include_foreign_native=False, include_auto=False, include_system=False, rindex=None):
     '''[Orphan] — installed items with no active component. `units` is the active resolved set
     ({key: ResolvedComponent}). `cache` is an optional {driver_name: installed_index()-dict|None} to
     reuse detection's enumeration (missing drivers are enumerated on demand); `explicit` likewise
@@ -140,7 +152,7 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
     managers into foreign listing (off by default — dependency noise). `include_auto` keeps
     auto-installed dependency packages (by default the scan lists only what the user EXPLICITLY
     installed, per each driver's explicit_keys — so the thousands of dep packages nobody chose
-    don't drown the signal).'''
+    don't drown the signal). `rindex` is a build_reverse_index the caller already holds.'''
     cfg = ctx.config
     # fill-through (mutate the caller's dicts in place, don't copy) so a caller — e.g. the TUI
     # install overlay — can RETAIN the filled enumeration across calls and skip the re-spawn.
@@ -200,7 +212,7 @@ def scan_orphans(ctx, units, *, cache=None, explicit=None, origins=None,
         active |= _index_pairs(rc, drv, native_mgr)
 
     # 2. classification inputs: this machine's install set (picks).
-    rindex = build_reverse_index(ctx)
+    rindex = build_reverse_index(ctx) if rindex is None else rindex
     requested = set(cfg.requested())            # components tracked (picked) on this machine
     ignore = _ignore_globs(cfg)
 
@@ -314,7 +326,7 @@ def install_overlay(ctx, units, *, caches=None):
 
     orphans = {o.component: o for o in scan_orphans(
         ctx, units, cache=inst, explicit=expl,
-        origins=caches.setdefault('orig', {})) if o.component}
+        origins=caches.setdefault('orig', {}), rindex=rindex) if o.component}
     return installed, orphans, caches
 
 

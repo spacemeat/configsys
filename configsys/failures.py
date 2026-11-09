@@ -2,7 +2,8 @@
 
 Drivers and the native index-refresh step map raw tool output into a CATEGORY + a plain-language
 REMEDIATION hint, so a failure renders uniformly (report / TUI / refresh) instead of as an opaque
-dump. Classification is purely advisory — it never changes control flow, only how we explain it.
+dump. Classification decides how we explain a failure, and whether retry_transient retries it
+(DEFINITIVE categories aren't retried) — so a misread category costs retries as well as words.
 
 The signature table is deliberately conservative: an unrecognised failure stays (None, None) and is
 shown verbatim, exactly as before. Add rows as real-world stumbles teach us their fingerprints.
@@ -22,6 +23,11 @@ PARTIAL = 'partial-state-left'
 
 CATEGORIES = (NETWORK, AUTH, SIGNATURE, NOT_FOUND, DEPENDENCY, BUILD, PARTIAL)
 
+# An HTTP status as the tools print it — curl/git "returned error: 404", dnf "Status code: 404",
+# "HTTP/1.1 404", python's "HTTP Error 404", wget "ERROR 404", a bare "curl: (22) … 404" — so a 404/403
+# is read from the status, never from any "404" token ("failed to build at line 404").
+_HTTP_STATUS = r'(?:Status code:|returned error:|HTTP Error|HTTP/[0-9.]+|ERROR|curl: \(22\)[^\n]*?)\s*'
+
 # (compiled pattern, category, remediation-template). First match wins, so order most-specific
 # first. `remediation` is .format()'d with the match's capture groups (e.g. a NO_PUBKEY key id).
 _RULES = [
@@ -40,6 +46,14 @@ _RULES = [
     (re.compile(r'returned error: 5[0-9][0-9]\b|\b50[234] (?:Bad Gateway|Service Unavailable|Gateway Time-?out)',
                 re.I), NETWORK,
      "the upstream server answered with an error of its own (HTTP 5xx) — usually brief; retry later."),
+    # an HTTP 404/403 BEFORE the generic download-failed rule: apt's "Failed to fetch … 404  Not Found"
+    # (a stale index) and dnf's "Cannot download repomd.xml: Status code: 404" (a vendor repo with no
+    # tree for a new release yet) are definitive, not a network blip worth three retries
+    (re.compile(_HTTP_STATUS + r'404\b|\s404\s+Not Found'), NOT_FOUND,
+     "an upstream URL is gone (moved or removed) — the component's route likely needs updating."),
+    (re.compile(_HTTP_STATUS + r'403\b|\s403\s+Forbidden'), AUTH,
+     "the server refused access (HTTP 403) — a private repo or download needs credentials, or the "
+     "URL/token is wrong or rate-limited."),
     (re.compile(r'Failed to fetch|Cannot download|Curl error|could not download', re.I), NETWORK,
      "a download failed (network, or the upstream URL is unavailable) — retry, or the route may "
      "need updating if the URL moved."),
@@ -49,7 +63,7 @@ _RULES = [
     (re.compile(r'command not found|^\S*sh: (?:line )?\d+: \S+: not found', re.M), DEPENDENCY,
      "a command this step runs isn't installed, or isn't on PATH — install it (or open a new shell "
      "so its PATH setup applies) and retry."),
-    (re.compile(r'\b404\b|(?-i:Not Found)|No such file or directory.*http|does not have a Release file', re.I),
+    (re.compile(r'(?-i:Not Found)|No such file or directory.*http|does not have a Release file', re.I),
      NOT_FOUND,
      "an upstream URL is gone (moved or removed) — the component's route likely needs updating."),
     (re.compile(r'Permission denied|are you root|must be (?:run as |)root|sudo:.*(?:password|required)|'

@@ -158,7 +158,7 @@ TUI_ACTIONS = {
     ('profiles', 'machine-target'): 'machine use',
     ('profiles', 'mark-all-seen'): 'disp set',
     ('profiles', 'method'): 'pin set',
-    ('profiles', 'orphan-ignore'): 'orphans',           # orphans --ignore
+    ('profiles', 'orphan-ignore'): 'orphans',           # orphans --ignore / --unignore
     ('profiles', 'select-all'): 'tui-only: selection',
     ('profiles', 'stage-uninstall'): 'uninstall add',
     ('profiles', 'toggle-install'): 'tui-only: the install-state overlay',

@@ -48,15 +48,21 @@ class VersionReport:
     default_meets_min: bool = None   # does the DEFAULT method clear the floor?
 
 
-# -- machine-local cache of get_latest results (keyed by unit key `driver\comp`) -----------------
+# -- machine-local cache of get_latest results (keyed by `driver\comp\package`) -----------------
 
 class _LatestCache(TTLRecords):
-    '''method-versions.hu — each install method's get_latest, keyed by unit key (cachefile).'''
+    '''method-versions.hu — each install method's get_latest, keyed by _cache_key (cachefile).'''
     path_attr = 'method_versions_file'
 
     def set(self, key, version, now):
         self.records[key] = {'version': version, 'fetched': now}
         self.dirty = True
+
+
+def _cache_key(rc):
+    '''One slot per (unit, PACKAGE): two bindings of one component can resolve to the same driver
+    with different `name:`s (p7zip's `p7zip-full` and `7zip` on apt) — one unit key, two answers.'''
+    return f'{rc.key}\\{rc.name}'
 
 
 def _cached_latest(cache, rc, drv, refresh, now):
@@ -66,12 +72,12 @@ def _cached_latest(cache, rc, drv, refresh, now):
     report a version (e.g. flatpak gaining get_latest) self-heals on the next read instead of being
     stuck on a stale blank until the TTL expires.'''
     if not refresh:
-        hit = cache.get(rc.key, now, LATEST_TTL)
+        hit = cache.get(_cache_key(rc), now, LATEST_TTL)
         if hit and hit['version']:
             return hit['version']
     ver = _safe(drv.get_latest, rc) if drv is not None else None
     if ver:                          # only cache a real answer; retry "unknown" next time
-        cache.set(rc.key, ver, now)
+        cache.set(_cache_key(rc), ver, now)
     return ver
 
 
@@ -100,13 +106,33 @@ def _lt(a, b):
     return False if (pa is None or pb is None) else pa < pb
 
 
-def _max_version(versions):
+def max_version(versions):
+    '''The newest of `versions` (strings, cross-scheme) — the first of equals; unparseable / None
+    entries abstain. None when none parses.'''
     best, bestp = None, None
     for v in versions:
         p = _pv(v)
         if p is not None and (bestp is None or p > bestp):
             best, bestp = v, p
     return best
+
+
+_max_version = max_version
+
+
+class Reports:
+    '''A per-pass memo of report(ctx, name): call it with a component name; an unroutable one is None
+    (never raises). The floor advisory and the version sweep ask about each provider once.'''
+    def __init__(self, ctx):
+        self.ctx, self._got = ctx, {}
+
+    def __call__(self, name):
+        if name not in self._got:
+            try:
+                self._got[name] = report(self.ctx, name)
+            except Exception:    # noqa: BLE001 — an unroutable provider just yields "unknown"
+                self._got[name] = None
+        return self._got[name]
 
 
 def report(ctx, name, *, min_version=None, refresh=False, now=None):
@@ -129,12 +155,18 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
     probes = probecache.of(ctx)
     cache = _LatestCache.load(ctx.paths)
     now = time.time() if now is None else now
-    methods = []
+    methods, seen = [], {}
     for b in cands:
         unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
         if unit is None:                          # parts aggregator / component-names drop
             continue
         rc = to_resolved_component(unit)
+        package = rc.name or comp.name
+        dup = seen.get((rc.driver, package))
+        if dup is not None:                       # two bindings, one (driver, package): one row
+            dup.is_default = dup.is_default or b is default_binding
+            dup.is_pinned = dup.is_pinned or pin == b.via
+            continue
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         adv = getattr(drv, 'version_advisory', None) if drv is not None else None
         latest = _cached_latest(cache, rc, drv, refresh, now)
@@ -145,17 +177,18 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
                 from .installState import recipe_pin_text
                 note = recipe_pin_text(latest, up)
         methods.append(MethodVersion(
-            via=b.via, driver=rc.driver, package=rc.name or comp.name,
+            via=b.via, driver=rc.driver, package=package,
             latest=latest,
             # installed: through the context's shared probe cache (the detection passes filled it) —
             # the floor advisory reports per provider on every TUI diagnostics pass
             installed=_safe(lambda u, d=drv: probes.version(d, u), rc) if drv is not None else None,
             is_default=(b is default_binding), is_pinned=(pin == b.via),
             note=note))
+        seen[(rc.driver, package)] = methods[-1]
     if not getattr(ctx.runner, 'pretend', False):      # pretend probes read empty: never cache that
         cache.save(ctx.paths)
 
-    tip = _max_version([m.latest for m in methods])
+    tip = max_version([m.latest for m in methods])
     for m in methods:
         m.lags_tip = _lt(m.latest, tip)
         if min_version is not None:

@@ -135,8 +135,10 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(installState, 'plan_with_swaps', lambda c, raw, units: (raw, units))
     monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan',
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})
+    from configsys.actions import OpOutcome, RunResult
     monkeypatch.setattr(sysupdates, 'apply_bulk', lambda c, mgrs, refresh=True: (
-        seen.append(('bulk', refresh)) or [(m, SimpleNamespace(ok=True)) for m in mgrs]))
+        seen.append(('bulk', refresh)) or RunResult(
+            [OpOutcome('upgrade', f'system-updates\\{m}', m, True) for m in mgrs], [], 0, 0, False)))
     monkeypatch.setattr(flows_mod, 'execute_plan', lambda c, plan, led, refresh=True, version=None: (
         seen.append(('plan', refresh)) or []))
     monkeypatch.setattr(cli_refresh, 'published_pending', lambda c, fresh: sorted(fresh))

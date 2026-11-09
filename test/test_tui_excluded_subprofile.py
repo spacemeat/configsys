@@ -13,7 +13,7 @@ def _cs(key, name, supported=True):
     comp = SimpleNamespace(key=key, comp=name, name=name, driver='native', requested_as=[name])
     return ComponentState(component=comp, supported=supported, present=False,
                           installed_version=None, latest_version=None, locked=False,
-                          lock_source=None, managed=False, error=None)
+                          lock_source=None, error=None)
 
 
 # meta includes two subprofiles (kept, gone); `top` is the active profile. `gone` is excluded, so its

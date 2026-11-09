@@ -4,6 +4,8 @@ theme PLUGIN) behind `configsys theme`. F3 slice 3; the theme model is already c
 
 import types
 
+import pytest
+
 from configsys import actions, layers, plugins
 from configsys.config import Config
 
@@ -65,6 +67,24 @@ def test_save_theme_plugin_and_overwrite_guard(tmp_path):
     _p, _e = actions.save_theme_plugin(ctx, 'mytheme', force=True)   # force overwrites
     saved = plugins.read_theme(str(pdir / 'mytheme' / 'theme.hu'))
     assert saved['colors']['accent'] == '#abcabc'
+    assert sorted(p.name for p in (pdir / 'mytheme').iterdir()) == ['plugin.hu', 'theme.hu']   # no dotfiles/
+
+
+def test_save_theme_plugin_refuses_a_path_name(tmp_path):
+    # review-2026-11-2 actions-23: `theme save ../../x` wrote outside the plugins dir
+    ctx, _user, pdir = _ctx(tmp_path)
+    before = sorted(str(p) for p in tmp_path.rglob('*'))
+    for bad in ('../../escaped', '..', '.hidden', 'a/b', ''):
+        with pytest.raises(ValueError):
+            actions.save_theme_plugin(ctx, bad)
+    assert sorted(str(p) for p in tmp_path.rglob('*')) == before
+
+
+def test_theme_save_cli_refuses_a_path_name(tmp_path, capsys):
+    from configsys.app import main
+    assert main(['--home', str(tmp_path), '--os', 'pop', '-q', 'theme', 'save', '../../x']) == 1
+    assert 'not a usable theme pack name' in capsys.readouterr().err
+    assert not (tmp_path / 'x').exists() and not (tmp_path / '.config' / 'x').exists()
 
 
 def test_load_theme_applies_it(tmp_path):

@@ -32,7 +32,7 @@ def cs(key, status='installed', requested_as=None, **kw):
     drv, comp = key.split('\\', 1)
     rc = ResolvedComponent(key=key, driver=drv, comp=comp, fields={'name': comp},
                            requested_as=set(requested_as if requested_as is not None else [comp]))
-    base = dict(component=rc, managed=False, error=None, lock_source=None, supported=True,
+    base = dict(component=rc, error=None, lock_source=None, supported=True,
                 present=True, installed_version='1', latest_version='1', locked=False)
     if status == 'missing':
         base.update(present=False, installed_version=None, latest_version='2')

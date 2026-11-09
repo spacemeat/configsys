@@ -23,7 +23,7 @@ def _st(key, comp, req, present, error=None):
     rc = ResolvedComponent(key=key, driver='apt', comp=comp, fields={'name': comp}, requested_as=set(req))
     return ComponentState(component=rc, supported=True, present=present,
                           installed_version='1' if present else None, latest_version='1', locked=False,
-                          lock_source=None, managed=False, error=error, scope='system')
+                          lock_source=None, error=error, scope='system')
 
 
 def _key(scope, action):

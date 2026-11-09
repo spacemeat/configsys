@@ -7,7 +7,7 @@ Split out of app.py (review-2026-11-2 D2).
 import sys
 from ..errors import ConfigError
 from .common import _install_scope_label, _pretend_edit, _warn_unknown_component, ask
-from .ops import _dispatch_op
+from .ops import _dispatch_op, _expand_profile_args_detail
 from .where import _layer_label
 
 
@@ -83,6 +83,14 @@ def cmd_picks(ctx, args):
         return 0
 
     machines = getattr(args, 'machines', None) or [cfg.current_machine()]
+    comps = [getattr(args, 'component', None)]
+    if sub in ('add', 'rm') and comps[0].startswith('profile:'):
+        # a `profile:<name>` picks (or unpicks) each member, as on the ops; it is never stored as a
+        # pick itself, and an unknown profile writes nothing
+        got = _expand_profile_args_detail(ctx, comps)
+        if got is None:
+            return 1
+        comps = got[0]
     if ctx.runner.pretend:
         if sub == 'to-primary':
             from .. import plugins
@@ -94,7 +102,7 @@ def cmd_picks(ctx, args):
                                                   else 'no local picks to move'))
         elif sub in ('add', 'rm'):
             labels = sorted({actions._picks_target(ctx, m)[1] for m in machines})
-            _pretend_edit(ctx, f'{"pick" if sub == "add" else "unpick"} {args.component} on '
+            _pretend_edit(ctx, f'{"pick" if sub == "add" else "unpick"} {", ".join(comps)} on '
                                f'{", ".join(machines)}  (in {" + ".join(labels)})')
         return 0
 
@@ -112,13 +120,15 @@ def cmd_picks(ctx, args):
         return 0
 
     if sub in ('add', 'rm'):
-        if sub == 'add':
-            _warn_unknown_component(args.component, set(ctx.routes.components))
-        n, label = actions.set_included(ctx, args.component, machines, sub == 'add')  # invalidates glue cache
         verb = 'picked' if sub == 'add' else 'unpicked'
-        print(f'configsys: {args.component} {verb} on {", ".join(machines)}  (in {label})' if n
-              else f'configsys: no change — {args.component} already '
-                   f'{"picked" if sub == "add" else "unpicked"} there')
+        for comp in comps:
+            if sub == 'add':
+                _warn_unknown_component(comp, set(ctx.routes.components))
+            n, label = actions.set_included(ctx, comp, machines, sub == 'add')  # invalidates glue cache
+            print(f'configsys: {comp} {verb} on {", ".join(machines)}  (in {label})' if n
+                  else f'configsys: no change — {comp} already {verb} there')
+        if not comps:
+            print(f'configsys: no change — {args.component} has no members')
         return 0
     return 0
 
@@ -126,27 +136,37 @@ def cmd_picks(ctx, args):
 def cmd_orphans(ctx, args):
     '''List installed software this machine doesn't track, grouped by driver, each tagged with its
     kind (lurking / forgotten / foreign) — or act on one: --adopt (track it), --remove (uninstall
-    it), --ignore (quiet it). The bare listing is read-only.'''
+    it), --ignore (quiet it), --unignore (list it again). The bare listing is read-only.'''
     from .. import orphans as orphans_mod, actions
     cfg = ctx.config
 
-    # -- action verbs (adopt / remove / ignore) — each returns early; no scan needed --
+    # -- action verbs (adopt / remove / ignore / unignore) — each returns early; no scan needed --
     if args.ignore:
-        cur = list(cfg.orphans_ignore())
-        added = [p for p in args.ignore if p not in cur]
-        if added and ctx.runner.pretend:
-            _pretend_edit(ctx, f'ignore {", ".join(added)}  →  orphans-ignore in '
+        new = [p for p in dict.fromkeys(args.ignore) if p not in cfg.orphans_ignore()]
+        if new:
+            ctx.ensure_user_config()                     # (a no-op under --pretend)
+        n, label = actions.ignore_orphan(ctx, args.ignore)        # the TUI `.` action's writer
+        if label == actions.PRETEND_NOT_SAVED:
+            _pretend_edit(ctx, f'ignore {", ".join(new)}  →  orphans-ignore in '
                                f'{actions._setting_target(ctx, "orphans-ignore")[1]}')
-            return 0
-        if not added:
-            print(f'already ignored: {", ".join(args.ignore)}')
-            return 0
-        _changed, label = actions.set_config_setting(ctx, 'orphans-ignore', cur + added)
-        if added:
-            print(f'ignoring {", ".join(added)}  →  orphans-ignore in {label}')
+        elif n:
+            print(f'ignoring {", ".join(new)}  →  orphans-ignore in {label}')
         else:
             print(f'already ignored: {", ".join(args.ignore)}')
         return 0
+    if getattr(args, 'unignore', None):
+        rc = 0
+        for pat in dict.fromkeys(args.unignore):
+            changed, label = actions.unignore_orphan(ctx, pat)    # the TUI `.` toggle's other half
+            if label == actions.PRETEND_NOT_SAVED:
+                _pretend_edit(ctx, f'un-ignore {pat}  →  orphans-ignore in '
+                                   f'{actions._setting_target(ctx, "orphans-ignore")[1]}')
+            elif changed:
+                print(f'un-ignored {pat}  (orphans-ignore in {label})')
+            else:
+                print(f'configsys: {pat}: {label}', file=sys.stderr)
+                rc = 1
+        return rc
     if args.adopt:
         if args.adopt not in ctx.routes.components:
             print(f'configsys: unknown component "{args.adopt}" — --adopt takes a known orphan '
@@ -375,7 +395,14 @@ def cmd_machine(ctx, args):
             if args.name not in cfg.machine_names():
                 print(f'configsys: machine "{args.name}" is not defined')
                 return 1
-            _pretend_edit(ctx, f'remove machine "{args.name}" (its picks column)')
+            force = getattr(args, 'force', False)
+            this_box = args.name == (cfg.configured_machine() or 'this-machine')
+            if this_box and not force:
+                print(f'configsys: machine "{args.name}" is this box; `configsys machine use <other>` '
+                      'first (or --force, which also clears `machine:`)', file=sys.stderr)
+                return 1
+            _pretend_edit(ctx, f'remove machine "{args.name}" (its picks column)'
+                          + (' and clear `machine:`' if this_box and cfg.configured_machine() else ''))
         elif sub == 'use':
             label = actions._setting_target(ctx, 'machine')[1]
             _pretend_edit(ctx, f'make this box machine "{args.name}"  (in {label})' if args.name
@@ -388,8 +415,8 @@ def cmd_machine(ctx, args):
               else f'configsys: {label}')
         return 0 if changed else 1
     if sub == 'rm':
-        changed, label = actions.remove_machine(ctx, args.name)
-        print(f'configsys: {label}')
+        changed, label = actions.remove_machine(ctx, args.name, force=getattr(args, 'force', False))
+        print(f'configsys: {label}', file=sys.stdout if changed else sys.stderr)
         return 0 if changed else 1
     if sub == 'use':
         changed, label = actions.set_machine_active(ctx, args.name)

@@ -1,3 +1,5 @@
+import pytest
+
 from configsys import failures
 from configsys.runner import Result
 
@@ -103,3 +105,26 @@ def test_command_not_found_is_a_missing_tool_not_a_moved_url():
 def test_an_upstream_5xx_is_a_retryable_network_failure():
     cat, hint = failures.classify('curl: (22) The requested URL returned error: 504')
     assert cat == failures.NETWORK and 'retry' in hint and cat not in failures.DEFINITIVE
+
+
+# -- HTTP statuses (review-2026-11-2 actions-19) ----------------------------------------------------
+
+@pytest.mark.parametrize('text, cat', [
+    ('E: Failed to fetch http://ppa.launchpadcontent.net/x/ubuntu/dists/oracular/InRelease  '
+     '404  Not Found [IP: 185.125.190.80 80]', failures.NOT_FOUND),
+    ('E: Failed to fetch https://repo.example.com/dists/noble/InRelease  403  Forbidden', failures.AUTH),
+    ('Errors during downloading metadata for repository \'vendor\':\n  - Status code: 404 for '
+     'https://vendor.example.com/fedora/45/repodata/repomd.xml\nError: Failed to download metadata '
+     'for repo \'vendor\': Cannot download repomd.xml: Status code: 404', failures.NOT_FOUND),
+    ("fatal: unable to access 'https://github.com/me/private.git/': The requested URL returned "
+     'error: 403', failures.AUTH),
+    ('failed to build at line 404', None),
+])
+def test_http_status_decides_the_category(text, cat):
+    assert failures.classify(text)[0] == cat
+
+
+def test_an_apt_404_is_not_retried():
+    run = _seq([Result('apt-get update', 100, stderr='E: Failed to fetch http://x/InRelease  404  Not Found')])
+    res = failures.retry_transient(run, tries=3, sleep=lambda s: None)
+    assert not res.ok and run.count() == 1

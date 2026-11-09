@@ -285,7 +285,7 @@ def test_partial_inspect_reuses_and_reprobes(tmp_path):
         rc = ResolvedComponent(key=key, driver=key.split('\\')[0], comp=key.split('\\')[1])
         return rc, ComponentState(component=rc, supported=True, present=True,
                                   installed_version='1', latest_version='1', locked=False,
-                                  lock_source=None, managed=True, error=None)
+                                  lock_source=None, error=None)
 
     rc_a, st_a = _st('apt\\a')
     rc_b, st_b = _st('apt\\b')
@@ -348,8 +348,7 @@ def _scope_node(driver, scope):
     from configsys.componentObj import ResolvedComponent
     rc = ResolvedComponent(key=f'{driver}\\x', driver=driver, comp='x')
     st = ComponentState(component=rc, supported=True, present=True, installed_version='1',
-                        latest_version='1', locked=False, lock_source=None, managed=True,
-                        error=None, scope=scope)
+                        latest_version='1', locked=False, lock_source=None, error=None, scope=scope)
     return Node(UNIT, 'c:p:x', 'x', 1, [st])
 
 

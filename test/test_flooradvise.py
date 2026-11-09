@@ -294,3 +294,13 @@ def test_provides_floor_enables_auto_tighten(monkeypatch):
     _mock(monkeypatch, _hask_report(native_ver='9.0.2'))
     pins = flooradvise.tighten_pins(_Ctx(_hask_comps()), [_hlint_unit()])
     assert pins == {'haskell': 'script'}
+
+
+def test_an_upper_bound_promise_does_not_meet_a_floor():
+    # review-2026-11-2 subsystems-12: `provides: { haskell: "<9" }` used to read as 9, meeting >=8
+    comps = {'haskell': Component('haskell', {'install': [
+        {'via': 'native'}, {'via': 'script', 'standing': 'never-auto', 'provides': {'haskell': '<9'}}]})}
+    assert flooradvise._provides_meets(comps['haskell'], 'script', 'haskell', '>=8') is False
+    comps2 = {'haskell': Component('haskell', {'install': [
+        {'via': 'native'}, {'via': 'script', 'standing': 'never-auto', 'provides': {'haskell': '>=9.4'}}]})}
+    assert flooradvise._provides_meets(comps2['haskell'], 'script', 'haskell', '>=8') is True

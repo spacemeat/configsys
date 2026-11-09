@@ -4,12 +4,11 @@ pickers and pins, the primary push questions.
 Split out of menu.py (review-2026-11-2 D2).
 '''
 
-from .. import primarygit, reportgen
+from .. import primarygit
 from . import keyspec
 from ..drivers import get_driver
 from ..osversion import clean_version
 from .screen import suspended
-from ..actions import fail_detail as _fail_detail   # noqa: E402
 from .modals import _input_box, _popup_choose
 from .models import MenuState, _added_extras, _components_model, _describe, _is_system_update, _row_component
 from .paint import _fit, _put
@@ -231,7 +230,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     from ..actions import build_plan
     plan, units, advisories = build_plan(ctx, raw, units, states=ms.states) if raw else ([], units, [])
 
-    with suspended(stdscr):
+    # ONE sudo session for the whole screen visit: run_plan releases its own keep-alive, but the
+    # refresh before the confirm, a cancel, and a System-Updates-only apply never reach it
+    with suspended(stdscr), ctx.runner.sudo_session():
         # ONE index refresh for the whole batch (see maybe_refresh_before_plan). With System Updates
         # staged it runs BEFORE the confirm: the bulk upgrade takes whatever the REFRESHED index
         # offers, so the count you confirm is counted after it, not off the startup scan (parity-16)
@@ -265,22 +266,14 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         outcomes = []
         if not su_managers:                               # component ops only: refresh once, now
             fresh = maybe_refresh_before_plan(ctx, plan)
+        interrupted = False
         if su_managers:                                   # the whole-machine bulk upgrade(s) — first
             from .. import sysupdates
-            from ..actions import OpOutcome
-            bulk_failures, bulk_keys = [], []
-            for mgr, res in sysupdates.apply_bulk(ctx, su_managers, refresh=False):
-                ok = bool(res is not None and res.ok)
-                bkey = f'system-updates\\{mgr}'
-                outcomes.append(OpOutcome('upgrade', bkey, mgr, ok,
-                                          '' if ok else (_fail_detail(res) if res is not None
-                                                         else 'bulk upgrade failed')))
-                bulk_keys.append(bkey)
-                if res is not None and not ok:
-                    bulk_failures.append(reportgen.failure_from_result(bkey, mgr, 'upgrade', res))
-            if not getattr(ctx.runner, 'pretend', False):   # the ! page + `report` see it too
-                reportgen.record_run(ctx.paths, bulk_failures, bulk_keys)
-        if plan:                                          # then the per-component ops, against the fresh base
+            # the SAME apply step `upgrade --system` runs: outcomes, the failure record, ^C
+            bulk = sysupdates.apply_bulk(ctx, su_managers, refresh=False)
+            outcomes += bulk.outcomes
+            interrupted = bulk.interrupted
+        if plan and not interrupted:                      # then the per-component ops, against the fresh base
             outcomes += execute_plan(ctx, plan, ledger, refresh=False,
                                      version=(getattr(ms, 'plan_versions', dict)() or None))
         # drain the persisted !uninstall queue for components we just removed (shared with the CLI)

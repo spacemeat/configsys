@@ -14,7 +14,7 @@ def _cs(key, present=True, locked=False, roots=None):
     return ComponentState(component=rc, supported=True, present=present,
                           installed_version='1' if present else None, latest_version='1',
                           locked=locked, lock_source='ledger' if locked else None,
-                          managed=True, error=None, scope='user')
+                          error=None, scope='user')
 
 
 def _menu():

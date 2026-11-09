@@ -62,7 +62,8 @@ def sandbox(tmp_path, monkeypatch):
                  ['plugin', 'add', str(src), '--ref', 'v1', '--local'], ['plugin', 'trust', 'codeplug'],
                  ['machine', 'add', 'laptop'], ['pin', 'set', 'fzf', 'native'],
                  ['picks', 'add', 'syncthing'], ['pin', 'set', 'syncthing', 'tarball'],   # a github version source (A14)
-                 ['dotfiles', 'capture', 'btop', '--yes'], ['glue', 'add', 'mine', '--shell', 'bash']):
+                 ['dotfiles', 'capture', 'btop', '--yes'], ['glue', 'add', 'mine', '--shell', 'bash'],
+                 ['orphans', '--ignore', 'x']):                     # so `--unignore x` has one to drop
         assert main(base + args) == 0, args
     state = home / '.config' / 'configsys'
     (state / 'staged-glue' / 'bash').mkdir(parents=True)
@@ -93,7 +94,8 @@ VERBS = [
     ['plugin', 'diff', 'codeplug', '--to', 'v1'], ['plugin', 'init', 'configsys-me'],
     ['plugin', 'set-source', 'srcplug', 'github:me/codeplug'], ['plugin', 'push'], ['plugin', 'undo', '--yes'],
     ['report', 'btop', '--yes'], ['request', 'btop', '--yes'], ['request-os', '--yes'],
-    ['orphans', '--ignore', 'nano'], ['orphans', '--adopt', 'jq'], ['orphans', '--remove', 'jq'],
+    ['orphans', '--ignore', 'nano'], ['orphans', '--unignore', 'x'], ['orphans', '--adopt', 'jq'],
+    ['orphans', '--remove', 'jq'],
     ['theme', 'load', 'mytheme'], ['plugin', 'unlock', 'codeplug'],
     ['dotfiles', 'staged'], ['glue', 'staged'],
     ['dotfiles', 'capture', 'bash', '--yes'], ['dotfiles', 'capture', 'btop', '--force', '--yes'],

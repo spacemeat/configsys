@@ -347,7 +347,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     from . import reportgen, shellguard
     from .drivers import get_driver
     versions = version if isinstance(version, dict) else None   # per-unit (a TUI batch) or one for all
-    outcomes, failures, n_fatal, rc_code, interrupted = [], [], 0, 0, False
+    outcomes, failures, n_fatal, exit_code, interrupted = [], [], 0, 0, False
     pretend = bool(getattr(ctx.runner, 'pretend', False))   # --pretend: print, never record anything
     begin = getattr(ctx.runner, 'begin_sudo', None)
     if begin and any(_may_need_root(get_driver(rc.driver, ctx.runner, ctx.paths), rc) for _, _, rc in plan):
@@ -358,13 +358,23 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             if versions is not None:
                 version = versions.get(key)
             drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+            # a step that can't run is still a step that didn't happen: the exit status says so
             if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
                 on_line(f'skip {key}: {rc.comp} has no install method on this machine')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'no install method here'))
+                exit_code = exit_code or 1
+                continue
+            if drv is None and rc.driver in getattr(ctx, 'plugin_pending_vias', ()):
+                # inspect's wording (installState): the driver is a declared plugin's, not loaded yet
+                on_line(f'skip {key}: driver "{rc.driver}" comes from a plugin you haven\'t trusted yet — '
+                        'approve it with `configsys plugin trust <name>` (see `configsys plugin list`)')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'untrusted plugin', advisory=True))
+                exit_code = exit_code or 1
                 continue
             if drv is None:
                 on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
+                exit_code = exit_code or 1
                 continue
             if cur_op == 'set-version' and not targets_version(drv):
                 # tarball/appImage/font/... set_version would just reinstall the ROUTED version and say
@@ -372,7 +382,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 msg = no_version_target_message(rc.via or rc.driver, rc.comp)
                 on_line(f'set-version {key}: FAILED — {msg}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
-                rc_code = rc_code or 1
+                exit_code = exit_code or 1
                 n_fatal += 1
                 continue
             if cur_op == 'set-version' and version is not None \
@@ -384,7 +394,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                        f'starting with a letter or digit)')
                 on_line(f'set-version {key}: FAILED — {msg}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
-                rc_code = rc_code or 1
+                exit_code = exit_code or 1
                 n_fatal += 1
                 continue
             if cur_op != 'remove' and not _layer_may_run(ctx, drv, rc):
@@ -394,7 +404,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 res = drv.untrusted_command_result(rc)
                 on_line(f'{cur_op} {key}: refused — {res.output}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'untrusted plugin', advisory=True))
-                rc_code = rc_code or 1
+                exit_code = exit_code or 1
                 continue
             locked = (cur_op in ('upgrade', 'set-version', 'remove')
                       and _unit_locked(drv, rc, key, ledger))
@@ -404,16 +414,17 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 on_line(f'upgrade {key}: locked — {rc.comp} stays at its held version '
                         f'(`configsys unlock {rc.comp}` first)')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'locked', advisory=True))
-                rc_code = rc_code or 1                   # an explicit upgrade of a locked unit is refused
+                exit_code = exit_code or 1                   # an explicit upgrade of a locked unit is refused
                 continue
             on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
             try:
-                rc_snap = (None if pretend else  # nothing runs in a dry run, so nothing to guard or revert
-                           shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
-                                          rc.driver))
+                # nothing runs in a dry run, so nothing to guard or revert
+                shell_rc_snapshot = (None if pretend else
+                                     shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp,
+                                                    cur_op, rc.driver))
             except Exception as e:               # noqa: BLE001 — the guard must never abort the batch
                 on_line(f'  (shell-writes guard skipped for {key}: {e})')
-                rc_snap = None
+                shell_rc_snapshot = None
             res = None
             before = _UNPROBED
             if cur_op == 'install' and not pretend:  # a reinstall/rebuild that fails leaves the OLD
@@ -470,13 +481,13 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                                 rc.fields['scope'] = target
                 finally:
                     # revert + stage even on failure/abort — a half-finished installer may have written
-                    _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
+                    _guard_msg = shellguard.finish(ctx.paths, rc.comp, shell_rc_snapshot)
                     if _guard_msg:
                         on_line(f'  -> {_guard_msg}')
             except KeyboardInterrupt:                    # Ctrl-C aborts the WHOLE batch, not just this op
                 on_line(f'\n  ^C — aborted; {key} may be partially applied. Skipping the rest of the batch.')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'interrupted (^C)'))
-                rc_code, interrupted = 130, True
+                exit_code, interrupted = 130, True
                 break
             except Exception as e:                   # noqa: BLE001 — a driver bug fails THIS op (B10),
                 from .runner import Result           # never the batch, the ledger save or the sudo release
@@ -484,7 +495,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                              stderr=f'configsys error in the {rc.driver} driver: {type(e).__name__}: {e}')
             if res is None:                              # unknown op (should not happen for a built plan)
                 on_line(f'  -> unknown op {cur_op}')
-                rc_code = rc_code or 2
+                exit_code = exit_code or 2
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, f'unknown op {cur_op}'))
                 continue
             if not res.ok and pretend and cur_op in ('install', 'upgrade') \
@@ -500,7 +511,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 on_line('  -> needs your input:')
                 for line in (res.output or 'action required').splitlines():
                     on_line(f'    {line}')
-                rc_code = rc_code or res.returncode or 1
+                exit_code = exit_code or res.returncode or 1
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res), advisory=True))
             elif not res.ok:
                 got = installed_despite_failure(drv, rc, cur_op, version, before)
@@ -512,7 +523,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                     outcomes.append(OpOutcome(cur_op, key, rc.name, True, fail_detail(res),
                                               installed_with_warning=True))
                 else:
-                    rc_code = res.returncode or 1
+                    exit_code = res.returncode or 1
                     n_fatal += 1
                     on_line(f'  -> FAILED (exit {res.returncode})')
                     outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res)))
@@ -549,7 +560,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             ledger.save(ctx.paths)
         if not pretend:            # the unresolved-failures record (! page, `report`): this run's in, fixed ones out
             reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
-    return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
+    return RunResult(outcomes, failures, n_fatal, exit_code, interrupted)
 
 
 def fix_scope(ctx, rc, current, *, on_line=print):
@@ -695,7 +706,7 @@ def edit_target(ctx, *, create=False):
     return str(ctx.paths.user_config_file), 'top config'
 
 
-def _nature_target(ctx, key, lives_in, *, create=False):
+def _nature_target(ctx, key, lives_in, *, create=False, primary=None):
     '''(file, label) where an edit to `key` should land — the ONE policy scalars, picks, and
     dispositions all share, driven by SETTING_NATURE (declared config, not incidental file content).
     `lives_in(file) -> bool` says whether the edit's slice already exists in that file. Preference:
@@ -703,11 +714,12 @@ def _nature_target(ctx, key, lives_in, *, create=False):
     lower layer would be ineffective), else the nature DEFAULT — the primary plugin for a 'uniform'
     key when one is blessed+synced (portable), else this box's top config (a 'machine' key, or no
     primary). `create` (write paths only) lets a primary with no data file yet get an empty one;
-    without it a display caller still sees the label an edit WOULD land under.'''
+    without it a display caller still sees the label an edit WOULD land under. `primary` is an
+    already-resolved `_primary_data_file(ctx)` (a caller looping over every setting passes it once).'''
     local = str(ctx.paths.user_config_file)
     if key in layers.TOP_CONFIG_ONLY:                  # read only from the top config: edited there
         return local, 'top config'
-    pfile, pname = _primary_data_file(ctx)
+    pfile, pname = primary if primary is not None else _primary_data_file(ctx)
     if lives_in(local):
         return local, 'top config'
     if pfile and lives_in(pfile):
@@ -720,8 +732,6 @@ def _nature_target(ctx, key, lives_in, *, create=False):
             return pfile, pname
     return local, 'top config'
 
-
-UNINSTALL_PROFILE = '!uninstall'
 
 
 # the settings the Resolver (or the paths it lays installs out with) reads — an edit to one rebuilds
@@ -811,7 +821,10 @@ def set_included(ctx, comp, machines, on):
     '''v3 matrix A/D: mark `comp` Included (`on=True`) or not, on EACH machine in `machines` (plural =
     fan-out). Each machine's picks write to its PORTABLE target — the primary plugin by default, else
     this box's top config, and always the top config when it already overrides that machine (see
-    _picks_target). Returns (changed_count, label naming where it landed).'''
+    _picks_target). Returns (changed_count, label naming where it landed). A `profile:<name>` token
+    is refused (ValueError): a surface expands it to its members first, it is never a pick.'''
+    if str(comp).startswith('profile:'):
+        raise ValueError(f'{comp!r} is a profile, not a component — pick its members')
     if _pretend(ctx):
         return 0, PRETEND_NOT_SAVED
     by_target = {}                                   # (file, label) -> [machines] (usually one target)
@@ -902,13 +915,18 @@ def mark_all_seen(ctx, names):
     return added
 
 
-def ignore_orphan(ctx, pattern):
-    '''Append `pattern` (a name or glob) to the `orphans-ignore` list (idempotent). Returns
-    (changed, label). The TUI `.` action + the `configsys orphans --ignore` verb share this intent.'''
+def ignore_orphan(ctx, patterns):
+    '''Append `patterns` (names or globs: one string, or a list) to the `orphans-ignore` list in ONE
+    write, skipping any already listed. Returns (added, label): how many were newly added (0 = no
+    change; also 0 with PRETEND_NOT_SAVED under --pretend) and where they landed. The TUI `.` action
+    and `configsys orphans --ignore` both call this.'''
+    patterns = [patterns] if isinstance(patterns, str) else list(patterns)
     cur = list(ctx.config.orphans_ignore())
-    if pattern in cur:
-        return False, 'already ignored'
-    return set_config_setting(ctx, 'orphans-ignore', cur + [pattern])
+    added = [p for p in dict.fromkeys(patterns) if p not in cur]
+    if not added:
+        return 0, 'already ignored'
+    changed, label = set_config_setting(ctx, 'orphans-ignore', cur + added)
+    return (len(added) if changed else 0), label
 
 
 def unignore_orphan(ctx, pattern):
@@ -952,11 +970,24 @@ def add_machine(ctx, name):
     return True, label
 
 
-def remove_machine(ctx, name):
-    '''Delete a machine — drop its `picks:` entry from both layers. Returns (changed, label/reason).'''
+def remove_machine(ctx, name, *, force=False):
+    '''Delete a machine — drop its `picks:` entry from both layers. The machine THIS box is set to is
+    refused (its install set would silently become empty) unless `force`, which also clears the
+    `machine:` selection. Returns (changed, label/reason).'''
     if name not in ctx.config.machine_names():
         return False, f'machine "{name}" is not defined'
-    return set_included_clear_machine(ctx, name)
+    this_box = name == (ctx.config.configured_machine() or 'this-machine')   # never `--machine`
+    if this_box and not force:
+        return False, (f'machine "{name}" is this box; `configsys machine use <other>` first '
+                       '(or --force, which also clears `machine:`)')
+    n = len(ctx.config.picks().get(name, []))
+    selected = ctx.config.configured_machine()
+    changed, label = set_included_clear_machine(ctx, name)
+    if not changed:
+        return changed, label
+    if this_box and selected:
+        set_machine_active(ctx, None)
+    return True, f'removed machine {name} ({n} pick{"" if n == 1 else "s"})'
 
 
 def rename_machine(ctx, old, new):
@@ -1056,18 +1087,6 @@ def _parse_map_tokens(tokens):
     return out
 
 
-def _read_map_section(config_file, key):
-    '''The flat scalar map of a top-level `<key>: { … }` in ONE .hu file, or {}.'''
-    from . import layers
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    m = data.get(key) if isinstance(data, dict) else None
-    return ({k: v for k, v in m.items() if not isinstance(v, (dict, list))}
-            if isinstance(m, dict) else {})
-
-
 def _set_map_section(config_file, key, mapping):
     '''Rewrite a top-level map `<key>: { k: v … }` in place, or remove the node when empty.'''
     from .hutext import scalar as _scalar
@@ -1080,16 +1099,36 @@ def _set_map_section(config_file, key, mapping):
         + [' ' * indent + '}']))
 
 
-def _read_setting(config_file, key):
-    '''The value of machine setting `key` in ONE .hu file (kind-aware), or None if absent.'''
+def _materialized(config_file):
+    '''ONE .hu file as a materialized top-level dict ({} when absent / not a map).'''
+    p = Path(config_file)
+    if not p.exists():
+        return {}
+    data = layers.materialize_string(p.read_text(encoding='utf-8'))
+    return data if isinstance(data, dict) else {}
+
+
+def _setting_in(data, key):
+    '''The value of machine setting `key` in one file's materialized `data` (kind-aware, the same
+    shapes plugins.read_dirs / read_list_section / read_scalar_section give; a map's scalar
+    entries), or None if absent.'''
     kind = CONFIG_SETTINGS[key][0]
     if kind == 'dir':
-        return plugins.read_dirs(config_file).get(key.split('.', 1)[1])
+        d = data.get('dirs')
+        v = d.get(key.split('.', 1)[1]) if isinstance(d, dict) else None
+        return None if isinstance(v, (dict, list)) else v
+    v = data.get(key)
     if kind == 'map':
-        return _read_map_section(config_file, key) or None
+        return ({k: x for k, x in v.items() if not isinstance(x, (dict, list))}
+                if isinstance(v, dict) else {}) or None
     if kind == 'list':
-        return plugins.read_list_section(config_file, key) or None
-    return plugins.read_scalar_section(config_file, key)      # scalar + bool
+        return [str(x) for x in layers.leaves(v)] or None
+    return None if isinstance(v, (dict, list)) else v      # scalar + bool
+
+
+def _read_setting(config_file, key):
+    '''The value of machine setting `key` in ONE .hu file (kind-aware), or None if absent.'''
+    return _setting_in(_materialized(config_file), key)
 
 
 def _setting_tokens(value, kind):
@@ -1105,28 +1144,30 @@ def _setting_tokens(value, kind):
     return [str(value)]                                       # scalar + dir
 
 
-def _setting_home(ctx, key):
+def _setting_home(ctx, key, *, primary=None, read=_read_setting):
     '''(where, label) for machine setting `key`: whether it currently lives in this machine's top
     config ('local'), the primary plugin ('primary'), or neither (None = built-in/repo default).
     The top config shadows the primary, so it's checked first. A top-config-only setting
-    (layers.TOP_CONFIG_ONLY) never lives in the primary — a value there is ignored.'''
+    (layers.TOP_CONFIG_ONLY) never lives in the primary — a value there is ignored. `primary` /
+    `read` let a caller covering every setting resolve the primary once and read each file once
+    (config_settings).'''
     local = str(ctx.paths.user_config_file)
-    if _read_setting(local, key) is not None:
+    if read(local, key) is not None:
         return 'local', 'top config'
     if key in layers.TOP_CONFIG_ONLY:
         return None, None
-    pfile, pname = _primary_data_file(ctx)
-    if pfile and _read_setting(pfile, key) is not None:
+    pfile, pname = primary if primary is not None else _primary_data_file(ctx)
+    if pfile and read(pfile, key) is not None:
         return 'primary', pname
     return None, None
 
 
-def _setting_target(ctx, key, *, create=False):
+def _setting_target(ctx, key, *, create=False, primary=None, read=_read_setting):
     '''(file, label) where an edit to machine setting `key` is EFFECTIVE: the writable layer it
     already lives in (editing a lower one would be shadowed), else its nature default — the primary
     plugin for a 'uniform' setting when one is blessed+synced, this machine's top config for a
     'machine' setting (or when no primary exists). Delegates to the shared _nature_target.'''
-    return _nature_target(ctx, key, lambda f: _read_setting(f, key) is not None, create=create)
+    return _nature_target(ctx, key, lambda f: read(f, key) is not None, create=create, primary=primary)
 
 
 def config_settings(ctx):
@@ -1140,6 +1181,14 @@ def config_settings(ctx):
     cfg_dirs = cfg.install_dirs()
     env_map = getattr(ctx.paths, 'env', {}) or {}
     ucf = getattr(ctx.paths, 'user_config_file', None)    # absent in some test fakes -> skip homing
+    if ucf:                     # once for all ~25 settings: the primary, and each file's one parse
+        primary, files = _primary_data_file(ctx), {}
+
+        def read(f, key):
+            data = files.get(str(f))
+            if data is None:
+                data = files[str(f)] = _materialized(f)
+            return _setting_in(data, key)
     out = {}
     for key, (kind, desc, man) in CONFIG_SETTINGS.items():
         if kind == 'dir':
@@ -1155,13 +1204,13 @@ def config_settings(ctx):
                         'source': src[0] if src and src[1] else None}
         out[key]['nature'] = SETTING_NATURE.get(key, 'uniform')
         if ucf:
-            where, home_label = _setting_home(ctx, key)
+            where, home_label = _setting_home(ctx, key, primary=primary, read=read)
             out[key]['home'] = where                      # 'local' | 'primary' | None (default)
             out[key]['home_label'] = home_label
-            out[key]['target'] = _setting_target(ctx, key)[1]   # where an edit would land
+            out[key]['target'] = _setting_target(ctx, key, primary=primary, read=read)[1]   # where an edit would land
             if key in layers.TOP_CONFIG_ONLY:             # set in the primary = ignored there: say so
-                pfile, pname = _primary_data_file(ctx)
-                if pfile and _read_setting(pfile, key) is not None:
+                pfile, pname = primary
+                if pfile and read(pfile, key) is not None:
                     out[key]['note'] = f'ignored in {pname} — top config only'
     return out
 
@@ -1361,7 +1410,12 @@ def theme_plugins(ctx):
 def save_theme_plugin(ctx, name, *, force=False):
     '''Snapshot the current effective theme overrides into a theme-only plugin `name` under the
     plugins dir (data-only: plugin.hu + theme.hu). Returns (path, existed); refuses to overwrite an
-    existing plugin unless `force` (the caller warns first).'''
+    existing plugin unless `force` (the caller warns first). `name` must be one safe path segment
+    (a plugin dir name: `[A-Za-z0-9._-]`, not starting with a dot) — anything else, `../x` included,
+    raises ValueError before a thing is written.'''
+    if not plugins._SAFE_DIR_RE.match(name or ''):
+        raise ValueError(f'{name!r} is not a usable theme pack name — one word of letters, digits, '
+                         '`.`, `_` or `-` (no `/`, not starting with a dot)')
     pdir = Path(ctx.paths.plugins_dir) / name
     existed = pdir.exists()
     if (existed and not force) or _pretend(ctx):     # --pretend: nothing written (caller checks _pretend)
@@ -1374,7 +1428,6 @@ def save_theme_plugin(ctx, name, *, force=False):
         f'    data: [ theme.hu ]\n}}\n', encoding='utf-8')
     block = plugins._emit_kv('theme', _theme.full_snapshot(ctx.config.theme()), 4)   # full, not diff
     (pdir / 'theme.hu').write_text('{\n' + block + '\n}\n', encoding='utf-8')
-    (pdir / 'dotfiles').mkdir(exist_ok=True)
     return pdir, existed
 
 
@@ -1583,8 +1636,13 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     # collision: another declared plugin lands in the same synced dir (same name) from a different
     # source. They'd clobber each other, so require an explicit --replace.
     new_dn = plugins.dir_name(source)
-    clashes = [d for d in plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    effective = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    clashes = [d for d in effective
                if plugins.dir_name(d['source']) == new_dn and d['source'] != source]
+    # a bare re-add of a declared source KEEPS its pin (sync at it, leave the decl's ref alone);
+    # unpinning is explicit: `plugin update --ref <branch>`
+    prior = next((d for d in effective if d['source'] == source), None)
+    sync_ref = ref if ref is not None else (prior or {}).get('ref')
     if new_dn in _locks(ctx):
         return False, f"'{new_dn}' is locked on this machine — unlock it first (configsys plugin unlock {new_dn})", []
     if clashes and not replace:
@@ -1614,7 +1672,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
         pdir.rename(backup)                              # clear the dir so the new source clones clean
         moved = True
 
-    results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
+    results = plugin_sync(ctx, [{'source': source, 'ref': sync_ref}])
     if not results or not plugins.sync_succeeded(results[0][1]):
         if moved:                                        # restore the old synced dir; decls untouched
             if pdir.exists():
@@ -1638,6 +1696,9 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
                  else 'your top config' + (' (this machine only)' if primary else ''))
         swap = (f', replacing {", ".join(sorted({d["source"] for d in clashes}))}'
                 if retargeting else '')
+        if prior is not None and ref is None:
+            return True, (f'[pretend] {source} is already declared'
+                          + (f' @{sync_ref}' if sync_ref else '') + ' — nothing to change'), results
         return True, (f'[pretend] would declare {source}' + (f' @{ref}' if ref else '')
                       + f' in {where}{swap}' + (' with a sha256 pin' if pin else '')), results
 
@@ -1667,7 +1728,8 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
         for d in cur:
             d.pop('primary', None)
         target['primary'] = True
-    plugins.set_declared(cfg_file, cur)
+    if not existing or ref is not None or was_primary:   # a bare re-add changes nothing to write
+        plugins.set_declared(cfg_file, cur)
     pin_msg = ''
     if pin:                                          # trust-on-first-use content pin
         pdir = ctx.paths.plugins_dir / plugins.dir_name(source)
@@ -1678,8 +1740,11 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
             disp = plugins.read_manifest(pdir).get('name', plugins.dir_name(source))
             pin_msg = f'\npinned {disp} @ {h.split(":")[-1][:12]} (sha256)'
     ctx.invalidate()
-    verb, at = ('re-pinned' if existing else 'added'), (f' @{ref}' if ref else '')
-    if to_primary:
+    at = f' @{target.get("ref")}' if target.get('ref') else ''
+    verb = 'added' if not existing else ('re-pinned' if ref is not None else 'already declared')
+    if existing and ref is None:
+        msg = f'{source} is already declared{at}' + (f' in your primary plugin ({primary})' if to_primary else '')
+    elif to_primary:
         msg = (f'{verb} {source}{at} in your primary plugin ({primary}) — `configsys plugin push` '
                f'shares it with your other machines')
     else:
@@ -2018,8 +2083,8 @@ def plugin_review(ctx, decl, row, remote):
 # -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------
 
 def dotfiles_units(ctx):
-    '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
-    only (no install-state query), cheap + side-effect-free. Shared by the CLI + the TUI screen.'''
+    '''(driver, [ResolvedComponent]) — the via:dotfiles units in this machine's picks (and what
+    they pull in). Resolution only (no install-state query), cheap + side-effect-free. Shared by the CLI + the TUI screen.'''
     from .drivers import get_driver
     held = getattr(ctx, 'pipeline_units', None)
     if held and held[0] == id(ctx.routes) and held[1] == id(ctx.config):
@@ -2027,6 +2092,5 @@ def dotfiles_units(ctx):
     else:                                  # no pipeline ran (`dotfiles status`): resolve now
         units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
     df = get_driver('dotfiles', ctx.runner, ctx.paths)
-    # both the config (dotfiles) and glue (glue) units — the screen dispatches per-unit to the
-    # right driver. (Phase 2 splits these into separate glue/dotfiles pages.)
+    # both the config (dotfiles) and glue (glue) units — each screen keeps its own driver's
     return df, [units[k] for k in sorted(units) if units[k].driver in ('dotfiles', 'glue')]

@@ -6,7 +6,6 @@ Split out of app.py (review-2026-11-2 D2).
 
 import argparse
 import sys
-from .. import reportgen
 from ..errors import ConfigsysError
 from ..drivers import get_driver
 from ..ledger import Ledger
@@ -481,23 +480,13 @@ def cmd_upgrade_system(ctx, args):
         if go is False:
             print('Aborted — nothing upgraded.')
         return 1
-    # the SAME apply step the TUI runs (sysupdates.apply_bulk: cache invalidation + rescan), and the
-    # same record: a failure reaches the ! page and `configsys report` (B17 / app-cli-05)
-    from .. import actions as _actions
-    rc_code, failures, keys = 0, [], []
-    for mgr, res in sysupdates.apply_bulk(ctx, sorted(groups), refresh=False,
-                                          on_start=lambda m: print(f'\n── upgrading via {m} ──')):
-        key = f'system-updates\\{mgr}'
-        keys.append(key)
-        if res is None:
-            print(f'  ({mgr} has no bulk-upgrade command — skipped)')
-            continue
-        if not res.ok:
-            print(f'  -> {mgr} upgrade FAILED (exit {res.returncode}): {_actions.fail_detail(res)}')
-            rc_code = rc_code or res.returncode or 1
-            failures.append(reportgen.failure_from_result(key, mgr, 'upgrade', res))
-    if not ctx.runner.pretend:
-        reportgen.record_run(ctx.paths, failures, keys)
+    # the SAME apply step the TUI runs (sysupdates.apply_bulk: the per-manager outcomes, the failure
+    # record for the ! page and `configsys report`, ^C), inside one sudo session so the keep-alive a
+    # sudo'd bulk command warms is released when it ends (B17 / app-cli-05 / actions-14)
+    with ctx.runner.sudo_session():
+        result = sysupdates.apply_bulk(ctx, sorted(groups), refresh=False,
+                                       on_start=lambda m: print(f'\n── upgrading via {m} ──'))
+    rc_code, failures = result.rc_code, result.failures
     if failures:
         _offer_report(ctx, failures)
     if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():

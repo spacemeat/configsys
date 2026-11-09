@@ -240,6 +240,10 @@ def build_parser():
                           'plugin)')):
         _sp = mpsub.add_parser(_n, help=_h)
         _sp.add_argument('name', help='machine name')
+        if _n == 'rm':
+            _sp.add_argument('--force', action='store_true',
+                             help='remove the machine this box is set to as well (also clears '
+                                  '`machine:`)')
     mpu = mpsub.add_parser('use', help="set which machine this box is (the `machine:` setting); no "
                                        'name clears it')
     mpu.add_argument('name', nargs='?', help='machine name (omit to clear)')
@@ -525,6 +529,9 @@ def build_parser():
                      help='uninstall a known orphan via its driver (asks first unless --yes)')
     orp.add_argument('--ignore', metavar='PATTERN', nargs='+',
                      help='silence orphans matching these name/key globs (adds to orphans-ignore)')
+    orp.add_argument('--unignore', metavar='PATTERN', nargs='+',
+                     help='list these again: remove each exact entry from orphans-ignore (a glob is '
+                          'removed by naming the glob itself)')
     orp.add_argument('--yes', action='store_true', help='skip the confirmation for --remove')
 
     dfp = sub.add_parser('dotfiles', help='show and capture your dotfiles; review glue the '

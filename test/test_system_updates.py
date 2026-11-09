@@ -4,6 +4,7 @@ apt + flatpak + snap. Fake runner returns canned manager output.'''
 
 from configsys import sysupdates
 from configsys.sysupdates import UpdateRow
+from configsys.componentObj import ResolvedComponent
 from configsys.driver import tier_by_name
 from configsys.drivers.apt import Apt
 from configsys.drivers.apk import Apk
@@ -420,3 +421,194 @@ def test_fold_rebuilds_the_tree_without_the_pipeline(monkeypatch):
     ctx._sysupd_groups = {'apt': _groups()['apt'][:1]}       # a later, smaller scan
     ms, states = menu._fold_system_updates(ctx, None, ms)
     assert sum(sysupdates.is_synthetic(s) for s in states.values()) == 1
+
+
+# -- the ONE apply step both surfaces run (review-2026-11-2 actions-14 / subsystems-13 / actions-24 / -34)
+
+class _BulkDriver:
+    '''A manager whose upgrade_all answers `res` (a Result, None = no bulk command, or an exception
+    class to raise); `warm` simulates a sudo'd bulk command warming the runner's credential.'''
+    def __init__(self, name, res, runner=None, warm=False):
+        self.name, self.res, self.runner, self.warm = name, res, runner, warm
+
+    def upgrade_all(self):
+        if self.warm:
+            self.runner._ensure_sudo()
+        if isinstance(self.res, type) and issubclass(self.res, BaseException):
+            raise self.res()
+        return self.res
+
+
+def _bulk_ctx(tmp_path, runner):
+    from configsys.paths import Paths
+    import types
+    return types.SimpleNamespace(
+        runner=runner, config=None, routes=_Routes({}), os_info=_OS(),
+        paths=Paths(env={'HOME': str(tmp_path), 'CONFIGSYS_STATE_DIR': str(tmp_path / 's')}))
+
+
+def _stub_managers(monkeypatch, answers, runner=None, warm=False):
+    monkeypatch.setattr(sysupdates, 'get_driver', lambda name, r, p: (
+        _BulkDriver(name, answers[name], runner, warm) if name in answers else None))
+
+
+def _bulk_answers():
+    return {'apt': Result('apt-get upgrade -y', 100, stderr='E: dpkg was interrupted'), 'snap': None}
+
+
+def _cli_run(monkeypatch, ctx, groups):
+    import types
+    from configsys.cli import ops
+    monkeypatch.setattr(ops, 'refresh_native_index', lambda c: (False, True))
+    monkeypatch.setattr(sysupdates, 'gather', lambda c, notes=None: groups)
+    monkeypatch.setattr(ops, '_offer_report', lambda c, f, fatal=None: None)
+    return ops.cmd_upgrade_system(ctx, types.SimpleNamespace(yes=True))
+
+
+def _tui_run(monkeypatch, ctx, managers, also=()):
+    '''Drive the TUI execute flow with one System Updates row per manager staged, plus `also`
+    component units (their per-unit plan is recorded in `ran`, never run).'''
+    import builtins
+    import contextlib
+    import types
+    from configsys.cli import refresh as cli_refresh
+    from configsys.ledger import Ledger
+    from configsys.tui import flows as flows_mod
+    states = {}
+    for m in managers:
+        rc = ResolvedComponent(key=f'sysupd\\{m}\\pkg', driver=m, comp='pkg',
+                               fields={'name': 'pkg', 'system_update': True})
+        states[rc.key] = types.SimpleNamespace(component=rc, present=True)
+    for name in also:
+        rc = ResolvedComponent(key=f'apt\\{name}', driver='apt', comp=name, fields={'name': name})
+        states[rc.key] = types.SimpleNamespace(component=rc, present=True)
+    from configsys import actions
+    monkeypatch.setattr(actions, 'build_plan', lambda c, raw, units, states=None: (raw, units, []))
+    ms = types.SimpleNamespace(plan=lambda: [('upgrade', k, s.component) for k, s in states.items()],
+                               states=states)
+    monkeypatch.setattr(flows_mod, 'suspended', lambda scr: contextlib.nullcontext())
+    monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
+    monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan', lambda c, plan, system=False: set())
+    monkeypatch.setattr(cli_refresh, 'published_pending', lambda c, fresh: [])
+    monkeypatch.setattr(sysupdates, 'gather', lambda c, notes=None: {})   # the pre-confirm recount
+    ran = []
+    monkeypatch.setattr(flows_mod, 'execute_plan', lambda *a, **k: ran.append(a) or [])
+    _ok, _note, outcomes = flows_mod._confirm_and_execute(None, None, ms, ctx, Ledger())
+    return outcomes, ran
+
+
+def _records(ctx):
+    from configsys import reportgen
+    return sorted((f['unit'], f['exit']) for f in reportgen.load_failures(ctx.paths))
+
+
+def test_apply_bulk_gives_both_surfaces_the_same_outcomes_and_records(monkeypatch, tmp_path, capsys):
+    from configsys.runner import Runner
+    _stub_managers(monkeypatch, _bulk_answers())
+    res = sysupdates.apply_bulk(_bulk_ctx(tmp_path / 'direct', Runner()), ['apt', 'snap'], refresh=False)
+    assert [(o.key, o.ok, o.advisory) for o in res.outcomes] == [
+        ('system-updates\\apt', False, False), ('system-updates\\snap', False, True)]
+    assert res.rc_code == 100 and res.n_fatal == 1 and not res.interrupted
+    assert 'no bulk-upgrade command' in res.outcomes[1].detail
+
+    cli_ctx = _bulk_ctx(tmp_path / 'cli', Runner())
+    groups = {m: [UpdateRow(m, 'pkg', '1', '2', False)] for m in ('apt', 'snap')}
+    assert _cli_run(monkeypatch, cli_ctx, groups) == 100
+    out = capsys.readouterr().out
+    assert 'apt upgrade FAILED (exit 100)' in out and '(snap has no bulk-upgrade command — skipped)' in out
+
+    tui_ctx = _bulk_ctx(tmp_path / 'tui', Runner())
+    outcomes, _ran = _tui_run(monkeypatch, tui_ctx, ['apt', 'snap'])
+    assert [(o.key, o.ok, o.advisory, o.detail) for o in outcomes] == \
+        [(o.key, o.ok, o.advisory, o.detail) for o in res.outcomes]
+    assert _records(cli_ctx) == _records(tui_ctx) == [('system-updates\\apt', '100')]
+
+
+def test_apply_bulk_records_nothing_under_pretend(monkeypatch, tmp_path):
+    from configsys.runner import Runner
+    _stub_managers(monkeypatch, _bulk_answers())
+    ctx = _bulk_ctx(tmp_path, Runner(pretend=True))
+    sysupdates.apply_bulk(ctx, ['apt'], refresh=False)
+    assert not ctx.paths.failure_file.exists()
+
+
+def test_apply_bulk_ctrl_c_stops_the_batch(monkeypatch, tmp_path):
+    from configsys.runner import Runner
+    _stub_managers(monkeypatch, {'apt': KeyboardInterrupt, 'snap': Result('snap refresh', 0)})
+    ctx = _bulk_ctx(tmp_path, Runner())
+    res = sysupdates.apply_bulk(ctx, ['apt', 'snap'], refresh=False, on_line=lambda m: None)
+    assert res.interrupted and res.rc_code == 130
+    assert [o.key for o in res.outcomes] == ['system-updates\\apt']        # snap never ran
+    # …and the TUI doesn't go on to the component ops after a ^C'd bulk upgrade
+    outcomes, ran = _tui_run(monkeypatch, _bulk_ctx(tmp_path / 't', Runner()), ['apt'], also=['btop'])
+    assert ran == [] and [o.detail for o in outcomes] == ['interrupted (^C)']
+
+
+def test_apply_bulk_starts_no_scan(monkeypatch, tmp_path):
+    from configsys.runner import Runner
+    _stub_managers(monkeypatch, {'apt': Result('apt-get upgrade -y', 0)})
+    monkeypatch.setattr(sysupdates, 'start_scan', lambda c: (_ for _ in ()).throw(AssertionError('scan')))
+    ctx = _bulk_ctx(tmp_path, Runner())
+    ctx._sysupd_groups = {'apt': []}
+    sysupdates.apply_bulk(ctx, ['apt'], refresh=False)
+    assert ctx._sysupd_groups is None                     # invalidated — the caller rescans
+
+
+def test_a_system_updates_only_apply_releases_the_sudo_keepalive(monkeypatch, tmp_path):
+    import configsys.runner as runner_mod
+    from configsys.runner import Runner
+
+    class _Keepalive:
+        def stop(self):
+            pass
+    monkeypatch.setattr(runner_mod, '_sudo_preauth', lambda: True)
+    monkeypatch.setattr(runner_mod, '_SudoKeepalive', _Keepalive)
+    r = Runner()
+    _stub_managers(monkeypatch, {'apt': Result('apt-get upgrade -y', 0)}, runner=r, warm=True)
+    outcomes, ran = _tui_run(monkeypatch, _bulk_ctx(tmp_path, r), ['apt'])
+    assert [o.ok for o in outcomes] == [True] and ran == []        # no component plan: run_plan never ran
+    assert r._keepalive is None and r._sudo_warm is False
+    # the CLI's `upgrade --system` too
+    _cli_run(monkeypatch, _bulk_ctx(tmp_path / 'c', r), {'apt': [UpdateRow('apt', 'pkg', '1', '2', False)]})
+    assert r._keepalive is None and r._sudo_warm is False
+
+
+def test_start_scan_is_a_no_op_under_pretend(monkeypatch):
+    from configsys.runner import Runner
+    r = Runner(pretend=True)
+    ctx = _Ctx(r)
+    ctx._sysupd_groups = None
+    sysupdates.start_scan(ctx)
+    assert r.calls == [] and ctx._sysupd_groups == {}
+    assert getattr(ctx, '_sysupd_thread', None) is None
+
+
+def test_a_scan_that_raises_leaves_a_note(monkeypatch):
+    def boom(ctx, notes=None):
+        raise RuntimeError('dpkg lock')
+    monkeypatch.setattr(sysupdates, 'gather', boom)
+    ctx = _Ctx(FakeRunner())
+    ctx.runner.pretend = False
+    sysupdates.start_scan(ctx)
+    ctx._sysupd_thread.join(2)
+    assert ctx._sysupd_groups == {} and ctx._sysupd_notes == ['system-updates: scan failed: dpkg lock']
+
+
+def test_the_native_manager_failing_to_list_is_a_note():
+    notes = []
+    groups = sysupdates.gather(_Ctx(FakeRunner([('apt list --upgradable', 1, '')])), notes)
+    assert 'apt' not in groups and 'apt: could not list upgradable packages' in notes
+    # an absent app manager answering None is not a note
+    assert not any(n.startswith(('flatpak', 'snap')) for n in notes)
+
+
+def test_flatpak_rows_carry_their_installation():
+    r = FakeRunner([('flatpak list', 0, FP_LIST),
+                    ('remote-ls --user --updates', 0, 'app/com.google.Chrome/x86_64/stable\t153-1\n'),
+                    ('remote-ls --system --updates', 0,
+                     'runtime/org.freedesktop.Platform/x86_64/24.08\tfreedesktop-sdk-24.08.36\n')])
+    rows = {row.key: row for row in sysupdates.gather(_Ctx(r))['flatpak']}
+    assert rows['com.google.Chrome/x86_64/stable'].scope == 'user'
+    assert rows['org.freedesktop.Platform/x86_64/24.08'].scope == 'system'
+    st = sysupdates._synthetic_state(rows['org.freedesktop.Platform/x86_64/24.08'])
+    assert st.scope == 'system'

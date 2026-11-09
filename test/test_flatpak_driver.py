@@ -262,7 +262,7 @@ def test_componentstate_outdated_override_beats_equal_version_strings():
     from configsys.installState import ComponentState
     common = dict(component=fp('org.gimp.GIMP'), supported=True, present=True,
                   installed_version='3.2.6', latest_version='3.2.6', locked=False,
-                  lock_source=None, managed=True, error=None)
+                  lock_source=None, error=None)
     assert ComponentState(**common).outdated is False             # strings equal -> generic says current
     assert ComponentState(**common, outdated_override=True).outdated is True    # driver overrides
     assert ComponentState(**common, outdated_override=True).status == 'outdated'

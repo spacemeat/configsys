@@ -384,3 +384,30 @@ def test_ignore_glob_stamps_without_dropping(tmp_path):
     cache['apt'] = {_aptkey(rindex, 'bat'): '0.24'}
     bat = next(o for o in O.scan_orphans(ctx, units, cache=cache, explicit=explicit, origins=origins) if o.component == 'bat')
     assert bat.ignored is True and bat.kind == 'lurking'    # kept in the list, just flagged
+
+
+# ---- the reverse index is built once (review-2026-11-2 subsystems-10) ----------------------------
+
+def test_install_overlay_walks_the_catalog_once(tmp_path, monkeypatch):
+    ctx = _ctx(tmp_path)
+    units, rindex, cache, explicit, origins = _scan(ctx)
+    del ctx._rindex_cache                                  # _scan built one: start cold
+    calls = []
+    real = O.get_driver
+    monkeypatch.setattr(O, 'get_driver', lambda name, *a, **k: calls.append(name) or real(name, *a, **k))
+    caches = {'inst': dict(cache), 'expl': dict(explicit), 'orig': dict(origins)}
+    O.install_overlay(ctx, units, caches=caches)
+    walk = len(calls)
+    # one instance per driver name in the walk (+ the overlay's probe and the scan's, per scan
+    # driver) — not one per component × binding (~1200 on the real catalog)
+    assert walk <= 3 * len(set(calls))
+    O.install_overlay(ctx, units, caches=caches)           # a second pass reuses the index outright
+    assert len(calls) - walk <= 2 * len(set(calls))
+    assert O.build_reverse_index(ctx) is O.build_reverse_index(ctx) == rindex
+
+
+def test_a_new_resolver_rebuilds_the_index(tmp_path):
+    ctx = _ctx(tmp_path)
+    first = O.build_reverse_index(ctx)
+    ctx.invalidate()                                       # a reload: a fresh Resolver
+    assert O.build_reverse_index(ctx) is not first

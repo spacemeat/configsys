@@ -292,7 +292,10 @@ class Flatpak(Driver):
         runtime installed at two branches (freedesktop 24.08 + 26.08) stays two rows matched to their
         OWN installed versions instead of collapsing into a bogus cross-branch "downgrade";
         update_dedup_key maps a ref back to the app id for the managed-picks exclusion. Installed
-        version comes from `flatpak list`. None only when neither scope could be queried.'''
+        version comes from `flatpak list`. None only when neither scope could be queried. Which
+        installation each ref came from is left on `self.update_scopes` ({ref: 'user'|'system'}) —
+        the frozen return shape has no room for it, and System Updates shows the scope.'''
+        self.update_scopes = {}
         installed = {}                                 # normalised ref (id/arch/branch) -> version
         r = self.runner.run('flatpak list --columns=ref,version')
         if r.ok:
@@ -312,6 +315,7 @@ class Flatpak(Driver):
                         ref = self._norm_ref(cols[0].strip())
                         cand = (cols[1].strip() if len(cols) > 1 else '') or None
                         idx.setdefault(ref, (installed.get(ref), cand))
+                        self.update_scopes.setdefault(ref, flag[2:])
         return idx if seen_ok else None
 
     @staticmethod

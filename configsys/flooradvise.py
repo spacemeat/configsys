@@ -7,8 +7,7 @@ choice. Reuses versionreport (real per-method versions) + versionsweep.providers
 when no floors are active, so it costs nothing until floors exist.
 '''
 
-import re
-
+from .osversion import implies
 from .resolve import cap_names
 from .versionsweep import _pv, meets, providers_of
 
@@ -59,15 +58,7 @@ def _unmet(ctx, units):
     unknown/unparseable provider version abstains (no yield) — never a false positive.'''
     from . import versionreport
     r = ctx.routes
-    reports = {}
-
-    def rep(name):
-        if name not in reports:
-            try:
-                reports[name] = versionreport.report(ctx, name)   # per-method versions
-            except Exception:  # noqa: BLE001 — an unroutable provider just yields nothing
-                reports[name] = None
-        return reports[name]
+    rep = versionreport.Reports(ctx)                      # per-method versions, once per provider
 
     for rc in units:
         comp = r.components.get(rc.comp)
@@ -96,8 +87,9 @@ def _unmet(ctx, units):
 def _provides_meets(comp, via, cap, floor):
     '''True when the binding for `via` DECLARES it provides a `cap` version satisfying `floor` —
     a static guarantee that stands in for a discovered `latest` when the method has no version
-    source (e.g. the ghcup `via: script` binding promising `provides: { haskell: ">=9.4" }`). A
-    lower-bound promise `>=X` meets a floor `>=Y` iff X itself meets the floor; a concrete `N` uses N.'''
+    source (e.g. the ghcup `via: script` binding promising `provides: { haskell: ">=9.4" }`). The
+    promise meets the floor when every version it admits does (osversion.implies): `>=9.4` meets
+    `>=9.2`, a concrete `9.4` is just that version, and an upper bound `<9` meets no `>=8`.'''
     if comp is None:
         return False
     b = next((b for b in comp.bindings if b.via == via), None)
@@ -106,8 +98,7 @@ def _provides_meets(comp, via, cap, floor):
     g = getattr(b, 'prov_versions', {}).get(cap)
     if g is None:
         return False
-    m = re.search(r'[0-9][0-9.]*', str(g))            # the version literal inside `>=9.4` or `9.4`
-    return m is not None and meets(m.group(0), floor)
+    return implies(str(g), floor)
 
 
 def _who_meets(comp, rp, cap, floor):

@@ -7,7 +7,7 @@ def cs(key, status, requested_as):
     fam, comp = key.split('\\')
     rc = ResolvedComponent(key=key, driver=fam, comp=comp, fields={'name': comp},
                            requested_as=set(requested_as))
-    common = dict(component=rc, managed=False, error=None, lock_source=None)
+    common = dict(component=rc, error=None, lock_source=None)
     if status == 'installed':
         return ComponentState(supported=True, present=True, installed_version='1',
                               latest_version='1', locked=False, **common)
@@ -203,11 +203,9 @@ def test_lock_op_not_offered_for_a_rolling_manager():
     from configsys.tui.menu import OPS
     rc = ResolvedComponent(key='pacman\\btop', driver='pacman', comp='btop', fields={'name': 'btop'})
     holdable = ComponentState(component=rc, supported=True, present=True, installed_version='1',
-                              latest_version='1', locked=False, lock_source=None, managed=False,
-                              error=None, holds_version=True)
+                              latest_version='1', locked=False, lock_source=None, error=None, holds_version=True)
     rolling = ComponentState(component=rc, supported=True, present=True, installed_version='1',
-                             latest_version='1', locked=False, lock_source=None, managed=False,
-                             error=None, holds_version=False)
+                             latest_version='1', locked=False, lock_source=None, error=None, holds_version=False)
     lock_ok = OPS['lock'][2]
     assert lock_ok(holdable) is True                 # a normal (holdable) component offers Lock
     assert lock_ok(rolling) is False                 # a rolling manager does not
@@ -223,8 +221,7 @@ def test_recipe_pin_behind_upstream_is_marked_not_outdated():
                            fields={'name': 'blender', 'upstream': {'github': 'blender/blender'}},
                            requested_as={'blender'})
     st = ComponentState(component=rc, supported=True, present=True, installed_version='v4.3.2',
-                        latest_version='v4.3.2', locked=False, lock_source=None, managed=False,
-                        error=None, upstream_version='5.2.2')
+                        latest_version='v4.3.2', locked=False, lock_source=None, error=None, upstream_version='5.2.2')
     assert st.recipe_behind and st.status == 'installed'
     ms = MenuState({rc.key: st}, [('user', ['blender'])])
     ms.toggle_expand_all()

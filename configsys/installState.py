@@ -59,7 +59,6 @@ class ComponentState:
     latest_version: Optional[str]
     locked: bool
     lock_source: Optional[str]   # 'native' | 'ledger' | 'both' | None
-    managed: bool
     error: Optional[str]
     scope: Optional[str] = None  # 'user' | 'system' | None (unsupported driver)
     untrusted: bool = False      # driver exists but its plugin isn't trusted yet (not just unknown)
@@ -223,7 +222,6 @@ class InstallState:
 
     def inspect_one(self, rc, batch=None):
         led_lock = self.ledger.is_locked(rc.key)
-        managed = self.ledger.is_managed(rc.key)
         drv = get_driver(rc.driver, self.runner, self.paths)
 
         if drv is None:
@@ -235,7 +233,7 @@ class InstallState:
                 component=rc, supported=False, present=False,
                 installed_version=None, latest_version=None,
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
-                managed=managed, untrusted=untrusted, error=msg)
+                untrusted=untrusted, error=msg)
 
         drv.batch = batch                        # per-inspect batch context (None -> per-unit probes)
         try:
@@ -250,7 +248,7 @@ class InstallState:
                 component=rc, supported=True, present=False,
                 installed_version=None, latest_version=None,
                 locked=led_lock, lock_source=('ledger' if led_lock else None),
-                managed=managed, error=str(e))
+                error=str(e))
 
         # a driver that can't hold a version (rolling: pacman/apk) never reads as locked — a stale
         # ledger entry from before this was disallowed is ignored, not shown as a lock we can't keep.
@@ -270,7 +268,7 @@ class InstallState:
         return ComponentState(
             component=rc, supported=True, present=version is not None,
             installed_version=version, latest_version=latest,
-            locked=locked, lock_source=lock_source, managed=managed, error=None,
+            locked=locked, lock_source=lock_source, error=None,
             holds_version=holds, outdated_override=outdated_override, upstream_version=upstream,
             scope=detected_scope or drv.scope(rc))   # detected reality if installed, else target
 

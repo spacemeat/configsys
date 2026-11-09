@@ -461,7 +461,8 @@ def cmd_refresh(ctx, args=None):
         go = _ask(f'Run `{full}` now (upgrades ALL installed packages)? [y/N] ',
                   pretend=ctx.runner.pretend, noninteractive='no')
         if go:
-            ok = ctx.runner.run(full, sudo=True, capture=False).ok
+            with ctx.runner.sudo_session():       # the keep-alive this sudo op warms ends with it
+                ok = ctx.runner.run(full, sudo=True, capture=False).ok
         else:
             print(f'Skipped — {pm} DB left unchanged.')
             ok = False                                 # nothing refreshed -> don't stamp
