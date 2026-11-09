@@ -73,6 +73,10 @@ class AltDriver(Driver):
     def _master_bin(self, rc):
         return f'/usr/bin/{self._link(rc)}-{self._ver(rc)}'
 
+    def _latest_package(self, rc):
+        '''The package whose candidate version IS the toolchain's version (get_latest).'''
+        return self._packages(rc)[0]
+
     def _pm(self, rc=None):
         '''Package manager: CONFIGSYS_PM when set (tests, an unusual host), else the native manager
         the resolver settled for this machine (`rc.native`, stamped by Context.prepare_units — B14),
@@ -110,7 +114,7 @@ class AltDriver(Driver):
         — so a bugfix release WITHIN the pinned major (13.1.0 -> 13.2.0) shows as an available
         update. Extracted to bare X.Y[.Z] so it lines up with get_version's parse. None if the PM
         can't answer (e.g. --pretend, offline).'''
-        master = self._packages(rc)[0]                     # e.g. gcc-13 (apt) / gcc13 (dnf)
+        master = self._latest_package(rc)                  # e.g. gcc-13 (apt) / gcc13 (dnf)
         if self._pm(rc) == 'apt':
             r = self.runner.run(f'apt-cache policy {shlex.quote(master)}')
             for line in (r.stdout or '').splitlines() if r.ok else ():

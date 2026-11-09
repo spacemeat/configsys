@@ -60,11 +60,11 @@ def test_get_version_none_when_not_installed():
     assert GccToolset(fr).get_version(unit()) is None
 
 
-def test_activation_is_not_configsys_and_no_latest():
+def test_activation_is_not_configsys():
     fam = GccToolset(Runner(pretend=True))
     assert fam.lock(unit()).ok and fam.unlock(unit()).ok    # ledger no-ops
     assert fam.is_locked(unit()) is False
-    assert fam.get_latest(unit()) is None
+    assert fam.get_latest(unit()) is None       # pretend: dnf answers nothing
 
 
 def test_rhel_routes_gcc_to_toolset(tmp_path):
@@ -77,3 +77,14 @@ def test_rhel_routes_gcc_to_toolset(tmp_path):
     # native packages still route through dnf (inherited from the fedora block)
     units, _ = r.resolve_with_roots(['btop'])
     assert 'dnf\\btop' in units
+
+
+def test_latest_comes_from_dnf_and_index_key_is_the_package():
+    # D5: inherited from AltDriver's dnf path — a bugfix release within the toolset shows as an update
+    # — asked of the gcc subpackage (the real compiler version), not the meta package (13.0)
+    out = 'Available Packages\ngcc-toolset-13-gcc.x86_64    13.3.1-2.el9    appstream\n'
+    fr = FakeRunner([('dnf --quiet list gcc-toolset-13-gcc', 0, out)])
+    fam = GccToolset(fr)
+    assert fam.get_latest(unit()) == '13.3.1'
+    assert fam.index_key(unit()) == 'gcc-toolset-13'
+    assert fam.native_backed and fam.targets_version is False
