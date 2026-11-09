@@ -190,7 +190,8 @@ def _as_list(v):
 
 
 def _truthy(v):
-    return str(v).lower() in ('true', 'yes', '1')
+    from .layers import parse_bool                     # the one bool spelling (D1)
+    return parse_bool(v, False)
 
 
 # The release registry: an OS block that owns a version line may carry `releases: { <VERSION_ID>:

@@ -18,7 +18,8 @@ DICT = h.NodeKind.DICT
 
 
 def _to_bool(s):
-    return str(s).strip().lower() in ('true', '1', 'yes')
+    from .layers import parse_bool                 # the one bool spelling (D1)
+    return parse_bool(s, False)
 
 
 def _blank_record():

@@ -33,7 +33,8 @@ class Snap(Driver):
     def _extra(self, rc):
         '''install flags derived from the binding: --classic and/or --channel=.'''
         flags = []
-        if str(rc.fields.get('classic', '')).lower() in ('true', '1', 'yes', 'on'):
+        from ..layers import parse_bool
+        if parse_bool(rc.fields.get('classic'), False):
             flags.append('--classic')
         ch = rc.fields.get('channel')
         if ch:

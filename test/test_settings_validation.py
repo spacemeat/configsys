@@ -157,3 +157,17 @@ def test_a_local_edit_names_its_target_the_same_real_and_pretend(tmp_path, capsy
     assert _cs(tmp_path, 'config', 'set', 'splash', 'plain', '--local') == 0
     real = capsys.readouterr().out
     assert '(in top config)' in dry and '(in top config)' in real
+
+
+def test_the_settings_registry_derives_every_table():
+    # D1: one row per setting in configsys/settings.py; the old hand-kept tables are derived from it
+    from configsys import settings
+    assert layers.SETTING_CHOICES is settings.CHOICES and layers.TOP_CONFIG_ONLY is settings.TOP_ONLY
+    assert layers.machine_setting_sections() == settings.SECTIONS
+    assert set(actions.CONFIG_SETTINGS) == set(settings.EDITABLE)
+    for k, s in settings.EDITABLE.items():
+        assert s.kind in ('bool', 'scalar', 'list', 'map', 'dir')
+        assert s.nature in ('uniform', 'machine') and s.desc, k
+        assert s.kind == 'dir' or s.getter, f'{k}: an editable setting needs a getter'
+    import configsys.layers as L
+    assert 'from .actions' not in open(L.__file__).read()     # the inverted import is gone

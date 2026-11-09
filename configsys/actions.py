@@ -10,7 +10,7 @@ import os
 import re
 from pathlib import Path
 
-from . import layers, plugins, primarygit
+from . import layers, plugins, primarygit, settings
 
 
 # --pretend is a true dry run for the TUI too: every config-editing action below refuses to write
@@ -710,14 +710,13 @@ UNINSTALL_PROFILE = '!uninstall'
 
 # the settings the Resolver (or the paths it lays installs out with) reads — an edit to one rebuilds
 # it; every other setting needs only the Config re-read (C3 / app-cli-10)
-_ROUTING_SETTINGS = frozenset({'driver-preference', 'disabled-drivers', 'pins', 'dirs', 'locations',
-                               'facets'})
+_ROUTING_SETTINGS = settings.ROUTING                   # (D1: derived)
 
 
 # settings that move WHERE something installs (or which method / machine column applies): after
 # one, the shells' glue-locations cache (trusted for an hour by the preludes) is stale (B17 /
 # actions-10 — `config set dirs.app`, `scope`, `machine use`, … used to keep the old paths)
-_LAYOUT_SETTINGS = _ROUTING_SETTINGS | {'scope', 'machine', 'picks'}
+_LAYOUT_SETTINGS = settings.LAYOUT                     # (D1: derived)
 
 
 def _invalidate_for(ctx, key):
@@ -987,146 +986,27 @@ def set_machine_active(ctx, name):
 
 
 # -- machine settings (`configsys config` + the TUI Config screen) --------------------------------
-# key -> (kind, one-line descriptor, man page). The single source of truth the CLI and the TUI
-# Config screen both read, so both describe each setting identically (docs/done/tui-screens-plan.md C1).
-CONFIG_SETTINGS = {
-    'scope':             ('scalar', 'Default install scope: user (~, the default when unset) or '
-                                    'system (/opt, needs sudo).', 'configsys.hu(5)'),
-    'driver-preference': ('list',   'Order ties between equally-valid install methods break in '
-                                    '(unlisted drivers follow, in the default order).',
-                          'configsys.hu(5)'),
-    'disabled-drivers':  ('list',   'Install methods (via names) to turn OFF on this machine — their '
-                                    'bindings stop matching, like a false when:, so a soft suggests is '
-                                    'skipped (a hard requires errors). Use it to opt a mechanism out: '
-                                    'dotfiles / glue to manage your own shell config, or e.g. snap.',
-                          'configsys.hu(5)'),
-    'auto-tighten':      ('bool',   'Auto-pick a floor-satisfying install method instead of only '
-                                    'advising.', 'configsys.hu(5)'),
-    'adopt-installed':   ('bool',   'Prefer an already-installed method/provider over the default '
-                                    '(detection tier). On by default.', 'configsys.hu(5)'),
-    'refresh-before-execute': ('scalar', 'Refresh the OS package index once before running staged '
-                                    "ops: 'auto' (default, when the batch has a native install/"
-                                    "upgrade), 'always', or 'never'.", 'configsys.hu(5)'),
-    'install-overlay':   ('bool',   'Open TUI::Profiles with the install-state overlay on (installed '
-                                    'underlined, installed-but-unpicked ⊙ coloured). On by default; O toggles it.',
-                          'configsys.hu(5)'),
-    'reboot-advice':     ('bool',   'After an op (and as a TUI chip), advise when a reboot is needed / '
-                                    'services want a restart, via each distro\'s native check. On by '
-                                    'default.', 'configsys.hu(5)'),
-    'primary-push':      ('scalar', "When your primary plugin is pushed to its remote: 'ask' (default; "
-                                    'offered when you quit the TUI with changes not pushed), '
-                                    "'auto' (after each command that changes it, and when you quit "
-                                    "the TUI), 'auto-on-quit' (only when you quit the TUI, Q "
-                                    "included), or 'manual' (only `plugin push` / P).",
-                          'configsys.hu(5)'),
-    'primary-verify':    ('scalar', "Check your primary's incoming commits: 'signed' — sync and push "
-                                    'take in commits from its remote only when each has a good '
-                                    "signature from a key you trust; 'off' (default). Read only from "
-                                    'your top config.', 'configsys.hu(5)'),
-    'primary-trust':     ('scalar', "Whether your primary plugin's commands, glue, dotfiles and keys "
-                                    "run without `plugin trust`: 'identity' (default — it is yours, "
-                                    "whatever syncs in is trusted), 'content' (re-trust after every "
-                                    "sync that changes it, like any plugin), 'signed' (trusted while "
-                                    "its newest commit carries a good signature, else by content). "
-                                    'Read only from your top config.', 'configsys.hu(5)'),
-    'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
-                                    "'random' to pick one at random each run, off to disable, or "
-                                    'unset for the built-in default.',
-                          'configsys.hu(5)'),
-    'effects':           ('scalar', 'TUI motion: full (gradient + splash), reduced (no gradient, '
-                                    'calmer splash), or none (no gradient or splash). Unset '
-                                    'auto-picks reduced over SSH, else full. --effects overrides.',
-                          'configsys.hu(5)'),
-    'orphans-ignore':    ('list',   'Name-or-glob patterns whose matching orphans stay quiet in '
-                                    '`configsys orphans` (matches a component name OR installed key).',
-                          'configsys.hu(5)'),
-    'machine': ('scalar', 'This box\'s machine name — which `picks:` column is "this machine". Unset '
-                          'defaults to `this-machine`.',
-                'configsys.hu(5)'),
-    'detect-coexisting': ('bool',   'After inspect, also detect installs of a component via its OTHER '
-                                    '(unmanaged) methods and show them as "also present". On by '
-                                    'default.', 'configsys.hu(5)'),
-    'installer-shell-writes': ('scalar', "Shell-rc guard: 'block' (default) snapshots your rc files "
-                                    'around each install and reverts what an installer writes there '
-                                    "(staged as glue for review); 'allow' turns the guard off.",
-                               'configsys.hu(5)'),
-    'installer-shell-writes-allow': ('list', 'Components exempt from the shell-rc guard — their '
-                                    'installer may edit your rc files.', 'configsys.hu(5)'),
-    'locations':         ('map',    'Per-component install-location overrides, <component>=<absolute '
-                                    'path> tokens: find/manage that install HERE (scope-bypassing; '
-                                    'path-based drivers honor it).', 'configsys.hu(5)'),
-    # install-layout dirs (the `dirs:` section) — default < config < env (CONFIGSYS_*_DIR)
-    'dirs.user':         ('dir',    'Base dir for user-scope installs (default ~). '
-                                    'env CONFIGSYS_USERSCOPE_DIR wins.', 'configsys.hu(5)'),
-    'dirs.system':       ('dir',    'Base dir for system-scope installs (default /opt). '
-                                    'env CONFIGSYS_SYSTEMSCOPE_DIR wins.', 'configsys.hu(5)'),
-    'dirs.app':          ('dir',    'Category dir for self-contained apps ($CONFIGSYS_APP_DIR, '
-                                    'default apps).', 'configsys.hu(5)'),
-    'dirs.sdk':          ('dir',    'Category dir for SDKs/libraries ($CONFIGSYS_SDK_DIR, '
-                                    'default sdks).', 'configsys.hu(5)'),
-    'dirs.src':          ('dir',    'Category dir for source trees ($CONFIGSYS_SRC_DIR, '
-                                    'default src).', 'configsys.hu(5)'),
-}
+# key -> (kind, one-line descriptor, man page), derived from configsys/settings.py (the registry —
+# add a setting THERE): what the CLI and the TUI Config screen both read, so both describe each
+# setting identically.
+CONFIG_SETTINGS = {k: (s.kind, s.desc, s.man) for k, s in settings.EDITABLE.items()}   # (D1: derived)
 
 # Per-setting NATURE decides where a fresh edit lands by default: 'uniform' settings are the same
 # on every machine, so they default to your primary plugin (portable); 'machine' settings are a
 # truth about THIS box (scope, home/system layout), so they default to the top config (local). A
 # per-setting `m` move overrides either way — see _setting_target / move_config_setting.
-SETTING_NATURE = {
-    'scope':             'machine',
-    'driver-preference': 'uniform',
-    'disabled-drivers':  'machine',           # "on THIS box I manage my own dotfiles/glue" (local; `m` to travel)
-    'auto-tighten':      'uniform',
-    'adopt-installed':   'uniform',
-    'refresh-before-execute': 'uniform',      # a behavior preference (override per-machine with `m`)
-    'install-overlay':   'uniform',           # a UI preference
-    'reboot-advice':     'uniform',           # a behavior preference (override per-machine with `m`)
-    'primary-push':      'uniform',           # it travels in the primary it governs
-    'primary-verify':    'machine',           # top config only: the primary must not switch it off
-    'primary-trust':     'machine',           # top config only: the primary must not grant itself trust
-    'splash':            'uniform',
-    'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
-    'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
-    'machine':           'machine',           # which machine THIS box is — inherently per-box (local)
-    'detect-coexisting': 'uniform',           # a behavior preference
-    'installer-shell-writes': 'uniform',      # a safety posture you want on every box
-    'installer-shell-writes-allow': 'uniform',
-    'locations':         'machine',           # install paths are a truth about THIS box's disk
-    'dirs.user':         'machine',
-    'dirs.system':       'machine',
-    'dirs.app':          'uniform',
-    'dirs.sdk':          'uniform',
-    'dirs.src':          'uniform',
-    # the matrix sections (not scalar settings — routed via _nature_target, not `config` edits):
-    'picks':             'uniform',           # the install set is meant to travel between machines
-    'dispositions':      'machine',           # NEW/interesting triage is per-box, stays local
-}
+SETTING_NATURE = dict(settings.NATURE)                 # (D1: derived from settings.SETTINGS)
 
 
-# key -> getter(config) for the EFFECTIVE value `config show` / the TUI display. Every non-`dir`
-# setting in CONFIG_SETTINGS must appear here (config_settings indexes it, and a test pins the key
-# sets equal) so a new setting can't silently show "(unset)". `dir` settings resolve via Paths.
-_SETTING_GETTERS = {
-    'scope':                  lambda c: c.default_scope(),
-    'driver-preference':      lambda c: c.driver_preference(),
-    'disabled-drivers':       lambda c: c.disabled_drivers(),
-    'auto-tighten':           lambda c: c.auto_tighten(),
-    'adopt-installed':        lambda c: c.adopt_installed(),
-    'refresh-before-execute': lambda c: c.refresh_before_execute(),
-    'install-overlay':        lambda c: c.install_overlay_default(),
-    'reboot-advice':          lambda c: c.reboot_advice(),
-    'primary-push':           lambda c: c.primary_push(),
-    'primary-verify':         lambda c: c.primary_verify(),
-    'primary-trust':          lambda c: c.primary_trust(),
-    'splash':                 lambda c: c.splash(),
-    'effects':                lambda c: c.effects(),
-    'orphans-ignore':         lambda c: c.orphans_ignore(),
-    'machine':                lambda c: c.selected_machine(),
-    'detect-coexisting':      lambda c: c.detect_coexisting(),
-    'installer-shell-writes': lambda c: 'block' if c.block_installer_shell_writes() else 'allow',
-    'installer-shell-writes-allow': lambda c: c.shell_writes_allowlist(),
-    'locations':              lambda c: _map_tokens(c.locations()),
+# key -> getter(config) for the EFFECTIVE value `config show` / the TUI display, from each row's
+# `getter` (a test pins every non-`dir` editable setting to have one, so a new setting can't silently
+# show "(unset)"). `dir` settings resolve via Paths.
+_DISPLAY = {                                            # a getter's value as `config show` prints it
+    'installer-shell-writes': lambda v: 'block' if v else 'allow',
+    'locations': lambda v: _map_tokens(v),
 }
+_SETTING_GETTERS = {k: (lambda c, _m=s.getter, _f=_DISPLAY.get(k, lambda v: v): _f(getattr(c, _m)()))
+                    for k, s in settings.EDITABLE.items() if s.getter}   # (D1: derived)
 
 
 def _map_tokens(mapping):

@@ -238,7 +238,8 @@ def _flag(v):
     '''A style boolean. humon materializes `true`/`false` as strings, so treat 'false'/'no'/'0'
     as off (a bare `if v` would count the string 'false' as true).'''
     if isinstance(v, str):
-        return v.strip().lower() in ('true', 'yes', 'on', '1')
+        from ..layers import parse_bool               # the one bool spelling (D1)
+        return parse_bool(v, False)
     return bool(v)
 
 

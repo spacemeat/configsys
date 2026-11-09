@@ -19,6 +19,7 @@ import os
 
 import humon
 
+from . import settings
 from .errors import ConfigError
 
 _DEFINITION_SECTIONS = ('components', 'profiles')
@@ -27,37 +28,21 @@ _REPO_SECTIONS = ('os', 'drivers')
 # Every top-level MACHINE SETTING — a section Config reads only from the machine-role layers (repo /
 # primary / user, config._MACHINE_ROLES). An include or an ordinary (non-primary) plugin that sets one
 # is IGNORED, so these feed _FORBIDDEN_BY_ROLE (-> a `check` / `!` warning instead of a silent drop).
-# The scalar/list settings the CLI + TUI Config screen edit are registered in actions.CONFIG_SETTINGS
-# and unioned in by machine_setting_sections() (so a newly registered setting is covered
-# automatically); this list adds the matrix/side-store sections and the settings not editable there.
-# Cosmetic `theme:` / `keys:` are NOT machine settings — every layer may contribute them.
-MACHINE_SETTING_SECTIONS = frozenset({
-    'picks', 'machine', 'scope', 'pins', 'dispositions', 'uninstall', 'dirs', 'locations',
-    'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed', 'detect-coexisting',
-    'installer-shell-writes', 'installer-shell-writes-allow', 'refresh-before-execute',
-    'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore', 'primary-push',
-    'primary-verify', 'primary-trust',
-})
+# Every one is a row of configsys/settings.py (the registry), so a newly registered setting is
+# covered automatically. Cosmetic `theme:` / `keys:` are NOT machine settings — every layer may
+# contribute them.
+MACHINE_SETTING_SECTIONS = settings.SECTIONS          # (D1: derived from settings.SETTINGS)
 
 
 # Scalar settings whose value is one of a fixed set — `config set` refuses anything else, `check` warns
 # on one in a layer, and the TUI Config screen offers them as a list. (The accessors in config.py fall
 # back to the default on an unknown value, so a bad one is never fatal — but it is never silent either.)
-SETTING_CHOICES = {
-    'primary-push': ('ask', 'auto', 'auto-on-quit', 'manual'),
-    'refresh-before-execute': ('auto', 'always', 'never'),
-    'effects': ('full', 'reduced', 'none'),
-    'primary-verify': ('off', 'signed'),
-    'primary-trust': ('identity', 'content', 'signed'),
-    'scope': ('user', 'system'),
-    'installer-shell-writes': ('block', 'allow'),
-}
+SETTING_CHOICES = settings.CHOICES                    # (D1: derived)
 
 # On/off settings, and the ONE spelling of a bool every reader and `config set` accepts (B11). An
 # unknown token (`ture`) is the setting's default — never the opposite of what you meant — and a
 # `check` warning; `config set` refuses it. (actions.CONFIG_SETTINGS kind 'bool' == this set.)
-BOOL_SETTINGS = frozenset({'auto-tighten', 'adopt-installed', 'install-overlay', 'reboot-advice',
-                           'detect-coexisting'})
+BOOL_SETTINGS = settings.BOOLS                         # (D1: derived)
 _TRUE = frozenset({'true', 'yes', 'on', '1'})
 _FALSE = frozenset({'false', 'no', 'off', '0'})
 
@@ -77,7 +62,7 @@ def is_bool_token(v):
 # else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, and
 # `primary-trust` decides whether its commands run without a re-trust, so a commit pushed to the
 # primary must not be able to change either.
-TOP_CONFIG_ONLY = frozenset({'primary-verify', 'primary-trust'})
+TOP_CONFIG_ONLY = settings.TOP_ONLY                    # (D1: derived)
 
 
 def setting_value_warnings(layers):
@@ -120,16 +105,8 @@ def _location_ok(path):
 
 
 def machine_setting_sections():
-    '''MACHINE_SETTING_SECTIONS ∪ the top-level keys of actions.CONFIG_SETTINGS (`dirs.user` -> `dirs`).
-    actions is imported lazily (it imports this module's dependents), and a failed import just falls
-    back to the static list.'''
-    keys = set(MACHINE_SETTING_SECTIONS)
-    try:
-        from .actions import CONFIG_SETTINGS
-        keys.update(k.split('.', 1)[0] for k in CONFIG_SETTINGS)
-    except Exception:                         # noqa: BLE001 — the static list is complete on its own
-        pass
-    return frozenset(keys)
+    '''Every machine-setting section (settings.SECTIONS — the registry, no lazy import of actions).'''
+    return MACHINE_SETTING_SECTIONS
 
 
 def materialize(node):

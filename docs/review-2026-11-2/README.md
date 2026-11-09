@@ -241,7 +241,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 ### Tier D — refactors (each collapses a bug class)
 
 - **D1 One settings registry** (2026-09 D5) — nine tables, twenty getters, three parsers → B11's class.
-  (config-layers-20, actions-17) · effort M · [open]
+  (config-layers-20, actions-17) · effort M · [done — done — configsys/settings.py: one Setting row per setting (kind, nature, choices, top_only, routing, layout, getter, editable, desc); layers MACHINE_SETTING_SECTIONS / SETTING_CHOICES / TOP_CONFIG_ONLY / BOOL_SETTINGS and actions CONFIG_SETTINGS / SETTING_NATURE / the routing + layout sets / display getters are derived from it (equivalence-checked); layers no longer imports actions; the stray bool parsers (ledger, routes, theme, snap) use layers.parse_bool]
 - **D2 Split app.py** (D9; 35% bigger than when proposed) **and menu.py.** (app-cli-14, tui-core-10) · L · [open]
 - **D3 One plan builder for CLI + TUI** (the rest of D3) — ends B1/B2/A7's divergence. (actions-15/16,
   app-cli-12/13) · effort M · [done — done — build_plan (B1) + fix-scope as a run_plan op + one set of pin writers (actions.set_pin/unset_pin/promote_pin/validate_pin, TUI promote row) + actions.target_label, the one wording an edit target gets real and under --pretend]

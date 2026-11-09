@@ -37,7 +37,8 @@
         }
         config-layers: {
             title: "Config, settings + the layer stack"
-            files: [ "configsys/config.py"  "configsys/layers.py"  "configsys/troveio.py"  "configsys/hutext.py" ]
+            files: [ "configsys/config.py"  "configsys/layers.py"  "configsys/troveio.py"  "configsys/hutext.py"
+                     "configsys/settings.py" ]
             context: [ "config.hu"  "docs/config-format.md"  "configsys/actions.py" ]
             focus: [
                 "the settings registry: CONFIG_SETTINGS, MACHINE_SETTING_SECTIONS, SETTING_NATURE, the retired-key tables and the Config getters must agree (2026-09 found live settings that check called unrecognized)"
