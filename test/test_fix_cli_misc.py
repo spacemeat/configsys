@@ -260,6 +260,7 @@ def test_picks_union_with_names_and_confirmation_gate(tmp_path, capsys, monkeypa
         return 0
     monkeypatch.setattr(cli_ops, '_picks_selection', lambda ctx, op: (['ripgrep', 'btop'], 0))
     monkeypatch.setattr(cli_ops, '_dispatch_op', fake_dispatch)
+    monkeypatch.setattr(cli_ops, 'maybe_refresh_before_plan', lambda c, plan, system=False: set())
     assert _cs(tmp_path, 'upgrade', '--picks', 'fd', 'btop') == 0
     assert seen['op'] == 'upgrade' and seen['names'] == ['fd', 'btop', 'ripgrep']
     assert seen['confirm'] is True and seen['yes'] is False
@@ -278,3 +279,32 @@ def test_confirm_plan_needs_yes_when_not_interactive(capsys, monkeypatch):
     assert 'apt\\ripgrep' in out and '--yes' in out
     assert app._confirm_plan(ctx, plan, yes=True) is True
     assert app._confirm_plan(types.SimpleNamespace(runner=Runner(pretend=True)), plan) is True
+
+
+# -- the up-front index refresh and what it found (CLI = TUI) ---------------------------------------
+
+def test_cli_batch_names_updates_published_after_the_plan(tmp_path, capsys, monkeypatch):
+    # the refresh before the batch turned up a newer package the batch didn't include: the CLI says
+    # so after the run, as the TUI's batch summary does (it used to drop the refresh's result)
+    monkeypatch.setattr(cli_ops, 'maybe_refresh_before_plan', lambda c, plan, system=False: {'tmux'})
+    monkeypatch.setattr(cli_ops, 'published_pending', lambda c, fresh: sorted(fresh))
+    assert _cs(tmp_path, '--pretend', 'upgrade', 'ripgrep') == 0
+    out = capsys.readouterr().out
+    assert 'Published since you planned' in out and 'tmux' in out
+
+
+def test_upgrade_picks_refreshes_before_choosing_the_outdated_picks(tmp_path, capsys, monkeypatch):
+    # the outdated set is read AFTER the refresh, so a pick the refresh makes outdated is in the plan
+    # — and the batch doesn't refresh a second time
+    seen = []
+    _cs(tmp_path, 'picks', 'add', 'ripgrep')
+    monkeypatch.setattr(cli_ops, 'maybe_refresh_before_plan',
+                        lambda c, plan, system=False: seen.append('refresh') or {'ripgrep'})
+    monkeypatch.setattr(cli_ops, '_picks_selection',
+                        lambda c, op: seen.append('select') or (['ripgrep'], 0))
+    monkeypatch.setattr(cli_ops, 'published_pending', lambda c, fresh: sorted(fresh))
+    capsys.readouterr()
+    assert _cs(tmp_path, '--pretend', 'upgrade', '--picks') == 0
+    assert seen == ['refresh', 'select']
+    # what that refresh found was planned against, so it is not "published since you planned"
+    assert 'Published since' not in capsys.readouterr().out

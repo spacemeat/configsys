@@ -436,7 +436,9 @@ configsys manpages <install|status>       # install/check the man pages (configs
 yet, and `upgrade --picks` upgrades every pick with a newer version. Both show the plan and ask
 first (`--yes` skips the question), act only on this machine (not with `--machine` naming
 another), and combine with any names you add. Picks that can't install here are skipped with a
-one-line notice, and `upgrade --picks` leaves locked picks alone.
+one-line notice, and `upgrade --picks` leaves locked picks alone. `upgrade --picks` refreshes the
+package index (per `refresh-before-execute`) before it works out which picks are outdated, so the
+plan you confirm already includes what the refresh turned up.
 
 `install`/`upgrade` take **`--force`** to take over what configsys didn't make, instead of refusing:
 a real file a component's dotfiles would replace (backed up to `<name>.pre-configsys` first — an
@@ -486,8 +488,8 @@ package index (`apt-get update`, `dnf makecache`, …; sudo may prompt). On Arch
 refresh is a full `pacman -Syu`, so `refresh` asks before running it. Every install or upgrade
 batch — from the CLI or the TUI — also refreshes the index once up front when it includes a native
 install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`). If that
-refresh turns up updates published after you staged, the batch's summary names the ones it didn't
-include. Arch is the exception: there a refresh means a full upgrade, so a batch never runs one for
+refresh turns up updates published after you staged or planned the batch, its summary names the ones
+it didn't include. Arch is the exception: there a refresh means a full upgrade, so a batch never runs one for
 you.
 
 When the index refresh fails, configsys tells you why instead of leaving you with a raw apt or dnf

@@ -216,7 +216,7 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         # ONE index refresh for the whole batch (see maybe_refresh_before_plan). With System Updates
         # staged it runs BEFORE the confirm: the bulk upgrade takes whatever the REFRESHED index
         # offers, so the count you confirm is counted after it, not off the startup scan (parity-16)
-        from ..cli.refresh import maybe_refresh_before_plan, published_pending
+        from ..cli.refresh import maybe_refresh_before_plan, published_note, published_pending
         fresh, su_count = set(), len(su_raw)
         if su_managers:
             fresh = maybe_refresh_before_plan(ctx, plan, system=True)
@@ -277,12 +277,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         if (failed or warned) and not getattr(ctx.runner, 'pretend', False):   # a dry run recorded nothing
             print(f'\nBack in the TUI, {_issues_path()} files the details of the above (they stay on '
                   'the ! page until fixed).')
-        pending = published_pending(ctx, fresh)
-        if pending:                                   # no surprises: say why they now read outdated
-            shown = ', '.join(pending[:8]) + (f' +{len(pending) - 8} more' if len(pending) > 8 else '')
-            print(f'\nPublished since you staged: the refresh found {len(pending)} newer package(s) '
-                  f'this batch didn\'t include — {shown}. They now show as outdated; stage them to '
-                  f'upgrade.')
+        note = published_note(published_pending(ctx, fresh), 'staged', 'stage them to upgrade')
+        if note:                                      # no surprises: say why they now read outdated
+            print(f'\n{note}')
         input('\nPress Enter to return...')
         return True, _summary_note(outcomes), outcomes
 

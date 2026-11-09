@@ -11,7 +11,7 @@ from ..drivers import get_driver
 from ..ledger import Ledger
 from .common import _install_scope_label, _pretend_edit, ask, print_reboot_advisory
 from .issues import cmd_report
-from .refresh import maybe_refresh_before_plan, refresh_native_index
+from .refresh import maybe_refresh_before_plan, published_note, published_pending, refresh_native_index
 
 
 def cmd_inspect(ctx, args):
@@ -116,7 +116,10 @@ def _confirm_plan(ctx, plan, *, yes=False):
 
 
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, confirm=False,
-                 yes=False, with_deps=False):
+                 yes=False, with_deps=False, refreshed=False):
+    '''Run `op` on `names` (+ the dependencies build_plan folds in). `refreshed` = the batch already
+    refreshed the index before it chose `names` (upgrade --picks), so the plan was made against the
+    fresh index and it isn't refreshed a second time.'''
     if ledger is None:
         ledger = Ledger.load(ctx.paths)      # every op writes it now: locks, and install receipts
     got = _expand_profile_args_detail(ctx, names)
@@ -188,9 +191,15 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, co
         print(f'configsys: heads-up — {text}', file=sys.stderr)
     if confirm and not _confirm_plan(ctx, plan, yes=yes):
         return 1
-    maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
+    # refresh the OS index once up front (see the setting); what it newly made upgradable, the plan
+    # was made without — the summary below names any the batch didn't include, as the TUI's does
+    fresh = set() if refreshed else maybe_refresh_before_plan(ctx, plan)
     result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # the shared op loop
     actions.after_run(ctx, result.outcomes, units)
+    note = published_note(published_pending(ctx, fresh), 'planned', '`configsys upgrade --picks` '
+                          'takes your picks, `configsys upgrade --system` the rest')
+    if note:
+        print(f'\n{note}')
     if result.failures:
         _offer_report(ctx, result.failures, fatal=result.n_fatal)
     if op in ('install', 'upgrade', 'set-version') and getattr(ctx, 'config', None) is not None \
@@ -318,11 +327,7 @@ def _picks_selection(ctx, op):
     Picks with no install method here are skipped with the same one-line notice as a profile:
     expansion. Refuses (error_rc=1) when --machine names another machine: installs only ever happen
     on this box, so curating machine X's set from here must not install X's picks here.'''
-    other = ctx.curating_machine()
-    if other:
-        print(f'configsys: --picks acts on THIS box ("{ctx.own_machine()}"), but --machine names '
-              f'"{other}" — installs never happen for another machine here. Drop '
-              '--machine (or run this on that machine).', file=sys.stderr)
+    if _refuse_other_machine(ctx):
         return None, 1
     _cfg, requested, _units, _ledger, states = ctx.load_pipeline()
     picked = list(requested)
@@ -342,18 +347,46 @@ def _merge_names(explicit, extra):
     return out
 
 
+def _refuse_other_machine(ctx):
+    '''True (after saying why) when --machine names another machine: `--picks` acts on this box only.'''
+    other = ctx.curating_machine()
+    if other:
+        print(f'configsys: --picks acts on THIS box ("{ctx.own_machine()}"), but --machine names '
+              f'"{other}" — installs never happen for another machine here. Drop '
+              '--machine (or run this on that machine).', file=sys.stderr)
+    return bool(other)
+
+
+def _refresh_for_picks(ctx):
+    '''`upgrade --picks`: the batch's one index refresh (maybe_refresh_before_plan, per the
+    `refresh-before-execute` setting), run BEFORE the outdated picks are chosen — so a pick the
+    refresh makes outdated is in the plan you confirm, not skipped. The setting's `auto` test reads a
+    stand-in plan: an upgrade of each pick's routed unit (a plain resolve — the inspect comes after).'''
+    try:
+        units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    except Exception:                                # noqa: BLE001 — the selection reports it
+        units = {}
+    maybe_refresh_before_plan(ctx, [('upgrade', key, rc) for key, rc in sorted(units.items())])
+
+
 def _ops_from_picks(ctx, args, op):
-    '''The shared `--picks` front half of cmd_install / cmd_upgrade: (names, rc) where rc is not
-    None when the command should stop now (refused, or nothing to do).'''
+    '''The shared `--picks` front half of cmd_install / cmd_upgrade: (names, rc, refreshed) where rc
+    is not None when the command should stop now (refused, or nothing to do), and `refreshed` says the
+    batch's index refresh already ran (upgrade: before choosing what's outdated).'''
+    refreshed = op == 'upgrade'
+    if refreshed:
+        if _refuse_other_machine(ctx):
+            return None, 1, False
+        _refresh_for_picks(ctx)
     sel, err = _picks_selection(ctx, op)
     if err:
-        return None, err
+        return None, err, refreshed
     names = _merge_names(args.names, sel)
     if not names:
         print('configsys: nothing to do — every pick of this box is '
               + ('installed' if op == 'install' else 'up to date (locked picks are left alone)'))
-        return None, 0
-    return names, None
+        return None, 0, refreshed
+    return names, None, refreshed
 
 
 def cmd_install(ctx, args):
@@ -362,7 +395,7 @@ def cmd_install(ctx, args):
     ctx.paths.source_adopt = getattr(args, 'adopt', False)     # build in your own checkout (A9)
     names, confirm = args.names, False
     if getattr(args, 'picks', False):
-        names, rc = _ops_from_picks(ctx, args, 'install')
+        names, rc, _refreshed = _ops_from_picks(ctx, args, 'install')
         if rc is not None:
             return rc
         confirm = True
@@ -385,9 +418,9 @@ def cmd_upgrade(ctx, args):
                   'names or --picks — run those as a separate `configsys upgrade`')
             return 1
         return cmd_upgrade_system(ctx, args)
-    names, confirm = args.names, False
+    names, confirm, refreshed = args.names, False, False
     if getattr(args, 'picks', False):
-        names, rc = _ops_from_picks(ctx, args, 'upgrade')
+        names, rc, refreshed = _ops_from_picks(ctx, args, 'upgrade')
         if rc is not None:
             return rc
         confirm = True
@@ -399,7 +432,7 @@ def cmd_upgrade(ctx, args):
     ctx.paths.install_force = getattr(args, 'force', False)
     return _dispatch_op(ctx, names, 'upgrade', no_deps=getattr(args, 'no_deps', False),
                         with_deps=getattr(args, 'with_deps', False),
-                        confirm=confirm, yes=getattr(args, 'yes', False))
+                        confirm=confirm, yes=getattr(args, 'yes', False), refreshed=refreshed)
 
 
 _TIER_LABEL = {'kernel': 'kernel', 'core': 'core (base system)',

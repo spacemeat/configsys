@@ -347,6 +347,17 @@ def published_pending(ctx, fresh):
     return sorted(fresh & now) if now is not None else []
 
 
+def published_note(pending, since, then):
+    '''The batch summary's line for `pending` (published_pending's names): why they read outdated now
+    — no surprises. `since` = what the plan was made by ('staged' in the TUI, 'planned' on the CLI),
+    `then` = how to take them. None when there are none.'''
+    if not pending:
+        return None
+    shown = ', '.join(pending[:8]) + (f' +{len(pending) - 8} more' if len(pending) > 8 else '')
+    return (f'Published since you {since}: the refresh found {len(pending)} newer package(s) this '
+            f'batch didn\'t include — {shown}. They now show as outdated; {then}.')
+
+
 def cmd_refresh(ctx, args=None):
     from ..installState import _parallel_map
     from ..routes import clear_facet_cache
