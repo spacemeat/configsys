@@ -281,6 +281,16 @@ def test_confirm_plan_needs_yes_when_not_interactive(capsys, monkeypatch):
     assert app._confirm_plan(types.SimpleNamespace(runner=Runner(pretend=True)), plan) is True
 
 
+@pytest.mark.parametrize('verb', ['install', 'upgrade'])
+def test_no_deps_and_with_deps_are_mutually_exclusive(verb, capsys):
+    p = build_parser()
+    with pytest.raises(SystemExit):
+        p.parse_args([verb, '--no-deps', '--with-deps', 'ripgrep'])
+    assert 'not allowed with argument' in capsys.readouterr().err
+    assert p.parse_args([verb, '--no-deps', 'ripgrep']).no_deps is True
+    assert p.parse_args([verb, '--with-deps', 'ripgrep']).with_deps is True
+
+
 # -- the up-front index refresh and what it found (CLI = TUI) ---------------------------------------
 
 def test_cli_batch_names_updates_published_after_the_plan(tmp_path, capsys, monkeypatch):

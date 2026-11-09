@@ -236,13 +236,14 @@ def build_parser():
                                 help='let a source component build in an existing checkout configsys '
                                      "didn't create (fetch + checkout only: your files are never "
                                      'cleaned, and remove never deletes it)')
-            sp.add_argument('--no-deps', action='store_true',
-                            help='act on only the named components, without installing their '
-                                 'missing dependencies. A source component always rebuilds, so this '
-                                 'rebuilds just it (e.g. to pick up a recipe change)')
-            sp.add_argument('--with-deps', action='store_true',
-                            help='also re-run every dependency, present or not (by default only '
-                                 'missing dependencies are installed)')
+            deps = sp.add_mutually_exclusive_group()     # opposite asks: neither may silently win
+            deps.add_argument('--no-deps', action='store_true',
+                              help='act on only the named components, without installing their '
+                                   'missing dependencies. A source component always rebuilds, so '
+                                   'this rebuilds just it (e.g. to pick up a recipe change)')
+            deps.add_argument('--with-deps', action='store_true',
+                              help='also re-run every dependency, present or not (by default '
+                                   'only missing dependencies are installed)')
             sp.add_argument('--picks', action='store_true',
                             help=("also act on every pick of this box that is not installed: show "
                                   'the plan and ask first (on this box only, so not with --machine '
