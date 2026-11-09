@@ -405,11 +405,12 @@ def _release_sources(cascade, components, line, release):
     releasever = major if line == 'rhel' else str(release)
     others = _codenames(table) - {str(codename)}
     ctx = cascade.context(line, release, CPU)
+    from configsys.resolve import candidate_bindings, via_representatives
     out = []
     for comp_name, comp in sorted(components.items()):
-        for binding in comp.bindings:
-            if binding.pred is not None and not binding.pred.eval(ctx):
-                continue
+        # only the binding that RUNS here per via: a `when: debian` vendor line shadowed by a more
+        # specific `when: ubuntu` one never runs on Ubuntu, so its 404 there is no finding
+        for binding in via_representatives(candidate_bindings(comp, cascade, ctx), cascade):
             d = binding.details
             for key in ('repo-url', 'pubkey-url'):
                 url = d.get(key)
@@ -421,7 +422,10 @@ def _release_sources(cascade, components, line, release):
             line_text = d.get('source-line')
             if isinstance(line_text, str):
                 literal = sorted(c for c in others if re.search(rf'\b{re.escape(c)}\b', line_text))
-                if literal:
+                # a literal suite in a binding whose `when:` bounds this line's version is a
+                # deliberate pin (an interim release mapped to the LTS suite the vendor publishes)
+                pinned = bool(binding.when and re.search(rf'\b{re.escape(line)}\s*[<>=]', binding.when))
+                if literal and not pinned:
                     out.append((comp_name, 'literal-codename', None,
                                 f"source-line names {', '.join(literal)} literally — on {line} "
                                 f'{release} ({codename}) that is another release'))

@@ -361203,7 +361203,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu resolute/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"
@@ -361216,7 +361216,7 @@
      "name": "mongodb-org",
      "pubkey-path": "/usr/share/keyrings/mongodb-server-8.0.asc",
      "pubkey-url": "https://www.mongodb.org/static/pgp/server-8.0.asc",
-     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse",
+     "source-line": "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu resolute/mongodb-org/8.0 multiverse",
      "source-path": "/etc/apt/sources.list.d/mongodb-org-8.0.list"
     },
     "name": "mongodb-org"

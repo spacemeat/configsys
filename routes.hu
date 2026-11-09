@@ -3785,6 +3785,10 @@
                   pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
                   source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu $CODENAME/mongodb-org/8.0 multiverse"
                   source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
+                { via: native  when: "(ubuntu >= 26.10) and (ubuntu < 27.04)"  name: mongodb-org   // MongoDB publishes LTS suites only: interim 26.10 (stonking, 404) uses the 26.04 suite, resolute
+                  pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
+                  source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/ubuntu resolute/mongodb-org/8.0 multiverse"
+                  source-path: /etc/apt/sources.list.d/mongodb-org-8.0.list }
                 { via: native  when: "debian"  name: mongodb-org   // MongoDB's official apt repo (Debian); $CODENAME resolved on the target
                   pubkey-url: "https://www.mongodb.org/static/pgp/server-8.0.asc"  pubkey-path: /usr/share/keyrings/mongodb-server-8.0.asc
                   source-line: "deb [signed-by=/usr/share/keyrings/mongodb-server-8.0.asc] https://repo.mongodb.org/apt/debian $CODENAME/mongodb-org/8.0 main"
