@@ -236,6 +236,27 @@ def _can_tee():
         return False
 
 
+class ChildStarted(Exception):
+    '''The streamed child already RAN (it may have half-applied a non-idempotent install) when the
+    tee/capture machinery failed. Carries (rc, tail): Runner.run reports it — it must never fall back
+    to running the command a second time (review-2026-11-2 A10).'''
+    def __init__(self, rc, tail, why):
+        super().__init__(why)
+        self.rc, self.tail = rc, tail
+
+
+def _stop(proc):
+    '''Kill and reap a started child -> its return code (1 when it can't be read).'''
+    try:
+        proc.kill()
+    except Exception:                          # noqa: BLE001
+        pass
+    try:
+        return proc.wait(timeout=5) or 1
+    except Exception:                          # noqa: BLE001
+        return 1
+
+
 def _run_teed(argv, cwd, env, limit):
     '''Run argv with its stdio on a pty: stream output to the real terminal live while
     retaining the last `limit` bytes, and forward the user's keystrokes to the child (so an
@@ -269,32 +290,37 @@ def _run_teed(argv, cwd, env, limit):
             old = None
         tail = bytearray()
         try:
-            while True:
-                try:
-                    rlist, _, _ = select.select([master, in_fd], [], [])
-                except (InterruptedError, OSError):
-                    continue
-                if master in rlist:
+            try:
+                while True:
                     try:
-                        data = os.read(master, 4096)
-                    except OSError:             # EIO on Linux once the child exits == EOF
-                        data = b''
-                    if not data:
-                        break
-                    os.write(sys.stdout.fileno(), data)
-                    tail.extend(data)
-                    if len(tail) > limit:
-                        del tail[:len(tail) - limit]
-                if in_fd in rlist:
-                    try:
-                        inp = os.read(in_fd, 4096)
-                    except OSError:
-                        inp = b''
-                    if inp:
+                        rlist, _, _ = select.select([master, in_fd], [], [])
+                    except (InterruptedError, OSError):
+                        continue
+                    if master in rlist:
                         try:
-                            os.write(master, inp)
+                            data = os.read(master, 4096)
+                        except OSError:             # EIO on Linux once the child exits == EOF
+                            data = b''
+                        if not data:
+                            break
+                        os.write(sys.stdout.fileno(), data)
+                        tail.extend(data)
+                        if len(tail) > limit:
+                            del tail[:len(tail) - limit]
+                    if in_fd in rlist:
+                        try:
+                            inp = os.read(in_fd, 4096)
                         except OSError:
-                            pass
+                            inp = b''
+                        if inp:
+                            try:
+                                os.write(master, inp)
+                            except OSError:
+                                pass
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception as e:                # noqa: BLE001 — the child ran: never re-run it (A10)
+                raise ChildStarted(_stop(proc), tail.decode('utf-8', 'replace'), str(e))
         finally:
             if old is not None:
                 try:
@@ -316,8 +342,10 @@ def _run_captured_tty(argv, cwd, env, limit):
     tty, so a pty'd op would be a different tty and re-prompt every time) and, as a last resort, could
     still prompt on it. Used for top-level `sudo=True` ops. Progress/colour degrade to plain (stdout
     is a pipe, not a tty), which is the acceptable cost of not re-prompting on every op.'''
+    # decode with `replace`: one latin-1 byte of progress output raised mid-stream and the caller's
+    # fallback RAN THE COMMAND AGAIN alongside the first (review-2026-11-2 A10)
     proc = subprocess.Popen(argv, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            cwd=cwd, env=env, text=True, bufsize=1)
+                            cwd=cwd, env=env, text=True, encoding='utf-8', errors='replace', bufsize=1)
     tail = collections.deque(maxlen=max(1, limit // 80))   # ~limit bytes, counted in lines
     # terminal_released holds a NO-OP SIGINT handler so the parent survives Ctrl-C during a single
     # interactive build. For a batch install we want the opposite: Ctrl-C should abort the WHOLE run,
@@ -329,10 +357,15 @@ def _run_captured_tty(argv, cwd, env, limit):
     except (ValueError, OSError):
         old = None
     try:
-        for line in proc.stdout:
-            sys.stdout.write(line)
-            sys.stdout.flush()
-            tail.append(line)
+        try:
+            for line in proc.stdout:
+                sys.stdout.write(line)
+                sys.stdout.flush()
+                tail.append(line)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception as e:                 # noqa: BLE001 — the child ran: never re-run it (A10)
+            raise ChildStarted(_stop(proc), ''.join(tail), str(e))
         return proc.wait(), ''.join(tail)
     except KeyboardInterrupt:
         try:
@@ -490,7 +523,9 @@ class Runner:
                         try:
                             rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
                             return Result(full, rc, captured=tail)
-                        except Exception:       # noqa: BLE001 — degrade to plain streaming
+                        except ChildStarted as e:   # it ran: report, never run it twice
+                            return Result(full, e.rc, captured=e.tail, stderr=f'(output relay failed: {e})')
+                        except Exception:       # noqa: BLE001 — degrade to plain streaming (pre-exec only)
                             pass
                 elif self._sudo_warm:
                     # This batch holds a warm sudo credential (it has root work — see begin_sudo), so a
@@ -502,7 +537,9 @@ class Runner:
                     try:
                         rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)
-                    except Exception:           # noqa: BLE001 — degrade to plain streaming
+                    except ChildStarted as e:       # it ran: report, never run it twice
+                        return Result(full, e.rc, captured=e.tail, stderr=f'(output relay failed: {e})')
+                    except Exception:           # noqa: BLE001 — degrade to plain streaming (pre-exec only)
                         pass
                 else:
                     # A non-sudo streamed op in a batch with no root work: tee through its own pty
@@ -510,7 +547,9 @@ class Runner:
                     try:
                         rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)
-                    except Exception:           # noqa: BLE001 — degrade to plain streaming
+                    except ChildStarted as e:       # it ran: report, never run it twice
+                        return Result(full, e.rc, captured=e.tail, stderr=f'(output relay failed: {e})')
+                    except Exception:           # noqa: BLE001 — degrade to plain streaming (pre-exec only)
                         pass
             # A CAPTURED run is a read-only probe (get_version, installed_index, …) that never needs
             # input — and the background inspection worker fires these while curses owns the terminal.

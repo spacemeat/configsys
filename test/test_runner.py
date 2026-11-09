@@ -431,3 +431,18 @@ def test_commands_run_outside_an_activated_virtualenv(tmp_path, monkeypatch):
     assert r.stdout.strip() == 'none /usr/bin' + os.pathsep + '/bin'
     monkeypatch.delenv('VIRTUAL_ENV')
     assert child_env() is None and child_env({'A': '1'}) == {'A': '1'}   # no venv: untouched
+
+
+@pytest.mark.real_runner
+def test_a_non_utf8_byte_never_runs_a_streamed_op_twice(tmp_path, monkeypatch, capsys):
+    # review-2026-11-2 A10: a latin-1 byte in a warm-batch op's output raised mid-stream and the
+    # fallback RAN THE COMMAND AGAIN (a non-idempotent install double-applied)
+    from configsys import runner as runmod
+    monkeypatch.setattr(runmod, '_can_tee', lambda: True)
+    r = runmod.Runner()
+    r._sudo_warm = True                        # the batch holds a warm credential (no real sudo)
+    counter = tmp_path / 'count'
+    res = r.run(f"echo start >> {counter}; printf 'progress \\xff\\n'; echo done >> {counter}",
+                capture=False)
+    assert counter.read_text().count('start') == 1
+    assert res.ok and 'progress' in res.captured

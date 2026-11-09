@@ -134,7 +134,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A9 [HIGH] `source` install wipes a pre-existing checkout's uncommitted work; uninstall/method-swap
   then `rm -rf`s it.** (drivers-lang-01) · effort S · [done 48507e9 — source trees: .cloned/.adopted markers; an unowned checkout is refused (install --adopt builds there without cleaning); local changes need --force; remove deletes only a clean tree configsys created]
 - **A10 [HIGH] A streamed sudo / warm-batch op runs twice when the child prints a non-UTF-8 byte.**
-  (subsystems-01) · effort S · [open]
+  (subsystems-01) · effort S · [done — done — the captured-tty path decodes with errors=replace, and once a streamed child has started any relay failure kills/reaps it and reports (runner.ChildStarted) — the plain-streaming fallback runs only after a pre-exec failure, never a second time]
 - **A11 [HIGH] An untrusted plugin's `keys:` can turn `j` on the Plugins screen into "trust every plugin";**
   and `t`/`T`/`b` grant trust on one unconfirmed keystroke. **Fix:** trust/bless actions not rebindable
   from plugin layers + a confirm. (tui-theme-01, parity-07) · effort S · [done 48507e9 — keys stay rebindable; a plugin's keys: count only once it is trusted (Config.key_layers; check names ignored ones) — with A1]
