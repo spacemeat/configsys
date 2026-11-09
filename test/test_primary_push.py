@@ -588,3 +588,19 @@ def test_an_editor_backup_beside_its_file_is_an_ordinary_conflict(primary):
     tree = _git(bare, 'ls-tree', '--name-only', 'main').split()
     assert 'notes.txt~' in tree and 'notes.txt' in tree
     _clean(clone)
+
+
+@needs_git
+def test_a_locked_primary_is_never_combined_with_what_its_remote_holds(primary):
+    # review-2026-11-2 A12: the lock held back the other machine's commits on sync, but `push`
+    # rebased onto them anyway (and `primary-push: auto` did it on any edit)
+    from configsys import plugins
+    base, clone, bare, other = primary
+    ctx = _ctx(base)
+    plugins.set_lock(ctx.paths.plugin_lock_file, 'prim', '2026-11-08')
+    _other_pushes(other, 'notes.txt', BASE_P + '// ALARMING\n')
+    (clone / 'p.hu').write_text(BASE_P.replace('desk: [ jq ]', 'desk: [ jq fzf ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
+    assert not ok and any('is locked' in ln for ln in lines), lines
+    assert 'ALARMING' not in (clone / 'notes.txt').read_text()

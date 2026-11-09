@@ -139,7 +139,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   and `t`/`T`/`b` grant trust on one unconfirmed keystroke. **Fix:** trust/bless actions not rebindable
   from plugin layers + a confirm. (tui-theme-01, parity-07) · effort S · [done 48507e9 — keys stay rebindable; a plugin's keys: count only once it is trusted (Config.key_layers; check names ignored ones) — with A1]
 - **A12 [HIGH] `plugin push` combines the remote into a primary you LOCKED** (and auto-push does it on any
-  CLI edit). (primary-02) · effort S · [open]
+  CLI edit). (primary-02) · effort S · [done — done — push refuses to combine when the primary is locked and its remote is ahead ("N held back — plugin diff / plugin unlock"); pushing when not behind still works]
 - **A13 [MED] Primary edge-case data loss:** "Stop" deletes an ignored file of yours; `plugin undo` of a
   commit that moved files in deletes the only copy; the tag→branch switch bypasses PrimaryRepo and syncs
   locked plugins; a submodule breaks `_combine`'s stash assumption; Ctrl-C still commits. (primary-03/05/

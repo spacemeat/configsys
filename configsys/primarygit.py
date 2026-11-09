@@ -902,6 +902,13 @@ def push(ctx, ui=None):
                                    f'{" …" if len(bad) > 3 else ""}), so nothing was combined or pushed '
                                    f'(primary-verify: signed). Look at them: `git -C {root} log '
                                    f'--show-signature HEAD..{upstream}`.']
+    if behind and name in plugins.read_locks(getattr(ctx.paths, 'plugin_lock_file', None)):
+        # you LOCKED it: the lock holds back what its remote brought in (sync honours it) — a push
+        # must not combine those commits in either (review-2026-11-2 A12; pushing when not behind is
+        # still fine: nothing comes in)
+        return False, lines + [f'{name} is locked — its remote has {_count(behind)} you held back, so '
+                               f'nothing was combined or pushed. `configsys plugin diff {name}` shows '
+                               f'them; `configsys plugin unlock {name}` takes them in.']
     if behind:
         ui.progress(f'combining {name} with your other machines\' changes …')
         ok, more = _combine(ctx, ui, name, repo, branch, upstream)
