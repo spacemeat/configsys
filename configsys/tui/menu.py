@@ -969,6 +969,20 @@ def _scroll_reveal(parent, subtree_end, top, list_h, nrows):
     return max(0, min(top, max(0, nrows - list_h)))
 
 
+def _reveal_subtree(keys, depths, reveal, top, list_h):
+    '''The scroll offset that reveals the subtree under the row whose key is `reveal` (a node just
+    expanded) — rows are given as parallel `keys` / `depths` lists; `top` unchanged when no row has
+    that key. The tree screens (Components, Profiles) share it.'''
+    pi = next((i for i, k in enumerate(keys) if k == reveal), None)
+    if pi is None:
+        return top
+    end = pi
+    for j in range(pi + 1, len(keys)):
+        if depths[j] <= depths[pi]:
+            break
+        end = j
+    return _scroll_reveal(pi, end, top, list_h, len(keys))
+
 def _fit(s, width):
     return s if len(s) <= width else s[:max(0, width - 1)] + '…'
 
@@ -1407,14 +1421,17 @@ class ListNav:
 
     @staticmethod
     def apply(act, pos, limit, page):
-        '''`pos` moved by nav action `act` (`page` rows a page), clamped to [0, limit].'''
+        '''`pos` moved by nav action `act`, clamped to [0, limit]. `page` is the rows a page moves —
+        or a callable giving it, asked only for a page move (a pane's page size needs the screen).'''
         if act == 'top':
             pos = 0
         elif act == 'bottom':
             pos = limit
+        elif act in ('page-down', 'page-up'):
+            rows = max(1, page() if callable(page) else page)
+            pos += rows if act == 'page-down' else -rows
         else:
-            pos += {'down': 1, 'up': -1, 'page-down': max(1, page),
-                    'page-up': -max(1, page)}.get(act, 0)
+            pos += {'down': 1, 'up': -1}.get(act, 0)
         return max(0, min(pos, max(0, limit)))
 
     @classmethod
@@ -3572,11 +3589,11 @@ class ProfileScreen:
 
     def set_pfilter(self, text):
         self.pfilter = text
-        self.lcur = min(self.lcur, max(0, len(self.visible_pnodes()) - 1))
+        self.lcur = max(0, min(self.lcur, len(self.visible_pnodes()) - 1))
 
     def set_cfilter(self, text):
         self.cfilter = text
-        self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
+        self.rcur = max(0, min(self.rcur, len(self.vcatalog()) - 1))
         self.rcol_left = 0
 
     def reload(self):
@@ -3593,8 +3610,8 @@ class ProfileScreen:
         # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
         # via), so re-resolving the whole visible set (~17ms each) on every toggle was the ~1.5s lag.
         # The method picker (`m`) is the only edit that changes resolution; it drops its own entry.
-        self.lcur = min(self.lcur, max(0, len(self.visible_pnodes()) - 1))
-        self.rcur = min(self.rcur, max(0, len(self.vcatalog()) - 1))
+        self.lcur = max(0, min(self.lcur, len(self.visible_pnodes()) - 1))
+        self.rcur = max(0, min(self.rcur, len(self.vcatalog()) - 1))
         self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
                                          # scrolling the catalog isn't sluggish the first time through
 
@@ -3843,7 +3860,7 @@ class ConfigScreen:
         from .. import actions
         self.settings = actions.config_settings(self.ctx)
         self.keys = list(self.settings)
-        self.cur = min(self.cur, max(0, len(self.keys) - 1))
+        self.cur = max(0, min(self.cur, len(self.keys) - 1))
         self.top = min(self.top, self.cur)
 
 
@@ -4161,8 +4178,8 @@ class ThemeScreen:
                 names.append(n)                     # user-added map colors after the built-ins
         self.map_names = names
         self.colors, self.pages = resolve_theme(self.theme)      # resolved rgb
-        self.map_cur = min(self.map_cur, max(0, len(names) - 1))
-        self.role_cur = min(self.role_cur, max(0, len(self.role_list()) - 1))
+        self.map_cur = max(0, min(self.map_cur, len(names) - 1))
+        self.role_cur = max(0, min(self.role_cur, len(self.role_list()) - 1))
 
     def page_name(self):
         from .theme import ALL_PAGES                    # DEMO_PAGES + 'theme' (the editor's own page)
@@ -4364,7 +4381,7 @@ class PluginScreen:
         self.rows = plugins.status(self.ctx.paths.plugins_dir, [t['decl'] for t in self.tree],
                                    trust_file=self.ctx.paths.plugin_trust_file,
                                    lock_file=self.ctx.paths.plugin_lock_file)
-        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self.cur = max(0, min(self.cur, len(self.rows) - 1))
         self._set_primary_state(primarygit.state(self.ctx))   # local counts now; the fetch refines them
         self._diff_cache = {}            # a sync/update may have moved what's on disk
         self._invalidate_diff()
@@ -4462,7 +4479,7 @@ class PluginScreen:
         if ident != self.diff_key:
             self.dfile = self.dtop = self.dhscroll = 0
         self.diff_key, self.diff_files, self.diff_note, self.diff_span = ident, files, note, span
-        self.dfile = min(self.dfile, max(0, len(files) - 1))
+        self.dfile = max(0, min(self.dfile, len(files) - 1))
 
     def _request_diff(self, ident, thunk):
         '''Run `thunk` for `ident` on the single worker thread. Only the NEWEST request matters: a
@@ -4605,7 +4622,7 @@ class DotfilesScreen(_ContentRootLabelMixin):
                 cfg.append((rc, name, tgt, state, source, cap.get(name, False)))
         self.rows = cfg
         self.display = [('row', k) for k in range(len(cfg))]   # single group -> no dividers
-        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self.cur = max(0, min(self.cur, len(self.rows) - 1))
 
     def cur_row(self):
         return self.rows[self.cur] if 0 <= self.cur < len(self.rows) else None
@@ -4659,7 +4676,7 @@ class GlueScreen(_ContentRootLabelMixin):
             for row in user_by_shell.get(sh, ()):            # then YOUR glue (user.d), after the shipped
                 self.rows.append(row)
                 self.display.append(('row', len(self.rows) - 1))
-        self.cur = min(self.cur, max(0, len(self.rows) - 1))
+        self.cur = max(0, min(self.cur, len(self.rows) - 1))
 
     def _user_rows(self, by_shell):
         '''{shell: [user-glue row]} for the installed shells — `glue add` snippets and activated

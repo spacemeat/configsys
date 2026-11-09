@@ -62,6 +62,31 @@ class Screen:
     def handle(self, ch, ctx, stdscr, pal):
         raise NotImplementedError
 
+    # -- the page chrome every draw shares (review-2026-11-2 D7 / tui-screens-09) --
+
+    def begin_page(self, surface, pal):
+        '''Clear `surface` and paint the chrome every page opens with — this page's palette, the
+        gradient background, the row-0 screen chips. -> (h, w).'''
+        from ..menu import _draw_nav, _fill_bg
+        surface.erase()
+        h, w = surface.getmaxyx()
+        pal.use_page(self.id)
+        if pal.gradient:
+            _fill_bg(surface, pal, h, w)
+        _draw_nav(surface, pal, self.id, h, w)
+        return h, w
+
+    def end_page(self, surface, pal, status, legends, h, w):
+        '''Close a page: the `status` row (skipped when None) directly above the bottom `legends`
+        rows, then refresh.'''
+        from ..menu import _fit, _put
+        y = h - len(legends)
+        if status is not None:
+            _put(surface, y - 1, 0, _fit(status, w), pal.style('status_line', y - 1, 0, h, w))
+        for k, text in enumerate(legends):
+            _put(surface, y + k, 0, _fit(text.ljust(w), w), pal.style('footer', y + k, 0, h, w))
+        surface.refresh()
+
 
 def results_note(ctx, did, results, *, what='', tail='', nothing='nothing to do'):
     """The status note for a BULK action, built from what happened — never the intent (B16 /

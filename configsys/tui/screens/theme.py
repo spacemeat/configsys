@@ -20,9 +20,9 @@ cursors, preview cache), composed unchanged as `_ThemeModel`; this adds the thre
 '''
 
 from .. import menu
-from ..menu import (ThemeScreen as _ThemeModel, _draw_nav, _eff_flags, _fill_bg, _fit, _hex,
-                    _input_box, _page_rows, _panel, _popup_choose, _put, _ref_str, _sample_page,
-                    _scroll_top, _scrollbar_v, _valid_ref)
+from ..menu import (ThemeScreen as _ThemeModel, _eff_flags, _fit, _hex, _input_box, _page_rows,
+                    _panel, _popup_choose, _put, _ref_str, _sample_page, _scroll_top, _scrollbar_v,
+                    _valid_ref)
 from ..theme import ALL_PAGES, Palette, parse_color
 from .base import Intent, Screen, ViewModel
 
@@ -101,12 +101,7 @@ class ThemeScreen(Screen):
 
     def draw(self, surface, pal, vm):
         ts = self.model
-        surface.erase()
-        h, w = surface.getmaxyx()
-        pal.use_page('theme')
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, 'theme', h, w)
+        h, w = self.begin_page(surface, pal)
         page = vm.page
         body_h = h - 3
         list_h = min(max(9, body_h * 2 // 5), max(1, body_h - 1))  # top band: the two lists side by side; the
@@ -175,10 +170,7 @@ class ThemeScreen(Screen):
         status = f' terminal color: {pal.color_mode}   ·   edits → {vm.edit_target}'
         if vm.note:
             status += f'    {vm.note}'
-        navf = _nav_str(ts.focus)
-        _put(surface, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(navf.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, status, [_nav_str(ts.focus)], h, w)
 
     # -- handle -----------------------------------------------------------
 
@@ -212,33 +204,13 @@ class ThemeScreen(Screen):
                     ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
             elif tact and tact.startswith('page-') and tact[5:].isdigit():
                 ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F7 select the sample page
-            elif tact == 'down':
+            elif tact in menu._NAV_ACTIONS:
                 if ts.focus == 'map':
-                    ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + 1)
+                    ts.map_cur = menu.ListNav.apply(tact, ts.map_cur, len(ts.map_names) - 1,
+                                                    lambda: _page_rows(stdscr))
                 else:
-                    ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + 1)
-            elif tact == 'up':
-                if ts.focus == 'map':
-                    ts.map_cur = max(0, ts.map_cur - 1)
-                else:
-                    ts.role_cur = max(0, ts.role_cur - 1)
-            elif tact == 'page-down':
-                if ts.focus == 'map':
-                    ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + _page_rows(stdscr))
-                else:
-                    ts.role_cur = min(len(ts.role_list()) - 1, ts.role_cur + _page_rows(stdscr))
-            elif tact == 'page-up':
-                if ts.focus == 'map':
-                    ts.map_cur = max(0, ts.map_cur - _page_rows(stdscr))
-                else:
-                    ts.role_cur = max(0, ts.role_cur - _page_rows(stdscr))
-            elif tact == 'top':
-                setattr(ts, 'map_cur' if ts.focus == 'map' else 'role_cur', 0)
-            elif tact == 'bottom':
-                if ts.focus == 'map':
-                    ts.map_cur = max(0, len(ts.map_names) - 1)
-                else:
-                    ts.role_cur = max(0, len(ts.role_list()) - 1)
+                    ts.role_cur = menu.ListNav.apply(tact, ts.role_cur, len(ts.role_list()) - 1,
+                                                     lambda: _page_rows(stdscr))
 
             # -- color-map edits --
             elif ts.focus == 'map' and tact in ('select', 'confirm'):

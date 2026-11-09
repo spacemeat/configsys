@@ -19,9 +19,8 @@ import os
 
 from ... import layers
 from .. import menu
-from ..menu import (_DRIVER_ABBR, ConfigScreen as _ConfigModel, _draw_nav, _fill_bg, _fit,
-                    _input_box, _order_list, _page_rows, _panel, _popup_choose, _put, _scrollbar_v,
-                    _setting_str, _wordwrap)
+from ..menu import (_DRIVER_ABBR, ConfigScreen as _ConfigModel, _fit, _input_box, _order_list,
+                    _page_rows, _panel, _popup_choose, _put, _scrollbar_v, _setting_str, _wordwrap)
 from .base import Intent, Screen, ViewModel
 
 
@@ -120,12 +119,7 @@ class ConfigScreen(Screen):
 
     def draw(self, surface, pal, vm):
         cs = self.model
-        surface.erase()
-        h, w = surface.getmaxyx()
-        pal.use_page('config')
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, 'config', h, w)
+        h, w = self.begin_page(surface, pal)
         it, il, ih, iw = _panel(surface, pal, 1, 0, h - 3, w, vm.title, True, h, w)
 
         # aligned columns (lowercase headers, like the Plugins table); the description + man ref wrap
@@ -189,10 +183,7 @@ class ConfigScreen(Screen):
             y += bh
             shown += 1
         _scrollbar_v(surface, pal, it + 1, il + iw, ih - 1, cs.top, max(1, shown), len(cs.keys), h, w)
-        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
-             pal.style('status_line', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
     # -- handle -----------------------------------------------------------
 
@@ -213,18 +204,8 @@ class ConfigScreen(Screen):
         def _set(*a, **k):
             wrote.append(True)
             return actions.set_config_setting(*a, **k)
-        if cact == 'down':
-            cs.cur = min(len(cs.keys) - 1, cs.cur + 1)
-        elif cact == 'up':
-            cs.cur = max(0, cs.cur - 1)
-        elif cact == 'page-down':
-            cs.cur = min(len(cs.keys) - 1, cs.cur + _page_rows(stdscr))
-        elif cact == 'page-up':
-            cs.cur = max(0, cs.cur - _page_rows(stdscr))
-        elif cact == 'top':
-            cs.cur = 0
-        elif cact == 'bottom':
-            cs.cur = max(0, len(cs.keys) - 1)
+        if cact in menu._NAV_ACTIONS:
+            cs.cur = menu.ListNav.apply(cact, cs.cur, len(cs.keys) - 1, lambda: _page_rows(stdscr))
         elif cact == 'theme':
             goto = 'theme'
         elif cact == 'move':                    # move this setting local <-> primary

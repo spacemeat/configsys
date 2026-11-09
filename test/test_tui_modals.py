@@ -82,3 +82,26 @@ def test_every_modal_frame_comes_from_one_painter():
     import inspect
     src = inspect.getsource(menu)
     assert src.count("'┌' + '─' * (box_w - 2) + '┐'") == 1      # only _modal_frame draws a box top
+
+
+def test_reveal_subtree_lifts_a_just_opened_parent():
+    keys, depths = list('abcdefgh'), [0, 1, 1, 0, 1, 1, 1, 1]
+    # 'd' at row 3 opens rows 4-7; a 4-row window at top 0 can't show them -> the parent goes to the top
+    assert menu._reveal_subtree(keys, depths, 'd', 0, 4) == 3
+    assert menu._reveal_subtree(keys, depths, 'a', 0, 4) == 0       # already fits: unchanged
+    assert menu._reveal_subtree(keys, depths, 'zz', 2, 4) == 2      # no such row: unchanged
+
+
+def test_page_chrome_paints_status_above_the_legends():
+    from configsys.tui.screens.base import Screen
+
+    class S(Screen):
+        id = 'config'
+    surf = BufferSurface(10, 60)
+    s = S()
+    h, w = s.begin_page(surf, RecordingPalette())
+    s.end_page(surf, RecordingPalette(), 'STATUS', ['NAV1', 'NAV2'], h, w)
+    row = lambda y: ''.join(c.char for (yy, _x), c in sorted(surf.cells.items()) if yy == y)
+    assert (h, w) == (10, 60)
+    assert row(7).startswith('STATUS') and row(8).startswith('NAV1') and row(9).startswith('NAV2')
+    assert 'Components' in row(0)                                   # the screen chips

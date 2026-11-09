@@ -23,9 +23,9 @@ from fnmatch import fnmatchcase
 
 from .. import menu
 from ..menu import (ProfileScreen as _ProfilesModel, _attr_filter_modal, _busy,
-                    _component_machines_modal, _draw_nav, _fill_bg, _filter_edit, _find_edit, _fit,
-                    _machines_modal, _page_rows, _panel, _pick_method_name, _popup_choose, _put,
-                    _scroll_reveal, _scroll_top, _scrollbar_h, _scrollbar_v, _wordwrap, _wrap)
+                    _component_machines_modal, _filter_edit, _find_edit, _fit, _machines_modal,
+                    _page_rows, _panel, _pick_method_name, _popup_choose, _put, _reveal_subtree,
+                    _scroll_top, _scrollbar_h, _scrollbar_v, _wordwrap, _wrap)
 from ...errors import ConfigsysError
 from .base import Intent, Screen, ViewModel
 
@@ -94,14 +94,8 @@ class ProfilesScreen(Screen):
 
     def draw(self, stdscr, pal, vm):
         ps = self.model
-        ctx = ps.ctx                                     # where the legacy painter read its ctx param
-        screen = 'profiles'
-        stdscr.erase()
-        h, w = stdscr.getmaxyx()
-        pal.use_page(screen)
-        if pal.gradient:
-            _fill_bg(stdscr, pal, h, w)
-        _draw_nav(stdscr, pal, screen, h, w)
+        ctx = ps.ctx
+        h, w = self.begin_page(stdscr, pal)
 
         top, body_h = 1, max(1, h - 5)                   # TWO status/legend rows, then TWO nav rows below
         lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
@@ -118,15 +112,8 @@ class ProfilesScreen(Screen):
         lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, vm.ltitle,
                                     ps.focus == 'left', h, w)
         if ps.reveal is not None:                        # a just-expanded node -> reveal its subtree
-            pi = next((i for i, nd in enumerate(vnodes) if nd[2] == ps.reveal), None)
-            if pi is not None:
-                pd, end = vnodes[pi][1], pi
-                for j in range(pi + 1, len(vnodes)):
-                    if vnodes[j][1] > pd:
-                        end = j
-                    else:
-                        break
-                ps.ltop = _scroll_reveal(pi, end, ps.ltop, lih, len(vnodes))
+            ps.ltop = _reveal_subtree([nd[2] for nd in vnodes], [nd[1] for nd in vnodes], ps.reveal,
+                                      ps.ltop, lih)
             ps.reveal = None
         ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
         _lho = getattr(ps, 'lhoff', 0)                   # browse-pane horizontal char offset
@@ -424,9 +411,7 @@ class ProfilesScreen(Screen):
         _put(stdscr, h - 4, 0, _fit(status, max(1, lg1_x - 1)), _sty(h - 4, 0))
         _put(stdscr, h - 4, lg1_x, _fit(legend1, w - lg1_x), _sty(h - 4, lg1_x))
         _put(stdscr, h - 3, lg2_x, _fit(legend2, w - lg2_x), _sty(h - 3, lg2_x))
-        _put(stdscr, h - 2, 0, _fit(vm.nav1.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
-        _put(stdscr, h - 1, 0, _fit(vm.nav2.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        stdscr.refresh()
+        self.end_page(stdscr, pal, None, [vm.nav1, vm.nav2], h, w)
 
     # -- handle -----------------------------------------------------------
 
@@ -454,26 +439,13 @@ class ProfilesScreen(Screen):
         def _w(fn):
             wrote.append(True)
             return fn
-        if pfact == 'down':
+        if pfact in menu._NAV_ACTIONS:
             if ps.focus == 'left':
-                ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + 1)
-            else:                              # column-major grid: down = next item, wraps col
-                ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + 1)
-        elif pfact == 'up':
-            if ps.focus == 'left':
-                ps.lcur = max(0, ps.lcur - 1)
-            else:
-                ps.rcur = max(0, ps.rcur - 1)
-        elif pfact == 'page-down':
-            if ps.focus == 'left':
-                ps.lcur = min(len(ps.visible_pnodes()) - 1, ps.lcur + _page_rows(stdscr))
-            else:
-                ps.rcur = min(len(ps.vcatalog()) - 1, ps.rcur + _page_rows(stdscr))
-        elif pfact == 'page-up':
-            if ps.focus == 'left':
-                ps.lcur = max(0, ps.lcur - _page_rows(stdscr))
-            else:
-                ps.rcur = max(0, ps.rcur - _page_rows(stdscr))
+                ps.lcur = menu.ListNav.apply(pfact, ps.lcur, len(ps.visible_pnodes()) - 1,
+                                             lambda: _page_rows(stdscr))
+            else:                              # the catalog: down = the next item
+                ps.rcur = menu.ListNav.apply(pfact, ps.rcur, len(ps.vcatalog()) - 1,
+                                             lambda: _page_rows(stdscr))
         elif pfact in ('switch-pane', 'switch-pane-back'):
             ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
         elif pfact == 'confirm' and ps.focus == 'left':
@@ -619,13 +591,6 @@ class ProfilesScreen(Screen):
                 _w(actions.mark_all_seen)(ctx, _claim)   # tracked implies seen
                 ps.reload(); dirty = True
                 note = f'claimed {len(_claim)} installed → tracked on {", ".join(tg)}'
-        elif pfact == 'top':
-            setattr(ps, 'lcur' if ps.focus == 'left' else 'rcur', 0)
-        elif pfact == 'bottom':
-            if ps.focus == 'left':
-                ps.lcur = max(0, len(ps.visible_pnodes()) - 1)
-            else:
-                ps.rcur = max(0, len(ps.vcatalog()) - 1)
         elif pfact == 'filter':                # FILTER the focused pane (live; narrows)
             if ps.focus == 'left':
                 _filter_edit(stdscr, ps.pfilter, ps.set_pfilter,

@@ -16,8 +16,7 @@ composed unchanged; this adds the three MVVM seams:
 
 from .. import menu
 from ..menu import (_DF_STATE_ELEM, _GLUE_HEADERS, _GLUE_STATE_LABEL, GlueScreen as _GlueModel,
-                    _draw_nav, _fill_bg, _fit, _is_user_glue, _page_rows, _panel, _glue_cells,
-                    _put, _pretend_note)
+                    _fit, _is_user_glue, _page_rows, _panel, _glue_cells, _put, _pretend_note)
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note
@@ -106,12 +105,7 @@ class GlueScreen(Screen):
 
     def draw(self, surface, pal, vm):
         gs = self.model
-        surface.erase()
-        h, w = surface.getmaxyx()
-        pal.use_page('glue')
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, 'glue', h, w)
+        h, w = self.begin_page(surface, pal)
         it, il, ih, iw = _panel(surface, pal, 1, 0, h - 3, w, 'glue (shell integration)', True, h, w)
         if not vm.has_rows:
             _put(surface, it, il, _fit(vm.empty_header, iw), pal.style('menu_header', it, il, h, w))
@@ -120,10 +114,7 @@ class GlueScreen(Screen):
             gs.top, gs.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
                                                   gs.top, gs.hscroll, h, w)
 
-        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
-             pal.style('status_line', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
     # -- handle -----------------------------------------------------------
 
@@ -137,22 +128,12 @@ class GlueScreen(Screen):
         gact = km.action_for('glue', ch)
         note = None
         try:
-            if gact == 'down':
-                gs.cur = min(len(gs.rows) - 1, gs.cur + 1)
-            elif gact == 'up':
-                gs.cur = max(0, gs.cur - 1)
-            elif gact == 'page-down':
-                gs.cur = min(len(gs.rows) - 1, gs.cur + _page_rows(stdscr))
-            elif gact == 'page-up':
-                gs.cur = max(0, gs.cur - _page_rows(stdscr))
+            if gact in menu._NAV_ACTIONS:
+                gs.cur = menu.ListNav.apply(gact, gs.cur, len(gs.rows) - 1, lambda: _page_rows(stdscr))
             elif gact == 'left':                      # horizontal scroll across the columns
                 gs.hscroll = max(0, gs.hscroll - 4)
             elif gact == 'right':
                 gs.hscroll += 4
-            elif gact == 'top':
-                gs.cur = 0
-            elif gact == 'bottom':
-                gs.cur = max(0, len(gs.rows) - 1)
             elif gact == 'activate' and row and _is_user_glue(row):   # USER glue: (re)link the
                 with suspended(stdscr):                 # shell's user.d namespace into conf.d
                     gs.gd.deploy_user_glue(row[5])

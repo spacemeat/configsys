@@ -156,3 +156,17 @@ def test_adding_a_local_path_keeps_it_on_this_machine(ctx, monkeypatch, tmp_path
     add = next(k for k in range(32, 127) if menu._KEYMAP.action_for('plugins', k) == 'add')
     scr.handle(add, ctx, None, None)
     assert seen['local'] is True and seen['src'] == str(tmp_path) and seen['ref'] is None
+
+
+def test_down_on_an_empty_table_keeps_the_cursor_at_zero(ctx):
+    # tui-screens-13: `j` on an empty list used to set cur = -1, which reloads kept, so once a row
+    # appeared every row action silently did nothing
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    rows = scr.model.rows
+    scr.model.rows, scr.model.cur = [], 0
+    km = menu._keymap()
+    down = next(k for k in range(32, 127) if km.action_for('plugins', k) == 'down')
+    scr.handle(down, ctx, None, None)
+    assert scr.model.cur == 0
+    scr.model.rows = rows
+    assert scr.model.cur_row() is rows[0]

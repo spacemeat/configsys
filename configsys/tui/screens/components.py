@@ -14,12 +14,12 @@ tree, header chips, infoblock, legends); handle is the former fall-through dispa
 import curses
 
 from .. import menu
-from ..menu import (COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE, STATUS_COLOR, UNIT,
-                    _COMP_OPS, _REFRESH_WARN_DAYS, _columns, _confirm_and_execute,
-                    _draw_nav, _fill_bg, _filter_edit, _find_edit_tree, _fit, _identity_line,
-                    _infoblock, _methods_line, _node_component, _offer_method_swap, _page_rows,
-                    _pick_choices, _put, _reload, _row_component, _scope_is_choice,
-                    _scroll_reveal, _scroll_top, _scrollbar_v, _switch_mode)
+from ..menu import (COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE, STATUS_COLOR, UNIT, _COMP_OPS,
+                    _REFRESH_WARN_DAYS, _columns, _confirm_and_execute, _filter_edit,
+                    _find_edit_tree, _fit, _identity_line, _infoblock, _methods_line,
+                    _node_component, _offer_method_swap, _page_rows, _pick_choices, _put, _reload,
+                    _row_component, _scope_is_choice, _reveal_subtree, _scroll_top, _scrollbar_v,
+                    _switch_mode)
 from ..screen import suspended
 from .base import Intent, Screen, ViewModel
 
@@ -109,15 +109,9 @@ class ComponentsScreen(Screen):
 
     def draw(self, surface, pal, vm):
         ms, ctx, note, diags = self.model, self.ctx, vm.note, vm.diags
-        screen = 'components'
-        surface.erase()
-        h, w = surface.getmaxyx()
+        h, w = self.begin_page(surface, pal)
         cols = _columns(w)
         descriptions = getattr(ms, 'descriptions', None) or {}
-        pal.use_page(screen)
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, screen, h, w)
         title = ' configsys '
         _put(surface, 1, 0, title, pal.style('label', 1, 0, h, w))
         sub = f'  {ctx.os_info.block}'
@@ -185,16 +179,9 @@ class ComponentsScreen(Screen):
 
         list_top = 3
         list_h = max(1, h - list_top - 6)
-        if ms.reveal is not None:
-            pi = next((i for i, n in enumerate(ms.rows) if n.id == ms.reveal), None)
-            if pi is not None:
-                pd, end = ms.rows[pi].depth, pi
-                for j in range(pi + 1, len(ms.rows)):
-                    if ms.rows[j].depth > pd:
-                        end = j
-                    else:
-                        break
-                ms.top = _scroll_reveal(pi, end, ms.top, list_h, len(ms.rows))
+        if ms.reveal is not None:                        # a just-expanded node -> reveal its subtree
+            ms.top = _reveal_subtree([n.id for n in ms.rows], [n.depth for n in ms.rows], ms.reveal,
+                                     ms.top, list_h)
             ms.reveal = None
         ms.top = first = _scroll_top(ms.cursor, ms.top, list_h, len(ms.rows))
 
@@ -267,10 +254,7 @@ class ComponentsScreen(Screen):
                f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
                f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
                f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
-        _put(surface, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
-        _put(surface, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, status_line, [nav, act], h, w)
 
     # -- handle (reproduces the components fall-through dispatch) ----------
 

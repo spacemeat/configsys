@@ -18,8 +18,8 @@ from pathlib import Path
 
 from ...drivers.dotfiles import config_display_state
 from .. import menu
-from ..menu import (_DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel, _df_cells,
-                    _draw_nav, _fill_bg, _fit, _page_rows, _panel, _popup_choose, _put)
+from ..menu import (_DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel, _df_cells, _fit,
+                    _page_rows, _panel, _popup_choose, _put)
 from ..menu import _pretend_note
 from ..screen import suspended
 from . import table
@@ -96,12 +96,7 @@ class DotfilesScreen(Screen):
 
     def draw(self, surface, pal, vm):
         ds = self.model
-        surface.erase()
-        h, w = surface.getmaxyx()
-        pal.use_page('dotfiles')
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, 'dotfiles', h, w)
+        h, w = self.begin_page(surface, pal)
         it, il, ih, iw = _panel(surface, pal, 1, 0, h - 3, w, 'dotfiles (config state)', True, h, w)
         if not vm.has_rows:
             _put(surface, it, il, _fit('   '.join(vm.headers), iw), pal.style('menu_header', it, il, h, w))
@@ -110,10 +105,7 @@ class DotfilesScreen(Screen):
             ds.top, ds.hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
                                                   ds.top, ds.hscroll, h, w)
 
-        _put(surface, h - 2, 0, _fit(vm.status + (f'    {vm.note}' if vm.note else ''), w),
-             pal.style('status_line', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
     # -- handle -----------------------------------------------------------
 
@@ -127,22 +119,12 @@ class DotfilesScreen(Screen):
         dact = km.action_for('dotfiles', ch)
         note = None
         try:
-            if dact == 'down':
-                ds.cur = min(len(ds.rows) - 1, ds.cur + 1)
-            elif dact == 'up':
-                ds.cur = max(0, ds.cur - 1)
-            elif dact == 'page-down':
-                ds.cur = min(len(ds.rows) - 1, ds.cur + _page_rows(stdscr))
-            elif dact == 'page-up':
-                ds.cur = max(0, ds.cur - _page_rows(stdscr))
+            if dact in menu._NAV_ACTIONS:
+                ds.cur = menu.ListNav.apply(dact, ds.cur, len(ds.rows) - 1, lambda: _page_rows(stdscr))
             elif dact == 'left':                      # horizontal scroll across the columns
                 ds.hscroll = max(0, ds.hscroll - 4)
             elif dact == 'right':
                 ds.hscroll += 4                       # clamped to the content width in draw
-            elif dact == 'top':
-                ds.cur = 0
-            elif dact == 'bottom':
-                ds.cur = max(0, len(ds.rows) - 1)
             elif dact in ('manage', 'confirm') and row:   # MANAGE: adopt any on-system file, then
                 drv = ds.driver_for(row[0])                # link (capture + link are ONE step)
                 with suspended(stdscr):

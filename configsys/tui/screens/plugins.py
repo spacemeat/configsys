@@ -17,9 +17,9 @@ seams:
 import os
 
 from .. import menu
-from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _draw_nav, _fill_bg, _fit,
-                    _input_box, _page_rows, _panel, _plugin_cells, _plugin_code_elem,
-                    _plugin_remote_elem, _put, _scrollbar_h, _scrollbar_v)
+from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _fit, _input_box, _page_rows,
+                    _panel, _plugin_cells, _plugin_code_elem, _plugin_remote_elem, _put,
+                    _scrollbar_h, _scrollbar_v)
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, results_note
@@ -171,21 +171,13 @@ class PluginsScreen(Screen):
     # -- draw -------------------------------------------------------------
 
     def draw(self, surface, pal, vm):
-        surface.erase()
-        h, w = surface.getmaxyx()
-        pal.use_page('plugins')
-        if pal.gradient:
-            _fill_bg(surface, pal, h, w)
-        _draw_nav(surface, pal, 'plugins', h, w)
+        h, w = self.begin_page(surface, pal)
         top, body_h = 1, h - 3
         table_h = max(6, body_h * 2 // 5)
         diff_h = body_h - table_h
         self._draw_table(surface, pal, vm, h, w, top, table_h)
         self._draw_diff(surface, pal, vm, h, w, top + table_h, diff_h)
-        status = vm.status + (f'    {vm.note}' if vm.note else '')
-        _put(surface, h - 2, 0, _fit(status, w), pal.style('status_line', h - 2, 0, h, w))
-        _put(surface, h - 1, 0, _fit(vm.nav.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
-        surface.refresh()
+        self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
     def _draw_table(self, surface, pal, vm, h, w, top, table_h):
         pl = self.model
@@ -249,26 +241,12 @@ class PluginsScreen(Screen):
                     pl.dfile, pl.dtop, pl.dhscroll = pl.dfile - 1, 0, 0
                 else:
                     pl.focus = 'table'
-            elif pact == 'down':
-                if pl.focus == 'diff':
-                    pl.dtop += 1
+            elif pact in menu._NAV_ACTIONS:
+                if pl.focus == 'diff':                  # the diff scroll is clamped by the draw
+                    pl.dtop = menu.ListNav.apply(pact, pl.dtop, 10 ** 6, lambda: _page_rows(stdscr))
                 else:
-                    pl.cur = min(len(pl.rows) - 1, pl.cur + 1); pl._invalidate_diff()
-            elif pact == 'up':
-                if pl.focus == 'diff':
-                    pl.dtop = max(0, pl.dtop - 1)
-                else:
-                    pl.cur = max(0, pl.cur - 1); pl._invalidate_diff()
-            elif pact == 'page-down':
-                if pl.focus == 'diff':
-                    pl.dtop += _page_rows(stdscr)
-                else:
-                    pl.cur = min(len(pl.rows) - 1, pl.cur + _page_rows(stdscr)); pl._invalidate_diff()
-            elif pact == 'page-up':
-                if pl.focus == 'diff':
-                    pl.dtop = max(0, pl.dtop - _page_rows(stdscr))
-                else:
-                    pl.cur = max(0, pl.cur - _page_rows(stdscr)); pl._invalidate_diff()
+                    pl.cur = menu.ListNav.apply(pact, pl.cur, len(pl.rows) - 1, lambda: _page_rows(stdscr))
+                    pl._invalidate_diff()
             elif pact == 'right':
                 if pl.focus == 'diff':
                     pl.dhscroll += 4
@@ -279,16 +257,6 @@ class PluginsScreen(Screen):
                     pl.dhscroll = max(0, pl.dhscroll - 4)
                 else:
                     pl.hscroll = max(0, pl.hscroll - 6)
-            elif pact == 'top':
-                if pl.focus == 'diff':
-                    pl.dtop = 0
-                else:
-                    pl.cur = 0; pl._invalidate_diff()
-            elif pact == 'bottom':
-                if pl.focus == 'diff':
-                    pl.dtop = 10 ** 6
-                else:
-                    pl.cur = max(0, len(pl.rows) - 1); pl._invalidate_diff()
             elif pact == 'add':
                 src, replace = _input_box(
                     stdscr, pal, 'add plugin — source (github:owner/repo, a git URL, or a local path)', '',
