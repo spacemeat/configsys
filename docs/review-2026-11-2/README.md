@@ -46,6 +46,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-09 — §4 test gaps: no network in tests (04), routecheck verdict memo (05), sweeps/compaudit never read an outage as OK (06/07), podman harnesses fixed (08), golden covers every manager + newest releases (09), TUI --pretend sweep (tui-screens-11), verbs through main (app-cli-15).
 - 2026-11-09 — §5: Fedora 46 prerelease entry (0 missing); per-release vendor-repo probes for 8 live releases (mongodb on 26.10 fixed; osaudit probes only what runs); catalog flags triaged — 101 mechanical fixes applied, 49 already true, 143 decisions in `catalog-decisions.md`; configsys-source recipes take `$SUDO`.
 - 2026-11-09 — the unranked findings: of 186 area findings no ranked item cites, 22 were already fixed; the open LOW/NIT ones landed area by area (tui-theme, tests-tools, dotfiles-glue, primary + routing, app-cli + parity, drivers, config-layers + plugins; actions/subsystems and tui-core/screens in flight). Skips needing a decision are named in each commit.
+- 2026-11-09 — Phase 7: `/update-docs --deep --since da0a7ac` (27 units, cfd865a) — every public and dev surface audited, E2 closed; the audit's ~60 code findings (decisions §7.10 / §7.19 / NO_COLOR / top-config-only `machine:` not yet built, trust-held picks reading `dangling`, comment-dropping `plugins:` edits, …) are fixed in their own commits after it.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -267,7 +268,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   is wrong). (security-07) · [done 48507e9 — docs/plugins.md §6 rewritten to the enforced gate (with A1)]
 - **E2** comment/docstring drift across 12 areas (retired models, deleted painters, M1 notes) — for the next
   `/update-docs --deep`. (app-cli-17, config-layers-22, dotfiles-glue-37, drivers-lang-33, routing-33,
-  subsystems-14/15, tui-core-12, tui-screens-19, tui-theme-24, primary-24) · [open]
+  subsystems-14/15, tui-core-12, tui-screens-19, tui-theme-24, primary-24) · [done cfd865a — every cited finding fixed in the `/update-docs --deep` pass (comments/docstrings only, AST-verified)]
 
 ### Tier F — ABI / interface (decide before collaborators)
 - **F1** Trust identity isn't length-prefixed (constructible collision) — bump with A1. (plugins-08) · [done 48507e9 — plugin_identity v2: length-prefixed, symlinks hashed as links; old-format approvals/pins still match unchanged content (with A1)]
