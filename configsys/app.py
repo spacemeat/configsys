@@ -302,7 +302,35 @@ class Context:
             add('warn', 'system-updates', note)
         for text in _failure_diagnostics(self, states):
             add('error', 'failed', text)
+        for level, text in getattr(self, '_check_rows', None) or ():   # `check`'s lints (G2), once
+            bare = text[len('skipped '):] if text.startswith('skipped ') else text   # the pass landed
+            if bare not in seen:                         # (what the page already says, once)
+                add(level, 'check', text)
         return out
+
+    def start_check_lints(self):
+        '''Run `check`'s lints (check_report) on a daemon thread; when they land they join the `!`
+        page (diagnostics) and `_check_dirty` tells the TUI to recompute it (review-2026-11-2 G2 —
+        plugin conflicts, driver shadowing, key lockouts, setting values … were check-only). A
+        failure just leaves the page as it was.'''
+        import threading
+        self._check_dirty = False
+
+        def work():
+            try:
+                rows, _n = check_report(self)
+            except Exception:                            # noqa: BLE001 — a lint never breaks the TUI
+                return
+            self._check_rows = rows
+            self._diag_memo = None
+            self._check_dirty = True
+        t = threading.Thread(target=work, name='configsys-check', daemon=True)
+        self._check_thread = t
+        t.start()
+
+    def check_busy(self):
+        t = getattr(self, '_check_thread', None)
+        return bool(t is not None and (t.is_alive() or getattr(self, '_check_dirty', False)))
 
     def ensure_plugin_code(self):
         '''Import + register the drivers of trusted code plugins, once, before any resolution
@@ -2528,6 +2556,26 @@ def _issue_loc(issue, paths):
 
 def cmd_check(ctx, args):
     '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
+    try:
+        rows, n_components = check_report(ctx)
+    except ConfigsysError as e:
+        print(f'configsys: {e}')          # a parse/structural error before we can lint
+        return 1
+    if not rows:
+        print(f'configsys: OK — {n_components} components, no issues')
+        return 0
+    for level, text in rows:
+        print(f'  {"ERROR" if level == "error" else "warn "}   {text}')
+    n_err = sum(1 for lv, _t in rows if lv == 'error')
+    print(f'\nconfigsys: {n_err} error(s), {len(rows) - n_err} warning(s) '
+          f'across {n_components} components')
+    return 1 if n_err else 0
+
+
+def check_report(ctx):
+    '''Every `check` finding as data -> ([(level, text)], n_components): errors first, then warnings,
+    in the order `check` prints them. Shared by `configsys check` and the TUI `!` page, which runs
+    it on a background thread (review-2026-11-2 G2). Raises ConfigsysError on a structural failure.'''
     from . import layers, routes, routecheck
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     _route_w = []
@@ -2539,9 +2587,8 @@ def cmd_check(ctx, args):
                  + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
                  + [(ctx.paths.user_config_file, 'user')])
         layer_list, _layer_w = layers.expand_tolerant(roots, {'plugin', 'primary'})
-    except ConfigsysError as e:
-        print(f'configsys: {e}')          # a parse/structural error before we can lint
-        return 1
+    except ConfigsysError:
+        raise                              # a parse/structural error before we can lint
 
     issues = routecheck.validate(components, cascade, drivers,
                                  pending_vias=ctx.plugin_pending_vias)
@@ -2775,64 +2822,17 @@ def cmd_check(ctx, args):
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
-    if (not errors and not warnings and not prof_issues and not prof_errors and not pin_issues
-            and not include_warnings and not code_warnings and not conflict_warnings
-            and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
-            and not stale_pin_warnings and not resolve_errors and not key_warnings
-            and not removal_warnings and not uninstall_conflicts and not glue_drift_warnings
-            and not skipped_errors and not pick_errors and not pick_warnings):
-        print(f'configsys: OK — {len(components)} components, no issues')
-        return 0
-
-    for msg in skipped_errors:
-        print(f'  ERROR   skipped {msg}')
-    for i in errors:
-        print(f'  ERROR   {_issue_loc(i, ctx.paths)}{i.message}')
-    for msg in pick_errors:
-        print(f'  ERROR   {msg}')
-    for msg in prof_errors:
-        print(f'  ERROR   {msg}')
-    for prof, cname in prof_issues:
-        print(f"  ERROR   profile '{prof}': unknown component '{cname}'")
-    for msg in pin_issues:
-        print(f'  ERROR   {msg}')
-    for msg in resolve_errors:
-        print(f'  ERROR   {msg}')
-    for i in warnings:
-        print(f'  warn    {_issue_loc(i, ctx.paths)}{i.message}')
-    for msg in include_warnings:
-        print(f'  warn    {msg}')
-    for msg in code_warnings:
-        print(f'  warn    {msg}')
-    for msg in conflict_warnings:
-        print(f'  warn    {msg}')
-    for msg in theme_warnings:
-        print(f'  warn    {msg}')
-    for msg in pin_conflict_warnings:
-        print(f'  warn    {msg}')
-    for msg in py_floor_warnings:
-        print(f'  warn    {msg}')
-    for msg in stale_pin_warnings:
-        print(f'  warn    {msg}')
-    for msg in key_warnings:
-        print(f'  warn    {msg}')
-    for msg in removal_warnings:
-        print(f'  warn    {msg}')
-    for msg in uninstall_conflicts:
-        print(f'  warn    {msg}')
-    for msg in glue_drift_warnings:
-        print(f'  warn    {msg}')
-    for msg in pick_warnings:
-        print(f'  warn    {msg}')
-    n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
-             + len(resolve_errors) + len(skipped_errors) + len(pick_errors))
-    n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
-              + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
-              + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings)
-              + len(uninstall_conflicts) + len(glue_drift_warnings) + len(pick_warnings))
-    print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
-          f'across {len(components)} components')
-    return 1 if n_err else 0
+    rows = ([('error', f'skipped {m}') for m in skipped_errors]
+            + [('error', f'{_issue_loc(i, ctx.paths)}{i.message}') for i in errors]
+            + [('error', m) for m in pick_errors + prof_errors]
+            + [('error', f"profile '{prof}': unknown component '{cname}'") for prof, cname in prof_issues]
+            + [('error', m) for m in pin_issues + resolve_errors]
+            + [('warn', f'{_issue_loc(i, ctx.paths)}{i.message}') for i in warnings]
+            + [('warn', m) for m in (include_warnings + code_warnings + conflict_warnings
+                                     + theme_warnings + pin_conflict_warnings + py_floor_warnings
+                                     + stale_pin_warnings + key_warnings + removal_warnings
+                                     + uninstall_conflicts + glue_drift_warnings + pick_warnings)])
+    return rows, len(components)
 
 
 # -- plugin: declare in `plugins:`, sync from git -------------------------

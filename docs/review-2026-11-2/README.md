@@ -282,7 +282,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **G1 [MED]** TUI has no rebuild/reinstall, `set-version` or `fix-scope`; the method picker can't leave a
   component unpinned (writes a hard pin). (parity-04/05, tui-core-25) · [done — done — the v picker adds rows (§7.17): "rebuild / reinstall" (stages install on a present unit), "pin to a version…" (an input seeded from versionreport; per-unit versions through run_plan; refused where targets_version is False), "fix scope" when installed ≠ declared (actions.fix_scope, shared with the CLI), and "auto — unpin" (B16); choosing the auto-default when unpinned writes no pin]
 - **G2 [MED]** `check`'s lints never reach the TUI `!` page (plugin conflicts, driver shadowing, key
-  lockouts, bad setting values). (parity-06, config-layers-18) · [open]
+  lockouts, bad setting values). (parity-06, config-layers-18) · [done — done — check_report() is check as data (cmd_check prints it); the TUI runs it on a background thread at start and after each reload, and its findings join the ! page (deduped against what the page already says)]
 - **G3 [MED]** TUI `plugin add` has no `--local`/ref/pin — a project path gets published to every machine;
   no `picks to-primary`; `plugin init`/`set-source` CLI-only. (parity-08/10/13, tui-screens-24) · [open]
 - **G4 [LOW]** Glue verbs split between surfaces (staged glue under `dotfiles`; `glue add/override`

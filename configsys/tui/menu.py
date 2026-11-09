@@ -1728,6 +1728,8 @@ def _reload(ctx, old, dirty):
     ms._uninstall_q = set(ctx.config.uninstall_queue())   # snapshot -> refresh on switch if it changes
     ms.descriptions = _describe(ctx)             # cache once; never hit ctx.routes per frame
     ms._req_sig = frozenset(_requested)          # the install set this tree was built for (matrix picks)
+    if hasattr(ctx, 'start_check_lints'):
+        ctx.start_check_lints()                  # an edit may have changed what `check` says
     return ms, cfg, ledger, states, ctx.diagnostics(states)
 
 
@@ -4952,6 +4954,8 @@ def run(ctx):
         ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in _draw
                                if ctx.config.reboot_advice() else (False, ''))
         diags = ctx.diagnostics(states)
+        if hasattr(ctx, 'start_check_lints'):
+            ctx.start_check_lints()                      # `check`'s lints join `!` when they land (G2)
         note = splash_note or ''
         show_diag = False
         diag_top = 0
@@ -5021,7 +5025,8 @@ def run(ctx):
                                                    or getattr(ctx, '_sysupd_dirty', False))
             _plscr = _reg.get('plugins')                 # remote-refs / a review diff still fetching
             _pl_busy = screen == 'plugins' and _plscr is not None and _plscr.model.busy()
-            stdscr.timeout(120 if (_su_busy or _pl_busy or (screen == 'profiles' and _pscr is not None
+            _ck_busy = getattr(ctx, 'check_busy', lambda: False)()
+            stdscr.timeout(120 if (_su_busy or _pl_busy or _ck_busy or (screen == 'profiles' and _pscr is not None
                                    and (_pscr.model.overlay_busy() or _pscr.model.probe_busy()))) else -1)
             ch = stdscr.getch()
             stdscr.timeout(-1)
@@ -5035,6 +5040,12 @@ def run(ctx):
                 # Only the TREE changes (install state didn't), so rebuild it from the states we have
                 # (_rebuild_menu, ~10ms) — NOT _reload, which re-runs the load pipeline + diagnostics
                 # (~6s on a full machine) on this, the UI thread: the freeze right after the splash.
+                if getattr(ctx, '_check_dirty', False):   # the background `check` pass landed
+                    ctx._check_dirty = False
+                    try:
+                        diags = ctx.diagnostics(states)
+                    except Exception as e:               # noqa: BLE001
+                        note = f'check lints failed: {e}'
                 if sysupdates.take_dirty(ctx):
                     try:
                         ms, states = _fold_system_updates(ctx, cfg, ms)   # drawn next frame

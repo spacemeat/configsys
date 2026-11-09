@@ -112,3 +112,15 @@ def test_a_key_set_twice_is_a_check_warning(tmp_path, capsys):
     _top(tmp_path).write_text('{ splash: ocean  picks: { this-machine: [ btop ] }  splash: plain }\n')
     _cs(tmp_path, 'check')
     assert '`splash` set twice' in capsys.readouterr().out
+
+
+def test_check_lints_reach_the_issues_page(tmp_path):
+    # G2: `check`-only findings (here a key set twice) join diagnostics once the background pass lands
+    from configsys.app import Context, build_parser
+    _top(tmp_path).parent.mkdir(parents=True)
+    _top(tmp_path).write_text('{ splash: ocean  splash: plain }\n')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop_os!:24.04', 'inspect']))
+    ctx.start_check_lints()
+    ctx._check_thread.join(60)
+    texts = [d['text'] for d in ctx.diagnostics()]
+    assert sum('`splash` set twice' in x for x in texts) == 1      # once, not doubled
