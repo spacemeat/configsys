@@ -6,9 +6,10 @@ rebinds (ms, states, layouts, transitive). Rather than mutate loop-scope locals,
 reprobe and returns the new tuple(s) on the Intent (reloaded / remodeled), which the router adopts —
 so the shared state has exactly one owner.
 
-The model is the existing MenuState, composed as self.model. build_vm carries the frame inputs the
-painter needs (the status note + diagnostics); draw reproduces the legacy _draw cell for cell (the
-tree, header chips, infoblock, legends); handle is the former fall-through dispatch.
+The model is the existing MenuState, composed as self.model. build_vm settles the whole frame from
+it, ctx and the frame size — the title-row chips, the column header, the tree's visible rows as
+positioned cells, the three cursor lines, the status line and legends (review-2026-11-2 D7); draw
+only paints that; handle is the former fall-through dispatch.
 '''
 
 import curses
@@ -80,15 +81,32 @@ def _lock_verb(ms):
 
 
 class ComponentsVM(ViewModel):
-    '''Frame inputs the Components painter reads beyond the model: the status note + the diagnostics
-    list (for the header attention badge). The tree/infoblock content is read from the model in draw
-    (a deeper pure extraction is a later pass — this screen's win is the render seam + handle).'''
+    '''Everything one Components frame paints, settled by build_vm from the model, ctx and the frame
+    size — draw decides nothing (review-2026-11-2 D7 / tui-screens-07): the title row's chips, the
+    column header, the tree's visible rows as positioned cells, the three cursor lines, the status
+    line and the two legend rows.'''
 
     def __init__(self, note='', diags=(), primary_chip='', refresh_age=None):
         self.note = note
         self.diags = diags
         self.primary_chip = primary_chip           # "prim: ↑2 to push, ↓1 to sync", or ''
         self.refresh_age = refresh_age             # days since the package index refresh (None: never)
+        self.chips = []                            # row 1: [(x, text, role)]
+        self.col_header = []                       # row 2: [(x, text)]
+        self.list_top, self.list_h = 3, 1          # the tree's window
+        self.top, self.n = 0, 0                    # its scroll offset and total rows (scrollbar)
+        self.rows = []                             # [TreeRow] — the visible window
+        self.cursor_lines = []                     # [(text, role)] — identity, methods, infoblock
+        self.status = ''
+        self.legends = []                          # the two legend rows
+
+
+class TreeRow:
+    '''One tree row: [(x, text, role)] cells, and whether it is the cursor row (selection fill).'''
+    __slots__ = ('cells', 'sel')
+
+    def __init__(self, cells, sel):
+        self.cells, self.sel = cells, sel
 
 
 class ComponentsScreen(Screen):
@@ -101,30 +119,64 @@ class ComponentsScreen(Screen):
         self.diags = ()
 
     def build_vm(self, ctx, size):
-        from ... import primarygit
+        from ... import primarygit, refreshstate
+        ms = getattr(self, 'model', None)
+        h, w = size
         policy = primarygit.PUSH_POLICY[getattr(ctx, '_primary_push_mode', 'ask')]
         chip = primarygit.chip(getattr(ctx, '_primary_state', None), hide_ahead=policy['hide_ahead'])
-        from ... import refreshstate
         age = refreshstate.age_days(ctx.paths) if ctx is not None else None
-        return ComponentsVM(self.note, self.diags, chip, age)
-
-    # -- draw (reproduces menu._draw for screen == 'components') -----------
-
-    def draw(self, surface, pal, vm):
-        ms, ctx, note, diags = self.model, self.ctx, vm.note, vm.diags
-        h, w = self.begin_page(surface, pal)
+        vm = ComponentsVM(self.note, self.diags, chip, age)
+        if ms is None or ctx is None:                  # no tree to show (only the frame inputs)
+            return vm
         cols = _columns(w)
         descriptions = getattr(ms, 'descriptions', None) or {}
+        self._chips_vm(vm, ms, ctx, w)
+        vm.col_header = [(cols[c][0], _fit(text, cols[c][1]))
+                         for c, text in (('name', 'component'), ('driver', 'driver'), ('scope', 'scope'),
+                                         ('status', 'status'), ('inst', 'installed'), ('latest', 'latest'))]
+        vm.list_h = max(1, h - vm.list_top - 6)
+        first = ms.top
+        if ms.reveal is not None:                        # a just-expanded node -> reveal its subtree
+            first = _reveal_subtree([n.id for n in ms.rows], [n.depth for n in ms.rows], ms.reveal,
+                                    first, vm.list_h)
+        first = _scroll_top(ms.cursor, first, vm.list_h, len(ms.rows))
+        vm.top, vm.n = first, len(ms.rows)
+        vm.settle(top=first, reveal=None)
+        for i in range(first, min(len(ms.rows), first + vm.list_h)):
+            vm.rows.append(self._tree_row(ms.rows[i], i == ms.cursor, ms, cols, descriptions, w))
+        vm.cursor_lines = [(_identity_line(ms, ctx, descriptions), 'info'),
+                           (_methods_line(ms, ctx), 'methods'),
+                           (_infoblock(ms, ctx), 'info_dim')]
+        vm.status = (f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
+                     + (f'   filter:{ms.filter}' if ms.filter else '')
+                     + (f'   {vm.note}' if vm.note else ''))
+        g = lambda a: menu._keymap().glyph('components', a)
+        vm.legends = [
+            (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
+             f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
+             f"{g('filter')} filter · {g('expand-all')} expand-all "),
+            (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
+             f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
+             f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
+             f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")]
+        return vm
+
+    def _chips_vm(self, vm, ms, ctx, w):
+        '''Row 1: the title, the OS / pretend / curating / view line, then the status chips — index
+        age, reboot advice, the primary's push state, system updates, the issues badge — each placed
+        only while it fits.'''
+        from ... import sysupdates
+        chips = vm.chips
         title = ' configsys '
-        _put(surface, 1, 0, title, pal.style('label', 1, 0, h, w))
+        chips.append((0, title, 'label'))
         sub = f'  {ctx.os_info.block}'
         if ctx.runner.pretend:
             sub += '   [PRETEND]'
-        _other = ctx.curating_machine() if hasattr(ctx, 'curating_machine') else None
-        if _other:
-            sub += f'   machine: {_other} (curating — installs off)'
+        other = ctx.curating_machine() if hasattr(ctx, 'curating_machine') else None
+        if other:
+            sub += f'   machine: {other} (curating — installs off)'
         sub += f'   view: {getattr(ms, "mode", "to-do")}'
-        _put(surface, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
+        chips.append((len(title), _fit(sub, max(1, w - len(title))), 'os'))
         rend = len(title) + len(sub)
         age = vm.refresh_age
         if age is None:
@@ -132,132 +184,101 @@ class ComponentsScreen(Screen):
         elif age < 1:
             rtext, relem = 'index refreshed today', 'info_dim'
         else:
-            rtext, relem = f'index refreshed {int(age)}d ago', \
-                'issue_warning' if age >= _REFRESH_WARN_DAYS else 'info_dim'
+            rtext, relem = (f'index refreshed {int(age)}d ago',
+                            'issue_warning' if age >= _REFRESH_WARN_DAYS else 'info_dim')
         rx = rend + 3
         if rx < w - 4:
-            _put(surface, 1, rx, _fit(rtext, max(1, w - rx - 1)), pal.style(relem, 1, rx, h, w))
+            chips.append((rx, _fit(rtext, max(1, w - rx - 1)), relem))
             rend = rx + len(rtext)
         reb = getattr(ctx, '_reboot_pending', None)
         if reb and reb[0]:
             btext = '  ⚠ reboot advised'
             if rend + len(btext) < w - 1:
-                _put(surface, 1, rend, btext, pal.style('issue_warning', 1, rend, h, w))
+                chips.append((rend, btext, 'issue_warning'))
                 rend += len(btext)
         ptext = vm.primary_chip
         if ptext and rend + 3 + len(ptext) < w - 1:      # your primary has changes to push / sync
-            _put(surface, 1, rend + 3, ptext, pal.style('outdated', 1, rend + 3, h, w))
+            chips.append((rend + 3, ptext, 'outdated'))
             rend += 3 + len(ptext)
-        from ... import sysupdates
         # the 3-space gap is left UNSTYLED (page bg) so a chip's own background doesn't bleed into the
         # separator between chips — only the glyph text carries the element colour.
-        _su_gap = 3
+        gap = 3
         if getattr(ctx, '_sysupd_groups', None) is None:   # scan not done yet -> animated placeholder
-            # spinner frame from the loop's monotonic tick (NOT the clock) so draw stays deterministic
+            # spinner frame from the loop's monotonic tick (NOT the clock), so a frame is deterministic
             spin = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'[getattr(ctx, '_frame', 0) % 10]
-            label = f'{spin} checking system updates…'
-            if rend + _su_gap + len(label) < w - 1:
-                _put(surface, 1, rend + _su_gap, label, pal.style('info_dim', 1, rend + _su_gap, h, w))
-                rend += _su_gap + len(label)
+            label, role = f'{spin} checking system updates…', 'info_dim'
         else:
             su_n = sysupdates.cached_total(ctx)
-            if su_n:
-                label = f'⟳ {su_n} system update{"s" if su_n != 1 else ""}'
-                if rend + _su_gap + len(label) < w - 1:
-                    _put(surface, 1, rend + _su_gap, label,
-                         pal.style('issue_warning', 1, rend + _su_gap, h, w))
-                    rend += _su_gap + len(label)
-        if diags:
-            n = len(diags)
-            elem = 'issue_error' if any(d['level'] == 'error' for d in diags) else 'issue_warning'
+            label, role = (f'⟳ {su_n} system update{"s" if su_n != 1 else ""}' if su_n else ''), 'issue_warning'
+        if label and rend + gap + len(label) < w - 1:
+            chips.append((rend + gap, label, role))
+            rend += gap + len(label)
+        if vm.diags:
+            n = len(vm.diags)
+            elem = 'issue_error' if any(d['level'] == 'error' for d in vm.diags) else 'issue_warning'
             badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
             bx = max(rend + 2, w - len(badge) - 1)
-            _put(surface, 1, bx, _fit(badge, w - bx), pal.style(elem, 1, bx, h, w))
+            chips.append((bx, _fit(badge, w - bx), elem))
 
-        for c, text in (('name', 'component'), ('driver', 'driver'), ('scope', 'scope'),
-                        ('status', 'status'), ('inst', 'installed'), ('latest', 'latest')):
+    @staticmethod
+    def _tree_row(n, sel, ms, cols, descriptions, w):
+        '''One visible tree row as positioned cells: the select marker, the staged-op / error glyph,
+        the indented name (+ its description where it fits), driver, scope, status, versions.'''
+        def col(c, s, role, pad=True):
             x, cw = cols[c]
-            _put(surface, 2, x, _fit(text, cw), pal.style('menu_header', 2, x, h, w))
+            return (x, _fit(s, cw).ljust(cw) if pad else _fit(s, cw), role)
 
-        list_top = 3
-        list_h = max(1, h - list_top - 6)
-        first = ms.top
-        if ms.reveal is not None:                        # a just-expanded node -> reveal its subtree
-            first = _reveal_subtree([n.id for n in ms.rows], [n.depth for n in ms.rows], ms.reveal,
-                                    first, list_h)
-        first = _scroll_top(ms.cursor, first, list_h, len(ms.rows))
-        vm.settle(top=first, reveal=None)
+        op = ms.node_op(n)
+        err = ms.row_error(n)
+        if op:
+            bch, belem = (op if op == '*' else OPS[op][0]), ('op_mixed' if op == '*' else OPS[op][1])
+        elif err:
+            bch, belem = '✗', 'row_error'
+        else:
+            bch, belem = ' ', 'unit'
+        marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
+        name = '  ' * n.depth + marker + n.label
+        dim = _su_dim(n)                                 # auto-pulled system-update dep -> recede it
+        nx, ncw = cols['name']
+        cells = [(0, '»' if n.id in ms.selected else ' ', 'select_marker'),
+                 (1, bch, belem),
+                 (nx, _fit(name, ncw).ljust(ncw), 'info_dim' if dim else _KIND_ELEM.get(n.kind, 'unit'))]
+        rc = _node_component(n)
+        rdesc = descriptions.get(rc, '') if rc else ''
+        davail = ncw - len(name) - 2
+        if rdesc and davail >= 6:
+            cells.append((nx + len(name) + 2, _fit(rdesc, davail), 'row_desc'))
+        cells += [col('driver', n.driver, 'driver'),
+                  col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope'),
+                  col('status', n.status, 'info_dim' if dim else
+                      (n.status if n.status in STATUS_COLOR else 'unit'))]
+        if err:
+            ix = cols['inst'][0]
+            cells.append((ix, _fit(err, max(1, w - ix - 1)), 'row_error'))
+        else:
+            cells += [col('inst', n.installed_str(), 'info_dim' if dim else 'version'),
+                      col('latest', n.latest_str(), 'info_dim' if dim else 'version', pad=False)]
+        return TreeRow(cells, sel)
 
-        for vis, i in enumerate(range(first, min(len(ms.rows), first + list_h))):
-            n = ms.rows[i]
-            y = list_top + vis
-            sel = i == ms.cursor
+    # -- draw -------------------------------------------------------------
 
-            def col(c, s, element, pad=True):
-                x, cw = cols[c]
-                _put(surface, y, x, (_fit(s, cw).ljust(cw) if pad else _fit(s, cw)),
-                     pal.style(element, y, x, h, w, selected=sel))
-
-            marker_sel = '»' if n.id in ms.selected else ' '
-            op = ms.node_op(n)
-            err = ms.row_error(n)
-            if op:
-                bch, belem = (op if op == '*' else OPS[op][0]), ('op_mixed' if op == '*' else OPS[op][1])
-            elif err:
-                bch, belem = '✗', 'row_error'
-            else:
-                bch, belem = ' ', 'unit'
-
-            marker = ('▾ ' if n.expanded else '▸ ') if n.expandable else '  '
-            name = '  ' * n.depth + marker + n.label
-
-            if sel:
+    def draw(self, surface, pal, vm):
+        h, w = self.begin_page(surface, pal)
+        for x, text, role in vm.chips:
+            _put(surface, 1, x, text, pal.style(role, 1, x, h, w))
+        for x, text in vm.col_header:
+            _put(surface, 2, x, text, pal.style('menu_header', 2, x, h, w))
+        for vis, row in enumerate(vm.rows):
+            y = vm.list_top + vis
+            if row.sel:
                 _put(surface, y, 0, ' ' * (w - 1), pal.fill(y, 0, h, w, selected=True))
-            _put(surface, y, 0, marker_sel, pal.style('select_marker', y, 0, h, w, selected=sel))
-            _put(surface, y, 1, bch, pal.style(belem, y, 1, h, w, selected=sel))
-            dim = _su_dim(n)                           # auto-pulled system-update dep -> recede it
-            nx, ncw = cols['name']
-            _put(surface, y, nx, _fit(name, ncw).ljust(ncw),
-                 pal.style('info_dim' if dim else _KIND_ELEM.get(n.kind, 'unit'),
-                           y, nx, h, w, selected=sel))
-            rc = _node_component(n)
-            rdesc = descriptions.get(rc, '') if rc else ''
-            davail = ncw - len(name) - 2
-            if rdesc and davail >= 6:
-                _put(surface, y, nx + len(name) + 2, _fit(rdesc, davail),
-                     pal.style('row_desc', y, nx + len(name) + 2, h, w, selected=sel))
-            col('driver', n.driver, 'driver')
-            col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope')
-            col('status', n.status, 'info_dim' if dim else
-                (n.status if n.status in STATUS_COLOR else 'unit'))
-            if err:
-                ix = cols['inst'][0]
-                _put(surface, y, ix, _fit(err, max(1, w - ix - 1)),
-                     pal.style('row_error', y, ix, h, w, selected=sel))
-            else:
-                col('inst', n.installed_str(), 'info_dim' if dim else 'version')
-                col('latest', n.latest_str(), 'info_dim' if dim else 'version', pad=False)
-        _scrollbar_v(surface, pal, list_top, w - 1, list_h, first, list_h, len(ms.rows), h, w)
-
-        _put(surface, h - 6, 0, _fit(_identity_line(ms, ctx, descriptions), w),
-             pal.style('info', h - 6, 0, h, w))
-        _put(surface, h - 5, 0, _fit(_methods_line(ms, ctx), w), pal.style('methods', h - 5, 0, h, w))
-        _put(surface, h - 4, 0, _fit(_infoblock(ms, ctx), w), pal.style('info_dim', h - 4, 0, h, w))
-
-        status_line = f' selected:{len(ms.selected)}  staged:{len(ms.staged)}'
-        if ms.filter:
-            status_line += f'   filter:{ms.filter}'
-        if note:
-            status_line += f'   {note}'
-        g = lambda a: menu._keymap().glyph('components', a)
-        nav = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
-               f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
-               f"{g('filter')} filter · {g('expand-all')} expand-all ")
-        act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
-               f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
-               f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
-               f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
-        self.end_page(surface, pal, status_line, [nav, act], h, w)
+            for x, text, role in row.cells:
+                _put(surface, y, x, text, pal.style(role, y, x, h, w, selected=row.sel))
+        _scrollbar_v(surface, pal, vm.list_top, w - 1, vm.list_h, vm.top, vm.list_h, vm.n, h, w)
+        for k, (text, role) in enumerate(vm.cursor_lines):
+            y = h - 6 + k
+            _put(surface, y, 0, _fit(text, w), pal.style(role, y, 0, h, w))
+        self.end_page(surface, pal, vm.status, vm.legends, h, w)
 
     # -- handle (reproduces the components fall-through dispatch) ----------
 

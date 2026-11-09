@@ -1,7 +1,8 @@
 '''Render-regression for the Components screen (docs/done/d2-mvvm-plan.md), post-oracle style. The model
 is a MenuState; `_sample_components_state()` is a HAND-BUILT synthetic tree (no routes.hu), so it IS
-the fake data — the draw assertions read stable, sample-defined content. build_vm is a thin pass of
-the frame inputs (note + diagnostics). Plus handle() behaviour.'''
+the fake data — the draw assertions read stable, sample-defined content. build_vm settles the whole
+frame (chips, rows, cursor lines, legends), so draw is also pinned against a HAND-BUILT ComponentsVM.
+Plus handle() behaviour.'''
 
 import pytest
 
@@ -109,3 +110,23 @@ def _rows(scr, ctx):
     surf = BufferSurface(40, 120)
     scr.draw(surf, RecordingPalette(), scr.build_vm(ctx, (40, 120)))
     return surf.text_rows()
+
+
+def test_draw_paints_a_hand_built_vm():
+    # D7 / tui-screens-07: a literal VM paints with no ctx or model
+    from configsys.tui.screens.components import TreeRow
+    vm = ComponentsVM()
+    vm.chips = [(0, ' configsys ', 'label'), (11, '  pop   view: to-do', 'os')]
+    vm.col_header = [(3, 'component'), (40, 'driver')]
+    vm.rows = [TreeRow([(0, '»', 'select_marker'), (3, '▸ ripgrep', 'component'), (40, 'apt', 'driver')], True)]
+    vm.n, vm.list_h = 1, 10
+    vm.cursor_lines = [('ripgrep — recursive regex search', 'info'), ('methods: apt*', 'methods'),
+                       ('location: /usr/bin', 'info_dim')]
+    vm.status, vm.legends = ' selected:1', [' NAV', ' ACT']
+    scr = ComponentsScreen.__new__(ComponentsScreen)
+    surf = BufferSurface(20, 100)
+    scr.draw(surf, RecordingPalette(), vm)
+    text = '\n'.join(surf.text_rows())
+    for want in ('configsys', 'view: to-do', 'component', 'driver', '▸ ripgrep', 'apt',
+                 'recursive regex search', 'methods: apt*', 'location: /usr/bin', 'selected:1', 'NAV', 'ACT'):
+        assert want in text, want
