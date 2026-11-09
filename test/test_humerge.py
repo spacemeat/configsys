@@ -450,3 +450,20 @@ def test_main_is_the_driver_entry_point(tmp_path, capsys):
     assert humerge.main(['-', *paths, 'p.hu']) == 0
     assert layers.materialize_string((tmp_path / 'A').read_text()) == {'a': '1', 'b': '2', 'c': '3'}
     assert humerge.main(['-']) == 2 and 'usage' in capsys.readouterr().err
+
+
+def test_a_metatag_inside_a_list_never_hangs_the_merge():
+    # review-2026-11-2 B6 (primary-01): `_list_items` looped forever on the `:` of `@why: work`
+    import threading
+    from configsys import humerge
+    done = []
+
+    def run():
+        try:
+            humerge._list_items('[ btop @why: work  fzf ]')
+        except humerge.Unmergeable:
+            done.append('unmergeable')
+    th = threading.Thread(target=run, daemon=True)
+    th.start()
+    th.join(2)
+    assert done == ['unmergeable']

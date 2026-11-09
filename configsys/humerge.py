@@ -368,7 +368,11 @@ def _list_items(text):
             continue
         if text[i] in '{[':
             raise Unmergeable('a list holding maps or lists')
+        if text[i] == '@':                             # a metatag (`btop @why: work`): not a plain list
+            raise Unmergeable('a list holding metatags')
         j = _scalar_end(text, i)
+        if j <= i:                                     # never loop on a token the scanner can't read (B6)
+            raise Unmergeable(f'an unreadable list item at {text[i:i + 12]!r}')
         tok = text[i:j]
         val = tok[1:-1] if len(tok) >= 2 and tok[0] in '"\'`' and tok[-1] == tok[0] else tok
         out.append((val, i, j))

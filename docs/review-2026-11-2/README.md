@@ -178,7 +178,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **B5 [HIGH] A pick that shares a failing dependency with an earlier pick vanishes** — no unit, no error
   row; `install --picks` then says everything is installed. (routing-02) · effort S · [done — a pick whose unit went with a shared failed dependency gets its own error row naming the cause]
 - **B6 [HIGH] A metatag inside a list makes humerge loop forever** (push hangs, memory grows). (primary-01)
-  · effort S · [open]
+  · effort S · [done — humerge refuses (Unmergeable → the normal question path) a list holding a metatag, and never loops on an item it cannot read]
 - **B7 [HIGH] `_alt` (clang/gcc) vendor-repo setup can leave a poison-pill apt source** (derivative
   codenames, a PPA on Debian, no validate/rollback). (drivers-lang-03) · effort M · [open]
 - **B8 [HIGH] Theme export/promote drops the Theme page and unlisted roles; promote then deletes the local
