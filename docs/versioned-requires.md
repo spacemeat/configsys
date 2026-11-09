@@ -432,7 +432,10 @@ errors on a constraint whose operand doesn't parse (`">=3.1x"`), which would oth
      - **Method-replacement caveat** — the advisory now becomes ACTIONABLE ("pin rust to script")
        and, when the too-old provider is already INSTALLED via the default method, adds an explicit
        "switching won't remove it — remove it after" note — replacement stays a deliberate act,
-       never automatic.
+       never automatic. *(Since the method-switch swap, b68a645, the note says what happens instead:
+       installing a named provider via the pinned method swaps the old install out; one pulled in
+       only as a dependency installs alongside it, so the note points at `configsys install
+       <provider>` — `flooradvise._replace_note`.)*
      - Verified live: a `version-floors` floor of cargo ≥1.96 on ripgrep-via-source → "pin rust to
        script (script meets it): `configsys pin set rust script` (rust is installed via native;
        switching won't remove it)".

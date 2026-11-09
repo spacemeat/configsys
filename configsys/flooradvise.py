@@ -110,6 +110,23 @@ def _who_meets(comp, rp, cap, floor):
             if (m.latest and meets(m.latest, floor)) or _provides_meets(comp, m.via, cap, floor)]
 
 
+def _replace_note(provider, default, units):
+    '''The caveat when the too-old provider is already INSTALLED via the default method. Installing
+    a provider you NAME (a pick, or `configsys install <provider>`) via the newly pinned method runs
+    the method-switch swap, which removes the old install (installState.plan_with_swaps). But that
+    swap runs on the plan's named targets BEFORE expand_plan adds the dependencies, so a provider
+    pulled in only as a dependency gets the new method alongside the old install.'''
+    if not default.installed:
+        return ''
+    named = any(u.comp == provider and provider in (getattr(u, 'requested_as', None) or ())
+                for u in units)
+    if named:
+        return f'  ({provider} is installed via {default.via}; installing it after the pin swaps that install out)'
+    return (f'  ({provider} is installed via {default.via}, and here only as a dependency, which '
+            f'installs the new method alongside it — after the pin, run `configsys install {provider}` '
+            f'to swap that install out)')
+
+
 def advise(ctx, units):
     '''[{level, tag, text}] — one advisory per (requiring unit, unmet floor). Surfaced through
     ctx.diagnostics (inspect / the TUI ! page).'''
@@ -120,10 +137,7 @@ def advise(ctx, units):
         fix = (f'pin {provider} to {who[0]} ({", ".join(who)} {verb} it): '
                f'`configsys pin set {provider} {who[0]}`') if who else \
               f'no install method here meets {cap} {floor}'
-        # method-replacement is explicit, never automatic: if the too-old provider is already
-        # INSTALLED via the default method, switching won't remove that install.
-        replace = (f'  ({provider} is installed via {default.via}; switching won\'t remove '
-                   f'it — remove it after)') if default.installed else ''
+        replace = _replace_note(provider, default, units)
         pinned = _user_pin(ctx, provider)
         if pinned is not None and pinned == default.via:
             # YOUR pin keeps a method below the floor. A user pin always wins (auto-tighten never

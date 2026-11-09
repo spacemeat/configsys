@@ -65,16 +65,34 @@ def test_advises_meets_is_singular(monkeypatch):
     assert 'tarball meets it' in advs[0]['text']            # one method -> "meets", not "meet"
 
 
-def test_replacement_caveat_when_default_is_installed(monkeypatch):
-    # the too-old provider is already installed via the default method -> explicit "won't remove it"
+def test_replacement_caveat_when_default_is_installed_as_a_dependency(monkeypatch):
+    # the too-old provider is already installed via the default method and only pulled in as a
+    # dependency: the method-switch swap runs on the NAMED targets, before the dependencies are
+    # added — so installing the consumer would put the new method ALONGSIDE the old install
     _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed='1.75'))
-    advs = flooradvise.advise(_Ctx(_comps()), [_src_unit()])
-    assert "installed via native; switching won't remove it" in advs[0]['text']
+    rust = ResolvedComponent(key='apt\\rust', driver='apt', comp='rust', via='native',
+                             requested_as={'ripgrep'})
+    for units in ([_src_unit()], [_src_unit(), rust]):
+        t = flooradvise.advise(_Ctx(_comps()), units)[0]['text']
+        assert 'rust is installed via native' in t
+        assert "won't remove" not in t and 'remove it after' not in t
+        assert 'only as a dependency' in t and '`configsys install rust`' in t   # how to swap it
+
+
+def test_replacement_caveat_when_the_provider_is_itself_requested(monkeypatch):
+    # a named/picked provider goes through the method-switch swap: installing it via the pinned
+    # method removes the old install (installState.plan_with_swaps)
+    _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed='1.75'))
+    rust = ResolvedComponent(key='apt\\rust', driver='apt', comp='rust', via='native',
+                             requested_as={'rust', 'ripgrep'})
+    t = flooradvise.advise(_Ctx(_comps()), [_src_unit(), rust])[0]['text']
+    assert 'rust is installed via native; installing it after the pin swaps that install out' in t
+    assert 'only as a dependency' not in t
 
 
 def test_no_replacement_caveat_when_not_installed(monkeypatch):
     _mock(monkeypatch, _rust_report(default_ver='1.75', tarball_ver='1.97', default_installed=None))
-    assert 'switching won' not in flooradvise.advise(_Ctx(_comps()), [_src_unit()])[0]['text']
+    assert 'is installed via' not in flooradvise.advise(_Ctx(_comps()), [_src_unit()])[0]['text']
 
 
 def test_no_advice_when_default_meets_floor(monkeypatch):
