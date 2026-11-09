@@ -49,7 +49,29 @@ SETTING_CHOICES = {
     'effects': ('full', 'reduced', 'none'),
     'primary-verify': ('off', 'signed'),
     'primary-trust': ('identity', 'content', 'signed'),
+    'scope': ('user', 'system'),
+    'installer-shell-writes': ('block', 'allow'),
 }
+
+# On/off settings, and the ONE spelling of a bool every reader and `config set` accepts (B11). An
+# unknown token (`ture`) is the setting's default — never the opposite of what you meant — and a
+# `check` warning; `config set` refuses it. (actions.CONFIG_SETTINGS kind 'bool' == this set.)
+BOOL_SETTINGS = frozenset({'auto-tighten', 'adopt-installed', 'install-overlay', 'reboot-advice',
+                           'detect-coexisting'})
+_TRUE = frozenset({'true', 'yes', 'on', '1'})
+_FALSE = frozenset({'false', 'no', 'off', '0'})
+
+
+def parse_bool(v, default):
+    '''A setting value as a bool: true/yes/on/1, false/no/off/0 (any case), else `default`.'''
+    if isinstance(v, bool):
+        return v
+    s = str(v).strip().lower() if v is not None else ''
+    return True if s in _TRUE else False if s in _FALSE else default
+
+
+def is_bool_token(v):
+    return isinstance(v, bool) or str(v).strip().lower() in _TRUE | _FALSE
 
 # Settings read ONLY from this machine's top config: a value in your primary plugin (or anywhere
 # else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, and
@@ -69,10 +91,21 @@ def setting_value_warnings(layers):
             if v is not None and str(v).strip().lower() not in choices:
                 warns.append(f'{layer.path}: `{key}: {v}` is not one of {", ".join(choices)} — '
                              f'configsys uses the default instead')
+        for key in sorted(BOOL_SETTINGS & set(layer.data)):
+            v = layer.data[key]
+            if not is_bool_token(v):
+                warns.append(f'{layer.path}: `{key}: {v}` is not true or false — configsys uses '
+                             f'the default instead')
         for key in TOP_CONFIG_ONLY & set(layer.data):
             if layer.role != 'user':
                 warns.append(f'{layer.path}: `{key}:` is read only from your top config '
                              f'(~/.config/configsys/configsys.hu), so it is ignored here')
+        dirs = layer.data.get('dirs')
+        for sub in ('user', 'system'):
+            v = dirs.get(sub) if isinstance(dirs, dict) else None
+            if v is not None and not _location_ok(v):
+                warns.append(f'{layer.path}: `dirs: {{ {sub}: {v} }}` must be an absolute path or start '
+                             f'with ~/ — a relative base follows whatever directory configsys runs from')
         locs = layer.data.get('locations')
         for comp, path in (locs.items() if isinstance(locs, dict) else ()):
             if not _location_ok(path):
@@ -128,10 +161,36 @@ def read_setting(path, key):
     if path is None or not os.path.exists(str(path)):
         return None
     try:
-        trove = humon.from_file(str(path))    # keep alive during the walk
-        return (materialize(trove.root) or {}).get(key)
+        _trove, data = read_tree(path)        # keep the trove alive during the walk
+        return data.get(key)
     except Exception:                         # noqa: BLE001 — a broken file just means "unset"
         return None
+
+
+def read_tree(path):
+    '''(trove, data) for one .hu file — THE layer parse chokepoint (B11). Reads UTF-8 text (a BOM
+    tolerated) and parses from the string: humon's from_file sniffs the encoding and rejects any file
+    under ~10 bytes (`{}`, which configsys itself writes) as BADENCODING. A blank file is `{}`.
+    Keep the trove alive while walking nodes from it. Raises ConfigError with one wording.'''
+    from pathlib import Path
+    from . import troveio
+    try:
+        text = Path(path).read_text(encoding='utf-8-sig')
+    except UnicodeDecodeError as e:
+        raise ConfigError(f'{path}: could not read (not valid UTF-8: {e})')
+    except OSError as e:
+        raise ConfigError(f'{path}: could not read ({e.strerror or e})')
+    if not text.strip():
+        return None, {}
+    try:
+        trove = troveio.load_string(text)
+        data = materialize(trove.root) or {}
+    except Exception as e:                    # noqa: BLE001 — humon parse failure
+        raise ConfigError(f'{path}: could not read ({e})')
+    if not isinstance(data, dict):
+        raise ConfigError(f'{path}: could not read (a config file is a {{ … }} map, not a '
+                          f'{type(data).__name__})')
+    return trove, data
 
 
 def _as_list(v):
@@ -207,13 +266,7 @@ def _visit(path, role, stack, done, order, guard=None):
         return                                # diamond: already merged, once is enough
     if not os.path.exists(path):
         raise ConfigError(f'include not found: {path}')
-    try:
-        trove = humon.from_file(path)         # keep alive: nodes point into it during walk
-        data = materialize(trove.root) or {}
-    except ConfigError:
-        raise
-    except Exception as e:                    # noqa: BLE001 — humon parse/read failure
-        raise ConfigError(f'{path}: could not read ({e})')
+    _trove, data = read_tree(path)            # keep alive: nodes point into it during walk
     stack.append(rp)
     base = os.path.dirname(os.path.abspath(path))
     for inc in _as_list(data.get('include')):

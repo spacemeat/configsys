@@ -1034,7 +1034,7 @@ def _setting_tokens(value, kind):
     if kind == 'map':
         return _map_tokens(value)
     if kind == 'bool':
-        return ['true' if _to_bool(value) else 'false']
+        return ['true' if layers.parse_bool(value, False) else 'false']
     return [str(value)]                                       # scalar + dir
 
 
@@ -1092,8 +1092,6 @@ def config_settings(ctx):
     return out
 
 
-def _to_bool(s):
-    return str(s).strip().lower() in ('true', 'yes', 'on', '1')
 
 
 def set_config_setting(ctx, key, values, *, target=None):
@@ -1103,6 +1101,12 @@ def set_config_setting(ctx, key, values, *, target=None):
         return False, PRETEND_NOT_SAVED
     kind = CONFIG_SETTINGS[key][0]
     tfile, label = (target, target) if target else _setting_target(ctx, key, create=True)
+    if kind == 'bool' and values and not layers.is_bool_token(values[0]):
+        raise ValueError(f'{key} takes true or false (not {values[0]!r})')
+    if (key in ('dirs.user', 'dirs.system') and values
+            and not values[0].startswith(('/', '~'))):  # (app/sdk/src are relative to the base)
+        raise ValueError(f'{key} takes an absolute path or one starting with ~ (not {values[0]!r}) '
+                         '— a relative base would follow whatever directory configsys runs from')
     if kind == 'dir':                                     # nested `dirs.<sub>`: edit the dirs map
         sub = key.split('.', 1)[1]
         dirs = plugins.read_dirs(tfile)
@@ -1125,7 +1129,7 @@ def set_config_setting(ctx, key, values, *, target=None):
     elif kind == 'list':
         plugins.set_list_section(tfile, key, list(values))
     elif kind == 'bool':
-        token = 'true' if _to_bool(values[0]) else 'false'
+        token = 'true' if layers.parse_bool(values[0], False) else 'false'
         plugins.set_section(tfile, key, lambda indent: f'{key}: {token}')   # bare humon bool
     else:                                                 # scalar
         choices = layers.SETTING_CHOICES.get(key)
@@ -1190,7 +1194,7 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
     if value is None:
         node.pop(leaf, None)
     else:
-        node[leaf] = _to_bool(value) if leaf in _THEME_BOOL_ATTRS else value
+        node[leaf] = layers.parse_bool(value, False) if leaf in _THEME_BOOL_ATTRS else value
     plugins.set_theme(tfile, theme)
     _invalidate_config(ctx)   # cosmetic: never routing (C3)
     return True, label

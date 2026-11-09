@@ -115,7 +115,8 @@ class Config:
 
     def default_scope(self):
         v = layers.merge_scalar(self._layers, 'scope', _MACHINE_ROLES)
-        return v if isinstance(v, str) else None
+        v = str(v).strip().lower() if v is not None else None
+        return v if v in layers.SETTING_CHOICES['scope'] else None   # `sytem`: the default (a check warning)
 
     def machine_setting_source(self, key):
         '''(label, is_override) for machine setting `key`: the basename of the highest-precedence
@@ -300,15 +301,13 @@ class Config:
         "just meet the floor" convenience, instead of only advising. A machine setting
         (repo < primary < user). Replacement of an ALREADY-INSTALLED provider stays explicit even
         under this (flooradvise.tighten_pins skips those — they remain advisories).'''
-        v = layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES)
-        return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else False
+        return layers.parse_bool(layers.merge_scalar(self._layers, 'auto-tighten', _MACHINE_ROLES), False)
 
     def reboot_advice(self):
         '''Whether to surface a "reboot advised / services need restart" advisory after an op and as a
         TUI chip (default ON). Uses each family's native check (no needrestart dep). A machine setting
         (repo < primary < user); set false to silence.'''
-        v = layers.merge_scalar(self._layers, 'reboot-advice', _MACHINE_ROLES)
-        return str(v).strip().lower() in ('true', 'yes', 'on', '1') if v is not None else True
+        return layers.parse_bool(layers.merge_scalar(self._layers, 'reboot-advice', _MACHINE_ROLES), True)
 
     def block_installer_shell_writes(self):
         '''Default ON (block): wrap each component install so an installer can't scribble in your
@@ -318,7 +317,7 @@ class Config:
         per-component escape is `installer-shell-writes-allow: [ <comp> ]`. Machine setting
         (repo < primary < user).'''
         v = layers.merge_scalar(self._layers, 'installer-shell-writes', _MACHINE_ROLES)
-        return str(v).strip().lower() not in ('allow', 'false', 'no', 'off', '0') if v is not None else True
+        return str(v).strip().lower() != 'allow' if v is not None else True   # only `allow` turns it off
 
     def shell_writes_allowlist(self):
         '''Components exempt from the shell-writes guard — allowed to edit rc files (their write is
@@ -335,8 +334,7 @@ class Config:
         methods and surface them as "also present (unmanaged)" — so an existing machine's real state
         is visible. `detect-coexisting: false` skips the pass (the per-method sweep stays available
         via `configsys versions`). A machine setting (repo < primary < user).'''
-        v = layers.merge_scalar(self._layers, 'detect-coexisting', _MACHINE_ROLES)
-        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
+        return layers.parse_bool(layers.merge_scalar(self._layers, 'detect-coexisting', _MACHINE_ROLES), True)
 
     def adopt_installed(self):
         '''Default ON: the detection tier — bias resolution toward what's ALREADY installed, so an
@@ -344,8 +342,7 @@ class Config:
         pushed to reinstall via a different route, or toward a fresh provider when a valid one is on
         disk). Precedence stays: explicit pin > detected-installed > default. `adopt-installed: false`
         turns it off (resolution ignores installed state, as before). Machine setting (repo<primary<user).'''
-        v = layers.merge_scalar(self._layers, 'adopt-installed', _MACHINE_ROLES)
-        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
+        return layers.parse_bool(layers.merge_scalar(self._layers, 'adopt-installed', _MACHINE_ROLES), True)
 
     def refresh_before_execute(self):
         '''Refresh the OS package index ONCE before an execute batch — so upgrades see current
@@ -361,8 +358,7 @@ class Config:
         '''Whether TUI::Profiles opens with the install-state overlay ON (installed underlined,
         installed-but-unpicked ⊙ coloured) — `O` toggles it either way. `install-overlay: false` starts
         it off. On by default. Machine setting (repo<primary<user).'''
-        v = layers.merge_scalar(self._layers, 'install-overlay', _MACHINE_ROLES)
-        return str(v).strip().lower() not in ('false', 'no', 'off', '0') if v is not None else True
+        return layers.parse_bool(layers.merge_scalar(self._layers, 'install-overlay', _MACHINE_ROLES), True)
 
     def primary_push(self):
         '''When the primary plugin is pushed: 'ask' (default — offered when you quit the TUI with

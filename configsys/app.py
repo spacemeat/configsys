@@ -1875,6 +1875,14 @@ def _pretend_edit(ctx, what):
     return False
 
 
+def _warn_unknown_component(name, universe):
+    '''A name the merged catalog doesn't define is still written (another machine may load the plugin
+    that defines it) — but never silently (B11).'''
+    if name not in universe:
+        print(f'configsys: warning — {name!r} is not a known component here; it installs nothing on '
+              f'a machine that doesn\'t load a layer defining it', file=sys.stderr)
+
+
 def cmd_disp(ctx, args):
     '''Component dispositions (v2 triage): seen / interesting / new. include/exclude are profile
     membership; NEW is the undispositioned default. Local (per-machine) side-store.'''
@@ -1914,6 +1922,7 @@ def cmd_disp(ctx, args):
         return 0
 
     if sub == 'set':
+        _warn_unknown_component(args.name, universe)
         if ctx.runner.pretend:
             from . import plugins
             _f, label = actions._nature_target(ctx, 'dispositions',
@@ -1975,6 +1984,8 @@ def cmd_picks(ctx, args):
         return 0
 
     if sub in ('add', 'rm'):
+        if sub == 'add':
+            _warn_unknown_component(args.component, set(ctx.routes.components))
         n, label = actions.set_included(ctx, args.component, machines, sub == 'add')  # invalidates glue cache
         verb = 'picked' if sub == 'add' else 'unpicked'
         print(f'configsys: {args.component} {verb} on {", ".join(machines)}  (in {label})' if n
@@ -2437,14 +2448,15 @@ def cmd_check(ctx, args):
     '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
     from . import layers, routes, routecheck
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
+    _route_w = []
     try:
         cascade, components, drivers, _candidate_only = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file,
-            ctx.plugin_files, validate=False)
+            ctx.plugin_files, validate=False, warnings_out=_route_w)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
                  + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
                  + [(ctx.paths.user_config_file, 'user')])
-        layer_list, _w = layers.expand_tolerant(roots, {'plugin', 'primary'})
+        layer_list, _layer_w = layers.expand_tolerant(roots, {'plugin', 'primary'})
     except ConfigsysError as e:
         print(f'configsys: {e}')          # a parse/structural error before we can lint
         return 1
@@ -2629,8 +2641,29 @@ def cmd_check(ctx, args):
     # NOT pure OS-availability ("no binding for X in this context") — a config that lists a component
     # unavailable on THIS OS is still a clean config. Unknown-component members are already reported
     # by prof_issues, so they're excluded too.
+    # every column of the picks matrix, and the dispositions / uninstall side-stores, against the
+    # merged catalog (B11): an unknown pick on THIS machine is an error (it installs nothing); on
+    # another machine a warning (that box may load a plugin defining it)
+    pick_errors, pick_warnings = [], []
+    _this = ctx.config.current_machine()
+    for _m, _names in sorted(ctx.config.picks().items()):
+        for _n in _names:
+            if _n not in components:
+                if _m == _this:
+                    pick_errors.append(f"picks: '{_n}' (this machine, {_m}) is not a known component")
+                else:
+                    pick_warnings.append(f"picks: '{_n}' (machine {_m}) is not a component here "
+                                         f'(fine if that machine loads a plugin defining it)')
+    for _store, _names in (('dispositions', ctx.config.dispositions()),
+                           ('uninstall', ctx.config.uninstall_queue())):
+        _stale = sorted(n for n in _names if n not in components)   # harmless bookkeeping: one line
+        if _stale:
+            _shown = ', '.join(_stale[:6]) + (f', … (+{len(_stale) - 6})' if len(_stale) > 6 else '')
+            pick_warnings.append(f'{_store}: {len(_stale)} name(s) not in the catalog here: {_shown}')
+
     resolve_errors = []
-    _known_bad = {c for _p, c in prof_issues}
+    _known_bad = {c for _p, c in prof_issues} | {
+        n for n in ctx.config.picks().get(_this, []) if n not in components}
     _config_err = ('pinned to', 'ambiguous providers')
     try:
         _u, _rerrs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
@@ -2639,6 +2672,14 @@ def cmd_check(ctx, args):
     except ConfigsysError:
         pass                                        # a structural failure already surfaced above
 
+    # a layer (your primary, a plugin) or component the loaders had to SKIP — unreadable, malformed —
+    # is an error here exactly as on the `!` page (B11): its picks and settings are silently gone
+    skipped_errors = []
+    for w in _layer_w + _route_w:
+        msg = w[len('skipped '):] if w.startswith('skipped ') else w
+        if msg not in skipped_errors:
+            skipped_errors.append(msg)
+
     errors = [i for i in issues if i.is_error]
     warnings = [i for i in issues if not i.is_error]
     code_warnings = ctx.plugin_code_warnings
@@ -2646,12 +2687,17 @@ def cmd_check(ctx, args):
             and not include_warnings and not code_warnings and not conflict_warnings
             and not theme_warnings and not pin_conflict_warnings and not py_floor_warnings
             and not stale_pin_warnings and not resolve_errors and not key_warnings
-            and not removal_warnings and not uninstall_conflicts and not glue_drift_warnings):
+            and not removal_warnings and not uninstall_conflicts and not glue_drift_warnings
+            and not skipped_errors and not pick_errors and not pick_warnings):
         print(f'configsys: OK — {len(components)} components, no issues')
         return 0
 
+    for msg in skipped_errors:
+        print(f'  ERROR   skipped {msg}')
     for i in errors:
         print(f'  ERROR   {_issue_loc(i, ctx.paths)}{i.message}')
+    for msg in pick_errors:
+        print(f'  ERROR   {msg}')
     for msg in prof_errors:
         print(f'  ERROR   {msg}')
     for prof, cname in prof_issues:
@@ -2684,12 +2730,14 @@ def cmd_check(ctx, args):
         print(f'  warn    {msg}')
     for msg in glue_drift_warnings:
         print(f'  warn    {msg}')
+    for msg in pick_warnings:
+        print(f'  warn    {msg}')
     n_err = (len(errors) + len(prof_errors) + len(prof_issues) + len(pin_issues)
-             + len(resolve_errors))
+             + len(resolve_errors) + len(skipped_errors) + len(pick_errors))
     n_warn = (len(warnings) + len(include_warnings) + len(code_warnings) + len(conflict_warnings)
               + len(theme_warnings) + len(pin_conflict_warnings) + len(py_floor_warnings)
               + len(stale_pin_warnings) + len(key_warnings) + len(removal_warnings)
-              + len(uninstall_conflicts) + len(glue_drift_warnings))
+              + len(uninstall_conflicts) + len(glue_drift_warnings) + len(pick_warnings))
     print(f'\nconfigsys: {n_err} error(s), {n_warn} warning(s) '
           f'across {len(components)} components')
     return 1 if n_err else 0
