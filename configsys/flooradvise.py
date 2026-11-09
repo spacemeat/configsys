@@ -5,8 +5,8 @@ DEFAULT install method can't meet the floor, and advise how to fix it — pin th
 that does. advise() / resident_advise() are read-only: by default nothing swaps a method silently
 (the locked posture); they only surface the choice. The opt-in `auto-tighten:` setting is the one
 exception — tighten_pins (floor pins for the app's second resolve pass, below YOUR pins, never
-replacing an installed provider) and resident_upgrades / resident_upgrades_probed (an `upgrade` of a
-too-old resident toolchain). A user pin always wins; advise() flags one that misses a floor
+replacing an installed provider) and resident_upgrades_probed (an `upgrade` of a too-old resident
+toolchain). A user pin always wins; advise() flags one that misses a floor
 (`pin-floor`). Reuses versionreport (real per-method versions) + versionsweep.providers_of, and is a
 no-op when no floors are active, so it costs nothing until floors exist.
 '''
@@ -233,16 +233,6 @@ def resident_advise(ctx, units, states):
             seen.add(text)
             out.append({'level': 'warn', 'tag': 'floor', 'text': text})
     return out
-
-
-def resident_upgrades(ctx, units, states):
-    '''{provider_key: provider_state} — resident providers to UPGRADE (under opt-in `auto-tighten`)
-    because a consumer being installed floors them above their installed version. The caller inserts
-    an `upgrade` op for each; dependency ordering already places a provider before its consumer.'''
-    ups = {}
-    for _rc, _cap, _floor, pkey, pst in resident_unmet(ctx, units, states):
-        ups.setdefault(pkey, pst)
-    return ups
 
 
 def resident_upgrades_probed(ctx, units):

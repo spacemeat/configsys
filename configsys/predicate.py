@@ -116,12 +116,6 @@ class Categorical:
         return bool(self.values & ctx.categorical(self.ns))
 
 
-def os_names(pred):
-    '''Every OS block name a predicate's atoms reference (for validation — an unknown one
-    is almost always a typo, since a `when:` naming a nonexistent OS silently never matches).'''
-    return {a.name for a in os_atoms(pred)}
-
-
 def os_atoms(pred):
     '''Every name atom (`Os`) of a predicate — bare (`op` None: OS subtree membership) or versioned
     (an OS version, or a version facet `cuda >= 12`) — for validation that tells the two apart.'''
@@ -557,12 +551,3 @@ def overlap(a, b, cascade):
 
 def comparable(a, b, cascade):
     return subset(a, b, cascade) or subset(b, a, cascade)
-
-
-def most_specific(preds, cascade):
-    '''From predicates already known to match a context, the unique most-specific one
-    (⊆ every other), or raise if none/ambiguous (the static checker rules out the latter).'''
-    winners = [p for p in preds if all(subset(p, o, cascade) for o in preds)]
-    if len(winners) != 1:
-        raise PredicateError(f'ambiguous selection among {len(preds)} matching bindings')
-    return winners[0]

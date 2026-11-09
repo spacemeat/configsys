@@ -1,6 +1,6 @@
 '''Unit tests for the v2 when: DSL — parse, evaluate, scale safety, specificity.'''
 
-from configsys.predicate import Context, Os, ALWAYS, most_specific, parse
+from configsys.predicate import Context, Os, ALWAYS, parse, subset
 
 SR = {'ubuntu', 'debian', 'fedora'}
 POP = Context(['pop_os!', 'ubuntu', 'debian', 'linux'], '22.04', 'x86_64', SR)
@@ -57,7 +57,7 @@ def test_specificity_prefers_narrow():
     import os
     from configsys import routes
     cascade, _c, _m, _co = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
-    assert most_specific([Os('pop_os!'), ALWAYS], cascade) is not ALWAYS
+    assert subset(Os('pop_os!'), ALWAYS, cascade) and not subset(ALWAYS, Os('pop_os!'), cascade)
 
 
 def test_bad_syntax_raises():

@@ -235,11 +235,11 @@ def test_resident_abstains_on_unknown_or_absent_version():
     assert flooradvise.resident_advise(ctx, [_src_unit()], absent) == []   # not present -> not resident
 
 
-def test_resident_upgrades_targets_the_too_old_provider():
+def test_resident_unmet_names_the_too_old_provider():
     ctx = _Ctx(_comps())
     states = {'apt\\rust': _state('rust', 'apt', '1.75')}
-    ups = flooradvise.resident_upgrades(ctx, [_src_unit()], states)
-    assert set(ups) == {'apt\\rust'}                            # the provider unit key to upgrade
+    hits = list(flooradvise.resident_unmet(ctx, [_src_unit()], states))
+    assert [(cap, floor, pkey) for _rc, cap, floor, pkey, _st in hits] == [('cargo', '>=1.96', 'apt\\rust')]
 
 
 def test_resident_upgrades_probed_probes_on_demand(monkeypatch):

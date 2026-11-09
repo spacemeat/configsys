@@ -8,9 +8,6 @@ a leading `v` stripped) so a distro package version compares against an upstream
 `,` = AND) parses with `parse_constraint`; `meets` (does a version satisfy a floor) and `implies`
 (does a method's promised range guarantee a floor) are what the version-floor subsystem uses,
 both abstaining (False) on anything unparseable.
-
-(History: `split_qualifier` / `satisfies` / `specificity` served the retired `ubuntu@<23.04`
-block-key qualifiers that versioned `when:` atoms replaced; only their own tests call them now.)
 '''
 
 import re
@@ -83,12 +80,6 @@ def clean_version(s):
     return t if t[:1].isdigit() else s
 
 
-def split_qualifier(block_key):
-    '''"ubuntu@<23.04" -> ("ubuntu", "<23.04"); "ubuntu" -> ("ubuntu", None).'''
-    base, sep, qual = block_key.partition('@')
-    return (base, qual) if sep else (base, None)
-
-
 def parse_constraint(text):
     '''"<23.04" -> [('<', (23,4))]; ">=20.04,<23.04" -> two clauses; None if empty.'''
     if not text or not text.strip():
@@ -143,21 +134,3 @@ def implies(promise, floor):
     if fhi is not None and (phi is None or phi > fhi or (phi == fhi and fhi_open and not phi_open)):
         return False
     return True
-
-
-def satisfies(constraint, version):
-    '''True if `version` (tuple) meets every clause of `constraint`.'''
-    if version is None or not constraint:
-        return False
-    return all(ver is not None and _CMP[op](version, ver) for op, ver in constraint)
-
-
-def specificity(constraint):
-    '''Rank for picking among satisfied variants: exact > bounded range > open.'''
-    if not constraint:
-        return 0
-    if len(constraint) == 1 and constraint[0][0] == '=':
-        return 3               # exact pin (@22.04)
-    if len(constraint) >= 2:
-        return 2               # bounded range (@>=20.04,<23.04)
-    return 1                   # single open comparator (@<23.04)

@@ -10,49 +10,33 @@ def test_parse_version():
     assert ov.parse_version((20, 4)) == (20, 4)   # already a tuple
 
 
-def test_split_qualifier():
-    assert ov.split_qualifier('ubuntu@<23.04') == ('ubuntu', '<23.04')
-    assert ov.split_qualifier('ubuntu') == ('ubuntu', None)
-    assert ov.split_qualifier('pop_os!') == ('pop_os!', None)
+def test_parse_constraint_and_meets():
+    assert ov.parse_constraint('<23.04') == [('<', (23, 4))]
+    assert ov.meets('22.04', '<23.04') is True
+    assert ov.meets('23.04', '<23.04') is False
+    assert ov.meets('24.04', '<23.04') is False
+
+    assert ov.meets('24.04', '>=24.04') is True
+    assert ov.meets('22.04', '>=24.04') is False
+
+    assert ov.meets('22.04', '22.04') is True                  # a bare version = exact
+    assert ov.meets('22.10', '22.04') is False
+
+    rng = '>=20.04,<23.04'                                     # `,` = AND
+    assert ov.meets('20.04', rng) is True
+    assert ov.meets('22.04', rng) is True
+    assert ov.meets('23.04', rng) is False
+    assert ov.meets('18.04', rng) is False
 
 
-def test_parse_constraint_and_satisfies():
-    lt = ov.parse_constraint('<23.04')
-    assert ov.satisfies(lt, (22, 4)) is True
-    assert ov.satisfies(lt, (23, 4)) is False
-    assert ov.satisfies(lt, (24, 4)) is False
-
-    ge = ov.parse_constraint('>=24.04')
-    assert ov.satisfies(ge, (24, 4)) is True
-    assert ov.satisfies(ge, (22, 4)) is False
-
-    exact = ov.parse_constraint('22.04')
-    assert ov.satisfies(exact, (22, 4)) is True
-    assert ov.satisfies(exact, (22, 10)) is False
-
-    rng = ov.parse_constraint('>=20.04,<23.04')
-    assert ov.satisfies(rng, (20, 4)) is True
-    assert ov.satisfies(rng, (22, 4)) is True
-    assert ov.satisfies(rng, (23, 4)) is False
-    assert ov.satisfies(rng, (18, 4)) is False
-
-
-def test_unknown_version_never_satisfies():
-    assert ov.satisfies(ov.parse_constraint('<23.04'), None) is False
+def test_unknown_version_never_meets():
+    assert ov.meets(None, '<23.04') is False
 
 
 def test_debian_and_ubuntu_numbers_do_not_collide_under_the_older_pattern():
-    # ubuntu 22.04 must NOT satisfy a debian "<12" variant (the whole reason the
-    # base=modern / @<older pattern is safe across the cascade).
-    assert ov.satisfies(ov.parse_constraint('<12'), (22, 4)) is False
-    assert ov.satisfies(ov.parse_constraint('<12'), (11,)) is True
-
-
-def test_specificity_ordering():
-    assert ov.specificity(ov.parse_constraint('22.04')) == 3        # exact
-    assert ov.specificity(ov.parse_constraint('>=20.04,<23.04')) == 2  # bounded
-    assert ov.specificity(ov.parse_constraint('<23.04')) == 1       # open
-    assert ov.specificity(None) == 0
+    # ubuntu 22.04 must NOT satisfy a debian "<12" constraint
+    assert ov.meets('22.04', '<12') is False
+    assert ov.meets('11', '<12') is True
 
 
 def test_clean_version_strips_debian_revision():
