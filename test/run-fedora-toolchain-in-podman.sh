@@ -13,7 +13,9 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 
 # Exercise the live Fedora releases: the routable versions differ per release
 # (43 -> gcc-14, 44/45 -> gcc-15), driven by the release-bounded gcc-NN bindings.
-for rel in "${@:-43 44 45}"; do
+rels=("$@")
+[ ${#rels[@]} -gt 0 ] || rels=(43 44 45)       # (not "${@:-43 44 45}": that is ONE word)
+for rel in "${rels[@]}"; do
     img="configsys-test:fedora$rel"
     echo ">> building $img (fedora:$rel)"
     podman build -q -t "$img" --build-arg "FEDORA=$rel" -f "$here/Containerfile.fedora" "$repo"
