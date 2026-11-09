@@ -59,10 +59,10 @@ def test_an_unroutable_bundle_part_is_skipped_with_a_notice(tmp_path):
              '  other: { install: [ { via: native } ] }  nothing: { parts: [ b ] }')
     r = _res(tmp_path, comps)
     for names in (['bundle'], ['bundle', 'other'], ['other', 'bundle']):
-        units, errors = r.resolve_resilient(names)
+        units, errors = r.resolve_resilient(names, record=True)
         assert {'apt\\a', 'apt\\c'} <= set(units) and 'bundle' not in errors, (names, errors)
         assert [p for p, _why in r.skipped_parts['bundle']] == ['b']
-    _u, errors = r.resolve_resilient(['nothing'])
+    _u, errors = r.resolve_resilient(['nothing'], record=True)
     assert 'nothing' in errors and 'no part of nothing' in errors['nothing']
 
 
@@ -71,7 +71,7 @@ def test_a_soft_pin_whose_method_requires_fail_is_dropped(tmp_path):
              '  curl: { install: [ { via: native } ] }')
     r = _res(tmp_path, comps, block='alpine', version='3.20',
              extra='drivers: { tarball: { requires: curl } }')
-    units, errors = r.resolve_resilient(['tool'], soft_pins={'tool': 'tarball'})
+    units, errors = r.resolve_resilient(['tool'], soft_pins={'tool': 'tarball'}, record=True)
     assert not errors, errors
     assert 'apk\\tool' in units and 'tool' in r.dropped_soft_pins
 

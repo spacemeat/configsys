@@ -267,7 +267,7 @@ def test_context_gates_under_the_last_resolves_auto_tighten_pins(tmp_path):
     # auto-tighten floor pin (extra_pins) that opens a driver opens it in context() too
     r = _res(tmp_path, 'musly')
     assert 'appImage' in r.context().gated_drivers                 # no glibc provider by default
-    r.resolve_resilient(['app'], extra_pins={'glibc': 'shim'})
+    r.resolve_resilient(['app'], extra_pins={'glibc': 'shim'}, record=True)
     assert 'appImage' not in r.context().gated_drivers
-    r.resolve_resilient(['app'])                                    # a pass without them resets it
+    r.resolve_resilient(['app'], record=True)                                    # a pass without them resets it
     assert 'appImage' in r.context().gated_drivers

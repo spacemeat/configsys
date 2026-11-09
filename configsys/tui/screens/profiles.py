@@ -717,15 +717,13 @@ class ProfilesScreen(Screen):
                 ps.reload(); dirty = True
                 note = mnote or f'{_c} machines'
         elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
-            cur, mnote = _machines_modal(stdscr, pal, ctx, ps.targets())
-            _keep = (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
-                     set(ps.selected_comps))
-            ps = _ProfilesModel(ctx)             # rebuild against any machine add/rename/remove
-            (ps.lcur, ps.ltop, ps.rcur, ps.rtop, ps.focus, ps.pfilter, ps.cfilter,
-             ps.selected_comps) = _keep          # ...but keep the user where they were
+            before = set(ps.targets())
+            cur, mnote = _machines_modal(stdscr, pal, ctx, before)
+            # refresh IN PLACE (B16 / tui-screens-04): a rebuilt model dropped the expanded tree, the
+            # attr filter, the overlay and the warm caches, so the cursor landed on another component
             ps.target_machines = cur
-            self.model = ps
-            dirty = True
+            ps.reload()                          # re-reads profiles/catalog/machines, clamps
+            dirty = bool(mnote) or set(cur) != before
             note = mnote or f'targets: {", ".join(sorted(cur)) or "(none)"}'
         elif pfact == 'where':                     # full-page `where`: the cursor COMPONENT when the
             if ps.focus == 'right':                # table is focused (like Components), else the

@@ -61,3 +61,31 @@ class Screen:
 
     def handle(self, ch, ctx, stdscr, pal):
         raise NotImplementedError
+
+
+def results_note(ctx, did, results, *, what='', tail='', nothing='nothing to do'):
+    """The status note for a BULK action, built from what happened — never the intent (B16 /
+    tui-screens-05): `did` the past-tense verb phrase ("activated", "unmanaged"), `results` a list of
+    (name, ok, why). "activated 5 of 6 — fd-glue failed: …", and under --pretend a "would" note."""
+    if not results:
+        return nothing
+    ok = [n for n, good, _w in results if good]
+    bad = [(n, w) for n, good, w in results if not good]
+    head = (f'{did} {len(ok)}' + (f' of {len(results)}' if bad else '')
+            + (f' {what}' if what else '') + tail)
+    if bad:
+        name, why = bad[0]
+        head += f' — {name} failed' + (f': {why}' if why else '') + (f' (+{len(bad) - 1} more)'
+                                                                      if len(bad) > 1 else '')
+    if getattr(getattr(ctx, 'runner', None), 'pretend', False):
+        return f'[pretend] nothing changed — would have: {head}'
+    return head
+
+
+def result_ok(res):
+    """(ok, why) of a driver Result or a plain bool (None = nothing to report: ok)."""
+    if res is None or isinstance(res, bool):
+        return (res is not False), ''
+    out = (getattr(res, 'output', '') or '').strip().splitlines()
+    return bool(getattr(res, 'ok', True)), (out[-1] if out else '')
+

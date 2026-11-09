@@ -128,7 +128,7 @@ def test_detected_pin_failing_a_version_constraint_is_dropped_not_an_error(tmp_p
     user.write_text('{ components: { t-ge313: { requires: [ { python3: ">=3.13" } ]  '
                     'install: [ { via: native } ] } } }')
     r = Resolver(ROUTES, 'ubuntu', '24.04', overrides_path=str(user))
-    units, errs = r.resolve_resilient(['t-ge313'], soft_pins={'python3': 'python3.12'})
+    units, errs = r.resolve_resilient(['t-ge313'], soft_pins={'python3': 'python3.12'}, record=True)
     assert errs == {}
     comps = {rc.comp for rc in units.values()}
     assert 'python3.13' in comps and 'python3.12' not in comps
@@ -148,7 +148,7 @@ def test_same_pin_as_a_user_pin_stays_hard(tmp_path):
 def test_soft_binding_pin_naming_an_invalid_method_falls_through(tmp_path):
     r = Resolver(_routes(tmp_path, '''
         tool: { install: [ { via: native } ] }'''), 'debian', '12')
-    units, errs = r.resolve_resilient(['tool'], soft_pins={'tool': 'flatpak'})
+    units, errs = r.resolve_resilient(['tool'], soft_pins={'tool': 'flatpak'}, record=True)
     assert errs == {} and set(units) == {'apt\\tool'}
     assert 'tool' in r.dropped_soft_pins
 
@@ -170,7 +170,7 @@ def test_component_standing_rank_picks_a_provider_without_a_pin(tmp_path):
         app: { requires: cap  install: [ { via: native } ] }
         a:   { provides: cap  standing: 5  install: [ { via: native } ] }
         b:   { provides: cap  install: [ { via: native } ] }'''), 'debian', '12')
-    units, errs = r.resolve_resilient(['app'])
+    units, errs = r.resolve_resilient(['app'], record=True)
     assert errs == {} and 'apt\\a' in units and 'apt\\b' not in units
     assert r.provider_rules.get('cap') == 'standing: 5'
 

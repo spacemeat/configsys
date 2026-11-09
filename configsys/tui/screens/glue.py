@@ -17,9 +17,9 @@ composed unchanged; this adds the three MVVM seams:
 from .. import menu
 from ..menu import (_DF_STATE_ELEM, _GLUE_HEADERS, _GLUE_STATE_LABEL, GlueScreen as _GlueModel,
                     _draw_nav, _fill_bg, _fit, _is_user_glue, _page_rows, _panel, _glue_cells, _put,
-                    _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
+                    _pretend_note, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
 from ..screen import suspended
-from .base import Intent, Screen, ViewModel
+from .base import Intent, Screen, ViewModel, result_ok, results_note
 
 
 class GlueVM(ViewModel):
@@ -198,13 +198,15 @@ class GlueScreen(Screen):
                 gs.dirty.add(row[0].key)
                 gs.reload()
                 note = (f'{row[0].comp}: {res.output.strip()}' if res is not None and not res.ok
-                        else f'activated {row[0].comp} ({row[5]})')
+                        else _pretend_note(ctx, f'activated {row[0].comp} ({row[5]})', True))
             elif gact == 'deactivate' and row:      # deactivate this shell's link (leaves conf.d + content)
                 with suspended(stdscr):
-                    gs.gd.uninstall(row[0], only_shells=[row[5]])
+                    res = gs.gd.uninstall(row[0], only_shells=[row[5]])
                 gs.dirty.add(row[0].key)
                 gs.reload()
-                note = f'deactivated {row[0].comp} ({row[5]})'
+                ok, why = result_ok(res)
+                note = _pretend_note(ctx, f'deactivated {row[0].comp} ({row[5]})' if ok
+                                     else f'{row[0].comp}: {why or "deactivate failed"}', ok)
             elif gact == 'activate-group' and row:  # (re)activate EVERY snippet in THIS shell's group
                 shell = row[5]
                 # re-install the whole group, not just the inactive rows: glue install is
@@ -214,17 +216,17 @@ class GlueScreen(Screen):
                 user = [r for r in gs.rows if r[5] == shell and _is_user_glue(r)]
                 n_inactive = sum(1 for r in gs.rows
                                  if r[5] == shell and r[3] not in ('linked', 'loader-on'))
+                results = []
                 with suspended(stdscr):
-                    for rc in grp.values():
-                        gs.gd.install(rc, only_shells=[shell])   # scope to THIS shell, not the component's others
+                    for rc in grp.values():                      # scope to THIS shell, not the component's others
+                        results.append((rc.comp, *result_ok(gs.gd.install(rc, only_shells=[shell]))))
                     if user:                                     # + relink the shell's user.d snippets
-                        gs.gd.deploy_user_glue(shell)
+                        results.append(('your user glue', *result_ok(gs.gd.deploy_user_glue(shell))))
                 gs.dirty.update(grp)
                 gs.reload()
-                n = len(grp) + len(user)
-                note = (f'(re)activated {n} snippet(s) in the {shell} group'
-                        f' ({n_inactive} newly active)' if n
-                        else f'no snippets in the {shell} group')
+                note = results_note(ctx, '(re)activated', results, what='snippet(s)',
+                                    tail=f' in the {shell} group ({n_inactive} newly active)',
+                                    nothing=f'no snippets in the {shell} group')
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
         return Intent(note=note)

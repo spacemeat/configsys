@@ -123,6 +123,9 @@ class ComponentsScreen(Screen):
         sub = f'  {ctx.os_info.block}'
         if ctx.runner.pretend:
             sub += '   [PRETEND]'
+        _other = ctx.curating_machine() if hasattr(ctx, 'curating_machine') else None
+        if _other:
+            sub += f'   machine: {_other} (curating — installs off)'
         sub += f'   view: {getattr(ms, "mode", "to-do")}'
         _put(surface, 1, len(title), _fit(sub, max(1, w - len(title))), pal.style('os', 1, len(title), h, w))
         rend = len(title) + len(sub)
@@ -373,6 +376,12 @@ class ComponentsScreen(Screen):
                         intent.note = _swap
                 except Exception as e:  # noqa: BLE001
                     intent.note = f'reload failed: {e}'
+        elif (act in _COMP_OPS or act in ('op-install-all', 'op-upgrade-all', 'execute')) \
+                and getattr(ctx, 'curating_machine', lambda: None)():
+            # B16 / parity-03: --machine <other> curates that machine's picks from here; installing
+            # them HERE would be the surprise the CLI's `--picks` refuses
+            intent.note = (f'read-only: you are curating {ctx.curating_machine()} (--machine) — '
+                           'installs happen only for this box; edit its picks on Profiles')
         elif act in _COMP_OPS:
             if not ms.stage(_COMP_OPS[act]):
                 intent.note = (getattr(ms, 'skip_note', '')

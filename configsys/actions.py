@@ -504,6 +504,32 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
 
 
+def unset_pin(ctx, name):
+    """Drop the `pins:` entry for `name` — from your top config, else from the primary plugin that
+    carries it — so the routes' default applies again. The ONE unpin writer the CLI (`pin unset`) and
+    the TUI method picker ("auto — unpin") share. Returns (changed, label): label names where it was
+    removed, why nothing changed, or PRETEND_NOT_SAVED."""
+    top = ctx.paths.user_config_file
+    local = plugins.read_pins(top) if Path(str(top)).exists() else {}
+    pfile, prim = _primary_data_file(ctx)
+    ppins = plugins.read_pins(pfile) if pfile else {}
+    if name not in local and name not in ppins:
+        return False, 'not pinned in your top config or primary plugin'
+    if _pretend(ctx):
+        return False, PRETEND_NOT_SAVED
+    if name in local:
+        del local[name]
+        plugins.set_pins(top, local)
+        where = 'top config'
+    else:
+        del ppins[name]
+        plugins.set_pins(pfile, ppins)
+        where = f'primary plugin {prim}'
+    invalidate_location_cache(ctx)                # the method reverts -> where it installs may too
+    _invalidate_for(ctx, 'pins')
+    return True, where
+
+
 def edit_target(ctx, *, create=False):
     '''(file, label) for a PORTABLE edit: the primary plugin's data file when a primary is blessed +
     synced (so edits travel to your other machines), else this machine's top config. NOTE: the

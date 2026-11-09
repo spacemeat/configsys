@@ -21,8 +21,9 @@ from .. import menu
 from ..menu import (_DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel, _df_cells,
                     _draw_nav, _fill_bg, _fit, _page_rows, _panel, _popup_choose, _put,
                     _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
+from ..menu import _pretend_note
 from ..screen import suspended
-from .base import Intent, Screen, ViewModel
+from .base import Intent, Screen, ViewModel, result_ok, results_note
 
 
 class DotfilesVM(ViewModel):
@@ -184,27 +185,30 @@ class DotfilesScreen(Screen):
                 ds.dirty.add(row[0].key)
                 ds.reload()
                 note = (f'{row[0].comp}: {res.output.strip()}'
-                        if res is not None and not res.ok else f'managing {row[0].comp}')
+                        if res is not None and not res.ok
+                        else _pretend_note(ctx, f'managing {row[0].comp}', True))
             elif dact == 'manage-all':              # capture + link every not-yet-managed config
                 pend = {r[0].key: r[0] for r in ds.rows
                         if config_display_state(r[3], r[5]) == 'unmanaged'}
+                results = []
                 with suspended(stdscr):
                     for rc in pend.values():
                         drv = ds.driver_for(rc)
                         drv.capture(rc, force=False)
-                        drv.install(rc)
+                        results.append((rc.comp, *result_ok(drv.install(rc))))
                 ds.dirty.update(pend)
                 ds.reload()
-                note = (f'managing {len(pend)} config(s)' if pend else 'nothing to manage')
+                note = results_note(ctx, 'now managing', results, what='config(s)', nothing='nothing to manage')
             elif dact == 'unmanage' and row:        # UNMANAGE: unlink (confirms first)
                 if _popup_choose(stdscr, pal, f'unmanage {row[0].comp}?  (unlinks it; your '
                                  f'content stays in your store)',
                                  [('cancel', ''), ('unmanage', '')], 0) == 1:
                     with suspended(stdscr):
-                        ds.driver_for(row[0]).uninstall(row[0])
+                        ok, why = result_ok(ds.driver_for(row[0]).uninstall(row[0]))
                     ds.dirty.add(row[0].key)
                     ds.reload()
-                    note = f'unmanaged {row[0].comp}'
+                    note = _pretend_note(ctx, f'unmanaged {row[0].comp}' if ok
+                                         else f'{row[0].comp}: {why or "unmanage failed"}', ok)
             elif dact == 'unmanage-all':            # unlink every MANAGED config (confirms first)
                 managed = {r[0].key: r[0] for r in ds.rows
                            if config_display_state(r[3], r[5]) == 'managed'}
@@ -213,12 +217,13 @@ class DotfilesScreen(Screen):
                 elif _popup_choose(stdscr, pal, f'unmanage all {len(managed)} managed config(s)?  '
                                    f'(unlinks each; content stays in your store)',
                                    [('cancel', ''), ('unmanage all', '')], 0) == 1:
+                    results = []
                     with suspended(stdscr):
                         for rc in managed.values():
-                            ds.driver_for(rc).uninstall(rc)
+                            results.append((rc.comp, *result_ok(ds.driver_for(rc).uninstall(rc))))
                     ds.dirty.update(managed)
                     ds.reload()
-                    note = f'unmanaged {len(managed)} config(s)'
+                    note = results_note(ctx, 'unmanaged', results, what='config(s)')
             elif dact == 'move-store' and row:      # move this config to the OTHER store
                 plug = ctx.paths.primary_dotfiles_dir
                 if plug is None:
@@ -231,8 +236,8 @@ class DotfilesScreen(Screen):
                     ds.dirty.add(row[0].key)
                     ds.reload()
                     where = 'plugin (travels)' if to_plugin else 'local (this box)'
-                    note = (f'moved {row[0].comp} to {where}' if moved
-                            else f'nothing to move for {row[0].comp}')
+                    note = _pretend_note(ctx, f'moved {row[0].comp} to {where}' if moved
+                                         else f'nothing to move for {row[0].comp}', bool(moved))
             elif dact == 'move-store-all':          # chooser: move ALL configs to a store
                 plug = ctx.paths.primary_dotfiles_dir
                 if plug is None:
@@ -251,7 +256,8 @@ class DotfilesScreen(Screen):
                                     n += 1
                         ds.dirty.update(rc.key for rc in ds.units)
                         ds.reload()
-                        note = f'moved {n} config(s) to {"plugin" if choice == 0 else "local"}'
+                        note = _pretend_note(ctx, f'moved {n} config(s) to '
+                                                  f'{"plugin" if choice == 0 else "local"}', bool(n))
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
         return Intent(note=note)

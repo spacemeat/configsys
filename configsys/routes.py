@@ -728,7 +728,7 @@ class Resolver:
         from .adapt import to_resolved_components
         return to_resolved_components(self._resolve(names)[0])
 
-    def resolve_resilient(self, names, extra_pins=None, soft_pins=None):
+    def resolve_resilient(self, names, extra_pins=None, soft_pins=None, *, record=False, out=None):
         '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
         that can't route here is reported, not fatal (for inspect/TUI over the active set).
         Precedence (routing-model §10): YOUR config pins > `extra_pins` (auto-tighten floor pins) >
@@ -738,11 +738,18 @@ class Resolver:
         fails a version constraint, or names a method/provider not valid here) is dropped for this
         resolution — never an error; the dropped ones are recorded in `self.dropped_soft_pins`.
         Applied to THIS resolve only (the Resolver's own pins aren't mutated; the extra pins are kept as
-        `tighten_pins` so context() gates drivers the way this resolve did).'''
+        `tighten_pins` so context() gates drivers the way this resolve did).
+
+        Those per-resolve outputs (tighten_pins / dropped_soft_pins / provider_rules / skipped_parts)
+        are written onto this shared Resolver only with `record=True` — the load pipeline's resolve,
+        whose state `where`, context() and the `!` page describe. Every other resolve (a TUI overlay
+        thread, a diagnostics helper) passes nothing and leaves them alone (B16 / tui-core-06); `out`
+        (a dict) receives them either way.'''
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
         soft_pins, extra_pins = dict(soft_pins or {}), dict(extra_pins or {})
-        self.tighten_pins = extra_pins                 # context() gates drivers under these too
+        if record:
+            self.tighten_pins = extra_pins             # context() gates drivers under these too
         pins = ({**soft_pins, **extra_pins, **self.pins}
                 if (extra_pins or soft_pins) else self.pins)
         soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)
@@ -753,9 +760,13 @@ class Resolver:
                                           self.candidate_only, self.disabled,
                                           soft=soft, dropped_out=dropped,
                                           provider_rules_out=rules, skipped_parts_out=skipped)
-        self.dropped_soft_pins = dropped
-        self.skipped_parts = skipped        # {bundle: [(part, why)]} parts with no route here
-        self.provider_rules = rules         # {cap: rule that picked its auto provider} (for `where`)
+        if record:
+            self.dropped_soft_pins = dropped
+            self.skipped_parts = skipped    # {bundle: [(part, why)]} parts with no route here
+            self.provider_rules = rules     # {cap: rule that picked its auto provider} (for `where`)
+        if out is not None:
+            out.update(tighten_pins=extra_pins, dropped_soft_pins=dropped, skipped_parts=skipped,
+                       provider_rules=rules)
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names, extra_pins=None, soft_pins=None):
@@ -785,7 +796,8 @@ class Resolver:
         `include_unavailable=True` also lists methods gated out by `when:` (marked `available:
         False`) — for the Profiles screen, where the user may be authoring for OTHER machines and
         wants the whole menu. `default` is the one that resolves now (a pin, else the
-        preference-picked binding); `pinned` flags the via a binding-pin names. [] if the component
+        preference-picked binding); `pinned` flags the via a binding-pin names; `auto` the one that
+        would resolve with no pin (== default when unpinned). [] if the component
         is unknown / removed / (when not including unavailable) unroutable here.'''
         from .resolve import candidate_bindings, _select, via_representatives, ResolveError
         comp = self.components.get(name)
@@ -816,8 +828,17 @@ class Resolver:
             winner = None
         from .resolve import binding_pin
         pinned_via = binding_pin(self.pins, name)
+        auto = winner
+        if pinned_via is not None:                 # what UNPINNING would give you (B16 / tui-core-05)
+            try:
+                auto = _select(comp, self.cascade, ctx, {k: v for k, v in self.pins.items() if k != name},
+                               self.preference, self.candidate_only)[0]
+            except ResolveError:
+                auto = None
+        auto_via = auto.via if auto is not None else None
         return [{'via': b.via, 'when': b.when, 'default': b is winner,
-                 'pinned': pinned_via == b.via, 'available': b.via in valid_vias} for b in reps]
+                 'pinned': pinned_via == b.via, 'auto': b.via == auto_via,
+                 'available': b.via in valid_vias} for b in reps]
 
     def dependents(self, name):
         '''What DEPENDS ON `name` -> a list of `(dependent, is_driver)` pairs, components first (both

@@ -193,7 +193,38 @@ class MenuState:
         self.selected = set()              # node ids
         self.staged = {}                   # unit_key -> op
         self.errors = {}                   # unit_key -> message
+        self.mode = 'to-do'                # the Components view mode (M)
+        self.descriptions = {}             # {component: description} cached once per load
+        self._req_sig = None               # the install set this tree was built for (matrix picks)
+        self._uninstall_q = frozenset()
+        self._overlay_caches = {}
+        self._extra_keys = set()
         self._refresh()
+
+    def adopt_view(self, old, *, errors=True, descriptions=True):
+        '''Carry `old`'s VIEW onto this freshly built tree — the one place every rebuild path (_reload,
+        a mode switch, the background System Updates fold) goes through, so none forgets a field
+        (B16 / tui-core-03: the `F` filter and the scroll position used to vanish on their own).
+        Selection / staged ops / errors keep only what still exists; expansion, filter, cursor row
+        and scroll offset follow.'''
+        ids = {n.id for n in self._all_nodes()}
+        self.selected = {i for i in old.selected if i in ids}
+        self.staged = {k: op for k, op in old.staged.items() if k in self.states}
+        if errors:
+            self.errors = {k: e for k, e in old.errors.items() if k in self.states}
+        if descriptions:
+            self.descriptions = getattr(old, 'descriptions', {})
+        expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
+        for n in self._all_nodes():
+            if n.expandable:
+                n.expanded = n.id in expanded
+        self.filter = getattr(old, 'filter', '')
+        self.top = getattr(old, 'top', 0)
+        if getattr(old, '_req_sig', None) is not None:
+            self._req_sig = old._req_sig
+        self._uninstall_q = getattr(old, '_uninstall_q', frozenset())
+        self._refresh(keep_id=(old.cur().id if old.cur() else None))
+        return self
 
     def _invert(self):
         name_units = {}
@@ -986,8 +1017,9 @@ def _methods_line(ms, ctx):
     if not cands:
         return ''
     choice = len(cands) >= 2
-    default_via = next((c['via'] for c in cands if c['default']), None)
-    current_via = _current_via(ms.cur(), name) or default_via   # what installs now (detection-aware)
+    resolved_via = next((c['via'] for c in cands if c['default']), None)
+    default_via = next((c['via'] for c in cands if c.get('auto')), resolved_via)   # unpinned auto-default
+    current_via = _current_via(ms.cur(), name) or resolved_via   # what installs now (detection-aware)
     parts = _method_tags(cands, current_via, default_via, choice)
     line = f' via: {"   ".join(parts)}'
     if choice:                                               # surface the deciding rule (the "why")
@@ -1005,10 +1037,16 @@ def _why(ctx, name):
     if comp is None or not comp.bindings:
         return ''
     cx = r.context()
+    from ..resolve import binding_pin
+    pinned = binding_pin(r.pins, name)
+    pins = {k: v for k, v in r.pins.items() if k != name} if pinned else r.pins
     try:
-        return _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[2]
+        rule = _select(comp, r.cascade, cx, pins, r.preference, r.candidate_only)[2]
     except ResolveError:
-        return ''
+        rule = ''
+    if pinned:                       # the pin decides; the rule is what the auto-default (`*`) follows
+        return f'pinned to {pinned}' + (f'; * = auto by {rule}' if rule else '')
+    return rule
 
 
 def _edges_text(ctx, name):
@@ -1662,18 +1700,11 @@ def _reload(ctx, old, dirty):
     states, layouts, transitive = _components_model(ctx, cfg, states, mode)   # fresh overlay: disk changed
     ms = MenuState(states, layouts, transitive)
     ms.mode = mode
+    ms.adopt_view(old, errors=False, descriptions=False)   # an execute's errors are re-derived
     ms._overlay_caches = {}                            # installed reality changed -> re-enumerate on next switch
     ms._extra_keys = _added_extras(base, states) if mode == 'installed+tracked' else set()
-    ids = {n.id for n in ms._all_nodes()}
-    ms.selected = {i for i in old.selected if i in ids}
-    ms.staged = {k: op for k, op in old.staged.items() if k in states}   # stale keys drop
     _seed_uninstall(ms, ctx)                          # add any newly-queued removes (setdefault)
     ms._uninstall_q = set(ctx.config.uninstall_queue())   # snapshot -> refresh on switch if it changes
-    expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
-    for n in ms._all_nodes():
-        if n.expandable:
-            n.expanded = n.id in expanded
-    ms._refresh(keep_id=(old.cur().id if old.cur() else None))
     ms.descriptions = _describe(ctx)             # cache once; never hit ctx.routes per frame
     ms._req_sig = frozenset(_requested)          # the install set this tree was built for (matrix picks)
     return ms, cfg, ledger, states, ctx.diagnostics(states)
@@ -1872,7 +1903,7 @@ def _pick_method_name(stdscr, pal, ctx, name):
     for c in cands:
         mv = vers.get(c['via'])
         ver = clean_version(mv.latest if mv else None) or '—'   # normalized, like the columns
-        tags = [t for t, on in (('default', c['default']), ('pinned', c['pinned'])) if on]
+        tags = [t for t, on in (('auto-default', c.get('auto', c['default'])), ('pinned', c['pinned'])) if on]
         if mv and mv.lags_tip:
             tags.append('lags')
         rows.append((c['via'], ver, f"({c['when']})" if c['when'] else '', ' '.join(tags)))
@@ -1880,12 +1911,22 @@ def _pick_method_name(stdscr, pal, ctx, name):
     ver_w = max(len(v) for _via, v, _w, _t in rows)
     options = [(f"via {via:<{via_w}}   {ver:<{ver_w}}   {when}".rstrip(), tags)
                for via, ver, when, tags in rows]
+    pinned = next((c['via'] for c in cands if c['pinned']), None)
+    if pinned:                       # "auto — unpin": drop the pin, follow the routes again (B16; §7.17)
+        options.append(('auto — unpin (follow the routes\' default again)', ''))
     title = f'install method — {name}' + (f'   (tip {clean_version(tip)})' if tip else '')
     start = next((i for i, c in enumerate(cands) if c['pinned'] or c['default']), 0)
     idx = _popup_choose(stdscr, pal, title, options, start)
     if idx is None:
         return False, 'method unchanged', None
+    if pinned and idx == len(cands):
+        from .. import actions
+        changed, label = actions.unset_pin(ctx, name)
+        return changed, (_pretend_note(ctx, f'{name}: unpinned — the default method applies again',
+                                       True) if changed else f'{name}: {label}'), None
     chosen = cands[idx]
+    if chosen.get('auto') and not chosen['pinned'] and not pinned:
+        return False, f'{name}: already on the default method (no pin to write)', None
     return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'])
 
 
@@ -2071,7 +2112,9 @@ COMPONENT_MODES = ('to-do', 'tracked', 'installed+tracked')   # the Components v
 # ComponentState.status values that keep a tracked component in the to-do view: it isn't green and
 # the user has something to do. Routing statuses rank ahead of missing/outdated in .status, so they
 # must be listed or a stranded `switch` (whose action is `i`) would never surface by default.
-_TODO_STATUSES = ('missing', 'outdated', 'switch', 'unmet', 'dangling')
+# a unit in any of these needs YOUR action for the pick to be green — including `error` (a route or
+# plugin problem to read on the ! page) and `untrusted` (`plugin trust`) (B16 / tui-core-04)
+_TODO_STATUSES = ('missing', 'outdated', 'switch', 'unmet', 'dangling', 'error', 'untrusted')
 
 
 def _components_model(ctx, cfg, states, mode, caches=None):
@@ -2119,7 +2162,14 @@ def _components_model(ctx, cfg, states, mode, caches=None):
         actionable, present = {}, {}                   # per component: needs install/update? present?
         for st in states.values():
             c = st.component.comp
-            actionable[c] = actionable.get(c, False) or (st.status in _TODO_STATUSES)
+            todo = st.status in _TODO_STATUSES
+            # per tracked NAME over every unit that groups under it — its own and the dependencies
+            # pulled for it (requested_as, as the tree groups them) — so a pick whose own unit is green
+            # but whose dependency is missing (`partial`) is shown, not hidden while `I` stages it
+            # (glue/dotfiles companions live on their own pages — they don't make the parent to-do)
+            via_pages = getattr(st.component, 'driver', '') in ('glue', 'dotfiles')
+            for name in {c} | (set() if via_pages else set(getattr(st.component, 'requested_as', ()) or ())):
+                actionable[name] = actionable.get(name, False) or todo
             present[c] = present.get(c, False) or st.present
         scope = {c for c in tracked if actionable.get(c)}          # tracked but not green
         scope |= {c for c in queue if present.get(c)}              # staged-uninstall, still installed
@@ -2162,20 +2212,8 @@ def _rebuild_menu(old, states, layouts, transitive, mode):
     (install state is unchanged; only WHICH components are shown). The cheap counterpart to _reload.'''
     ms = MenuState(states, layouts, transitive)
     ms.mode = mode
-    if hasattr(old, '_req_sig'):                     # (absent on a directly-built MenuState: keep it so)
-        ms._req_sig = old._req_sig
-    ms._uninstall_q = getattr(old, '_uninstall_q', frozenset())
+    ms.adopt_view(old)                               # routes didn't change -> descriptions reused
     ms._overlay_caches = getattr(old, '_overlay_caches', {})
-    ids = {n.id for n in ms._all_nodes()}
-    ms.selected = {i for i in old.selected if i in ids}
-    ms.staged = {k: op for k, op in old.staged.items() if k in states}
-    ms.errors = {k: e for k, e in old.errors.items() if k in states}
-    expanded = {n.id for n in old._all_nodes() if n.expandable and n.expanded}
-    for n in ms._all_nodes():
-        if n.expandable:
-            n.expanded = n.id in expanded
-    ms._refresh(keep_id=(old.cur().id if old.cur() else None))
-    ms.descriptions = old.descriptions               # routes didn't change -> reuse
     ms._extra_keys = {k for k in getattr(old, '_extra_keys', ()) if k in states}
     return ms
 
@@ -2886,9 +2924,12 @@ _GROUP_LABEL = {'machine': 'machine', 'user': 'this machine', 'primary': 'your p
                 'plugin': 'plugins', 'repo': 'repo catalog'}
 
 
-# Serializes the TUI's resolves through a Resolver (`ctx.routes` keeps internal caches) between the
-# UI thread and the ProfileScreen warm thread(s). One process-wide lock: there is one TUI per
-# process, and keying it per ctx would miss two ctx wrappers over one routes (the Profiles sample).
+# Serializes the ProfileScreen catalog warm-up (`_resolve` over ~800 components) against the UI
+# thread's own `_resolve`. It is NOT required for every Resolver call: a resolve only READS the shared
+# Resolver except for its memo caches (dict writes, atomic under the GIL), and only the load pipeline's
+# `resolve_resilient(record=True)` writes the per-resolve state `where`/context() read (B16 /
+# tui-core-06) — so the overlay / probe threads may resolve unlocked. One process-wide lock: there is
+# one TUI per process, and keying it per ctx would miss two ctx wrappers over one routes.
 _ROUTES_LOCK = threading.RLock()
 
 
@@ -4874,15 +4915,26 @@ def run(ctx):
                 diag_top = _draw_diagnostics(stdscr, pal, diags, diag_top)
             else:
                 scr = _screen(screen)
-                if screen == 'components':
-                    scr.model, scr.note, scr.diags = ms, note, diags   # the live tree + frame inputs
-                    scr.draw(stdscr, pal, scr.build_vm(ctx, stdscr.getmaxyx()))
-                else:
-                    if screen == 'theme':
-                        scr.sample_ms = ms         # the live Components state for its bottom sample slot
-                    vm = scr.build_vm(ctx, stdscr.getmaxyx())
-                    vm.note = note                 # the transient status note the router owns
-                    scr.draw(stdscr, pal, vm)
+                try:
+                    if screen == 'components':
+                        scr.model, scr.note, scr.diags = ms, note, diags   # the live tree + frame inputs
+                        scr.draw(stdscr, pal, scr.build_vm(ctx, stdscr.getmaxyx()))
+                    else:
+                        if screen == 'theme':
+                            scr.sample_ms = ms     # the live Components state for its bottom sample slot
+                        vm = scr.build_vm(ctx, stdscr.getmaxyx())
+                        vm.note = note             # the transient status note the router owns
+                        scr.draw(stdscr, pal, vm)
+                except curses.error:
+                    pass                           # a resize mid-paint: the next frame repaints
+                except Exception as e:             # noqa: BLE001 — a paint bug shows, never crashes (B16)
+                    try:
+                        stdscr.erase()
+                        stdscr.addnstr(0, 0, f'configsys: the {screen} screen failed to draw — '
+                                             f'{type(e).__name__}: {e}  (1-7 switch screens, q quits)',
+                                       max(1, stdscr.getmaxyx()[1] - 1))
+                    except curses.error:
+                        pass
             note = ''
             # While the Profiles install-overlay's background orphan scan is running, poll (timed
             # getch) so its result paints on its own; otherwise block. Restore blocking immediately
@@ -5002,7 +5054,7 @@ def run(ctx):
                     # the matrix's picks (and the current-machine switch) change the install set; rebuild
                     # Components whenever the requested set no longer matches what its tree was built for.
                     try:
-                        req_changed = frozenset(ctx.config.requested()) != getattr(ms, '_req_sig', frozenset())
+                        req_changed = frozenset(ctx.config.requested()) != (getattr(ms, '_req_sig', None) or frozenset())
                     except Exception:                     # noqa: BLE001 — a bad config shouldn't block a switch
                         req_changed = True
                     if dest == 'components' and (menu_dirty or df_dirty or q_changed or req_changed):
@@ -5034,11 +5086,16 @@ def run(ctx):
             scr = _screen(screen)
             _act = keymap.action_for(screen, ch)
             _snap = primarygit.snapshot(ctx)      # every key's write journal (free until something writes)
-            if screen == 'components':
-                scr.model = ms
-                intent = scr.handle(ch, ctx, stdscr, pal, cfg, ledger)
-            else:
-                intent = scr.handle(ch, ctx, stdscr, pal)
+            try:
+                if screen == 'components':
+                    scr.model = ms
+                    intent = scr.handle(ch, ctx, stdscr, pal, cfg, ledger)
+                else:
+                    intent = scr.handle(ch, ctx, stdscr, pal)
+            except Exception as e:                # noqa: BLE001 — one bad key never ends the session (B16):
+                # a half-typed config edited in another terminal, a plugin bug — say so, keep staged work
+                from .screens.base import Intent
+                intent = Intent(note=f'error: {type(e).__name__}: {e}')
             if intent.note is not None:
                 note = intent.note
             _cnotes = _commit_primary_action(ctx, _snap, screen, _act, intent.note) if _snap else []

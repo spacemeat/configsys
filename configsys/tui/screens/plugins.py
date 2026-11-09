@@ -19,7 +19,7 @@ from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _draw_nav, _fill_
                     _input_box, _page_rows, _panel, _plugin_cells, _plugin_code_elem,
                     _plugin_remote_elem, _put, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v)
 from ..screen import suspended
-from .base import Intent, Screen, ViewModel
+from .base import Intent, Screen, ViewModel, results_note
 
 
 class PluginsVM(ViewModel):
@@ -173,7 +173,6 @@ class PluginsScreen(Screen):
     # -- draw -------------------------------------------------------------
 
     def draw(self, surface, pal, vm):
-        pl = self.model
         surface.erase()
         h, w = surface.getmaxyx()
         pal.use_page('plugins')
@@ -334,7 +333,9 @@ class PluginsScreen(Screen):
                     res = actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                 pl.reload()
                 dirty = True
-                note = _sync_note(ctx, res) or 'synced all'
+                note = _sync_note(ctx, res) or results_note(
+                    ctx, 'synced', [(n, not str(a).startswith('failed'), str(a)[len('failed'):].strip(' ()'))
+                                    for n, a in (res or [])], what='plugin(s)', nothing='no plugins declared')
             elif pact == 'bless' and row:
                 with suspended(stdscr):
                     _ok, msg, _r = actions.plugin_bless(ctx, row['source'])

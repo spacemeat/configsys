@@ -440,6 +440,18 @@ class Context:
                     rc.fields.setdefault('location-override', locs[rc.comp])
         return units
 
+    def own_machine(self):
+        '''THIS box's machine name (its `machine:` setting, else `this-machine`) — never `--machine`.'''
+        from .config import _selected_machine
+        return _selected_machine(self.config._layers) or 'this-machine'
+
+    def curating_machine(self):
+        '''The OTHER machine `--machine` names, when it isn't this box — you are curating its picks
+        from here, and installs never happen for another machine here (CLI `--picks` refuses, the TUI
+        Components screen is read-only) — else None.'''
+        m = getattr(self, 'machine_override', None)
+        return m if m and m != self.own_machine() else None
+
     def prepare_units(self, units):
         '''Stamp BOTH the scope default and the `locations:` override onto freshly-resolved units —
         the single preparation every code path must run before handing units to a driver (inspect,
@@ -521,7 +533,7 @@ class Context:
         # resilient: a requested component that can't route here becomes a reported error
         # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
         # from an auto-activated project profile) can't brick inspect/the TUI.
-        units, self.resolve_errors = routes.resolve_resilient(list(requested))
+        units, self.resolve_errors = routes.resolve_resilient(list(requested), record=True)
         tighten = {}
         if cfg.auto_tighten():
             # opt-in: auto-select a floor-satisfying method for a provider whose default is too old
@@ -536,7 +548,8 @@ class Context:
             detected = detection.detect_pins(self, units, progress=detect_progress) or {}
         if tighten or detected:
             units, self.resolve_errors = routes.resolve_resilient(
-                list(requested), extra_pins=(tighten or None), soft_pins=(detected or None))
+                list(requested), extra_pins=(tighten or None), soft_pins=(detected or None),
+                record=True)
             for prov, via in sorted(tighten.items()):
                 r.event(report.DEFAULT, f'  auto-tightened {prov} -> via {via} '
                                         f'(to meet a version floor)')
@@ -1044,12 +1057,10 @@ def _picks_selection(ctx, op):
     Picks with no install method here are skipped with the same one-line notice as a profile:
     expansion. Refuses (error_rc=1) when --machine names another machine: installs only ever happen
     on this box, so curating machine X's set from here must not install X's picks here.'''
-    from .config import _selected_machine
-    cfg = ctx.config
-    own = _selected_machine(cfg._layers) or 'this-machine'
-    if ctx.machine_override and ctx.machine_override != own:
-        print(f'configsys: --picks acts on THIS box ("{own}"), but --machine names '
-              f'"{ctx.machine_override}" — installs never happen for another machine here. Drop '
+    other = ctx.curating_machine()
+    if other:
+        print(f'configsys: --picks acts on THIS box ("{ctx.own_machine()}"), but --machine names '
+              f'"{other}" — installs never happen for another machine here. Drop '
               '--machine (or run this on that machine).', file=sys.stderr)
         return None, 1
     _cfg, requested, _units, _ledger, states = ctx.load_pipeline()
@@ -1752,6 +1763,13 @@ def where_report(ctx, name):
         # how each required capability's provider was decided, when a rule other than "the only
         # one" did it (e.g. `standing: 5`) — recorded by the last resilient resolve
         rules = getattr(r, 'provider_rules', None) or {}
+        if not any(c in rules for c in comp.requires):     # no pipeline ran (CLI `where`): ask now
+            _out = {}
+            try:
+                r.resolve_resilient([name], out=_out)
+            except Exception:                              # noqa: BLE001 — an explanation never fails
+                pass
+            rules = _out.get('provider_rules') or {}
         decided = [f'{c} by {rules[c]}' for c in comp.requires
                    if c in rules and rules[c] != 'only provider here']
         if decided:
@@ -2391,18 +2409,15 @@ def _swap_headsup(ctx, name, value):
 
 
 def _pin_unset(ctx, name):
-    from . import plugins
-    pins = plugins.read_pins(ctx.paths.user_config_file)
-    if name not in pins:
-        print(f'configsys: {name} is not pinned in your top config', file=sys.stderr)
-        return 1
-    if ctx.runner.pretend:
-        print(f'configsys: [pretend] would unpin {name} from your top config')
+    from . import actions
+    changed, label = actions.unset_pin(ctx, name)
+    if label == actions.PRETEND_NOT_SAVED:
+        print(f'configsys: [pretend] would unpin {name}')
         return 0
-    del pins[name]
-    plugins.set_pins(ctx.paths.user_config_file, pins)
-    invalidate_location_cache(ctx)                    # method reverts -> location may change back
-    print(f'configsys: unpinned {name}')
+    if not changed:
+        print(f'configsys: {name} is {label}', file=sys.stderr)
+        return 1
+    print(f'configsys: unpinned {name} (in your {label})')
     return 0
 
 
