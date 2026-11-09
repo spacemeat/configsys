@@ -310,13 +310,66 @@ Tumbleweed's versioned packages, Amazon Linux absences; license/telemetry/attrs 
    OS-release fixes (EL 10 first).
 5. **C1, C2, C3** (perf), then the B batches and D refactors by appetite.
 
-## 7. Decisions needed from you
-1. **A1's policy:** gate every command/privileged/download binding from an untrusted layer (recommended), or
-   keep downloads (tarball/font/appImage) "inert" as docs/plugins.md §6 says today and gate only commands +
-   root writes?
-2. **Severity of A1:** CRITICAL (this README) or HIGH (two checkers' calibration)? It changes nothing about
-   order, only how the 2026-09 A1 "done" is recorded.
-3. **Plugins `x` / `t` / `T` / `b`:** confirm popups on all of them, or keep one-key for non-primary plugins?
-4. **D8:** let the resolver read the release registry (`base:` on derivatives), or keep hand-listing
-   derivative atoms in gates?
-5. The per-area "Questions for the user" sections hold ~60 smaller ones (screens, keys, theme semantics).
+## 7. Decisions (2026-11-08, from you)
+1. **A1 policy:** gate every command / privileged-write / download binding from an untrusted layer — not a
+   candidate until `plugin trust` (an "untrusted" row says why). Downloads are not "inert".
+2. **A1 severity:** CRITICAL.
+3. **Plugins `x` / `t` / `T` / `b`:** keep one-key for now. (So A3 becomes: refuse when the clone holds
+   unpushed or uncommitted work, naming it, unless `--force`; no popup.)
+4. **D8:** registry-driven. Derivative releases carry `base: "<line> <version>"`; a versioned base atom
+   (`ubuntu >= 24.04`) evaluates through it; the hand-kept derivative lists retire. A derivative release
+   missing from the registry reads as an unknown version (versioned atoms false) with a `check` warning.
+5. **A11:** every key stays rebindable; a plugin's `keys:` are honored only when that plugin is trusted
+   (keys become executable-ish data: `ships_executable_data` covers them). Repo + top config always.
+6. **Primary trust:** a new top-config-only setting `primary-trust: identity | content | signed`,
+   **default `identity`** (whatever syncs into the primary is trusted); `content` = today's re-trust on
+   change; `signed` = identity only when the commits verify, else content.
+7. **B3:** bash like zsh — one configsys block in `~/.bashrc` sourcing `conf.d`; `.bashrc` created where
+   absent (and a `.bash_profile` that sources it where neither profile exists); the `~/.bash_aliases` link
+   retired; `_loader_ok` verifies the chain.
+8. **Locks:** an explicit op on a locked component refuses ("locked at X — unlock first"); bulk U/I and
+   `--picks` skip locked; `set-version` allowed and re-locks at the new version; `remove` clears the lock;
+   a lock follows the component across a method swap.
+9. **Dependencies:** CLI and TUI both install only missing dependencies (upgrade touches only the named
+   component); CLI `--with-deps` re-runs the tree; `--no-deps` = not even missing ones.
+10. **Transitive plugins:** keep the open fan-out; surface the chain (who declared whom) in `plugin list`,
+    the Plugins screen and `check`.
+11. **Source trees configsys didn't create:** refuse unless adopted (an explicit adopt marks it); `remove`
+    never deletes a tree configsys didn't clone (it reports it).
+12. **Preference knobs:** a plugin's `driver-preference:` counts only on os blocks that plugin defines;
+    elsewhere (and `drivers:` `standing:`/`when:` from non-primary plugins) ignored with a `check` warning.
+13. **Key precedence:** a higher layer's global/screens binding takes the key from a lower layer's page
+    binding; within one layer page beats global; `check` reports each steal.
+14. **Layer-grouped Profiles list:** deleted (with its ceiling plumbing). **Splits:** app.py → per-command
+    modules that own their argparse slice (a registration table); menu.py → screens / modals modules.
+15. **Dotfiles "move to local":** copies — the primary keeps it for other machines.
+16. **Legacy migration shims** (old staged-glue layout, pre-band links, `bash.d`): retired.
+17. **TUI set-version / rebuild:** rows in the `v` picker ("pin version…", "rebuild", "auto — unpin").
+18. **Theme load:** overlays the pack under your overrides; "reset to pack" is separate, confirmed.
+19. **Bare `plugin trust`:** lists each untrusted plugin with what it ships and asks y/N on a tty;
+    `--all --yes` for scripts; refuses unattended.
+
+**Defaulted (the area files' remaining questions — say if you disagree):** `machine:` and `uninstall:`
+top-config-only · plugin/primary `include:` confined to its own tree · the shell-writes guard skips the
+dotfiles/glue drivers and refuses to write through a link whose identity changed · dotfiles uninstall
+restores the oldest backup only when the target is still our link, and reports the rest · `--home` is a
+full sandbox (children get `HOME=<sandbox>`; inherited `CONFIGSYS_STATE_DIR`/`CONFIGSYS_CONFIG` dropped) ·
+gem `set-version` removes the other versions (the plan says so) · version-less source recipes fast-forward
+on upgrade and report the remote tip · batched candidate index as a `NativePkgManager` hook (ABI addition)
+· `installed_name` promoted now · TUI `--machine <other>`: Components read-only with a banner · `check` lints
+reach `!` on a background thread · TUI `plugin add` of a local path defaults to this machine only ·
+example plugin README fixed with the batch · locked primary: push refuses to combine (pushes only when not
+behind) · ignored file the remote now tracks: stop and ask · undo of a move-in commit saves the files to
+`<state>/undo/<sha>/` first · undo of another machine's change says so and confirms · "don't push" after a
+combine puts HEAD back · duplicate keys flagged by `check`/`!` · a bundle part with no route here is skipped
+with a notice · specificity over minimal elements (principles.md; routing-model aligned) · a `{}` name-drop
+fails a hard requirement · `version-floors` affects resolution at both levels · `disabled-drivers: [apt]`
+disables `via: native` reaching apt · version `url:` https-only and trust-gated · decode-error re-run fixed
+regardless · bulk sudo paths through `sudo_session` · hermetic conftest by default (real-tool tests opt in
+by marker) · golden keeps EOL contexts frozen · runner-less integration scripts get runners · component
+rows act on their own units; a profile row's `x` means everything under it · to-do view shows `error` /
+`untrusted` picks · `v` picker "auto — unpin" · resolver-irrelevant TUI writes invalidate only the config ·
+draw never writes the model (a layout step; tested) · `theme:` from any layer (cosmetic) · `NO_COLOR` yields
+to an explicit `--color` (no-color.org) · splash under `NO_COLOR`/`--effects none` = the plain progress bar
+(docs fixed) · splash ABI frozen now (with `depth`) · settings registry (D1) in scope · System Updates: a `!`
+note when the OS's own manager can't list.
