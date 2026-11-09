@@ -227,6 +227,44 @@ class GlueScreen(Screen):
                 note = results_note(ctx, '(re)activated', results, what='snippet(s)',
                                     tail=f' in the {shell} group ({n_inactive} newly active)',
                                     nothing=f'no snippets in the {shell} group')
+            elif gact == 'new-snippet':           # `glue add` for this row's shell (CLI parity, G4)
+                import argparse
+                from ...app import cmd_glue_add
+                name = menu._input_box(stdscr, pal, 'new snippet — name', '')
+                if name and name.strip():
+                    with suspended(stdscr):
+                        rc_ = cmd_glue_add(ctx, argparse.Namespace(name=name.strip(), local=False,
+                                                                   shell=row[5] if row else None))
+                    gs.reload()
+                    note = f'added your snippet {name.strip()}' if rc_ == 0 else f'{name.strip()}: not added'
+            elif gact == 'override' and row and not _is_user_glue(row):
+                import argparse
+                from ...app import cmd_glue_override
+                with suspended(stdscr):
+                    rc_ = cmd_glue_override(ctx, argparse.Namespace(comp=row[0].comp, shell=row[5], local=False))
+                gs.reload()
+                note = f'{row[0].comp}: overridden ({row[5]})' if rc_ == 0 else f'{row[0].comp}: not overridden'
+            elif gact == 'staged':                # the shell-writes guard's captures: activate / discard
+                from ... import shellguard
+                staged = shellguard.list_staged(ctx.paths)
+                if not staged:
+                    note = 'nothing staged — no installer has tried to write your rc files'
+                else:
+                    opts = [(f'{comp} ({shell})', '') for comp, shell, _p in staged]
+                    i = menu._popup_choose(stdscr, pal, 'staged installer writes', opts, 0)
+                    if i is not None:
+                        comp, shell, path = staged[i]
+                        what = menu._popup_choose(stdscr, pal, f'{comp} ({shell}) — {path.name}',
+                                                  [('activate as your own glue', ''), ('discard it', ''),
+                                                   ('leave it staged', '')], 2)
+                        if ctx.runner.pretend and what in (0, 1):
+                            note = f'[pretend] would {"activate" if what == 0 else "discard"} {comp}'
+                        elif what == 0:
+                            done = shellguard.activate(ctx.paths, comp, ctx.runner)
+                            gs.reload()
+                            note = f'{comp}: activated as your glue ({len(done)} shell(s))'
+                        elif what == 1:
+                            note = f'{comp}: discarded {shellguard.discard(ctx.paths, comp)} block(s)'
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
         return Intent(note=note)

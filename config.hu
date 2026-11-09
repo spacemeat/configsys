@@ -270,6 +270,9 @@ profiles: {
             activate: a             // activate the current snippet for its row's shell
             activate-group: A       // (re)activate EVERY snippet in the cursor's shell group (also refreshes changed ones)
             deactivate: x           // deactivate the current snippet for its row's shell (unlink; leaves conf.d + content)
+            new-snippet: n          // create your own startup snippet for this row's shell and open it in $EDITOR
+            override: o             // fork this component's shipped glue into your layer and edit it
+            staged: S               // review what the shell-writes guard staged: activate or discard each
         }
 
         // Plugins screen. Focus-aware nav (down/up/left/right/top/bottom) + switch-pane (table ->

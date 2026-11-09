@@ -4300,6 +4300,24 @@ def build_parser():
     glo.add_argument('--shell', help='only this shell (default: every installed shell it ships)')
     glo.add_argument('--local', action='store_true',
                      help="write to this machine's store even if a primary plugin is set")
+    # the shell-writes guard's staged blocks are glue — here too (`dotfiles staged|activate|discard`
+    # stay as aliases; review-2026-11-2 G4)
+    glsub.add_parser('staged', help='list inactive glue candidates the shell-writes guard captured')
+    gact = glsub.add_parser('activate', help='promote a staged candidate to your own user glue (90-<name>)')
+    gact.add_argument('names', nargs='+', help='component(s) whose staged glue to activate')
+    gact.add_argument('--local', action='store_true',
+                      help="write to this machine's store even if a primary plugin is set")
+    gdis = glsub.add_parser('discard', help='delete a staged glue candidate without activating it')
+    gdis.add_argument('names', nargs='+', help='component(s) whose staged glue to drop')
+
+    unp = sub.add_parser('uninstall', help="this machine's uninstall queue — removals staged (TUI "
+                                          '`x`) to run with the next execute or `remove`')
+    unsub = unp.add_subparsers(dest='uninstall_command')
+    unsub.add_parser('list', help='show what is staged for removal (default)')
+    for verb, what in (('add', 'stage component(s) for removal'), ('rm', 'unstage component(s)')):
+        u = unsub.add_parser(verb, help=what)
+        u.add_argument('names', nargs='+', help='component name(s)')
+    unsub.add_parser('clear', help='unstage everything')
 
     mp = sub.add_parser('manpages', help='install or check the man pages '
                                          '(configsys(1) + configsys.hu(5))')
@@ -4398,8 +4416,46 @@ def cmd_glue(ctx, args):
         return cmd_glue_add(ctx, args)
     if cmd == 'override':
         return cmd_glue_override(ctx, args)
-    print('usage: configsys glue {add <name> | override <comp>} [--shell S] [--local]')
+    if cmd == 'staged':
+        return cmd_dotfiles_staged(ctx, args)
+    if cmd == 'activate':
+        return cmd_dotfiles_activate(ctx, args)
+    if cmd == 'discard':
+        return cmd_dotfiles_discard(ctx, args)
+    print('usage: configsys glue {add <name> | override <comp> | staged | activate <comp> | discard <comp>}')
     return 1
+
+
+def cmd_uninstall(ctx, args):
+    '''The machine-local `uninstall:` queue (TUI `x`): list / add / rm / clear. A staged removal runs
+    with the next execute (TUI `X`) or `configsys remove` (run_plan drains it).'''
+    from . import actions
+    sub = getattr(args, 'uninstall_command', None) or 'list'
+    queue = sorted(ctx.config.uninstall_queue())
+    if sub == 'list':
+        print('\n'.join(f'  - {c}' for c in queue) if queue else 'configsys: nothing staged for removal')
+        return 0
+    if sub == 'clear':
+        if ctx.runner.pretend:
+            _pretend_edit(ctx, f'unstage {len(queue)} removal(s)')
+            return 0
+        print(f'configsys: unstaged {actions.clear_uninstall(ctx)} removal(s)')
+        return 0
+    known = set(ctx.routes.components)
+    rc = 0
+    for name in args.names:
+        if sub == 'add' and name not in known:
+            print(f'configsys: {name!r} is not a known component', file=sys.stderr)
+            rc = 1
+            continue
+        if ctx.runner.pretend:
+            _pretend_edit(ctx, f'{"stage" if sub == "add" else "unstage"} {name} for removal')
+            continue
+        ctx.ensure_user_config()
+        changed, _label = actions.stage_uninstall(ctx, name, on=(sub == 'add'))
+        print(f'configsys: {name} {"staged for removal" if sub == "add" else "unstaged"}' if changed
+              else f'configsys: no change — {name} already {"staged" if sub == "add" else "not staged"}')
+    return rc
 
 
 def _resolve_glue_unit(ctx, name):
@@ -5002,6 +5058,7 @@ _COMMANDS = {
     'inspect': cmd_inspect,
     'dotfiles': cmd_dotfiles,
     'glue': cmd_glue,
+    'uninstall': cmd_uninstall,
     'profile': cmd_profile,
     'config': cmd_config,
     'theme': cmd_theme,

@@ -286,7 +286,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **G3 [MED]** TUI `plugin add` has no `--local`/ref/pin — a project path gets published to every machine;
   no `picks to-primary`; `plugin init`/`set-source` CLI-only. (parity-08/10/13, tui-screens-24) · [done — done — Plugins `a` keeps a local path on this machine (§7 default), asks "all your machines / this machine only" for a remote source when a primary is blessed, and takes a ref; new keys n (plugin init: plan, confirm, run), O (set-source), M (picks to-primary)]
 - **G4 [LOW]** Glue verbs split between surfaces (staged glue under `dotfiles`; `glue add/override`
-  CLI-only); the uninstall queue has no CLI. (dotfiles-glue-33, parity-12, actions-29, app-cli-22) · [open]
+  CLI-only); the uninstall queue has no CLI. (dotfiles-glue-33, parity-12, actions-29, app-cli-22) · [done — done — `configsys uninstall list|add|rm|clear` (clear_uninstall finally has a caller); `glue staged|activate|discard` beside the dotfiles aliases; Glue screen keys n (new snippet, $EDITOR), o (override), S (review staged writes: activate / discard)]
 - **G5 [LOW]** Primary UX: the TUI push popup doesn't list files; `plugin undo` takes back another
   machine's change without saying so; a pushed `.hu` isn't parse-checked; signed-only push doesn't warn on
   unsigned outgoing commits. (primary-14/15/20/21) · [open]

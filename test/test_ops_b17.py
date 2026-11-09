@@ -70,3 +70,16 @@ def test_dotfiles_units_reuse_the_pipeline_resolution():
                               pipeline_units=(id(routes), id(cfg), {'dotfiles\\x-dotfiles': unit}))
     _drv, units = actions.dotfiles_units(c)
     assert units == [unit]
+
+
+def test_the_uninstall_queue_has_a_cli(tmp_path, capsys):
+    # G4: `configsys uninstall list|add|rm|clear` (TUI `x`'s queue; clear_uninstall's caller)
+    from configsys import app
+    base = ['--home', str(tmp_path), '--os', 'pop_os!:24.04']
+    assert app.main(base + ['uninstall', 'add', 'btop']) == 0
+    assert app.main(base + ['uninstall', 'list']) == 0
+    assert '- btop' in capsys.readouterr().out
+    assert app.main(base + ['uninstall', 'clear']) == 0
+    assert app.main(base + ['uninstall', 'list']) == 0
+    assert 'nothing staged' in capsys.readouterr().out
+    assert app.main(base + ['uninstall', 'add', 'nosuchtool']) == 1
