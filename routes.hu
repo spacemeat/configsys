@@ -105,6 +105,7 @@
                 43: { status: released  released: 2025-10-28  eol: 2026-12-01  image: "docker.io/library/fedora:43"  glibc: 2.42  python3: 3.14  gcc: 15  manager: "dnf5 version 5.2.18.0" }
                 44: { status: released  released: 2026-04-28  eol: 2027-06-02  image: "docker.io/library/fedora:44"  glibc: 2.43  python3: 3.14  gcc: 16  manager: "dnf5 version 5.4.3.0" }
                 45: { status: released  released: 2026-11-03  eol: 2027-12-08  image: "docker.io/library/fedora:45"  glibc: 2.44  python3: 3.15  gcc: 16  manager: "dnf5 version 5.4.6.0" }
+                46: { status: prerelease  note: "Rawhide; GA expected spring 2027"  image: "docker.io/library/fedora:46"  glibc: 2.44.9000  python3: 3.15  gcc: 16  manager: "dnf5 version 5.4.6.0" }
             } }
         nobara:    { using: fedora }                                // Fedora-based (Nobara N = Fedora N) — borrows fedora's scale, no own scale-root
         rhel:      { using: redhat    scale-root: true   // EL scale-root (N release)
