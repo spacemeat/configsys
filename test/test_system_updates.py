@@ -625,3 +625,10 @@ def test_upgrade_system_refuses_component_names_and_picks(capsys):
         assert ops.cmd_upgrade(None, args) == 1
         assert '--system' in capsys.readouterr().out
 
+
+def test_config_set_pretend_refuses_a_bad_choice_like_the_real_run(tmp_path, capsys):
+    import subprocess, sys
+    r = subprocess.run([sys.executable, '-m', 'configsys', '--home', str(tmp_path), '--pretend',
+                        'config', 'set', 'installer-shell-writes', 'off'],
+                       capture_output=True, text=True)
+    assert r.returncode == 1 and 'takes one of' in r.stderr

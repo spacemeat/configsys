@@ -5,6 +5,7 @@ Split out of app.py (review-2026-11-2 D2).
 
 import sys
 from .common import _pretend_edit
+from .. import layers
 
 
 _MANPAGES = (('configsys.1', 'man1'), ('configsys.hu.5', 'man5'))
@@ -204,6 +205,11 @@ def cmd_config(ctx, args):
         except ValueError as e:
             print(f'configsys: {args.key}: {e}', file=sys.stderr)
             return 1
+    choices = layers.SETTING_CHOICES.get(args.key)    # refuse under --pretend too, like the real run
+    if values and choices and values[0].strip().lower() not in choices:
+        print(f'configsys: {args.key} takes one of {", ".join(choices)} (not {values[0]!r})',
+              file=sys.stderr)
+        return 1
     if ctx.runner.pretend:
         label = ('top config' if getattr(args, 'local', False)
                  else actions._setting_target(ctx, args.key)[1])
