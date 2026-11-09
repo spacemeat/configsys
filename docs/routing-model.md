@@ -586,8 +586,8 @@ keys are the cpus upstream ships, so the binding declines elsewhere (`resolve.cp
           version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_$ARCH.tar.gz" } } ] }
     julia: { install: [
         { via: tarball  cpu-names: { x86_64: x86_64 }  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc
-          version: { static: 1.12.6 }
-          url: "https://julialang-s3.julialang.org/bin/linux/x64/1.12/julia-1.12.6-linux-x86_64.tar.gz" } ] }   // x86-only
+          version: { static: 1.13.3 }
+          url: "https://julialang-s3.julialang.org/bin/linux/x64/1.13/julia-1.13.3-linux-x86_64.tar.gz" } ] }   // x86-only
 }
 ```
 

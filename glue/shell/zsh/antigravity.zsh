@@ -1,4 +1,4 @@
-# antigravity: alias to the tarball-installed launcher (a VS Code fork). The tarball unpacks
+# antigravity: alias to the tarball-installed launcher (the Antigravity 2.x app). The tarball unpacks
 # under the managed dir; glob for the `antigravity` executable. No-ops where it's native (AUR).
 _ag=$(cs_loc antigravity)
 if [ -n "$_ag" ]; then

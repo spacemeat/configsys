@@ -38,7 +38,7 @@ _FALLBACK_PYTHONS = (('3.10', 'python3.10'), ('3.11', 'python3.11'), ('3.12', 'p
 @functools.lru_cache(maxsize=4)
 def _shipped_pythons(routes_file):
     '''[(version, component)] for every version-scoped `python3` provider in the routes
-    (`provides: { python3: "3.NN" }` — python3.10 … python3.14), oldest first; the fallback list
+    (`provides: { python3: "3.NN" }` — python3.10 … python3.15), oldest first; the fallback list
     when the routes are unavailable. Cached: the advisory may ask once per pipx unit.'''
     if routes_file:
         try:

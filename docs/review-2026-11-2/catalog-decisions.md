@@ -1,0 +1,150 @@
+# Catalog flags — what is left for you (2026-11-09)
+
+The 251 flags in `catalog-flags.md` were triaged: 100 were mechanical and are applied (stale comments beside edited
+components, glue snippets that only worked on x86_64 or missed a shell, the derivative-codename fix in the
+toolchain/apt vendor repos, five failing routes, allowlist and doc fixes — names verified in Leap 16 / EL 8
+containers); 49 were already true in the tree. These 143 need your call — none is applied.
+
+- **antigravity** — Add a separate `antigravity-ide` component (the VS Code-fork editor: AUR antigravity-ide, dl.google.com tarball)?  _Options:_ add it / leave it out
+- **asciinema** — Add upstream static-musl tarballs, which need a new asciinema-glue component + 5 shell snippets?  _Options:_ add tarball + glue / leave native/pipx only
+- **atuin** — atuin is in EPEL 10.3+ only: widen the EPEL binding to all rhel >= 9 once EL 10.3 is current?  _Options:_ widen when 10.3 ships (/update-os) / leave as is
+- **awscli** — Accept the shifted default from brew to the distro v2 package (Debian 12's is 2.9.19, older)?  _Options:_ accept / give the native binding standing: never-auto / exclude debian < 13 only
+- **awscli** — void_musl/musl has no v2 method: route Void's v1 `aws-cli` natively?  _Options:_ leave the honest no-route error / route v1 on Void
+- **bass** — bass is dormant ~3 years (unpinned master): keep it, or switch to jorgebucaran/replay.fish?  _Options:_ keep / switch to replay.fish / retire
+- **bitwarden** — Upstream .deb/.rpm now beats Flathub on debian/redhat (more specific when:): keep that?  _Options:_ keep upstream pkg default / give native-pkg-file standing: never-auto
+- **bluetui** — Add a static-musl tarball for Debian/Ubuntu/Fedora/EL/Alpine, which needs a new bluetui-glue component + snippets?  _Options:_ add tarball + glue / leave as is
+- **bottom** — Add an upstream musl tarball for Fedora/EL/AL2023, which needs a bottom-glue `btm` alias component?  _Options:_ add tarball + glue / leave brew/cargo
+- **bruno** — Add `{ via: aur  name: bruno-bin }` (it would become the Arch default over Flathub; AUR is flagged out of date)?  _Options:_ add / leave Flathub default
+- **c3** — Author a c3-glue (cliamp-glue style) so the tarball c3c is on PATH?  _Options:_ author c3-glue + snippets / leave the gap
+- **cairo** — Do pango/pixman/xcb-util/libinput need the same Void `xbps: <name>-devel` name fix as cairo? Their `default:` installs the runtime lib on Void (needs a Void name check)  _Options:_ sweep and fix in their own batch / leave
+- **clang** — Add clang-21/22/23 components shaped like clang-20 (apt.llvm.org + distro compat packages)?  _Options:_ add 21/22/23 / add only the latest / leave at 20
+- **clang-18** — apt.llvm.org suite mapping for Debian testing/sid (its `unstable/` suite uses `llvm-toolchain-N`, with no codename) and kali-rolling: model it, or leave the validate-then-commit removal + error?  _Options:_ add a testing/sid/kali -> unstable mapping in AltDriver / leave (the bad source is removed with a clear error)
+- **clang-19** — Route clang-NN on openSUSE (Leap 16 ships clang19 etc.): add zypper support to AltDriver, or use plain native bindings?  _Options:_ zypper in AltDriver / plain native bindings / leave unrouted
+- **claude-code** — Alpine apk vendor repo for claude-code needs apk driver vendor-repo/key fields (none today): build them?  _Options:_ add apk vendor-repo fields (driver work) / keep the script on Alpine
+- **claude-code** — Native apt/dnf bindings now default over the self-updating script on debian/fedora/rhel: keep?  _Options:_ keep native default / give native bindings standing: never-auto
+- **claude-code** — Is uninstall-cmd `rm -rf "${HOME:?}/.local/share/claude"` (fixed subpath, documented by Anthropic) acceptable under the no-rm-near-$HOME principle?  _Options:_ accept / replace with a non-rm uninstall / leave files
+- **cmake-gui** — FYI: on Arch cmake-gui and cmake share the pacman `cmake` package, so removing cmake-gui removes cmake (the comment edit records it): handle it in code?  _Options:_ comment only / special-case removal of shared packages
+- **codex** — Add the musl tarball route (no Node; it would become the default over npm), which needs a new codex-glue?  _Options:_ add tarball + codex-glue / leave npm
+- **crystal** — Add a native Debian route (bookworm 1.6.0 / trixie 1.14.0)? It shares the apt name with the vendor script  _Options:_ add native Debian binding / keep vendor script
+- **crystal** — Lift `fedora < 45` when OBS devel:languages:crystal publishes Fedora_45  _Options:_ re-check at /update-os / nothing now
+- **cuda-repo** — Route CUDA on openSUSE (NVIDIA suse16 13.x / opensuse15 repos): cuda-repo + toolkit + cudnn bindings together?  _Options:_ add the openSUSE CUDA stack / leave unrouted
+- **cuda-toolkit-12** — Add a cuda-toolkit-13 component (Arch `cuda` 13.4 + NVIDIA-repo cuda-toolkit-13) and decide whether `cuda`/the default moves to 13 (also covers cuda-toolkit-12.8 floors and cudnn-9 cuda-13 variants)?  _Options:_ add -13 and move default / add -13 as never-auto / leave at 12
+- **cuda-toolkit-12.8** — Ubuntu 26.04 / Debian 13 / Fedora 42+ / EL 10 have no route for cuda-toolkit-12.8 (NVIDIA ships only 13 there): a cuda-toolkit-13 provider would satisfy `>=12.8` floors (Blender 5.x). Part of the cuda-toolkit-13 decision  _Options:_ add cuda-toolkit-13 / leave
+- **cudnn-8** — Add an NVIDIA-repo cuda-toolkit-11-8 binding on cuda-toolkit-11 for Ubuntu 22.04 (distro ships 11.5)?  _Options:_ add / leave distro 11.5
+- **cudnn-9** — Fedora has no cuDNN route after narrowing to `rhel or amzn` (NVIDIA ships none for Fedora): accept?  _Options:_ accept honest no-route / route Fedora to the rhel repo (unsupported)
+- **cudnn-9** — Arch `cuda` (13.4) sits on cuda-toolkit-12 (`provides: 12`): move it to a cuda-toolkit-13 and add libcudnn9-dev(el)-cuda-13 variants? Part of the cuda-toolkit-13 decision  _Options:_ do it with cuda-toolkit-13 / leave
+- **dbx** — dbx packages carry `0.6.68-beta.20261107.4` vs github `0.6.68`: does the native-pkg-file install read outdated forever? (needs a real install / version-compare check)  _Options:_ verify on a real install / add a version-re to strip the suffix
+- **deckcraft** — AUR stays the x86_64 Arch default over upstream's signed pkg (more specific `cpu: x86_64`): make the upstream pkg the default (drop the AUR cpu clause / AUR binding)? Same for designcraft/effectcraft  _Options:_ drop AUR cpu clause / drop AUR binding / leave
+- **designcraft** — Same as deckcraft: upstream pkg is the x86_64 Arch default only if the AUR binding or its cpu clause goes  _Options:_ drop AUR cpu clause / drop AUR binding / leave
+- **discord** — RPM Fusion discord (lags upstream) now beats Flathub on Fedora/EL: keep?  _Options:_ keep / give the rpmfusion binding standing: never-auto
+- **dnspeep** — dnspeep idle since 2021 (not archived): keep in the catalog?  _Options:_ keep / tag legacy / retire
+- **docker-engine** — Add Docker's docker-ce dnf repo for EL (the section comment currently steers EL to podman)?  _Options:_ add docker-ce EL binding / keep podman steer
+- **doppler** — Add a musl tarball route, which needs a new doppler-glue component + snippets?  _Options:_ add tarball + glue / leave
+- **doppler** — Use Doppler's official apt/rpm repos (packages.doppler.com) so it rides apt/dnf upgrade?  _Options:_ add vendor repos / leave
+- **dotnet** — Ubuntu 22.04 stays on dotnet-sdk-8.0 (out of support 2026-11-10): route jammy to the script (--channel 10.0)?  _Options:_ route jammy to script 10.0 / keep 8.0
+- **dstat** — Route pcp-dstat (Ubuntu 26.10+/Fedora; needs pmcd running), or keep pipx dool there?  _Options:_ keep pipx dool / route pcp-dstat
+- **dune** — dune now defaults native almost everywhere, so opam has no auto-default sample module left: accept or pick another sample?  _Options:_ accept / pick another opam sample module
+- **effectcraft** — Same as deckcraft: AUR stays the x86_64 Arch default  _Options:_ drop AUR cpu clause / drop AUR binding / leave
+- **elm** — Tarball kept default via `standing: 1`: keep, or let brew become elm's default?  _Options:_ keep standing: 1 / drop it (brew default)
+- **epel-release** — Real subscribed RHEL has no epel-release package: design a URL-templated (OS major) binding for it?  _Options:_ design OS-major URL templating / document RHEL as manual
+- **erlang** — Alpine erlang28 is a pinned major that will rotate  _Options:_ track in /update-os / nothing now
+- **eza** — eza tarball kept default via `standing: 1` on ubuntu 22.04/debian 12/EL/amzn: keep, or let brew win?  _Options:_ keep / drop standing: 1
+- **fastfetch** — Debian 13/Ubuntu 26.04 in-repo fastfetch (older) now wins over upstream .deb per native-first: accept?  _Options:_ accept / give native standing: never-auto there
+- **fff** — fff is archived (2024) and already `legacy`: keep or retire?  _Options:_ keep / retire
+- **firefox** — Debian proper: Mozilla's APT repo (rapid release, current) vs in-repo firefox-esr?  _Options:_ keep Mozilla repo / switch to firefox-esr
+- **firefox** — Ubuntu apt-shim (snap) installs may read as stranded/switch: confirm detection adopts the snap on a real Ubuntu box  _Options:_ test on real Ubuntu / leave
+- **firefox** — Zorin/elementary default to Flathub (native excluded on Ubuntu): add their atoms to the `pop_os! or linuxmint` binding if they ship a real .deb?  _Options:_ verify and add / leave Flathub
+- **flowblade** — Route Void's orphaned flowblade 2.16.3 natively (`or void or void_musl`)?  _Options:_ add Void native / keep flatpak
+- **foldingathome** — Fully identical (via, when, cpus) bindings in ONE layer still collapse silently (last wins): add a load-time error or a `check` warning?  _Options:_ load-time error in _merge_component_chain / check warning (routecheck) / leave
+- **fvwm2** — Add an fvwm3 component (upstream points to it; Arch extra/Fedora/Debian package fvwm3)?  _Options:_ add fvwm3 / leave
+- **gcc-10** — Driver fix in _alt.py _repo_lines (add the PPA only when apt-cache madison finds no distro package) to also cover kali/pikaos, versus the data-only release-split bindings now in place?  _Options:_ do the driver fix / keep data-only
+- **gcloud** — Vendor-repo bindings not install-tested end to end: run a podman install of gcloud on debian/fedora to confirm the apt .asc key path  _Options:_ run podman install test / leave
+- **geekbench** — The default off Arch moved from the tarball (Geekbench 7) to Flathub (Geekbench 6): split a `geekbench6` component and keep `geekbench` = 7?  _Options:_ split geekbench6 / leave
+- **geekbench** — www.geekbench.com/download/linux/ answers 403 to plain curl: does the url version source still read it? (needs a network check)  _Options:_ verify; switch to static pin + latest-check if broken / leave
+- **ghgrab** — Add the raw-binary tarball (would become default over cargo; glibc >= 2.34), which needs a new ghgrab-glue?  _Options:_ add tarball + glue / leave AUR/cargo
+- **glances** — Tumbleweed name python313-Glances will need bumping when the default python flavor moves to 3.14  _Options:_ track in /update-os / nothing now
+- **gleam** — Dropping the tarball when: makes brew the default over the static tarball on Debian/Fedora/EL/Amazon: add `standing: 1` to the tarball?  _Options:_ add standing: 1 / accept brew default
+- **glew** — EL8 glew-devel is in PowerTools, which nothing enables: model it (enable-repo: powertools for rhel < 9)?  _Options:_ add a rhel < 9 powertools binding / leave EL8 failing/declining
+- **glog** — glog archived (2025-06); successor ng-log: add an ng-log component once distros package it?  _Options:_ add ng-log later / leave
+- **gnat** — EPEL gcc-gnat periodically goes uninstallable: keep the EPEL binding or make EL decline?  _Options:_ keep / drop the EL binding
+- **gnuradio** — Homebrew deprecated gnuradio: gate native `not fedora_atomic` once the formula is disabled  _Options:_ gate when disabled / gate now
+- **gnustep-glue** — Write glue/shell/elvish/gnustep.elv? GNUstep.sh is a bash env script and elvish has no cs-bash-env bridge (add-shell.md says to skip such snippets), so it needs a new elvish substrate helper  _Options:_ add an elvish bash-env helper + gnustep.elv / leave elvish without GNUSTEP_*
+- **godot** — Native Godot 4 now defaults where packaged: keep, or add `standing: 1` on the flatpak? Either way the trailing "flatpak stays default" comment must be updated to match  _Options:_ keep native default (fix comment) / flatpak standing: 1 (comment stays true)
+- **godot** — The Ubuntu 26.10 arrival comes from the os_facts sweep only: re-query it in a 26.10 container?  _Options:_ verify in container / accept
+- **gping** — Add the static-musl tarball (gping-vX tags), which needs a gping-glue companion?  _Options:_ add tarball + glue / leave
+- **graalvm** — graalvm now provides jdk 25 (CE 21 ended): accept, or offer Oracle GraalVM 21 (different license)?  _Options:_ accept CE 25 / add Oracle GraalVM 21 provider
+- **grafana-service** — Alpine grafana is OpenRC, and the service driver handles only systemd/runit: add OpenRC support?  _Options:_ add OpenRC to the service driver / leave (FYI)
+- **gridcraft** — The .pkg pacman package name `gridcraft` is assumed and not install-tested: confirm with a real install  _Options:_ install-test / accept
+- **gridcraft** — Apply the same .pkg.tar.zst route to the other ArtCraft siblings (photocraft, vectorcraft, …) in their own batch?  _Options:_ do it in a batch / leave
+- **groovy** — brew (ahead of sdkman) is the actual default on glibc, not SDKMAN as the comment says: add `standing: 1` to the sdkman binding (as gradle does)?  _Options:_ add standing: 1 to sdkman / accept brew and fix the sdkman comment
+- **httpie** — httpie dormant since 3.2.4 (2024-11): keep or retire?  _Options:_ keep / tag legacy / retire
+- **hyprland** — Debian forky/sid only: add `debian >= 14` when forky releases  _Options:_ track in /update-os / nothing now
+- **iftop** — iftop upstream abandoned since 2014 (still packaged): tag legacy?  _Options:_ tag legacy / leave (FYI)
+- **impala** — Ship impala-glue (5 snippets) + `suggests:` so the musl tarball can drop never-auto and beat the lagging crate?  _Options:_ add glue, drop never-auto / leave
+- **intel-oneapi-basekit** — Existing intel-basekit (2025.x) installs read missing under the new package name: add an installed-name fallback, or accept a reinstall?  _Options:_ accept reinstall / probe both names
+- **intel-oneapi-basekit** — Rename the component to intel-oneapi-toolkit?  _Options:_ rename (with alias) / keep the name
+- **iotop** — Move the whole component to iotop-c (maintained C rewrite, packaged almost everywhere)? It changes the installed binary on existing boxes  _Options:_ move to iotop-c / add iotop-c as a separate component / leave
+- **jack** — EL10 has no JACK2: route pipewire-jack-audio-connection-kit there as the successor?  _Options:_ route pipewire-jack on EL10 / leave unrouted
+- **jdk** — Promote OpenJDK 25 to the jdk default LTS (Fedora drops java-21 at 44)?  _Options:_ move default to 25 / keep 21
+- **jellyfin** — Ubuntu 26.10 is routed to the resolute suite by a 26.10-only binding, not install-verified; LMDE-style derivatives get a bad $CODENAME (the DEBIAN_CODENAME code edit fixes LMDE)  _Options:_ install-verify 26.10 / accept
+- **jmc** — EL 9 CRB jmc 8.2.0 now wins over SDKMAN 9.x: make it `standing: never-auto`?  _Options:_ never-auto / keep native
+- **jmtpfs** — jmtpfs unmaintained since 2014 and dropped from Ubuntu 26.04 (aft-mtp-mount is the alternative): keep or retire?  _Options:_ keep / tag legacy / retire
+- **jreleaser** — jreleaser's tarball bindings `suggests: jreleaser-glue`, which does not exist, so the tarball install (default on Alpine/Void-musl) is off PATH — add the companion?  _Options:_ add jreleaser-glue + glue/shell/*/jreleaser.* prepending <loc>/jreleaser-standalone-*/bin (like julia.*'s versioned-subdir glob) / drop the suggests and leave the tarball off PATH
+- **k6** — k6's tarball binding `suggests: k6-glue`, which does not exist, so the tarball install (default on Alpine/Void-musl) is off PATH — add it?  _Options:_ add k6-glue + glue/shell/*/k6.* aliasing <loc>/k6 (like k9s) / drop the suggests
+- **kitty** — kitty's tarball binding (the route on Fedora Atomic and Amazon Linux) `suggests: kitty-glue`, which does not exist: the bundle is off PATH and its .desktop isn't registered — add it?  _Options:_ add kitty-glue + glue/shell/*/kitty.* putting <loc>/bin on PATH (desktop registration would be a separate step) / drop the suggests / gate the tarball never-auto
+- **krita** — the Krita AppImage is a static pin (6.0.4.1) with no latest-check — keep bumping it by hand?  _Options:_ keep the static pin (bump as releases roll) / find a version source that sorts 6.x above 5.3.x
+- **leaf** — leaf's tarball `suggests: leaf-glue`, which does not exist — add it so a pinned tarball is usable?  _Options:_ add leaf-glue + glue/shell/*/leaf.* aliasing <loc>/leaf / drop the suggests
+- **libreoffice** — libreoffice attrs carry both `permissive` and `copyleft` (MPL-2.0-primary) — keep the dual tag or drop `permissive` like firefox?  _Options:_ keep `permissive copyleft` / drop `permissive` (c410)
+- **librewolf** — existing Debian/Ubuntu boxes keep the dead deb.librewolf.net source + key, breaking `apt update` — should configsys clean up a retired vendor source?  _Options:_ leave it (document the manual `sudo rm` of the .list + keyring) / add a retired-source cleanup step to the apt driver/migration
+- **libvirt** — libvirt (and so virt-manager) now has no method on fedora_atomic — add c408's optional rpm-ostree layering binding?  _Options:_ leave it unroutable there (honest) / add a `via: rpm-ostree  standing: never-auto` binding
+- **liquibase** — brew installs frozen Liquibase 4.33.0 (Apache-2.0) while sdkman installs 5.x (FSL) — keep the brew binding or drop it?  _Options:_ keep brew (commented as frozen) / drop brew (c416)
+- **llm** — llm's native (Debian 13 contrib / Ubuntu 26.04 multiverse) binding is never-auto — promote it to the default?  _Options:_ keep never-auto (pipx default) / make native the default
+- **lsblk** — lsblk has no method on fedora_atomic (the image ships it) — model it as environment-provided?  _Options:_ leave it (honest no-method) / add lsblk/util-linux to fedora_atomic's `provides:`
+- **lua** — unversioned `lua` means 5.5 on Arch/Fedora 45/brew but 5.4 on apt/apk/zypper/xbps — which policy?  _Options:_ "current Lua": move apt etc. to 5.5 per release as they ship it / "5.4 everywhere": pacman lua54 (Fedora has no 5.4 compat package)
+- **mariadb** — AL2023 also ships mariadb118-server (11.8 LTS) — switch the amzn name from mariadb1011-server?  _Options:_ keep mariadb1011-server / switch to mariadb118-server
+- **mariadb** — mariadb-service is systemd/runit only, so on Alpine (OpenRC) the server installs but nothing starts it — model OpenRC?  _Options:_ leave it (OpenRC not modeled) / teach the service driver OpenRC (rc-update/rc-service)
+- **miopen** — Ubuntu 26.04+/Debian sid ship MIOpen in the archive (libmiopen-dev) — route it there (with rocm-hip's apt route) in /update-os?  _Options:_ keep AMD's repo name (miopen-hip-dev) / add an archive libmiopen-dev binding for ubuntu >= 26.04
+- **mongodb** — MongoDB 9.0 is the current Community major — bump all four vendor bindings (key server-9.asc, repo paths) together?  _Options:_ stay on 8.0 / bump all to 9.0 (c445)
+- **mvnd** — mvnd moved to apache/maven-mvnd (1.0.6 archives) — add a tarball method (needs a new mvnd-glue PATH companion)?  _Options:_ leave as is / add the tarball + mvnd-glue
+- **netcat** — netcat is tagged `permissive` by the default (OpenBSD) flavor although dnf nmap-ncat is NPSL and brew is GNU GPL — keep?  _Options:_ keep tagged by the default flavor / tag mixed (permissive copyleft)
+- **nextcloud** — add the distro PHP package as an opt-in method (and fix the trailing "no native server package" comment with it)?  _Options:_ leave snap-only / add `{ via: native  when: "fedora or (rhel >= 10) or opensuse"  standing: never-auto }` + reword the comment
+- **ninja** — ninja on Alpine installs samurai (Alpine's default `ninja`) — keep, or install real Ninja?  _Options:_ keep samurai (commented) / apk: ninja-build + ninja-is-really-ninja (two packages)
+- **nload** — nload is unmaintained (0.7.4, 2014; tagged legacy) — keep or retire?  _Options:_ keep (legacy tag) / retire in favor of bmon/bandwhich
+- **nmap** — openSUSE nmap now lives in the non-oss repo, which configsys does not model — how to route it?  _Options:_ add an `opensuse-repo-non-oss` capability component and require it here / gate native off openSUSE so brew takes it
+- **nvtop** — nvtop on Debian 12 has no method (contrib is off by default and repo-component only runs add-apt-repository) — how to cover it?  _Options:_ teach the apt driver to enable `contrib` on Debian / add upstream's AppImage (x86_64/aarch64) + a PATH glue as a fallback / leave it
+- **obsidian** — upstream's .deb (native-pkg-file) now out-specifies Flathub as the default on Debian/Ubuntu x86_64 — keep that?  _Options:_ keep the .deb default / add `standing: never-auto` to the .deb so Flathub stays the default
+- **olive** — olive is stalled upstream since 2024-12 (tagged beta+legacy) — keep or retire? (its stale trailing comment is fixed in edits)  _Options:_ keep / retire
+- **ollama** — Fedora packages ollama (far behind upstream) — add `fedora` to the native gate?  _Options:_ leave it out (upstream script/tarball stays the default) / add fedora and accept the lag
+- **perforce** — the p4d server isn't modeled (daemon attr dropped) — add a p4-server component (debconf/p4-server-control setup)? Fedora/Amazon still use the rhel/9 yum repo  _Options:_ no / add p4-server
+- **pipes** — pipes.sh is dormant upstream (v1.3.0, 2017) — keep or retire?  _Options:_ keep / retire
+- **pkg-config** — Ubuntu 22.04 still ships freedesktop pkg-config 0.29 (GPL) while attrs say `permissive` (pkgconf) — tag mixed?  _Options:_ keep `permissive` / tag `copyleft permissive`
+- **plex** — machines that installed plex keep the dead downloads.plex.tv apt/dnf source until reinstall — should configsys clean up the retired source?  _Options:_ leave it (reinstall or hand-fix) / add a retired-source cleanup
+- **puppet** — add an `openvox` component (Vox Pupuli's Apache-2.0 successor, gem 9.x) next to puppet (whose distro versions range 5.5–8.x)?  _Options:_ no / add openvox (c524)
+- **pyenv** — the brew binding installs pyenv under the brew prefix but the pyenv driver only runs ~/.pyenv/bin/pyenv (drivers/pyenv.py `_pyenv`), so via: pyenv builds fail with a brew pyenv — fix how?  _Options:_ teach the driver to find a PATH/brew pyenv (and its PYENV_ROOT) / drop the brew binding
+- **redis** — redis installs valkey (BSD) on dnf/pacman but real Redis (AGPL/RSAL/SSPL) elsewhere — split out a `valkey` component?  _Options:_ keep one component / add `valkey` [daemon CLI FOSS permissive] (c562)
+- **redis** — redis-service has no service binding for openSUSE (templated redis@<instance>) or Alpine (OpenRC), so it reads unroutable there — add an openSUSE binding?  _Options:_ leave it / add an opensuse service binding (unit redis@<name>)
+- **roc** — roc nightlies are versioned by date (2026-11-07) and osversion.parse_loose reads only (2026,), so outdated detection lags until the year changes — change parse_loose?  _Options:_ leave it (upgrade still fetches the newest) / teach parse_loose dated versions (core change)
+- **scratch** — TurboWarp desktop (Flathub org.turbowarp.TurboWarp, maintained, Scratch-3 compatible) as a successor/alternative method?  _Options:_ no / add it as a method or its own component
+- **sdkman** — on fedora_atomic curl/zip/unzip resolve to brew formulae (the os block doesn't provide them), so sdkman and every `requires: curl` script pull homebrew — add them to fedora_atomic's `provides:`?  _Options:_ leave it / add curl/zip/unzip to fedora_atomic provides (like kde_linux)
+- **software-properties-common** — the apt driver's `repo-component:` runs `add-apt-repository -y <comp>`, which Debian 13 doesn't have (steam's contrib binding and every repo-component on Debian depend on it) — how should the driver enable a Debian component?  _Options:_ edit the deb822 Components line (/etc/apt/sources.list.d/debian.sources) in the driver / keep add-apt-repository and require software-properties-common where it exists / skip repo-component on Debian and gate the contrib/non-free bindings
+- **sonic-pi** — Debian's native sonic-pi (3.2.2) stays the default over the v5 Flathub/AppImage — mark it never-auto?  _Options:_ keep native default / add `standing: never-auto` to the Debian native binding
+- **soundcraft** — the other *craft apps probably gained .pkg.tar.zst too (pacman pkgname likely ai.storyteller.<app>) — audit them for a pacman/native-pkg-file route?  _Options:_ leave as is / run /update-component on the ArtCraft suite
+- **steam** — the Debian steam binding's `repo-component: contrib` relies on add-apt-repository (absent on Debian 13) — same driver question as software-properties-common  _Options:_ see the software-properties-common decision
+- **sway** — xfce/lxqt/mate/cinnamon/budgie/cosmic/hyprland use the same `redhat … and not amzn` gate with no `requires: epel` — re-check each against EPEL?  _Options:_ run /update-component on those DEs / leave
+- **swift** — Debian/Ubuntu `swiftlang` ships no /usr/bin/swift driver (name taken by OpenStack Swift) — pin brew there for the `swift` command?  _Options:_ leave native (swiftc/swift-build/swift-run) / make brew the default on debian
+- **swift** — EPEL 10 ships older swift-lang (5.8.1) than EPEL 9 (6.0.3) and native still wins on EL 10 — prefer brew (6.4) there?  _Options:_ leave native / gate native off rhel >= 10 so brew takes it
+- **tree-sitter-cli** — distro packages (Fedora/EPEL/Alpine/Ubuntu 26.04+) now win over the cargo default by specificity where they are 0.25+ — confirm?  _Options:_ keep native where 0.25+ / mark native never-auto (cargo default everywhere)
+- **ttyd** — add an optional static-binary tarball (ttyd.$ARCH) for musl-without-native boxes? Needs a new ttyd-glue  _Options:_ no / add the tarball + ttyd-glue
+- **unityhub** — unityhub-glue + its snippets still describe the retired AppImage (now just an alias over the native /usr/bin binary) — reword or drop the companion?  _Options:_ drop unityhub-glue (and the five glue/shell/*/unityhub.* files, plus the suggests) / reword the snippet headers and keep it
+- **vaultwarden** — add a web-vault companion (Alpine vaultwarden-web-vault, Arch vaultwarden-web) and a vaultwarden-service unit companion?  _Options:_ no / add one or both
+- **virtualbox** — Debian proper (+LMDE/MX/Kali/Pi OS) and EL 10 now have no virtualbox method — add Oracle's repos (versioned names virtualbox-7.2; codenames that don't match Oracle's suites)?  _Options:_ leave unroutable / add Oracle's apt/rpm repo bindings
+- **vlc** — add an optional vlc-plugins-freeworld component for Fedora codecs (RPM Fusion)?  _Options:_ no / add it
+- **vnstat** — add a vnstat-service companion (systemd `vnstat`, Void runit `vnstatd`) + `suggests: vnstat-service` so the daemon logs?  _Options:_ no / add it
+- **vulkan-runtime** — vulkan-runtime's opensuse/alpine bindings are native `packages:`; switch to the parts style (libvulkan1 / vulkan-loader are already widened to opensuse / alpine)?  _Options:_ keep native packages: / switch to `via: parts` like the other families
+- **webkit2gtk** — EL9 has only the old webkit2gtk 4.0/soup2 API (webkit2gtk3-devel) — route consumers to it there?  _Options:_ leave EL9 unroutable (honest) / add a 4.0-API binding/component for EL9
+- **wget** — a Fedora box with wget1-wget (not wget2-wget) reads wget missing — widen installed-name?  _Options:_ leave it / make installed-name cover both
+- **wine** — EL10/AL2023 have no wine method (so winetricks/yabridge are unroutable there) — add Flathub org.winehq.Wine anyway?  _Options:_ leave unroutable / add the Flathub build (host-wine consumers still won't work)
+- **wlroots** — apt wlroots -dev names differ per release (0.15…0.20) — split into version-scoped wlroots components for ABI-sensitive consumers?  _Options:_ keep one component / version-scoped wlroots-0.NN components
+- **yabridge** — tarball installs land in $CONFIGSYS_APP_DIR/yabridge/yabridge/, which yabridgectl doesn't detect and nothing puts on PATH — which fix?  _Options:_ add a yabridge-glue companion / install to ~/.local/share/yabridge
+- **zed** — zed-glue could alias zed=zeditor when only zeditor is on PATH (distro builds) — add it?  _Options:_ no / add the alias to glue/shell/*/zed.*
+- **zig** — native zig now wins on Fedora/EL/Alpine/openSUSE though distro builds lag (pre-1.0, every minor breaks code) — keep?  _Options:_ keep native default / pin/prefer the tarball everywhere

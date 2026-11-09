@@ -2,7 +2,7 @@
 use path
 var loc = (cs-loc jetbrains-toolbox)
 if (not-eq $loc '') {
-  for c [$loc/jetbrains-toolbox-*[nomatch-ok]/jetbrains-toolbox $loc/jetbrains-toolbox] {
+  for c [$loc/jetbrains-toolbox-*[nomatch-ok]/bin/jetbrains-toolbox $loc/jetbrains-toolbox-*[nomatch-ok]/jetbrains-toolbox $loc/jetbrains-toolbox] {
     if (path:is-regular $c) { edit:add-var jetbrains-toolbox~ {|@a| (external $c) $@a }; break }
   }
 }

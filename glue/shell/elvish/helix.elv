@@ -2,7 +2,7 @@
 use path
 var loc = (cs-loc helix)
 if (not-eq $loc '') {
-  for c [$loc/helix-*[nomatch-ok]-x86_64-linux/hx] {
+  for c [$loc/helix-*[nomatch-ok]-linux/hx] {
     if (path:is-regular $c) { edit:add-var hx~ {|@a| (external $c) $@a }; break }
   }
 }

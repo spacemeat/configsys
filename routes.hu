@@ -558,10 +558,10 @@
         pastel: { attrs: [ CLI FOSS permissive ] description: "pastel — generate, analyze, convert and manipulate colors from the command line."
                   install: [ { via: native  when: "arch or (alpine >= 3.23) or opensuse or fedora or fedora_atomic or void or void_musl" }   // Alpine from 3.23
                              { via: native  when: "rhel >= 9"  requires: epel }   // EPEL 9/10 (not EPEL 8 -> cargo/brew)
-                             { via: cargo   name: pastel  version: { crates: pastel } }  { via: brew  name: pastel } ] }   // only arch/alpine/openSUSE(+brew) carry it in-repo (Debian/Fedora are sid/rawhide-only); cargo elsewhere
+                             { via: cargo   name: pastel  version: { crates: pastel } }  { via: brew  name: pastel } ] }   // in-repo on Arch/Alpine 3.23+/openSUSE/Fedora/Void + EPEL 9/10 (Debian only in forky/sid, not a live release); cargo elsewhere
         dysk: { attrs: [ CLI FOSS permissive ] description: "dysk — a `df` alternative: mounted filesystems + usage in a clear table (formerly `lfs`)."
                 install: [ { via: native  when: "arch or alpine or opensuse or fedora_atomic or (debian >= 13) or (ubuntu >= 26.04)" }   // arrived in Debian 13 (2.10) and Ubuntu 26.04; Fedora/EL/Void lack it
-                           { via: cargo   name: dysk  version: { crates: dysk } }  { via: brew  name: dysk } ] }   // Debian only has it in sid, Fedora/EL not at all -> cargo there
+                           { via: cargo   name: dysk  version: { crates: dysk } }  { via: brew  name: dysk } ] }   // Debian 12 / Ubuntu < 26.04, Fedora/EL/Amazon and Void lack it -> brew there (cargo pinnable, the void_musl fallback)
         stow: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Stow — a symlink farm manager for keeping dotfiles/packages tidy (`stow`)."
                 install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)" }
                            { via: native  when: "rhel"  requires: epel }  { via: brew  name: stow } ] }   // EL: EPEL-only; Alpine: community repo
@@ -578,8 +578,8 @@
                   install: [ { via: native  when: "not (rhel or amzn)"  repo-component: universe }
                              { via: native  when: "rhel"  requires: epel }  { via: brew  name: figlet } ] }   // EL via EPEL
         // --- terminal eye-candy / toys + a couple of terminal CLIs ---
-        cbonsai:    { attrs: [ CLI FOSS copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "debian or fedora or alpine or opensuse_tumbleweed or fedora_atomic or void or void_musl"  repo-component: universe }  { via: aur  name: cbonsai }  { via: brew  name: cbonsai } ] }   // Debian/Ubuntu(universe) package it; not in Leap 16;   // GPL; Arch has it only in the AUR; not in Debian/EL repos -> declines there
-        cmatrix:    { attrs: [ CLI FOSS copyleft legacy ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native  when: "not (rhel or amzn or (opensuse_leap >= 16))" }  { via: brew  name: cmatrix } ] }   // Fedora-only on the redhat side (no EPEL build, not in Amazon Linux); dropped from Leap 16.0 -> brew there.   // packaged on every family
+        cbonsai:    { attrs: [ CLI FOSS copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "debian or fedora or alpine or opensuse_tumbleweed or fedora_atomic or void or void_musl"  repo-component: universe }  { via: aur  name: cbonsai }  { via: brew  name: cbonsai } ] }   // Debian/Ubuntu(universe) package it; GPL; Arch has it only in the AUR; not in Leap 16 or EL/Amazon -> brew there
+        cmatrix:    { attrs: [ CLI FOSS copyleft legacy ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native  when: "not (rhel or amzn or (opensuse_leap >= 16))" }  { via: brew  name: cmatrix } ] }   // Fedora-only on the redhat side (no EPEL build, not in Amazon Linux); dropped from Leap 16.0 -> brew there.
         neo:        { attrs: [ TUI FOSS copyleft ] description: "neo — Matrix-style digital rain in the terminal (`neo`; a modern cmatrix)."
                       install: [ { via: native  when: "(ubuntu >= 24.04) or (debian >= 12) or pikaos or kali or fedora"  repo-component: universe  name: { apt: neo-cli  default: neo } }
                                  { via: aur  name: neo-matrix } ] }   // st3w/neo: Debian 12+/Ubuntu 24.04+ (neo-cli), Fedora; AUR on Arch; source-only elsewhere
@@ -595,16 +595,16 @@
                          version:       { github: pipeseroni/pipes.sh  strip-v: true }
                          uninstall-cmd: 'rm -f "$HOME/.local/bin/pipes.sh" "$HOME/.local/share/man/man6/pipes.sh.6"'
                          location:      "~/.local/bin/pipes.sh" }  { via: brew  name: pipes-sh } ] }
-        asciiquarium: { attrs: [ CLI FOSS copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "arch or alpine or fedora_atomic or void or void_musl" }  { via: brew  name: asciiquarium } ] }   // dropped from Debian/Ubuntu repos; Fedora native, EL via EPEL, Arch [extra] (promoted from the AUR), brew on atomic (pulls perl Term::Animation, absent from Alpine/openSUSE)
+        asciiquarium: { attrs: [ CLI FOSS copyleft ] description: "Asciiquarium — an animated ASCII-art aquarium for the terminal." install: [ { via: native  when: "fedora and not amzn" }  { via: native  when: "arch or alpine or fedora_atomic or void or void_musl" }  { via: brew  name: asciiquarium } ] }   // dropped from Debian/Ubuntu repos; native on Fedora, Arch [extra] (promoted from the AUR), Alpine and Void (brew is atomic's native); brew everywhere else on glibc (EL/Amazon/openSUSE/Debian; pulls perl Term::Animation)
         lolcat:     { attrs: [ CLI FOSS permissive ] description: "lolcat — rainbow-colorize any piped output (`lolcat`)." install: [ { via: native  when: "(debian or fedora or arch) and not amzn"  repo-component: universe }  { via: gem  name: lolcat }  { via: brew  name: lolcat } ] }   // the original is a Ruby gem -> gem covers openSUSE/Alpine/atomic + is pinnable anywhere
         asciinema:  { attrs: [ CLI FOSS copyleft ] description: "asciinema — record and replay terminal sessions as lightweight casts (`asciinema rec`)." install: [ { via: native  when: "not (rhel or amzn)"  repo-component: universe }  { via: native  when: "rhel and not (rhel >= 10)"  requires: epel }  { via: cargo  name: asciinema  version: { crates: asciinema }  requires: { cargo: ">=1.82" } }  { via: pipx  name: asciinema  standing: never-auto }  { via: brew  name: asciinema } ] }   // EL via EPEL 8/9 (none in EPEL 10, none in AL2023 -> brew there). 3.x is Rust (crate MSRV 1.82); PyPI is frozen at the legacy 2.4.0, so pipx stays pinnable only   // native everywhere; pipx is the universal fallback + pinnable alt
-        jrnl:       { attrs: [ CLI FOSS copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora or arch or opensuse or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: brew  name: jrnl } ] }   // Python app -> pipx everywhere; brew `jrnl` on atomic
+        jrnl:       { attrs: [ CLI FOSS copyleft ] suggests: jrnl-dotfiles  description: "jrnl — a plain-text, optionally-encrypted command-line journal (`jrnl`)." install: [ { via: pipx  name: jrnl }  { via: native  when: "fedora or arch or opensuse or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: brew  name: jrnl } ] }   // native where packaged (Fedora/Arch/openSUSE/Void); pipx elsewhere; brew `jrnl` on atomic
         newsboat:   { attrs: [ TUI FOSS permissive ] suggests: newsboat-dotfiles  description: "Newsboat — an RSS/Atom feed reader for the terminal."
                       install: [ { via: native  when: "not ((ubuntu >= 24.04) and (ubuntu < 25.04)) and not rhel and not amzn"  repo-component: universe }   // Rust; packaged on every family (no installable crate) — EXCEPT Ubuntu 24.x (dropped from noble; back in 25.04) and EL/AL2023 (Fedora-only, no EPEL branch)
                                  { via: snap  name: newsboat  standing: never-auto }  { via: brew  name: newsboat } ] }   // the maintainer's snap: never-auto, so brew is the default where native isn't valid (24.x); pin the snap to use it
         lynx:  { attrs: [ CLI app FOSS copyleft ] description: "Lynx — the classic text-mode web browser."
                  install: [ { via: native  repo-component: universe }
-                            { via: native  when: "rhel < 9"  enable-repo: powertools }  { via: brew  name: lynx } ] }   // EL: EPEL
+                            { via: native  when: "rhel < 9"  enable-repo: powertools }  { via: brew  name: lynx } ] }   // EL9/10: AppStream; EL8: PowerTools; no EPEL needed
         pass:  { attrs: [ CLI FOSS copyleft ] description: "pass — the standard unix password manager (a GPG-encrypted store, `pass`)."
                  install: [ { via: native  repo-component: universe  when: "not (rhel or amzn)"  name: { zypper: password-store  default: pass } }
                             { via: native  when: "rhel"  requires: epel }  { via: brew  name: pass } ] }   // openSUSE pkg is `password-store` (binary still `pass`); EL via EPEL
@@ -702,15 +702,16 @@
             install: [ { via: dotfiles  config: { src: htop  dst: $XDG_CONFIG_HOME/htop } } ]
         }
 
-        // bottom (`btm`): Rust system monitor. Native `bottom` only where packaged (Arch, openSUSE,
-        // Alpine, Homebrew); NOT in Debian/Ubuntu (upstream ships a .deb) nor Fedora/EL — name-sweep
-        // confirmed the apt+dnf gaps — so cargo builds it on the whole debian + redhat families.
+        // bottom (`btm`): Rust system monitor. Native `bottom` where packaged (Arch, openSUSE, Alpine,
+        // Void; brew on atomic); Debian 13+ / Ubuntu 24.04+ package it as `btm`; NOT in Fedora/EL —
+        // name-sweep confirmed the dnf gap — so brew covers Fedora/EL/Amazon and older Debian/Ubuntu
+        // (cargo, which builds `btm`, stays pinnable).
         bottom: { attrs: [ TUI app FOSS permissive ] suggests: bottom-dotfiles 
             description: "Cross-platform system monitor (`btm`) — CPU/mem/net/process/disk in a TUI."
             install: [
                 { via: native  when: "not (redhat or debian)" }
                 { via: native  when: "(ubuntu >= 24.04) or (debian >= 13)"  repo-component: universe  name: { apt: btm } }   // Debian 13+ / Ubuntu 24.04+ (universe) package it named after the binary, `btm`
-                { via: cargo  name: bottom  version: { crates: bottom } }   // builds `btm`; covers older Debian/Ubuntu + Fedora/EL
+                { via: cargo  name: bottom  version: { crates: bottom } }   // builds `btm`; pinnable (brew outranks it on glibc)
                 { via: brew  name: bottom }
             ]
         }
@@ -766,7 +767,7 @@
                        { via: native-pkg-file  when: "debian"  version: { github: phoronix-test-suite/phoronix-test-suite  strip-v: true }  url: "https://www.phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_$VERSION_all.deb" }
                        { via: aur  }  { via: brew  name: phoronix-test-suite } ] }
         // --- HTTP load / throughput testers (peers of jmeter; grouped here as perf tools) ---
-        // k6 — native on Arch/Alpine + brew; Grafana's own apt/dnf repos on debian/redhat.
+        // k6 — AUR on Arch + brew; Grafana's own apt/dnf repos on debian/redhat; a static tarball elsewhere.
         k6: { attrs: [ CLI FOSS copyleft ] description: "Grafana k6 — a modern load-testing tool scripted in JavaScript (`k6`)."
             install: [ { via: aur  name: k6 }     // not in extra/community anymore; AUR: k6
                        { via: native  when: "fedora_atomic" }      // brew formula `k6`
@@ -792,9 +793,9 @@
                          version: { github: tsenart/vegeta  strip-v: true  asset: "vegeta_*_linux_$ARCH.tar.gz" } }  { via: brew  name: vegeta } ] }
 
         // --- proprietary cross-platform benchmarks (best-effort) ---
-        // Geekbench 6 — free to run, uploads results to geekbench.com by default. Flathub is the clean
-        // universal method; a CLI tarball (cdn.geekbench.com, version scraped from the download page)
-        // and the AUR package are alternatives. Binary `geekbench6`.
+        // Geekbench — free to run, uploads results to geekbench.com by default. Flathub is the clean
+        // universal method (still Geekbench 6, `geekbench6`); a CLI tarball (cdn.geekbench.com, version
+        // scraped from the download page) and the AUR package are alternatives (Geekbench 7, `geekbench7`).
         geekbench: { attrs: [ CLI GUI proprietary freeware online ] description: "Geekbench — Primate Labs' cross-platform CPU & GPU benchmark (`geekbench7` from the AUR/tarball; the Flathub app is still Geekbench 6, `geekbench6`; uploads results online)."
             install: [ { via: flatpak  hub: flathub  app: com.geekbench.Geekbench6 }   // no Geekbench7 app on Flathub yet
                        { via: aur  name: geekbench }
@@ -821,7 +822,7 @@
             install: [ { via: native  when: "debian or fedora or arch or alpine or void or void_musl" }
                        { via: native  when: "opensuse_tumbleweed"  name: python313-Glances }   // Tumbleweed ships it python-flavored (none in Leap 16)
                        { via: native  when: "rhel and not (rhel >= 10)"  requires: epel }   // EPEL 8/9 only — not in EPEL 10
-                       { via: pipx  name: glances }  { via: brew  name: glances } ] }   // Python; pipx covers openSUSE/Amazon/atomic
+                       { via: pipx  name: glances }  { via: brew  name: glances } ] }   // Python; brew covers Leap/EL 10/Amazon/atomic (outranks pipx; pipx pinnable)
         glances-dotfiles: { description: "glances config, linked into place." install: [ { via: dotfiles  config: { src: glances  dst: $XDG_CONFIG_HOME/glances } } ] }
         nvtop: { attrs: [ TUI FOSS copyleft ] description: "nvtop — a GPU process monitor for NVIDIA/AMD/Intel (an `htop` for GPUs)."
             install: [ { via: native  when: "(debian and not (debian < 13)) or fedora or arch or opensuse or void or void_musl"  repo-component: universe }   // Debian 12 (bookworm) has nvtop only in contrib, which a default install does not enable
@@ -998,16 +999,17 @@
         zellij-glue: { description: "zellij PATH alias (tarball binary), linked into place."
             install: [ { via: glue  requires: shell-glue  glue: zellij } ] }
 
-        // atuin: magical shell history (Rust). Native on Arch/Fedora + brew; cargo is the reliable
-        // universal fallback everywhere else (openSUSE/EL/Alpine/Debian-older). Shell integration
-        // (Up-arrow / Ctrl-R) is enabled via its glue snippet. (broaden native after a name-sweep.)
+        // atuin: magical shell history (Rust). Native on Arch/Fedora/openSUSE/Alpine/Void, Debian 13+ /
+        // Ubuntu 26.04+ and EL 9 (EPEL); brew on atomic and on the rest of glibc (EL 10 / Amazon /
+        // older Debian-Ubuntu); cargo (a crates.io build) stays pinnable. Shell integration
+        // (Up-arrow / Ctrl-R) is enabled via its glue snippet.
         atuin: { attrs: [ CLI FOSS permissive ] suggests: [ atuin-glue ]
             description: "Atuin — magical shell history: SQLite-backed, searchable, syncable (`atuin`)."
             install: [
                 { via: native  when: "arch or fedora or opensuse or alpine or void or void_musl or (debian >= 13) or (ubuntu >= 26.04)"  repo-component: universe }   // Debian 13+, Ubuntu 26.04+ (universe), Alpine community, openSUSE (Leap 16.0 via backports)
                 { via: native  when: "(rhel >= 9) and not (rhel >= 10)"  requires: epel }   // EPEL 9; EPEL 10 only builds it for EL 10.3+ (absent on 10.2)
                 { via: native  when: "fedora_atomic" }               // brew formula `atuin`
-                { via: cargo   name: atuin  version: { crates: atuin } }                          // build-from-crate; covers the rest
+                { via: cargo   name: atuin  version: { crates: atuin } }                          // build-from-crate; pinnable (brew outranks it)
                 { via: brew  name: atuin }
             ] }
         atuin-glue: { description: "atuin shell init (Up-arrow / Ctrl-R history search), linked into place."
@@ -1109,9 +1111,9 @@
                   path: ~/apps/ghostty.appimage }
             ]
         }
-        // alacritty: Rust GPU terminal. Native in the big-four repo families (Ubuntu universe /
-        // Fedora / Arch / openSUSE); it's NOT in EPEL and has no Flathub app, so EL / Amazon /
-        // atomic / musl-Alpine fall back to a crates.io build (needs the usual freetype/fontconfig
+        // alacritty: Rust GPU terminal. Native in Debian / Ubuntu 24.04+ (universe) / Fedora / Arch /
+        // openSUSE / Alpine (community) / Void; it's NOT in EPEL and has no Flathub app, so EL / Amazon /
+        // atomic / Ubuntu 22.04 fall back to a crates.io build (needs the usual freetype/fontconfig
         // -dev libs + a windowing stack — best-effort).
         alacritty: { attrs: [ GUI app FOSS permissive ] suggests: alacritty-dotfiles  description: "Alacritty — a fast, GPU-accelerated terminal emulator."
             install: [
@@ -1206,7 +1208,7 @@
         ueberzugpp: { attrs: [ CLI FOSS copyleft ] description: "ueberzugpp — display images inline in the terminal for previews (`ueberzug`); the maintained ueberzug fork."
             install: [ { via: native  when: "arch or opensuse_tumbleweed"  name: ueberzugpp } ] }
 
-        // mc: Midnight Commander — packaged as `mc` in every base repo (EL via EPEL, like htop/btop).
+        // mc: Midnight Commander — packaged as `mc` in every base repo (EL ships it in AppStream).
         mc: { attrs: [ TUI app FOSS GNU copyleft ]
             description: "Midnight Commander — a two-pane TUI file manager (`mc`)."
             install: [
@@ -1277,7 +1279,7 @@
                 // prepends ~/.cargo/bin for builds, so a floor-pinned rust builds; for INTERACTIVE
                 // use, put ~/.cargo/bin on PATH yourself (configsys ships no personal shell config).
                 { via: script  requires: curl
-                  provides: { cargo: ">=1.90" }      // rustup installs the CURRENT stable; keep this at a recent floor
+                  provides: { cargo: ">=1.97" }      // rustup installs the CURRENT stable; keep this at a recent floor (>= the highest cargo floor a route asks for: hyperfine 1.97)
                   version: { url: "https://static.rust-lang.org/dist/channel-rust-stable.toml"
                              regex: '\[pkg\.rust\]\s*\n\s*version = "([0-9]+\.[0-9]+\.[0-9]+)' }
                   install-cmd:   "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path"
@@ -1413,10 +1415,11 @@
         }
 
         // .NET SDK — build & run C#/F# apps. Native from the distro's OWN repos on arch (rolling),
-        // ubuntu 22.04+, fedora, and alpine (no Microsoft feed needed). On debian/rhel/openSUSE the
-        // upstream dotnet-install.sh lands a per-user SDK under ~/.dotnet (add it to PATH yourself);
-        // the Canonical snap (classic) is a pinnable all-distro alternate. Distro packages are
-        // per-major (8.0 = current LTS) — bump the channel/pkg as newer LTS lines land.
+        // ubuntu 22.04+, fedora, EL 9/10 (AppStream), Amazon Linux 2023 and alpine (no Microsoft feed
+        // needed). On Debian/openSUSE/Void the upstream dotnet-install.sh lands a per-user SDK under
+        // ~/.dotnet (dotnet-glue puts it on PATH); the Canonical snap (classic) is a pinnable
+        // all-distro alternate. Distro packages are per-major (10.0 = current LTS) — bump the
+        // channel/pkg as newer LTS lines land.
         dotnet: { attrs: [ CLI SDK toolchain FOSS permissive tele ] suggests: dotnet-glue  description: ".NET SDK — build & run .NET (C#/F#) apps (`dotnet`)."
             install: [
                 { via: native  when: "arch"    name: dotnet-sdk }              // rolling latest
@@ -1495,7 +1498,7 @@
             install: [ { via: glue  requires: shell-glue  glue: sdkman } ] }
 
         // Kotlin compiler — native on Arch/Homebrew; else the github release ZIP. Needs a JVM to
-        // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — via the script driver.)
+        // run (requires jdk) and unzip to unpack. (SDKMAN is the other path — a `via: sdkman` binding.)
         kotlin: { attrs: [ toolchain FOSS permissive ] suggests: kotlin-glue  description: "Kotlin — modern JVM language, Android's default."
             install: [
                 { via: native  when: "arch" }                      // pacman: kotlin
@@ -1636,7 +1639,7 @@
             install: [ { via: sdkman }   // current Groovy 6, any distro (the clean default)
                        { via: native  when: "arch" }   // Arch [extra] tracks upstream (6.0.0)
                        { via: native  when: "debian or fedora_atomic"  standing: never-auto  repo-component: universe }   // Debian/Ubuntu ship 2.4.21: pinnable only
-                       { via: brew  name: groovy } ] }   // pacman/apt/brew (older); pinnable
+                       { via: brew  name: groovy } ] }   // Arch's pacman groovy tracks upstream (the default there); apt's is older (pinnable)
         scala: { attrs: [ CLI runtime toolchain FOSS permissive ] description: "Scala — an object-functional language on the JVM." requires: jdk
             install: [ { via: sdkman }   // current Scala 3, any distro (SDKMAN — native is ancient on debian, AUR-only on arch)
                        { via: native  when: "fedora_atomic"  standing: never-auto }   // brew scala (pinnable alt)
@@ -1678,7 +1681,7 @@
         racket: { attrs: [ CLI GUI runtime toolchain FOSS permissive ] description: "Racket — a full-spectrum Scheme/Lisp language (ships DrRacket)."
             install: [ { via: native  when: "void or void_musl" }  { via: native  when: "rhel"  requires: epel }   // EL: EPEL only
                        { via: native  when: "(debian or redhat or arch or alpine or opensuse) and not amzn"  repo-component: universe }
-                       { via: brew  name: minimal-racket } ] }   // brew: Minimal Racket (no DrRacket; `raco pkg install drracket` adds it)   // uniform `racket` (brew ships a macOS cask, not a formula)
+                       { via: brew  name: minimal-racket } ] }   // brew: Minimal Racket (no DrRacket; `raco pkg install drracket` adds it)
         guile: { attrs: [ CLI runtime toolchain FOSS GNU copyleft ] description: "GNU Guile — the GNU Scheme interpreter."
             install: [ { via: native  when: "rhel >= 9"  requires: epel  name: { dnf: guile30 } }   // EL: guile30 is EPEL-only (9 and 10)
                        { via: native  when: "rhel < 9"  name: guile }   // EL 8: no guile30 in EPEL 8; AppStream's guile is 2.0
@@ -2008,7 +2011,7 @@
         whois:      { attrs: [ CLI FOSS copyleft ] description: "Domain/IP registration lookup (`whois`)." install: [ { via: native }  { via: brew  name: whois } ] }
         netcat:     { attrs: [ CLI FOSS permissive ] description: "TCP/UDP swiss-army knife (`nc`) — connect, listen, pipe raw sockets." install: [ { via: native  name: { xbps: openbsd-netcat dnf: nmap-ncat  pacman: openbsd-netcat  brew: netcat  default: netcat-openbsd } } ] }   // the BSD nc; Fedora ships it as nmap-ncat, Arch as openbsd-netcat; brew has only GNU `netcat` (same `nc` role, GNU flags)
         // --- easy end-to-end file/terminal sharing ---
-        croc:       { attrs: [ CLI FOSS permissive ] description: "croc — securely send files/folders between any two machines with a shared code phrase." install: [ { via: native  when: "arch or alpine or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: native-pkg-file  when: "debian or redhat or opensuse"  version: { github: schollz/croc  strip-v: true }  asset: { deb: { x86_64: "croc_*_amd64.deb"  aarch64: "croc_*_arm64.deb" }  rpm: { x86_64: "croc-*.x86_64.rpm"  aarch64: "croc-*.aarch64.rpm" } } }  { via: tarball  cpu-names: { x86_64: 64bit  aarch64: ARM64 }  installDir: "$CONFIGSYS_APP_DIR/croc"  version: { github: schollz/croc  strip-v: true  asset: "croc_v*_Linux-$ARCH.tar.gz" } }  { via: brew  name: croc } ] }   // static Go binary -> tarball runs everywhere (incl. musl); brew on atomic; not in Debian/Fedora/EL/openSUSE repos
+        croc:       { attrs: [ CLI FOSS permissive ] description: "croc — securely send files/folders between any two machines with a shared code phrase." install: [ { via: native  when: "arch or alpine or void or void_musl" }  { via: native  when: "fedora_atomic" }  { via: native-pkg-file  when: "debian or redhat or opensuse"  version: { github: schollz/croc  strip-v: true }  asset: { deb: { x86_64: "croc_*_amd64.deb"  aarch64: "croc_*_arm64.deb" }  rpm: { x86_64: "croc-*.x86_64.rpm"  aarch64: "croc-*.aarch64.rpm" } } }  { via: tarball  cpu-names: { x86_64: 64bit  aarch64: ARM64 }  installDir: "$CONFIGSYS_APP_DIR/croc"  version: { github: schollz/croc  strip-v: true  asset: "croc_v*_Linux-$ARCH.tar.gz" } }  { via: brew  name: croc } ] }   // static Go binary; native on Arch/Alpine/Void, brew on atomic; not in Debian/Fedora/EL/openSUSE repos -> upstream's .deb/.rpm (native-pkg-file) is the default there; the tarball is the fallback elsewhere
         wormhole:   { attrs: [ CLI FOSS permissive ] description: "magic-wormhole — get things from one computer to another safely (`wormhole send`/`receive`)." install: [ { via: native  when: "debian or arch or fedora_atomic or void or void_musl"  name: magic-wormhole  repo-component: universe }  { via: pipx  name: magic-wormhole }  { via: brew  name: magic-wormhole } ] }   // the binary is `wormhole`; in-repo on Debian/Ubuntu + Arch + brew (atomic) (removed from Fedora 37+, not in openSUSE's default repos, absent on Alpine) -> pipx is the universal fallback
         ttyd:       { attrs: [ CLI web FOSS permissive ] description: "ttyd — share your terminal over the web (a browser-based terminal, `ttyd`)." install: [ { via: native  when: "rhel"  requires: epel }  { via: native  when: "(not debian or ubuntu or kali or (debian >= 14)) and not amzn"  repo-component: universe }  { via: native  when: "fedora_atomic" }  { via: brew  name: ttyd } ] }   // EL: EPEL 8-10; Debian proper only from forky (14), and AL2023 has none: brew there   // C; packaged widely (Debian bookworm+, Fedora, Arch, Alpine, openSUSE) + brew on atomic
         dig:        { attrs: [ CLI FOSS copyleft ] description: "DNS lookup tool (`dig`) — query records and troubleshoot resolution." install: [ { via: native  name: { apt: dnsutils  dnf: bind-utils  pacman: bind  apk: bind-tools  zypper: bind-utils  brew: bind  default: bind-utils } }  { via: brew  name: bind } ] }   // dig/nslookup; apt `dnsutils` is the transitional metapkg (resolves on old + new), Arch/Homebrew ship the tools in `bind`
@@ -2018,9 +2021,9 @@
         iftop:   { attrs: [ TUI FOSS copyleft ] description: "iftop — a live per-connection bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native }  { via: brew  name: iftop } ] }
         nethogs: { attrs: [ TUI FOSS copyleft ] description: "NetHogs — a per-process network bandwidth monitor." install: [ { via: native  when: "rhel"  requires: epel } { via: native }  { via: brew  name: nethogs } ] }
         nload:   { attrs: [ TUI FOSS copyleft legacy ] description: "nload — a console real-time network traffic monitor (unmaintained upstream since 0.7.4)." install: [ { via: native  when: "rhel"  requires: epel } { via: native  when: "not amzn"  }  { via: brew  name: nload } ] }
-        // gping: ping with a live graph (Rust). Native where packaged (Arch, Alpine, Homebrew, and
-        // Debian>=13/Ubuntu>=23.10); Fedora is COPR-only and older Debian/Ubuntu/openSUSE/EL lack
-        // it, so cargo builds it there.
+        // gping: ping with a live graph (Rust). Native where packaged (Arch, Alpine, Void, openSUSE
+        // Tumbleweed / Leap 16+, Debian>=13/Ubuntu>=23.10; brew on atomic); Fedora is COPR-only and
+        // older Debian/Ubuntu, Leap 15 and EL lack it, so brew covers them (cargo pinnable).
         gping:   { attrs: [ CLI TUI FOSS permissive ] description: "Ping, but with a live graph (`gping`)."
                    install: [ { via: native  when: "void or void_musl" }  { via: native  when: "arch or alpine or fedora_atomic or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 23.10) or (debian >= 13)" }
                               { via: cargo  name: gping  version: { crates: gping } }  { via: brew  name: gping } ] }
@@ -2059,17 +2062,18 @@
                                 { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  archive: none  binary: jq  installDir: "$CONFIGSYS_APP_DIR/jq"  version: { github: jqlang/jq  asset: "jq-linux-$ARCH" } }  { via: brew  name: jq } ] }   // upstream ships a raw static binary
         yq:        { attrs: [ CLI FOSS permissive ] description: "YAML/JSON/XML processor — jq, but for YAML." requires: jq                                                                    // the jq-family yq (yq/xq/tomlq) — shells out to jq at runtime; NOT mikefarah's Go yq
                      install: [ { via: native  when: "arch or void or void_musl or (debian and not (ubuntu < 24.04))"  repo-component: universe }  { via: pipx  name: yq  version: { pypi: yq } }  { via: brew  name: python-yq } ] }   // native `yq` is kislyuk's only on Arch/Void/Debian (Ubuntu 24.04+); Fedora/EL/AL2023/openSUSE/Alpine `yq` is the Go one   // brew python-yq = this jq-wrapping yq (brew's `yq` is mikefarah's Go yq)
-        // mitmproxy 12+ needs Python >=3.12, but a pipx venv built on an OLD system python (Pop
-        // 22.04 / Debian 11-12 ship 3.10-3.11) silently caps upgrades at the last compatible release
-        // (11.x). On debian, build the venv with deadsnakes' python3.13 — the FULL path /usr/bin/
-        // python3.13 (not the bare name, which PATH may resolve to a uv/pyenv-managed build that
-        // breaks pipx venv creation). The other distros (Fedora/Arch/atomic/…) already ship 3.12+, so
-        // plain pipx uses the system python (and python3.13 doesn't even resolve on atomic — pyenv
-        // needs build deps absent there).
+        // mitmproxy 12+ needs Python >=3.12, but a pipx venv built on an OLD system python (Ubuntu
+        // 22.04: 3.10; EL 9 / AL2023: 3.9) silently caps upgrades at the last compatible release
+        // (11.x). There, build the venv with a newer interpreter at its FULL path (not the bare name,
+        // which PATH may resolve to a uv/pyenv-managed build that breaks pipx venv creation):
+        // deadsnakes' /usr/bin/python3.13 on Ubuntu < 24.04, the OS's /usr/bin/python3.12 on EL 9 /
+        // AL2023. Debian 12 (3.11) has no /usr/bin python 3.12+, so it stays on plain pipx (capped
+        // at 11.x). Elsewhere the system python is 3.12+ and plain pipx uses it; Arch defaults to
+        // its `extra` package. (Same shape as pywal16.)
         mitmproxy: { attrs: [ CLI TUI FOSS permissive ] description: "Interactive HTTPS proxy — intercept, inspect, and replay traffic."
-            install: [ { via: pipx  when: "debian"  name: mitmproxy  standing: 1  python: "/usr/bin/python3.13"  requires: python3.13  version: { pypi: mitmproxy } }
+            install: [ { via: pipx  when: "ubuntu < 24.04"  name: mitmproxy  standing: 1  python: "/usr/bin/python3.13"  requires: python3.13  version: { pypi: mitmproxy } }   // jammy's python is 3.10: deadsnakes 3.13
                        { via: pipx  when: "(rhel < 10) or amzn"  name: mitmproxy  standing: 1  python: "/usr/bin/python3.12"  requires: python3.12  version: { pypi: mitmproxy } }   // EL9/AL2023 system python is 3.9; mitmproxy 12+ needs >=3.12
-                       { via: pipx  when: "not debian"  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }
+                       { via: pipx  name: mitmproxy  standing: 1  version: { pypi: mitmproxy } }
                        { via: native  when: "arch" }   // Arch `extra` tracks the current release
                        { via: native  when: "alpine"  standing: never-auto }   // Alpine community lags (11.0.0) — offered, not the default
                        { via: flatpak  hub: flathub  app: org.mitmproxy.mitmproxy } ] }   // pipx (official PyPI) stays the default; the Flathub build is an offered option
@@ -2195,12 +2199,13 @@
         // so they live in base. NVIDIA CUDA is a VERSION-SCOPED capability: cuda-toolkit-11 and -12
         // each `provides: { cuda-toolkit: N }`, so a consumer can select by version —
         // `requires: { cuda-toolkit: ">=12" }` (cudnn-9) picks 12, `"<12"` (cudnn-8) picks 11 (the
-        // constraint ENABLES the opt-in -11). A version-agnostic consumer (`requires: cuda-toolkit`,
+        // constraint ENABLES the never-auto -11). A version-agnostic consumer (`requires: cuda-toolkit`,
         // e.g. a source-build Blender's Cycles backends) takes the DEFAULT — cuda-toolkit-12; -11 is
-        // `opt-in` so it never becomes the generic default, but it's still adopted when it's the one
-        // actually installed (the detection tier) or named/constrained. The -12 toolkit + versioned
-        // cuDNNs ride NVIDIA's network repo (cuda-repo) — real GPU work wants the vendor repo, not the
-        // lagging distro one; -11 stays the low-friction distro package for the older CUDA-11 line.
+        // `standing: never-auto` so it never becomes the generic default, but it's still adopted when
+        // it's the one actually installed (the detection tier) or named/constrained. The -12 toolkit +
+        // versioned cuDNNs ride NVIDIA's network repo (cuda-repo) — real GPU work wants the vendor repo,
+        // not the lagging distro one; -11 is the distro package only where a release still ships 11.x
+        // (Ubuntu 22.04 / Debian 12), and NVIDIA's repo (11.8) on EL < 10.
         // Convenience aliases to the current default line (CUDA 12 / cuDNN 9) so `cuda`/`cudnn`
         // just work installed by name or in a profile. Pure `via: parts` aggregators (no unit of
         // their own); they deliberately do NOT provide the cuda-toolkit capability — dependants
@@ -2463,7 +2468,7 @@
         // gzip/bzip2/xz are on every base system already; these are the ones worth adding.
         zstd:  { attrs: [ CLI lib FOSS permissive ] description: "Zstandard — fast, high-ratio compression (`zstd`)." install: [ { via: native }  { via: brew  name: zstd } ] }
         lz4:   { attrs: [ CLI lib FOSS permissive ] description: "LZ4 — extremely fast compression (`lz4`)." install: [ { via: native }  { via: brew  name: lz4 } ] }
-        p7zip: { attrs: [ CLI FOSS copyleft ] description: "7-Zip for Unix (`7z`/`7zz`) — high-ratio archiver, many formats." install: [ { via: native  when: "not rhel"  name: { apt: p7zip-full  dnf: 7zip  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } }  { via: native  when: "rhel >= 9"  requires: epel  name: 7zip }  { via: native  when: "rhel < 9"  requires: epel  packages: [ p7zip, p7zip-plugins ] }  { via: native  when: "ubuntu >= 22.04 or debian >= 12"  name: 7zip }  { via: native  when: "fedora_atomic"  name: sevenzip }  { via: brew  name: sevenzip } ] }   // modern Debian/Ubuntu ship the actively-maintained `7zip` (`7zz`); it wins over the legacy p7zip-full by specificity. brew's current formula is `sevenzip` (p7zip is the legacy 17.06 fork). EPEL 8 has no 7zip, only legacy p7zip 16.02 (`7za`; `7z` is in p7zip-plugins)
+        p7zip: { attrs: [ CLI FOSS copyleft ] description: "7-Zip for Unix (`7z`/`7zz`) — high-ratio archiver, many formats." install: [ { via: native  when: "not rhel"  name: { apt: p7zip-full  dnf: 7zip  pacman: 7zip  zypper: 7zip  apk: 7zip  default: p7zip } }  { via: native  when: "rhel >= 9"  requires: epel  name: 7zip }  { via: native  when: "rhel < 9"  requires: epel  packages: [ p7zip, p7zip-plugins ] }  { via: native  when: "ubuntu >= 22.04 or debian >= 12"  name: 7zip }  { via: native  when: "fedora_atomic"  name: sevenzip }  { via: brew  name: sevenzip } ] }   // modern Debian/Ubuntu ship the actively-maintained `7zip` (`7zz`) — it wins over the legacy p7zip-full by specificity — as do dnf (Fedora/Amazon/EPEL 9+) and pacman/zypper/apk. brew's current formula is `sevenzip` (p7zip is the legacy 17.06 fork). EPEL 8 has no 7zip, only legacy p7zip 16.02 (`7za`; `7z` is in p7zip-plugins)
         // unrar is nonfree (patent-encumbered): apt multiverse, Fedora RPM Fusion, Arch base.
         unrar: { attrs: [ CLI freeware ] description: "Extract RAR archives."
             install: [
@@ -2594,8 +2599,9 @@
         }
         ardour: { attrs: [ GUI app FOSS copyleft ] description: "Ardour — a professional digital audio workstation (DAW)." install: [ { via: native  when: "debian or fedora or arch or opensuse or void or void_musl"  repo-component: universe  name: { dnf: ardour9  default: ardour } }  { via: flatpak  hub: flathub  app: org.ardour.Ardour } ] }   // Fedora packages it by major (ardour9 in F43-F45): bump the dnf name with the next major
         lmms:   { attrs: [ GUI app FOSS copyleft ] description: "LMMS — a music production studio (synths, sequencing, loops)." install: [ { via: native  when: "debian or fedora or arch or alpine or (opensuse and not (opensuse_leap >= 16)) or void or void_musl"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.lmms.LMMS } ] }   // native: not in Leap 16 (-> flatpak)
-        // Audacity — the Muse-Group telemetry proposal (2021) was walked back and never shipped; no
-        // networked telemetry in released builds. EL via EPEL; flatpak is the universal/atomic method.
+        // Audacity — the Muse-Group telemetry proposal (2021) was walked back; released builds carry
+        // opt-in usage analytics and a default-on update check. EL 8/9 via EPEL; flatpak is the
+        // universal/atomic method.
         audacity: { attrs: [ GUI app FOSS copyleft tele-optin ] description: "Audacity — a multi-track audio recorder and editor."
             install: [ { via: native  when: "void or void_musl" }  { via: native  when: "rhel and not (rhel >= 10)"  requires: epel }   // EPEL 8/9 only (none in EPEL 10 -> flatpak)
                        { via: native  when: "(debian or fedora or arch or opensuse or alpine) and not amzn"  repo-component: universe }
@@ -2625,7 +2631,7 @@
                          version: { github: MakovWait/godots  tag-re: "([0-9][0-9.]*)"  asset: "LinuxX11.zip" } } ] }   // flatpak default; the zip is a self-contained Godot export (`Godots.x86_64`, no clean rename)
         godl:       { attrs: [ GUI CLI app FOSS permissive online ] description: "godl — a Qt-based Godot editor version manager (rich CLI; bindings that travel with a project in VCS)."
             install: [ { via: flatpak  hub: flathub  app: dev.fishies.godl }   // moved to codeberg.org/fishn/godl (old io.github.sockeye_d.godl id is frozen at 1.3)
-                       { via: aur  name: godl } ] }   // Qt/.NET app -> flatpak bundles the runtime (the bare linux zip needs Qt6/.NET present); AUR builds it on Arch
+                       { via: aur  name: godl } ] }   // C++/Qt6 app -> flatpak bundles the runtime (the bare linux zip needs Qt6 present); AUR builds it on Arch
         scribus:    { attrs: [ GUI app FOSS copyleft ] description: "Scribus — open-source desktop publishing (DTP)." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or void or void_musl"  repo-component: universe }  { via: native  when: "rhel >= 9 and not (rhel >= 10)"  requires: epel }  { via: flatpak  hub: flathub  app: net.scribus.Scribus } ] }   // EPEL builds scribus for EL9 only (none for EL8/EL10 -> Flathub)
         digikam:    { attrs: [ GUI app FOSS copyleft ] description: "digiKam — photo management and RAW editing." install: [ { via: native  when: "debian or fedora or arch or opensuse or alpine or void or void_musl"  repo-component: universe }  { via: native  when: "rhel"  requires: epel }  { via: flatpak  hub: flathub  app: org.kde.digikam } ] }
 
@@ -2684,11 +2690,12 @@
         shotcut:    { attrs: [ GUI app FOSS copyleft ] description: "Shotcut — a cross-platform non-linear video editor." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or fedora or arch or opensuse) and not amzn"  repo-component: universe }  { via: flatpak  hub: flathub  app: org.shotcut.Shotcut } ] }
         openshot:   { attrs: [ GUI app FOSS copyleft ] description: "OpenShot — an easy-to-use non-linear video editor (`openshot-qt`)." install: [ { via: native  when: "(debian or fedora or opensuse or void or void_musl) and not (opensuse_leap >= 16)"  name: { apt: openshot-qt  zypper: openshot-qt  default: openshot } }  { via: native  when: "(rhel >= 9) and (rhel < 10)"  requires: epel  enable-repo: crb }  { via: aur  name: openshot-bin }  { via: flatpak  hub: flathub  app: org.openshot.OpenShot }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: OpenShot  scope: user  desktop-id: org.openshot.OpenShot  version: { github: OpenShot/openshot-qt  asset: "OpenShot-v*-x86_64.AppImage" }  path: ~/apps/openshot.appimage } ] }   // Leap 16 and EL 10 lack it (Flathub there); EPEL 9 needs CRB; Arch dropped it to the AUR
         flowblade:  { attrs: [ GUI app FOSS copyleft ] description: "Flowblade — a fast, multitrack non-linear video editor." install: [ { via: native  when: "debian or fedora or arch"  repo-component: universe }  { via: flatpak  hub: flathub  app: io.github.jliljebl.Flowblade } ] }
-        olive:      { attrs: [ GUI app FOSS copyleft beta legacy ] description: "Olive — a non-linear video editor (alpha; development stalled since Dec 2024 — Flathub is still 0.1.2 from 2019)." install: [ { via: native  when: "fedora >= 43" }  { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // no stable distro packages; flatpak default, AppImage fallback
+        olive:      { attrs: [ GUI app FOSS copyleft beta legacy ] description: "Olive — a non-linear video editor (alpha; development stalled since Dec 2024 — Flathub is still 0.1.2 from 2019)." install: [ { via: native  when: "fedora >= 43" }  { via: flatpak  hub: flathub  app: org.olivevideoeditor.Olive }  { via: appImage  cpu-names: { x86_64: x86_64 }  name: Olive  scope: user  version: { github: olive-editor/olive  asset: "Olive-*-linux-x86_64.AppImage" }  path: ~/apps/olive.appimage } ] }   // native on Fedora 43+; flatpak default elsewhere, AppImage fallback
 
         // --- ArtCraft "Crafting Apps" (github.com/storytold, Oct 2026): clean-room Rust rebuilds of the
         // Adobe suite (+ Office, AutoCAD, Pro Tools), MIT/Apache-2.0, offline, no telemetry/account. ALPHA. Every release ships the
-        // same Linux assets per app (x86_64 + aarch64 .deb/.rpm/AppImage/tar.gz; no musl build, no Flathub —
+        // same core Linux assets per app (x86_64 + aarch64 .deb/.rpm/AppImage/tar.gz; newer releases, e.g.
+        // soundcraft's, also ship an Arch .pkg.tar.zst and riscv64 builds; no musl build, no Flathub —
         // the attached .flatpak is a bundle file, which the flatpak driver doesn't install). Not in any
         // distro repo yet. All builds are glibc >= 2.35 (the .deb declares libc6 >= 2.35), so every
         // method is gated to the OS versions that ship it:
@@ -2851,16 +2858,18 @@
             install: [ { via: aur  name: foldingathome }
                        // upstream's current .debs live in per-arch worker dirs (debian-10-64bit = amd64,
                        // debian-stable-arm64 = arm64; debian-stable-64bit is a stale 8.1 build); meta.json
-                       // names each worker's current package. Disjoint cpu-names -> the two never overlap; the
-                       // arm64 one's `cpu:` clause only gives it a distinct (via, when) merge identity.
+                       // names each worker's current package. Disjoint cpu-names -> the two never overlap (and,
+                       // since cpu-names are part of the merge identity, never collapse); the arm64 one's
+                       // `cpu:` clause is a leftover from before that.
                        { via: native-pkg-file  when: "debian"  cpu-names: { x86_64: amd64 }  name: fah-client
                          version: { url: "https://download.foldingathome.org/releases/public/fah-client/meta.json"  regex: "debian-10-64bit/release/fah-client_([0-9.]+)_amd64[.]deb" }
                          url: "https://download.foldingathome.org/releases/public/fah-client/debian-10-64bit/release/fah-client_$VERSION_amd64.deb" }
                        { via: native-pkg-file  when: "debian and cpu: aarch64"  cpu-names: { aarch64: arm64 }  name: fah-client
                          version: { url: "https://download.foldingathome.org/releases/public/fah-client/meta.json"  regex: "debian-stable-arm64/release/fah-client_([0-9.]+)_arm64[.]deb" }
                          url: "https://download.foldingathome.org/releases/public/fah-client/debian-stable-arm64/release/fah-client_$VERSION_arm64.deb" } ] }
-        // Zork — the classic Infocom text adventure. The trilogy is freeware but unpackaged; install the
-        // Frotz Z-machine interpreter and supply the Zork data files yourself (`frotz zork1.z5`).
+        // Zork — the classic Infocom text adventure. The trilogy's story files are MIT-licensed
+        // (github.com/historicalsource/zork1..3) but unpackaged; install the Frotz Z-machine
+        // interpreter and supply the story files yourself (`frotz zork1.z3`).
         zork: { attrs: [ CLI game FOSS copyleft ] description: "Zork — the Infocom classic, played via the Frotz Z-machine interpreter (`frotz zork1.z3`; the MIT-licensed story files are at github.com/historicalsource/zork1..3)."
             install: [ { via: native  when: "not (rhel or amzn or arch or opensuse)"  repo-component: universe  name: frotz }
                        { via: native  when: "arch"  name: frotz-ncurses }  { via: brew  name: frotz } ] }   // Arch splits frotz into frotz-ncurses/-sdl/-dumb in [extra] (terminal flavor here); not in openSUSE
@@ -3051,7 +3060,7 @@
                        install: [ { via: native  when: "debian"  repo-component: universe }  { via: flatpak  hub: flathub  app: net.sonic_pi.SonicPi }
                                   { via: appImage  cpu-names: { x86_64: x64  aarch64: arm64 }  name: "Sonic Pi"  scope: user  version: { github: sonic-pi-net/sonic-pi  strip-v: true }   // official AppImage (v5+), hosted on sonic-pi.net
                                     url: "https://sonic-pi.net/files/releases/v$VERSION/Sonic-Pi-for-Linux-$ARCH-v$VERSION.AppImage"  path: ~/apps/sonic-pi.appimage } ] }
-        supercollider: { attrs: [ GUI app FOSS copyleft ] description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or fedora or arch or opensuse) and not (fedora >= 44)"  repo-component: universe }  { via: native  when: "void or void_musl" } ] }   // brew formula `supercollider`; retired from Fedora 44
+        supercollider: { attrs: [ GUI app FOSS copyleft ] description: "SuperCollider — audio synthesis and algorithmic composition." install: [ { via: native  when: "(debian or fedora or arch or opensuse) and not (fedora >= 44)"  repo-component: universe }  { via: native  when: "void or void_musl" } ] }   // retired from Fedora 44; no EPEL build, brew formula or flatpak (EL/atomic decline)
         qjackctl:      { attrs: [ GUI app FOSS copyleft ] description: "QjackCtl — a GUI controller for the JACK audio server." install: [ { via: native  when: "not amzn and not rhel"   repo-component: universe }  { via: brew  name: qjackctl } ] }   // not in EL 9/10 or EPEL 9/10 (EPEL 8 only); brew's Linux-bottled formula covers EL/AL2023
         // PipeWire — the modern audio/video server. Native; already the default on most current
         // distros (where installing it is a harmless no-op).
@@ -3159,7 +3168,7 @@
             ]
         }
 
-        // unityhub: the Unity Hub AppImage. Unity Editor(s) are installed THROUGH the Hub at
+        // unityhub: Unity Hub (Unity's apt/rpm repos, the AUR, Flathub). Unity Editor(s) are installed THROUGH the Hub at
         // runtime — there's no `unity3d` package to route. Config in ~/.config/UnityHub (deferred).
         unityhub: { attrs: [ GUI app proprietary account freemium electron ] description: "Unity Hub — manage Unity game-engine installs and projects."
             suggests: unityhub-glue
@@ -3213,7 +3222,7 @@
                                 { via: pipx  when: "(rhel < 10) or amzn"  name: qtile  python: "/usr/bin/python3.12"  requires: python3.12 }   // EL 9 / AL2023 (3.9) -> the OS's python3.12
                                 { via: pipx  name: qtile } ] }   // the Python WM via pipx wherever native doesn't carry it (pinnable anywhere)
         xmonad:   { attrs: [ GUI FOSS permissive ] suggests: xmonad-dotfiles  description: "xmonad — a tiling window manager written and configured in Haskell." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "rhel < 10"  requires: epel } ] }   // EL: EPEL 8/9 only (none in EPEL 10)
-        fvwm2:    { attrs: [ GUI FOSS copyleft ] suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian or fedora or alpine or opensuse or void or void_musl"  repo-component: universe  name: { zypper: fvwm2  default: fvwm } }  { via: aur  name: fvwm } ] }   // classic 2.x: Debian/Ubuntu/Fedora/Alpine/Void `fvwm`, openSUSE `fvwm2`, AUR `fvwm` (Arch [extra] has only fvwm3).   // the classic 2.x `fvwm` is Debian-only now; Arch ships only the 3.x line (`fvwm3`, a distinct component/AUR), so decline there rather than route to it
+        fvwm2:    { attrs: [ GUI FOSS copyleft ] suggests: fvwm2-dotfiles  description: "FVWM2 — the classic, highly configurable X11 window manager." install: [ { via: native  when: "debian or fedora or alpine or opensuse or void or void_musl"  repo-component: universe  name: { zypper: fvwm2  default: fvwm } }  { via: aur  name: fvwm } ] }   // classic 2.x: Debian/Ubuntu/Fedora/Alpine/Void `fvwm`, openSUSE `fvwm2`, AUR `fvwm` (Arch [extra] has only fvwm3).
 
         // lazygit: native where the packaged version is reasonably current (Arch, Void, Alpine,
         // Tumbleweed, Debian 13+, Ubuntu 25.10+, brew on atomic); elsewhere (Fedora/EL, older
@@ -3370,8 +3379,9 @@
                 { via: snap  name: codium  classic: true }
             ]
         }
-        // antigravity: Google's agent-first AI IDE (a VS Code fork — imports VS Code settings/exts;
-        // "Manager view" orchestrates parallel agents across Gemini/Claude/GPT-OSS). Free PREVIEW.
+        // antigravity: Google's agent-first AI development app (Antigravity 2.x — orchestrates parallel
+        // agents across Gemini/Claude/GPT-OSS; the VS Code-fork editor is now the separate Antigravity
+        // IDE, not this component). Free PREVIEW.
         // Google ships auto-updating GAR apt/dnf repos (us-central1-apt/yum.pkg.dev, package
         // `antigravity`) — the ideal binding, but its exact key + apt suite are behind a JS page we
         // couldn't pin, so those are a TODO (a good target for a refresh version/preview hook). Here:
@@ -3572,9 +3582,9 @@
         // --- build systems ---
         make:  { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Make — build automation via Makefiles." install: [ { via: native }  { via: brew  name: make } ] }
         cmake: { attrs: [ CLI FOSS permissive ] description: "CMake — cross-platform build-system generator." install: [ { via: native }  { via: brew  name: cmake } ] }
-        ccmake: { attrs: [ TUI FOSS permissive ] description: "ccmake — the curses (TUI) frontend to CMake." install: [ { via: native  when: "debian"  name: cmake-curses-gui }  { via: native  when: "alpine" }  { via: native  when: "opensuse"  name: cmake-full }  { via: parts  when: "redhat or arch or void or void_musl"  parts: [ cmake ] } ] }   // Alpine splits out `ccmake`, openSUSE ships it in cmake-full; on redhat/Arch/Void it is inside `cmake` (parts: no package of its own);   // Debian splits it out; other distros bundle ccmake in `cmake`
-        cmake-gui: { attrs: [ GUI FOSS permissive ] description: "cmake-gui — the Qt GUI frontend to CMake." install: [ { via: native  when: "(debian or redhat or arch or opensuse or void or void_musl) and not amzn"  name: { apt: cmake-qt-gui  dnf: cmake-gui  zypper: cmake-gui  pacman: cmake } } ] }   // Amazon Linux has no cmake-gui;   // Debian/Fedora/openSUSE split it out; Arch bundles it in `cmake`
-        ninja: { attrs: [ CLI FOSS permissive ] description: "Ninja — a small, fast build backend." install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  apk: samurai  default: ninja } }  { via: brew  name: ninja } ] }   // apk: `samurai` is Alpine's default `ninja` (a compatible reimplementation); real Ninja there is `ninja-build` + `ninja-is-really-ninja`
+        ccmake: { attrs: [ TUI FOSS permissive ] description: "ccmake — the curses (TUI) frontend to CMake." install: [ { via: native  when: "debian"  name: cmake-curses-gui }  { via: native  when: "alpine" }  { via: native  when: "opensuse"  name: cmake-full }  { via: parts  when: "redhat or arch or void or void_musl"  parts: [ cmake ] } ] }   // Debian splits out cmake-curses-gui, Alpine `ccmake`, openSUSE ships it in cmake-full; on redhat/Arch/Void it is inside `cmake` (parts: no package of its own)
+        cmake-gui: { attrs: [ GUI FOSS permissive ] description: "cmake-gui — the Qt GUI frontend to CMake." install: [ { via: native  when: "(debian or redhat or arch or opensuse or void or void_musl) and not amzn"  name: { apt: cmake-qt-gui  dnf: cmake-gui  zypper: cmake-gui  pacman: cmake } } ] }   // Amazon Linux has no cmake-gui; Debian/Fedora/openSUSE split it out; Arch bundles it in `cmake` (so removing cmake-gui there removes cmake, as clang-tidy/clangd share `clang`)
+        ninja: { attrs: [ CLI FOSS permissive ] description: "Ninja — a small, fast build backend." install: [ { via: native  name: { apt: ninja-build  dnf: ninja-build  apk: samurai  default: ninja } }  { via: native  when: "rhel"  name: ninja-build  enable-repo: crb }  { via: native  when: "rhel < 9"  name: ninja-build  enable-repo: powertools }  { via: brew  name: ninja } ] }   // apk: `samurai` is Alpine's default `ninja` (a compatible reimplementation); real Ninja there is `ninja-build` + `ninja-is-really-ninja`. EL: ninja-build lives in CRB (EL9/10) / PowerTools (EL8), same as meson
         meson: { attrs: [ CLI FOSS permissive ] description: "Meson — a fast, modern build system." install: [ { via: native }  { via: native  when: "rhel"  enable-repo: crb }  { via: native  when: "rhel < 9"  enable-repo: powertools }  { via: brew  name: meson } ] }
 
         // --- autotools / GNU C build tools (the basic C-dev toolchain; grouped in the `autotools`
@@ -3618,7 +3628,7 @@
                   install: [ { via: native  when: "arch or fedora_atomic or void or void_musl or alpine" }   // native where packaged current
                              { via: native  when: "debian"  standing: never-auto  repo-component: universe }   // Debian/Ubuntu are frozen at 4.4.1 — pinnable only
                              { via: sdkman  standing: 1 }   // current Gradle wherever no native binding applies (ranked ahead of brew)
-                             { via: brew  name: gradle } ] }   // SDKMAN elsewhere (fedora/alpine/opensuse) + any pinned version
+                             { via: brew  name: gradle } ] }   // SDKMAN elsewhere (Debian/Ubuntu/Fedora/EL/openSUSE) + any pinned version; brew pinnable
         // Jenkins — CI/CD automation server (web UI on :8080). Official apt/dnf vendor repos (stable
         // LTS) + AUR on Arch; needs a JDK. No brew/atomic/alpine binding (use the war or a container).
         // Jenkins signs both its apt and dnf repos with a rotating "Jenkins Project" key. Since
@@ -3652,10 +3662,10 @@
         doxygen:   { attrs: [ CLI FOSS copyleft ] description: "Doxygen — generate API docs from annotated C/C++/… source." install: [ { via: native }  { via: brew  name: doxygen } ] }
         swig:      { attrs: [ CLI FOSS copyleft ] description: "SWIG — generate scripting-language bindings for C/C++ (`swig`)." install: [ { via: native }  { via: brew  name: swig } ] }   // apt `swig`: a meta over swig4.0 on older Debian/Ubuntu (installed too, so it answers), the real package on 24.04+ (swig 4.2; no swig4.0)
         source-highlight: { attrs: [ CLI FOSS GNU copyleft ] description: "GNU Source-highlight — syntax-highlight source to HTML and other formats."
-                            install: [ { via: native }  { via: brew  name: source-highlight } ] }   // EL via EPEL
+                            install: [ { via: native }  { via: brew  name: source-highlight } ] }
         po4a:      { attrs: [ CLI FOSS copyleft ] description: "po4a — keep doc translations (man/markdown/…) in sync via PO files."
                      install: [ { via: native  when: "not rhel" }   // EL: po4a lives in CRB, not EPEL; Amazon Linux ships it in its own repo
-                                { via: native  when: "rhel"  enable-repo: crb }  { via: brew  name: po4a } ] }   // EL via EPEL
+                                { via: native  when: "rhel"  enable-repo: crb }  { via: brew  name: po4a } ] }
         asciidoc:  { attrs: [ CLI FOSS copyleft ] description: "AsciiDoc — a plain-text document format rendered to HTML/DocBook/man (`asciidoc`, `a2x`)."
                      install: [ { via: native }   // native everywhere, incl. EL AppStream (9: 9.1.0, 10: 10.2.0) and AL2023 (9.1.0) — no EPEL needed
                                 { via: pipx  name: asciidoc  version: { pypi: asciidoc } }  { via: brew  name: asciidoc } ] }   // EL via EPEL
@@ -3665,17 +3675,17 @@
         // --- reverse-engineering / analysis ---
         radare2:   { attrs: [ CLI FOSS copyleft ] description: "radare2 — a portable reverse-engineering framework & low-level debugger (`r2`)." install: [ { via: native  when: "rhel"  requires: epel }   // EL: EPEL only. Debian ships radare2 in sid only, Ubuntu from 24.04, AL2023 not at all
                        { via: native  when: "not amzn and not (debian and not ubuntu) and not (ubuntu < 24.04)"  repo-component: universe }  { via: native  when: "fedora_atomic" }  { via: brew  name: radare2 } ] }   // packaged on every family (+ brew on atomic); a modern stand-in for the old SoftICE workflow
-        ghidra:    { attrs: [ GUI app FOSS permissive ] description: "Ghidra — the NSA's open-source software reverse-engineering (SRE) suite." install: [ { via: flatpak  hub: flathub  app: org.ghidra_sre.Ghidra }  { via: native  when: "arch or void or void_musl" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ghidra"  requires: [ unzip, jdk-25 ]  version: { github: NationalSecurityAgency/ghidra  tag-re: "Ghidra_([0-9.]+)_build"  asset: "ghidra_*_PUBLIC_*.zip" } } ] }   // flatpak bundles a JRE (default); the release zip needs a JDK 21 -> requires it
+        ghidra:    { attrs: [ GUI app FOSS permissive ] description: "Ghidra — the NSA's open-source software reverse-engineering (SRE) suite." install: [ { via: flatpak  hub: flathub  app: org.ghidra_sre.Ghidra }  { via: native  when: "arch or void or void_musl" }  { via: tarball  installDir: "$CONFIGSYS_APP_DIR/ghidra"  requires: [ unzip, jdk-25 ]  version: { github: NationalSecurityAgency/ghidra  tag-re: "Ghidra_([0-9.]+)_build"  asset: "ghidra_*_PUBLIC_*.zip" } } ] }   // flatpak bundles a JRE (default); the release zip needs a JDK 25 -> requires it
         // RAD Debugger (Epic): alpha. Release binaries are Windows-only; on Linux it BUILDS (the AUR package
         // runs ./build.sh), but its debugging target is still Windows x64 only — native Linux debugging is
         // upstream's next phase. AUR-only, x86_64.
         raddebugger: { attrs: [ GUI app FOSS permissive beta ] description: "RAD Debugger — Epic's fast native debugger (`raddbg`; alpha — on Linux it builds, but debugs Windows x64 targets only so far)."
             install: [ { via: aur  cpu-names: { x86_64: x86_64 }  name: raddebugger } ] }
-        grex:      { attrs: [ CLI FOSS permissive ] description: "grex — generate a regular expression from user-provided examples (`grex`)." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grex"  version: { github: pemistahl/grex  strip-v: true  asset: "grex-*-$ARCH-unknown-linux-musl.tar.gz" } }  { via: native  when: "arch or void or void_musl or fedora_atomic or opensuse_tumbleweed or (opensuse_leap >= 16)" }  { via: cargo  name: grex  version: { crates: grex } }  { via: brew  name: grex } ] }   // musl tarball runs everywhere (incl. Alpine); brew on atomic; cargo as a pinnable build
-        faker:     { attrs: [ CLI lib FOSS permissive ] description: "Faker — generate fake data (names, addresses, …) from the CLI (`faker`) or as a Python library." install: [ { via: native  when: "debian"  repo-component: universe }  { via: pipx  name: Faker }  { via: brew  name: faker } ] }   // Debian/Ubuntu package the CLI as `faker` (Depends python3-fake-factory, the library)   // the `faker` console script ships with the PyPI package -> pipx everywhere
+        grex:      { attrs: [ CLI FOSS permissive ] description: "grex — generate a regular expression from user-provided examples (`grex`)." install: [ { via: tarball  installDir: "$CONFIGSYS_APP_DIR/grex"  version: { github: pemistahl/grex  strip-v: true  asset: "grex-*-$ARCH-unknown-linux-musl.tar.gz" } }  { via: native  when: "arch or void or void_musl or fedora_atomic or opensuse_tumbleweed or (opensuse_leap >= 16)" }  { via: cargo  name: grex  version: { crates: grex } }  { via: brew  name: grex } ] }   // native on Arch/Void/openSUSE (TW, Leap 16+), brew on atomic and the rest of glibc (outranks the tarball); the musl tarball covers Alpine/musl; cargo as a pinnable build
+        faker:     { attrs: [ CLI lib FOSS permissive ] description: "Faker — generate fake data (names, addresses, …) from the CLI (`faker`) or as a Python library." install: [ { via: native  when: "debian"  repo-component: universe }  { via: pipx  name: Faker }  { via: brew  name: faker } ] }   // Debian/Ubuntu package the CLI as `faker` (Depends python3-fake-factory, the library); elsewhere brew, or pipx (the PyPI package's console script) on musl / pinned
         obsidian:  { attrs: [ GUI app proprietary electron ] description: "Obsidian — a local-first Markdown knowledge base / note-taking app (free, proprietary)." install: [ { via: native  when: "arch" }  { via: native-pkg-file  when: "debian"  version: { github: obsidianmd/obsidian-releases  strip-v: true }  asset: { x86_64: "obsidian_*_amd64.deb" } }  { via: flatpak  hub: flathub  app: md.obsidian.Obsidian }  { via: aur  name: obsidian-bin }  { via: snap  name: obsidian  classic: true } ] }   // flatpak is the universal + atomic path; works fully offline (sync is a paid add-on)
         scratch:   { attrs: [ GUI app FOSS permissive electron ] description: "Scratch — MIT's block-based visual programming environment for learners (an unofficial Flathub repack of the Scratch 3 desktop editor, last updated 2020)."   // native = the old Squeak-based Scratch 1.4: pinnable, never the default (gone from Debian 13 / Ubuntu 26.04)
-                install: [ { via: flatpak  hub: flathub  app: edu.mit.Scratch }  { via: native  when: "fedora or (debian and not (debian >= 13) and not (ubuntu >= 26.04))"  standing: never-auto  repo-component: universe } ] }   // the only Linux desktop build (Flathub; note it lags the web editor)
+                install: [ { via: flatpak  hub: flathub  app: edu.mit.Scratch }  { via: native  when: "fedora or (debian and not (debian >= 13) and not (ubuntu >= 26.04))"  standing: never-auto  repo-component: universe } ] }   // the only Scratch 3 desktop build (Flathub; note it lags the web editor)
         heaptrack: { attrs: [ CLI GUI app FOSS copyleft ] description: "heaptrack — a heap-memory profiler for C/C++." install: [ { via: native  when: "void or void_musl" }  { via: native  when: "(debian or redhat or arch or opensuse) and not (amzn or rhel)" }  { via: native  when: "rhel < 10"  requires: epel } ] }   // EL: EPEL 9 only (not in EPEL 10)
         clang-tidy: { attrs: [ CLI FOSS permissive ] description: "clang-tidy — C/C++ linter and static analyzer." install: [ { via: native  when: "debian or redhat or arch or opensuse or void or void_musl"  name: { xbps: clang-tools-extra apt: clang-tidy  dnf: clang-tools-extra  pacman: clang  zypper: clang } }  { via: brew  name: llvm } ] }   // pacman/zypper `clang` ship /usr/bin/clang-tidy; brew's llvm formula (Linux bottles) everywhere else on glibc;
         clang: { attrs: [ CLI toolchain FOSS permissive ] description: "Clang/LLVM — the distro's default C/C++/Obj-C compiler (`clang`; the versioned clang-NN are separate components)." install: [ { via: native  when: "not alpine"  name: { brew: llvm  default: clang } }  { via: brew  name: llvm } ] }   // distro-default clang; brew ships it in `llvm`; Alpine has only version-scoped clangNN (use the clang-N components)
@@ -3756,7 +3766,7 @@
         mariadb:            { attrs: [ daemon CLI FOSS copyleft ] description: "MariaDB — MySQL-compatible relational database." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  name: { xbps: mariadb pacman: mariadb  zypper: mariadb  apk: mariadb  default: mariadb-server } }  { via: native  when: "amzn"  name: mariadb1011-server }  { via: native  when: "fedora_atomic"  name: mariadb }  { via: brew  name: mariadb } ] }   // brew formula `mariadb` (not the distro `-server` split)
         mariadb-service:    { description: "Enable and start the MariaDB server (systemd / runit)." requires: mariadb  install: [ { via: service  unit: mariadb  runit: mysqld } ] }
         // redis is being replaced by its FOSS fork valkey on Fedora/Arch (drop-in compatible).
-        redis:              { attrs: [ daemon CLI FOSS copyleft source-available ] description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "fedora_atomic"  name: redis }  { via: brew  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis)
+        redis:              { attrs: [ daemon CLI FOSS copyleft source-available ] description: "Redis — in-memory data store and cache." install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  name: { apt: redis-server  dnf: valkey  pacman: valkey } }  { via: native  when: "rhel < 9"  name: valkey  requires: epel }  { via: native  when: "fedora_atomic"  name: redis }  { via: brew  name: redis } ] }   // brew formula `redis` (distro repos lean valkey post-relicense; brew keeps redis). EL8: valkey is EPEL-only (not AppStream)
         redis-service:      { description: "Enable and start the Redis server (systemd / runit)." requires: redis  install: [ { via: service  when: "debian"  unit: redis-server }
                                                           { via: service  when: "redhat or arch"  unit: valkey }
                                                           { via: service  when: "void or void_musl"  unit: redis } ] }
@@ -3765,9 +3775,9 @@
         nginx:         { attrs: [ daemon web FOSS permissive ] description: "nginx — a high-performance HTTP server and reverse proxy." install: [ { via: native }  { via: brew  name: nginx } ] }
         nginx-service: { description: "Enable and start the nginx web server (systemd / runit)." requires: nginx  install: [ { via: service  unit: nginx } ] }
         // MongoDB: removed from distro repos over its SSPL license, so it installs from MongoDB's
-        // OWN vendor repos (apt keyed per family with a hardcoded codename, dnf on EL) + the AUR
-        // binary on Arch. MongoDB ships no Fedora/openSUSE/Amazon repo -> those decline. Version-
-        // pathed (8.0) — bump the repo path + key on a major MongoDB bump.
+        // OWN vendor repos (apt per family with $CODENAME resolved on the target, dnf on EL and
+        // Amazon Linux 2023) + the AUR binary on Arch. MongoDB ships no Fedora/openSUSE repo -> those
+        // decline. Version-pathed (8.0) — bump the repo path + key on a major MongoDB bump.
         mongodb: { attrs: [ daemon source-available FOSSish ] description: "MongoDB Community Server — a document (NoSQL) database (`mongod`)."
             install: [
                 { via: native  when: "ubuntu"  name: mongodb-org   // MongoDB's official apt repo (Ubuntu). $CODENAME is resolved on the target (Pop!_OS -> its Ubuntu base codename), so this works on any release MongoDB publishes for — not just one hardcoded suite.
@@ -3800,7 +3810,7 @@
         maxima:     { attrs: [ CLI app FOSS copyleft ] suggests: maxima-dotfiles  description: "Maxima — a computer algebra system for symbolic math." install: [ { via: native  when: "(debian or fedora or arch or opensuse) and not (opensuse_leap >= 16)"  repo-component: universe }  { via: native  when: "fedora_atomic or void or void_musl" }  { via: brew  name: maxima } ] }   // brew formula `maxima`
         wxmaxima:   { attrs: [ GUI app FOSS copyleft ] description: "wxMaxima — a GUI front end for the Maxima CAS." install: [ { via: native  when: "debian or fedora"  repo-component: universe  name: { dnf: wxMaxima } }  { via: flatpak  hub: flathub  app: io.github.wxmaxima_developers.wxMaxima } ] }   // native: debian/redhat (Arch AUR only); flatpak covers the rest
         pari:       { attrs: [ CLI app FOSS copyleft ] description: "PARI/GP — computer algebra for number theory." install: [ { via: native  when: "not (amzn or rhel)"   repo-component: universe  name: { apt: pari-gp  dnf: pari-gp  pacman: pari  zypper: pari-gp  default: pari } }  { via: brew  name: pari } ] }   // not in EL/EPEL: brew there
-        gap:        { attrs: [ CLI FOSS copyleft ] description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "void or void_musl" } ] }   // Fedora-only on the redhat side (not in EL or EPEL 9/10, nor amzn); no Homebrew formula, so atomic declines   // brew formula `gap`
+        gap:        { attrs: [ CLI FOSS copyleft ] description: "GAP — a system for computational discrete algebra (group theory)." install: [ { via: native  when: "debian or fedora or arch or opensuse"  repo-component: universe }  { via: native  when: "void or void_musl" } ] }   // Fedora-only on the redhat side (not in EL or EPEL 9/10, nor amzn); no Homebrew formula, so atomic declines
         sagemath:   { attrs: [ CLI web app FOSS copyleft ] description: "SageMath — an open-source mathematics software system."   // apt: only Debian 12 / Ubuntu 22.04 carry it (dropped from Debian 13 and Ubuntu 23.04+)
                 install: [ { via: native  when: "(debian and not (debian >= 13) and not (ubuntu >= 23.04)) or arch or void or void_musl"  repo-component: universe } ] }      // Fedora: COPR/conda only
 
@@ -3879,8 +3889,8 @@
         libxcb-xinput0:        { attrs: [ lib FOSS permissive ] description: "libxcb XInput extension runtime library." install: [ { via: native  when: "debian"  repo-component: universe } ] }
         libxcb-xinerama0:      { attrs: [ lib FOSS permissive ] description: "libxcb Xinerama extension runtime library." install: [ { via: native  when: "debian"  repo-component: universe } ] }
         libxcb-cursor-dev:     { attrs: [ lib FOSS permissive ] description: "libxcb-cursor development headers." install: [ { via: native  when: "debian"  repo-component: universe } ] }
-        libxcb-devel:          { attrs: [ lib FOSS permissive ] description: "libxcb development headers." install: [ { via: native  when: "redhat or void or void_musl" } ] }   // fedora + EL
-        xcb-util-cursor-devel: { attrs: [ lib FOSS permissive ] description: "xcb-util-cursor development headers." install: [ { via: native  when: "redhat or void or void_musl" } ] }   // fedora + EL
+        libxcb-devel:          { attrs: [ lib FOSS permissive ] description: "libxcb development headers." install: [ { via: native  when: "redhat or void or void_musl or opensuse" } ] }   // fedora + EL, Void, openSUSE (same name)
+        xcb-util-cursor-devel: { attrs: [ lib FOSS permissive ] description: "xcb-util-cursor development headers." install: [ { via: native  when: "redhat or void or void_musl or opensuse" } ] }   // fedora + EL, Void, openSUSE (same name)
         libxcb:                { attrs: [ lib FOSS permissive ] description: "libxcb — the X protocol C-language Binding (XCB) library (dev headers + libs)." install: [ { via: native  name: { xbps: libxcb-devel  apt: libxcb1-dev  dnf: libxcb-devel  apk: libxcb-dev  zypper: libxcb-devel  default: libxcb } } ] }
         xcb-util-cursor:       { attrs: [ lib FOSS permissive ] description: "xcb-util-cursor — XCB cursor management library." install: [ { via: native  when: "arch or void or void_musl" } ] }   // arch
         // vulkan-dev: a parts bundle composing the X libs, build tools, the SDK tarball,
@@ -3898,6 +3908,9 @@
                   parts: [ libxcb, xcb-util-cursor,
                            cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
                 { via: parts  when: "void"   // glibc only: the vulkan-sdk part is LunarG's glibc tarball (void_musl has no SDK route)
+                  parts: [ libxcb-devel, xcb-util-cursor-devel,
+                           cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
+                { via: parts  when: "opensuse"   // vulkan-runtime has an openSUSE binding (libvulkan1 + lavapipe)
                   parts: [ libxcb-devel, xcb-util-cursor-devel,
                            cpp-toolchain, make, vulkan-sdk, vulkan-runtime ] }
             ]
@@ -4041,7 +4054,7 @@
         }
 
         // --- versioned gcc. Three drivers, selected by OS/version:
-        //   debian -> `gcc` (apt PPA + update-alternatives; needs cxx, s-p-c, the alias)
+        //   debian -> `gcc` (the distro's gcc-NN, else the toolchain PPA, + update-alternatives; needs cxx, s-p-c, the alias)
         //   fedora -> `gcc` (dnf compat packages gccNN; availability is per-release)
         //   EL     -> `gcc-toolset` (SCL under /opt/rh)
         // --- versioned gcc. Each also `provides:` the language-standard capabilities its compiler
@@ -4056,7 +4069,9 @@
         // too-new gcc — notably CUDA's nvcc (points nvcc at gcc-10), and OpenCV's CUDA-11 build
         // (requires: gcc-10) and Blender 4.3 (requires: gcc-11), both in their plugins. Availability
         // of a DOWNLEVEL (older-than-default) gcc, the shared story those consumers refer back to:
-        //   debian/ubuntu -> parallel apt packages (ubuntu-toolchain-r PPA); additive, no rollback.
+        //   debian/ubuntu -> parallel apt packages: the distro's own gcc-NN where that release
+        //                    carries it, the ubuntu-toolchain-r PPA only on 22.04/24.04 for lines
+        //                    the distro lacks; additive, no rollback.
         //   rhel/EL       -> the gcc-toolset-NN SCL under /opt/rh; isolated from the system gcc.
         //   fedora/arch   -> NOT carried: their repos ship only the latest gcc, and no clean COPR/AUR
         //                    parallel gccNN lands at /usr/bin/gcc-NN. So a downlevel pin there is an
@@ -4293,7 +4308,7 @@
             install: [ { via: native  when: "void or void_musl"  name: libdecor-devel }
                        { via: native  when: "rhel >= 9"  name: libdecor-devel  enable-repo: crb }   // EL: the -devel lives in CRB (none on EL 8)
                        { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not rhel"   // Amazon Linux 2023 core ships libdecor-devel too
-                         name: { apt: libdecor-0-dev  dnf: libdecor-devel  pacman: libdecor  apk: libdecor-dev  zypper: libdecor-devel  brew: libdecor } } ] }   // Wayland/Linux; not on brew
+                         name: { apt: libdecor-0-dev  dnf: libdecor-devel  pacman: libdecor  apk: libdecor-dev  zypper: libdecor-devel  brew: libdecor } } ] }
         nng: { attrs: [ lib FOSS permissive ] description: "nng — the nanomsg-next-gen lightweight messaging library (dev)."
             install: [ { via: native  when: "void or void_musl"  name: nng-devel }  { via: native  when: "debian or fedora or arch or alpine or opensuse or fedora_atomic"   // not EL: nng-devel is in no EPEL (nor on Amazon)
                          name: { apt: libnng-dev  dnf: nng-devel  pacman: nng  apk: nng-dev  zypper: nng-devel  brew: nng } } ] }
@@ -4314,7 +4329,7 @@
                              libocct-ocaf-dev, libocct-visualization-dev, libocct-data-exchange-dev ]  installed-name: libocct-foundation-dev }
                        { via: native  when: "fedora or void or void_musl or alpine"    name: { xbps: occt-devel  apk: opencascade-dev  default: opencascade-devel } }
                        { via: native  when: "arch"      name: opencascade }
-                       { via: native  when: "opensuse"  name: occt-devel } ] }   // not in EL base / alpine / brew
+                       { via: native  when: "opensuse"  name: occt-devel } ] }   // not in EL base / brew
         // --- shared build-dep dev libraries (consolidated from the configsys-source plugin: source
         // recipes `requires:` these by name, so they live in core where any component can reach them).
         // Debian/Fedora/openSUSE split a -dev/-devel package; Arch (and the component-name `default:`)
@@ -4420,7 +4435,7 @@
                                   { via: native  when: "rhel >= 10"  name: openal-soft-devel  requires: epel }   // EL 10: moved to EPEL
                                   { via: native  when: "not (rhel or amzn)"  name: { xbps: libopenal-devel apt: libopenal-dev  dnf: openal-soft-devel  apk: openal-soft-dev  zypper: openal-soft-devel  brew: openal-soft  default: openal } } ] }
         freealut-dev: { attrs: [ lib FOSS copyleft ] description: "freealut — the OpenAL Utility Toolkit (ALUT) library (dev headers + libs)."
-                       install: [ { via: native  when: "not (rhel or alpine or amzn)"  name: { xbps: freealut-devel apt: libalut-dev  dnf: freealut-devel  zypper: freealut-devel  default: freealut } } ] }   // not packaged on EL (even EPEL/CRB) or Alpine -> declines there
+                       install: [ { via: native  when: "not (rhel or alpine or amzn)"  name: { xbps: freealut-devel apt: libalut-dev  dnf: freealut-devel  zypper: freealut-devel  default: freealut } } ] }   // not packaged on EL (even EPEL/CRB), Amazon Linux or Alpine -> declines there
         libpng:      { attrs: [ lib FOSS permissive ] description: "libpng — the reference PNG image library (dev headers + libs)."
                        install: [ { via: native  name: { xbps: libpng-devel  apt: libpng-dev  dnf: libpng-devel  apk: libpng-dev  zypper: libpng16-devel  default: libpng } } ] }
         libjpeg:     { attrs: [ lib FOSS permissive ] description: "libjpeg-turbo — the JPEG image codec library (dev headers + libs)."
@@ -4457,11 +4472,12 @@
             install: [ { via: native  when: "void or void_musl"  name: SDL2-devel }
                        { via: native  when: "fedora"  name: sdl2-compat-devel }   // Fedora 43+ ship sdl2-compat (SDL2 API on SDL3); dnf's state probe reads real package names, not the SDL2-devel Provide
                        { via: native  when: "opensuse_leap"  name: SDL2-devel }   // Leap 16 still ships classic SDL2 (no sdl2-compat-devel); Tumbleweed has sdl2-compat
+                       { via: native  when: "rhel < 9"  name: SDL2-devel  enable-repo: powertools }   // EL8: SDL2-devel lives in PowerTools (off by default)
                        { via: native  when: "(debian or redhat or arch or alpine or opensuse or fedora_atomic) and not amzn and not (rhel >= 10)"  repo-component: universe   // EL10 ships only the sdl2-compat runtime, no SDL2 headers
                          name: { apt: libsdl2-dev  dnf: SDL2-devel  pacman: sdl2-compat  apk: sdl2-dev  zypper: sdl2-compat-devel  brew: sdl2-compat } } ]
         }
-        // SFML — note the major-version skew: 2.x on debian/fedora/alpine, 3.x on arch/brew (a
-        // breaking API change). openSUSE package unconfirmed → omitted there.
+        // SFML — note the major-version skew: 2.x on debian/fedora/alpine/void, 3.x on arch (3.1) / brew (3.0)
+        // (a breaking API change). openSUSE package unconfirmed → omitted there.
         sfml: { attrs: [ lib FOSS permissive ] description: "SFML — Simple and Fast Multimedia Library (C++), dev headers + libs."
             install: [ { via: native  when: "void or void_musl"  name: SFML-devel }  { via: native  when: "debian or fedora or arch or alpine or fedora_atomic"  repo-component: universe   // `fedora`, not `redhat`: no EPEL build, none on Amazon Linux
                          name: { apt: libsfml-dev  dnf: SFML-devel  pacman: sfml  apk: sfml-dev  brew: sfml } } ]

@@ -469,3 +469,14 @@ def test_get_version_falls_back_to_a_provider():
          'installed libfuse2t64 amd64 2.9.9-8.1build1 libfuse2 (= 2.9.9-8.1build1)\n')]))
     assert apt.get_version(rc('libfuse2')) == '2.9.9-8.1build1'
     assert apt.get_version(rc('nothere')) is None
+
+
+def test_a_codename_source_line_uses_the_base_distros_codename():
+    # LMDE (VERSION_CODENAME=faye, DEBIAN_CODENAME=bookworm) and Mint (UBUNTU_CODENAME) must write a
+    # suite the vendor actually serves — the same lookup the clang/gcc toolchain repos use
+    comp = ResolvedComponent(key='apt\\x', driver='apt', comp='x', fields={
+        'name': 'x', 'source-line': 'deb https://vendor.example/apt $CODENAME main',
+        'source-path': '/etc/apt/sources.list.d/x.list'})
+    r = Runner(pretend=True)
+    Apt(r).install(comp)
+    assert any('${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}' in c for c in r.calls)

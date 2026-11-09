@@ -61319,50 +61319,12 @@
    }
   },
   "mitmproxy": {
-   "apt\\curl": {
-    "driver": "apt",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "apt\\git": {
-    "driver": "apt",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
    "apt\\pipx": {
     "driver": "apt",
     "fields": {
      "name": "pipx"
     },
     "name": "pipx"
-   },
-   "brew\\python3.13": {
-    "driver": "brew",
-    "fields": {
-     "name": "python@3.13"
-    },
-    "name": "python@3.13"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "glue\\homebrew-glue": {
-    "driver": "glue",
-    "fields": {
-     "glue": "homebrew"
-    },
-    "name": "homebrew-glue"
    },
    "glue\\pipx-glue": {
     "driver": "glue",
@@ -61382,28 +61344,11 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
     },
     "name": "mitmproxy"
-   },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
    }
   },
   "mojo": {
@@ -78256,18 +78201,6 @@
     },
     "name": "pipx"
    },
-   "apt\\python3.13": {
-    "driver": "apt",
-    "fields": {
-     "name": "python3.13",
-     "packages": [
-      "python3.13",
-      "python3.13-venv",
-      "python3.13-dev"
-     ]
-    },
-    "name": "python3.13"
-   },
    "glue\\pipx-glue": {
     "driver": "glue",
     "fields": {
@@ -78286,7 +78219,6 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -95217,26 +95149,6 @@
     },
     "name": "pipx"
    },
-   "apt\\python3.13": {
-    "driver": "apt",
-    "fields": {
-     "name": "python3.13",
-     "packages": [
-      "python3.13",
-      "python3.13-venv",
-      "python3.13-dev"
-     ],
-     "ppa": "deadsnakes/ppa"
-    },
-    "name": "python3.13"
-   },
-   "apt\\software-properties-common": {
-    "driver": "apt",
-    "fields": {
-     "name": "software-properties-common"
-    },
-    "name": "software-properties-common"
-   },
    "glue\\pipx-glue": {
     "driver": "glue",
     "fields": {
@@ -95255,7 +95167,6 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -112063,26 +111974,6 @@
     },
     "name": "pipx"
    },
-   "apt\\python3.13": {
-    "driver": "apt",
-    "fields": {
-     "name": "python3.13",
-     "packages": [
-      "python3.13",
-      "python3.13-venv",
-      "python3.13-dev"
-     ],
-     "ppa": "deadsnakes/ppa"
-    },
-    "name": "python3.13"
-   },
-   "apt\\software-properties-common": {
-    "driver": "apt",
-    "fields": {
-     "name": "software-properties-common"
-    },
-    "name": "software-properties-common"
-   },
    "glue\\pipx-glue": {
     "driver": "glue",
     "fields": {
@@ -112101,7 +111992,6 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -202920,6 +202810,15 @@
     "name": "libxcb-devel"
    }
   },
+  "libxcb-devel": {
+   "zypper\\libxcb-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
   "libxcursor": {
    "zypper\\libxcursor": {
     "driver": "zypper",
@@ -209679,6 +209578,97 @@
     "name": "vscodium-dotfiles"
    }
   },
+  "vulkan-dev": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\vulkan-sdk-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "vulkan-sdk"
+    },
+    "name": "vulkan-sdk-glue"
+   },
+   "tarball\\vulkan-sdk": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "url": "https://vulkan.lunarg.com/sdk/latest/linux.txt"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "zypper\\c-toolchain": {
+    "driver": "zypper",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "zypper\\cpp-toolchain": {
+    "driver": "zypper",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "zypper\\curl": {
+    "driver": "zypper",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "zypper\\libxcb-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   },
+   "zypper\\make": {
+    "driver": "zypper",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "zypper\\vulkan-runtime": {
+    "driver": "zypper",
+    "fields": {
+     "name": "vulkan-runtime",
+     "packages": [
+      "libvulkan1",
+      "libvulkan_lvp"
+     ]
+    },
+    "name": "vulkan-runtime"
+   },
+   "zypper\\xcb-util-cursor-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   },
+   "zypper\\xz": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
   "vulkan-intel": {
    "zypper\\vulkan-intel": {
     "driver": "zypper",
@@ -210309,6 +210299,15 @@
      "name": "xcb-util-devel"
     },
     "name": "xcb-util-devel"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "zypper\\xcb-util-cursor-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -219369,6 +219368,15 @@
     "name": "libxcb-devel"
    }
   },
+  "libxcb-devel": {
+   "zypper\\libxcb-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
   "libxcursor": {
    "zypper\\libxcursor": {
     "driver": "zypper",
@@ -225728,6 +225736,97 @@
     "name": "vscodium-dotfiles"
    }
   },
+  "vulkan-dev": {
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\vulkan-sdk-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "vulkan-sdk"
+    },
+    "name": "vulkan-sdk-glue"
+   },
+   "tarball\\vulkan-sdk": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_SDK_DIR/vulkan",
+     "name": "vulkan-sdk",
+     "url": "https://sdk.lunarg.com/sdk/download/$VERSION/linux/vulkansdk-linux-$ARCH-$VERSION.tar.xz",
+     "version": {
+      "url": "https://vulkan.lunarg.com/sdk/latest/linux.txt"
+     }
+    },
+    "name": "vulkan-sdk"
+   },
+   "zypper\\c-toolchain": {
+    "driver": "zypper",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "zypper\\cpp-toolchain": {
+    "driver": "zypper",
+    "fields": {
+     "name": "gcc-c++"
+    },
+    "name": "gcc-c++"
+   },
+   "zypper\\curl": {
+    "driver": "zypper",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "zypper\\libxcb-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   },
+   "zypper\\make": {
+    "driver": "zypper",
+    "fields": {
+     "name": "make"
+    },
+    "name": "make"
+   },
+   "zypper\\vulkan-runtime": {
+    "driver": "zypper",
+    "fields": {
+     "name": "vulkan-runtime",
+     "packages": [
+      "libvulkan1",
+      "libvulkan_lvp"
+     ]
+    },
+    "name": "vulkan-runtime"
+   },
+   "zypper\\xcb-util-cursor-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
+   },
+   "zypper\\xz": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
   "vulkan-intel": {
    "zypper\\vulkan-intel": {
     "driver": "zypper",
@@ -226250,6 +226349,15 @@
      "name": "xcb-util-devel"
     },
     "name": "xcb-util-devel"
+   }
+  },
+  "xcb-util-cursor-devel": {
+   "zypper\\xcb-util-cursor-devel": {
+    "driver": "zypper",
+    "fields": {
+     "name": "xcb-util-cursor-devel"
+    },
+    "name": "xcb-util-cursor-devel"
    }
   },
   "xclip": {
@@ -256288,6 +256396,7 @@
    "dnf\\ninja": {
     "driver": "dnf",
     "fields": {
+     "enable-repo": "crb",
      "name": "ninja-build"
     },
     "name": "ninja-build"
@@ -275192,6 +275301,7 @@
    "dnf\\ninja": {
     "driver": "dnf",
     "fields": {
+     "enable-repo": "powertools",
      "name": "ninja-build"
     },
     "name": "ninja-build"
@@ -277891,6 +278001,13 @@
    }
   },
   "redis": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
    "dnf\\redis": {
     "driver": "dnf",
     "fields": {
@@ -277900,6 +278017,13 @@
    }
   },
   "redis-service": {
+   "dnf\\epel-release": {
+    "driver": "dnf",
+    "fields": {
+     "name": "epel-release"
+    },
+    "name": "epel-release"
+   },
    "dnf\\redis": {
     "driver": "dnf",
     "fields": {
@@ -278679,8 +278803,8 @@
    "dnf\\sdl": {
     "driver": "dnf",
     "fields": {
-     "name": "SDL2-devel",
-     "repo-component": "universe"
+     "enable-repo": "powertools",
+     "name": "SDL2-devel"
     },
     "name": "SDL2-devel"
    }
@@ -294167,6 +294291,7 @@
    "dnf\\ninja": {
     "driver": "dnf",
     "fields": {
+     "enable-repo": "crb",
      "name": "ninja-build"
     },
     "name": "ninja-build"
@@ -328481,26 +328606,6 @@
     },
     "name": "pipx"
    },
-   "apt\\python3.13": {
-    "driver": "apt",
-    "fields": {
-     "name": "python3.13",
-     "packages": [
-      "python3.13",
-      "python3.13-venv",
-      "python3.13-dev"
-     ],
-     "ppa": "deadsnakes/ppa"
-    },
-    "name": "python3.13"
-   },
-   "apt\\software-properties-common": {
-    "driver": "apt",
-    "fields": {
-     "name": "software-properties-common"
-    },
-    "name": "software-properties-common"
-   },
    "glue\\pipx-glue": {
     "driver": "glue",
     "fields": {
@@ -328519,7 +328624,6 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -344884,26 +344988,6 @@
     },
     "name": "pipx"
    },
-   "apt\\python3.13": {
-    "driver": "apt",
-    "fields": {
-     "name": "python3.13",
-     "packages": [
-      "python3.13",
-      "python3.13-venv",
-      "python3.13-dev"
-     ],
-     "ppa": "deadsnakes/ppa"
-    },
-    "name": "python3.13"
-   },
-   "apt\\software-properties-common": {
-    "driver": "apt",
-    "fields": {
-     "name": "software-properties-common"
-    },
-    "name": "software-properties-common"
-   },
    "glue\\pipx-glue": {
     "driver": "glue",
     "fields": {
@@ -344922,7 +345006,6 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
@@ -361051,50 +361134,12 @@
    }
   },
   "mitmproxy": {
-   "apt\\curl": {
-    "driver": "apt",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "apt\\git": {
-    "driver": "apt",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
    "apt\\pipx": {
     "driver": "apt",
     "fields": {
      "name": "pipx"
     },
     "name": "pipx"
-   },
-   "brew\\python3.13": {
-    "driver": "brew",
-    "fields": {
-     "name": "python@3.13"
-    },
-    "name": "python@3.13"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "glue\\homebrew-glue": {
-    "driver": "glue",
-    "fields": {
-     "glue": "homebrew"
-    },
-    "name": "homebrew-glue"
    },
    "glue\\pipx-glue": {
     "driver": "glue",
@@ -361114,28 +361159,11 @@
     "driver": "pipx",
     "fields": {
      "name": "mitmproxy",
-     "python": "/usr/bin/python3.13",
      "version": {
       "pypi": "mitmproxy"
      }
     },
     "name": "mitmproxy"
-   },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
    }
   },
   "mojo": {

@@ -212,7 +212,7 @@ class Apt(NativePkgManager):
             if '$CODENAME' in src_line:
                 write = (
                     f'if [ ! -f {sp} ]{dupe_guard}; then '
-                    f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-$VERSION_CODENAME}}")"; '
+                    f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-${{DEBIAN_CODENAME:-$VERSION_CODENAME}}}}")"; '
                     f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi')
             else:
                 sl = shlex.quote(src_line)

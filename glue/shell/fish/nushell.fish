@@ -3,6 +3,6 @@
 # aliases. `find` (quoted patterns) avoids fish's unmatched-glob error. No-op where nu is native.
 set -l loc (cs_loc nushell)
 if test -n "$loc"
-    set -l nubin (find "$loc" -maxdepth 2 -type f -name nu -path '*/nu-*-x86_64-unknown-linux-*/nu' 2>/dev/null | head -1)
+    set -l nubin (find "$loc" -maxdepth 2 -type f -name nu -path '*/nu-*-unknown-linux-*/nu' 2>/dev/null | head -1)
     test -n "$nubin"; and test -x "$nubin"; and fish_add_path -gp (dirname "$nubin")
 end

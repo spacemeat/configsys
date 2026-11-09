@@ -172,7 +172,7 @@ class AltDriver(Driver):
             return [
                 # the UBUNTU codename on a derivative (Mint's `wilma` is noble here) — what vendor
                 # repos serve; the same lookup apt's source-line uses
-                'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"',
+                'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}")"',
                 f'if apt-cache madison {pkg} 2>/dev/null | grep -v -F {shlex.quote(host or "//")} | grep -q .; then',
                 f'  if [ -f {listq} ]; then rm -f {listq}; apt-get update; fi',
                 'else',

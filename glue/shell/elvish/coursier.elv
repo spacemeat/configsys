@@ -1,5 +1,7 @@
-# coursier: put its user-install bin dir(s) on PATH.
+# coursier: put its apps bin dir (populated by `cs install`; $COURSIER_BIN_DIR overrides) on PATH.
 use path
-if (and (path:is-dir $E:HOME/.local/share/coursier/bin) (not (has-value $paths $E:HOME/.local/share/coursier/bin))) {
-  set paths = [$@paths $E:HOME/.local/share/coursier/bin]
+var csbin = $E:HOME/.local/share/coursier/bin
+if (and (has-env COURSIER_BIN_DIR) (not-eq $E:COURSIER_BIN_DIR '')) { set csbin = $E:COURSIER_BIN_DIR }
+if (and (path:is-dir $csbin) (not (has-value $paths $csbin))) {
+  set paths = [$@paths $csbin]
 }

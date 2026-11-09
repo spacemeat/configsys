@@ -51,7 +51,8 @@ def test_install_adds_llvm_repo_installs_and_registers_alternative():
     Clang(r).install(clang_unit())
     cmd = r.calls[0]
     assert cmd.startswith('sudo ')                       # whole script under root
-    assert 'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"' in cmd   # derivative-safe (B7)
+    assert ('CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}")"'
+            in cmd)                                   # derivative-safe (B7; LMDE's own codename too)
     assert "if ! apt-get update; then rm -f" in cmd                         # a broken source is rolled back
     assert 'apt.llvm.org/llvm-snapshot.gpg.key' in cmd
     # the deb line is quoted with only "$CODENAME" left to expand in-shell (injection-safe)
@@ -141,3 +142,19 @@ def test_a_ppa_is_only_added_on_ubuntu_and_only_when_the_distro_lacks_the_packag
     cmd = r.calls[0]
     assert 'grep -q "^UBUNTU_CODENAME=" /etc/os-release' in cmd and 'Ubuntu-only' in cmd
     assert cmd.index('apt-cache madison') < cmd.index('add-apt-repository')
+
+
+@pytest.mark.parametrize('os_release,want', [
+    ('VERSION_CODENAME=faye\nDEBIAN_CODENAME=bookworm\n', 'bookworm'),   # LMDE: its own codename
+    ('VERSION_CODENAME=wilma\nUBUNTU_CODENAME=noble\n', 'noble'),        # Mint
+    ('VERSION_CODENAME=trixie\n', 'trixie'),                               # Debian itself
+])
+def test_the_vendor_suite_is_the_base_distros_codename(tmp_path, os_release, want):
+    import subprocess
+    line = next(ln for ln in Clang(Runner(pretend=True))._repo_lines(clang_unit('clang-19'))
+                if ln.startswith('CODENAME='))
+    f = tmp_path / 'os-release'
+    f.write_text(os_release)
+    out = subprocess.run(['bash', '-c', line.replace('/etc/os-release', str(f)) + '; echo "$CODENAME"'],
+                         capture_output=True, text=True).stdout.strip()
+    assert out == want
