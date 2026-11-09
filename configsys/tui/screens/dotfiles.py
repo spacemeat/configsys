@@ -47,12 +47,9 @@ class DotfilesVM(ViewModel):
 
 
 def _nav_str():
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('dotfiles', a)
-        return (f" {g('manage')}/{g('manage-all')} manage · {g('unmanage')}/{g('unmanage-all')} unmanage · "
-                f"{g('move-store')}/{g('move-store-all')} move store · {g('quit')} ")
-    return ' m/M manage · u/U unmanage · s/S move store · h/l scroll · q '
+    g = lambda a: menu._keymap().glyph('dotfiles', a)
+    return (f" {g('manage')}/{g('manage-all')} manage · {g('unmanage')}/{g('unmanage-all')} unmanage · "
+            f"{g('move-store')}/{g('move-store-all')} move store · {g('quit')} ")
 
 
 class DotfilesScreen(Screen):
@@ -157,8 +154,8 @@ class DotfilesScreen(Screen):
         the former dotfiles dispatch.'''
         ds = self.model
         row = ds.cur_row()          # (rc, name, target, state, source, capturable)
-        km = menu._KEYMAP
-        dact = km.action_for('dotfiles', ch) if km is not None else None
+        km = menu._keymap()
+        dact = km.action_for('dotfiles', ch)
         note = None
         try:
             if dact == 'down':

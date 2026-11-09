@@ -259,20 +259,14 @@ class ComponentsScreen(Screen):
             status_line += f'   filter:{ms.filter}'
         if note:
             status_line += f'   {note}'
-        km = menu._KEYMAP
-        if km is not None:
-            g = lambda a: km.glyph('components', a)
-            nav = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
-                   f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
-                   f"{g('filter')} filter · {g('expand-all')} expand-all ")
-            act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
-                   f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
-                   f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
-                   f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
-        else:
-            nav = ' j/k · g/G top/bottom · l/h expand/collapse · enter open · / find · F filter · tab expand-all '
-            act = (' space sel · a all · i/I inst · u/U upg · x rm · L ' + _lock_verb(ms) +
-                   ' · v via · w where · c clear · X exec · R refresh · ! issues · q quit ')
+        g = lambda a: menu._keymap().glyph('components', a)
+        nav = (f" {g('down')}/{g('up')} move · {g('top')}/{g('bottom')} top/bottom · "
+               f"{g('right')}/{g('left')} expand/collapse · {g('confirm')} open · {g('find')} find · "
+               f"{g('filter')} filter · {g('expand-all')} expand-all ")
+        act = (f" {g('select')} sel · {g('select-all')} all · {g('op-install')}/{g('op-install-all')} inst · "
+               f"{g('op-upgrade')}/{g('op-upgrade-all')} upg · {g('op-remove')} rm · {g('lock')} {_lock_verb(ms)} · "
+               f"{g('method')} via · {g('where')} where · {g('clear')} clear · {g('execute')} exec · "
+               f"{g('refresh')} refresh · {g('issues')} issues · {g('quit')} quit ")
         _put(surface, h - 3, 0, _fit(status_line, w), pal.style('status_line', h - 3, 0, h, w))
         _put(surface, h - 2, 0, _fit(nav.ljust(w), w), pal.style('footer', h - 2, 0, h, w))
         _put(surface, h - 1, 0, _fit(act.ljust(w), w), pal.style('footer', h - 1, 0, h, w))
@@ -285,8 +279,8 @@ class ComponentsScreen(Screen):
         (ms, cfg, ledger, states, diags) on Intent.reloaded; for a MODE switch, the new
         (ms, states, layouts, transitive) on Intent.remodeled — the router adopts them.'''
         ms = self.model
-        km = menu._KEYMAP
-        act = km.action_for('components', ch) if km is not None else None
+        km = menu._keymap()
+        act = km.action_for('components', ch)
         intent = Intent()
         if _cursor_in_sysupd(ms):                       # System Updates: bulk-action, no per-row staging
             if act in _SU_BULK_ACTS:                    # i/u stages them ALL (all-or-nothing); X applies

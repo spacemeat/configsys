@@ -52,16 +52,12 @@ class PluginsVM(ViewModel):
 
 
 def _nav_str():
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('plugins', a)
-        return (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
-                f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
-                f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
-                f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
-                f"{g('lock')} lock · {g('push')} push · {g('history')} history · {g('quit')} ")
-    return (' tab focus · j/k · h/l scroll · a add · x rm · s/S sync · b/B bless · u/U update · '
-            'v ref · t trust · T trust-all · L lock · P push · H history · q ')
+    g = lambda a: menu._keymap().glyph('plugins', a)
+    return (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
+            f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
+            f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
+            f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
+            f"{g('lock')} lock · {g('push')} push · {g('history')} history · {g('quit')} ")
 
 
 def _history(stdscr, pal, ctx, pl):
@@ -245,8 +241,8 @@ class PluginsScreen(Screen):
         from ... import actions, plugins
         pl = self.model
         row = pl.cur_row()
-        km = menu._KEYMAP
-        pact = km.action_for('plugins', ch) if km is not None else None
+        km = menu._keymap()
+        pact = km.action_for('plugins', ch)
         note = None
         dirty = False
         pending = []

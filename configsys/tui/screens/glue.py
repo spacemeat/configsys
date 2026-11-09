@@ -49,12 +49,10 @@ class GlueVM(ViewModel):
 
 
 def _nav_str():
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('glue', a)
-        return (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('activate')} activate · "
-                f"{g('activate-group')} activate group · {g('deactivate')} deactivate · {g('quit')} ")
-    return ' j/k · h/l scroll · a activate · A activate group · x deactivate · q '
+    g = lambda a: menu._keymap().glyph('glue', a)
+    return (f" {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · {g('activate')} activate · "
+            f"{g('activate-group')} activate group · {g('deactivate')} deactivate · "
+            f"{g('new-snippet')} new · {g('override')} override · {g('staged')} staged · {g('quit')} ")
 
 
 class GlueScreen(Screen):
@@ -164,8 +162,8 @@ class GlueScreen(Screen):
         Ported verbatim from the former glue dispatch.'''
         gs = self.model
         row = gs.cur_row()          # (rc, comp, tgt, state, src, shell)
-        km = menu._KEYMAP
-        gact = km.action_for('glue', ch) if km is not None else None
+        km = menu._keymap()
+        gact = km.action_for('glue', ch)
         note = None
         try:
             if gact == 'down':

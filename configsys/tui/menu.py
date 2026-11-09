@@ -46,11 +46,6 @@ KEY_TO_OP = {
 }
 _COMP_OPS = {'op-install': 'install', 'op-upgrade': 'upgrade', 'op-remove': 'remove'}   # action -> op
 
-# page-up / page-down raw codes, for the modals that read getch directly (panes use the `page-up` /
-# `page-down` keymap ACTIONS instead). PgDn + Ctrl-J (LF, 10) scroll down; PgUp + Ctrl-K (11) up.
-_PGDN_KEYS = (curses.KEY_NPAGE, 10)
-_PGUP_KEYS = (curses.KEY_PPAGE, 11)
-
 
 def _pretend_note(ctx, note, wrote):
     '''The status note after a config-EDITING key. Under --pretend every actions-level config writer
@@ -1386,6 +1381,78 @@ _HELP = {
 }
 
 
+
+# -- modal + overlay plumbing (review-2026-11-2 D7 / tui-core-08) -----------------------------------
+# Every modal and overlay moves through the SAME keymap the panes do: the `global` scope's nav actions,
+# whatever keys you bound them to (config.hu says page-down works "in all panes + modals").
+_NAV_ACTIONS = ('down', 'up', 'top', 'bottom', 'page-down', 'page-up')
+
+
+def _keymap():
+    '''The live keymap (your `keys:`), or the one config.hu ships outside a run (tests, samples) —
+    so no legend or modal keeps its own copy of the defaults.'''
+    return _KEYMAP if _KEYMAP is not None else keyspec.shipped_keymap()
+
+
+class ListNav:
+    '''Keymap-aware movement over a list — the one implementation the modals and overlays share (they
+    used to hard-code j/k/arrows and mostly ignored page/top/bottom). A position is clamped to
+    [0, limit]: a cursor's limit is n-1, a scroll offset's is n - visible rows.'''
+
+    @staticmethod
+    def action(ch, scope='global'):
+        '''The nav action key `ch` means, or None.'''
+        act = _keymap().action_for(scope, ch)
+        return act if act in _NAV_ACTIONS else None
+
+    @staticmethod
+    def apply(act, pos, limit, page):
+        '''`pos` moved by nav action `act` (`page` rows a page), clamped to [0, limit].'''
+        if act == 'top':
+            pos = 0
+        elif act == 'bottom':
+            pos = limit
+        else:
+            pos += {'down': 1, 'up': -1, 'page-down': max(1, page),
+                    'page-up': -max(1, page)}.get(act, 0)
+        return max(0, min(pos, max(0, limit)))
+
+    @classmethod
+    def key(cls, ch, pos, limit, page, scope='global'):
+        '''The new position for key `ch`, or None when `ch` isn't a nav key.'''
+        act = cls.action(ch, scope)
+        return None if act is None else cls.apply(act, pos, limit, page)
+
+
+def _nav_glyphs():
+    '''"j/k" — the down/up keys as you bound them, for a modal's hint line.'''
+    km = _keymap()
+    return f'{km.glyph("global", "down")}/{km.glyph("global", "up")}'
+
+
+def _modal_frame(stdscr, pal, y0, x0, box_h, box_w, title, hint=None):
+    '''Draw a modal's box — border, blanked interior, title on the top edge, `hint` on the bottom
+    edge — and return the border attribute (the modals reuse it for their scroll arrows).'''
+    border = pal.get('accent') | curses.A_BOLD
+    _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
+    _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 6)} ', border)
+    for r in range(1, box_h - 1):
+        _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
+    _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+    if hint:
+        _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(f' {hint} ', box_w - 4), border)
+    return border
+
+
+def _keep_visible(sel, top, vis):
+    '''The scroll offset that keeps row `sel` inside a `vis`-row window starting at `top`.'''
+    if sel < top:
+        return sel
+    if sel >= top + vis:
+        return sel - vis + 1
+    return top
+
+
 def _help_modal(stdscr, pal, screen):
     '''The per-page `?` overlay: a brief description, the live keybindings for this page, and a small
     glossary of its terms/markers. Scrollable; esc/q/? closes. Drawn OVER the current screen.'''
@@ -1402,7 +1469,7 @@ def _help_modal(stdscr, pal, screen):
         line(dl, 'info')
     line('', 'info')
     line('keys', 'menu_header', True)
-    for keys, label in (_KEYMAP.help_rows(screen) if _KEYMAP is not None else []):
+    for keys, label in _keymap().help_rows(screen):
         rows.append([(f'{keys:>10}  ', 'scope_choice', False), (label, 'ink', False)])
     if info.get('glossary'):
         line('', 'info')
@@ -1417,16 +1484,10 @@ def _help_modal(stdscr, pal, screen):
     box_h = min(len(rows) + 4, max(8, h - 2))
     vis = box_h - 4
     y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-    border = pal.get('accent') | curses.A_BOLD
-    top = 0
+    top, limit = 0, max(0, len(rows) - vis)
     while True:
-        top = max(0, min(top, max(0, len(rows) - vis)))
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, f' {screen} · help ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        _put(stdscr, y0 + box_h - 1, x0 + 2, ' j/k scroll · esc close ', border)
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, f'{screen} · help',
+                     f'{_nav_glyphs()} scroll · esc close')
         for i in range(vis):
             idx = top + i
             if idx >= len(rows):
@@ -1439,21 +1500,11 @@ def _help_modal(stdscr, pal, screen):
         _scrollbar_v(stdscr, pal, y0 + 1, x0 + box_w - 1, vis, top, vis, len(rows), h, w)
         stdscr.refresh()
         ch = stdscr.getch()
-        act = _KEYMAP.action_for(screen, ch) if _KEYMAP is not None else None
-        if ch == 27 or ch == ord('q') or act in ('quit', 'help'):
+        if ch == 27 or ch == ord('q') or _keymap().action_for(screen, ch) in ('quit', 'help'):
             return
-        if act == 'down':
-            top += 1
-        elif act == 'up':
-            top -= 1
-        elif act == 'top':
-            top = 0
-        elif act == 'bottom':
-            top = len(rows)
-        elif act == 'page-down':
-            top += vis
-        elif act == 'page-up':
-            top -= vis
+        moved = ListNav.key(ch, top, limit, vis, scope=screen)
+        if moved is not None:
+            top = moved
 
 
 def _draw_diagnostics(stdscr, pal, diags, top):
@@ -1504,7 +1555,9 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
             _put(stdscr, bt + (i - top), 0, _fit(shown[i], w), pal.get('info'))
         _scrollbar_v(stdscr, pal, bt, w - 1, bh, top, bh, len(shown), h, w)
         if result is None:
-            foot = f' ↑/↓ scroll · g/G top/bottom · s SEND to {reportgen.REPORTS_REPO} · Esc cancel '
+            km = _keymap()
+            foot = (f' {_nav_glyphs()} scroll · {km.glyph("global", "top")}/{km.glyph("global", "bottom")} '
+                    f'top/bottom · s SEND to {reportgen.REPORTS_REPO} · Esc cancel ')
         else:
             foot = ' filed — any key to return '
         _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
@@ -1522,18 +1575,10 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
             _busy(stdscr, pal, f'filing to {reportgen.REPORTS_REPO}…')
             _rc, result = _file_issue(ctx, title, body, label, save_as)
             top = 0
-        elif ch in (curses.KEY_DOWN, ord('j')):
-            top += 1
-        elif ch in (curses.KEY_UP, ord('k')):
-            top = max(0, top - 1)
-        elif ch in _PGDN_KEYS:
-            top += _page_rows(stdscr)
-        elif ch in _PGUP_KEYS:
-            top = max(0, top - _page_rows(stdscr))
-        elif ch in (ord('g'),):
-            top = 0
-        elif ch in (ord('G'),):
-            top = 10 ** 6
+        else:
+            moved = ListNav.key(ch, top, max(0, len(shown) - bh), bh)
+            if moved is not None:
+                top = moved
 
 
 def _issue_flow(stdscr, pal, ctx, kind, pending_report=None):
@@ -1666,16 +1711,13 @@ def _draw_nav(stdscr, pal, screen, h, w):
     '''Row-0 chip bar: press a number to switch screens. Unbuilt screens are dimmed. The switch key
     and the issues/quit hint come from the keymap, so a rebind shows here too.'''
     x = 0
-    for key, sid, name in SCREENS:
-        k = _KEYMAP.glyph('screens', sid) if _KEYMAP is not None else key
-        chip = f' {k} {name} '
+    km = _keymap()
+    for _key, sid, name in SCREENS:
+        chip = f' {km.glyph("screens", sid)} {name} '
         elem = 'label' if sid == screen else ('menu_header' if sid in IMPLEMENTED else 'info_dim')
         _put(stdscr, 0, x, chip, pal.style(elem, 0, x, h, w))
         x += len(chip) + 1
-    if _KEYMAP is not None:
-        hint = f' {_KEYMAP.glyph("global", "issues")} issues · {_KEYMAP.glyph("global", "quit")} quit '
-    else:
-        hint = ' ! issues · q quit '
+    hint = f' {km.glyph("global", "issues")} issues · {km.glyph("global", "quit")} quit '
     _put(stdscr, 0, max(x + 1, w - len(hint) - 1), _fit(hint, w - x), pal.style('footer', 0, x, h, w))
 
 
@@ -1796,20 +1838,13 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=())
     nb = (len(body) + 1) if body else 0                  # body rows + a spacer
     y0 = max(0, (h - box_h) // 2)
     x0 = max(0, (w - box_w) // 2)
-    border = pal.get('accent') | curses.A_BOLD
     vis = max(1, box_h - 4 - nb)             # option rows that fit inside the box (below title + body)
     sel = start
     ptop = 0
+    keys = (f'{"/".join(shortcuts)} · ' if shortcuts else '') + f'{_nav_glyphs()} · enter · esc'
     while True:
-        if sel < ptop:                       # keep the selection inside the scroll window
-            ptop = sel
-        elif sel >= ptop + vis:
-            ptop = sel - vis + 1
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        ptop = _keep_visible(sel, ptop, vis)
+        border = _modal_frame(stdscr, pal, y0, x0, box_h, box_w, title, keys)
         for r, line in enumerate(body):
             _put(stdscr, y0 + 2 + r, x0 + 2, _fit(line, box_w - 4), pal.get('dim'))
         for r, i in enumerate(range(ptop, min(n, ptop + vis))):
@@ -1823,8 +1858,6 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=())
             _put(stdscr, y0 + 1, x0 + box_w - 3, '↑', border)
         if ptop + vis < n:
             _put(stdscr, y0 + box_h - 2, x0 + box_w - 3, '↓', border)
-        hint = f' {"/".join(shortcuts)} · j/k · enter · esc ' if shortcuts else ' j/k · enter · esc '
-        _put(stdscr, y0 + box_h - 1, x0 + 2, _fit(hint, box_w - 4), border)
         stdscr.refresh()
         ch = stdscr.getch()
         if shortcuts and 0 <= ch < 256:
@@ -1833,14 +1866,9 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=())
                 return hit
         if ch in (27, ord('q')):
             return None
-        if ch in (ord('j'), curses.KEY_DOWN):
-            sel = min(n - 1, sel + 1)
-        elif ch in (ord('k'), curses.KEY_UP):
-            sel = max(0, sel - 1)
-        elif ch in _PGDN_KEYS:
-            sel = min(n - 1, sel + vis)
-        elif ch in _PGUP_KEYS:
-            sel = max(0, sel - vis)
+        moved = ListNav.key(ch, sel, n - 1, vis)
+        if moved is not None:
+            sel = moved
         elif ch in (ord('\r'), curses.KEY_ENTER, curses.KEY_RIGHT):
             return sel
 
@@ -2746,22 +2774,18 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
         rows.append(('head', axis))
         rows.extend(('tag', t) for t in tags)
     inc, exc = {x.lower() for x in inc}, {x.lower() for x in exc}
-    sel = next((i for i, r in enumerate(rows) if r[0] == 'tag'), 0)
+    tags = [i for i, r in enumerate(rows) if r[0] == 'tag']     # the selectable rows (not axis heads)
+    sel = tags[0] if tags else 0
     top = 0
-    border = pal.get('accent') | curses.A_BOLD
     while True:
         h, w = stdscr.getmaxyx()
         box_w = min(48, max(30, w - 4))
         vis = max(3, min(len(rows), h - 6))
         box_h = vis + 4
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, ' filter catalog by attributes ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space:·/✓/✗ · c:clear · enter · esc ', border)
+        top = _keep_visible(sel, top, vis)
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, 'filter catalog by attributes',
+                     'space:·/✓/✗ · c:clear · enter · esc')
         for k in range(vis):
             idx = top + k
             if idx >= len(rows):
@@ -2780,10 +2804,10 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
             return None
         if ch in (ord('\r'), curses.KEY_ENTER):
             return inc, exc
-        if ch in (ord('j'), curses.KEY_DOWN):               # land only on tag rows (skip axis headers)
-            sel = next((i for i in range(sel + 1, len(rows)) if rows[i][0] == 'tag'), sel)
-        elif ch in (ord('k'), curses.KEY_UP):
-            sel = next((i for i in range(sel - 1, -1, -1) if rows[i][0] == 'tag'), sel)
+        moved = ListNav.key(ch, tags.index(sel) if sel in tags else 0, len(tags) - 1, vis) \
+            if tags else None
+        if moved is not None:                               # move over the tag rows (skip axis heads)
+            sel = tags[moved]
         elif ch == ord('c'):
             inc.clear()
             exc.clear()
@@ -2803,7 +2827,6 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
     a status note. Mutates picks via actions; tracking a component also marks it seen.'''
     from .. import actions
     sel, top = 0, 0
-    border = pal.get('accent') | curses.A_BOLD
     dim = pal.get('dim')
 
     def machs():
@@ -2822,12 +2845,8 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
         vis = max(3, min(len(rows), h - 7))
         box_h = vis + 5
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-        top = min(sel, top) if sel < top else (sel - vis + 1 if sel >= top + vis else top)
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, _fit(f' track "{comp}" on… ', box_w - 4), border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        top = _keep_visible(sel, top, vis)
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, f'track "{comp}" on…')
         for k in range(vis):
             idx = top + k
             if idx >= len(rows):
@@ -2844,10 +2863,9 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
         ch = stdscr.getch()
         if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
             return note
-        if ch in (ord('j'), curses.KEY_DOWN):
-            sel = min(len(rows) - 1, sel + 1)
-        elif ch in (ord('k'), curses.KEY_UP):
-            sel = max(0, sel - 1)
+        moved = ListNav.key(ch, sel, len(rows) - 1, vis)
+        if moved is not None:
+            sel = moved
         elif ch == ord(' '):
             m = rows[sel]
             on = comp in picks.get(m, ())
@@ -2868,7 +2886,6 @@ def _machines_modal(stdscr, pal, ctx, targets):
     note = ''
     sel, top, held_h = 0, 0, 0
     mode, buf = None, ''                              # mode: None | 'rename' | 'add' | 'confirm'
-    border = pal.get('accent') | curses.A_BOLD
     dim = pal.get('dim')
 
     def machs():
@@ -2888,12 +2905,8 @@ def _machines_modal(stdscr, pal, ctx, targets):
         box_h = min(held_h, h - 2)
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
         cursor_at = nshow - 1 if mode == 'add' else sel
-        top = min(cursor_at, top) if cursor_at < top else (cursor_at - vis + 1 if cursor_at >= top + vis else top)
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, ' target machines (A/D fan out to ✓) ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        top = _keep_visible(cursor_at, top, vis)
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, 'target machines (A/D fan out to ✓)')
         for k in range(vis):
             idx = top + k
             if idx > nshow - 1:
@@ -2965,10 +2978,9 @@ def _machines_modal(stdscr, pal, ctx, targets):
 
         if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
             return tg, note
-        if ch in (ord('j'), curses.KEY_DOWN):
-            sel = min(len(rows) - 1, sel + 1)
-        elif ch in (ord('k'), curses.KEY_UP):
-            sel = max(0, sel - 1)
+        moved = ListNav.key(ch, sel, len(rows) - 1, vis)
+        if moved is not None:
+            sel = moved
         elif ch == ord(' '):
             tg ^= {rows[sel]}                         # toggle freely — the current machine included; an
                                                      # empty set is allowed (A/D then simply no-op)
@@ -3700,7 +3712,6 @@ def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
     box_w = min(max(len(title) + 4, 60), max(24, w - 2))
     box_h = 5 + (1 if toggle else 0)
     y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-    border = pal.get('accent') | curses.A_BOLD
     ghost_attr = pal.get('dim')
     buf = list(initial)
     checked = bool(toggle[1]) if toggle else False
@@ -3717,13 +3728,8 @@ def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
         pass
     try:
         while True:
-            _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-            _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
-            for r in range(1, box_h - 1):
-                _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-            _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-            _put(stdscr, y0 + box_h - 1, x0 + 2,
-                 ' enter · esc' + (' · tab' if (complete or toggle) else '') + ' ', border)
+            border = _modal_frame(stdscr, pal, y0, x0, box_h, box_w, title,
+                                  'enter · esc' + (' · tab' if (complete or toggle) else ''))
             s = ''.join(buf)
             _put(stdscr, y0 + 2, x0 + 2, _fit(s, box_w - 4).ljust(box_w - 4), curses.A_UNDERLINE)
             m = _match(s)
@@ -3778,21 +3784,18 @@ def _order_list(stdscr, pal, title, items, label=None):
     h, w = stdscr.getmaxyx()
     box_w = min(max(len(title) + 4, max((len(d) for d in disp), default=0) + 10, 46), max(24, w - 2))
     box_h = min(len(items) + 5, max(7, h - 2))
+    vis = max(1, box_h - 4)
     y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
-    border = pal.get('accent') | curses.A_BOLD
-    sel, grabbed = 0, False
+    sel, top, grabbed = 0, 0, False
     while True:
-        _put(stdscr, y0, x0, '┌' + '─' * (box_w - 2) + '┐', border)
-        _put(stdscr, y0, x0 + 2, f' {_fit(title, box_w - 4)} ', border)
-        for r in range(1, box_h - 1):
-            _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
-        _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
-        _put(stdscr, y0 + box_h - 1, x0 + 2, ' space grab · j/k move · enter · esc ', border)
-        for i, it in enumerate(items[:box_h - 4]):
+        top = _keep_visible(sel, top, vis)
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, title,
+                     f'space grab · {_nav_glyphs()} move · enter · esc')
+        for r, i in enumerate(range(top, min(len(items), top + vis))):
             mark = '↕' if (grabbed and i == sel) else ('▸' if i == sel else ' ')
             attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
-            _put(stdscr, y0 + 2 + i, x0 + 2,
-                 _fit(f'{i + 1:>2}. {mark} {fmt(it)}'.ljust(box_w - 4), box_w - 4), attr)
+            _put(stdscr, y0 + 2 + r, x0 + 2,
+                 _fit(f'{i + 1:>2}. {mark} {fmt(items[i])}'.ljust(box_w - 4), box_w - 4), attr)
         stdscr.refresh()
         ch = stdscr.getch()
         if ch == 27:
@@ -3801,18 +3804,14 @@ def _order_list(stdscr, pal, title, items, label=None):
             return items
         if ch == ord(' '):
             grabbed = not grabbed
-        elif ch in (ord('j'), curses.KEY_DOWN):
-            if grabbed and sel < len(items) - 1:
-                items[sel], items[sel + 1] = items[sel + 1], items[sel]
-                sel += 1
-            elif not grabbed:
-                sel = min(len(items) - 1, sel + 1)
-        elif ch in (ord('k'), curses.KEY_UP):
-            if grabbed and sel > 0:
-                items[sel], items[sel - 1] = items[sel - 1], items[sel]
-                sel -= 1
-            elif not grabbed:
-                sel = max(0, sel - 1)
+            continue
+        act = ListNav.action(ch)
+        if act is None:
+            continue
+        to = ListNav.apply(act, sel, len(items) - 1, vis)
+        if grabbed and to != sel:                    # carry the grabbed item to its new slot
+            items.insert(to, items.pop(sel))
+        sel = to
 
 
 def _setting_str(kind, val, key=None):
@@ -4932,18 +4931,8 @@ def run(ctx):
                 if (oact in ('where', 'quit') or ch == 27
                         or keymap.action_for(screen, ch) in ('where', 'quit')):   # the opening key
                     show_where = False
-                elif oact == 'down':
-                    where_top += 1
-                elif oact == 'up':
-                    where_top = max(0, where_top - 1)
-                elif oact == 'page-down':
-                    where_top += _page_rows(stdscr)
-                elif oact == 'page-up':
-                    where_top = max(0, where_top - _page_rows(stdscr))
-                elif oact == 'top':
-                    where_top = 0
-                elif oact == 'bottom':
-                    where_top = 10 ** 6                  # clamped by _draw_where
+                elif oact in _NAV_ACTIONS:               # the limit is clamped by _draw_where
+                    where_top = ListNav.apply(oact, where_top, 10 ** 6, _page_rows(stdscr))
                 continue
 
             if show_diag:                               # diagnostics overlay: scroll, file an issue, or exit
@@ -4955,18 +4944,8 @@ def run(ctx):
                     _n = _issue_flow(stdscr, pal, ctx, _kind, pending_report)
                     if _n is not None:                  # sent / reviewed (None = cancelled at the prompt)
                         note, show_diag = _n, False
-                elif oact == 'down':
-                    diag_top += 1
-                elif oact == 'up':
-                    diag_top = max(0, diag_top - 1)
-                elif oact == 'page-down':
-                    diag_top += _page_rows(stdscr)
-                elif oact == 'page-up':
-                    diag_top = max(0, diag_top - _page_rows(stdscr))
-                elif oact == 'top':
-                    diag_top = 0
-                elif oact == 'bottom':
-                    diag_top = 10 ** 6                  # clamped by _draw
+                elif oact in _NAV_ACTIONS:               # the limit is clamped by _draw_diagnostics
+                    diag_top = ListNav.apply(oact, diag_top, 10 ** 6, _page_rows(stdscr))
                 continue
 
             # -- router keys, resolved through the keymap. The screen's OWN scope is consulted first:

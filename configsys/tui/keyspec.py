@@ -275,6 +275,25 @@ class Keymap:
         return rows
 
 
+
+_SHIPPED = None
+
+
+def shipped_keymap():
+    '''The Keymap config.hu ships (its `keys:` section) — what the modals, overlays and legends read
+    outside a TUI run (tests, theme samples), so none of them keeps its own copy of the defaults.
+    Read once; the minimal _FALLBACK if config.hu can't be read.'''
+    global _SHIPPED
+    if _SHIPPED is None:
+        try:
+            from ..layers import read_tree
+            from ..paths import Paths
+            _trove, data = read_tree(Paths({}).config_file)
+            _SHIPPED = Keymap(data.get('keys') or {})
+        except Exception:                            # noqa: BLE001 — never break a legend over this
+            _SHIPPED = Keymap({})
+    return _SHIPPED
+
 # The canonical actions each scope's dispatch understands — the contract `configsys check` lints a
 # user's `keys:` against. A page scope may ALSO bind any `global` action (to rebind nav on that page),
 # so a page's valid set is its own actions ∪ global's. `screens` binds screen ids, not actions.

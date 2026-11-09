@@ -44,22 +44,15 @@ class ThemeVM(ViewModel):
 
 
 def _nav_str(focus):
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('theme', a)
-        if focus == 'map':
-            return (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
-                    f"F1-7 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
-                    f"{g('save')} save · {g('load')} load · {g('quit')} ")
-        return (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-7 page · {g('confirm')} fg · "
-                f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
-                f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
-                f"{g('save')} save · {g('load')} load · {g('quit')} ")
+    g = lambda a: menu._keymap().glyph('theme', a)
     if focus == 'map':
-        return (' tab→roles · h/l/j/k · F1-7 page · ↵ set #rrggbb · n new · x/r remove · '
-                's save · L load · q ')
-    return (' tab→map · j/k · F1-7 page · ↵ fg · B bg · o/u/v fx · r reset · p grad on/off · '
-            'D copy-page · s save · L load · q ')
+        return (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
+                f"F1-7 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
+                f"{g('save')} save · {g('load')} load · {g('quit')} ")
+    return (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-7 page · {g('confirm')} fg · "
+            f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
+            f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
+            f"{g('save')} save · {g('load')} load · {g('quit')} ")
 
 
 class ThemeScreen(Screen):
@@ -196,7 +189,7 @@ class ThemeScreen(Screen):
         dirty and never changes screen.'''
         from ... import actions
         ts = self.model
-        km = menu._KEYMAP
+        km = menu._keymap()
         note = None
         new_pal = None
         wrote = []                                  # a theme write was attempted (for the --pretend note)
@@ -206,7 +199,7 @@ class ThemeScreen(Screen):
             return fn
         try:
             page = ALL_PAGES[ts.page]
-            tact = km.action_for('theme', ch) if km is not None else None
+            tact = km.action_for('theme', ch)
             if tact in ('switch-pane', 'switch-pane-back'):
                 ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
             elif tact in ('left', 'right'):

@@ -48,18 +48,13 @@ class ProfilesVM(ViewModel):
 
 
 def _nav_strs():
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('profiles', a)
-        nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
-                f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
-                f"{g('attr-filter')} attrs · {g('machine-target')} machines · {g('where')} where ")
-        nav2 = (f" {g('track-all')} track-set · {g('track-one')} track-one · {g('disp-interesting')} int · "
-                f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · "
-                f"{g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
-    else:
-        nav1 = (' j/k move · h/l scroll/expand · tab panes · / find · F filter · f attrs · M machines · w where ')
-        nav2 = (' T track-set · t track-one · i int · s seen · space sel · a all · v via · x uninst · q quit ')
+    g = lambda a: menu._keymap().glyph('profiles', a)
+    nav1 = (f" {g('down')}/{g('up')} move · {g('right')}/{g('left')} scroll/expand · "
+            f"{g('switch-pane')} panes · {g('find')} find · {g('filter')} filter · "
+            f"{g('attr-filter')} attrs · {g('machine-target')} machines · {g('where')} where ")
+    nav2 = (f" {g('track-all')} track-set · {g('track-one')} track-one · {g('disp-interesting')} int · "
+            f"{g('disp-seen')} seen · {g('select')} sel · {g('select-all')} all · "
+            f"{g('method')} via · {g('stage-uninstall')} uninst · {g('quit')} quit ")
     return nav1, nav2
 
 
@@ -448,8 +443,8 @@ class ProfilesScreen(Screen):
         rebuilds the model (as the loop used to rebind `ps`) and swaps it in as self.model.'''
         from ... import actions
         ps = self.model
-        km = menu._KEYMAP
-        pfact = km.action_for('profiles', ch) if km is not None else None
+        km = menu._keymap()
+        pfact = km.action_for('profiles', ch)
         note = None
         dirty = False
         pending = []

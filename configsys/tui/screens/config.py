@@ -45,12 +45,9 @@ class ConfigVM(ViewModel):
 
 
 def _nav_str():
-    km = menu._KEYMAP
-    if km is not None:
-        g = lambda a: km.glyph('config', a)
-        return (f" {g('down')}/{g('up')} move · {g('confirm')} edit · {g('move')} local↔primary · "
-                f"{g('theme')} theme · {g('quit')} quit ")
-    return ' j/k move · enter/space edit · m local↔primary · t theme · q quit '
+    g = lambda a: menu._keymap().glyph('config', a)
+    return (f" {g('down')}/{g('up')} move · {g('confirm')} edit · {g('move')} local↔primary · "
+            f"{g('theme')} theme · {g('quit')} quit ")
 
 
 def _state(info):
@@ -206,8 +203,8 @@ class ConfigScreen(Screen):
         edits deliberately do not.'''
         from ... import actions
         cs = self.model
-        km = menu._KEYMAP
-        cact = km.action_for('config', ch) if km is not None else None
+        km = menu._keymap()
+        cact = km.action_for('config', ch)
         note = None
         dirty = False
         goto = None
