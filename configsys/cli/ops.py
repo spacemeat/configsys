@@ -380,6 +380,10 @@ def cmd_remove(ctx, args):
 
 def cmd_upgrade(ctx, args):
     if getattr(args, 'system', False):
+        if args.names or getattr(args, 'picks', False):
+            print('configsys: `upgrade --system` upgrades the whole system and takes no component '
+                  'names or --picks — run those as a separate `configsys upgrade`')
+            return 1
         return cmd_upgrade_system(ctx, args)
     names, confirm = args.names, False
     if getattr(args, 'picks', False):

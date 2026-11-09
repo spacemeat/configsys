@@ -614,3 +614,14 @@ def test_flatpak_rows_carry_their_installation():
     assert rows['org.freedesktop.Platform/x86_64/24.08'].scope == 'system'
     st = sysupdates._synthetic_state(rows['org.freedesktop.Platform/x86_64/24.08'])
     assert st.scope == 'system'
+
+
+def test_upgrade_system_refuses_component_names_and_picks(capsys):
+    '''`--system` is the whole-system lane; names or --picks beside it are refused, never ignored.'''
+    import argparse
+    from configsys.cli import ops
+    for extra in ({'names': ['ripgrep'], 'picks': False}, {'names': [], 'picks': True}):
+        args = argparse.Namespace(system=True, yes=False, **extra)
+        assert ops.cmd_upgrade(None, args) == 1
+        assert '--system' in capsys.readouterr().out
+
