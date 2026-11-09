@@ -79,3 +79,13 @@ def test_a_malformed_constraint_abstains_and_check_says_so(tmp_path):
     r.resolve_resilient(['foo'])                             # no crash
     issues = routecheck.validate(r.components, r.cascade, r.drivers)
     assert any(i.kind == 'bad-constraint' for i in issues)
+
+
+def test_a_pick_sharing_a_failing_dependency_gets_its_own_error_row(tmp_path):
+    # B5 (routing-02): the second pick used to vanish — no unit, no error
+    r = Resolver(_routes(tmp_path, 'libc: { requires: nothing-provides-this  install: [ { via: native } ] }'
+                         '  a: { requires: libc  install: [ { via: native } ] }'
+                         '  b: { requires: libc  install: [ { via: native } ] }'), 'debian', '12')
+    units, errs = r.resolve_resilient(['a', 'b'])
+    assert units == {} and set(errs) == {'a', 'b'}
+    assert 'nothing-provides-this' in errs['b']

@@ -610,14 +610,14 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
             errors[name] = str(e)
     st.drain(errors=errors)
     if st.failed_keys:
-        _prune_failed(st, root_keys)
+        _prune_failed(st, root_keys, errors)
     st.propagate_requested()
     if provider_rules_out is not None:
         provider_rules_out.update(st.provider_rules)
     return st.units, errors
 
 
-def _prune_failed(st, root_keys):
+def _prune_failed(st, root_keys, errors=None):
     '''A unit whose HARD requirement failed can't be installed — so leave nothing of it installable.
     The failure can come AFTER the unit was added (a pinned provider that can't meet a version floor:
     blender-5.2's cuda-toolkit >=12.8 vs a cuda-toolkit -> cuda-toolkit-11 pin), and that half-resolved
@@ -641,6 +641,14 @@ def _prune_failed(st, root_keys):
         live.add(key)
         stack.extend(st.units[key].deps)
     st.units = {k: u for k, u in st.units.items() if k in live}
+    if errors is not None:
+        # a pick whose OWN unit went with a shared failed dependency gets its error row too — it used to
+        # vanish without one when an earlier pick had already queued (and reported) that edge (B5)
+        for name, keys in root_keys.items():
+            if name in errors or not keys or any(k in live for k in keys):
+                continue
+            cause = next((st.failure_of[k] for k in sorted(gone) if k in st.failure_of), 'a dependency')
+            errors[name] = f'needs something that can\'t be installed here: {cause}'
     for u in st.units.values():
         u.deps = u.deps - gone                            # a dropped soft companion isn't a dep
 
@@ -702,6 +710,7 @@ class _State:
         self.units = {}
         self.hard_deps = {}                # unit key -> keys it HARD-requires (not suggests)
         self.failed_keys = set()           # units whose hard requirement failed (resilient mode)
+        self.failure_of = {}               # failed unit key -> the error (B5: shared by later picks)
         # capability -> frozenset of unit keys satisfying it (empty = the environment
         # provides it, no unit needed).
         self.inventory = {cap: frozenset() for cap in cascade.provides(self.block)}
@@ -836,6 +845,7 @@ class _State:
                     raise
                 errors.setdefault(root, str(e))
                 self.failed_keys.add(requiring_key)   # this unit can't be installed (see _prune_failed)
+                self.failure_of.setdefault(requiring_key, str(e))   # why, for every pick it takes down
 
     def _bindable_viable(self, cap, requiring):
         '''Providers of `cap` that can bind in this context (bootstrap guard: never self-provide).'''
