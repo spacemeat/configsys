@@ -386,6 +386,26 @@ def _pf(entry):
 Loaded = namedtuple('Loaded', 'cascade components drivers never_auto_drivers')
 
 
+# Validation memo (review-2026-11-2 tests-tools-05): routecheck over ~870 components is three
+# quarters of a load (≈0.3 s of 0.4). Its verdict depends only on the layer files and the trust split,
+# so a stack whose every file has the same CONTENT as one that already validated cleanly skips it —
+# every command, every TUI reload after an edit to another file, and most of the test suite.
+_VALIDATED = set()
+
+
+def _stack_fingerprint(layer_list, untrusted_sources):
+    import hashlib
+    parts = []
+    for lyr in layer_list:
+        try:
+            with open(lyr.path, 'rb') as f:
+                digest = hashlib.sha1(f.read()).hexdigest()
+        except OSError:
+            return None
+        parts.append((os.path.normpath(lyr.path), lyr.role, digest))
+    return (tuple(parts), untrusted_sources)
+
+
 def load(path, overrides_path=None, plugin_files=(), validate=True,
          warnings_out=None, layers_out=None, command_trust=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
@@ -480,6 +500,9 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     forgiving = _ForgivingPaths(_trees)
     cascade.driver_gates = _driver_gates(drvs, cascade.driver_sources, forgiving, warnings_out)
     from . import routecheck
+    fingerprint = _stack_fingerprint(layer_list, untrusted_sources) if validate else None
+    check = validate and fingerprint not in _VALIDATED      # already validated: same files, same trust
+    clean = True
     components = {}
     for name, chain in layers.collect_named(layer_list, 'components').items():
         # Components merge ADDITIVELY across layers (union of bindings, see _merge_component_chain)
@@ -491,9 +514,10 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         src = chain[-1][2]
         try:
             comp = Component(name, _merge_component_chain(name, [(v, s) for _i, v, s in chain]))
-            if validate:
+            if check:
                 routecheck.check_component(name, comp, cascade)
         except ConfigsysError as e:
+            clean = False
             if os.path.normpath(src) in forgiving:
                 if warnings_out is not None:
                     warnings_out.append(f'skipped component "{name}" ({src}): {e}')
@@ -529,6 +553,8 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
                                if isinstance(spec, dict) and _standing(spec) == NEVER_AUTO)
     cascade.never_auto_drivers = never_auto_drivers          # so routecheck.validate mirrors resolve._select
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
+    if check and clean and fingerprint is not None:
+        _VALIDATED.add(fingerprint)
     return Loaded(cascade, components, drivers, never_auto_drivers)
 
 

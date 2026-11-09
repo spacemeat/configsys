@@ -276,3 +276,24 @@ def test_validate_no_method_tie_when_one_is_never_auto(cascade):
     issues = _validate(cascade, {'x': _comp('x', {'install': [
         {'via': 'pipx', 'name': 'x'}, {'via': 'cargo', 'name': 'x', 'standing': 'never-auto'}]})})
     assert 'method-tie' not in _kinds(issues, 'x')
+
+
+def test_validation_memo_never_hides_a_new_error(tmp_path):
+    # tests-tools-05: a stack that validated cleanly skips routecheck next time — keyed on the files'
+    # CONTENT, so an edit that introduces an ambiguity is still caught on the next load
+    import pytest
+    from configsys import routes
+    from configsys.errors import ConfigsysError
+    p = tmp_path / 'routes.hu'
+    good = ('{ os: { linux: {}  debian: { using: linux  native: apt } }  components: { '
+            't: { install: [ { via: native  when: "debian" } ] } } }')
+    p.write_text(good)
+    routes.load(str(p))
+    routes.load(str(p))                                   # memo hit: still fine
+    p.write_text(good.replace('{ via: native  when: "debian" } ]',
+                              '{ via: native  when: "debian" } { via: native  when: "linux" } ]'))
+    routes.load(str(p))                                   # comparable (debian < linux): legal
+    p.write_text(good.replace('{ via: native  when: "debian" } ]',
+                              '{ via: native  when: "debian" } { via: native  when: "cpu:x86_64" } ]'))
+    with pytest.raises(ConfigsysError):                   # incomparable overlap, same via
+        routes.load(str(p))
