@@ -407,6 +407,16 @@ class Config:
         v = v.strip().lower() if isinstance(v, str) and v.strip() else None
         return v if v in layers.SETTING_CHOICES['effects'] else None
 
+    @property
+    def layers(self):
+        '''The merged layer stack (read-only view: a tuple of layers.Layer, lowest first).'''
+        return tuple(self._layers)
+
+    def configured_machine(self):
+        '''THIS box's configured machine name (its `machine:` setting), ignoring a `--machine`
+        working target; None for the default one-machine setup.'''
+        return _selected_machine(self._layers)
+
     def selected_machine(self):
         '''The active/target machine name: a `--machine` working-target override if given, else the
         `machine:` setting, else None.'''

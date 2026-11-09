@@ -179,7 +179,7 @@ def config_keys(config, owners_out=None):
     if getattr(config, '_layers', None) is None:
         return config.keys()
     kl = getattr(config, 'key_layers', None)          # only trusted plugins' keys (A11)
-    return merge_layer_keys(kl() if kl is not None else config._layers, owners_out=owners_out)
+    return merge_layer_keys(kl() if kl is not None else config.layers, owners_out=owners_out)
 
 
 class Keymap:

@@ -822,14 +822,14 @@ def _quit_push(stdscr, pal, ctx, force=False):
     then = primarygit.PUSH_POLICY[mode]['quit_force' if force else 'quit']
     if then is None or not ahead:
         return None, []
-    later = (f'{st.name}: {primarygit._count(ahead)} not pushed — `configsys plugin push` shares '
-             f'{primarygit._them(ahead)}.')
+    later = (f'{st.name}: {primarygit.count_phrase(ahead)} not pushed — `configsys plugin push` shares '
+             f'{primarygit.them_phrase(ahead)}.')
     if then == 'note':
         return True, [later]
     if then == 'push':
         ok, lines = _auto_push_primary(stdscr, pal, ctx)
         return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
-    c = _popup_choose(stdscr, pal, f'Quit? {primarygit._count(ahead)} to {st.name} not pushed yet.',
+    c = _popup_choose(stdscr, pal, f'Quit? {primarygit.count_phrase(ahead)} to {st.name} not pushed yet.',
                       [('Push, then quit', 'p'), ('Quit, push later', 'q'), ('Keep working', 'n')],
                       start=2, shortcuts={'p': 0, 'q': 1, 'n': 2})
     if c == 0:
@@ -2326,6 +2326,9 @@ def _is_ssh(env):
     '''Heuristic: are we on a remote (SSH) session? Imperfect — mosh doesn't set these, and tmux /
     screen often STRIP them — so it only feeds the effects DEFAULT, never a hard gate.'''
     return any(env.get(k) for k in ('SSH_CONNECTION', 'SSH_TTY', 'SSH_CLIENT'))
+
+
+is_ssh = _is_ssh                         # the public spelling (`configsys --probe` reads it — F4)
 
 
 def resolve_effects(ctx):

@@ -478,8 +478,7 @@ class Context:
 
     def own_machine(self):
         '''THIS box's machine name (its `machine:` setting, else `this-machine`) — never `--machine`.'''
-        from .config import _selected_machine
-        return _selected_machine(self.config._layers) or 'this-machine'
+        return self.config.configured_machine() or 'this-machine'
 
     def curating_machine(self):
         '''The OTHER machine `--machine` names, when it isn't this box — you are curating its picks
@@ -1630,7 +1629,7 @@ def cmd_refresh(ctx, args):
         # use the driver's arch-substituted spec so the cache key matches what the driver looks up
         # at install time. GitHub versions come from the anonymous atom feed (no API rate limit);
         # asset urls warm lazily at install (one component -> a couple of API calls, never the limit).
-        spec = drv._disco_spec(rc)
+        spec = drv.version_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
         sk = source_key(spec)
@@ -1819,7 +1818,7 @@ def _os_version_conditions(comp, cx):
 def where_report(ctx, name):
     '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
     (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
-    from .resolve import (ResolveError, _select, candidate_bindings, via_representatives,
+    from .resolve import (ResolveError, select_with_reason, candidate_bindings, via_representatives,
                           not_candidate_reason)
     r = ctx.routes
     comp = r.components.get(name)
@@ -1861,7 +1860,7 @@ def where_report(ctx, name):
     selected, candidates, reason = None, [], None
     if comp.bindings:
         try:
-            selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference,
+            selected, candidates, reason = select_with_reason(comp, r.cascade, cx, r.pins, r.preference,
                                                    r.never_auto_drivers)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
@@ -2800,8 +2799,8 @@ def check_report(ctx):
     try:
         gdrv = get_driver('glue', ctx.runner, ctx.paths)
         _ov_comps = set()
-        for _root in gdrv._user_glue_roots():
-            _ov_comps.update(k.split('|', 1)[0] for k in gdrv._load_overrides(_root))
+        for _root in gdrv.user_glue_roots():
+            _ov_comps.update(k.split('|', 1)[0] for k in gdrv.load_overrides(_root))
         for _comp in sorted(_ov_comps):
             _units, _e = ctx.routes.resolve_resilient([_comp])
             _rc = next((r for r in _units.values() if r.driver == 'glue' and r.comp == _comp), None)
@@ -2883,18 +2882,8 @@ def _fmt_conflict(kind, name, dirs):
     return f"conflict: {kind} '{name}' claimed by plugins {', '.join(dirs)} (last declared wins)"
 
 
-def _find_decl(decls, plugins_dir, ident):
-    '''A declared plugin matching `ident` — its source, dir basename, or manifest name.'''
-    from . import plugins
-    for d in decls:
-        dn = plugins.dir_name(d['source'])
-        if ident in (d['source'], dn) or plugins.read_manifest(plugins_dir / dn).get('name') == ident:
-            return d
-    return None
-
-
 # NOTE: plugin add/remove/sync/bless/update orchestration moved to configsys.actions (F3 slice 4);
-# cmd_plugin + the first-run offer call it. `_find_decl` above is still used by the `trust` branch.
+# cmd_plugin + the first-run offer call it.
 
 
 def _git_init_commit(ctx, d, msg):
@@ -2968,7 +2957,7 @@ def _redeploy_user_glue(ctx):
     into the primary, the conf.d links (which point straight at the layer file) must repoint there.'''
     try:
         drv = get_driver('glue', ctx.runner, ctx.paths)
-        for shell in drv._installed_shells():
+        for shell in drv.installed_shells():
             drv.deploy_user_glue(shell)
     except Exception:                                    # noqa: BLE001 — never fail init on a relink
         pass
@@ -3000,7 +2989,7 @@ def _repoint_dotfile_links(ctx, old_root, new_root):
     for rc in units.values():
         if rc.driver != 'dotfiles':
             continue
-        for _src, tgt, _absorb in df._pairs(rc):
+        for _src, tgt, _absorb in df.pairs(rc):
             try:
                 if not tgt.is_symlink():
                     continue
@@ -3160,7 +3149,7 @@ def _retarget_clone(ctx, old_dir, new_source):
         print(f'configsys: note — {new_source} syncs into {plugins.dir_name(new_source)}/; the old '
               f'clone {pdir} is left in place (remove it by hand once the new one syncs)')
         return
-    if plugins._transport_for(new_source) is not plugins._git_transport:
+    if not plugins.is_git_source(new_source):
         return                                         # a registered transport materializes it
     if plugins.is_local_authored(new_source, pdir):
         return                                         # the source IS this dir — nothing to fetch
@@ -3172,14 +3161,14 @@ def _retarget_clone(ctx, old_dir, new_source):
               f'the old remote (fix: git -C {pdir} remote set-url origin {plugins.source_url(new_source)})',
               file=sys.stderr)
         return
-    plugins._set_push_remote(ctx.runner, pdir, new_source)   # ssh push url for a github:/gitlab: source
+    plugins.set_push_remote(ctx.runner, pdir, new_source)   # ssh push url for a github:/gitlab: source
     print(f'configsys: retargeted the synced clone\'s origin -> {plugins.source_url(new_source)}')
 
 
 def cmd_plugin_diff(ctx, args, eff):
     '''`plugin diff NAME [--ref R]`: print the review diff — the TUI Plugins diff pane, as text.'''
     from . import actions, plugins
-    target = _find_decl(eff, ctx.paths.plugins_dir, args.name)
+    target = plugins.find_decl(eff, ctx.paths.plugins_dir, args.name)
     if target is None:
         print(f'configsys: no declared plugin matches {args.name!r}')
         return 1
@@ -3270,7 +3259,7 @@ def _plugin_log(ctx, args):
         print('configsys: you have no synced primary plugin on a branch.')
         return 1
     name, changes = found
-    print(f'{name}: the last {primarygit._count(len(changes), "commit")}   (↑ not pushed yet · * made by '
+    print(f'{name}: the last {primarygit.count_phrase(len(changes), "commit")}   (↑ not pushed yet · * made by '
           f'configsys)')
     for c in changes:
         files = ', '.join(c.files[:6]) + (f' … +{len(c.files) - 6}' if len(c.files) > 6 else '')
@@ -3287,7 +3276,7 @@ def _plugin_undo(ctx, args):
     def confirm(change):
         if args.yes or not (sys.stdin.isatty() and sys.stdout.isatty()):
             return True
-        other = change.machine and change.machine != primarygit._machine(ctx)
+        other = change.machine and change.machine != primarygit.machine_name(ctx)
         print(f'configsys: undo {change.short} "{change.subject}"'
               + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]'
               + (f'\n  NOTE: this change was made on {change.machine}, not this machine' if other else ''))
@@ -4551,7 +4540,7 @@ def _resolve_glue_unit(ctx, name):
             units, _e = ctx.routes.resolve_resilient([nm])
         except Exception:                                # noqa: BLE001
             return []
-        return [rc for rc in units.values() if rc.driver == 'glue' and drv._specs(rc)]
+        return [rc for rc in units.values() if rc.driver == 'glue' and drv.specs(rc)]
 
     for candidate in (name, f'{name}-glue'):
         units = glue_units(candidate)
@@ -4609,7 +4598,7 @@ def cmd_glue_add(ctx, args):
     if shell not in _GLUE_SHELLS:
         print(f'configsys: unknown shell {shell!r} — known: {", ".join(_GLUE_SHELLS)}')
         return 1
-    dest = drv._dest_glue_root(local=args.local)
+    dest = drv.dest_glue_root(local=args.local)
     if dest is None:
         print('configsys: no glue store to write to.')
         return 1
@@ -4803,7 +4792,7 @@ def cmd_dotfiles_capture(ctx, args):
     modifies or deletes an on-system file.'''
     df, units = _active_dotfiles(ctx)
     want = set(args.names or [])
-    store = df._capture_root()
+    store = df.capture_root()
     units = [rc for rc in units if rc.driver == 'dotfiles']   # capture is config-only; glue is shipped
     if want:                                 # `btop` names its config companion `btop-dotfiles` too
         named = {n: [rc for rc in units if rc.comp in (n, f'{n}-dotfiles')] for n in sorted(want)}
@@ -5183,7 +5172,7 @@ def _probe_color(ctx):
     '''`--probe`: print the resolved TUI color mode + motion (effects) and WHY, then exit — for
     debugging "why no color / no gradient". Briefly inits curses to read the terminal's caps.'''
     from .tui.theme import env_color_cap
-    from .tui.menu import resolve_effects, _is_ssh
+    from .tui.menu import resolve_effects, is_ssh
     effects = resolve_effects(ctx)                    # also stamps CONFIGSYS_EFFECTS (fine — we exit)
     cap = env_color_cap()
     d = {}
@@ -5213,7 +5202,7 @@ def _probe_color(ctx):
                        f"can_change={d['can']}" if 'can' in d else None,
                        f'capped={cap}' if cap else None) if x]
     print(f"color:   {d.get('mode')}" + (f"   ({' · '.join(why)})" if why else ''))
-    print(f"effects: {effects}   (SSH={'yes' if _is_ssh(ctx.env) else 'no'})")
+    print(f"effects: {effects}   (SSH={'yes' if is_ssh(ctx.env) else 'no'})")
     return 0
 
 
@@ -5255,8 +5244,8 @@ def _after_primary_commit(ctx):
     elif then == 'hint':
         st = primarygit.state(ctx)
         if st and st.ahead:
-            print(f'configsys: saved to {st.name} — {primarygit._count(st.ahead)} not pushed '
-                  f'yet; `configsys plugin push` shares {primarygit._them(st.ahead)}.')
+            print(f'configsys: saved to {st.name} — {primarygit.count_phrase(st.ahead)} not pushed '
+                  f'yet; `configsys plugin push` shares {primarygit.them_phrase(st.ahead)}.')
 
 
 def main(argv=None):

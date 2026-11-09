@@ -40,7 +40,7 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
     version signals         : outdated_signal(rc), upstream_version(rc), and an optional
                               version_advisory(rc) the core looks up with getattr
   Helpers a subclass MAY call, in three clusters:
-    resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
+    resolve + fetch an artifact : resolve_version(rc, *, refresh=False), version_spec(rc),
                                   download_url(rc, version), download_target(rc, version=None),
                                   upstream_version(rc), arch(), arch_token(rc),
                                   expected_sha256(rc, *keys), verify_download(rc, file_q, *keys)
@@ -448,6 +448,11 @@ class Driver:
         except OSError:
             pass
         return None
+
+    def version_spec(self, rc):
+        '''The version-discovery spec for `rc` as this driver looks it up (arch and asset applied) —
+        the key `configsys refresh` re-queries the cache under (F4: was the private _disco_spec).'''
+        return self._disco_spec(rc)
 
     def will_write(self, path):
         '''Announce a write into `path` BEFORE making it — the primary plugin's write journal

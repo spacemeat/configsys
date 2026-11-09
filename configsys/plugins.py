@@ -1982,3 +1982,11 @@ def sync(runner, plugins_dir, decls, *, locked=(), verify_primary=False):
             if nd and dir_name(nd['source']) not in seen:
                 stack.append(nd)
     return results
+
+
+def is_git_source(source):
+    """True when `source` syncs over the built-in git transport (not a registered transport)."""
+    return _transport_for(source) is _git_transport
+
+
+set_push_remote = _set_push_remote   # the public spelling (F4)

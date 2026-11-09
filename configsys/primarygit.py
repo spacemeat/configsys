@@ -386,8 +386,7 @@ def _machine(ctx):
     '''This box's configsys machine name (the `machine:` setting — not a `--machine` working target,
     not the hostname), or None for the default one-machine setup.'''
     try:
-        from .config import _selected_machine
-        return _selected_machine(ctx.config._layers)
+        return ctx.config.configured_machine()
     except Exception:                                  # noqa: BLE001
         return None
 
@@ -1517,3 +1516,9 @@ def _has_markers(path):
         return False
     # an `=======` alone is a Markdown underline, not a conflict — only the outer markers count
     return any(ln.startswith(('<<<<<<< ', '>>>>>>> ')) for ln in text.splitlines())
+
+
+# public spellings of the phrase/identity helpers the CLI and TUI share (F4: no reach-ins)
+count_phrase = _count
+them_phrase = _them
+machine_name = _machine

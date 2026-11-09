@@ -1113,3 +1113,9 @@ class _State:
                     if dep is not None and not unit.requested_as <= dep.requested_as:
                         dep.requested_as |= unit.requested_as
                         changed = True
+
+
+# the public spelling of the selection the `where` report explains (F4)
+def select_with_reason(component, cascade, context, pins, preference=None, never_auto_drivers=None):
+    """(winning binding, candidates, the rule that decided) — what `where` / the TUI explain."""
+    return _select(component, cascade, context, pins, preference, never_auto_drivers)

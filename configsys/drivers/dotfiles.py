@@ -805,3 +805,7 @@ class DotFiles(Driver):
         targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
+
+# public spellings the CLI uses (F4)
+DotFiles.pairs = DotFiles._pairs
+DotFiles.capture_root = DotFiles._capture_root

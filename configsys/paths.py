@@ -110,6 +110,11 @@ class Paths:
         # plugin is known (Context.ensure_plugin_code); None otherwise.
         self.user_dotfiles_dir = self.state_dir / 'dotfiles'
         self.primary_dotfiles_dir = None
+        # per-command op flags a driver reads (set by the CLI from --force / --adopt; F4: declared
+        # here, so a plugin or test building a Paths gets them, not a silent getattr default)
+        self.dotfiles_force = False      # dotfiles: replace a real file with the link
+        self.install_force = False       # take over a dir/file configsys didn't make (A6/A9)
+        self.source_adopt = False        # source: build in your own checkout (A9)
         # glue store: the machine-local mirror the glue driver materializes snippets into (segregated
         # from dotfiles/ so config captures and shell glue never share a tree). `primary_glue_dir` is
         # filled in by the app once the primary plugin is known; None otherwise.

@@ -274,7 +274,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   (primary-22, tui-theme-19, drivers-os-16) · [done — done — Driver.will_write(path) and Driver.installed_name(rc, driver) are frozen public helpers (docstring list + test_abi_surface); the splash ABI (SplashFrame fields, Splash attrs + constructor, register_splash) is pinned by the ABI test; configsys-void reads installed-name through the helper (its own commit)]
 - **F4** Private reach-ins (app.py into a dozen modules; `Config._layers`; ad-hoc ctx attributes; three
   "--pretend, nothing written" conventions). (app-cli-24/29, config-layers-24, tui-core-21, tui-screens-23,
-  actions-35) · [open]
+  actions-35) · [done — done for the reach-ins — Config.configured_machine() + a read-only Config.layers; Paths declares dotfiles_force / install_force / source_adopt; app.py uses public spellings (resolve.select_with_reason, Driver.version_spec, Glue.installed_shells/user_glue_roots/load_overrides/specs/dest_glue_root, DotFiles.pairs/capture_root, plugins.is_git_source/set_push_remote, primarygit.count_phrase/them_phrase/machine_name, menu.is_ssh, Keymap.bindings); the _find_decl copy is gone. The TUI Session object and one WriteResult convention are folded into D7]
 - **F5** Dead public names: `errors.ResolveError`, `predicate.Cpu`, `Resolver.candidates(include_unavailable)`.
   (routing-29/30) · [done — done — errors.ResolveError (never raised or imported; resolve.ResolveError is the live one), predicate.Cpu and Resolver.candidates(include_unavailable) (+ its test and _method_tags mark_unavailable) removed — none had a caller in configsys, tools, examples or the plugin repos]
 

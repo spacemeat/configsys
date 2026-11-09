@@ -1185,3 +1185,10 @@ class Glue(Driver):
         targets = [self.display_path(tgt) for _src, tgt in self._pairs(rc)]
         return '; '.join(targets) if targets else None
 
+
+# public spellings of what the CLI asks the glue driver (F4: app.py reached the private ones)
+Glue.installed_shells = Glue._installed_shells
+Glue.user_glue_roots = Glue._user_glue_roots
+Glue.load_overrides = Glue._load_overrides
+Glue.specs = Glue._specs
+Glue.dest_glue_root = Glue._dest_glue_root
