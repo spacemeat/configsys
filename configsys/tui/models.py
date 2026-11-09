@@ -767,8 +767,8 @@ def _infoblock(ms, ctx):
     m = n.members[0]
     rc = m.component
     if not m.supported:
-        # `error` carries the right message: the trust hint for untrusted, else "not supported"
-        return f' {rc.driver}\\{rc.comp}   ·   {m.error or "driver not yet supported"}'
+        # `error` carries the right message: the trust hint for untrusted, else the unknown driver
+        return f' {rc.driver}\\{rc.comp}   ·   {m.error or "unknown driver"}'
     parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')

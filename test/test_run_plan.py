@@ -230,7 +230,7 @@ def test_a_skipped_step_fails_the_exit_status(tmp_path, monkeypatch):
     lines = []
     monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: None)
     res = actions.run_plan(_ctx(tmp_path), [('install', 'nope\\x', _unit('x', 'nope'))], on_line=lines.append)
-    assert res.rc_code == 1 and 'not yet supported' in lines[0]
+    assert res.rc_code == 1 and 'unknown driver "nope"' in lines[0]
     res = actions.run_plan(_ctx(tmp_path), [('install', '—\\x', _unit('x', '—'))], on_line=lines.append)
     assert res.rc_code == 1 and 'no install method' in lines[-1]
 

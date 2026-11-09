@@ -135,6 +135,15 @@ class ComponentState:
         return 'installed'
 
 
+def unknown_driver_message(driver):
+    '''The `unsupported` state's reason: a `via:` naming no registered driver — not a built-in, and
+    no loaded plugin provides it (a code plugin's drivers register only once it is trusted; one that
+    is merely untrusted reads `untrusted` instead, via pending_vias).'''
+    return (f'unknown driver "{driver}" — configsys has no driver by that name and no loaded plugin '
+            'provides one (a code plugin\'s drivers load only once you trust it: see '
+            '`configsys plugin list`)')
+
+
 class InstallState:
     def __init__(self, runner, ledger=None, paths=None, pending_vias=()):
         self.runner = runner
@@ -233,7 +242,7 @@ class InstallState:
             untrusted = rc.driver in self.pending_vias
             msg = (f'driver "{rc.driver}" comes from a plugin you haven\'t trusted yet — '
                    'approve it with `configsys plugin trust <name>` (see `configsys plugin list`)'
-                   if untrusted else f'driver "{rc.driver}" not yet supported')
+                   if untrusted else unknown_driver_message(rc.driver))
             return ComponentState(
                 component=rc, supported=False, present=False,
                 installed_version=None, latest_version=None,

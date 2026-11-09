@@ -378,7 +378,8 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
                 exit_code = exit_code or 1
                 continue
             if drv is None:
-                on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
+                from .installState import unknown_driver_message
+                on_line(f'skip {key}: {unknown_driver_message(rc.driver)}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
                 exit_code = exit_code or 1
                 continue

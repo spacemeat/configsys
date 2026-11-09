@@ -122,6 +122,9 @@ def test_unsupported_family_degrades():
     assert not st.supported
     assert st.status == 'unsupported'
     assert 'nosuchvia' in st.error
+    # it says what the state is — an unknown driver (or a plugin's that isn't loaded), not "yet"
+    assert 'unknown driver "nosuchvia"' in st.error and 'not yet supported' not in st.error
+    assert '`configsys plugin list`' in st.error
     # a degraded inspection must not have shelled out
     assert fr.calls == []
 

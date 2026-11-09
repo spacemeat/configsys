@@ -43,7 +43,7 @@ def cs(key, status='installed', requested_as=None, **kw):
                     untrusted=True, error='driver "x" comes from a plugin you haven\'t trusted yet')
     elif status == 'unsupported':
         base.update(supported=False, present=False, installed_version=None, latest_version=None,
-                    error='driver "x" not yet supported')
+                    error='unknown driver "x"')
     base.update(kw)
     return ComponentState(**base)
 
