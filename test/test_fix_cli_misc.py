@@ -52,6 +52,12 @@ def test_new_settings_registered_with_their_natures():
         assert actions.SETTING_NATURE[key] == nature
 
 
+def test_pins_are_machine_nature_like_every_pin_edit():
+    # `pin set` and the TUI pickers (actions.set_pin) write the top config, and a pin is per-machine
+    # (glossary); `pin promote` is the explicit way into the primary
+    assert actions.SETTING_NATURE['pins'] == 'machine'
+
+
 def test_config_show_reports_values_that_were_set(tmp_path, capsys):
     for argv in (['disabled-drivers', 'snap'], ['refresh-before-execute', 'never'],
                  ['install-overlay', 'false'], ['reboot-advice', 'false'], ['effects', 'reduced'],

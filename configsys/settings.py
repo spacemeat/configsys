@@ -111,7 +111,7 @@ _ROWS = [
     Setting('dirs.src', 'dir', 'uniform', routing=True, layout=True,
             desc='Category dir for source trees ($CONFIGSYS_SRC_DIR, default src).'),
     Setting('picks', 'section', 'uniform', editable=False, layout=True, desc='the component × machine matrix: what each machine installs'),
-    Setting('pins', 'section', 'uniform', editable=False, routing=True, layout=True, desc='binding- and provider-pins (`configsys pin`)'),
+    Setting('pins', 'section', 'machine', editable=False, routing=True, layout=True, desc='binding- and provider-pins (`configsys pin`)'),
     Setting('dispositions', 'section', 'machine', editable=False, desc='seen / interesting triage of the catalog'),
     Setting('uninstall', 'section', 'machine', editable=False, desc='this box\'s staged removals (`configsys uninstall`)'),
     Setting('facets', 'section', 'machine', editable=False, routing=True, machine_section=False, desc='facet values (`gpu:`…) — any layer'),

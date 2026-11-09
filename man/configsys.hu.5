@@ -147,7 +147,7 @@ Notes:
 .IP \(bu 2
 \fBuniform\fR settings are the same on every machine, so an edit defaults to your \fBprimary plugin\fR. It takes effect on this machine immediately; configsys commits it to the primary, and \fBconfigsys plugin push\fR (or the \fBprimary-push\fR setting) publishes it for \fBplugin sync\fR to bring to your other machines. \fBpicks:\fR is uniform too, because the install set is meant to travel (\fBconfigsys picks to-primary\fR moves this box's local picks there).
 .IP \(bu 2
-\fBmachine\fR settings are a fact about \fIthis\fR box, so an edit defaults to your \fBtop config\fR, local and unshared. \fBdispositions:\fR (your seen/interesting triage) and the \fBuninstall:\fR queue are machine too. \fBpins:\fR is uniform, but \fBconfigsys pin set\fR (and the TUI's \fBv\fR) writes a pin to your top config; \fBpin promote\fR moves one into your primary plugin.
+\fBmachine\fR settings are a fact about \fIthis\fR box, so an edit defaults to your \fBtop config\fR, local and unshared. \fBdispositions:\fR (your seen/interesting triage), the \fBuninstall:\fR queue and \fBpins:\fR are machine too: \fBconfigsys pin set\fR (and the TUI's \fBv\fR) writes a pin to your top config, and \fBpin promote\fR moves one into your primary plugin.
 .IP \(bu 2
 \fBprimary-verify\fR and \fBprimary-trust\fR are read only from your top config, so their edits always land there, and \fBconfig move\fR refuses them.
 .PP

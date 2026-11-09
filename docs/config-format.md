@@ -250,9 +250,9 @@ Notes:
   your other machines. `picks:` is uniform too, because the install set is meant to travel
   (`configsys picks to-primary` moves this box's local picks there).
 - **machine** settings are a fact about *this* box, so an edit defaults to your **top config**,
-  local and unshared. `dispositions:` (your seen/interesting triage) and the `uninstall:` queue are
-  machine too. `pins:` is uniform, but `configsys pin set` (and the TUI's `v`) writes a pin to your
-  top config; `pin promote` moves one into your primary plugin.
+  local and unshared. `dispositions:` (your seen/interesting triage), the `uninstall:` queue and
+  `pins:` are machine too: `configsys pin set` (and the TUI's `v`) writes a pin to your top config,
+  and `pin promote` moves one into your primary plugin.
 - `primary-verify` and `primary-trust` are read only from your top config, so their edits always
   land there, and `config move` refuses them.
 
