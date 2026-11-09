@@ -58,6 +58,34 @@ def test_routes_bash_and_zsh_separately(tmp_path):
     assert 'ZSH_ONLY' in captured['zsh'] and 'ZSH_ONLY' not in captured.get('bash', '')
 
 
+def test_a_write_through_a_linked_rc_is_left_but_named(tmp_path):
+    # ~/.zshrc linked into place by zsh-dotfiles: an installer's lines land in YOUR captured config.
+    # Reverting would write through the link (and staging lines still live would double them on
+    # activate), so the file is left exactly as written — but never silently: the note names the
+    # file, the link's target and the lines (review: shellguard silent skip)
+    target = tmp_path / 'store' / 'zshrc'
+    _write(target, 'setopt autocd\n')
+    (tmp_path / '.zshrc').symlink_to(target)
+    snap = shellguard.snapshot(tmp_path)
+    target.write_text('setopt autocd\nexport NVM_DIR="$HOME/.nvm"\n')
+    captured = shellguard.revert_and_capture(tmp_path, snap)
+    assert captured == {}                                           # nothing reverted or staged
+    assert target.read_text() == 'setopt autocd\nexport NVM_DIR="$HOME/.nvm"\n'
+    assert (tmp_path / '.zshrc').is_symlink()
+    assert captured.linked == [('.zshrc', str(target), ['export NVM_DIR="$HOME/.nvm"'])]
+
+    class P:
+        home = tmp_path
+        env = None
+    target.write_text('setopt autocd\n')
+    snap = shellguard.snapshot(tmp_path)
+    target.write_text('setopt autocd\nexport NVM_DIR="$HOME/.nvm"\n')
+    msg = shellguard.finish(P, 'nvm', snap)
+    assert 'nvm added 1 line(s) to ~/.zshrc' in msg and str(target) in msg
+    assert 'export NVM_DIR="$HOME/.nvm"' in msg and 'not reverted' in msg
+    assert not (tmp_path / 'state').exists()                         # nothing staged
+
+
 def _paths(tmp_path):
     from configsys.paths import Paths
     return Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo'),

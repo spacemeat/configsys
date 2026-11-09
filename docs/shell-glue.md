@@ -258,7 +258,10 @@ changed one is written back to its exact prior bytes (or deleted, if the op crea
 edit — an append, an in-place change, a deletion — is undone. A path that became, stopped being or
 re-pointed a symlink is left alone (that is a config being linked into place, and writing the
 snapshot back would go through the new link into your captured config), and nothing is ever
-written through a link. The lines the op **added** (difflib `insert`/`replace` opcodes, so a block
+written through a link: when an install adds lines to a guarded file that IS a link (a `~/.zshrc`
+that `zsh-dotfiles` linked into place), the file is left as written — not reverted, not staged
+(the lines are still live, so activating a staged copy would double them) — and the op prints a
+note naming the file, its link target and the lines, so you can review them there. The lines the op **added** (difflib `insert`/`replace` opcodes, so a block
 inserted mid-file is caught) are kept, grouped per shell, each source file under a `# from ~/<file>
 (captured by configsys — installer wanted to write this)` header. A change that only removed lines
 is reverted with nothing to keep. The restore is whole-file, so an edit you make to a guarded file

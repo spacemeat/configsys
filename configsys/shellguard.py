@@ -190,9 +190,20 @@ def _restore_with_cs_blocks(before, now_blocks):
     return text if (text or before is not None) else None
 
 
+class Captured(dict):
+    '''{shell: captured_block_text}, plus `.linked` — [(label, link target, [added lines])] for each
+    guarded file that is a SYMLINK an install wrote through: left exactly as written (reverting would
+    write through the link into its target; staging lines still live would double them on activate),
+    but named, so the user knows (no surprises).'''
+
+    def __init__(self, *a, linked=None, **kw):
+        super().__init__(*a, **kw)
+        self.linked = linked or []
+
+
 def revert_and_capture(home, snap):
     '''Restore each guarded file to its snapshot bytes and return {shell: captured_block_text} for
-    the files an install changed. Reverting a file that didn't exist before means removing it if the
+    the files an install changed (a `Captured`, whose `.linked` names the links written through). Reverting a file that didn't exist before means removing it if the
     install created it. Files unchanged since the snapshot are left untouched (no capture).
     configsys's own marker blocks are exempt: a change that is ONLY such a block is kept as written
     (no revert, no capture); alongside installer lines, the installer lines are reverted and the
@@ -202,6 +213,7 @@ def revert_and_capture(home, snap):
     shell_of = {p: shell for p, (_label, shell) in files.items()}
     rel_of = {p: label for p, (label, _shell) in files.items()}
     per_shell = {}                                  # shell -> [ (filename, [added lines]) ]
+    linked = []                                     # (filename, link target, [added lines])
     idents = getattr(snap, 'ident', None) or {}
     for path_str, before in snap.items():
         path = Path(path_str)
@@ -216,7 +228,15 @@ def revert_and_capture(home, snap):
             # (dotfiles-glue-01). Leave it.
             continue
         if path.is_symlink():
-            continue                                # never write through a link into its target
+            # never write through a link into its target (your captured config) — but say what landed
+            added = _added_lines(_split_cs_blocks(before)[0], _split_cs_blocks(now)[0])
+            if added:
+                try:
+                    tgt = os.readlink(path)
+                except OSError:
+                    tgt = '?'
+                linked.append((rel_of[path_str], tgt, added))
+            continue
         before_rest, before_blocks = _split_cs_blocks(before)
         now_rest, now_blocks = _split_cs_blocks(now)
         if now is not None and now_rest == before_rest:
@@ -252,7 +272,8 @@ def revert_and_capture(home, snap):
                 f.unlink()                          # taken back out: staged for your review instead
             except OSError:
                 pass
-    return {shell: _format_block(blocks) for shell, blocks in per_shell.items()}
+    return Captured({shell: _format_block(blocks) for shell, blocks in per_shell.items()},
+                    linked=linked)
 
 
 def _format_block(blocks):
@@ -296,15 +317,21 @@ def finish(paths, component, snap):
     if snap is None:
         return None
     captured = revert_and_capture(paths.home, snap)
-    if not captured:
-        return None
-    staged = stage(paths, component, captured)
-    n = sum(1 for b in captured.values() for ln in b.splitlines()          # the installer's lines,
-            if ln.strip() and not (ln.startswith('# from ') and _CAPTURE_MARK in ln))   # not headers
-    shells = ', '.join(sorted({s for s, _ in staged}) or captured)
-    return (f'guarded: reverted {n} line(s) {component} tried to add to your {shells} rc '
-            f'(configsys owns shell integration). Staged as inactive glue — review with '
-            f'`configsys dotfiles staged`, enable with `configsys dotfiles activate {component}`.')
+    notes = []
+    if captured:
+        staged = stage(paths, component, captured)
+        n = sum(1 for b in captured.values() for ln in b.splitlines()          # the installer's lines,
+                if ln.strip() and not (ln.startswith('# from ') and _CAPTURE_MARK in ln))   # not headers
+        shells = ', '.join(sorted({s for s, _ in staged}) or captured)
+        notes.append(f'guarded: reverted {n} line(s) {component} tried to add to your {shells} rc '
+                     f'(configsys owns shell integration). Staged as inactive glue — review with '
+                     f'`configsys dotfiles staged`, enable with `configsys dotfiles activate {component}`.')
+    for label, tgt, added in getattr(captured, 'linked', ()):
+        where = label if label.startswith('/') else f'~/{label}'
+        notes.append(f'guarded: {component} added {len(added)} line(s) to {where}, a link to {tgt} — '
+                     f'not reverted (configsys never writes through a link); review them there:'
+                     + ''.join(f'\n       {ln}' for ln in added))
+    return '\n  -> '.join(notes) or None
 
 
 # -- staging: inactive glue candidates the user reviews + promotes --------
