@@ -43,14 +43,20 @@ if test -f $_cs_cache; and test -n (find $_cs_cache -mmin -60 2>/dev/null | stri
 else
     set -g __cs_locs (configsys location --all 2>/dev/null)
 end
-function cs_loc --argument-names name
-    for line in $__cs_locs
-        set -l kv (string split -m 1 \t -- $line)
-        if test "$kv[1]" = "$name"
-            echo $kv[2]
-            return 0
-        end
+# split ONCE into two parallel lists: a lookup is one `contains -i`, not a split per line per call
+set -g __cs_loc_names
+set -g __cs_loc_paths
+for line in $__cs_locs
+    set -l kv (string split -m 1 \t -- $line)
+    if test (count $kv) -eq 2
+        set -a __cs_loc_names $kv[1]
+        set -a __cs_loc_paths $kv[2]
     end
+end
+function cs_loc --argument-names name
+    set -l i (contains -i -- $name $__cs_loc_names)
+    and echo $__cs_loc_paths[$i]
+    return 0
 end
 
 # cs_cached <key> <tool> <cmd…>: <cmd>'s output, CACHED in ~/.cache/configsys/glue-eval/<key> and

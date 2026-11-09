@@ -38,6 +38,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — C2 — Profiles triage keys no longer rebuild the Resolver.
 - 2026-11-08 — C3 — startup re-resolution trimmed (seeded start 2.45 s -> 1.42 s; rebuild 1.7 s -> 0.7 s).
 - 2026-11-08 — C4 — version caches consolidated; suite 9 min -> 4 min.
+- 2026-11-08 — C5 — shell startup: cs_loc O(1), no per-start pyenv rehash.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -229,7 +230,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   B9); method-versions a second cache class; serial superseded-install probes; pipx N+1; manifests re-parsed
   per command. (subsystems-08/09/11, drivers-lang-15, plugins-06) · effort M · [done — one TTL cache class (cachefile.py): memoized parse, atomic save, saved only when changed (versions.hu + method-versions.hu); pipx batches interpreters, pip/pipx probes per runner; manifests + plugin identity memoized; swap planning uses the probe cache and one ledger load]
 - **C5 [MED] Shell startup:** `cs_loc` linear scan + fork per call (~100 ms); cached `pyenv init` still
-  rehashes (~70–110 ms). (dotfiles-glue-15/16) · effort S · [open]
+  rehashes (~70–110 ms). (dotfiles-glue-15/16) · effort S · [done — cs_loc is a hash lookup in bash/zsh (associative array) and fish (parallel lists, contains -i); pyenv init cached with --no-rehash (and nu)]
 - **C6 [MED] TUI per-keystroke/preview:** Profiles untracked count re-merges per row; Theme previews build real
   models (`git ls-remote` per plugin); dnf reinstalls versionlock per lock. (tui-core-07/09, drivers-os-08) ·
   effort S · [open]

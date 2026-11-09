@@ -36,11 +36,16 @@ else
     _CS_LOCS=$(configsys location --all 2>/dev/null)
 fi
 unset _cs_cache
+# loaded ONCE into an associative array: a lookup is a hash hit, not a scan of the whole cache per call
+typeset -gA _CS_LOC
+() {
+    local _l
+    for _l in ${(f)_CS_LOCS}; do
+        [[ $_l == *$'\t'* ]] && _CS_LOC[${_l%%$'\t'*}]=${_l#*$'\t'}
+    done
+}
 cs_loc() {
-    local _n _p
-    while IFS=$'\t' read -r _n _p; do
-        [ "$_n" = "$1" ] && { printf '%s\n' "$_p"; return 0; }
-    done <<< "$_CS_LOCS"
+    (( ${+_CS_LOC[$1]} )) && print -r -- "${_CS_LOC[$1]}"
     return 0
 }
 
