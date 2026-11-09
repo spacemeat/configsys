@@ -480,7 +480,7 @@ Environment variables (a flag in parentheses sets the same thing for one run):
 | `CONFIGSYS_GLUE_SHELLS` | comma-separated shells to set up glue for, instead of detecting them |
 | `CONFIGSYS_PM` | `apt` or `dnf`: the package manager the gcc / clang toolchain drivers use (default: dnf if present, else apt) |
 | `CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`) | a GitHub API token for release lookups, lifting the anonymous rate limit |
-| `CONFIGSYS_GIT_TOKEN` | a token for cloning private `github:` / `gitlab:` plugins over https (it is saved in the clone's `.git/config`) |
+| `CONFIGSYS_GIT_TOKEN` | a token for cloning private `github:` / `gitlab:` plugins over https (sent as an HTTP header — never written to the clone or the command log) |
 | `CONFIGSYS_LAUNCHER` | the launcher the shell `configsys` / `cfs` command (from `configsys-glue`) runs when no `configsys` is on your `PATH` (default: the clone configsys recorded when it set up your shells, else `~/src/configsys/configsys.sh`) |
 
 `where` explains how a component resolves on this machine — every binding, the default here, and

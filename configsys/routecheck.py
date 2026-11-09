@@ -552,6 +552,8 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
         issues.append(Issue('facet-collision', msg, None, src, 'error'))
     for msg, src in retired_driver_key_warnings(cascade):
         issues.append(Issue('retired-key', msg, None, src, 'warning'))
+    for msg, src in getattr(cascade, 'knobs_ignored', None) or ():   # a plugin's preference knobs
+        issues.append(Issue('plugin-preference', msg, None, src, 'warning'))
     for msg, src in release_registry_issues(cascade):
         issues.append(Issue('os-release', msg, None, src, 'warning'))
     for drv, reqs in drivers.items():

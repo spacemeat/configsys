@@ -58,3 +58,15 @@ def test_load_missing_file_raises_configerror():
 def test_load_string_bad_syntax_raises_configerror():
     with pytest.raises(ConfigError):
         troveio.load_string('{ unterminated: ')
+
+
+# -- review-2026-11-2 config-layers-21: emit quotes keys with hutext's rule ---------------------------
+
+def test_emit_hu_round_trips_an_empty_and_a_spaced_key():
+    obj = {'': 'v', 'a b': 1, 'ok': ['x', ''], 'nest': {'k:1': 'w'}}
+    trove = troveio.load_string(troveio.emit_hu(obj))         # the empty key no longer emits `: v`
+    r = trove.root
+    assert [(r[i].key, r[i].kind) for i in range(r.num_children)][:2] == [
+        ('', h.NodeKind.VALUE), ('a b', h.NodeKind.VALUE)]
+    assert r[0].value == 'v' and r['a b'].value == '1' and r['nest']['k:1'].value == 'w'
+    assert [r['ok'][i].value for i in range(2)] == ['x', '']

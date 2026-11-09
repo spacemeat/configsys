@@ -123,3 +123,48 @@ def test_set_dirs_inserts_a_correctly_indented_block(tmp_path):
     plugins.set_dirs(f, {'app': 'apps3'})                        # in-place replace keeps the indent
     assert '    dirs: {' in f.read_text().splitlines()
     assert layers.read_setting(f, 'dirs') == {'app': 'apps3'}
+
+
+# -- review-2026-11-2 config-layers-12 (§7.12): a plugin's preference knobs count on its own blocks ---
+
+def _plugin(tmp_path, text):
+    d = tmp_path / 'plugins' / 'plug'
+    d.mkdir(parents=True)
+    (d / 'plugin.hu').write_text('{ name: plug  requires-abi: 1 }')
+    return _w(d / 'plug.hu', text)
+
+
+def _knob_routes(tmp_path):
+    return _w(tmp_path / 'routes.hu', '{ ' + OS + '  drivers: { snap: { requires: [] } }  components: { '
+              't: { install: [ { via: native }  { via: flatpak  app: a.b } ] }  '
+              's: { install: [ { via: snap } ] } } }')
+
+
+def test_a_plugin_os_block_preference_does_not_override_yours(tmp_path):
+    routes = _knob_routes(tmp_path)
+    plug = _plugin(tmp_path, '{ os: { debian: { driver-preference: [ flatpak ] } } }')
+    r = Resolver(routes, 'debian', '12', plugin_files=[plug], preference=['native', 'flatpak'])
+    assert set(r.resolve_names(['t'])) == {'apt\\t'}                 # your setting, not the plugin's
+    iss = [i for i in routecheck.validate(r.components, r.cascade, r.drivers)
+           if i.kind == 'plugin-preference']
+    assert len(iss) == 1 and 'driver-preference' in iss[0].message and iss[0].source == plug
+    # the same list from your primary (or your top config) still counts
+    r = Resolver(routes, 'debian', '12', plugin_files=[(plug, 'primary')],
+                 preference=['native', 'flatpak'])
+    assert set(r.resolve_names(['t'])) == {'flatpak\\t'} and not r.cascade.knobs_ignored
+
+
+def test_a_plugin_driver_when_on_a_driver_it_did_not_define_is_ignored(tmp_path):
+    routes = _knob_routes(tmp_path)
+    plug = _plugin(tmp_path, '{ drivers: { snap: { when: "not linux"  standing: never-auto } } }')
+    r = Resolver(routes, 'debian', '12', plugin_files=[plug])
+    assert set(r.resolve_names(['s'])) == {'snap\\s'}                # not gated off by the plugin
+    assert sorted(m.split('{ ', 2)[2].split(':')[0] for m, _s in r.cascade.knobs_ignored) == [
+        'standing', 'when']
+
+
+def test_a_plugin_defined_os_block_keeps_its_driver_preference(tmp_path):
+    routes = _knob_routes(tmp_path)
+    plug = _plugin(tmp_path, '{ os: { mydistro: { using: debian  driver-preference: [ flatpak ] } } }')
+    r = Resolver(routes, 'mydistro', None, plugin_files=[plug], preference=['native', 'flatpak'])
+    assert set(r.resolve_names(['t'])) == {'flatpak\\t'} and not r.cascade.knobs_ignored

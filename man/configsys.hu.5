@@ -434,7 +434,7 @@ An \fBos:\fR block describes one distro:
 .IP \(bu 2
 \fB\fBadvisory:\fR\fR a caveat shown as an \fBos-advisory\fR warning (the TUI \fB!\fR page, \fBinspect\fR) on this block and every block that inherits from it — a block's own replaces its parent's, \fBadvisory: ""\fR silences it (KDE Linux and Chimera carry one);
 .IP \(bu 2
-\fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order, consulted before the machine setting on this block and the blocks that inherit from it (the nearest block's list first); drivers it doesn't name fall back to the setting, then to the default order;
+\fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order, consulted before the machine setting on this block and the blocks that inherit from it (the nearest block's list first); drivers it doesn't name fall back to the setting, then to the default order. An ordinary (non-primary) plugin's list counts only on an os block that plugin defines; on a block a lower layer already defined it is ignored, with a \fBcheck\fR warning;
 .IP \(bu 2
 \fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this;
 .IP \(bu 2
@@ -460,7 +460,7 @@ drivers: {
 .fi
 .RE
 .PP
-A \fBdrivers:\fR entry in your config merges field by field over the shipped one, so you can change one field and keep the rest — for example \fBdrivers: { flatpak: { standing: never-auto } }\fR keeps flatpak methods available but stops them winning by default.
+A \fBdrivers:\fR entry in your config merges field by field over the shipped one, so you can change one field and keep the rest — for example \fBdrivers: { flatpak: { standing: never-auto } }\fR keeps flatpak methods available but stops them winning by default. Those two preference fields, \fBstanding:\fR and \fBwhen:\fR, count from an ordinary (non-primary) plugin only on a driver that plugin defines; on one a lower layer already defined they are ignored, with a \fBcheck\fR warning (your config and your primary plugin may set them anywhere).
 .SH VERSIONS: DISCOVERED, NOT HARDCODED
 .PP
 Download-based bindings declare \fIhow\fR to find the latest version rather than pinning one:

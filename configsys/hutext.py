@@ -100,36 +100,54 @@ def value_end(text, i):
 def section_span(text, section):
     '''(key_start, value_end) of a TOP-LEVEL `<section>: <value>` span — the key char through the
     end of its value — or None. Comment- and string-aware so braces inside `/* */`, `//`, or a
-    quoted string never fool the depth counter, and it matches `section` only as a real key
-    (depth 1, token-bounded, followed by `:`). This replaces the old humon-`source_text`-span
-    approach, which mis-reported the span when humon bound a comment to the node (e.g. a trailing
-    `/* */` before the closing brace), duplicating the section and dropping a brace.'''
+    quoted string never fool the depth counter, and it matches `section` only as a real key: at
+    depth 1, token-bounded (after whitespace, `{`, `,`, `]` or `}`), bare or quoted in any of humon's
+    three styles (`"scope":`), followed by `:`. A key written TWICE yields the LAST copy — the one
+    humon and layers.materialize read — so an edit changes what configsys sees. (This replaces the
+    old humon-`source_text`-span approach, which mis-reported the span when humon bound a comment to
+    the node, duplicating the section and dropping a brace.)'''
     n, i, depth = len(text), 0, 0
     slen = len(section)
+    found = None
     while i < n:
+        c = text[i]
+        if depth == 1 and (i == 0 or text[i - 1] in _KEY_LEFT):
+            k = _key_end(text, i, section, slen)
+            if k is not None:
+                while k < n and text[k] in ' \t':                  # ws before ':'
+                    k += 1
+                if k < n and text[k] == ':':                       # a real `<section>:` key
+                    found = (i, value_end(text, k + 1))
+                    i = found[1]                                   # keep looking: the last one wins
+                    continue
         j = skip_trivia(text, i)
         if j != i:
             i = j
             continue
-        c = text[i]
         if c in '{[':
             depth += 1
-            i += 1
-            continue
-        if c in '}]':
+        elif c in '}]':
             depth -= 1
-            i += 1
-            continue
-        if (depth == 1 and text.startswith(section, i)
-                and (i == 0 or text[i - 1] in ' \t\r\n{')      # left token boundary
-                and i + slen <= n):
-            k = i + slen
-            while k < n and text[k] in ' \t':                  # ws before ':'
-                k += 1
-            if k < n and text[k] == ':':                       # a real `<section>:` key
-                return i, value_end(text, k + 1)
         i += 1
-    return None
+    return found
+
+
+# What may sit just before a key: whitespace, the map's `{`, a `,` separator, or the close of the
+# previous key's `[…]` / `{…}` value.
+_KEY_LEFT = ' \t\r\n{,]}'
+
+
+def _key_end(text, i, section, slen):
+    '''The index just past `section` spelled as a key at `i` — bare (token-bounded on the right) or
+    wrapped in one of humon's quotes — else None.'''
+    q = text[i]
+    if q in '"\'`':
+        k = i + 1 + slen
+        return k + 1 if text.startswith(section, i + 1) and text[k:k + 1] == q else None
+    if not text.startswith(section, i):
+        return None
+    k = i + slen
+    return k if k >= len(text) or text[k] in ' \t\r\n:' else None
 
 
 def root_close(text):

@@ -114,3 +114,30 @@ def test_own_components_unaffected_by_subprofile_exclude():
 
 UF = 'user.hu'
 
+
+
+# -- review-2026-11-2 config-layers-14: a wholesale redefinition hides the lower defs' terms ----------
+
+def _two(repo, user):
+    return Config([layers.Layer('config.hu', 'repo', layers.materialize_string(repo)),
+                   layers.Layer('user.hu', 'user', layers.materialize_string(user))])
+
+
+def test_a_redefinition_without_self_hides_the_lower_terms():
+    c = _two('{ profiles: { base: [ z ]  p: [ a  b  ~b  +base ] } }', '{ profiles: { p: [ c ] } }')
+    assert c.profile_components('p') == ['c']
+    assert c.profile_removed('p') == set() and c.profile_includes('p') == set()
+    assert c.profile_removal_terms('p') == [] and c.reachable_subprofiles('p') == set()
+
+
+def test_a_self_amendment_keeps_the_lower_terms():
+    c = _two('{ profiles: { base: [ z ]  q: [ z ]  p: [ a  ~b  +base  ~q ] } }',
+             '{ profiles: { p: [ +p  c ] } }')
+    assert c.profile_removed('p') == {'b', 'z'} and c.profile_includes('p') == {'base'}
+    assert c.profile_excludes('p') == {'q'}
+
+
+def test_profile_includes_reads_a_nested_profile_s_leaves():
+    c = _two('{ profiles: { base: [ a  b ] } }', '{ profiles: { dev: { g: [ +base  b ] } } }')
+    assert c.profile_includes('dev') == {'base'}
+    assert set(c.profile_components('dev')) == {'a', 'b'}

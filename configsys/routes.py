@@ -438,7 +438,7 @@ def os_blocks(path, overrides_path=None, plugin_files=()):
 
 
 def load(path, overrides_path=None, plugin_files=(), validate=True,
-         warnings_out=None, layers_out=None, command_trust=None):
+         warnings_out=None, layers_out=None, command_trust=None, home=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
 
     Layer stack lowest-first: routes.hu (repo) < plugin data files < the user's config, each with
@@ -448,13 +448,14 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     (a plugin may add a derivative-distro os block). A malformed plugin file is skipped (never
     bricks the rest). validate=True rejects an ambiguous set. If a list is passed as `warnings_out`,
     skipped files/components are appended to it (for the diagnostics view) — the return value is
-    unchanged so existing callers are unaffected.
+    unchanged so existing callers are unaffected. `home` is the configsys home a `~` include
+    expands against (Paths.home).
     '''
     roots = [(path, 'repo')]
     roots += [_pf(p) for p in plugin_files]          # (path, role): 'primary' or 'plugin'
     if overrides_path is not None:
         roots.append((overrides_path, 'user'))
-    layer_list, _warnings = layers.expand_tolerant(roots, {'plugin', 'primary'})
+    layer_list, _warnings = layers.expand_tolerant(roots, {'plugin', 'primary'}, home=home)
     if warnings_out is not None:
         warnings_out.extend(_warnings)
     if layers_out is not None:                       # (path, role) low→high, for `-v` reporting
@@ -520,11 +521,14 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
             facets[_n] = _spec
     # os / drivers are DEFINITIONS: every layer may contribute (the uniform layer rule) — a plugin's
     # derivative-distro block, an include's, or a machine-local tweak in the TOP config (highest
-    # precedence, e.g. `drivers: { snap: { standing: never-auto } }` on this box only).
-    cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', layers.ALL_ROLES), facets)
+    # precedence, e.g. `drivers: { snap: { standing: never-auto } }` on this box only). Except the
+    # PREFERENCE KNOBS of an ordinary plugin on a block it didn't define (_plugin_knobs_ignored).
+    knob_layers, knobs_ignored = _plugin_knobs_ignored(layer_list, plugin_files)
+    cascade = OsCascade(layers.merge_dict_section(knob_layers, 'os', layers.ALL_ROLES), facets)
     cascade.untrusted_sources = untrusted_sources
+    cascade.knobs_ignored = knobs_ignored                # [(message, source)] -> `check` / `!`
     cascade.os_sources = layers.dict_section_sources(layer_list, 'os')
-    drvs = layers.merge_dict_section(layer_list, 'drivers', layers.ALL_ROLES)
+    drvs = layers.merge_dict_section(knob_layers, 'drivers', layers.ALL_ROLES)
     cascade.driver_specs = drvs                      # raw `drivers:` blocks (routecheck lints them)
     cascade.driver_sources = layers.dict_section_sources(layer_list, 'drivers')
     # FORGIVING = any file of a plugin's checkout (its data files AND what they include), so a bad
@@ -596,6 +600,64 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     if check and clean and fingerprint is not None:
         _VALIDATED.add(fingerprint)
     return Loaded(cascade, components, drivers, never_auto_drivers)
+
+
+# What an ordinary (non-primary) plugin may NOT set on an os block / driver a lower layer already
+# defined: they are preference — your `driver-preference:` setting ranks behind an os block's list,
+# and a driver's `standing:` / `when:` act like `disabled-drivers:` — and a plugin doesn't set your
+# machine's preferences (the uniform layer rule). On a block the plugin DEFINES they count.
+_PLUGIN_KNOBS = {'os': ('driver-preference',), 'drivers': ('standing', 'when')}
+
+
+def _plugin_knobs_ignored(layer_list, plugin_files):
+    '''(layers, [(message, source)]): `layer_list` with an ordinary plugin's _PLUGIN_KNOBS removed
+    from every os / drivers entry whose name a lower layer outside that plugin already defined
+    (review-2026-11-2 §7.12) — copies, the stack itself is left alone — and a warning per key
+    dropped. A plugin's own includes count as the plugin; the primary and your top config keep
+    theirs.'''
+    trees = set()
+    for entry in plugin_files:
+        path, role = _pf(entry)
+        tree = layers._plugin_tree(path)
+        if role == 'plugin' and os.path.exists(os.path.join(tree, 'plugin.hu')):
+            trees.add(tree)
+
+    def owner(lyr):                                  # the ordinary plugin a layer belongs to, or None
+        if lyr.role == 'plugin':
+            return layers._plugin_tree(lyr.path)
+        if lyr.role == 'include':
+            return next((t for t in trees if layers._inside(lyr.path, t)), None)
+        return None
+
+    out, ignored, defined = [], [], {sec: {} for sec in _PLUGIN_KNOBS}   # sec -> {name: owners}
+    for lyr in layer_list:
+        own = owner(lyr)
+        data = lyr.data
+        for sec, keys in _PLUGIN_KNOBS.items():
+            entries = lyr.data.get(sec)
+            if not isinstance(entries, dict):
+                continue
+            if own is not None:
+                for name, spec in entries.items():
+                    hit = [k for k in keys if isinstance(spec, dict) and k in spec]
+                    if not hit or not (defined[sec].get(name, set()) - {own}):
+                        continue                     # nothing to drop / the plugin defines it
+                    if data is lyr.data:
+                        data = dict(lyr.data)
+                    if data[sec] is entries:
+                        data[sec] = dict(entries)
+                    data[sec][name] = {k: v for k, v in spec.items() if k not in hit}
+                    for k in hit:
+                        what = f'os: {{ {name}: {{ {k}: … }} }}' if sec == 'os' else \
+                               f'drivers: {{ {name}: {{ {k}: … }} }}'
+                        ignored.append((f'`{what}` is ignored — a plugin sets preference only on an '
+                                        f'{"os block" if sec == "os" else "driver"} it defines '
+                                        f'({name!r} comes from a lower layer); set it in your config '
+                                        f'or your primary', lyr.path))
+            for name in entries:
+                defined[sec].setdefault(name, set()).add(own)
+        out.append(lyr if data is lyr.data else layers.Layer(lyr.path, lyr.role, data))
+    return out, ignored
 
 
 class _ForgivingPaths:
@@ -754,12 +816,13 @@ class Resolver:
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
                  overrides_path=None, plugin_files=(), preference=None,
-                 disabled=None, command_trust=None):
+                 disabled=None, command_trust=None, home=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
         self.cascade, self.components, self.drivers, self.never_auto_drivers = load(
             routes_path, overrides_path, plugin_files,
-            warnings_out=self.load_warnings, layers_out=self.layers, command_trust=command_trust)
+            warnings_out=self.load_warnings, layers_out=self.layers, command_trust=command_trust,
+            home=home)
         # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
         # environment; cached, read-only, resilient. No `facets:` declared -> a no-op. A `facets:`
         # value-map in the user config declares facts (e.g. `facets: { cuda: 12 }` on a box without

@@ -57,3 +57,43 @@ def test_remove_span_finds_the_key_not_an_earlier_copy_in_a_comment():
     text = '{\n    // pins: { steam: flatpak }\n    scope: user\n    pins: { steam: flatpak }\n}\n'
     start, end = hutext.remove_span(text, 'pins')
     assert text[:start] + text[end:] == '{\n    // pins: { steam: flatpak }\n    scope: user\n}\n'
+
+
+# -- review-2026-11-2 config-layers-13: keys after `,` / `]` / `}`, quoted keys, the LAST copy ----------
+
+def test_section_span_finds_a_key_after_a_separator_or_a_closed_value():
+    for text in ('{ machine: m,scope: user }', '{ dirs: [ a ]scope: user }',
+                 '{ pins: { a: b }scope: user }'):
+        start, end = hutext.section_span(text, 'scope')
+        assert text[start:end] == 'scope: user', text
+    assert hutext.section_span('{ machine: m,scopes: user }', 'scope') is None
+
+
+def test_section_span_finds_a_quoted_key():
+    for q in '"\'`':
+        text = '{ %sscope%s: user  machine: m }' % (q, q)
+        start, end = hutext.section_span(text, 'scope')
+        assert text[start:end] == '%sscope%s: user' % (q, q)
+    assert hutext.section_span('{ a: "scope"  b: c }', 'scope') is None     # a value, not a key
+
+
+def test_an_edit_of_a_duplicated_key_changes_the_copy_humon_reads(tmp_path):
+    from configsys import plugins
+    f = tmp_path / 'c.hu'
+    f.write_text('{\n    scope: user\n    scope: system\n}\n')
+    plugins.set_scalar_section(f, 'scope', 'user')
+    assert layers.materialize_string(f.read_text())['scope'] == 'user'
+    f.write_text('{ machine: m,scope: user }\n')
+    plugins.set_scalar_section(f, 'scope', 'system')
+    assert f.read_text().count('scope') == 1                            # replaced, not appended
+    assert layers.materialize_string(f.read_text()) == {'machine': 'm', 'scope': 'system'}
+    f.write_text('{\n    scope: user\n    machine: m\n    scope: system\n}\n')
+    plugins.set_scalar_section(f, 'scope', None)                       # remove takes every copy
+    assert layers.materialize_string(f.read_text()) == {'machine': 'm'}
+
+
+def test_check_warns_on_a_duplicated_top_level_key(tmp_path):
+    f = tmp_path / 'c.hu'
+    f.write_text('{ scope: user  scope: system }\n')
+    warns = layers.duplicate_key_warnings([layers.Layer(str(f), 'user', {})])
+    assert len(warns) == 1 and '`scope`' in warns[0]

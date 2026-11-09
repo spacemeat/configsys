@@ -60,16 +60,19 @@ def check_report(ctx):
     # one would refuse, so an ambiguity is reported here as an issue instead of stopping check
     validated = _validated_routes(ctx)
     try:
+        home = getattr(ctx.paths, 'home', None)
         if validated is not None:
             cascade, components, drivers = validated.cascade, validated.components, validated.drivers
         else:
             cascade, components, drivers, _never_auto_drivers = routes.load(
                 ctx.paths.routes_file, ctx.paths.user_config_file,
-                ctx.plugin_files, validate=False, warnings_out=_route_w)
+                ctx.plugin_files, validate=False, warnings_out=_route_w, home=home)
+        # the whole stack again, config.hu included (routes.load's has no config.hu); the files
+        # routes.load read come from layers' parse cache, so this re-parses nothing
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
                  + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
                  + [(ctx.paths.user_config_file, 'user')])
-        layer_list, _layer_w = layers.expand_tolerant(roots, {'plugin', 'primary'})
+        layer_list, _layer_w = layers.expand_tolerant(roots, {'plugin', 'primary'}, home=home)
     except ConfigsysError:
         raise                              # a parse/structural error before we can lint
 

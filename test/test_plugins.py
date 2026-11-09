@@ -787,3 +787,27 @@ def test_plugin_init_repoints_live_dotfile_links_at_the_moved_store(tmp_path):
     moved = state / 'plugins' / 'configsys-me' / 'dotfiles' / 'btop-dotfiles.cfs' / 'btop'
     assert live.is_symlink() and os.path.realpath(live) == os.path.realpath(moved)
     assert (live / 'btop.conf').read_text() == 'theme = mine\n'
+
+
+# -- review-2026-11-2 plugins-10: every single-file reader/writer pair rides _read_top / _write_top -----
+
+@pytest.mark.parametrize('read,write,value,empty', [
+    (plugins.read_pins, plugins.set_pins, {'btop': 'native', 'python3': 'python3.12'}, {}),
+    (plugins.read_dispositions, plugins.set_dispositions, {'btop': 'seen', 'fd': 'interesting'}, {}),
+    (plugins.read_picks, plugins.set_picks, {'laptop': ['btop', 'fd'], 'desk': []}, {}),
+    (plugins.read_dirs, plugins.set_dirs, {'app': 'apps', 'user': '~/x y'}, {}),
+    (lambda f: plugins.read_scalar_section(f, 'splash'),
+     lambda f, v: plugins.set_scalar_section(f, 'splash', v), 'plain', None),
+    (lambda f: plugins.read_list_section(f, 'disabled-drivers'),
+     lambda f, v: plugins.set_list_section(f, 'disabled-drivers', v), ['snap', 'aur'], []),
+    (plugins.read_theme, plugins.set_theme, {'colors': {'a': '#000000'}, 'splash': 'x'}, {}),
+])
+def test_single_file_section_round_trips(tmp_path, read, write, value, empty):
+    f = tmp_path / 'c.hu'
+    f.write_text('{\n    // keep me\n    scope: user\n}\n', encoding='utf-8')
+    assert read(f) == empty                                       # absent -> the empty shape
+    write(f, value)
+    assert read(f) == value
+    write(f, empty)                                               # empty -> the node is removed
+    assert read(f) == empty and '// keep me' in f.read_text() and 'scope: user' in f.read_text()
+    assert read(tmp_path / 'missing.hu') == empty

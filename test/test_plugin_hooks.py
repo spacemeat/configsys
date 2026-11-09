@@ -151,10 +151,33 @@ def test_transport_collision_between_plugins(tmp_path):
 def test_registration_shadowing_a_builtin_is_flagged(tmp_path):
     root = tmp_path / 'plugins'
     _code_plugin(root, 'psrc', _SRC.format(name='github'))     # shadows built-in source
-    _code_plugin(root, 'ptr', _TR.format(name='github'))       # overrides git's scheme
-    conflicts = _load_trusted(root, tmp_path / 'trust.hu', ['psrc', 'ptr'])
+    _code_plugin(root, 'ptr', _TR.format(name='github'))       # claims git's scheme: refused
+    tf = tmp_path / 'trust.hu'
+    for n in ('psrc', 'ptr'):
+        plugins.set_trust(tf, n, plugins.plugin_identity(root / n))
+    conflicts = []
+    _loaded, skipped = plugins.load_code(root, tf, [{'source': f'github:x/{n}'} for n in ('psrc', 'ptr')],
+                                         lambda c: None, conflicts=conflicts)
     assert any("version-source 'github'" in c and 'shadows a built-in' in c for c in conflicts)
-    assert any("transport 'github'" in c and 'overrides the built-in git' in c for c in conflicts)
+    assert any(k == 'ptr' and 'built-in source scheme' in why for k, why in skipped)
+    assert plugins._transport_for('github:x/y') is plugins._git_transport
+
+
+# -- review-2026-11-2 plugins-09: built-in schemes stay git's; a ref is never an option -------------
+
+@pytest.mark.parametrize('scheme', sorted(plugins._RESERVED_SCHEMES))
+def test_register_transport_refuses_a_builtin_scheme(scheme):
+    with pytest.raises(ValueError, match='built-in source scheme'):
+        plugins.register_transport(scheme, lambda *a: 'mine')
+    assert plugins._transport_for(f'{scheme}:x/y') is plugins._git_transport
+
+
+def test_an_option_shaped_ref_never_reaches_git_checkout():
+    r = Runner(pretend=True)
+    assert plugins._git_checkout(r, '/x', '--orphan=evil') == 'failed'
+    assert not any('checkout' in c for c in r.calls)
+    plugins._git_checkout(r, '/x', 'v1')                       # an ordinary ref still checks out
+    assert any(c.endswith('checkout --quiet --detach v1') for c in r.calls)
 
 
 def test_distinct_registrations_are_not_conflicts(tmp_path):

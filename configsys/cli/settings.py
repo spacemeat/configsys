@@ -156,6 +156,8 @@ def cmd_config(ctx, args):
                        'primary': f'primary: {info.get("home_label")}'}[info['home']]
             else:                                 # at default -> name where an edit would land
                 loc = f'built-in default → edits: {info.get("target")}'
+            if info.get('note'):                  # e.g. a top-config-only value in the primary
+                loc += f'; {info["note"]}'
             print(f'  {key:{w}} {_fmt_setting_value(info["kind"], info["value"])}  ({loc})')
             print(f'  {"":{w}} {info["desc"]}  (see {info["man"]})')
         print('\n  uniform settings default to your primary plugin; machine settings to this box.'

@@ -71,6 +71,13 @@ def test_primary_may_set_machine_settings(tmp_path):
 
 def test_machine_roles_has_no_phantom_role():
     assert config_mod._MACHINE_ROLES == ('repo', 'primary', 'user')
+    # review-2026-11-2 config-layers-23: user_layer_components reads only real roles too — a layer
+    # of the phantom `machine` role authors nothing
+    c = Config([layers.Layer('m.hu', 'machine', {'profiles': {'p': ['btop']}}),
+                layers.Layer('u.hu', 'user', {'profiles': {'q': ['fd']}})])
+    assert c.user_layer_components() == {'fd'}
+    assert not hasattr(c, '_profiles') and not hasattr(Config, 'PICKS_PROFILE')
+    assert not hasattr(layers, 'merge_named') and not hasattr(layers, '_DEFINITION_SECTIONS')
 
 
 def test_last_refresh_is_an_unknown_top_key(tmp_path):
@@ -85,12 +92,25 @@ def test_tilde_include_expands_against_the_configsys_home(tmp_path):
     home.mkdir()
     _w(home / 'x.hu', '{ components: { from-home: { install: [ { via: native } ] } } }')
     up = _w(tmp_path / 'user.hu', '{ include: [ ~/x.hu ] }')
-    try:
-        Paths(env={'CONFIGSYS_HOME': str(home), 'HOME': str(tmp_path / 'real-home')})
-        ls = layers.expand([(up, 'user')])
-        assert any(os.path.realpath(L.path) == os.path.realpath(str(home / 'x.hu')) for L in ls)
-    finally:
-        layers.set_include_home(None)
+    paths = Paths(env={'CONFIGSYS_HOME': str(home), 'HOME': str(tmp_path / 'real-home')})
+    ls = layers.expand([(up, 'user')], home=paths.home)
+    assert any(os.path.realpath(L.path) == os.path.realpath(str(home / 'x.hu')) for L in ls)
+
+
+def test_each_paths_home_expands_its_own_tilde_includes(tmp_path):
+    # review-2026-11-2 config-layers-26: the include home is passed per load, not process-global —
+    # an earlier Paths never leaks its home into a later one's expansion
+    from configsys.paths import Paths
+    homes = []
+    for name in ('one', 'two'):
+        h = tmp_path / name
+        (h / '.config' / 'configsys').mkdir(parents=True)
+        _w(h / 'x.hu', '{ profiles: { from-%s: [ btop ] } }' % name)
+        _w(h / '.config' / 'configsys' / 'configsys.hu', '{ include: [ ~/x.hu ] }')
+        homes.append(Paths(env={'CONFIGSYS_HOME': str(h), 'HOME': str(h)}))
+    for name, other, paths in (('two', 'one', homes[1]), ('one', 'two', homes[0])):
+        names = Config.load(paths).profile_names()
+        assert f'from-{name}' in names and f'from-{other}' not in names
 
 
 # -- #2 facets --------------------------------------------------------------------------------
@@ -224,3 +244,27 @@ def test_pure_data_plugin_is_still_not_trustable(tmp_path):
     pdir = _plugin(tmp_path, '{ components: { t: { install: [ { via: native } ] } }  '
                    'facets: { cuda: { kind: version } } }')
     assert not plugins.ships_executable_data(pdir)
+
+
+# -- review-2026-11-2 config-layers-11: `plugins:` outside the top config is named -------------------
+
+def test_plugins_section_outside_the_top_config_is_warned(tmp_path):
+    decl = '{ plugins: [ { source: "github:x/y" } ] }'
+    inc = _w(tmp_path / 'inc.hu', decl)
+    plug = _w(tmp_path / 'plug.hu', decl)
+    prim = _w(tmp_path / 'prim.hu', decl)
+    up = _w(tmp_path / 'user.hu', '{ include: [ ./inc.hu ]  plugins: [ { source: "github:a/b" } ] }')
+    ls = layers.expand([(plug, 'plugin'), (prim, 'primary'), (up, 'user')])
+    warns = [w for w in layers.ignored_section_warnings(ls) if '`plugins:`' in w]
+    assert sorted(w.split(':', 1)[0] for w in warns) == sorted([inc, plug, prim])   # one each
+    assert not any(w.startswith(up) for w in warns)                    # the top config's is read
+    assert all('plugin.hu' in w for w in warns)
+
+
+# -- review-2026-11-2 config-layers-25: the removed discovery settings read as retired --------------
+
+def test_discovery_settings_read_as_retired(tmp_path):
+    up = _w(tmp_path / 'user.hu', '{ discover: true  ignore-profiles: [ x ] }')
+    warns = layers.unknown_section_warnings(layers.expand([(up, 'user')]))
+    assert len(warns) == 2
+    assert all('retired' in w and 'plugin add' in w and 'unrecognized' not in w for w in warns)

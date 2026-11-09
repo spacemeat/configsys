@@ -12,6 +12,7 @@ Every shell-out goes through Runner.run so that:
 import collections
 import fcntl
 import os
+import re
 import select
 import shutil
 import signal
@@ -430,6 +431,16 @@ class _SudoKeepalive:
         self._stop.set()
 
 
+# credentials in an http(s) URL — `https://TOKEN@host/…`, `https://user:pass@host/…` — masked in the
+# command log and `--pretend` echo (reportgen.scrub does the same for filed reports)
+_URL_CREDENTIALS = re.compile(r'(https?://)[^/\s@\'"]+@')
+
+
+def redact_url_credentials(text):
+    '''`text` with any http(s) URL's userinfo replaced by `***`.'''
+    return _URL_CREDENTIALS.sub(r'\1***@', text)
+
+
 class Runner:
     def __init__(self, pretend=False, echo=None, sandbox_home=None):
         self.pretend = pretend
@@ -510,10 +521,10 @@ class Runner:
         # `timeout` (seconds) bounds a CAPTURED probe (a glue generator): past it the child is killed
         # and the Result fails with rc 124, like timeout(1). A streamed op is never cut off.
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
-        self.calls.append(full)
+        self.calls.append(redact_url_credentials(full))
 
         if self.pretend:
-            self.echo(f'[pretend] {full}')
+            self.echo(f'[pretend] {redact_url_credentials(full)}')
             return Result(full, 0, pretended=True)
 
         # Run the WHOLE command under one shell — and, when privileged, under one

@@ -13,8 +13,8 @@ from pathlib import Path
 import humon as h
 
 from .errors import ConfigError
-# Scalar quoting is hutext's (one rule for every writer); the old names stay for their callers.
-from .hutext import UNSAFE as _UNSAFE, scalar as _scalar  # noqa: F401
+# Key and scalar quoting are hutext's — one rule for every writer.
+from .hutext import key as _key, scalar as _scalar
 
 _INDENT = '    '
 
@@ -56,7 +56,7 @@ def _emit(obj, depth):
             return '{}'
         lines = ['{']
         for k, v in obj.items():
-            key = _scalar(k) if any(c in _UNSAFE for c in str(k)) else str(k)
+            key = _key(k)                     # (an empty or odd key is quoted, never `: v`)
             if isinstance(v, (dict, list)):
                 lines.append(f'{inner}{key}: {_emit(v, depth + 1)}')
             else:

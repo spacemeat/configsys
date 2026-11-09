@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from ..driver import tier_by_name
 from ..failures import SIGNATURE, classify, retry_transient
+from ..layers import as_list
 from ..runner import Result
 from ._native import NativePkgManager
 
@@ -79,11 +80,7 @@ class Apt(NativePkgManager):
 
     # -- prerequisites ----------------------------------------------------
 
-    @staticmethod
-    def _as_list(v):
-        if v is None:
-            return []
-        return v if isinstance(v, list) else [v]
+    _as_list = staticmethod(as_list)               # (layers.as_list — the one copy)
 
     @staticmethod
     def _repo_uri(src_line):

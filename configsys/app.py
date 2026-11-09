@@ -359,7 +359,8 @@ class Context:
                         preference=self.config.driver_preference(),
                         disabled=self.config.disabled_drivers(),
                         # facets are command-carrying data: a plugin's merge only if it's trusted
-                        command_trust=lambda p: plugins.command_source_trusted(self.paths, p))
+                        command_trust=lambda p: plugins.command_source_trusted(self.paths, p),
+                        home=getattr(self.paths, 'home', None))
 
     @property
     def routes(self):

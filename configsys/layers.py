@@ -22,9 +22,6 @@ import humon
 from . import settings
 from .errors import ConfigError
 
-_DEFINITION_SECTIONS = ('components', 'profiles')
-_REPO_SECTIONS = ('os', 'drivers')
-
 # Every top-level MACHINE SETTING — a section Config reads only from the machine-role layers (repo /
 # primary / user, config._MACHINE_ROLES). An include or an ordinary (non-primary) plugin that sets one
 # is IGNORED, so these feed _FORBIDDEN_BY_ROLE (-> a `check` / `!` warning instead of a silent drop).
@@ -196,11 +193,31 @@ def read_setting(path, key):
         return None
 
 
+# Materialized layer data by file TEXT (C: routes.hu costs ~90 ms to parse + materialize, and every
+# Resolver rebuild and `check` re-expands it). Keyed by the text itself, not mtime/size — an edit
+# within one timestamp tick that keeps the size (`effects: full` -> `effects: none`) must re-parse.
+# A few entries: the repo files plus the configs being edited; the oldest goes first.
+_TREE_CACHE = {}
+_TREE_CACHE_MAX = 32
+
+
+def _copy_tree(v):
+    '''A structural copy of materialized data (maps / lists; scalars are immutable strings) — ~10x
+    cheaper than re-materializing, and every caller gets data it may mutate freely.'''
+    if isinstance(v, dict):
+        return {k: _copy_tree(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [_copy_tree(x) for x in v]
+    return v
+
+
 def read_tree(path):
     '''(trove, data) for one .hu file — THE layer parse chokepoint (B11). Reads UTF-8 text (a BOM
     tolerated) and parses from the string: humon's from_file sniffs the encoding and rejects any file
     under ~10 bytes (`{}`, which configsys itself writes) as BADENCODING. A blank file is `{}`.
-    Keep the trove alive while walking nodes from it. Raises ConfigError with one wording.'''
+    Keep the trove alive while walking nodes from it — it is None when the data came from the
+    parse cache (_TREE_CACHE: the same text parsed before), which needs none. Raises ConfigError
+    with one wording.'''
     from pathlib import Path
     from . import troveio
     try:
@@ -211,6 +228,10 @@ def read_tree(path):
         raise ConfigError(f'{path}: could not read ({e.strerror or e})')
     if not text.strip():
         return None, {}
+    cached = _TREE_CACHE.pop(text, None)
+    if cached is not None:
+        _TREE_CACHE[text] = cached                   # most recently used last
+        return None, _copy_tree(cached)
     try:
         trove = troveio.load_string(text)
         data = materialize(trove.root) or {}
@@ -219,12 +240,26 @@ def read_tree(path):
     if not isinstance(data, dict):
         raise ConfigError(f'{path}: could not read (a config file is a {{ … }} map, not a '
                           f'{type(data).__name__})')
+    _TREE_CACHE[text] = _copy_tree(data)             # (a private copy: callers may edit theirs)
+    while len(_TREE_CACHE) > _TREE_CACHE_MAX:
+        del _TREE_CACHE[next(iter(_TREE_CACHE))]
     return trove, data
 
 
 def as_list(v):
-    '''`v` as a list: None -> [], a scalar -> [v] (the one spelling routes / resolve / routecheck share).'''
+    '''`v` as a list: None -> [], a scalar -> [v] (the one spelling routes / resolve / routecheck and
+    the apt / dnf drivers share).'''
     return [] if v is None else (v if isinstance(v, list) else [v])
+
+
+def leaves(v):
+    '''Flatten a profile / picks / list-setting value to its leaf scalars (lists + nested maps; a
+    scalar is a one-item list, None none).'''
+    if isinstance(v, list):
+        return [leaf for x in v for leaf in leaves(x)]
+    if isinstance(v, dict):
+        return [leaf for x in v.values() for leaf in leaves(x)]
+    return [] if v is None else [v]
 
 
 class Layer:
@@ -236,29 +271,20 @@ class Layer:
         self.data = data          # {section: value}
 
 
-# The configsys home that a `~` in an `include:` path expands against — Paths.home (CONFIGSYS_HOME /
-# --home), not the real $HOME, so a sandboxed run reads the sandbox's includes like every other path.
-# Paths sets it when constructed (set_include_home); None falls back to $CONFIGSYS_HOME, then $HOME.
-_INCLUDE_HOME = None
-
-
-def set_include_home(home):
-    '''Record the configsys home `~` include paths expand against (called by Paths).'''
-    global _INCLUDE_HOME
-    _INCLUDE_HOME = None if home is None else str(home)
-
-
 def _expand_home(inc, home=None):
-    home = home or _INCLUDE_HOME or os.environ.get('CONFIGSYS_HOME')
+    '''A `~` include path against the configsys home — the caller's `home` (Paths.home: CONFIGSYS_HOME /
+    --home, so a sandboxed run reads the sandbox's includes like every other path), else
+    $CONFIGSYS_HOME, else $HOME. Passed in per expansion, never process-global state.'''
+    home = home or os.environ.get('CONFIGSYS_HOME')
     if home and (inc == '~' or inc.startswith('~/')):
         return os.path.join(str(home), inc[2:]) if inc != '~' else str(home)
     return os.path.expanduser(inc)
 
 
-def _resolve(inc, base_dir):
+def _resolve(inc, base_dir, home=None):
     inc = str(inc)
     if inc.startswith('~'):
-        return _expand_home(inc)
+        return _expand_home(inc, home)
     if os.path.isabs(inc):
         return inc
     return os.path.join(base_dir, inc)
@@ -283,7 +309,7 @@ def _inside(path, tree):
     return rp == tree or rp.startswith(tree.rstrip(os.sep) + os.sep)
 
 
-def _visit(path, role, stack, done, order, guard=None):
+def _visit(path, role, stack, done, order, guard=None, home=None):
     '''Expand one file and its includes post-order. `guard` = (root realpaths, plugin tree or None,
     warnings): an `include:` of a ROOT layer (your top config, the primary's file, the repo's) is
     ignored with a warning — a lower layer including it would visit it first, as an `include`, and
@@ -300,7 +326,7 @@ def _visit(path, role, stack, done, order, guard=None):
     stack.append(rp)
     base = os.path.dirname(os.path.abspath(path))
     for inc in as_list(data.get('include')):
-        target = _resolve(inc, base)
+        target = _resolve(inc, base, home)
         if guard is not None:
             roots, tree, warnings = guard
             if os.path.realpath(target) in roots:
@@ -311,21 +337,22 @@ def _visit(path, role, stack, done, order, guard=None):
                 warnings.append(f'{path}: `include: {inc}` ignored — a plugin may only include files '
                                 'inside its own checkout')
                 continue
-        _visit(target, 'include', stack, done, order, guard)
+        _visit(target, 'include', stack, done, order, guard, home)
     stack.pop()
     done.add(rp)
     order.append(Layer(os.path.normpath(path), role, data))
 
 
-def expand(roots):
+def expand(roots, home=None):
     '''roots: [(path, role)] lowest-precedence-first. Returns [Layer] with include graphs
     expanded post-order (an included file precedes — is lower precedence than — its
     includer), deduped (diamonds appear once), and cycle-checked. Missing roots are skipped.
-    Strict: any bad file raises. See expand_tolerant to skip failures for some roles.'''
-    return expand_tolerant(roots, tolerant_roles=())[0]
+    Strict: any bad file raises. See expand_tolerant to skip failures for some roles. `home` is
+    the configsys home a `~` include expands against (Paths.home; see _expand_home).'''
+    return expand_tolerant(roots, tolerant_roles=(), home=home)[0]
 
 
-def expand_tolerant(roots, tolerant_roles=()):
+def expand_tolerant(roots, tolerant_roles=(), home=None):
     '''Like expand(), but a bad file (parse error / cycle / bad include) whose role is in
     `tolerant_roles` is SKIPPED with a warning instead of aborting — so a malformed plugin
     layer never takes down the rest. Returns (layers, warnings). A bad repo/user file still
@@ -336,8 +363,9 @@ def expand_tolerant(roots, tolerant_roles=()):
         if path is None or not os.path.exists(path):
             continue
         tree = _plugin_tree(path) if role in ('plugin', 'primary') else None
+        n_order, done_before = len(order), set(done)
         try:
-            _visit(path, role, stack, done, order, (root_paths, tree, warnings))
+            _visit(path, role, stack, done, order, (root_paths, tree, warnings), home)
         except ConfigError as e:
             if role in tolerant_roles:
                 msg = str(e)
@@ -345,31 +373,21 @@ def expand_tolerant(roots, tolerant_roles=()):
                     msg = msg[len(path) + 2:]
                 warnings.append(f'skipped {path}: {msg}')
                 del stack[:]                  # a partial visit may have left the stack dirty
+                # ...and the includes it reached before failing: a skipped root contributes NOTHING
+                # (and a later root including the same file still gets it, at its own place)
+                del order[n_order:]
+                done.clear()
+                done.update(done_before)
             else:
                 raise
     return order, warnings
 
 
-def merge_named(layers, section, roles=None):
-    '''Overlay a per-name section (components / profiles) across layers -> {name:
-    (value, source_path, shadows)}. `shadows` is True when a lower layer also defined the
-    name. `roles` (optional) restricts which layers contribute.'''
-    out = {}
-    for layer in layers:
-        if roles is not None and layer.role not in roles:
-            continue
-        sec = layer.data.get(section)
-        if isinstance(sec, dict):
-            for name, val in sec.items():
-                out[name] = (val, layer.path, name in out)
-    return out
-
-
 def collect_named(layers, section, roles=None):
     '''Per-name chain of definitions across layers, ASCENDING precedence ->
-    {name: [(layer_index, value, source_path), ...]}. Unlike merge_named (which keeps only the
-    top definition per name), this preserves EVERY layer's definition so components can be merged
-    additively (union of bindings) instead of replaced wholesale.'''
+    {name: [(layer_index, value, source_path), ...]}. It preserves EVERY layer's definition (not
+    just the top one per name) so components can be merged additively (union of bindings) instead
+    of replaced wholesale.'''
     out = {}
     for i, layer in enumerate(layers):
         if roles is not None and layer.role not in roles:
@@ -381,6 +399,22 @@ def collect_named(layers, section, roles=None):
     return out
 
 
+def merge_two_level(layers, section, roles=None):
+    '''Overlay a two-level `{outer: {inner: value}}` section across layers (later layers win per
+    (outer, inner)) -> {outer: {inner: value}}; a non-map outer entry is ignored. `roles`
+    (optional) restricts which layers contribute. The engine of component-names / version-floors.'''
+    out = {}
+    for layer in layers:
+        if roles is not None and layer.role not in roles:
+            continue
+        sec = layer.data.get(section)
+        if isinstance(sec, dict):
+            for outer, inner in sec.items():
+                if isinstance(inner, dict):
+                    out.setdefault(outer, {}).update(inner)
+    return out
+
+
 def merge_name_overrides(layers, roles=None):
     '''Overlay the `component-names` section across layers -> {driver: {component: pkg-or-{}}}.
     A higher layer patches a LOWER layer's package name for a component under a given driver,
@@ -389,16 +423,7 @@ def merge_name_overrides(layers, roles=None):
     component -> it's dropped there (mirrors the `{}` = remove convention). Driver-keyed, so it
     expresses cross-driver name facts (Void's xbps names), NOT same-driver splits like Ubuntu-vs-
     Debian perf (both apt) — those stay `when:` splits. Later layers win per (driver, component).'''
-    out = {}
-    for layer in layers:
-        if roles is not None and layer.role not in roles:
-            continue
-        sec = layer.data.get('component-names')
-        if isinstance(sec, dict):
-            for driver, comp_map in sec.items():
-                if isinstance(comp_map, dict):
-                    out.setdefault(driver, {}).update(comp_map)
-    return out
+    return merge_two_level(layers, 'component-names', roles)
 
 
 def merge_version_floors(layers, roles=None):
@@ -407,16 +432,7 @@ def merge_version_floors(layers, roles=None):
     capability) floor WITHOUT redefining the component, so a `main`-keyed data plugin can supply
     auto-derived toolchain floors that fold into existing recipes. Later layers win per
     (component, cap).'''
-    out = {}
-    for layer in layers:
-        if roles is not None and layer.role not in roles:
-            continue
-        sec = layer.data.get('version-floors')
-        if isinstance(sec, dict):
-            for comp, cap_map in sec.items():
-                if isinstance(cap_map, dict):
-                    out.setdefault(comp, {}).update(cap_map)
-    return out
+    return merge_two_level(layers, 'version-floors', roles)
 
 
 def merge_scalar(layers, section, roles):
@@ -501,6 +517,11 @@ def ignored_section_warnings(layers):
                        'only the top config or the primary plugin sets machine settings')
                 warns.append(f'{layer.path}: `{sec}:` is ignored here (not permitted from a '
                              f'{layer.role} layer — {why})')
+        if 'plugins' in layer.data and layer.role != 'user':
+            # plugins.declared reads `plugins:` from the top config FILE (plus plugin manifests) —
+            # before the layer stack exists — so a layer's `plugins:` is never read at all
+            warns.append(f'{layer.path}: `plugins:` is ignored here — it is read only from your top '
+                         f'config and plugin manifests (for your primary, put it in its plugin.hu)')
     return warns
 
 
@@ -518,12 +539,14 @@ _RETIRED_TOP_KEYS = {
     'configs': 'retired — the matrix model installs from picks:, not active profiles',
     'machines': 'retired — picks: is now the machine registry (each picks: key is a machine/column)',
     'orphans-adopt-target': 'retired — orphan adopt now tracks (picks) the component, not a staging profile',
+    'discover': 'retired — project discovery was replaced by `configsys plugin add <source> --local`',
+    'ignore-profiles': 'retired — project discovery was replaced by `configsys plugin add <source> --local`',
 }
 
 
 def unknown_section_warnings(layers):
     '''Non-fatal warnings for top-level keys configsys no longer understands — a typo, or a RETIRED
-    construct (`configs:`, `machines:`, `orphans-adopt-target:`). Definitions (`profiles:` / `os:` /
+    construct (`configs:`, `machines:`, `orphans-adopt-target:`, `discover:` …). Definitions (`profiles:` / `os:` /
     `components:` …) are valid in EVERY layer (the uniform layer rule).'''
     warns = []
     known = _KNOWN_TOP_KEYS | machine_setting_sections()

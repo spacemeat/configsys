@@ -115,3 +115,23 @@ def test_move_guards(tmp_path):
     actions.set_config_setting(ctx2, 'driver-preference', ['native'])
     ok, msg = actions.move_config_setting(ctx2, 'driver-preference')
     assert not ok and 'primary' in msg
+
+
+# -- review-2026-11-2 config-layers-17: a top-config-only setting never "lives" in the primary --------
+
+def test_a_top_config_only_setting_in_the_primary_reads_ignored(tmp_path):
+    ctx, user, prim = _ctx_with_primary(tmp_path)
+    prim.write_text('{ primary-verify: signed }\n', encoding='utf-8')
+    repo = tmp_path / 'config.hu'
+    ctx.config = Config([layers.Layer(str(repo), 'repo', layers.materialize_string(repo.read_text())),
+                         layers.Layer(str(prim), 'primary', layers.materialize_string(prim.read_text())),
+                         layers.Layer(str(user), 'user', layers.materialize_string(user.read_text()))])
+    assert ctx.config.machine_setting_source('primary-verify') is None
+    info = actions.config_settings(ctx)['primary-verify']
+    assert info['value'] == 'off' and info['source'] is None and info['home'] is None
+    assert info['target'] == 'top config' and 'ignored in myprim' in info['note']
+    assert 'note' not in actions.config_settings(ctx)['scope']
+    # set in the top config: it lives there, and the primary's copy is still named as ignored
+    actions.set_config_setting(ctx, 'primary-verify', ['signed'])
+    info = actions.config_settings(ctx)['primary-verify']
+    assert info['home'] == 'local' and info['value'] == 'signed' and 'note' in info

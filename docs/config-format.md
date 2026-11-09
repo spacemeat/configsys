@@ -633,7 +633,9 @@ An `os:` block describes one distro:
   silences it (KDE Linux and Chimera carry one);
 - **`driver-preference:`** an OS-specific tiebreak order, consulted before the machine setting on
   this block and the blocks that inherit from it (the nearest block's list first); drivers it
-  doesn't name fall back to the setting, then to the default order;
+  doesn't name fall back to the setting, then to the default order. An ordinary (non-primary)
+  plugin's list counts only on an os block that plugin defines; on a block a lower layer already
+  defined it is ignored, with a `check` warning;
 - **`detect: { id: <base>  marker: <path> }`** detects a derivative that doesn't rebrand
   `/etc/os-release` (Proxmox VE reports `ID=debian`). When the detected block is that base, or a
   descendant of it, and every marker exists on disk (`marker:` may be a list), configsys routes to
@@ -678,7 +680,10 @@ drivers: {
 
 A `drivers:` entry in your config merges field by field over the shipped one, so you can change one
 field and keep the rest — for example `drivers: { flatpak: { standing: never-auto } }` keeps flatpak
-methods available but stops them winning by default.
+methods available but stops them winning by default. Those two preference fields, `standing:` and
+`when:`, count from an ordinary (non-primary) plugin only on a driver that plugin defines; on one a
+lower layer already defined they are ignored, with a `check` warning (your config and your primary
+plugin may set them anywhere).
 
 ## Versions: discovered, not hardcoded
 

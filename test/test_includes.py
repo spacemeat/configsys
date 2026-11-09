@@ -165,3 +165,39 @@ def test_a_plugin_include_must_stay_in_its_own_checkout(tmp_path):
     (tmp_path / 'again' / 'state' / 'plugins' / 'plug' / 'sub.hu').write_text('{ profiles: { extra: [ btop ] } }\n')
     order, warnings = _stack(tmp_path / 'again', '{ include: [ sub.hu ] }')
     assert any(lay.path.endswith('sub.hu') for lay in order) and not warnings
+
+
+# -- review-2026-11-2 config-layers-10: a skipped plugin contributes nothing --------------------------
+
+def test_a_skipped_plugin_contributes_none_of_the_includes_it_reached(tmp_path):
+    a = tmp_path / 'p'
+    a.mkdir()
+    (a / 'plugin.hu').write_text('{ name: p  requires-abi: 1 }')
+    _w(a / 'a.hu', '{ profiles: { from-a: [ btop ] } }')
+    p = _w(a / 'p.hu', '{ include: [ ./a.hu ./missing.hu ] }')
+    order, warnings = layers.expand_tolerant([(p, 'plugin')], tolerant_roles=('plugin',))
+    assert order == [] and len(warnings) == 1 and 'skipped' in warnings[0]
+    # a later root including the same a.hu still gets it — at ITS place, not the failed root's
+    q = _w(a / 'q.hu', '{ include: [ ./a.hu ] }')
+    order, warnings = layers.expand_tolerant([(p, 'plugin'), (q, 'plugin')], tolerant_roles=('plugin',))
+    assert [(os.path.basename(lay.path), lay.role) for lay in order] == [('a.hu', 'include'),
+                                                                        ('q.hu', 'plugin')]
+    assert len(warnings) == 1
+
+
+# -- review-2026-11-2 config-layers-19: an unchanged file is parsed once ----------------------------
+
+def test_an_unchanged_layer_file_is_parsed_once(tmp_path, monkeypatch):
+    from configsys import troveio
+    calls = []
+    real = troveio.load_string
+    monkeypatch.setattr(troveio, 'load_string', lambda text: calls.append(text) or real(text))
+    monkeypatch.setattr(layers, '_TREE_CACHE', {})
+    up = _w(tmp_path / 'user.hu', '{ effects: full  profiles: { p: [ a ] } }')
+    first = layers.expand([(up, 'user')])
+    second = layers.expand([(up, 'user')])
+    assert len(calls) == 1 and first[0].data == second[0].data
+    second[0].data['profiles']['p'].append('mutated')               # a caller's edit stays its own
+    assert layers.expand([(up, 'user')])[0].data['profiles']['p'] == ['a']
+    _w(tmp_path / 'user.hu', '{ effects: none  profiles: { p: [ a ] } }')   # same size, new text
+    assert layers.expand([(up, 'user')])[0].data['effects'] == 'none' and len(calls) == 2

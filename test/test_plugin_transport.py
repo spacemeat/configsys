@@ -54,11 +54,35 @@ def test_source_url_passthrough_for_ssh_and_full_urls():
     assert plugins.source_url('/local/p') == '/local/p'
 
 
-def test_clone_url_injects_token(monkeypatch):
-    monkeypatch.setenv('CONFIGSYS_GIT_TOKEN', 'TOK')
-    assert plugins.clone_url('github:me/p') == 'https://TOK@github.com/me/p.git'
-    assert plugins.clone_url('gitlab:me/p') == 'https://TOK@gitlab.com/me/p.git'
-    assert plugins.clone_url('git@host:me/p.git') == 'git@host:me/p.git'   # non http(s) untouched
+def test_the_token_rides_a_header_never_the_url(monkeypatch):
+    # review-2026-11-2 plugins-07: an embedded token leaked into the command log, `--pretend`
+    # output and .git/config — it goes to git as an http.<host>.extraheader in the env instead
+    import base64
+    monkeypatch.setenv('CONFIGSYS_GIT_TOKEN', 'sekrit')
+    monkeypatch.setenv('GIT_CONFIG_COUNT', '1')                       # one of the user's own: kept
+    monkeypatch.setenv('GIT_CONFIG_KEY_0', 'core.mine')
+    monkeypatch.setenv('GIT_CONFIG_VALUE_0', 'x')
+    assert plugins.clone_url('github:me/p') == 'https://github.com/me/p.git'
+    assert plugins.clone_url('gitlab:me/p') == 'https://gitlab.com/me/p.git'
+    assert plugins.clone_url('git@host:me/p.git') == 'git@host:me/p.git'
+    env = plugins._noninteractive_git_env()
+    assert env['GIT_CONFIG_COUNT'] == '3' and env['GIT_CONFIG_KEY_0'] == 'core.mine'
+    headers = {env[f'GIT_CONFIG_KEY_{i}']: env[f'GIT_CONFIG_VALUE_{i}'] for i in (1, 2)}
+    gh = headers['http.https://github.com/.extraheader']
+    gl = headers['http.https://gitlab.com/.extraheader']
+    assert base64.b64decode(gh.split()[-1]).decode() == 'x-access-token:sekrit'
+    assert base64.b64decode(gl.split()[-1]).decode() == 'oauth2:sekrit'
+
+
+def test_a_pretend_sync_shows_no_token(monkeypatch, tmp_path):
+    from configsys.runner import Runner
+    monkeypatch.setenv('CONFIGSYS_GIT_TOKEN', 'sekrit')
+    echoed = []
+    r = Runner(pretend=True, echo=echoed.append)
+    plugins._git_transport(r, tmp_path / 'plugins' / 'p', 'github:me/p', 'v1')
+    assert r.calls and not any('sekrit' in c for c in r.calls + echoed)
+    r.run('git clone -- https://user:pw@host/p.git /x')                 # a URL you wrote yourself
+    assert r.calls[-1] == 'git clone -- https://***@host/p.git /x' and 'pw' not in echoed[-1]
 
 
 def test_clone_url_without_token_is_plain(monkeypatch):

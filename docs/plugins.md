@@ -480,7 +480,9 @@ All registered the same way — only trusted plugin code ever runs them.
   registration with the same name.
 - **Sync transports** — `register_transport(scheme, fn)` makes a `source: "<scheme>:..."` sync
   through `fn(runner, dest, source, ref)` instead of git. Because trust binds to content, a plugin
-  fetched by a non-git transport can still ship trusted code.
+  fetched by a non-git transport can still ship trusted code. The built-in schemes (`github`,
+  `gitlab`, `git`, `http`, `https`, `file`, `ssh`) are refused with a `ValueError`, so one plugin
+  can't change how every other plugin syncs.
 - **Splash screens** — a startup wait-screen animation. Subclass `Splash`, set `name`, implement
   `render(frame)`, and export `SPLASHES = [...]` (alongside or instead of `DRIVERS`). configsys
   owns the frame loop, skip key and deadline, and hands each frame a `SplashFrame(progress,

@@ -20,13 +20,7 @@ from .errors import ConfigError
 _MACHINE_ROLES = ('repo', 'primary', 'user')
 
 
-def _leaves(v):
-    '''Flatten a profile / configs value to its leaf scalar names (lists + nested dicts).'''
-    if isinstance(v, list):
-        return [leaf for x in v for leaf in _leaves(x)]
-    if isinstance(v, dict):
-        return [leaf for x in v.values() for leaf in _leaves(x)]
-    return [] if v is None else [v]
+_leaves = layers.leaves          # flatten a profile / picks / list value to its leaf names
 
 
 def _selected_machine(layer_list):
@@ -72,11 +66,10 @@ class Config:
         self._layers = layer_list
         self._machine_override = None  # `--machine` working-target selector (set by load())
         self.load_warnings = []       # files SKIPPED while loading (set by load()); see diagnostics
-        self._profiles = layers.merge_named(layer_list, 'profiles')   # name -> (val, src, shadows)
         # Per-name chain of same-named definitions across layers, ascending precedence:
         #   name -> [(layer_index, value, source_path), ...]
-        # This preserves the shadowed (lower-layer) definitions that merge_named drops, so a
-        # higher layer can amend a profile in place via a `+self` include (super semantics).
+        # This preserves the shadowed (lower-layer) definitions, so a higher layer can amend a
+        # profile in place via a `+self` include (super semantics).
         self._chain = {}
         for i, layer in enumerate(layer_list):
             sec = layer.data.get('profiles')
@@ -95,7 +88,8 @@ class Config:
         roots += [p if isinstance(p, (tuple, list)) else (p, 'plugin')   # (path, role)
                   for p in plugin_files]
         roots.append((paths.user_config_file, 'user'))
-        layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
+        layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'},
+                                                   home=getattr(paths, 'home', None))
         cfg = cls(layer_list)
         cfg._paths = paths            # (key_layers asks plugin trust)
         cfg._machine_override = machine.strip() if isinstance(machine, str) and machine.strip() else None
@@ -122,9 +116,12 @@ class Config:
         '''(label, is_override) for machine setting `key`: the basename of the highest-precedence
         layer (among those allowed to set machine settings) that sets it, and whether that layer is
         one of YOURS rather than the repo baseline. None if only the built-in default applies. This
-        is what lets the Config screen say "built-in default" vs "your override (set in <file>)".'''
+        is what lets the Config screen say "built-in default" vs "your override (set in <file>)".
+        A top-config-only setting (layers.TOP_CONFIG_ONLY) is sourced from the top config alone — the
+        only layer its getter reads.'''
+        roles = ('user',) if key in layers.TOP_CONFIG_ONLY else _MACHINE_ROLES
         for layer in reversed(self._layers):
-            if (layer.role in _MACHINE_ROLES and key in layer.data
+            if (layer.role in roles and key in layer.data
                     and layer.data.get(key) not in (None, '')):
                 return (os.path.basename(layer.path), layer.role != 'repo')
         return None
@@ -185,10 +182,10 @@ class Config:
 
     def user_layer_components(self):
         '''Every component that is a member of a profile YOU authored — one with a definition in a
-        user/primary/machine layer (i.e. "included"). Purely-system (repo/plugin-only) profiles don't
+        user/primary layer (i.e. "included"). Purely-system (repo/plugin-only) profiles don't
         count; their members stay NEW-eligible. Memoized for the life of this Config.'''
         if getattr(self, '_user_comps', None) is None:
-            editable = {'user', 'primary', 'machine'}
+            editable = {'user', 'primary'}
             out = set()
             for name, chain in self._chain.items():
                 if any(0 <= i < len(self._layers) and self._layers[i].role in editable
@@ -394,11 +391,7 @@ class Config:
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),
         or None when unset (use the built-in default). A machine setting (repo < primary < user).
         Selection only; whether a named provider is actually registered is resolved at TUI start.'''
-        v = layers.merge_scalar(self._layers, 'splash', _MACHINE_ROLES)
-        if v is False:
-            return 'false'                       # a bare humon bool -> a disable token
-        if v is True:
-            return 'true'
+        v = layers.merge_scalar(self._layers, 'splash', _MACHINE_ROLES)   # (humon yields strings)
         return v.strip() if isinstance(v, str) and v.strip() else None
 
     def effects(self):
@@ -428,8 +421,6 @@ class Config:
         list, is a column), merged across the machine-role layers. picks: IS the machine registry.'''
         return sorted(self.picks().keys())
 
-    PICKS_PROFILE = '@picks'          # reserved: the current machine's Included set (v3 matrix model)
-
     @_cached
     def picks(self):
         '''Merged per-machine Included sets `{machine: [component, ...]}` across the machine-role
@@ -443,6 +434,8 @@ class Config:
                 pk = layer.data.get('picks')
                 if isinstance(pk, dict):
                     for m, v in pk.items():
+                        if isinstance(v, str):         # `laptop: btop` — one pick, like `[ btop ]`
+                            v = [v] if v.strip() else []
                         if isinstance(v, (list, tuple)):
                             out[m] = [str(c) for c in _leaves(v)]
         return out
@@ -563,8 +556,8 @@ class Config:
         declined (a component explicitly removed, so it isn't a member even if an include brought
         it). A `~subprofile` term contributes ALL of that subprofile's expanded members.'''
         out = set()
-        for idx, _val, _src in self._chain.get(profile, ()):
-            for term in self._own_terms(profile, idx):
+        for _idx, val, _src in self._effective_chain(profile):
+            for term in _leaves(val):
                 op, ref = _split_term(term)
                 if op != '~':
                     continue
@@ -582,7 +575,7 @@ class Config:
         '''Profiles that `profile` drops via a `~subprofile` term across the layer stack (the mirror
         of profile_includes). For the Profiles editor's excluded-include markers + `check`.'''
         out = set()
-        for _i, terms, _s in self._chain.get(profile, ()):
+        for _i, terms, _s in self._effective_chain(profile):
             for t in _leaves(terms):
                 if isinstance(t, str) and t[:1] == '~' and t[1:] in self._chain and t[1:] != profile:
                     out.add(t[1:])
@@ -593,7 +586,7 @@ class Config:
         flag a removal that matches neither a defined profile nor a known component (likely a typo,
         since such a `~` silently removes nothing).'''
         out = []
-        for _i, terms, _s in self._chain.get(profile, ()):
+        for _i, terms, _s in self._effective_chain(profile):
             for t in _leaves(terms):
                 if isinstance(t, str) and t[:1] == '~' and t[1:]:
                     out.append(t[1:])
@@ -753,30 +746,36 @@ class Config:
         chain = self._chain.get(profile)
         return chain[-1][2] if chain else None
 
-    def _own_terms(self, profile, idx):
-        '''The LITERAL term list `profile` declares in the layer at `idx` (raw, that file's own
-        definition — `+self`/`+other`/`~`/bare, unexpanded), or [] if that layer doesn't define it.'''
-        for i, val, _src in self._chain.get(profile, ()):
-            if i == idx:
-                return list(_leaves(val))
-        return []
-
     def profile_includes(self, profile):
         '''Profiles that `profile` pulls in via `+other` terms across the layer stack (excludes the
         `+self` amend term).'''
         out = set()
-        for _i, terms, _s in self._chain.get(profile, ()):
-            for t in terms:
+        for _i, terms, _s in self._effective_chain(profile):
+            for t in _leaves(terms):
                 if isinstance(t, str) and t.startswith('+') and t[1:] and t[1:] != profile:
                     out.add(t[1:])
         return out
 
+    def _effective_chain(self, profile):
+        '''The definitions of `profile` that are LIVE, top first: the top one, then each lower one
+        only while the definition above it carries a `+<profile>` self term (a redefinition without
+        `+self` replaces everything below it — as profile_components / profile_layout read it).'''
+        out = []
+        for entry in reversed(self._chain.get(profile, ())):
+            out.append(entry)
+            if not any(_split_term(t) == ('+', profile) for t in _leaves(entry[1])
+                       if isinstance(t, str)):
+                break
+        return out
+
     def requested(self):
-        '''Ordered {component_name: [sources that requested it]} — the install set. In the matrix
-        model this is exactly this machine's `picks:` (the Included set, sourced as `picks`).
-        `configs:`/active profiles are retired and no longer contribute.'''
+        '''{component_name: [sources that requested it]} — the install set, in the picks list's own
+        (file) order. In the matrix model this is exactly this machine's `picks:` (the Included set,
+        sourced as `picks`). `configs:`/active profiles are retired and no longer contribute.'''
         out = {}
-        for name in self.included():                 # this machine's Included (picked) set
+        # the picks LIST, not included()'s set — a set's order follows string hashing, which
+        # changes per process, and so would every unit / plan / display order downstream
+        for name in self.picks().get(self.current_machine(), ()):
             out.setdefault(name, [])
             if 'picks' not in out[name]:
                 out[name].append('picks')

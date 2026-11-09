@@ -10,6 +10,7 @@ import re
 import shlex
 
 from ..failures import classify
+from ..layers import as_list
 from ..runner import Result
 from ._native import NativePkgManager
 
@@ -23,12 +24,6 @@ def _step_failed(rc, step, r):
     cat, rem = classify(r.output)
     tail = r.output.splitlines()[-1].strip() if r.output else f'exit {r.returncode}'
     return Result.fail(f'{rc.comp}: {step} failed: {tail}', category=cat, remediation=rem)
-
-
-def _as_list(v):
-    if v is None:
-        return []
-    return v if isinstance(v, list) else [v]
 
 
 # a dnf4 `versionlock list` entry: `btop-0:1.2.13-1.fc38.*` -> btop (dnf5 prints `Package name: btop`)
@@ -172,7 +167,7 @@ class Dnf(NativePkgManager):
         # enable-repo: turn on a distro repo that ships disabled — e.g. EL's CRB
         # (CodeReady Builder), which RPM Fusion's ffmpeg needs (ladspa/rubberband live
         # there). config-manager is in dnf-plugins-core; ensure it, then enable each.
-        enable = _as_list(f.get('enable-repo'))
+        enable = as_list(f.get('enable-repo'))
         if enable:
             r = self.runner.run('dnf install -y dnf-plugins-core', sudo=True, capture=False)
             if not r.ok:

@@ -33,9 +33,9 @@ from .hutext import scalar as _scalar
 
 register_version_source = versions.register_source   # re-export on the frozen surface
 
-# Registration names owned by the core, for collision surfacing: a plugin registering one of
-# these shadows a built-in. Version sources: github + the hardcoded discover kinds; transports:
-# the schemes git / source_url already handle.
+# Registration names owned by the core: a plugin registering a version source of one of these
+# shadows a built-in (surfaced as a collision); a transport for one of the schemes git / source_url
+# already handle is refused outright (register_transport).
 _BUILTIN_SOURCE_NAMES = frozenset(versions._BUILTIN_KINDS) | {'github'}
 _RESERVED_SCHEMES = frozenset({'github', 'gitlab', 'git', 'https', 'http', 'file', 'ssh'})
 _BUILTIN_SPLASH_NAMES = splashes._BUILTIN_SPLASH_NAMES     # names shipped in core (populated at import)
@@ -184,16 +184,38 @@ def source_url(source):
 
 
 def clone_url(source):
-    '''The URL the git transport clones/fetches. Like source_url, but if CONFIGSYS_GIT_TOKEN is
-    set it is embedded into a github:/gitlab: https URL so a private repo clones non-
-    interactively (CI-friendly). NOTE: the token then persists in the synced repo's
-    .git/config — acceptable for a personal config dir, but prefer ssh or a git credential
-    helper if you'd rather not write it to disk. Other sources pass through untouched.'''
-    url = source_url(source)
-    token = os.environ.get('CONFIGSYS_GIT_TOKEN')
-    if token and source.startswith(('github:', 'gitlab:')) and url.startswith('https://'):
-        return 'https://' + token + '@' + url[len('https://'):]
-    return url
+    '''The URL the git transport clones/fetches — source_url's. A CONFIGSYS_GIT_TOKEN is NOT put in
+    it (it would land in the command log, `--pretend` output and the clone's .git/config): the
+    fetches carry it as an HTTP header in their environment instead (_noninteractive_git_env).'''
+    return source_url(source)
+
+
+# The hosts a CONFIGSYS_GIT_TOKEN is sent to (the github: / gitlab: shorthands' https URLs), and the
+# Basic-auth user each takes a token under.
+_TOKEN_HOSTS = (('https://github.com/', 'x-access-token'), ('https://gitlab.com/', 'oauth2'))
+
+
+def _token_git_config(env):
+    '''GIT_CONFIG_COUNT / _KEY_n / _VALUE_n entries giving git an `http.<host>.extraheader` with the
+    CONFIGSYS_GIT_TOKEN for each _TOKEN_HOSTS host — so a private github: / gitlab: plugin fetches
+    non-interactively while the token stays out of every URL, the command log and .git/config.
+    Appended after any GIT_CONFIG_* entries `env` already carries. {} without a token.'''
+    import base64
+    token = env.get('CONFIGSYS_GIT_TOKEN')
+    if not token:
+        return {}
+    try:
+        n = int(env.get('GIT_CONFIG_COUNT') or 0)
+    except ValueError:
+        n = 0
+    out = {}
+    for host, user in _TOKEN_HOSTS:
+        cred = base64.b64encode(f'{user}:{token}'.encode()).decode()
+        out[f'GIT_CONFIG_KEY_{n}'] = f'http.{host}.extraheader'
+        out[f'GIT_CONFIG_VALUE_{n}'] = f'Authorization: Basic {cred}'
+        n += 1
+    out['GIT_CONFIG_COUNT'] = str(n)
+    return out
 
 
 def ssh_url(source):
@@ -1089,49 +1111,63 @@ def set_declared(user_config_file, decls):
     set_section(user_config_file, 'plugins', lambda indent: _emit_block(decls, indent))
 
 
+def _read_top(config_file, key, shape):
+    '''One top-level `<key>:` from ONE .hu file (no include expansion, no layer merge — for editing
+    that file in place; Config gives the MERGED views), filtered to `shape`:
+      'map'    — {name: scalar} (non-scalar entries dropped), else {};
+      'dict'   — the raw map, else {};
+      'list'   — the flat name list (a scalar is a one-item list), else [];
+      'scalar' — the value unless it is a list / map, else None.
+    A missing file reads as the shape's empty value.'''
+    p = Path(config_file)
+    data = layers.materialize_string(p.read_text(encoding='utf-8')) if p.exists() else {}
+    v = data.get(key) if isinstance(data, dict) else None
+    if shape == 'map':
+        return {k: x for k, x in v.items() if not isinstance(x, (dict, list))} if isinstance(v, dict) else {}
+    if shape == 'dict':
+        return v if isinstance(v, dict) else {}
+    if shape == 'list':
+        return [str(x) for x in layers.leaves(v)]
+    return None if isinstance(v, (dict, list)) else v
+
+
+def _write_top(config_file, key, value, emit):
+    '''Rewrite the top-level `<key>:` of a config/plugin .hu file in place (comments and the rest
+    preserved) with `emit(indent)`, or remove the node when `value` is None or an empty collection —
+    the shared write-back of every set_* below (via set_section / remove_sections).'''
+    if value is None or (isinstance(value, (dict, list, tuple, set)) and not value):
+        remove_sections(config_file, [key])
+        return
+    set_section(config_file, key, emit)
+
+
+def _emit_map(section, m, indent):
+    '''A scalar map, one `key: value` per line. set_section places the FIRST line at `indent`
+    (replacing in place, or inserting after its own pad), so it is emitted bare — only the body and
+    the closing brace carry the indent.'''
+    inner = ' ' * (indent + 4)
+    body = [f'{inner}{hutext.key(k)}: {_scalar(v)}' for k, v in m.items()]
+    return '\n'.join([f'{section}: {{'] + body + [' ' * indent + '}'])
+
+
 def read_pins(config_file):
     '''The scalar pins map (name -> via / provider) from ONE .hu file's top-level `pins:`, or {}.
     For editing a single layer's own pins in place — config.pins() gives the MERGED view instead.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    pins = data.get('pins') if isinstance(data, dict) else None
-    if not isinstance(pins, dict):
-        return {}
-    return {k: v for k, v in pins.items() if not isinstance(v, (dict, list))}
-
-
-def _emit_pins(pins, indent):
-    if not pins:
-        return 'pins: {}'
-    pad, inner = ' ' * indent, ' ' * (indent + 4)
-    body = [f'{inner}{hutext.key(k)}: {_scalar(v)}' for k, v in pins.items()]
-    return '\n'.join(['pins: {'] + body + [pad + '}'])
+    return _read_top(config_file, 'pins', 'map')
 
 
 def set_pins(config_file, pins):
     '''Rewrite the `pins:` node of a config/plugin .hu file in place (preserving comments and the
     rest), or remove the node entirely when `pins` is empty. The surgical write-back the pin CLI
-    and the TUI method picker share (via set_section / remove_sections).'''
-    if not pins:
-        remove_sections(config_file, ['pins'])
-        return
-    set_section(config_file, 'pins', lambda indent: _emit_pins(pins, indent))
+    and the TUI method picker share.'''
+    _write_top(config_file, 'pins', pins, lambda indent: _emit_map('pins', pins, indent))
 
 
 def read_dispositions(config_file):
     '''The scalar `dispositions:` map (component -> `seen`|`interesting`) from ONE .hu file, or {} —
     the disposition-model side-store (config.dispositions() gives the MERGED view). Same shape as
     pins: a flat name->scalar map.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    d = data.get('dispositions') if isinstance(data, dict) else None
-    if not isinstance(d, dict):
-        return {}
-    return {k: v for k, v in d.items() if not isinstance(v, (dict, list))}
+    return _read_top(config_file, 'dispositions', 'map')
 
 
 def _emit_map_packed(section, m, indent, width=96):
@@ -1155,24 +1191,18 @@ def _emit_map_packed(section, m, indent, width=96):
 def set_dispositions(config_file, disp):
     '''Rewrite the `dispositions:` node in place (comments/siblings preserved), or remove it when
     empty. `disp` is `{component: 'seen'|'interesting'}`, packed several per line.'''
-    if not disp:
-        remove_sections(config_file, ['dispositions'])
-        return
-    set_section(config_file, 'dispositions', lambda indent: _emit_map_packed('dispositions', disp, indent))
+    _write_top(config_file, 'dispositions', disp,
+               lambda indent: _emit_map_packed('dispositions', disp, indent))
 
 
 def read_picks(config_file):
     '''`{machine: [component, ...]}` from ONE .hu file's `picks:` node, or {} — the v3 matrix model's
     per-machine Included sets (a machine installs exactly the components picked for it). Same shape as
     `profiles:` (name -> list), but values are plain component names.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    pk = data.get('picks') if isinstance(data, dict) else None
-    if not isinstance(pk, dict):
-        return {}
-    return {m: _flat(v) for m, v in pk.items() if isinstance(v, (list, tuple))}
+    pk = _read_top(config_file, 'picks', 'dict')
+    # a scalar is a one-pick list (`laptop: btop` == `laptop: [ btop ]`), as Config.picks reads it
+    return {m: ([str(c) for c in layers.leaves(v)] if not isinstance(v, str) else [v] if v.strip() else [])
+            for m, v in pk.items() if isinstance(v, (list, tuple, str))}
 
 
 def _emit_picks(picks, indent):
@@ -1188,81 +1218,40 @@ def set_picks(config_file, picks):
     '''Rewrite the `picks:` node in place (comments/siblings preserved), or remove it when there are
     NO machines at all. `picks` is `{machine: [component, ...]}`. A machine with an EMPTY list is KEPT
     (`name: []`) — picks: is the machine registry, so an empty machine is a valid (empty) column.'''
-    if not picks:
-        remove_sections(config_file, ['picks'])
-        return
-    set_section(config_file, 'picks', lambda indent: _emit_picks(picks, indent))
+    _write_top(config_file, 'picks', picks, lambda indent: _emit_picks(picks, indent))
 
 
 def read_dirs(config_file):
     '''The install-layout `dirs:` map (user/system/app/sdk/src -> path) from ONE .hu file, or {}.
     For editing a single layer's own dirs in place (config.install_dirs() gives the MERGED view).'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    d = data.get('dirs') if isinstance(data, dict) else None
-    return {k: v for k, v in d.items() if not isinstance(v, (dict, list))} if isinstance(d, dict) else {}
+    return _read_top(config_file, 'dirs', 'map')
 
 
 def set_dirs(config_file, dirs):
     '''Rewrite the `dirs:` node of a config .hu file in place (comments + the rest preserved), or
     remove it when empty.'''
-    if not dirs:
-        remove_sections(config_file, ['dirs'])
-        return
-    # set_section already places the FIRST line at `indent` (replacing in place, or inserting after its
-    # own pad), so emit it bare — only the body/closing lines carry the indent.
-    pad_body = lambda indent: '\n'.join(                       # noqa: E731 — small local emitter
-        ['dirs: {'] + [f'{" " * (indent + 4)}{hutext.key(k)}: {_scalar(v)}' for k, v in dirs.items()]
-        + [' ' * indent + '}'])
-    set_section(config_file, 'dirs', pad_body)
-
-
-def _flat(v):
-    '''Flatten a profile/configs value to a flat list of term strings.'''
-    if isinstance(v, list):
-        return [s for x in v for s in _flat(x)]
-    if isinstance(v, dict):
-        return [s for x in v.values() for s in _flat(x)]
-    return [] if v is None else [str(v)]
-
+    _write_top(config_file, 'dirs', dirs, lambda indent: _emit_map('dirs', dirs, indent))
 
 
 def read_scalar_section(config_file, key):
     '''The scalar value of a top-level `<key>:` from ONE .hu file (not a list/dict), or None.'''
-    p = Path(config_file)
-    if not p.exists():
-        return None
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    v = data.get(key) if isinstance(data, dict) else None
-    return None if isinstance(v, (dict, list)) else v
+    return _read_top(config_file, key, 'scalar')
 
 
 def set_scalar_section(config_file, key, value):
     '''Set a top-level scalar `<key>: <value>` in place, or remove the node when `value` is None.'''
-    if value is None:
-        remove_sections(config_file, [key])
-        return
-    set_section(config_file, key, lambda indent: f'{key}: {_scalar(value)}')
+    _write_top(config_file, key, value, lambda indent: f'{key}: {_scalar(value)}')
 
 
 def read_list_section(config_file, key):
     '''The flat name list of a top-level `<key>:` (scalar or list) from ONE .hu file, or [].'''
-    p = Path(config_file)
-    if not p.exists():
-        return []
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    return _flat(data.get(key)) if isinstance(data, dict) else []
+    return _read_top(config_file, key, 'list')
 
 
 def set_list_section(config_file, key, items):
     '''Rewrite a top-level list `<key>: [ ... ]` in place, or remove the node when empty.'''
-    if not items:
-        remove_sections(config_file, [key])
-        return
-    set_section(config_file, key,
-                lambda indent: f'{key}: [ {"  ".join(_scalar(i) for i in items)} ]')
+    _write_top(config_file, key, items,
+               lambda indent: f'{key}: [ {"  ".join(_scalar(i) for i in items)} ]')
 
 
 def _emit_kv(key, value, indent):
@@ -1283,25 +1272,16 @@ def _emit_kv(key, value, indent):
 
 def read_theme(config_file):
     '''The raw nested `theme:` override dict from ONE .hu file, or {}.'''
-    p = Path(config_file)
-    if not p.exists():
-        return {}
-    data = layers.materialize_string(p.read_text(encoding='utf-8'))
-    t = data.get('theme') if isinstance(data, dict) else None
-    return t if isinstance(t, dict) else {}
+    return _read_top(config_file, 'theme', 'dict')
 
 
 def set_theme(config_file, theme):
     '''Rewrite the nested `theme:` node in place (or remove it when empty).'''
-    if not theme:
-        remove_sections(config_file, ['theme'])
-        return
-
     def emit(indent):
         pad = ' ' * indent
         body = [_emit_kv(k, v, indent + 4) for k, v in theme.items()]
         return '\n'.join(['theme: {'] + body + [pad + '}'])
-    set_section(config_file, 'theme', emit)
+    _write_top(config_file, 'theme', theme, emit)
 
 
 def config_sections_text(user_config_file, keys):
@@ -1331,11 +1311,12 @@ def remove_sections(user_config_file, keys):
     text = path.read_text(encoding='utf-8')
     removed = []
     for k in keys:
-        span = hutext.remove_span(text, k)
-        if span is None:
+        new = text
+        while (span := hutext.remove_span(new, k)) is not None:    # every copy of a duplicated key
+            start, end = span
+            new = new[:start] + new[end:]
+        if new == text:
             continue
-        start, end = span
-        new = text[:start] + text[end:]
         _checked_write_text(path, text, new, k)
         text = new
         removed.append(k)
@@ -1469,8 +1450,9 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     if conflicts is not None:
         _collect_reg_conflicts(conflicts, 'version-source', src_owners, _BUILTIN_SOURCE_NAMES,
                                'shadows a built-in source (ignored — built-ins win)')
-        _collect_reg_conflicts(conflicts, 'transport', tr_owners, _RESERVED_SCHEMES,
-                               'overrides the built-in git handling for that scheme')
+        # (a built-in scheme can't be registered at all — register_transport refuses it — so only
+        # two plugins claiming one new scheme is a conflict here)
+        _collect_reg_conflicts(conflicts, 'transport', tr_owners, frozenset(), '')
         _collect_reg_conflicts(conflicts, 'splash', spl_owners, _BUILTIN_SPLASH_NAMES,
                                'shadows a built-in splash (last loaded wins)')
     return loaded, skipped
@@ -1498,6 +1480,8 @@ def _git_checkout(runner, dq, ref, *, follow_default=False):
         out = f'{getattr(res, "stdout", "") or ""}{getattr(res, "stderr", "") or ""}'
         return 'would be overwritten' in out or 'Please commit your changes' in out
 
+    if _option_shaped(ref):
+        return 'failed'                          # never handed to `git checkout` as an option
     if not ref and follow_default and _has('origin/HEAD'):
         head = runner.run(f'git -C {dq} rev-parse --abbrev-ref origin/HEAD', capture=True)
         branch = (head.stdout or '').strip().split('/', 1)[-1] if head is not None and head.ok else ''
@@ -1523,6 +1507,14 @@ def _git_checkout(runner, dq, ref, *, follow_default=False):
     if co is None or co.ok:
         return 'ok'
     return 'kept' if _blocked(co) else 'failed'
+
+
+def _option_shaped(ref):
+    '''True for a ref git would read as an OPTION (`--orphan=x`, `-f`). _decl drops such refs from a
+    declaration already; this guards every checkout that takes one too, since `git checkout` (2.34)
+    has no `--end-of-options` and a bare `--` would turn the ref into a pathspec. No real branch or
+    tag starts with `-` (git check-ref-format refuses one).'''
+    return isinstance(ref, str) and ref.startswith('-')
 
 
 def _orphan_commits(runner, dq):
@@ -1644,7 +1636,7 @@ def ensure_branch(runner, dest):
         return cur.stdout.strip()                # already on a branch
     head = runner.run(f'git -C {dq} rev-parse --abbrev-ref origin/HEAD', capture=True)
     branch = head.stdout.strip().split('/', 1)[-1] if (head is not None and head.ok) else ''
-    if not branch or branch == 'HEAD':
+    if not branch or branch == 'HEAD' or _option_shaped(branch):
         return None
     co = runner.run(f'git -C {dq} checkout --quiet {shlex.quote(branch)}', capture=True)
     return branch if (co is None or co.ok) else None
@@ -1730,8 +1722,10 @@ def _noninteractive_git_env():
     on `Username for 'https://github.com':`. GIT_TERMINAL_PROMPT=0 kills git's own terminal prompt;
     GCM_INTERACTIVE=never stops git-credential-manager from popping one. A configured credential
     helper still answers non-interactively, so a properly set-up private repo (ssh, a token via
-    CONFIGSYS_GIT_TOKEN, or a helper with stored creds) keeps working.'''
-    return {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'}
+    CONFIGSYS_GIT_TOKEN — sent as a header, _token_git_config — or a helper with stored creds) keeps
+    working.'''
+    env = {**os.environ, 'GIT_TERMINAL_PROMPT': '0', 'GCM_INTERACTIVE': 'never'}
+    return {**env, **_token_git_config(env)}
 
 
 def _sync_target(runner, dq, ref, follow_default):
@@ -1934,18 +1928,25 @@ _TRANSPORTS = {}
 
 def register_transport(scheme, fn):
     '''Register a sync transport for a `source:` scheme. `fn(runner, dest, source, ref) ->
-    action` must materialize the plugin tree into `dest`. Re-exported as register_transport.
+    action` must materialize the plugin tree into `dest`. Re-exported as register_transport. A
+    built-in scheme (_RESERVED_SCHEMES: github / gitlab / git / http(s) / file / ssh) is refused —
+    one plugin can't take over how every other plugin syncs.
     Code trust binds to a CONTENT hash (plugin_identity), not a git commit, so a plugin fetched
     by any transport — git, tarball, OCI — can carry `code:` and be trusted the same way.'''
     if not scheme or not callable(fn):
         raise ValueError('register_transport(scheme, fn): scheme non-empty and fn callable')
+    if scheme in _RESERVED_SCHEMES:              # built-ins win (like versions.register_source)
+        raise ValueError(f'register_transport: {scheme}: is a built-in source scheme')
     _TRANSPORTS[scheme] = fn
     return fn
 
 
 def _transport_for(source):
-    '''The transport for a source: a registered `<scheme>:` wins, else git (the default).'''
+    '''The transport for a source: a registered `<scheme>:` wins, else git (the default). A built-in
+    scheme is always git's (register_transport refuses one; this holds even for a direct write).'''
     scheme = source.split(':', 1)[0] if ':' in source else None
+    if scheme in _RESERVED_SCHEMES:
+        return _git_transport
     return _TRANSPORTS.get(scheme, _git_transport)
 
 

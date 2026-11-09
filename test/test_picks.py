@@ -214,3 +214,30 @@ def test_clear_machine_clears_both_layers(tmp_path, monkeypatch):
     assert changed
     assert 'm' not in plugins.read_picks(str(_local_file(tmp_path)))
     assert plugins.read_picks(str(primary)) == {'other': ['c']}   # m dropped, sibling kept
+
+
+# -- review-2026-11-2 config-layers-15 / -16 ---------------------------------------------------------
+
+def test_a_single_name_pick_is_a_one_item_list(tmp_path):
+    c = _cfg(('user', '{ machine: laptop  picks: { laptop: btop  m: [ fd ] } }'))
+    assert c.included() == {'btop'} and 'laptop' in c.machine_names()
+    assert list(c.requested()) == ['btop']
+    f = tmp_path / 'u.hu'
+    f.write_text('{ picks: { laptop: btop  m: [ fd ] } }\n', encoding='utf-8')
+    assert plugins.read_picks(str(f)) == {'laptop': ['btop'], 'm': ['fd']}
+
+
+def test_requested_keeps_the_picks_order_across_hash_seeds(tmp_path):
+    import os
+    import subprocess
+    import sys
+    picks = ['zsh', 'btop', 'ripgrep', 'fd', 'neovim', 'fish', 'tmux']
+    c = _cfg(('user', '{ picks: { this-machine: [ %s ] } }' % '  '.join(picks)))
+    assert list(c.requested()) == picks
+    code = ('from configsys import layers; from configsys.config import Config; '
+            'print(list(Config([layers.Layer("u.hu", "user", layers.materialize_string('
+            '"{ picks: { this-machine: [ %s ] } }"))]).requested()))' % '  '.join(picks))
+    root = os.path.join(os.path.dirname(__file__), '..')
+    outs = {subprocess.run([sys.executable, '-c', code], cwd=root, capture_output=True, text=True,
+                           env={**os.environ, 'PYTHONHASHSEED': seed}).stdout for seed in ('1', '2')}
+    assert outs == {str(picks) + '\n'}

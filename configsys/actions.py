@@ -1070,7 +1070,7 @@ def _read_map_section(config_file, key):
 
 def _set_map_section(config_file, key, mapping):
     '''Rewrite a top-level map `<key>: { k: v … }` in place, or remove the node when empty.'''
-    from .troveio import _scalar
+    from .hutext import scalar as _scalar
     if not mapping:
         plugins.remove_sections(config_file, [key])
         return
@@ -1108,10 +1108,13 @@ def _setting_tokens(value, kind):
 def _setting_home(ctx, key):
     '''(where, label) for machine setting `key`: whether it currently lives in this machine's top
     config ('local'), the primary plugin ('primary'), or neither (None = built-in/repo default).
-    The top config shadows the primary, so it's checked first.'''
+    The top config shadows the primary, so it's checked first. A top-config-only setting
+    (layers.TOP_CONFIG_ONLY) never lives in the primary — a value there is ignored.'''
     local = str(ctx.paths.user_config_file)
     if _read_setting(local, key) is not None:
         return 'local', 'top config'
+    if key in layers.TOP_CONFIG_ONLY:
+        return None, None
     pfile, pname = _primary_data_file(ctx)
     if pfile and _read_setting(pfile, key) is not None:
         return 'primary', pname
@@ -1156,6 +1159,10 @@ def config_settings(ctx):
             out[key]['home'] = where                      # 'local' | 'primary' | None (default)
             out[key]['home_label'] = home_label
             out[key]['target'] = _setting_target(ctx, key)[1]   # where an edit would land
+            if key in layers.TOP_CONFIG_ONLY:             # set in the primary = ignored there: say so
+                pfile, pname = _primary_data_file(ctx)
+                if pfile and _read_setting(pfile, key) is not None:
+                    out[key]['note'] = f'ignored in {pname} — top config only'
     return out
 
 
