@@ -14,6 +14,7 @@ The cabal tool is the driver `requires: cabal`, satisfied by the `cabal` compone
 cabal-install 3.8.1; the ~/.local/bin layout of 3.10+ is probed alongside ~/.cabal/bin.
 '''
 
+import fnmatch
 import re
 import os
 import shlex
@@ -38,7 +39,7 @@ class Cabal(ModuleDriver):
             'upgrade': '{tool} install {pkg} --overwrite-policy=always',
             'set_version': '{tool} install {spec} --overwrite-policy=always'}
     VERSION_SPEC = '{pkg}-{ver}'
-    BIN_DIR = _CABAL_BIN
+    BIN_DIR = _CABAL_BIN                    # the default; location() reports the dir the exe is in
 
     def _exe(self, rc):
         # best-effort: the installed executable usually matches the package name; a route can
@@ -86,6 +87,24 @@ class Cabal(ModuleDriver):
 
     def upgrade(self, rc):
         return self.install(rc)
+
+    # -- presentation -----------------------------------------------------
+
+    def location(self, rc):
+        '''Where the executable really is, by the rule get_version reads it: ~/.cabal/bin, else a
+        ~/.local/bin link into a cabal store (3.10+ XDG mode); not installed -> ~/.cabal/bin.'''
+        exe = self._exe(rc)
+        home = self.home()
+        if not os.path.exists(home / '.cabal' / 'bin' / exe):
+            xdg = home / '.local' / 'bin' / exe
+            try:
+                tgt = os.readlink(xdg)
+            except OSError:
+                tgt = None
+            if tgt and os.path.exists(xdg) and any(fnmatch.fnmatchcase(tgt, g)
+                                                    for g in _STORE_GLOBS.split('|')):
+                return _XDG_BIN
+        return _CABAL_BIN
 
     def set_version(self, rc, version):
         self._ensure_index()

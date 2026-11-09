@@ -136,3 +136,24 @@ def test_cabal_get_version_absent_is_none():
 def test_cabal_get_version_present_but_non_store_path():
     fr = FakeRunner([('readlink', 0, '/opt/plain/bin/hlint\n')])   # a real binary, not in the store
     assert Cabal(fr).get_version(rc('cabal', 'hlint')) == 'installed'
+
+
+def test_cabal_location_is_where_the_binary_really_is(tmp_path):
+    # cabal-install 3.10+ with no ~/.cabal installs into ~/.local/bin; location() named ~/.cabal/bin
+    # regardless, though get_version/uninstall already probe both
+    from configsys.paths import Paths
+    d = Cabal(Runner(pretend=True), Paths(env={'CONFIGSYS_HOME': str(tmp_path)}))
+    assert d.location(rc('cabal', 'hlint')) == '~/.cabal/bin'        # not installed: the classic dir
+    store = tmp_path / '.local/state/cabal/store/ghc-9.10/hlint-3.10-e-hlint-ab/bin'
+    store.mkdir(parents=True)
+    (store / 'hlint').write_text('')
+    xdg = tmp_path / '.local/bin'
+    xdg.mkdir(parents=True)
+    (xdg / 'hlint').symlink_to(store / 'hlint')
+    assert d.location(rc('cabal', 'hlint')) == '~/.local/bin'        # an XDG link into a cabal store
+    (xdg / 'other').write_text('')                                   # a non-cabal binary there
+    assert d.location(rc('cabal', 'other')) == '~/.cabal/bin'
+    classic = tmp_path / '.cabal/bin'
+    classic.mkdir(parents=True)
+    (classic / 'hlint').symlink_to(store / 'hlint')
+    assert d.location(rc('cabal', 'hlint')) == '~/.cabal/bin'        # ~/.cabal/bin wins, as in get_version
