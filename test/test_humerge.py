@@ -12,6 +12,7 @@ import pytest
 from configsys import humerge, layers, primarygit
 
 from test_primary_push import BASE_P, Scripted, _clean, _ctx, _git, _other_pushes, _remote_file, primary  # noqa: F401
+from configsys.tui import flows as flows_mod
 
 pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
 
@@ -254,7 +255,7 @@ def test_the_cli_and_tui_ask_per_key(monkeypatch):
     q = primarygit.question('value', name='prim', path='p.hu', detail='This machine set `a: 1`; …')
     assert cli.ask(q) == 'stop'
     seen = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append((a[2], a[3])) or 1)
+    monkeypatch.setattr(flows_mod, '_popup_choose', lambda *a, **k: seen.append((a[2], a[3])) or 1)
     q = primarygit.question('value', name='prim', path='p.hu', detail='words', index=1, count=2)
     assert menu._TuiPushUI(None, None).ask(q) == 'theirs'
     title, options = seen[0]

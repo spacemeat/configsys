@@ -19,8 +19,9 @@ import os
 
 from ... import layers
 from .. import menu
-from ..menu import (_DRIVER_ABBR, ConfigScreen as _ConfigModel, _fit, _input_box, _order_list,
-                    _page_rows, _panel, _popup_choose, _put, _scrollbar_v, _setting_str, _wordwrap)
+from ..modals import _input_box, _order_list, _popup_choose
+from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_v, _wordwrap
+from ..panes import _DRIVER_ABBR, _setting_str, ConfigScreen as _ConfigModel
 from .base import Intent, Screen, ViewModel
 
 

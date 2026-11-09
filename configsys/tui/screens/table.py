@@ -14,7 +14,7 @@ A table VM is any object with:
 keep; the painter itself writes nothing.
 '''
 
-from ..menu import _fit, _put, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v
+from ..paint import _fit, _put, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v
 
 
 def layout(headers, cells, gutter=2):

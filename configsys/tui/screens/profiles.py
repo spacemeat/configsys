@@ -21,10 +21,14 @@ import curses
 from fnmatch import fnmatchcase
 
 from .. import menu
-from ..menu import (ProfileScreen as _ProfilesModel, _attr_filter_modal, _busy,
-                    _component_machines_modal, _filter_edit, _find_edit, _fit, _machines_modal,
-                    _page_rows, _panel, _pick_method_name, _popup_choose, _put, _reveal_subtree,
-                    _scroll_top, _scrollbar_h, _scrollbar_v, _wordwrap, _wrap)
+from ..flows import _pick_method_name
+from ..modals import (
+    _attr_filter_modal, _component_machines_modal, _filter_edit, _find_edit, _machines_modal,
+    _popup_choose)
+from ..paint import (
+    _busy, _fit, _page_rows, _panel, _put, _reveal_subtree, _scroll_top, _scrollbar_h,
+    _scrollbar_v, _wordwrap, _wrap)
+from ..panes import ProfileScreen as _ProfilesModel
 from ...errors import ConfigsysError
 from .base import Intent, Screen, ViewModel
 

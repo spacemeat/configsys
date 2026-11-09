@@ -15,8 +15,11 @@ composed unchanged; this adds the three MVVM seams:
 '''
 
 from .. import menu
-from ..menu import (_DF_STATE_ELEM, _GLUE_HEADERS, _GLUE_STATE_LABEL, GlueScreen as _GlueModel,
-                    _fit, _is_user_glue, _page_rows, _panel, _glue_cells, _put, _pretend_note)
+from ...drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL
+from ..flows import _pretend_note
+from ..menu import _GLUE_HEADERS
+from ..paint import _fit, _page_rows, _panel, _put
+from ..panes import _DF_STATE_ELEM, _glue_cells, _is_user_glue, GlueScreen as _GlueModel
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note

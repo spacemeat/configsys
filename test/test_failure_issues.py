@@ -11,6 +11,7 @@ from configsys import reportgen
 from configsys.actions import failure_excerpt
 from configsys.ledger import Ledger
 from configsys.tui import menu
+from configsys.tui import flows as flows_mod
 
 from test_execute import FakeRunner, ctx_for, unit
 
@@ -129,14 +130,14 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
     ms = SimpleNamespace(
         plan=lambda: [('upgrade', 'su\\nano', _su_state().component), ('upgrade', 'apt\\tmux', rc)],
         states={'su\\nano': _su_state(), 'apt\\tmux': SimpleNamespace(component=rc, present=True)})
-    monkeypatch.setattr(menu, 'suspended', lambda scr: contextlib.nullcontext())
+    monkeypatch.setattr(flows_mod, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
     monkeypatch.setattr(installState, 'plan_with_swaps', lambda c, raw, units: (raw, units))
     monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan',
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})
     monkeypatch.setattr(sysupdates, 'apply_bulk', lambda c, mgrs, refresh=True: (
         seen.append(('bulk', refresh)) or [(m, SimpleNamespace(ok=True)) for m in mgrs]))
-    monkeypatch.setattr(menu, 'execute_plan', lambda c, plan, led, refresh=True, version=None: (
+    monkeypatch.setattr(flows_mod, 'execute_plan', lambda c, plan, led, refresh=True, version=None: (
         seen.append(('plan', refresh)) or []))
     monkeypatch.setattr(cli_refresh, 'published_pending', lambda c, fresh: sorted(fresh))
     menu._confirm_and_execute(None, None, ms, ctx, Ledger())

@@ -20,9 +20,9 @@ cursors, preview cache), composed unchanged as `_ThemeModel`; this adds the thre
 '''
 
 from .. import menu
-from ..menu import (ThemeScreen as _ThemeModel, _eff_flags, _fit, _hex, _input_box, _page_rows,
-                    _panel, _popup_choose, _put, _ref_str, _sample_page, _scroll_top, _scrollbar_v,
-                    _valid_ref)
+from ..modals import _input_box, _popup_choose
+from ..paint import _eff_flags, _fit, _hex, _page_rows, _panel, _put, _scroll_top, _scrollbar_v
+from ..preview import _ref_str, _sample_page, _valid_ref, ThemeScreen as _ThemeModel
 from ..theme import ALL_PAGES, Palette, parse_color
 from .base import Intent, Screen, ViewModel
 

@@ -15,13 +15,15 @@ only paints that; handle is the former fall-through dispatch.
 import curses
 
 from .. import menu
-from ..menu import (COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE, STATUS_COLOR, UNIT, _COMP_OPS,
-                    _REFRESH_WARN_DAYS, _columns, _confirm_and_execute, _filter_edit,
-                    _find_edit_tree, _fit, _identity_line, _infoblock, _methods_line,
-                    _node_component, _offer_method_swap, _page_rows, _pick_choices, _put, _reload,
-                    _row_component, _scope_is_choice, _reveal_subtree, _scroll_top, _scrollbar_v,
-                    _switch_mode)
+from ..flows import _confirm_and_execute, _offer_method_swap, _pick_choices, _reload
+from ..modals import _filter_edit, _find_edit_tree
+from ..models import (
+    _COMP_OPS, _identity_line, _infoblock, _methods_line, _node_component, _REFRESH_WARN_DAYS,
+    _row_component, _scope_is_choice, _switch_mode, COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE,
+    UNIT)
+from ..paint import _columns, _fit, _page_rows, _put, _reveal_subtree, _scroll_top, _scrollbar_v
 from ..screen import suspended
+from ..theme import STATUS_COLOR
 from .base import Intent, Screen, ViewModel
 
 _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}

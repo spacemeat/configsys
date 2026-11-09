@@ -3,7 +3,7 @@ drop to the terminal), promote messages deferred to exit, partial requery, and t
 fix (cursor no longer pinned to the bottom row). Curses drawing is stubbed; the write path,
 choice logic, scroll math, and partial-inspect are what's exercised.'''
 
-from configsys import plugins
+from configsys import actions, plugins
 from configsys.app import Context, build_parser
 from configsys.tui import menu
 from configsys.tui.menu import COMPONENT, PROFILE, UNIT, Node, _row_component, _scroll_top
@@ -246,15 +246,15 @@ def test_pick_method_single_method_is_a_noop(tmp_path):
 def test_fail_detail_surfaces_the_reason():
     from configsys.runner import Result
     r = Result('cmd', 1, stderr='E: could not get lock\nsome trailing line')
-    assert menu._fail_detail(r) == 'exit 1: E: could not get lock'   # the error line, not a trailer
+    assert actions.fail_detail(r) == 'exit 1: E: could not get lock'   # the error line, not a trailer
     # falls back to the tee'd tail of streamed output when there is no stderr; a recognised failure
     # (a 404) also gets the taxonomy suffix appended (failures.py)
     r2 = Result('cmd', 2, captured='downloading...\ncurl: (22) 404')
-    fd = menu._fail_detail(r2)
+    fd = actions.fail_detail(r2)
     assert fd.startswith('exit 2: curl: (22) 404') and '[not-found/moved]' in fd
     # bare exit code when there is no output at all
-    assert menu._fail_detail(Result('cmd', 1)) == 'exit 1'
-    assert menu._fail_detail(None) == 'no result'
+    assert actions.fail_detail(Result('cmd', 1)) == 'exit 1'
+    assert actions.fail_detail(None) == 'no result'
 
 
 def test_row_error_not_smeared_onto_profiles(tmp_path):

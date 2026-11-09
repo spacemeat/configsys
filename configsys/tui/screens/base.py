@@ -94,7 +94,7 @@ class Screen:
     def begin_page(self, surface, pal):
         '''Clear `surface` and paint the chrome every page opens with — this page's palette, the
         gradient background, the row-0 screen chips. -> (h, w).'''
-        from ..menu import _draw_nav, _fill_bg
+        from ..paint import _draw_nav, _fill_bg
         surface.erase()
         h, w = surface.getmaxyx()
         pal.use_page(self.id)
@@ -106,7 +106,7 @@ class Screen:
     def end_page(self, surface, pal, status, legends, h, w):
         '''Close a page: the `status` row (skipped when None) directly above the bottom `legends`
         rows, then refresh.'''
-        from ..menu import _fit, _put
+        from ..paint import _fit, _put
         y = h - len(legends)
         if status is not None:
             _put(surface, y - 1, 0, _fit(status, w), pal.style('status_line', y - 1, 0, h, w))

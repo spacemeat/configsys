@@ -17,9 +17,11 @@ seams:
 import os
 
 from .. import menu
-from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _fit, _input_box, _page_rows,
-                    _panel, _plugin_cells, _plugin_code_elem, _plugin_remote_elem, _put,
-                    _scrollbar_h, _scrollbar_v)
+from ..modals import _input_box
+from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_h, _scrollbar_v
+from ..panes import (
+    _DIFF_ELEM, _plugin_cells, _plugin_code_elem, _PLUGIN_HEADERS, _plugin_remote_elem,
+    PluginScreen)
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, results_note

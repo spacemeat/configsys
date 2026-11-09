@@ -1,6 +1,7 @@
 # Split app.py and menu.py (review-2026-11-2 D2)
 
-> **Status: IN PROGRESS** — started 2026-11-09.
+> **Status: DONE** — finished 2026-11-09 (commits 26e5dd8 + the TUI split, review-2026-11-2 D2).
+> Lives on in: the module docstrings of `configsys/app.py`, `configsys/cli/*`, `configsys/tui/menu.py` and its siblings; docs/tui-architecture.md.
 
 `configsys/app.py` (5,260 lines: the Context, every CLI command, the parser) and
 `configsys/tui/menu.py` (5,230 lines: the models, the modals, the paint primitives, the samples, the
@@ -30,11 +31,14 @@ command and the TUI share), `main()` and its dispatch. Everything else moves, ve
 
 | module | what |
 |---|---|
-| `tui/paint.py` | the paint primitives (`_put`, `_fit`, `_panel`, scrollbars, `_fill_bg`, wrapping) |
-| `tui/modals.py` | every modal + overlay (`_modal_frame`, `ListNav`, popups, input box, help, …) |
-| `tui/models.py` | the screen models (`MenuState`, `ProfileScreen`, `PluginScreen`, `GlueScreen`, …) |
-| `tui/samples.py` | the hand-built sample states (Theme previews, render tests) |
-| `tui/flows.py` | execute / pin / push / issue flows the screens call |
+| `tui/paint.py` | the paint primitives (`_put`, `_fit`, `_panel`, scrollbars, `_fill_bg`, wrapping, the screen chips) + `_keymap()` |
+| `tui/modals.py` | every modal + overlay (`_modal_frame`, `ListNav`, popups, input box, reorder, attr filter, machines, find/filter, `?` / `!` / where, issue review) |
+| `tui/help.py` | the `?` pages (`_HELP`) |
+| `tui/models.py` | the Components model (`MenuState`, `Node`, the row/identity/infoblock helpers, mode switches) |
+| `tui/panes.py` | the other screens' models (`ProfileScreen`, `PluginScreen`, `GlueScreen`, `DotfilesScreen`, `ConfigScreen`) + cell helpers |
+| `tui/preview.py` | the Theme editor model (`ThemeScreen`) + the hand-built sample states its previews and the render tests paint (they reference each other) |
+| `tui/flows.py` | execute / pin / provider pick / push flows the screens call |
+| `tui/startup.py` | the inspection worker, splash choice, effects level |
 
 ## Compatibility
 

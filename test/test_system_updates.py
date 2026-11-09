@@ -15,6 +15,7 @@ from configsys.drivers.pacman import Pacman
 from configsys.drivers.snap import Snap
 from configsys.drivers.zypper import Zypper
 from configsys.runner import Result
+from configsys.tui import models as models_mod
 
 
 class FakeRunner:
@@ -411,7 +412,7 @@ def test_fold_rebuilds_the_tree_without_the_pipeline(monkeypatch):
     def model(ctx, cfg, states, mode, caches=None):       # _components_model's System Updates fold
         su_states, su_layouts, su_transitive = sysupdates.tree_injection(ctx._sysupd_groups or {})
         return {**states, **su_states}, list(su_layouts), dict(su_transitive)
-    monkeypatch.setattr(menu, '_components_model', model)
+    monkeypatch.setattr(models_mod, '_components_model', model)
     ctx = types.SimpleNamespace(_sysupd_groups=_groups())    # no load_pipeline: calling it would fail
     ms = menu.MenuState({}, [], {})
     ms.descriptions = {}

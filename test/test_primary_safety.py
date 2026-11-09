@@ -12,6 +12,7 @@ import pytest
 from configsys import primarygit
 
 from test_primary_push import BASE_P, _ctx, _git, primary  # noqa: F401
+from configsys.tui import flows as flows_mod
 
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 
@@ -278,7 +279,7 @@ def test_the_cli_and_tui_ask_about_overlapping_edits(monkeypatch, capsys):
     monkeypatch.setattr('builtins.input', lambda prompt: 'i')
     assert cli.ask(q) == 'include'
     seen = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 0)
+    monkeypatch.setattr(flows_mod, '_popup_choose', lambda *a, **k: seen.append(a[2]) or 0)
     two = primarygit.question('overlap', name='prim', items=['a', 'b'])
     assert menu._TuiPushUI(None, None).ask(two) == 'stop'          # the first choice
     assert seen == ['prim: your uncommitted edits to 2 files overlap what your other machine pushed']
@@ -295,7 +296,7 @@ def test_quitting_under_auto_pushes_without_asking_anything(primary, monkeypatch
     _git(clone, 'commit', '-qam', 'mine')
     (clone / 'notes.txt').write_text('a hand edit\n')
     asked = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: asked.append(a[2]) or 0)
+    monkeypatch.setattr(flows_mod, '_popup_choose', lambda *a, **k: asked.append(a[2]) or 0)
     monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: 'auto-on-quit')
     leave, notes = menu._quit_push(None, None, _ctx(base), force=True)
     assert leave and asked == []

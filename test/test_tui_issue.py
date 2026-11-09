@@ -4,6 +4,7 @@ is tested deterministically without curses/pty. The send itself is stubbed — n
 
 from _render_harness import RecordingPalette, build_ctx
 from configsys.tui import menu
+from configsys.tui import modals as modals_mod
 from configsys.tui.surface import BufferSurface
 
 import curses
@@ -79,14 +80,14 @@ def test_issue_flow_os_builds_and_reviews(ctx):
 
 def test_issue_flow_report_no_failure_returns_note(ctx, monkeypatch):
     # blank name + no captured failures -> a clear note, no overlay
-    monkeypatch.setattr(menu, '_input_box', lambda *a, **k: '')     # user submits an empty name
+    monkeypatch.setattr(modals_mod, '_input_box', lambda *a, **k: '')     # user submits an empty name
     monkeypatch.setattr('configsys.reportgen.load_failures', lambda _p: [])
     note = menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
     assert 'nothing to report' in note
 
 
 def test_issue_flow_cancel_at_prompt_returns_none(ctx, monkeypatch):
-    monkeypatch.setattr(menu, '_input_box', lambda *a, **k: None)   # user Escs the name prompt
+    monkeypatch.setattr(modals_mod, '_input_box', lambda *a, **k: None)   # user Escs the name prompt
     assert menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'request') is None
 
 
@@ -98,7 +99,7 @@ def test_report_prompt_lists_captured_failures(ctx, monkeypatch):
     def fake_input(stdscr, pal, title, initial='', **k):
         seen['title'] = title
         return None                                    # cancel; we only care about the prompt
-    monkeypatch.setattr(menu, '_input_box', fake_input)
+    monkeypatch.setattr(modals_mod, '_input_box', fake_input)
     menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
     assert 'blank = all 4:' in seen['title']
     assert 'neovim, zig, foo +1 more' in seen['title']
@@ -110,7 +111,7 @@ def test_report_prompt_single_failure_names_it(ctx, monkeypatch):
     def fake_input(stdscr, pal, title, initial='', **k):
         seen['title'] = title
         return None
-    monkeypatch.setattr(menu, '_input_box', fake_input)
+    monkeypatch.setattr(modals_mod, '_input_box', fake_input)
     menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
     assert 'blank = neovim' in seen['title'] and 'all' not in seen['title']
 
@@ -121,6 +122,6 @@ def test_report_prompt_no_failures_says_so(ctx, monkeypatch):
     def fake_input(stdscr, pal, title, initial='', **k):
         seen['title'] = title
         return None
-    monkeypatch.setattr(menu, '_input_box', fake_input)
+    monkeypatch.setattr(modals_mod, '_input_box', fake_input)
     menu._issue_flow(_Scr([]), RecordingPalette(), ctx, 'report')
     assert 'nothing captured' in seen['title']

@@ -149,7 +149,7 @@ def os_blocks():
 
 
 def tui_facts():
-    from configsys.tui import keyspec, menu, theme
+    from configsys.tui import help as tui_help, keyspec, menu, theme
     from configsys import layers
     keys = {}
     try:
@@ -158,7 +158,7 @@ def tui_facts():
     except Exception:                                    # noqa: BLE001
         pass
     helps = {}
-    for screen, info in getattr(menu, '_HELP', {}).items():
+    for screen, info in getattr(tui_help, '_HELP', {}).items():
         helps[screen] = {'desc': info.get('desc', ''),
                          'glossary': [t for t, _m in info.get('glossary', [])]}
     return {
@@ -539,8 +539,8 @@ def _check_help_retired(retired):
     out = []
     blobs = [(f'argparse: configsys {c["command"]}'.strip(), ' '.join([c['help']] + [o['help'] for o in c['options']]))
              for c in cli_tree()]
-    from configsys.tui import menu
-    for screen, info in getattr(menu, '_HELP', {}).items():
+    from configsys.tui import help as tui_help
+    for screen, info in getattr(tui_help, '_HELP', {}).items():
         blobs.append((f'TUI ? help: {screen}', info.get('desc', '') + ' ' +
                       ' '.join(f'{t} {m}' for t, m in info.get('glossary', []))))
     for where, text in blobs:

@@ -12,6 +12,7 @@ import pytest
 from configsys import plugins, primarygit
 from configsys.app import Context, build_parser, main
 from configsys.tui import menu
+from configsys.tui import flows as flows_mod
 
 pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
 
@@ -339,10 +340,10 @@ def _quit(monkeypatch, *, ahead, mode, choice=None, push_ok=True):
     monkeypatch.setattr(primarygit, 'state', lambda ctx: st)
     monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: mode)
     calls = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: calls.append(a[2]) or choice)
+    monkeypatch.setattr(flows_mod, '_popup_choose', lambda *a, **k: calls.append(a[2]) or choice)
     push = lambda s, p, c: calls.append('push') or (push_ok, ['pushed 2 changes to x'])  # noqa: E731
-    monkeypatch.setattr(menu, '_push_primary', push)
-    monkeypatch.setattr(menu, '_auto_push_primary', push)
+    monkeypatch.setattr(flows_mod, '_push_primary', push)
+    monkeypatch.setattr(flows_mod, '_auto_push_primary', push)
     return calls
 
 
@@ -393,7 +394,7 @@ def test_the_plugins_screen_P_pushes(monkeypatch, tmp_path):
     from _render_harness import build_ctx
     ctx = build_ctx(tmp_path)
     monkeypatch.setattr(menu, '_KEYMAP', Keymap(config_keys(ctx.config)))
-    monkeypatch.setattr(menu, '_push_primary', lambda s, p, c: (True, ['left out x', 'pushed 1 change']))
+    monkeypatch.setattr(flows_mod, '_push_primary', lambda s, p, c: (True, ['left out x', 'pushed 1 change']))
     scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
     scr.model.load_diff = lambda: None
     intent = scr.handle(ord('P'), ctx, None, None)
@@ -423,7 +424,7 @@ def test_every_question_renders_the_same_choices_on_both_uis(kind, monkeypatch, 
         assert cli.ask(q) == c.answer
     capsys.readouterr()
     popups = []
-    monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: popups.append((a[3], k)) or None)
+    monkeypatch.setattr(flows_mod, '_popup_choose', lambda *a, **k: popups.append((a[3], k)) or None)
     assert menu._TuiPushUI(None, None).ask(q) == q.enter                # Esc
     options, kw = popups[0]
     assert options == [(c.label, c.key) for c in q.choices]

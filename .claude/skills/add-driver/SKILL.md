@@ -113,7 +113,7 @@ hook. Underscore members are internal.
   no specificity (routing-model §8a).
 - **`standing: never-auto`** driver-wide if it must never be an automatic default (snap).
 - **Preference** — either a slot in `DEFAULT_DRIVER_PREFERENCE` (then also a short tag in
-  `tui.menu._DRIVER_ABBR`, the Config-screen display), or deliberately unranked (add it to
+  `tui.panes._DRIVER_ABBR`, the Config-screen display), or deliberately unranked (add it to
   `UNRANKED` in the inventory test, with the reason). A new rank changes defaults across the
   catalog: regenerate the golden and read the diff per OS before accepting it (§9). A user's or OS
   block's stale `driver-preference:` list still ranks a new driver: `resolve._effective_preference`
@@ -141,13 +141,13 @@ Everything in §2–3, plus:
   versioned line, a sweep setup in `tools/osaudit.py` `_SETUPS` + a facts snippet in `_FACTS`.
 - **Required hooks** (the inventory test checks them): `installed_index`, `upgradable_index`,
   `upgrade_all`, `explicit_keys`. A gap you accept goes in `KNOWN_GAPS` there, with why.
-- **A refresh style — exactly one of:** `app._NATIVE_REFRESH`, an index-only refresh that is safe
+- **A refresh style — exactly one of:** `cli.refresh._NATIVE_REFRESH`, an index-only refresh that is safe
   before a single-package install (apt-get update, xbps-install -S, …; it is also what the
-  `refresh-before-execute` setting runs before an execute batch); or `app._FULL_UPGRADE_REFRESH`,
+  `refresh-before-execute` setting runs before an execute batch); or `cli.refresh._FULL_UPGRADE_REFRESH`,
   for a manager where an index-only sync breaks the next install, so the only safe refresh is the
   full system upgrade (pacman: a bare `-Sy` is a partial upgrade; `configsys refresh` asks first,
   nothing runs it automatically). Being rolling doesn't decide it — Void and Tumbleweed sync safely.
-  `app._INDEX_SRC_DIRS` if it has third-party source files whose failures `refresh` should diagnose
+  `cli.refresh._INDEX_SRC_DIRS` if it has third-party source files whose failures `refresh` should diagnose
   (apt/dnf/zypper).
 - **A reboot entry — exactly one of:** `rebootcheck._REBOOT_CHECKS` (the native reboot-required
   check: a flag file, a `needs-rebooting` exit code, or `_kernel_heuristic`), or
@@ -210,8 +210,8 @@ Everything in §2–3, plus:
 | `routes._VIA_ATTR` | every binding implies a component kind (§3) |
 | `plugins._scan_executable_data` | its binding fields carry shell commands (§3) |
 | `versions._BUILTIN_KINDS` | it comes with a new `version:` source kind |
-| `app._NATIVE_REFRESH` / `app._FULL_UPGRADE_REFRESH` / `app._INDEX_SRC_DIRS` / `rebootcheck._REBOOT_CHECKS` / `_NO_REBOOT_CHECK` / `namesweep.MANAGERS` / `UNSWEPT` | native manager (§4) |
-| `tui.menu._DRIVER_ABBR` | ranked in `DEFAULT_DRIVER_PREFERENCE` (§3) |
+| `cli.refresh._NATIVE_REFRESH` / `cli.refresh._FULL_UPGRADE_REFRESH` / `cli.refresh._INDEX_SRC_DIRS` / `rebootcheck._REBOOT_CHECKS` / `_NO_REBOOT_CHECK` / `namesweep.MANAGERS` / `UNSWEPT` | native manager (§4) |
+| `tui.panes._DRIVER_ABBR` | ranked in `DEFAULT_DRIVER_PREFERENCE` (§3) |
 | `shellguard` | nothing to add: install / upgrade / set-version of every driver run inside the rc-file guard (`installer-shell-writes`), so an installer that edits rc files (sdkman, rustup) is caught there |
 
 Grep for any new ones before finishing: a quoted driver name outside configsys/drivers/ —

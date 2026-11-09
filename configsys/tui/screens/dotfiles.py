@@ -18,9 +18,10 @@ from pathlib import Path
 
 from ...drivers.dotfiles import config_display_state
 from .. import menu
-from ..menu import (_DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel, _df_cells, _fit,
-                    _page_rows, _panel, _popup_choose, _put)
-from ..menu import _pretend_note
+from ..modals import _popup_choose
+from ..paint import _fit, _page_rows, _panel, _put
+from ..panes import _df_cells, _DF_HEADERS, _DF_STATE_ELEM, DotfilesScreen as _DotfilesModel
+from ..flows import _pretend_note
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note

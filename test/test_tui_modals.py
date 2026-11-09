@@ -80,8 +80,9 @@ def test_order_list_scrolls_and_carries_a_grabbed_item(keymap):
 
 def test_every_modal_frame_comes_from_one_painter():
     import inspect
-    src = inspect.getsource(menu)
-    assert src.count("'┌' + '─' * (box_w - 2) + '┐'") == 1      # only _modal_frame draws a box top
+    from configsys.tui import flows, modals, panes, preview
+    srcs = ''.join(inspect.getsource(m) for m in (menu, modals, flows, panes, preview))
+    assert srcs.count("'┌' + '─' * (box_w - 2) + '┐'") == 1     # only _modal_frame draws a box top
 
 
 def test_reveal_subtree_lifts_a_just_opened_parent():

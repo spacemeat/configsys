@@ -7,6 +7,7 @@ import types
 from configsys import plugins
 from configsys.app import Context, build_parser
 from configsys.tui import menu
+from configsys.tui import flows as flows_mod
 
 
 class _Scr:
@@ -130,7 +131,7 @@ def test_choices_multi_axis_asks_which_to_change_then_dispatches(tmp_path, monke
     ctx = _ctx(tmp_path)
     ENTER = 13
     # give steam a second (provider) axis so the chooser must first ask WHICH axis to change
-    monkeypatch.setattr(menu, '_capability_choices',
+    monkeypatch.setattr(flows_mod, '_capability_choices',
                         lambda routes, name: [('cuda-toolkit', ['cuda-toolkit-11', 'cuda-toolkit-12'])])
     # top menu (axis 0 = install method, axis 1 = provider): pick axis 0, then move+select flatpak
     changed, note, _d = menu._pick_choices(_Scr([ENTER, ord('j'), ENTER]), _Pal(), _row('steam'), ctx)

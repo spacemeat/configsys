@@ -17,6 +17,7 @@ from configsys.config import Config
 from configsys.installState import ComponentState
 from configsys.sysupdates import UpdateRow
 from configsys.tui import menu
+from configsys.tui import models as models_mod
 from configsys.tui.keyspec import (ROUTER_ACTIONS, KNOWN_ACTIONS, Keymap, config_keys, lint_keys,
                                    lint_merged, merge_layer_keys)
 from configsys.tui.surface import BufferSurface
@@ -113,7 +114,7 @@ def test_mode_switch_drops_installed_tracked_extras(monkeypatch):
         if mode == 'installed+tracked':
             states['apt\\extra'] = cs('apt\\extra', 'outdated')
         return states, [('p', ['a'] + (['extra'] if 'apt\\extra' in states else []))], None
-    monkeypatch.setattr(menu, '_components_model', fake_model)
+    monkeypatch.setattr(models_mod, '_components_model', fake_model)
     ms = menu.MenuState({'apt\\a': cs('apt\\a', 'missing')}, [('p', ['a'])])
     ms.mode, ms._req_sig, ms._overlay_caches = 'tracked', frozenset({'a'}), {}
     ms.descriptions = {}

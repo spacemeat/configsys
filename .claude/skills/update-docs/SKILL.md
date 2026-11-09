@@ -39,10 +39,10 @@ therefore faithfully wrong. This skill exists so that never accumulates again.
 |---|---|---|---|
 | `README.md` | users, first contact | the file (Glossary section is generated) | between the `glossary:begin/end` markers |
 | markdown linked from README | users | the file | |
-| `man/configsys.1` | users (`man configsys`) | argparse `help=`/`description=`/`_EPILOG` in `configsys/app.py` | `man/*` directly — run `tools/gen_manpages.py` |
+| `man/configsys.1` | users (`man configsys`) | argparse `help=`/`description=`/`_EPILOG` in `configsys/cli/parser.py` | `man/*` directly — run `tools/gen_manpages.py` |
 | `man/configsys.hu.5` | users | `docs/config-format.md` (a controlled Markdown subset) | `man/*` |
 | `configsys … --help` | users | the same argparse strings | |
-| TUI `?` pages | users | `_HELP` (per-screen `desc` + `glossary`) in `configsys/tui/menu.py`; `ACTION_LABELS` in `configsys/tui/keyspec.py`; the `keys:` comments in `config.hu` | |
+| TUI `?` pages | users | `_HELP` (per-screen `desc` + `glossary`) in `configsys/tui/help.py`; `ACTION_LABELS` in `configsys/tui/keyspec.py`; the `keys:` comments in `config.hu` | |
 | `config.hu` comments | users (it's the template new configs are generated from) | `config.hu` | |
 | `CLAUDE.md` | Claude, every session | the file | |
 | `docs/*.md` (root) reference specs | devs + Claude | the file | |
@@ -112,7 +112,7 @@ Effort: **`xhigh`** for README chunks, `docs/config-format.md`, CLAUDE.md and th
 |---|---|---|
 | README, one per `##` section group (≤ ~150 lines each) | README.md | **findings only** — you apply them (one voice for the front page) |
 | each markdown README links to | that file | edit |
-| CLI help → `configsys(1)` | argparse strings + `_EPILOG` in `configsys/app.py` (read each subcommand's handler to verify) | edit strings only |
+| CLI help → `configsys(1)` | argparse strings + `_EPILOG` in `configsys/cli/parser.py` (read each subcommand's handler in `configsys/cli/` to verify) | edit strings only |
 | config reference → `configsys.hu(5)` | `docs/config-format.md` | edit |
 | TUI help | `_HELP` (menu.py), `ACTION_LABELS` (keyspec.py), `config.hu` `keys:` comments | edit strings/comments only |
 | config template | `config.hu` comments (outside `keys:`) | edit comments only |
