@@ -467,3 +467,24 @@ def test_a_metatag_inside_a_list_never_hangs_the_merge():
     th.start()
     th.join(2)
     assert done == ['unmergeable']
+
+
+@needs_git
+def test_a_clean_line_merge_that_sets_a_key_twice_is_a_question(tmp_path):
+    # B17 / primary-04: both machines add `splash:` in different places — git's lines merge
+    # "cleanly" into a map holding it twice; a real disagreement must be asked, never settled silently
+    base = '{\n    picks: { desk: [ btop ] }\n}\n'
+    mine = '{\n    picks: { desk: [ btop ] }\n    splash: plain\n}\n'
+    theirs = '{\n    splash: ocean\n    picks: { desk: [ btop ] }\n}\n'
+    rc, _out = _driver(tmp_path, base, mine, theirs)
+    assert rc == 1
+
+
+@needs_git
+def test_the_same_key_added_on_both_sides_is_kept_once(tmp_path):
+    from configsys import layers
+    base = '{\n    picks: { desk: [ btop ] }\n}\n'
+    mine = '{\n    picks: { desk: [ btop ] }\n    splash: plain\n}\n'
+    theirs = '{\n    splash: plain\n    picks: { desk: [ btop ] }\n}\n'
+    rc, out = _driver(tmp_path, base, mine, theirs)
+    assert rc == 0 and layers.duplicate_keys_in_text(out) == []

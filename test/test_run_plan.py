@@ -74,7 +74,13 @@ def test_advisory_result_is_needs_input_not_a_failure(tmp_path, monkeypatch):
 
 def test_verify_after_fail_downgrades_to_installed_with_warning(tmp_path, monkeypatch):
     # apt exits non-zero on a failed Recommends though the package installed — present now -> a warning
-    drv = StubDrv({'install': Result('apt-get install -y sysdig', 100)}, version='0.40.0')
+    drv = StubDrv({'install': Result('apt-get install -y sysdig', 100)}, version=None)
+    real_install = drv.install
+
+    def install(rc):                                  # absent before; the package landed anyway
+        drv.version = '0.40.0'
+        return real_install(rc)
+    drv.install = install
     res = _run(tmp_path, monkeypatch, drv, [('install', 'apt\\sysdig', _unit('sysdig'))])
     o = res.outcomes[0]
     assert o.ok and o.installed_with_warning and res.n_fatal == 0
@@ -190,3 +196,12 @@ def test_an_escaping_error_still_releases_sudo_and_saves(tmp_path, monkeypatch):
     with _pt.raises(RuntimeError):
         actions.run_plan(ctx, [('lock', 'apt\\b', _unit('b'))], ledger=led, on_line=lambda *_a: None)
     assert released == [True] and ctx.paths.ledger_file.exists()
+
+
+def test_a_failed_reinstall_of_an_unchanged_install_is_a_failure(tmp_path, monkeypatch):
+    # B17 / actions-06: `install --no-deps folly` rebuilding an installed unit — the build fails, the
+    # OLD build is still there: that's a failure, not "installed with a warning" + exit 0
+    drv = StubDrv({'install': Result('make', 2)}, version='1.0')
+    res = _run(tmp_path, monkeypatch, drv, [('install', 'source\\folly', _unit('folly', 'source'))])
+    o = res.outcomes[0]
+    assert not o.ok and not o.installed_with_warning and res.n_fatal == 1 and res.rc_code == 2

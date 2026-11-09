@@ -1586,6 +1586,20 @@ _SYNC_OUTCOME = {'ok': None, 'failed': 'failed', 'kept': 'kept', 'diverged': 'di
                  'unsigned': 'unsigned'}
 
 
+# sync outcomes (plugins.sync): the plugin is on disk at what was asked / at least present
+_SYNC_MOVED = frozenset({'ok', 'cloned', 'updated', 'local', 'ahead', 'none'})
+_SYNC_PRESENT = _SYNC_MOVED | {'kept', 'diverged'}
+
+
+def sync_succeeded(action, *, moved=False):
+    """Did a sync outcome succeed? `moved=True` asks whether the clone now sits at the requested ref
+    (`plugin update --ref`: a `kept` / `diverged` clone stayed where it was); otherwise whether the
+    plugin is present and usable (`add` / `bless`). `failed …`, `unsigned` and `locked` never are
+    (B17 / actions-08 — `'failed' in action` missed `unsigned`)."""
+    a = str(action or '').split(' ', 1)[0].lower()
+    return a in (_SYNC_MOVED if moved else _SYNC_PRESENT)
+
+
 def sync_note(name, action, plugins_dir, *, primary=False):
     '''One plain sentence for a sync outcome that needs explaining (kept / diverged / ahead), else None.
     For the `primary` plugin, a diverged or unpushed branch points at `configsys plugin push`.'''

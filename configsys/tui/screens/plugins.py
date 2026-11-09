@@ -334,8 +334,8 @@ class PluginsScreen(Screen):
                 pl.reload()
                 dirty = True
                 note = _sync_note(ctx, res) or results_note(
-                    ctx, 'synced', [(n, not str(a).startswith('failed'), str(a)[len('failed'):].strip(' ()'))
-                                    for n, a in (res or [])], what='plugin(s)', nothing='no plugins declared')
+                    ctx, 'synced', [(n, plugins.sync_succeeded(a), str(a)) for n, a in (res or [])],
+                    what='plugin(s)', nothing='no plugins declared')
             elif pact == 'bless' and row:
                 with suspended(stdscr):
                     _ok, msg, _r = actions.plugin_bless(ctx, row['source'])

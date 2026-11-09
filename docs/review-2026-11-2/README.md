@@ -217,7 +217,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   installs keep the 1-hour glue cache; theme edits land where the top config shadows them; `upgrade
   --system` failures vanish; `plugin init --dry-run` moves a tag-pinned primary; humerge keeps git's clean
   merge with a duplicate key; `x~` misread as a type change. (actions-06/08/09/10/12/13, app-cli-05/06/07/09,
-  primary-04/09) · effort M · [open]
+  primary-04/09) · effort M · [done — done — a failed reinstall/rebuild of an unchanged install is a failure (version probed before); plugins.sync_succeeded judges add/bless/update (update syncs the new ref FIRST, re-pins only on success; unsigned/locked fail); a plugin only a third-party plugin declares is refused (its manifest never edited); layout settings drop the glue-locations cache; theme edits land in the top config when it sets that key (theme_target); dotfiles_units reuses the pipeline units; upgrade --system runs sysupdates.apply_bulk and records/report-offers failures; one native-refresh runner (brew env, retry) for refresh; plugin init --dry-run never moves a tag-pinned primary; the merge driver never keeps a clean line merge holding a key twice (a question), check/! flag duplicate keys; only x~HEAD / x~<branch> with differing kinds is a type change]
 
 ### Tier C — performance (measured)
 

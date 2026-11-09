@@ -563,3 +563,28 @@ def test_the_plugins_screen_history_key_undoes(primary, monkeypatch):
     note = plugscreen._history(None, None, ctx, menu.PluginScreen(ctx))
     assert shown[0][1][0] == ('Undo "picks add fzf"', 'z')
     assert 'undid "picks add fzf"' in note and 'fzf' not in (clone / 'p.hu').read_text()
+
+
+@needs_git
+def test_an_editor_backup_beside_its_file_is_an_ordinary_conflict(primary):
+    # B17 / primary-09: a real `notes.txt~` (an editor backup a capture swept in) conflicting next to
+    # `notes.txt` was read as git's type-change rename — one nonsense question, `notes.txt~` deleted
+    base, clone, bare, other = primary
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / 'notes.txt~').write_text('backup v0\n')
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'other: backup'); _git(other, 'push', '-q', 'origin', 'main')
+    _git(clone, 'pull', '-q', '--rebase', 'origin', 'main')
+    _other_pushes(other, 'notes.txt', 'theirs notes\n')
+    (other / 'notes.txt~').write_text('backup theirs\n')
+    _git(other, 'commit', '-qam', 'other: backup again'); _git(other, 'push', '-q', 'origin', 'main')
+    (clone / 'notes.txt').write_text('mine notes\n')
+    (clone / 'notes.txt~').write_text('backup mine\n')
+    _git(clone, 'commit', '-qam', 'mine: both')
+    ui = Scripted('mine')
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok, lines
+    asked = [a for a in ui.asked if a[0] == 'resolve']
+    assert sorted(a[1] for a in asked) == ['notes.txt', 'notes.txt~'], ui.asked
+    tree = _git(bare, 'ls-tree', '--name-only', 'main').split()
+    assert 'notes.txt~' in tree and 'notes.txt' in tree
+    _clean(clone)

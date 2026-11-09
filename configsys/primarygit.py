@@ -1175,7 +1175,7 @@ def _replay(ctx, ui, name, repo, upstream):
     conflicted = repo.unmerged() if not merged.ok else []
     if not merged.ok and not conflicted:
         return False, []
-    renamed = _type_renames(repo, conflicted)          # `x~HEAD` → x: a file whose type differs
+    renamed = _type_renames(repo, conflicted, upstream)   # `x~HEAD` → x: a file whose type differs
     conflicted = [p for p in conflicted if p not in renamed]
     conflicted += sorted(x for x in set(renamed.values()) if x not in conflicted)   # x became a folder
     for i, path in enumerate(conflicted):
@@ -1210,17 +1210,31 @@ def _replay(ctx, ui, name, repo, upstream):
     return True, lines
 
 
-def _type_renames(repo, conflicted):
+def _type_renames(repo, conflicted, upstream=None):
     '''{`x~<side>`: x} for the files git renamed because the two sides gave `x` different types — a
     file on one, a symlink or submodule on the other ("CONFLICT (distinct types)", `x` conflicted
     too), or a folder ("file/directory": `x` is the other side's folder, merged cleanly). git keeps one
-    side under `x` and parks the other under `x~HEAD` / `x~<branch>`.'''
+    side under `x` and parks the other under `x~HEAD` / `x~<branch>` (a `/` in the branch spelled
+    `_`). Only THAT suffix counts, and only when the two sides' kinds really differ — a real `config~`
+    editor backup conflicting beside `config` is an ordinary file conflict (B17 / primary-09).'''
     names = set(conflicted)
+    sides = {'HEAD'}
+    if upstream:
+        sides |= {upstream, upstream.replace('/', '_')}
     out = {}
     for p in conflicted:
-        x = p.rsplit('~', 1)[0] if '~' in p else None
-        if x and (x in names or (repo.root / x).is_dir() and not (repo.root / x).is_symlink()):
-            out[p] = x
+        x, _sep, suffix = p.rpartition('~')
+        if not x or suffix not in sides:
+            continue
+        folder = (repo.root / x).is_dir() and not (repo.root / x).is_symlink()
+        if not (x in names or folder):
+            continue
+        if not folder:
+            ents = repo.unmerged_entries([x, p])
+            kinds = {_kind(e) for side in ents.values() for k, e in side.items() if k in (2, 3) and e}
+            if len(kinds) < 2:                         # same kind on both sides: not a type change
+                continue
+        out[p] = x
     return out
 
 

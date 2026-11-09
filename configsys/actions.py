@@ -30,8 +30,11 @@ def invalidate_location_cache(ctx):
     is called from inside the shared writers, so neither the CLI nor the TUI can forget it.'''
     if getattr(getattr(ctx, 'runner', None), 'pretend', False):
         return                                           # a dry run changed nothing to recompute
+    f = getattr(getattr(ctx, 'paths', None), 'glue_locations_file', None)
+    if f is None:
+        return
     try:
-        ctx.paths.glue_locations_file.unlink()
+        f.unlink()
     except (FileNotFoundError, OSError):
         pass
 
@@ -108,11 +111,16 @@ def fail_detail(res):
     return base
 
 
-def installed_despite_failure(drv, rc, op, version):
+_UNPROBED = object()
+
+
+def installed_despite_failure(drv, rc, op, version, before=_UNPROBED):
     '''After a non-zero install/upgrade, is the target unit ACTUALLY present now? apt exits non-zero
     when a Recommends / sub-package / post-install step fails though the wanted package installed
     (e.g. sysdig-dkms's kernel module). Returns the installed version, or None. For an upgrade/
-    set-version, "present" isn't enough — it must have reached the target version.'''
+    set-version, "present" isn't enough — it must have reached the target version. For an install,
+    `before` (the version probed before the step) separates a failed REINSTALL / rebuild — the OLD
+    install still there, unchanged — from a fresh install that landed (B17 / actions-06).'''
     if op not in ('install', 'upgrade', 'set-version'):
         return None
     try:
@@ -122,6 +130,8 @@ def installed_despite_failure(drv, rc, op, version):
     if not got:
         return None
     if op == 'install':
+        if before is not _UNPROBED and before is not None and str(before) == str(got):
+            return None                              # it was already there and nothing changed
         return got
     try:
         target = version or drv.get_latest(rc)
@@ -389,6 +399,12 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 on_line(f'  (shell-writes guard skipped for {key}: {e})')
                 rc_snap = None
             res = None
+            before = _UNPROBED
+            if cur_op == 'install' and not pretend:  # a reinstall/rebuild that fails leaves the OLD
+                try:                                 # install present — it must not read as success
+                    before = drv.get_version(rc)
+                except Exception:                    # noqa: BLE001
+                    before = _UNPROBED
             try:
                 try:
                     if cur_op == 'install':
@@ -458,7 +474,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 rc_code = rc_code or res.returncode or 1
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res), advisory=True))
             elif not res.ok:
-                got = installed_despite_failure(drv, rc, cur_op, version)
+                got = installed_despite_failure(drv, rc, cur_op, version, before)
                 rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
                 if got:
                     rec['installed'] = 'true'
@@ -578,8 +594,17 @@ _ROUTING_SETTINGS = frozenset({'driver-preference', 'disabled-drivers', 'pins', 
                                'facets'})
 
 
+# settings that move WHERE something installs (or which method / machine column applies): after
+# one, the shells' glue-locations cache (trusted for an hour by the preludes) is stale (B17 /
+# actions-10 — `config set dirs.app`, `scope`, `machine use`, … used to keep the old paths)
+_LAYOUT_SETTINGS = _ROUTING_SETTINGS | {'scope', 'machine', 'picks'}
+
+
 def _invalidate_for(ctx, key):
-    if str(key).split('.', 1)[0] in _ROUTING_SETTINGS:
+    top = str(key).split('.', 1)[0]
+    if top in _LAYOUT_SETTINGS:
+        invalidate_location_cache(ctx)
+    if top in _ROUTING_SETTINGS:
         ctx.invalidate()
     else:
         _invalidate_config(ctx)
@@ -1201,12 +1226,28 @@ def move_config_setting(ctx, key):
 _THEME_BOOL_ATTRS = ('bold', 'underline', 'reverse')
 
 
+def theme_target(ctx, dotted_key=None, *, create=False):
+    '''(file, label) for a theme edit of `dotted_key`: your top config when it ALREADY sets that key
+    (it shadows the primary — an edit below it would change nothing you see; B17 / actions-12), else
+    the portable edit_target (the primary when blessed, else the top config).'''
+    local = str(ctx.paths.user_config_file)
+    if dotted_key and Path(local).exists():
+        node = plugins.read_theme(local)
+        for part in dotted_key.split('.'):
+            if not isinstance(node, dict) or part not in node:
+                break
+            node = node[part]
+        else:
+            return local, 'top config'
+    return edit_target(ctx, create=create)
+
+
 def set_theme_value(ctx, dotted_key, value, *, target=None):
     '''Set one theme value by dotted path (`colors.accent`, `elements.profile.fg`, `gradient.from`);
     `value=None` removes it. bold/underline/reverse coerce to a bool. Returns (changed, label).'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
-    tfile, label = (target, target) if target else edit_target(ctx, create=True)
+    tfile, label = (target, target) if target else theme_target(ctx, dotted_key, create=True)
     theme = plugins.read_theme(tfile)
     parts = dotted_key.split('.')
     node = theme
@@ -1331,10 +1372,11 @@ def copy_page_theme(ctx, src, dst):
     target. Returns (ok, label|reason). Nothing to copy if the source page has no overrides.'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
-    tfile, label = edit_target(ctx, create=True)
+    tfile, label = theme_target(ctx, f'pages.{dst}', create=True)
     theme = plugins.read_theme(tfile)
     pages = theme.setdefault('pages', {})
-    srcov = pages.get(src)
+    merged = (ctx.config.theme().get('pages') or {}) if getattr(ctx, 'config', None) else {}
+    srcov = merged.get(src) or pages.get(src)      # the page as you SEE it, whichever layer set it
     if not isinstance(srcov, dict) or not srcov:
         return False, f'{src} has no overrides to copy'
     pages[dst] = {k: (dict(v) if isinstance(v, dict) else v) for k, v in srcov.items()}
@@ -1438,21 +1480,34 @@ def save_theme_to_primary(ctx):
 # (docs/done/tui-screens-plan.md, F3 slice 4). Each returns structured results (ok/message/sync-actions);
 # the caller prints (CLI) or shows a note (TUI).
 
+class DeclaredElsewhere(Exception):
+    '''`ident` is declared by a plugin configsys doesn't own — editing that clone's manifest would
+    dirty it (trust -> changed, a sha256 pin -> quarantined) and it can't be pushed.'''
+
+
 def _locate_decl(ctx, ident):
-    '''(config_file, decls, target) for the declared plugin `ident` — the top config, or a synced
-    plugin's transitive `plugins:` (e.g. your primary). (None, None, None) if not found.'''
+    '''(config_file, decls, target) for the declared plugin `ident` — the top config, or the PRIMARY
+    plugin's manifest `plugins:` (yours, and pushable). A plugin only some other plugin declares
+    raises DeclaredElsewhere naming that plugin (B17 / actions-09: its checkout is not yours to
+    edit). (None, None, None) if not found.'''
     pdir = ctx.paths.plugins_dir
     top = plugins.declared(ctx.paths.user_config_file)
     t = plugins.find_decl(top, pdir, ident)
     if t is not None:
         return ctx.paths.user_config_file, top, t
+    prim = plugins.primary_name(top)
     if Path(pdir).exists():
         for sub in sorted(p for p in Path(pdir).iterdir() if p.is_dir()):
             decls = [d for d in (plugins._decl(e) for e in
                                  (plugins.read_manifest(sub).get('plugins') or [])) if d]
             t = plugins.find_decl(decls, pdir, ident)
-            if t is not None:
+            if t is None:
+                continue
+            if prim is not None and sub.name == prim:
                 return sub / 'plugin.hu', decls, t
+            raise DeclaredElsewhere(
+                f'{ident} is declared by the plugin {sub.name}, not by you — remove or lock '
+                f'{sub.name}, or list {ident} in your own config to override it')
     return None, None, None
 
 
@@ -1523,7 +1578,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
         moved = True
 
     results = plugin_sync(ctx, [{'source': source, 'ref': ref}])
-    if not results or 'failed' in results[0][1].lower():
+    if not results or not plugins.sync_succeeded(results[0][1]):
         if moved:                                        # restore the old synced dir; decls untouched
             if pdir.exists():
                 shutil.rmtree(pdir)
@@ -1602,7 +1657,10 @@ def plugin_remove(ctx, ident, *, keep_dir=False, force=False):
     edits, unpushed commits, stashes, no remote, authored in place — `primarygit.local_work`) is
     refused, naming what would be lost, unless `force` (review-2026-11-2 A3). Returns (ok, message).'''
     import shutil
-    cfg_file, cur, target = _locate_decl(ctx, ident)
+    try:
+        cfg_file, cur, target = _locate_decl(ctx, ident)
+    except DeclaredElsewhere as e:
+        return False, str(e)
     if target is None:
         return False, f'no declared plugin matches {ident!r}'
     pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
@@ -1635,7 +1693,10 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
     `latest` resolves the ref from the REMOTE — the newest stable version tag, else main/master
     (see plugins.latest_ref) — and is mutually exclusive with an explicit `ref`. Returns
     (ok, message, results).'''
-    cfg_file, cur, target = _locate_decl(ctx, ident)
+    try:
+        cfg_file, cur, target = _locate_decl(ctx, ident)
+    except DeclaredElsewhere as e:
+        return False, str(e), []
     if target is None:
         return False, f'no declared plugin matches {ident!r}', []
     locked = _locked_note(ctx, target, 'update')
@@ -1660,10 +1721,18 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
         results = plugin_sync(ctx, [{**target, 'ref': ref or target.get('ref')}])
         return True, (f'[pretend] would re-pin {target["source"]} @{ref}{latest_note}' if ref
                       else f'[pretend] would re-sync {target["source"]}'), results
+    # sync FIRST at the new ref; the declaration changes only once the clone is there (B17 /
+    # actions-08 — a bad --ref used to be written, and every later sync failed)
+    results = plugin_sync(ctx, [{**target, 'ref': ref or target.get('ref')}])
+    outcome = results[0][1] if results else 'failed'
+    if not plugins.sync_succeeded(outcome, moved=bool(ref)):
+        why = plugins.sync_note(plugins.dir_name(target['source']), outcome, ctx.paths.plugins_dir,
+                                primary=bool(target.get('primary')))
+        return False, (why or f'could not sync {target["source"]}'
+                       + (f' @{ref}' if ref else '') + f' ({outcome})') + ' — nothing changed', results
     if ref:
         target['ref'] = ref
         plugins.set_declared(cfg_file, cur)
-    results = plugin_sync(ctx, [target])
     warn = ''
     if pin:
         h = plugins.plugin_identity(ctx.paths.plugins_dir / plugins.dir_name(target['source']))
@@ -1717,8 +1786,10 @@ def plugin_bless(ctx, ident):
     if locked:
         return False, locked, []
     results = plugin_sync(ctx, [{'source': source, 'ref': ref, 'primary': True}])   # on its branch
-    if not results or 'failed' in results[0][1].lower():
-        return False, f"could not find/sync '{ident}' — nothing changed", results
+    if not results or not plugins.sync_succeeded(results[0][1]):
+        why = plugins.sync_note(plugins.dir_name(source), results[0][1], ctx.paths.plugins_dir,
+                                primary=True) if results else None
+        return False, (why or f"could not find/sync '{ident}'") + ' — nothing changed', results
     if existing is None:
         existing = {'source': source, 'ref': ref}
         decls.append(existing)
@@ -1913,7 +1984,11 @@ def dotfiles_units(ctx):
     '''(driver, [ResolvedComponent]) — the via:dotfiles units in the active profiles. Resolution
     only (no install-state query), cheap + side-effect-free. Shared by the CLI + the TUI screen.'''
     from .drivers import get_driver
-    units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    held = getattr(ctx, 'pipeline_units', None)
+    if held and held[0] == id(ctx.routes) and held[1] == id(ctx.config):
+        units = held[2]                    # the pipeline's resolution (its detected + floor pins)
+    else:                                  # no pipeline ran (`dotfiles status`): resolve now
+        units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
     df = get_driver('dotfiles', ctx.runner, ctx.paths)
     # both the config (dotfiles) and glue (glue) units — the screen dispatches per-unit to the
     # right driver. (Phase 2 splits these into separate glue/dotfiles pages.)

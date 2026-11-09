@@ -190,7 +190,7 @@ class Context:
         return [dict(d) for d in out]
 
     def _diagnostics(self, states=None):
-        from . import plugins
+        from . import layers, plugins
         out, seen = [], set()
 
         def add(level, tag, text):
@@ -241,6 +241,8 @@ class Context:
         for bundle, parts in sorted((getattr(self.routes, 'skipped_parts', None) or {}).items()):
             for part, why in parts:                      # B15: a bundle installs the parts that route here
                 add('warn', 'part-skipped', f'{bundle}: part {part} skipped here — {why}')
+        for w in layers.duplicate_key_warnings(getattr(self.config, '_layers', [])):
+            add('warn', 'duplicate-key', w)
         for w in self.config.ignored_section_warnings():
             add('warn', 'ignored', w)
         for w in self.config.unknown_section_warnings():
@@ -570,6 +572,9 @@ class Context:
         r.event(report.VERBOSE, f'  resolved {len(requested)} requested -> {len(units)} unit(s)')
         self._report_routing(routes, requested)         # -v overrides, -vv winning binding + why
         self.prepare_units(units)
+        # the resolution this session actually installs from — consumers that need the units
+        # (dotfiles_units) reuse it instead of a pin-less re-resolve (B17 / actions-13)
+        self.pipeline_units = (id(routes), id(cfg), units)
         ledger = Ledger.load(self.paths)
         inspector = InstallState(self.runner, ledger, self.paths,
                                  pending_vias=self.plugin_pending_vias)
@@ -1224,17 +1229,25 @@ def cmd_upgrade_system(ctx, args):
         if ans not in ('y', 'yes'):
             print('Aborted — nothing upgraded.')
             return 1
-    rc_code = 0
-    for mgr in sorted(groups):
-        drv = get_driver(mgr, ctx.runner, ctx.paths)
-        print(f'\n── upgrading via {mgr} ──')
-        res = drv.upgrade_all() if drv is not None else None
+    # the SAME apply step the TUI runs (sysupdates.apply_bulk: cache invalidation + rescan), and the
+    # same record: a failure reaches the ! page and `configsys report` (B17 / app-cli-05)
+    from . import actions as _actions
+    rc_code, failures, keys = 0, [], []
+    for mgr, res in sysupdates.apply_bulk(ctx, sorted(groups), refresh=False,
+                                          on_start=lambda m: print(f'\n── upgrading via {m} ──')):
+        key = f'system-updates\\{mgr}'
+        keys.append(key)
         if res is None:
             print(f'  ({mgr} has no bulk-upgrade command — skipped)')
             continue
         if not res.ok:
-            print(f'  -> {mgr} upgrade FAILED (exit {res.returncode})')
+            print(f'  -> {mgr} upgrade FAILED (exit {res.returncode}): {_actions.fail_detail(res)}')
             rc_code = rc_code or res.returncode or 1
+            failures.append(reportgen.failure_from_result(key, mgr, 'upgrade', res))
+    if not ctx.runner.pretend:
+        reportgen.record_run(ctx.paths, failures, keys)
+    if failures:
+        _offer_report(ctx, failures)
     if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():
         print_reboot_advisory(ctx)
     return rc_code
@@ -1458,11 +1471,17 @@ def refresh_native_index(ctx):
     cmd = _NATIVE_REFRESH.get(pm)
     if not cmd:
         return False, True
+    return True, _run_native_refresh(ctx, pm, cmd).ok
+
+
+def _run_native_refresh(ctx, pm, cmd):
+    '''Run the native index refresh `cmd` once, the ONE way (B17 / app-cli-06): sudo except for brew,
+    Homebrew's own env (its prefix off PATH — drivers.brew.brew_env), a transient stumble retried,
+    output captured for the failure diagnosis. -> the Result.'''
     from .failures import retry_transient
     from .drivers.brew import brew_env
     env = brew_env() if pm == 'brew' else None
-    res = retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True, env=env))
-    return True, res.ok
+    return retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True, env=env))
 
 
 def _uses_native_index(rc, pm):
@@ -1598,7 +1617,6 @@ def cmd_refresh(ctx, args):
     # refresh the native package index too — the SOURCE for `via: native` components, so their
     # get_latest / installs reflect the current candidates (apt in particular NEVER auto-updates
     # for a plain install). sudo runs as a subprocess (prompts in this terminal), not the whole app.
-    from . import refreshstate
     pm = ctx.routes.cascade.native(ctx.os_info.block)
     native = _NATIVE_REFRESH.get(pm)
     ok = True
@@ -1608,8 +1626,7 @@ def cmd_refresh(ctx, args):
         # a raw NO_PUBKEY/not-signed error. Echo the output so the user still sees what ran. Retry a
         # TRANSIENT stumble (a network blip, or a concurrent apt run's "could not read sources") a few
         # times first — so a momentary hiccup self-heals instead of surfacing the whole failure flow.
-        from .failures import retry_transient
-        res = retry_transient(lambda: ctx.runner.run(native, sudo=(pm != 'brew'), capture=True))
+        res = _run_native_refresh(ctx, pm, native)
         ok = res.ok
         if res.output:
             print(res.output)
@@ -1630,7 +1647,7 @@ def cmd_refresh(ctx, args):
         wanted = {units[k].comp for k in units}
         if _reconcile_managed_sources(ctx, pm, wanted) and not ok:
             print(f'\nRe-running the {pm} index refresh after cleanup...')
-            res = ctx.runner.run(native, sudo=(pm != 'brew'), capture=True)
+            res = _run_native_refresh(ctx, pm, native)
             ok = res.ok
             if res.output and not ok:
                 print(res.output)
@@ -2500,7 +2517,8 @@ def cmd_check(ctx, args):
                                  pending_vias=ctx.plugin_pending_vias)
     include_warnings = (layers.ignored_section_warnings(layer_list)
                         + layers.unknown_section_warnings(layer_list)
-                        + layers.setting_value_warnings(layer_list))
+                        + layers.setting_value_warnings(layer_list)
+                        + layers.duplicate_key_warnings(layer_list))
 
     # the theme model is `colors:` (a shared map) + `pages.<page>.<role>`; a leftover
     # palette/elements block or a top-level gradient is ignored, so flag it rather than let a stale
@@ -2984,7 +3002,6 @@ def _plugin_init_merge(ctx, args, prim):
     if not plug.exists():
         print(f'configsys: primary plugin "{prim}" is not synced — run `configsys plugin sync` first')
         return 1
-    plugins.ensure_branch(ctx.runner, plug)      # author on a branch, not a detached HEAD
     store = ctx.paths.user_dotfiles_dir
     entries = sorted(store.iterdir()) if store.exists() else []
     dfdir = plug / 'dotfiles'
@@ -3006,6 +3023,9 @@ def _plugin_init_merge(ctx, args, prim):
     if not move and not gmoved_est:
         print('\nnothing to merge.' + ('  (see the config note above.)' if sections else ''))
         return 0
+    # author on a branch, not a detached HEAD — only now, right before the first write: a dry run
+    # (or nothing to merge) must not move a tag-pinned primary (B17 / app-cli-07)
+    plugins.ensure_branch(ctx.runner, plug)
     if move:
         primarygit.will_write(dfdir)
         dfdir.mkdir(parents=True, exist_ok=True)
@@ -4898,7 +4918,8 @@ def cmd_theme(ctx, args):
         return 0
 
     if ctx.runner.pretend:
-        label = 'top config' if getattr(args, 'local', False) else actions.edit_target(ctx)[1]
+        label = ('top config' if getattr(args, 'local', False)
+                 else actions.theme_target(ctx, getattr(args, 'key', None))[1])
         if sub == 'set':
             _pretend_edit(ctx, f'set {args.key} = {args.value}  (in {label})')
         elif sub == 'unset':

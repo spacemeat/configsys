@@ -503,13 +503,22 @@ def driver(notes, base, mine, theirs, name='', marker_size=None):
     if res is None or res.conflicts:
         with open(mine, 'wb') as f:
             f.write(lines)
-        return 0 if clean else 1
+        # humerge saw a real disagreement even where git's lines merged "cleanly" (two machines set
+        # the same key differently in different places): leave it a conflict, so the per-key question
+        # is asked instead of one side winning silently (B17 / primary-04)
+        return 0 if (clean and res is None) else 1
     text = res.text
     if clean:                                          # git's own clean merge is the authority …
         try:
-            gits = _load(lines.decode('utf-8'))
+            git_text = lines.decode('utf-8')
+            gits = _load(git_text)
         except (Unmergeable, UnicodeDecodeError):
-            gits = None
+            gits, git_text = None, ''
+        from .layers import duplicate_keys_in_text
+        if gits is not None and duplicate_keys_in_text(git_text):
+            gits = None                                # … never when it holds a key twice: both
+            #                                            machines added `splash:` in different places,
+            #                                            and humon would read one, edit the other
         if gits is not None and (gits == res.merged or _as_sets(gits) != _as_sets(res.merged)):
             with open(mine, 'wb') as f:                # … unless it differs only by a name list's
                 f.write(lines)                         #   duplicates / order (both added one pick)

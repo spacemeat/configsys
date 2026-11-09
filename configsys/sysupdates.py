@@ -193,7 +193,7 @@ def is_synthetic(state):
     return bool(getattr(getattr(state, 'component', None), 'fields', {}).get('system_update'))
 
 
-def apply_bulk(ctx, manager_names, *, refresh=True):
+def apply_bulk(ctx, manager_names, *, refresh=True, on_start=None):
     '''Run each named manager's own bulk upgrade (Driver.upgrade_all) — the System Updates apply step
     the TUI execute path calls after the shared confirm. Refreshes the native index once up front so
     candidates are current (`refresh=False` when the caller already refreshed for the whole batch),
@@ -204,6 +204,8 @@ def apply_bulk(ctx, manager_names, *, refresh=True):
         refresh_native_index(ctx)                         # non-fatal
     results = []
     for mgr in manager_names:
+        if on_start is not None:
+            on_start(mgr)                                 # (the CLI prints a header per manager)
         drv = get_driver(mgr, ctx.runner, ctx.paths)
         results.append((mgr, drv.upgrade_all() if drv is not None else None))
     invalidate(ctx)

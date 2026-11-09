@@ -149,6 +149,58 @@ def materialize(node):
     return node.value
 
 
+def duplicate_keys(node, prefix=''):
+    '''Dotted paths of every key a map holds TWICE (humon keeps both; a read takes the last, a
+    surgical edit the first — so a later `config set` "succeeds" and changes nothing: B17 /
+    primary-04). [] for a clean tree.'''
+    out = []
+    if node is None:
+        return out
+    if node.kind == humon.NodeKind.DICT:
+        seen = set()
+        for i in range(node.num_children):
+            ch = node[i]
+            k = ch.key
+            path = f'{prefix}.{k}' if prefix else str(k)
+            if k in seen and path not in out:
+                out.append(path)
+            seen.add(k)
+            out += [d for d in duplicate_keys(ch, path) if d not in out]
+    elif node.kind == humon.NodeKind.LIST:
+        for i in range(node.num_children):
+            out += [d for d in duplicate_keys(node[i], f'{prefix}[{i}]') if d not in out]
+    return out
+
+
+def duplicate_keys_in_text(text):
+    '''duplicate_keys for humon text (None when it doesn't parse).'''
+    try:
+        trove = humon.from_string(text)
+    except Exception:                         # noqa: BLE001
+        return None
+    return duplicate_keys(trove.root)
+
+
+def duplicate_key_warnings(layers, roles=('user', 'primary', 'plugin', 'include')):
+    '''A warning per non-repo layer file holding a key twice (the repo's own files are held to that by
+    a test, and re-parsing routes.hu here every load would cost). For `check` and the `!` page.'''
+    out, seen = [], set()
+    for lyr in layers:
+        path = getattr(lyr, 'path', None)
+        if getattr(lyr, 'role', None) not in roles or not path or path in seen:
+            continue
+        seen.add(path)
+        try:
+            from pathlib import Path
+            dups = duplicate_keys_in_text(Path(path).read_text(encoding='utf-8-sig'))
+        except OSError:
+            continue
+        if dups:
+            out.append(f'{path}: `{", ".join(dups)}` set twice — configsys reads the LAST one but an '
+                       f'edit changes the first; delete one')
+    return out
+
+
 def materialize_string(text):
     '''Materialize a humon string to python (for tests / in-memory layers).'''
     trove = humon.from_string(text)           # keep alive during the walk
