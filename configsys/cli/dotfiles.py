@@ -124,19 +124,28 @@ def cmd_glue_override(ctx, args):
         print(f'configsys: {rc.comp} ships no glue snippet for '
               f'{args.shell or "your installed shells"} to override')
         return 1
-    print(f'forked {rc.comp} glue into the {"primary plugin (portable)" if portable else "local store"}:')
-    for path, shell in forked:
-        print(f'  [{shell}] {path}')
-    for path, _shell in forked:
+    made = [(path, shell) for path, shell, created in forked if created]
+    kept = [(path, shell) for path, shell, created in forked if not created]
+    if made:
+        print(f'forked {rc.comp} glue into the {"primary plugin (portable)" if portable else "local store"}:')
+        for path, shell in made:
+            print(f'  [{shell}] {path}')
+    if kept:                                               # a re-run: the fork is left exactly as is
+        print(f'your {rc.comp} override already exists (kept as is; recorded the current shipped '
+              'version, so `configsys check` flags drift only when it changes again):')
+        for path, shell in kept:
+            print(f'  [{shell}] {path}')
+    for path, _shell, _created in forked:
         _open_in_editor(path)
     res = drv.install(rc)                                  # redeploy — the override wins by search path
     if res is not None and not res.ok:
         print(f'configsys: redeploy failed: {res.output or res.returncode}')
         return 1
-    print(f'{rc.comp} now uses your override (edit the files above anytime; '
-          f'`configsys check` flags if the shipped version later changes).')
-    if not portable and not args.local:
-        print('  (saved locally — `configsys plugin bless <source>` sets a primary so it travels.)')
+    if made:
+        print(f'{rc.comp} now uses your override (edit the files above anytime; '
+              f'`configsys check` flags if the shipped version later changes).')
+        if not portable and not args.local:
+            print('  (saved locally — `configsys plugin bless <source>` sets a primary so it travels.)')
     return 0
 
 

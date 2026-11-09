@@ -187,8 +187,10 @@ Two ways, depending on how much you're changing:
   your copy then shadows the shipped one by content-root precedence. The forked-from sha256 is
   recorded in that root's `glue-overrides.json`, so if the shipped version later changes,
   `configsys check` warns (non-blocking). Re-running `glue override` never overwrites your fork: it
-  reopens it and records the new shipped hash, which acknowledges the change and silences the
-  warning. To start over from the new upstream, delete your fork first, then re-run it.
+  says the fork already exists, reopens it and records the new shipped hash on it, which acknowledges
+  the change and silences the warning. It finds the fork in either glue root, so one made locally
+  before you blessed a primary is reused, not copied a second time into the primary. To start over
+  from the new upstream, delete your fork first, then re-run it.
 
 Prefer *add* for small additions (it never drifts); reserve *override* for real replacement.
 

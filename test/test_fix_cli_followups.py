@@ -46,6 +46,16 @@ def test_shell_guard_note_names_the_glue_verbs(tmp_path, monkeypatch):
     assert '`configsys glue staged`' in note and '`configsys glue activate foo`' in note
 
 
+def test_glue_override_rerun_says_the_fork_already_exists(tmp_path, capsys, zsh_only):
+    assert _cs(tmp_path, 'glue', 'override', 'fzf', '--shell', 'zsh', '--local') == 0
+    first = capsys.readouterr().out
+    assert 'forked fzf-glue glue' in first and 'now uses your override' in first
+    assert _cs(tmp_path, 'glue', 'override', 'fzf', '--shell', 'zsh', '--local') == 0
+    again = capsys.readouterr().out
+    assert 'forked' not in again and 'now uses your override' not in again
+    assert 'already exists' in again and 'recorded' in again
+
+
 def test_glue_summary_counts_every_bucket_incl_changed():
     from configsys.cli.dotfiles import _glue_summary
     assert _glue_summary({'active': 2, 'changed': 1, 'available': 3, 'inactive': 1}) == \

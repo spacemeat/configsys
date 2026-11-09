@@ -485,10 +485,14 @@ class Glue(Driver):
     def override(self, rc, shell=None, local=False):
         '''Fork this glue component's SHIPPED snippet(s) into the user's layer so they shadow the repo
         by content-root precedence. For each installed shell that ships a variant (optionally just
-        `shell`): copy <defining-root>/shell/<shell>/<glue>.<ext> to <dest>/… (NEVER clobber an
-        existing override), record the forked-from hash for the drift advisory, and collect the dest
-        path. Deploy is the caller's `install(rc)` (which resolves the override via the search path).
-        Returns [(dest_path, shell)]; empty if no store or no shipped variant.'''
+        `shell`): copy <defining-root>/shell/<shell>/<glue>.<ext> to <dest>/…, record the forked-from
+        hash for the drift advisory, and collect the path. An override that already exists in EITHER
+        user glue root (local store or primary — e.g. forked locally before a primary was blessed) is
+        never clobbered and never doubled: the shipped hash is recorded on it (every root holding
+        one), so a re-run acknowledges the shipped version it now forks from. Deploy is the caller's
+        `install(rc)` (which resolves the override via the search path). Returns [(path, shell,
+        created)] — path = the override in effect (the highest-precedence one); empty if no store or
+        no shipped variant.'''
         dest = self._dest_glue_root(local=local)
         if dest is None or getattr(self.runner, 'pretend', False):
             return []
@@ -501,13 +505,19 @@ class Glue(Driver):
             shipped = self._shipped_glue_path(rc, sh, glue)
             if shipped is None or not shipped.is_file():
                 continue
+            digest = hashlib.sha256(shipped.read_bytes()).hexdigest()
+            held = [root for root in self._user_glue_roots() if (root / src).exists()]
+            if held:                                       # never overwrite (or double) an override
+                for root in held:
+                    self._record_override(root, rc.comp, sh, digest)
+                out.append((held[0] / src, sh, False))
+                continue
             target = Path(dest) / src
-            if not target.exists():                        # never overwrite an existing override
-                primarygit.will_write(target)
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(shipped, target)
-            self._record_override(dest, rc.comp, sh, hashlib.sha256(shipped.read_bytes()).hexdigest())
-            out.append((target, sh))
+            primarygit.will_write(target)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(shipped, target)
+            self._record_override(dest, rc.comp, sh, digest)
+            out.append((target, sh, True))
         return out
 
     def override_drift(self, rc):
