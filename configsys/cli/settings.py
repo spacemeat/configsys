@@ -81,11 +81,13 @@ def _show_file(ctx, what):
 def cmd_keys(ctx, args):
     '''Print the effective TUI keybindings — the `keys:` section merged across every layer (repo <
     plugins < primary < your config). For a humon-only user (no TUI editor) to see what's active.'''
-    from ..tui.keyspec import Keymap, key_name, lint_keys
+    from ..paths import tilde
+    from ..tui.keyspec import Keymap, key_name, lint_keys, merge_layer_keys
     owners = {}
     km = Keymap(ctx.config.keys(owners_out=owners))   # rebind-wins, as the TUI resolves it
     print('TUI keybindings — merged repo < plugins < primary < your config '
-          '(edit the `keys:` section in ~/.config/configsys/configsys.hu or your primary plugin):')
+          f'(edit the `keys:` section in {tilde(ctx.paths.user_config_file, ctx.paths.home)} or your '
+          'primary plugin):')
     from ..tui.theme import ALL_PAGES
     order = ['screens', 'global'] + ALL_PAGES                 # screen order (the nav bar's)
     by_scope = {}
@@ -97,14 +99,19 @@ def cmd_keys(ctx, args):
             continue
         print(f'\n  [{scope}]')
         for action in sorted(actions):
-            keys = ' / '.join(key_name(c) for c in actions[action])
+            keys = ' / '.join(dict.fromkeys(key_name(c) for c in actions[action]))  # ⏎ (enter) = ⏎ (kpenter)
             src = (owners.get(scope) or {}).get(action) or 'built-in'
             print(f'    {action:18} {keys:16} {src}')
-    steals = lint_keys(ctx.config.key_layers()) if hasattr(ctx.config, 'key_layers') else []
-    if steals:                                         # what a higher layer took from a lower one
-        print('\n  rebinds across layers:')
-        for line in steals:
-            print(f'    {line}')
+    layers = list(ctx.config.key_layers()) if hasattr(ctx.config, 'key_layers') else []
+    steals = []
+    merge_layer_keys(layers, warnings=steals)          # what a higher layer took from a lower one
+    other = [w for w in lint_keys(layers) if w not in steals]   # typos, bad key names, a lockout
+    for title, lines in (('rebinds across layers:', steals),
+                         ('other key warnings (`configsys check` reports them too):', other)):
+        if lines:
+            print(f'\n  {title}')
+            for line in lines:
+                print(f'    {line}')
     return 0
 
 

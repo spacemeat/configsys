@@ -89,6 +89,28 @@ def test_keys_shows_rebind_wins(tmp_path, capsys):
     assert 'components' not in lines          # its "1" was taken by the user's rebind
 
 
+def test_keys_separates_rebinds_from_other_warnings(tmp_path, capsys):
+    cfg = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text('{\n    keys: { screens: { glue: "1" }  global: { nosuchaction: x } }\n}\n')
+    assert _cs(tmp_path, 'keys') == 0
+    out = capsys.readouterr().out
+    rebinds = out.split('rebinds across layers:', 1)[1].split('\n\n', 1)[0]
+    assert "'1'" in rebinds and 'nosuchaction' not in rebinds
+    other = out.split('other key warnings', 1)[1]
+    assert 'nosuchaction' in other
+
+
+def test_keys_dedupes_glyphs_and_names_the_real_config(tmp_path, capsys):
+    alt = tmp_path / 'elsewhere.hu'
+    alt.write_text('{ }\n')
+    assert _cs(tmp_path, '--config', str(alt), 'keys') == 0
+    out = capsys.readouterr().out
+    assert '⏎ / ⏎' not in out                  # enter + keypad enter read the same: shown once
+    assert str(alt) in out.splitlines()[0] or 'elsewhere.hu' in out.splitlines()[0]
+    assert '~/.config/configsys/configsys.hu' not in out
+
+
 # -- 4: actions refuse to write under --pretend (what the TUI calls) ----------------------------------
 
 def _pretend_ctx(home):
