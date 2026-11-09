@@ -206,6 +206,16 @@ class Result:
         return cls('', returncode, stderr=reason, category=category, remediation=remediation)
 
 
+_XDG_HOMES = ('XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME', 'XDG_STATE_HOME')
+
+
+def sandboxed_env(env, home):
+    '''`env` (else ours) with HOME=`home` and the XDG base dirs dropped (they default under HOME).'''
+    out = {k: v for k, v in (os.environ if env is None else env).items() if k not in _XDG_HOMES}
+    out['HOME'] = str(home)
+    return out
+
+
 def child_env(env=None):
     '''The environment a command runs in: `env` (else ours) minus an ACTIVATED Python virtualenv. A
     venv is one project's environment — configsys launched from a shell with one active must not
@@ -421,9 +431,13 @@ class _SudoKeepalive:
 
 
 class Runner:
-    def __init__(self, pretend=False, echo=None):
+    def __init__(self, pretend=False, echo=None, sandbox_home=None):
         self.pretend = pretend
         self._echo = echo
+        # `--home DIR`: every child runs with HOME=DIR and no inherited XDG_*_HOME, so a module
+        # installer's `~`/$HOME (cargo, go, sdkman, pip --user, pipx, fonts) means the sandbox too —
+        # reads and writes agree (review-2026-11-2 A16 / drivers-lang-06)
+        self.sandbox_home = str(sandbox_home) if sandbox_home else None
         self.tui_active = False  # set by the app while the curses TUI owns the screen
         self.calls = []  # every full command string, in order (for tests/logs)
         self.tee_limit = 64 * 1024  # bytes of streamed output retained for failure reports
@@ -504,6 +518,8 @@ class Runner:
         # root shell (`sudo bash -c '<cmd>'`). Prepending `sudo ` to a compound
         # command would only elevate its first word and eat a leading `set -e`.
         argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
+        if self.sandbox_home:
+            env = sandboxed_env(env, self.sandbox_home)
         env = child_env(env)
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):

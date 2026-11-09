@@ -109,6 +109,11 @@ class Context:
     def __init__(self, args):
         env = dict(os.environ)
         if args.home:
+            # a FULL sandbox (§7 default): nothing inherited points configsys back at the real home —
+            # an exported CONFIGSYS_STATE_DIR / CONFIGSYS_CONFIG / XDG_*_HOME would otherwise win
+            for k in ('CONFIGSYS_STATE_DIR', 'CONFIGSYS_CONFIG', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME',
+                      'XDG_CACHE_HOME', 'XDG_STATE_HOME'):
+                env.pop(k, None)
             env['CONFIGSYS_HOME'] = args.home
         if args.os:
             env['CONFIGSYS_OS'] = args.os
@@ -123,7 +128,8 @@ class Context:
         level = report.SILENT if getattr(args, 'silent', False) \
             else min(getattr(args, 'verbose', 0), report.DEBUG)
         self.reporter = report.Reporter(level)
-        self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m))
+        self.runner = Runner(pretend=args.pretend, echo=lambda m: print(m),
+                             sandbox_home=self.paths.home if args.home else None)
         self._config = None
         self._routes = None            # cached Resolver (rebuilding it = parse routes.hu + routecheck)
         self._os_refined = False       # detect:-marker refinement runs once, lazily

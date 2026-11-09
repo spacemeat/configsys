@@ -27,7 +27,14 @@ _SECRET_PATTERNS = [
     re.compile(r'github_pat_[A-Za-z0-9_]{20,}'),
     re.compile(r'xox[baprs]-[A-Za-z0-9-]{10,}'),         # Slack
     re.compile(r'AKIA[0-9A-Z]{16}'),                     # AWS access key id
+    re.compile(r'glpat-[A-Za-z0-9_-]{20,}'),             # GitLab personal / project access token
+    re.compile(r'gl(?:dt|rt|ptt|cbt|soat)-[A-Za-z0-9_-]{20,}'),   # other GitLab token shapes
+    re.compile(r'npm_[A-Za-z0-9]{30,}'),                 # npm automation / publish token
+    re.compile(r'\bsk-(?:proj-|ant-)?[A-Za-z0-9_-]{20,}'),   # OpenAI / Anthropic-style API keys
+    re.compile(r'\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'),   # a raw JWT
 ]
+# credentials embedded in a URL (`git clone https://oauth2:TOKEN@host/…`, pip --index-url)
+_URL_USERINFO = re.compile(r'(://)[^/\s:@]+:[^/\s@]+@')
 # label=value / label: value forms -> keep the label, mask the value
 _LABELED = re.compile(
     r'(?i)\b(token|api[_-]?key|secret|password|passwd|bearer|authorization)\b(\s*[=:]\s*)(\S+)')
@@ -129,6 +136,7 @@ def scrub(text, home=None, secrets=()):
         text = text.replace(val, '***')
     if home:
         text = text.replace(str(home), '~')
+    text = _URL_USERINFO.sub(r'\1***:***@', text)
     for pat in _SECRET_PATTERNS:
         text = pat.sub('***', text)
     text = _LABELED.sub(lambda m: f'{m.group(1)}{m.group(2)}***', text)

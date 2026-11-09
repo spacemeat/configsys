@@ -11,13 +11,15 @@ AUR packages land in the pacman db, so version state is `pacman -Q`; latest come
 the AUR RPC via a `version: { aur: <pkgname> }` route spec. Needs base-devel + git.
 '''
 
+import re
 import shlex
 
 from ..driver import Driver
 from ..runner import Result
 
 _AUR_GIT = 'https://aur.archlinux.org/{pkg}.git'
-_BUILD_ROOT = '/tmp/configsys-aur'
+# an AUR pkgname (the AUR's own rule): one path segment, so a build dir can't escape its root
+_PKGNAME = re.compile(r'[a-z0-9@._+][a-z0-9@._+-]*')
 
 
 class Aur(Driver):
@@ -56,14 +58,18 @@ class Aur(Driver):
 
     def install(self, rc):
         pkg = self._pkg(rc)
-        build = f'{_BUILD_ROOT}/{pkg}'
+        if not _PKGNAME.fullmatch(pkg):
+            return Result.fail(f'{rc.comp}: {pkg!r} is not an AUR package name')
         url = _AUR_GIT.format(pkg=pkg)
+        # a PRIVATE per-build dir (mktemp -d: mode 700, unguessable) — the old fixed, shared
+        # /tmp/configsys-aur could be pre-created or symlink-raced by another local user (A16) —
+        # removed again however the build ends
         script = '\n'.join([
             'set -e',
-            f'rm -rf {shlex.quote(build)}',
-            f'mkdir -p {shlex.quote(build)}',
-            f'git clone --depth 1 {shlex.quote(url)} {shlex.quote(build)}',
-            f'cd {shlex.quote(build)}',
+            'B="$(mktemp -d "${TMPDIR:-/tmp}/configsys-aur.XXXXXX")"',
+            'trap \'rm -rf "$B"\' EXIT',
+            f'git clone --depth 1 {shlex.quote(url)} "$B/{pkg}"',
+            f'cd "$B/{pkg}"',
             'makepkg -si --noconfirm',
         ])
         return self.runner.run(script, capture=False)   # unprivileged; makepkg sudo's

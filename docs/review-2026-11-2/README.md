@@ -154,7 +154,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A16 [MED] Misc hardening:** aur builds in a fixed shared `/tmp/configsys-aur` (another local user can
   pre-create it); `--home` isn't a sandbox for module installers (commands use the ambient `$HOME`); the
   report scrubber misses URL-embedded credentials and non-GitHub tokens. (drivers-os-06, drivers-lang-06,
-  subsystems-03) · effort S · [open]
+  subsystems-03) · effort S · [done — done — aur builds in a private mktemp -d (removed on exit) and refuses a non-pkgname; --home is a full sandbox (children run with HOME=<sandbox>, no XDG_*_HOME; inherited CONFIGSYS_STATE_DIR / CONFIGSYS_CONFIG / XDG dropped); the scrubber masks URL userinfo, GitLab/npm/sk- tokens and raw JWTs]
 
 - **A17 [HIGH] The test suite touches the developer's real machine:** a unit test runs real `sudo -v` and
   `sudo apt-get update`; tests read and write the real config (`--home` loses to ambient env), and a global
