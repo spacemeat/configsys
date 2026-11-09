@@ -97,7 +97,7 @@ def _history(stdscr, pal, ctx, pl):
 def _sync_note(ctx, results):
     '''The first sync outcome that needs explaining (kept / diverged / ahead), for the status line.'''
     from ... import plugins
-    from ...app import _primary_dir_name
+    from ...cli.plugin import _primary_dir_name
     prim = _primary_dir_name(ctx)
     for name, action in results or ():
         note = plugins.sync_note(name, action, ctx.paths.plugins_dir, primary=name == prim)
@@ -296,7 +296,7 @@ class PluginsScreen(Screen):
                 new = _input_box(stdscr, pal, f'{row["name"]} — new source (e.g. github:you/{row["name"]})', cur)
                 if new and new.strip() and new.strip() != cur:
                     import argparse
-                    from ...app import cmd_plugin_set_source
+                    from ...cli.plugin import cmd_plugin_set_source
                     with suspended(stdscr):
                         rc = cmd_plugin_set_source(ctx, argparse.Namespace(name=row['name'], source=new.strip()),
                                                    plugins.declared(ctx.paths.user_config_file))
@@ -306,7 +306,7 @@ class PluginsScreen(Screen):
                             else f'{row["name"]}: source unchanged')
             elif pact == 'init-primary':
                 import argparse
-                from ...app import cmd_plugin_init
+                from ...cli.plugin import cmd_plugin_init
                 decls = plugins.declared(ctx.paths.user_config_file)
                 name = None
                 if not plugins.primary_name(decls):

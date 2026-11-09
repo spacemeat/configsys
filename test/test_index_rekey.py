@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
-from configsys import app, failures
+from configsys import app
+from configsys.cli import refresh
 from configsys.runner import Result
 
 SIG_ERR = ("W: GPG error: https://pkg.jenkins.io/debian-stable binary/ Release: NO_PUBKEY "
@@ -74,7 +75,7 @@ def test_offer_rekey_prompts_refetches_and_heals(monkeypatch):
     r = _Runner()
     ctx = _jenkins_ctx(r)
     # inject the finder used inside _rekey_candidates via monkeypatching _find_source_files
-    monkeypatch.setattr(app, '_find_source_files',
+    monkeypatch.setattr(refresh, '_find_source_files',
                         lambda urls, dirs: {JLIST: 'https://pkg.jenkins.io/debian-stable'})
     healed = app._offer_rekey(ctx, 'apt', SIG_ERR, {JLIST: 'jenkins'}, 'apt-get update',
                               ask=lambda prompt: True)
@@ -84,7 +85,7 @@ def test_offer_rekey_prompts_refetches_and_heals(monkeypatch):
 
 def test_offer_rekey_declined_does_nothing(monkeypatch):
     r = _Runner()
-    monkeypatch.setattr(app, '_find_source_files',
+    monkeypatch.setattr(refresh, '_find_source_files',
                         lambda urls, dirs: {JLIST: 'https://pkg.jenkins.io/debian-stable'})
     healed = app._offer_rekey(_jenkins_ctx(r), 'apt', SIG_ERR, {JLIST: 'jenkins'}, 'apt-get update',
                               ask=lambda prompt: False)

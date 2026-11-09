@@ -672,7 +672,7 @@ def execute_plan(ctx, plan, ledger, version=None, refresh=True):
     set-version, the advisory "needs your input" outcome, verify-after-fail (installed-with-a-warning),
     and EVERY failure persisted for `configsys report`, not just the last one. Returns the OpOutcomes
     the summary/footer render.'''
-    from ..app import maybe_refresh_before_plan           # lazy import: app imports this module
+    from ..cli.refresh import maybe_refresh_before_plan           # lazy: the cli imports the TUI
     from .. import actions
     if refresh:                                          # False: the caller refreshed for the batch
         maybe_refresh_before_plan(ctx, plan)
@@ -760,7 +760,7 @@ class _TuiPushUI(primarygit.PushUI):
         return q.choices[i].answer if i is not None else q.enter
 
     def edit(self, path):
-        from ..app import _edit_conflict
+        from ..cli.plugin import _edit_conflict
         from .screen import suspended
         with suspended(self.stdscr):
             _edit_conflict(path)
@@ -872,7 +872,7 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
 
         outcomes = []
         # ONE index refresh for the whole batch, before anything runs (see maybe_refresh_before_plan)
-        from ..app import maybe_refresh_before_plan, published_pending
+        from ..cli.refresh import maybe_refresh_before_plan, published_pending
         fresh = maybe_refresh_before_plan(ctx, plan, system=bool(su_managers))
         if su_managers:                                   # the whole-machine bulk upgrade(s) — first
             from .. import sysupdates
@@ -1555,7 +1555,7 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
     EXACTLY-what-sends scrubbed body, scrollable, so the user verifies no private info before `s` files
     it to configsys-issues (the overlay IS the consent — no hidden send). Returns a status note.'''
     from .. import reportgen
-    from ..app import _file_issue
+    from ..cli.issues import _file_issue
     lines = body.split('\n')
     top, result = 0, None
     while True:

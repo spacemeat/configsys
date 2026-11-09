@@ -180,7 +180,7 @@ class GlueScreen(Screen):
                                     nothing=f'no snippets in the {shell} group')
             elif gact == 'new-snippet':           # `glue add` for this row's shell (CLI parity, G4)
                 import argparse
-                from ...app import cmd_glue_add
+                from ...cli.dotfiles import cmd_glue_add
                 name = menu._input_box(stdscr, pal, 'new snippet — name', '')
                 if name and name.strip():
                     with suspended(stdscr):
@@ -190,7 +190,7 @@ class GlueScreen(Screen):
                     note = f'added your snippet {name.strip()}' if rc_ == 0 else f'{name.strip()}: not added'
             elif gact == 'override' and row and not _is_user_glue(row):
                 import argparse
-                from ...app import cmd_glue_override
+                from ...cli.dotfiles import cmd_glue_override
                 with suspended(stdscr):
                     rc_ = cmd_glue_override(ctx, argparse.Namespace(comp=row[0].comp, shell=row[5], local=False))
                 gs.reload()

@@ -314,7 +314,7 @@ class ComponentsScreen(Screen):
         elif act == 'where':
             _wname = _row_component(ms.cur())
             if _wname:
-                from ...app import where_report
+                from ...cli.where import where_report
                 lines = where_report(ctx, _wname) or [f'{_wname}: nothing to show']
                 intent.open_where = (lines, _wname)
         elif act == 'filter':
@@ -448,8 +448,8 @@ class ComponentsScreen(Screen):
                 print('Refreshing the package view — re-querying version sources and running the\n'
                       'package-manager index update. This takes a moment; sudo may prompt below.\n',
                       flush=True)
-                from ... import app
-                app.cmd_refresh(ctx, None)
+                from ...cli import refresh as cli_refresh
+                cli_refresh.cmd_refresh(ctx, None)
                 try:
                     input('\n[Enter] to return')
                 except EOFError:

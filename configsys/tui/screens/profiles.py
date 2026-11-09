@@ -691,12 +691,12 @@ class ProfilesScreen(Screen):
                 _vc = ps.vcatalog()                # current profile's provenance
                 _wc = _vc[ps.rcur] if 0 <= ps.rcur < len(_vc) else None
                 if _wc:
-                    from ...app import where_report
+                    from ...cli.where import where_report
                     open_where = (where_report(ctx, _wc) or [f'{_wc}: nothing to show'], _wc)
             else:
                 _wp = ps.cur_profile()
                 if _wp:
-                    from ...app import where_profile_report
+                    from ...cli.where import where_profile_report
                     where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                     open_where = (where_lines, _wp)
         elif pfact == 'select' and ps.focus == 'right':

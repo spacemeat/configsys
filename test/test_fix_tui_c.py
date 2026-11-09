@@ -237,11 +237,11 @@ def test_clear_key_in_su_subtree_notes_all_or_nothing(ctx):
 
 
 def _patch_refresh(monkeypatch, ctx, calls):
-    from configsys import app
+    from configsys.cli import refresh as cli_refresh
     from configsys.tui.screens import components as comp_mod
     monkeypatch.setattr(comp_mod, 'suspended', lambda _s: nullcontext())
     monkeypatch.setattr(comp_mod.curses, 'flushinp', lambda: None)
-    monkeypatch.setattr(app, 'cmd_refresh', lambda c, a: calls.append('refresh'))
+    monkeypatch.setattr(cli_refresh, 'cmd_refresh', lambda c, a: calls.append('refresh'))
     monkeypatch.setattr('builtins.input', lambda *a: '')
     monkeypatch.setattr(sysupdates, 'start_scan', lambda c: calls.append('start_scan'))
 

@@ -1,0 +1,50 @@
+# Split app.py and menu.py (review-2026-11-2 D2)
+
+> **Status: IN PROGRESS** — started 2026-11-09.
+
+`configsys/app.py` (5,260 lines: the Context, every CLI command, the parser) and
+`configsys/tui/menu.py` (5,230 lines: the models, the modals, the paint primitives, the samples, the
+run loop) were each the place everything landed. §7 decided: full splits of both.
+
+## Shape
+
+**CLI** — `configsys/app.py` keeps what is the app itself: the `Context` (the load pipeline every
+command and the TUI share), `main()` and its dispatch. Everything else moves, verbatim, into
+`configsys/cli/`:
+
+| module | what |
+|---|---|
+| `cli/parser.py` | `build_parser`, the epilog, `--version` |
+| `cli/ops.py` | inspect / install / remove / upgrade / lock / unlock / set-version / fix-scope / uninstall, the plan confirm, failure reporting, System Updates |
+| `cli/refresh.py` | `refresh`, the native index refresh, index-failure diagnosis + rekey, `maybe_refresh_before_plan` |
+| `cli/where.py` | `where`, `search`, `location`, `versions` and their reports |
+| `cli/matrix.py` | `picks`, `machine`, `profile`, `disp`, `orphans`, `pin` |
+| `cli/check.py` | `check` and `check_report` |
+| `cli/plugin.py` | `plugin …` (incl. init, set-source, diff, push UI, log/undo) |
+| `cli/issues.py` | `report`, `request`, `request-os`, filing |
+| `cli/settings.py` | `config`, `theme`, `keys`, `show`, `manpages` |
+| `cli/dotfiles.py` | `dotfiles …`, `glue …` |
+
+**TUI** — `configsys/tui/menu.py` keeps the router (`run`) and its loop helpers; the rest moves into
+`configsys/tui/`:
+
+| module | what |
+|---|---|
+| `tui/paint.py` | the paint primitives (`_put`, `_fit`, `_panel`, scrollbars, `_fill_bg`, wrapping) |
+| `tui/modals.py` | every modal + overlay (`_modal_frame`, `ListNav`, popups, input box, help, …) |
+| `tui/models.py` | the screen models (`MenuState`, `ProfileScreen`, `PluginScreen`, `GlueScreen`, …) |
+| `tui/samples.py` | the hand-built sample states (Theme previews, render tests) |
+| `tui/flows.py` | execute / pin / push / issue flows the screens call |
+
+## Compatibility
+
+`configsys.app` and `configsys.tui.menu` stay importable facades: a module-level `__getattr__`
+resolves a moved name from its new home, so `from configsys.app import cmd_orphans` and
+`app.where_report` keep working for plugins, scripts and tests. Code inside configsys imports from
+the defining module. Tests that monkeypatch a moved function patch it where it is defined (a patch on
+the facade would not reach the callers).
+
+## Validation
+
+pyflakes clean on every new module (no undefined or unused names); the full suite; `configsys
+--help`, a sandboxed `inspect`, `check`; the TUI render tests (cell-identical frames).

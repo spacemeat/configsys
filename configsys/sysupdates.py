@@ -200,7 +200,7 @@ def apply_bulk(ctx, manager_names, *, refresh=True, on_start=None):
     then invalidates the cache + restarts the scan so the group refreshes.
     Returns [(manager, Result_or_None)].'''
     if refresh:
-        from .app import refresh_native_index             # lazy: app imports this module
+        from .cli.refresh import refresh_native_index             # lazy: app imports this module
         refresh_native_index(ctx)                         # non-fatal
     results = []
     for mgr in manager_names:

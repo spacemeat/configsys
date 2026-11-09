@@ -2,14 +2,16 @@
 set-source retargets the clone, a data-file-less primary still takes picks, set-version refuses on
 version-less methods, profile ops skip unroutable members, keys order, epilog + advisory text.'''
 
-import pytest
 import subprocess
 import types
 
+import pytest
+
 from configsys import actions, app
+from configsys.cli import ops as cli_ops
 from configsys.app import build_parser, main
 from configsys.componentObj import ResolvedComponent
-from configsys.runner import Result, Runner
+from configsys.runner import Runner
 
 
 def _cs(home, *argv):
@@ -256,12 +258,12 @@ def test_picks_union_with_names_and_confirmation_gate(tmp_path, capsys, monkeypa
     def fake_dispatch(ctx, names, op, **kw):
         seen.update(names=names, op=op, **kw)
         return 0
-    monkeypatch.setattr(app, '_picks_selection', lambda ctx, op: (['ripgrep', 'btop'], 0))
-    monkeypatch.setattr(app, '_dispatch_op', fake_dispatch)
+    monkeypatch.setattr(cli_ops, '_picks_selection', lambda ctx, op: (['ripgrep', 'btop'], 0))
+    monkeypatch.setattr(cli_ops, '_dispatch_op', fake_dispatch)
     assert _cs(tmp_path, 'upgrade', '--picks', 'fd', 'btop') == 0
     assert seen['op'] == 'upgrade' and seen['names'] == ['fd', 'btop', 'ripgrep']
     assert seen['confirm'] is True and seen['yes'] is False
-    monkeypatch.setattr(app, '_picks_selection', lambda ctx, op: ([], 0))
+    monkeypatch.setattr(cli_ops, '_picks_selection', lambda ctx, op: ([], 0))
     capsys.readouterr()
     assert _cs(tmp_path, 'install', '--picks') == 0
     assert 'nothing to do' in capsys.readouterr().out

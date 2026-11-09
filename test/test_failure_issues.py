@@ -6,6 +6,7 @@ import contextlib
 from types import SimpleNamespace
 
 import configsys.app as app
+from configsys.cli import refresh as cli_refresh
 from configsys import reportgen
 from configsys.actions import failure_excerpt
 from configsys.ledger import Ledger
@@ -131,13 +132,13 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(menu, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
     monkeypatch.setattr(installState, 'plan_with_swaps', lambda c, raw, units: (raw, units))
-    monkeypatch.setattr(app, 'maybe_refresh_before_plan',
+    monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan',
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})
     monkeypatch.setattr(sysupdates, 'apply_bulk', lambda c, mgrs, refresh=True: (
         seen.append(('bulk', refresh)) or [(m, SimpleNamespace(ok=True)) for m in mgrs]))
     monkeypatch.setattr(menu, 'execute_plan', lambda c, plan, led, refresh=True, version=None: (
         seen.append(('plan', refresh)) or []))
-    monkeypatch.setattr(app, 'published_pending', lambda c, fresh: sorted(fresh))
+    monkeypatch.setattr(cli_refresh, 'published_pending', lambda c, fresh: sorted(fresh))
     menu._confirm_and_execute(None, None, ms, ctx, Ledger())
     assert seen == [('refresh', True), ('bulk', False), ('plan', False)]
     out = capsys.readouterr().out

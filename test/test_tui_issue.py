@@ -48,7 +48,7 @@ def test_review_shows_full_body_and_cancels():
 # -- pressing s files it (send stubbed) and reports the outcome ---------------
 
 def test_review_send_reports_filed_url(monkeypatch):
-    monkeypatch.setattr('configsys.app._file_issue',
+    monkeypatch.setattr('configsys.cli.issues._file_issue',
                         lambda *a, **k: (0, ['configsys: filed — https://github.com/x/issues/7']))
     scr = _Scr([ord('s'), ord(' ')])                   # send, then any key to return
     note = menu._report_review(scr, RecordingPalette(), None, 'T', 'b', 'os-request', 'last.md')
@@ -57,7 +57,7 @@ def test_review_send_reports_filed_url(monkeypatch):
 
 def test_review_send_no_gh_points_to_saved_body(monkeypatch, tmp_path):
     import types
-    monkeypatch.setattr('configsys.app._file_issue',
+    monkeypatch.setattr('configsys.cli.issues._file_issue',
                         lambda *a, **k: (0, ['configsys: no `gh` …', '  https://github.com/x/issues/new?…']))
     scr = _Scr([ord('s'), ord(' ')])
     stub_ctx = types.SimpleNamespace(paths=types.SimpleNamespace(state_dir=tmp_path))

@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from configsys import app
+from configsys.cli import refresh
 from configsys.runner import Result
 
 JLIST = '/etc/apt/sources.list.d/jenkins.list'
@@ -76,13 +77,13 @@ def test_reconcile_under_pretend_asks_nothing(capsys):
     from configsys import app
     ctx = types.SimpleNamespace(runner=types.SimpleNamespace(pretend=True),
                                 paths=types.SimpleNamespace(home=__import__('pathlib').Path.home()))
-    orig = app._orphaned_managed_sources
-    app._orphaned_managed_sources = lambda c, w, files: [('/etc/apt/sources.list.d/x.list', 'x')]
+    orig = refresh._orphaned_managed_sources
+    refresh._orphaned_managed_sources = lambda c, w, files: [('/etc/apt/sources.list.d/x.list', 'x')]
     try:
         n = app._reconcile_managed_sources(ctx, 'apt', set(), ask=lambda p: (_ for _ in ()).throw(AssertionError(p)),
                                            lister=lambda: ['/etc/apt/sources.list.d/x.list'])
     finally:
-        app._orphaned_managed_sources = orig
+        refresh._orphaned_managed_sources = orig
     assert n == 0 and 'would offer to remove' in capsys.readouterr().out
 
 
@@ -96,9 +97,9 @@ def test_an_installed_or_receipted_owner_is_never_stale(tmp_path, monkeypatch):
     led = Ledger()
     led.set_receipt(ResolvedComponent(key='apt\\gum', driver='apt', comp='gum', fields={'name': 'gum'}))
     led.save(paths)
-    monkeypatch.setattr(app, '_owned_index_sources', lambda c: {'/etc/apt/x.list': 'gum', '/etc/apt/y.list': 'slack'})
+    monkeypatch.setattr(refresh, '_owned_index_sources', lambda c: {'/etc/apt/x.list': 'gum', '/etc/apt/y.list': 'slack'})
     slack = ResolvedComponent(key='apt\\slack', driver='apt', comp='slack', fields={'name': 'slack-desktop'})
     ctx = types.SimpleNamespace(paths=paths, runner=None,
                                 routes=types.SimpleNamespace(resolve_resilient=lambda n, **k: ({'apt\\slack': slack}, {})))
-    monkeypatch.setattr(app, 'get_driver', lambda *a, **k: types.SimpleNamespace(get_version=lambda rc: '4.0'))
+    monkeypatch.setattr(refresh, 'get_driver', lambda *a, **k: types.SimpleNamespace(get_version=lambda rc: '4.0'))
     assert app._installed_owners(ctx) == {'gum', 'slack'}
