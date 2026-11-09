@@ -24,10 +24,15 @@ HERE = os.path.dirname(__file__)
 ROUTES = os.path.join(HERE, '..', 'routes.hu')
 GOLDEN = os.path.join(HERE, 'routing_golden.json')
 
-CONTEXTS = [('ubuntu', '24.04'), ('ubuntu', '22.04'), ('pop_os!', '22.04'),
-            ('debian', '12'), ('debian', '11'), ('fedora', '41'), ('fedora', '42'), ('fedora', '45'),
-            ('rhel', '9.8'), ('arch', '20260101'), ('fedora_atomic', '41'), ('fedora_atomic', '45'),
-            ('elementary', '8'), ('void', None), ('void_musl', None)]
+# Every package manager and the native-less rule, the newest release of each line plus the live older
+# ones a gate distinguishes (the old-release guard). EOL releases are frozen (not swept), so they
+# carry no context. `test_every_newest_release_has_a_context` (osaudit fixtures) keeps it current.
+CONTEXTS = [('ubuntu', '26.10'), ('ubuntu', '26.04'), ('ubuntu', '24.04'), ('ubuntu', '22.04'),
+            ('pop_os!', '22.04'), ('debian', '13'), ('debian', '12'), ('elementary', '8'),
+            ('elementary', '8.1'), ('fedora', '45'), ('fedora', '44'), ('fedora_atomic', '45'),
+            ('rhel', '10'), ('rhel', '9.8'), ('rhel', '8'), ('amzn', '2023'), ('arch', '20260101'),
+            ('opensuse_tumbleweed', None), ('opensuse_leap', '16.0'), ('alpine', '3.24'),
+            ('void', None), ('void_musl', None), ('chimera', None), ('kde_linux', None)]
 
 
 def _canon(rc):

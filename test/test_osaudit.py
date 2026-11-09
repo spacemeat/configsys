@@ -187,3 +187,13 @@ def test_facts_output_becomes_registry_fields_and_a_paste_ready_entry():
                                    'glibc': '2.42', 'manager': 'dnf5 version 5.3.0.0'})
     assert entry == ('45: { status: prerelease  image: "docker.io/library/fedora:45"  '
                      'glibc: 2.42  manager: "dnf5 version 5.3.0.0" }')
+
+
+def test_every_newest_release_has_a_golden_context_and_sweep():
+    # tests-tools-09: a newly released release must get a golden context (and the single-release
+    # name sweep its newest release) — /update-os adds them; this fails until it does
+    loaded = routes.load(str(HERE.parent / 'routes.hu'), validate=False)
+    stale = [f['message'] for f in oa.fixtures(loaded.cascade)
+             if not f.get('info') and f['fixture'] in ('test/test_golden.py CONTEXTS',
+                                                       'tools/namesweep.py MANAGERS')]
+    assert stale == []

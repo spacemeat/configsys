@@ -34,7 +34,7 @@ ALLOWLIST = os.path.join(ROOT, 'test', 'namesweep-allowlist.hu')
 # versioned entry's verifier image is tagged with that SAME version (`{ver}` in _VERIFIERS), so a
 # version-gated name map is checked against the release it was resolved for.
 MANAGERS = [
-    ('apt', 'ubuntu', '24.04'),
+    ('apt', 'ubuntu', '26.10'),
     ('dnf', 'fedora', '45'),
     ('pacman', 'arch', ''),
     ('zypper', 'opensuse', ''),
