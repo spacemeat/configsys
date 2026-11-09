@@ -187,7 +187,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   — every linked config dangles. (parity-01 verification note) · effort S · [done — plugin init (create and merge) re-points every live dotfiles link into the moved store at the plugin's copy]
 - **B10 [MED] The ledger isn't robust:** last-writer-wins across processes; written in place and loaded
   intolerantly (a truncated `state.hu` bricks every command); `run_plan` isn't exception-safe.
-  (actions-03/04/05) · effort M · [open]
+  (actions-03/04/05) · effort M · [done — done — the ledger saves atomically under a lock, writing back only the keys this process changed (merged into the file as it is now); an unreadable state.hu reads empty, is an error on the ! page, and is moved aside to state.hu.corrupt-<time> on the next save; run_plan turns a driver exception into that op's failure and always releases sudo + saves + records]
 - **B11 [MED] Settings validation is uneven:** a <10-byte config fails to load (`{}` bricks configsys);
   values parsed three ways (`reboot-advice ture` = off); `check` says 0 errors with an unreadable primary
   file; typo'd picks pass. (config-layers-05/06/08, actions-11, app-cli-08) · effort S · [open]

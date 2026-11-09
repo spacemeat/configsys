@@ -234,6 +234,10 @@ class Context:
             add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin)
         for w in getattr(self.routes, 'load_warnings', []):
             add('error', 'skipped', unskip(w))           # a dropped routes layer or component
+        if Ledger.load(self.paths).corrupt is not None:   # B10: read as empty; moved aside on next save
+            add('error', 'ledger',
+                f'{self.paths.ledger_file} is unreadable — configsys is running without its locks and '
+                'install receipts; the next save keeps the bad file as state.hu.corrupt-<time>')
         for w in self.config.ignored_section_warnings():
             add('warn', 'ignored', w)
         for w in self.config.unknown_section_warnings():

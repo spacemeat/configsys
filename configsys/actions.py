@@ -340,159 +340,167 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     begin = getattr(ctx.runner, 'begin_sudo', None)
     if begin and any(_may_need_root(get_driver(rc.driver, ctx.runner, ctx.paths), rc) for _, _, rc in plan):
         begin(on_line)                   # the ONE prompt, up front — then the run can go unattended
-    swapped_locks = set()            # comps whose locked install a swap removed: the new one is held too
-    for cur_op, key, rc in plan:
-        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
-            on_line(f'skip {key}: {rc.comp} has no install method on this machine')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'no install method here'))
-            continue
-        if drv is None:
-            on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
-            continue
-        if cur_op == 'set-version' and not targets_version(drv):
-            # tarball/appImage/font/... set_version would just reinstall the ROUTED version and say
-            # "ok" — a lie about what got installed. Refuse up front, naming the fix.
-            msg = no_version_target_message(rc.via or rc.driver, rc.comp)
-            on_line(f'set-version {key}: FAILED — {msg}')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
-            rc_code = rc_code or 1
-            n_fatal += 1
-            continue
-        if cur_op != 'remove' and not _layer_may_run(ctx, drv, rc):
-            # defense in depth for the resolution gate (trustgate): a step whose binding came from an
-            # untrusted plugin and carries commands / root writes / downloads never runs (an install
-            # receipt replayed later, a hand-built plan). Removing what's installed stays possible.
-            res = drv.untrusted_command_result(rc)
-            on_line(f'{cur_op} {key}: refused — {res.output}')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'untrusted plugin', advisory=True))
-            rc_code = rc_code or 1
-            continue
-        locked = (cur_op in ('upgrade', 'set-version', 'remove')
-                  and _unit_locked(drv, rc, key, ledger))
-        if cur_op == 'upgrade' and locked:
-            # a lock is a promise (the ledger carries it for every driver without a native hold):
-            # never upgrade through it — and a native hold would just fail confusingly (B2)
-            on_line(f'upgrade {key}: locked — {rc.comp} stays at its held version '
-                    f'(`configsys unlock {rc.comp}` first)')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'locked', advisory=True))
-            rc_code = rc_code or 1                   # an explicit upgrade of a locked unit is refused
-            continue
-        on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
-        try:
-            rc_snap = (None if pretend else  # nothing runs in a dry run, so nothing to guard or revert
-                       shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
-                                      rc.driver))
-        except Exception as e:               # noqa: BLE001 — the guard must never abort the batch
-            on_line(f'  (shell-writes guard skipped for {key}: {e})')
-            rc_snap = None
-        res = None
-        try:
-            try:
-                if cur_op == 'install':
-                    res = drv.install(rc)
-                    if res.ok and rc.comp in swapped_locks:   # a lock follows the component across a swap
-                        if drv.lock(rc).ok and ledger is not None and not pretend \
-                                and getattr(drv, 'holds_version', True):
-                            ledger.set_lock(key, True)
-                elif cur_op == 'remove':
-                    if locked:                               # a native hold would refuse the removal
-                        drv.unlock(rc)
-                    res = drv.uninstall(rc)
-                    if res.ok and locked:                    # removing it ends its lock
-                        swapped_locks.add(rc.comp)
-                        if ledger is not None and not pretend:
-                            ledger.set_lock(key, False)
-                elif cur_op == 'upgrade':
-                    res = drv.upgrade(rc)
-                elif cur_op == 'set-version':
-                    # retarget-then-hold: a locked unit is released, moved, and held at the new version
-                    if locked:
-                        drv.unlock(rc)
-                    res = drv.set_version(rc, version)
-                    if locked:
-                        drv.lock(rc)
-                elif cur_op == 'lock':
-                    res = drv.lock(rc)
-                    if (res.ok and ledger is not None and not pretend
-                            and getattr(drv, 'holds_version', True)):
-                        ledger.set_lock(key, True)   # never record a hold a rolling manager can't keep
-                elif cur_op == 'unlock':
-                    res = drv.unlock(rc)
-                    if res.ok and ledger is not None and not pretend:
-                        ledger.set_lock(key, False)
-            finally:
-                # revert + stage even on failure/abort — a half-finished installer may have written
-                _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
-                if _guard_msg:
-                    on_line(f'  -> {_guard_msg}')
-        except KeyboardInterrupt:                    # Ctrl-C aborts the WHOLE batch, not just this op
-            on_line(f'\n  ^C — aborted; {key} may be partially applied. Skipping the rest of the batch.')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'interrupted (^C)'))
-            rc_code, interrupted = 130, True
-            break
-        if res is None:                              # unknown op (should not happen for a built plan)
-            on_line(f'  -> unknown op {cur_op}')
-            rc_code = rc_code or 2
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, f'unknown op {cur_op}'))
-            continue
-        if not res.ok and pretend and cur_op in ('install', 'upgrade') \
-                and pretend_unresolved_download(drv, rc):
-            # a dry run is offline: with nothing cached there's no version/asset to name. Show a
-            # placeholder for the step instead of a fake failure (and a report offer).
-            on_line(f'[pretend] {rc.via or rc.driver}: download + {cur_op} {rc.comp} @ <latest release> '
-                    '(not in the offline version cache — a real run resolves it; '
-                    '`configsys refresh` caches versions for --pretend)')
-            on_line('  -> ok (pretend)')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'pretend: version unresolved offline'))
-        elif not res.ok and getattr(res, 'advisory', False):
-            on_line('  -> needs your input:')
-            for line in (res.output or 'action required').splitlines():
-                on_line(f'    {line}')
-            rc_code = rc_code or res.returncode or 1
-            outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res), advisory=True))
-        elif not res.ok:
-            got = installed_despite_failure(drv, rc, cur_op, version)
-            rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
-            if got:
-                rec['installed'] = 'true'
-                on_line(f'  -> installed WITH A WARNING (exit {res.returncode}) — a recommended '
-                        'package or post-install step failed; the package itself is present.')
-                outcomes.append(OpOutcome(cur_op, key, rc.name, True, fail_detail(res),
-                                          installed_with_warning=True))
-            else:
-                rc_code = res.returncode or 1
+    try:
+        swapped_locks = set()            # comps whose locked install a swap removed: the new one is held too
+        for cur_op, key, rc in plan:
+            drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+            if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
+                on_line(f'skip {key}: {rc.comp} has no install method on this machine')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'no install method here'))
+                continue
+            if drv is None:
+                on_line(f'skip {key}: driver "{rc.driver}" not yet supported')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'unsupported driver'))
+                continue
+            if cur_op == 'set-version' and not targets_version(drv):
+                # tarball/appImage/font/... set_version would just reinstall the ROUTED version and say
+                # "ok" — a lie about what got installed. Refuse up front, naming the fix.
+                msg = no_version_target_message(rc.via or rc.driver, rc.comp)
+                on_line(f'set-version {key}: FAILED — {msg}')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
+                rc_code = rc_code or 1
                 n_fatal += 1
-                on_line(f'  -> FAILED (exit {res.returncode})')
-                outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res)))
-            for line in (res.output or res.cmd or '').strip().splitlines():
-                on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
-            failures.append(rec)
-        elif cur_op in ('install', 'upgrade') and not pretend and not detected_after(drv, rc):
-            # the op succeeded, but the component still reads "not installed" — a DETECTION bug (a
-            # renamed package, a binary off PATH, an empty version marker). Say so NOW, not when the
-            # user later wonders why it's listed missing.
-            on_line(f'  -> ok, but NOT DETECTED afterwards — {rc.comp} will read "not installed" '
-                    f'(a detection bug in its route/driver; `configsys report {rc.comp}`)')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'installed but not detected',
-                                      undetected=True))
-        else:
-            on_line('  -> ok')
-            outcomes.append(OpOutcome(cur_op, key, rc.name, True))
-        # install RECEIPT (stranded.py): remember what configsys installed so the install stays
-        # findable + removable after routes stop offering that method; forget it on removal.
-        if (ledger is not None and not pretend
-                and outcomes and outcomes[-1].key == key and outcomes[-1].ok):
-            if cur_op in ('install', 'upgrade', 'set-version'):
-                ledger.set_receipt(rc)
-            elif cur_op == 'remove':
-                ledger.clear_receipt(key)
-    ctx.runner.end_sudo()          # release the batch's sudo keep-alive (one prompt covered the run)
-    if ledger is not None and not pretend:          # a dry run records nothing (no locks, no receipts)
-        ledger.save(ctx.paths)
-    if not pretend:                # the unresolved-failures record (! page, `report`): this run's in, fixed ones out
-        reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
+                continue
+            if cur_op != 'remove' and not _layer_may_run(ctx, drv, rc):
+                # defense in depth for the resolution gate (trustgate): a step whose binding came from an
+                # untrusted plugin and carries commands / root writes / downloads never runs (an install
+                # receipt replayed later, a hand-built plan). Removing what's installed stays possible.
+                res = drv.untrusted_command_result(rc)
+                on_line(f'{cur_op} {key}: refused — {res.output}')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'untrusted plugin', advisory=True))
+                rc_code = rc_code or 1
+                continue
+            locked = (cur_op in ('upgrade', 'set-version', 'remove')
+                      and _unit_locked(drv, rc, key, ledger))
+            if cur_op == 'upgrade' and locked:
+                # a lock is a promise (the ledger carries it for every driver without a native hold):
+                # never upgrade through it — and a native hold would just fail confusingly (B2)
+                on_line(f'upgrade {key}: locked — {rc.comp} stays at its held version '
+                        f'(`configsys unlock {rc.comp}` first)')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'locked', advisory=True))
+                rc_code = rc_code or 1                   # an explicit upgrade of a locked unit is refused
+                continue
+            on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
+            try:
+                rc_snap = (None if pretend else  # nothing runs in a dry run, so nothing to guard or revert
+                           shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
+                                          rc.driver))
+            except Exception as e:               # noqa: BLE001 — the guard must never abort the batch
+                on_line(f'  (shell-writes guard skipped for {key}: {e})')
+                rc_snap = None
+            res = None
+            try:
+                try:
+                    if cur_op == 'install':
+                        res = drv.install(rc)
+                        if res.ok and rc.comp in swapped_locks:   # a lock follows the component across a swap
+                            if drv.lock(rc).ok and ledger is not None and not pretend \
+                                    and getattr(drv, 'holds_version', True):
+                                ledger.set_lock(key, True)
+                    elif cur_op == 'remove':
+                        if locked:                               # a native hold would refuse the removal
+                            drv.unlock(rc)
+                        res = drv.uninstall(rc)
+                        if res.ok and locked:                    # removing it ends its lock
+                            swapped_locks.add(rc.comp)
+                            if ledger is not None and not pretend:
+                                ledger.set_lock(key, False)
+                    elif cur_op == 'upgrade':
+                        res = drv.upgrade(rc)
+                    elif cur_op == 'set-version':
+                        # retarget-then-hold: a locked unit is released, moved, and held at the new version
+                        if locked:
+                            drv.unlock(rc)
+                        res = drv.set_version(rc, version)
+                        if locked:
+                            drv.lock(rc)
+                    elif cur_op == 'lock':
+                        res = drv.lock(rc)
+                        if (res.ok and ledger is not None and not pretend
+                                and getattr(drv, 'holds_version', True)):
+                            ledger.set_lock(key, True)   # never record a hold a rolling manager can't keep
+                    elif cur_op == 'unlock':
+                        res = drv.unlock(rc)
+                        if res.ok and ledger is not None and not pretend:
+                            ledger.set_lock(key, False)
+                finally:
+                    # revert + stage even on failure/abort — a half-finished installer may have written
+                    _guard_msg = shellguard.finish(ctx.paths, rc.comp, rc_snap)
+                    if _guard_msg:
+                        on_line(f'  -> {_guard_msg}')
+            except KeyboardInterrupt:                    # Ctrl-C aborts the WHOLE batch, not just this op
+                on_line(f'\n  ^C — aborted; {key} may be partially applied. Skipping the rest of the batch.')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'interrupted (^C)'))
+                rc_code, interrupted = 130, True
+                break
+            except Exception as e:                   # noqa: BLE001 — a driver bug fails THIS op (B10),
+                from .runner import Result           # never the batch, the ledger save or the sudo release
+                res = Result(f'{cur_op} {rc.comp}', 1,
+                             stderr=f'configsys error in the {rc.driver} driver: {type(e).__name__}: {e}')
+            if res is None:                              # unknown op (should not happen for a built plan)
+                on_line(f'  -> unknown op {cur_op}')
+                rc_code = rc_code or 2
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, f'unknown op {cur_op}'))
+                continue
+            if not res.ok and pretend and cur_op in ('install', 'upgrade') \
+                    and pretend_unresolved_download(drv, rc):
+                # a dry run is offline: with nothing cached there's no version/asset to name. Show a
+                # placeholder for the step instead of a fake failure (and a report offer).
+                on_line(f'[pretend] {rc.via or rc.driver}: download + {cur_op} {rc.comp} @ <latest release> '
+                        '(not in the offline version cache — a real run resolves it; '
+                        '`configsys refresh` caches versions for --pretend)')
+                on_line('  -> ok (pretend)')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'pretend: version unresolved offline'))
+            elif not res.ok and getattr(res, 'advisory', False):
+                on_line('  -> needs your input:')
+                for line in (res.output or 'action required').splitlines():
+                    on_line(f'    {line}')
+                rc_code = rc_code or res.returncode or 1
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res), advisory=True))
+            elif not res.ok:
+                got = installed_despite_failure(drv, rc, cur_op, version)
+                rec = reportgen.failure_from_result(key, rc.driver, cur_op, res)
+                if got:
+                    rec['installed'] = 'true'
+                    on_line(f'  -> installed WITH A WARNING (exit {res.returncode}) — a recommended '
+                            'package or post-install step failed; the package itself is present.')
+                    outcomes.append(OpOutcome(cur_op, key, rc.name, True, fail_detail(res),
+                                              installed_with_warning=True))
+                else:
+                    rc_code = res.returncode or 1
+                    n_fatal += 1
+                    on_line(f'  -> FAILED (exit {res.returncode})')
+                    outcomes.append(OpOutcome(cur_op, key, rc.name, False, fail_detail(res)))
+                for line in (res.output or res.cmd or '').strip().splitlines():
+                    on_line(f'     {line}')              # show WHY here, not only in last-failure.hu
+                failures.append(rec)
+            elif cur_op in ('install', 'upgrade') and not pretend and not detected_after(drv, rc):
+                # the op succeeded, but the component still reads "not installed" — a DETECTION bug (a
+                # renamed package, a binary off PATH, an empty version marker). Say so NOW, not when the
+                # user later wonders why it's listed missing.
+                on_line(f'  -> ok, but NOT DETECTED afterwards — {rc.comp} will read "not installed" '
+                        f'(a detection bug in its route/driver; `configsys report {rc.comp}`)')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, True, 'installed but not detected',
+                                          undetected=True))
+            else:
+                on_line('  -> ok')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, True))
+            # install RECEIPT (stranded.py): remember what configsys installed so the install stays
+            # findable + removable after routes stop offering that method; forget it on removal.
+            if (ledger is not None and not pretend
+                    and outcomes and outcomes[-1].key == key and outcomes[-1].ok):
+                if cur_op in ('install', 'upgrade', 'set-version'):
+                    ledger.set_receipt(rc)
+                elif cur_op == 'remove':
+                    ledger.clear_receipt(key)
+    finally:
+        # whatever happened above — a driver bug, Ctrl-C, a failed write — the keep-alive is
+        # released and what DID run is recorded (B10): a lock or receipt is never lost to a crash
+        ctx.runner.end_sudo()      # release the batch's sudo keep-alive (one prompt covered the run)
+        if ledger is not None and not pretend:      # a dry run records nothing (no locks, no receipts)
+            ledger.save(ctx.paths)
+        if not pretend:            # the unresolved-failures record (! page, `report`): this run's in, fixed ones out
+            reportgen.record_run(ctx.paths, failures, [o.key for o in outcomes])
     return RunResult(outcomes, failures, n_fatal, rc_code, interrupted)
 
 
@@ -1788,10 +1796,6 @@ def plugin_untrust(ctx, ident):
     plugins.remove_trust(ctx.paths.plugin_trust_file, key)
     ctx.invalidate()
     return True, f'untrusted {disp}'
-
-
-def _pretend(ctx):
-    return bool(getattr(getattr(ctx, 'runner', None), 'pretend', False))
 
 
 def _locks(ctx):

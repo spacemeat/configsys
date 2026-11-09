@@ -146,3 +146,47 @@ def test_detected_install_is_plain_ok(tmp_path, monkeypatch):
 def test_config_drivers_are_not_post_checked():
     drv = SimpleNamespace(name='dotfiles', get_version=lambda rc: None)
     assert actions.detected_after(drv, _unit('x', 'dotfiles'))
+
+
+def test_a_driver_exception_fails_that_op_and_the_batch_still_saves(tmp_path, monkeypatch):
+    # B10: a driver bug is one failed op — the rest run, sudo is released, the ledger is saved
+    from configsys.ledger import Ledger
+    released = []
+    ctx = _ctx(tmp_path)
+    ctx.runner.end_sudo = lambda: released.append(True)
+    drv = StubDrv()
+
+    def install(rc):
+        if rc.comp == 'a':
+            raise ValueError('parse blew up')
+        return Result('', 0)
+    drv.install = install
+    led = Ledger()
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: drv)
+    monkeypatch.setattr(actions, 'detected_after', lambda *a: True)
+    res = actions.run_plan(ctx, [('install', 'apt\\a', _unit('a')), ('lock', 'apt\\b', _unit('b'))],
+                           ledger=led, on_line=lambda *_a: None)
+    assert [o.ok for o in res.outcomes] == [False, True]
+    assert 'parse blew up' in res.outcomes[0].detail
+    assert released == [True]
+    assert Ledger.load(ctx.paths).is_locked('apt\\b')
+
+
+def test_an_escaping_error_still_releases_sudo_and_saves(tmp_path, monkeypatch):
+    from configsys.ledger import Ledger
+    released = []
+    ctx = _ctx(tmp_path)
+    ctx.runner.end_sudo = lambda: released.append(True)
+    drv = StubDrv()
+    led = Ledger()
+    monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: drv)
+
+    def boom(*a, **k):
+        raise RuntimeError('reportgen broke')
+    from configsys import reportgen
+    monkeypatch.setattr(reportgen, 'failure_from_result', boom)
+    drv.results = {'lock': Result('x', 1)}        # a failure -> failure_from_result raises
+    import pytest as _pt
+    with _pt.raises(RuntimeError):
+        actions.run_plan(ctx, [('lock', 'apt\\b', _unit('b'))], ledger=led, on_line=lambda *_a: None)
+    assert released == [True] and ctx.paths.ledger_file.exists()
