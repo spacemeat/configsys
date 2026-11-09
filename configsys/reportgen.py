@@ -529,8 +529,9 @@ OS_REQUEST_LABEL = 'os-request'
 # The os-release keys worth carrying (all non-sensitive, but they still ride the scrubber).
 _OS_RELEASE_KEYS = ('ID', 'ID_LIKE', 'NAME', 'PRETTY_NAME', 'VERSION_ID', 'VERSION_CODENAME',
                     'VARIANT_ID', 'BUILD_ID')
-# blocks that are generic Linux roots, not a distro configsys actually models
-_GENERIC_BLOCKS = frozenset({'linux', 'glibc_linux', 'musl_linux'})
+# blocks that are generic Linux roots, not a distro configsys actually models (the musl blocks —
+# alpine, chimera, void_musl — descend from `linux` directly; there is no musl root block)
+_GENERIC_BLOCKS = frozenset({'linux', 'glibc_linux'})
 
 
 def _os_release_fields(path='/etc/os-release'):

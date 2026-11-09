@@ -201,3 +201,13 @@ def test_render_os_request_scrubs_secrets():
                'configsys': {'revision': 'r', 'abi': 1}}
     body = reportgen.render_os_request(payload, home=None, secrets=[])
     assert 'ghp_ABCDEF' not in body                       # token shape redacted even in os-release
+
+
+def test_generic_blocks_are_real_os_blocks_with_no_package_manager():
+    # the "not a distro configsys models" roots must be actual os: blocks (musl_linux never was one:
+    # the musl blocks descend from linux directly)
+    import os
+    from configsys import routes
+    cascade = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))[0]
+    for block in reportgen._GENERIC_BLOCKS:
+        assert block in cascade.blocks and cascade.native(block) is None, block
