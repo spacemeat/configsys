@@ -192,6 +192,28 @@ def _quit_push(stdscr, pal, ctx, force=False):
     return False, []
 
 
+def _issues_path():
+    '''"! → r" — the in-TUI way to file the last run's failures, from your keymap (back on the
+    screen, the `issues` key opens the page and its `report` key files them).'''
+    from .paint import _keymap
+    km = _keymap()
+    return f'{km.glyph("global", "issues")} → {km.glyph("issues", "report")}'
+
+
+def _system_update_count(ctx, managers, staged):
+    '''How many packages the bulk upgrade of `managers` will take, re-gathered from the (just
+    refreshed) index; a manager the gather can't enumerate keeps its staged-row count.'''
+    from .. import sysupdates
+    by_mgr = {}
+    for _op, _k, rc in staged:
+        by_mgr[rc.driver] = by_mgr.get(rc.driver, 0) + 1
+    try:
+        now = sysupdates.gather(ctx)
+    except Exception:                                    # noqa: BLE001 — a count, never fatal
+        now = {}
+    return sum(len(now[m]) if now.get(m) else by_mgr.get(m, 0) for m in managers)
+
+
 def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     raw = ms.plan()
     # System Updates rows are a BULK mark, not per-unit ops: pull them out of the per-unit plan and
@@ -210,6 +232,14 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     plan, units, advisories = build_plan(ctx, raw, units, states=ms.states) if raw else ([], units, [])
 
     with suspended(stdscr):
+        # ONE index refresh for the whole batch (see maybe_refresh_before_plan). With System Updates
+        # staged it runs BEFORE the confirm: the bulk upgrade takes whatever the REFRESHED index
+        # offers, so the count you confirm is counted after it, not off the startup scan (parity-16)
+        from ..cli.refresh import maybe_refresh_before_plan, published_pending
+        fresh, su_count = set(), len(su_raw)
+        if su_managers:
+            fresh = maybe_refresh_before_plan(ctx, plan, system=True)
+            su_count = _system_update_count(ctx, su_managers, su_raw)
         for text in advisories:
             print(f'heads-up — {text}')
         print('\nAbout to execute:')
@@ -217,8 +247,10 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         # cleaner dependency resolution everywhere, and on Arch it avoids the partial-upgrade footgun
         # of `pacman -S <new>` on a not-yet-`-Syu`'d system.
         if su_managers:
+            extra = su_count - len(su_raw)
             print(f'  {"sys-update":8} System Updates — bulk upgrade via {", ".join(su_managers)} '
-                  f'({len(su_raw)} package(s))')
+                  f'({su_count} package(s)'
+                  + (f', {extra} of them published since the scan' if extra > 0 else '') + ')')
         for op, key, rc in plan:
             print(f'  {op:8} {key}  (pkg: {rc.name})')
         try:
@@ -231,9 +263,8 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
             return False, 'cancelled', []
 
         outcomes = []
-        # ONE index refresh for the whole batch, before anything runs (see maybe_refresh_before_plan)
-        from ..cli.refresh import maybe_refresh_before_plan, published_pending
-        fresh = maybe_refresh_before_plan(ctx, plan, system=bool(su_managers))
+        if not su_managers:                               # component ops only: refresh once, now
+            fresh = maybe_refresh_before_plan(ctx, plan)
         if su_managers:                                   # the whole-machine bulk upgrade(s) — first
             from .. import sysupdates
             from ..actions import OpOutcome
@@ -271,9 +302,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
                   f'"not installed": a detection bug in its route/driver')
         for o in advisories:
             print(f'  NEEDS INPUT  {o.op:8} {o.key}  {o.detail}')
-        if failed or warned:                          # all failures are persisted now -> report works
-            print('\n`configsys report` files the details of the above (they stay on the ! page '
-                  'until fixed).')
+        if (failed or warned) and not getattr(ctx.runner, 'pretend', False):   # a dry run recorded nothing
+            print(f'\nBack in the TUI, {_issues_path()} files the details of the above (they stay on '
+                  'the ! page until fixed).')
         pending = published_pending(ctx, fresh)
         if pending:                                   # no surprises: say why they now read outdated
             shown = ', '.join(pending[:8]) + (f' +{len(pending) - 8} more' if len(pending) > 8 else '')
@@ -528,6 +559,13 @@ def _pick_choices(stdscr, pal, ms, ctx):
     name = _row_component(ms.cur())
     if not name:
         return False, 'pick a component row to change how it resolves', None
+    return _pick_resolution(stdscr, pal, ctx, name, ms)
+
+
+def _pick_resolution(stdscr, pal, ctx, name, ms=None):
+    '''_pick_choices for a component NAME: its install-method and provider axes — and, given the
+    Components `ms`, what you can stage on its installed unit. Profiles `v` calls it with no `ms`, so
+    both screens' "pin" reaches provider-pins too (parity-17). Returns (changed, note, deferred).'''
     routes = ctx.routes
     axes = []                                            # (menu-label, kind, payload)
     if len(routes.candidates(name)) >= 2:
@@ -536,8 +574,9 @@ def _pick_choices(stdscr, pal, ms, ctx):
         axes.append((f'provider for {cap}', 'provider', (cap, provs)))
     # what you can DO to its installed unit here (§7.17 — CLI parity: `install` re-runs, set-version,
     # fix-scope), staged like any op and run with X
-    unit = next((k for k, st in (getattr(ms, 'states', None) or {}).items()
-                 if st.component.comp == name and st.present and not _is_system_update(st)), None)
+    unit = None if ms is None else next(
+        (k for k, st in (getattr(ms, 'states', None) or {}).items()
+         if st.component.comp == name and st.present and not _is_system_update(st)), None)
     if unit is not None:
         st = ms.states[unit]
         from ..actions import targets_version

@@ -126,14 +126,7 @@ def cmd_show(ctx, args):
     if getattr(args, 'path', False):
         print(path)
         return 0
-    try:
-        sys.stdout.write(path.read_text())
-        sys.stdout.flush()
-    except BrokenPipeError:
-        # a downstream pager/`head` closed the pipe — normal; silence the interpreter's final
-        # flush (which would re-raise) by pointing stdout at the void, then exit clean.
-        import os
-        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+    sys.stdout.write(path.read_text())             # a closed pipe (`| head`) is app.main's to handle
     return 0
 
 
@@ -223,6 +216,17 @@ def cmd_config(ctx, args):
         return 1
     if sub == 'unset':
         print(f'configsys: cleared {args.key}  (in {label})')
+        # the top config shadows the primary: clearing one layer can leave the other's value in
+        # effect — say so rather than claim the setting is gone (app-cli-23)
+        where, who = actions._setting_home(ctx, args.key)
+        if where is not None:
+            held = (str(ctx.paths.user_config_file) if where == 'local'
+                    else actions._primary_data_file(ctx)[0])
+            val = ' '.join(actions._setting_tokens(actions._read_setting(held, args.key),
+                                                   actions.CONFIG_SETTINGS[args.key][0]))
+            print(f'configsys: {args.key} is still set in {who} (= {val}) — '
+                  f'`configsys config unset {args.key}` clears it there too, or `configsys config move '
+                  f'{args.key}` moves it', file=sys.stderr)
     else:
         print(f'configsys: set {args.key} = {" ".join(args.value)}  (in {label})')
         if args.key == 'splash':                 # warn now if the value can't resolve to one splash

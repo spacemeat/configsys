@@ -191,9 +191,6 @@ class Context:
                 seen.add(text)
                 out.append({'level': level, 'tag': tag, 'text': text})
 
-        def unskip(w):                                   # tag already says "skipped"
-            return w[len('skipped '):] if w.startswith('skipped ') else w
-
         if osdetect.is_atomic(self.os_info.block):
             add('warn', 'atomic',
                 'atomic/immutable OS detected — configsys atomic routing is NEW and not yet '
@@ -205,28 +202,15 @@ class Context:
 
         if self.os_note:
             add('warn', 'os', self.os_note)
-        _blk = self.os_info.block
-        if _blk == 'kde_linux':
-            add('warn', 'immutable',
-                'KDE Linux detected (alpha, immutable, NO system package manager) — configsys installs '
-                'apps via Flatpak and CLI tools via userland methods (Homebrew, which configsys '
-                'installs first when a pick needs it; tarballs; `via: script` installers; cargo once '
-                'rust is in). pipx tools come through Homebrew\'s pipx; `via: pip` packages and '
-                'anything offered only as a distro package decline here. KDE Linux routing is NEW and '
-                'not validated on real hardware — review plans before running them.')
-        elif _blk == 'chimera':
-            add('warn', 'partial-os',
-                'Chimera Linux detected — configsys does not route its apk packages yet (Chimera\'s '
-                'package names differ from Alpine\'s), and nothing beyond python3 is assumed present, '
-                'so practically NOTHING installs here: tarballs and `via: script` installers need '
-                'curl, Flatpak and pipx need their own distro packages — all unroutable. Only '
-                'dotfiles/glue and self-contained methods apply. Chimera-named apk routes are a '
-                'planned follow-up.')
+        try:                                             # an os: block's caveat, inherited via `using:`
+            add('warn', 'os-advisory', self.routes.cascade.advisory(self.os_info.block))
+        except (ConfigsysError, KeyError):               # a block not loaded yet: check_os says so
+            pass
         self.ensure_plugin_code()                        # populates plugin_code_warnings
         for w in getattr(self.config, 'load_warnings', []):
-            add('error', 'skipped', unskip(w))           # a dropped config layer (primary/plugin)
+            add('error', 'skipped', _unskip(w))          # a dropped config layer (primary/plugin)
         for w in getattr(self.routes, 'load_warnings', []):
-            add('error', 'skipped', unskip(w))           # a dropped routes layer or component
+            add('error', 'skipped', _unskip(w))          # a dropped routes layer or component
         if Ledger.load(self.paths).corrupt is not None:   # B10: read as empty; moved aside on next save
             add('error', 'ledger',
                 f'{self.paths.ledger_file} is unreadable — configsys is running without its locks and '
@@ -402,9 +386,18 @@ class Context:
         self._routes = r
         return r
 
-    def check_os(self):
-        '''Raise ConfigsysError unless the OS block (a forced one included) names a loaded os: block.'''
-        osdetect.settle(self.os_info, self.routes.cascade.blocks)
+    def check_os(self, *, light=False):
+        '''Raise ConfigsysError unless the OS block (a forced one included) names a loaded os: block.
+        `light` (a command that never reads the catalog — `show`, `keys`, `manpages`) vets it against
+        the os: sections alone: building and route-checking the whole catalog just to check a block
+        name was most of such a command (app-cli-20). Every other command builds the Resolver here,
+        on the main thread, as before (the TUI's worker then reuses it).'''
+        if light and self._routes is None:
+            from .routes import os_blocks
+            blocks = os_blocks(self.paths.routes_file, self.paths.user_config_file, self.plugin_files)
+        else:
+            blocks = self.routes.cascade.blocks
+        osdetect.settle(self.os_info, blocks)
 
     @property
     def config(self):
@@ -541,7 +534,9 @@ class Context:
             self._probes = ProbeCache()
         else:
             self._probes.invalidate(dirty)
-        self.ensure_user_config(offer_primary=True)
+        # never the first-run primary offer: that is the TUI's (tui/menu.run, on the main thread before
+        # curses) — a pipeline command (inspect, refresh, install --picks) doesn't stop to ask (app-cli-32)
+        self.ensure_user_config()
         cfg = self.config
         r.event(report.VERBOSE, f'  config: install set — {_install_scope_label(cfg)}')
         for w in getattr(cfg, 'load_warnings', []):     # dropped config layers, streamed as found
@@ -775,12 +770,12 @@ from .cli.parser import build_parser  # noqa: E402
 from .cli.dotfiles import _dotfiles_diagnostics, cmd_dotfiles, cmd_glue  # noqa: E402
 
 _MOVED = {  # name -> the configsys/cli module that defines it
-    '_expand_profile_args': 'ops', '_expand_profile_args_detail': 'ops',
+    '_expand_profile_args_detail': 'ops',
     '_skip_unroutable_profile_members': 'ops', '_confirm_plan': 'ops', '_dispatch_op': 'ops',
-    '_failure_open': 'ops', '_installed_despite_failure': 'ops', '_offer_report': 'ops',
+    '_failure_open': 'ops', '_offer_report': 'ops',
     '_picks_selection': 'ops', '_merge_names': 'ops', '_ops_from_picks': 'ops',
     '_TIER_LABEL': 'ops', '_print_updates_groups': 'ops', '_print_update_notes': 'ops',
-    'cmd_upgrade_system': 'ops', '_STATUS_LABEL': 'ops', 'print_reboot_advisory': 'common',
+    'cmd_upgrade_system': 'ops', 'print_reboot_advisory': 'common',
     '_pretend_edit': 'common', '_warn_unknown_component': 'common',
     '_owned_index_sources': 'refresh', '_INDEX_SRC_DIRS': 'refresh',
     '_list_source_files': 'refresh', '_find_source_files': 'refresh',
@@ -795,7 +790,7 @@ _MOVED = {  # name -> the configsys/cli module that defines it
     '_os_version_conditions': 'where', 'where_report': 'where', 'where_profile_report': 'where',
     'active_snapshot': 'where', 'print_sync_delta': 'where', 'catalog_search': 'where',
     '_location_lines': 'where', 'write_location_cache': 'where',
-    'invalidate_location_cache': 'where', '_location_all': 'where', '_validate_pin': 'matrix',
+    '_location_all': 'where', '_validate_pin': 'matrix',
     '_pin_list': 'matrix', '_pin_set': 'matrix', '_swap_headsup': 'matrix', '_pin_unset': 'matrix',
     '_pin_promote': 'matrix', '_issue_loc': 'check', '_fmt_conflict': 'plugin',
     '_git_init_commit': 'plugin', '_sweep_glue_to_primary': 'plugin',
@@ -808,11 +803,11 @@ _MOVED = {  # name -> the configsys/cli module that defines it
     '_MANPAGES': 'settings', '_manpage_targets': 'settings', '_SHOW_TARGETS': 'settings',
     '_show_file': 'settings', '_fmt_setting_value': 'settings', '_print_theme': 'settings',
     '_EPILOG': 'parser', '_version_string': 'parser', '_VersionAction': 'parser',
-    '_GLUE_ORDER': 'dotfiles', '_active_dotfiles': 'dotfiles', '_default_glue_shell': 'dotfiles',
+    '_GLUE_ORDER': 'dotfiles', '_default_glue_shell': 'dotfiles',
     '_open_in_editor': 'dotfiles', '_resolve_glue_unit': 'dotfiles',
     'cmd_glue_override': 'dotfiles', 'cmd_glue_add': 'dotfiles', 'cmd_dotfiles_staged': 'dotfiles',
     'cmd_dotfiles_activate': 'dotfiles', 'cmd_dotfiles_discard': 'dotfiles',
-    '_dotfiles_root_label': 'dotfiles', '_print_user_glue': 'dotfiles',
+    '_print_user_glue': 'dotfiles',
     'cmd_dotfiles_status': 'dotfiles', 'cmd_dotfiles_capture': 'dotfiles',
 }
 
@@ -824,6 +819,10 @@ def __getattr__(name):
         raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
     import importlib
     return getattr(importlib.import_module(f'.cli.{mod}', __package__), name)
+
+
+# commands that never read the routes catalog: a forced --os is vetted against the os: sections alone
+_CATALOG_FREE = frozenset({'show', 'keys', 'manpages'})
 
 
 _COMMANDS = {
@@ -929,6 +928,23 @@ def _command_words(argv, command):
 
 
 def main(argv=None):
+    '''The CLI entry point. A downstream reader that closes the pipe early (`configsys … | head`)
+    is normal, not an error: flush inside the guard so it surfaces here rather than in the
+    interpreter's exit flush, point stdout at the void so that flush can't raise again, and exit
+    like a SIGPIPE'd tool (app-cli-30).'''
+    try:
+        rc = _main(argv)
+        sys.stdout.flush()
+        return rc
+    except BrokenPipeError:
+        try:
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        except (OSError, ValueError, AttributeError):    # a captured / fd-less stdout (tests)
+            pass
+        return 141
+
+
+def _main(argv):
     args = build_parser().parse_args(argv)
     # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
     # both read), set before anything builds a Palette. An explicit flag wins over the env.
@@ -948,8 +964,9 @@ def main(argv=None):
         return _probe_color(ctx)
     try:
         if ctx.os_info.forced and command != 'plugin':
-            ctx.check_os()  # a forced OS block must exist before any command runs on it — except the
-                            # plugin commands, which may be what brings that block (`plugin add`)
+            # a forced OS block must exist before any command runs on it — except the plugin
+            # commands, which may be what brings that block (`plugin add`)
+            ctx.check_os(light=command in _CATALOG_FREE)
         if command == 'tui':
             return _COMMANDS[command](ctx, args)       # the TUI commits per action (tui/menu.py)
         snap = primarygit.snapshot(ctx)                # commit what this command edits in the primary

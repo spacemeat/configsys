@@ -451,7 +451,7 @@ class ComponentsScreen(Screen):
                       'package-manager index update. This takes a moment; sudo may prompt below.\n',
                       flush=True)
                 from ...cli import refresh as cli_refresh
-                cli_refresh.cmd_refresh(ctx, None)
+                cli_refresh.cmd_refresh(ctx)
                 try:
                     input('\n[Enter] to return')
                 except EOFError:

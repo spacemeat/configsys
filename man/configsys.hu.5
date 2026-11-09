@@ -432,6 +432,8 @@ An \fBos:\fR block describes one distro:
 .IP \(bu 2
 \fB\fBprovides:\fR\fR capabilities the OS has out of the box;
 .IP \(bu 2
+\fB\fBadvisory:\fR\fR a caveat shown as an \fBos-advisory\fR warning (the TUI \fB!\fR page, \fBinspect\fR) on this block and every block that inherits from it — a block's own replaces its parent's, \fBadvisory: ""\fR silences it (KDE Linux and Chimera carry one);
+.IP \(bu 2
 \fB\fBdriver-preference:\fR\fR an OS-specific tiebreak order, consulted before the machine setting on this block and the blocks that inherit from it (the nearest block's list first); drivers it doesn't name fall back to the setting, then to the default order;
 .IP \(bu 2
 \fB\fBdetect: { id: <base>  marker: <path> }\fR\fR detects a derivative that doesn't rebrand \fB/etc/os-release\fR (Proxmox VE reports \fBID=debian\fR). When the detected block is that base, or a descendant of it, and every marker exists on disk (\fBmarker:\fR may be a list), configsys routes to this block. This lets a plugin add a detectable OS with no code; the \fBconfigsys-proxmox\fR plugin does exactly this;
@@ -581,7 +583,7 @@ In your top config, \fBfacets:\fR instead \fBdeclares\fR values for facets defin
 .PP
 \fBtheme:\fR sets the TUI palette: a shared \fBcolors:\fR map of names to \fB#rrggbb\fR, per-page role styles and background gradients under \fBpages:\fR, and \fBcolors-basic:\fR for 8- and 16-color terminals. Edit it live on the Theme screen or with \fBconfigsys theme\fR; see docs/theming.md.
 .PP
-\fBkeys:\fR rebinds TUI keys by action: \fBkeys: { <key scope>: { <action>: <key or [ keys ]> } }\fR, where the key scope (unrelated to the install \fBscope:\fR setting) is \fBglobal\fR, \fBscreens\fR (the number keys that switch screens) or a screen name (\fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR, \fBtheme\fR). A key is a character (case matters), a named key (\fBenter\fR, \fBtab\fR, \fBesc\fR, \fBspace\fR, arrows, \fBpgup\fR, \fBpgdn\fR, \fBhome\fR, \fBend\fR, \fBdel\fR, \fBshift-tab\fR, \fBf1\fR to \fBf12\fR) or \fBctrl-<x>\fR. The on-screen hints follow your bindings, and \fBconfigsys keys\fR prints the effective map. The subsections below are the full reference.
+\fBkeys:\fR rebinds TUI keys by action: \fBkeys: { <key scope>: { <action>: <key or [ keys ]> } }\fR, where the key scope (unrelated to the install \fBscope:\fR setting) is \fBglobal\fR, \fBscreens\fR (the number keys that switch screens), a screen name (\fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR, \fBtheme\fR) or \fBissues\fR (the \fB!\fR page's \fBreport\fR, \fBrequest\fR and \fBsuggest-os\fR). A key is a character (case matters), a named key (\fBenter\fR, \fBtab\fR, \fBesc\fR, \fBspace\fR, arrows, \fBpgup\fR, \fBpgdn\fR, \fBhome\fR, \fBend\fR, \fBdel\fR, \fBshift-tab\fR, \fBf1\fR to \fBf12\fR) or \fBctrl-<x>\fR. The on-screen hints follow your bindings, and \fBconfigsys keys\fR prints the effective map. The subsections below are the full reference.
 .PP
 Both are cosmetic, so every layer may contribute them; they merge per key, and your top config has the last word.
 .SS Where \fBkeys:\fR goes and how it merges

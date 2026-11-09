@@ -738,7 +738,8 @@ def test_dotfiles_capture_reports_a_malformed_manifest(tmp_path, monkeypatch, ca
     _manifest(p, '{ specs: { nvim: ')
     df = DotFiles(Runner(pretend=False), paths=p)
     ctx = types.SimpleNamespace(paths=p, runner=df.runner)
-    monkeypatch.setattr(cli_df, '_active_dotfiles', lambda _ctx: (df, [df_unit()]))
+    from configsys import actions
+    monkeypatch.setattr(actions, 'dotfiles_units', lambda _ctx: (df, [df_unit()]))
     rc = cli_df.cmd_dotfiles_capture(ctx, argparse.Namespace(names=[], force=False, dry_run=False, yes=True))
     out = capsys.readouterr()
     assert rc == 1 and 'manifest.hu' in (out.out + out.err) and 'Traceback' not in out.err

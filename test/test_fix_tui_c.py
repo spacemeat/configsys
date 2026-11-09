@@ -242,7 +242,7 @@ def _patch_refresh(monkeypatch, ctx, calls):
     from configsys.tui.screens import components as comp_mod
     monkeypatch.setattr(comp_mod, 'suspended', lambda _s: nullcontext())
     monkeypatch.setattr(comp_mod.curses, 'flushinp', lambda: None)
-    monkeypatch.setattr(cli_refresh, 'cmd_refresh', lambda c, a: calls.append('refresh'))
+    monkeypatch.setattr(cli_refresh, 'cmd_refresh', lambda c, a=None: calls.append('refresh'))
     monkeypatch.setattr('builtins.input', lambda *a: '')
     monkeypatch.setattr(sysupdates, 'start_scan', lambda c: calls.append('start_scan'))
 
@@ -557,7 +557,8 @@ def _key_for(scope, action):
     return next(k for k in range(1, 400) if menu._KEYMAP.action_for(scope, k) == action)
 
 
-def test_config_edit_under_pretend_says_not_saved(ctx):
+def test_config_edit_under_pretend_says_not_saved(ctx, monkeypatch):
+    from configsys.tui.screens import config as config_mod
     from configsys.tui.screens.config import ConfigScreen
     assert ctx.runner.pretend                                 # the harness ctx is --pretend
     scr = ConfigScreen(ctx, menu.ConfigScreen(ctx))
@@ -565,6 +566,8 @@ def test_config_edit_under_pretend_says_not_saved(ctx):
     cs.cur = next(i for i, k in enumerate(cs.keys) if cs.settings[k]['kind'] == 'bool')
     key = cs.keys[cs.cur]
     before = cs.settings[key]['value']
+    # a bool now asks true / false / unset (parity-17): pick the flipped value
+    monkeypatch.setattr(config_mod, '_popup_choose', lambda *a, **k: 1 if before else 0)
     intent = scr.handle(_key_for('config', 'confirm'), ctx, None, None)
     assert intent.note.startswith('[pretend] not saved') and key in intent.note
     cs.reload()

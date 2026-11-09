@@ -6,7 +6,7 @@ Split out of app.py (review-2026-11-2 D2).
 
 import sys
 from ..errors import ConfigError
-from .common import _install_scope_label, _pretend_edit, _warn_unknown_component
+from .common import _install_scope_label, _pretend_edit, _warn_unknown_component, ask
 from .ops import _dispatch_op
 from .where import _layer_label
 
@@ -167,14 +167,13 @@ def cmd_orphans(ctx, args):
             print(f'configsys: "{args.remove}" is not a cf component (a foreign orphan) — remove it '
                   f'with your package manager')
             return 1
-        if not args.yes:
-            try:
-                resp = input(f'Uninstall {args.remove}? [y/N] ').strip().lower()
-            except EOFError:
-                resp = ''
-            if resp not in ('y', 'yes'):
+        # --pretend goes straight into the dry-run remove (it shows what would run), like _confirm_plan
+        go = ask(f'Uninstall {args.remove}? [y/N] ', yes=args.yes or ctx.runner.pretend,
+                 refuse_note=f'configsys: not a terminal — re-run with --yes to uninstall {args.remove}.')
+        if not go:
+            if go is False:
                 print('aborted')
-                return 0
+            return 0 if go is False else 1
         return _dispatch_op(ctx, [args.remove], 'remove')
 
     try:

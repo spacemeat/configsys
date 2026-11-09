@@ -208,7 +208,7 @@ RELEASE_STATUSES = ('prerelease', 'released', 'eol')
 # the fields an `os:` block may carry (routecheck warns `os-block` on any other — a typo'd `usings:`
 # would otherwise leave the block cut off from its lineage without a word)
 OS_BLOCK_FIELDS = frozenset({'using', 'native', 'scale-root', 'provides', 'detect', 'driver-preference',
-                             'releases'})
+                             'releases', 'advisory'})
 RELEASE_FIELDS = frozenset({'status', 'released', 'eol', 'codename', 'image', 'glibc', 'python3',
                             'gcc', 'manager', 'note', 'base'})
 
@@ -329,6 +329,17 @@ class OsCascade:
         table = (self.blocks.get(line) or {}).get('releases') if line else None
         return table if isinstance(table, dict) else {}
 
+    def advisory(self, block):
+        '''The nearest `advisory:` walking `block`'s lineage — an OS caveat the diagnostics show (the
+        `!` page, `inspect`) on that block and every block that `using:`s it; a block's own replaces
+        its parent's, and `advisory: ""` silences it. Whitespace-normalized, so the text may be
+        written across lines. None when there is none (app-cli-25).'''
+        for n in self.lineage(block):
+            spec = self.blocks.get(n)
+            if isinstance(spec, dict) and 'advisory' in spec:
+                return ' '.join(str(spec['advisory'] or '').split()) or None
+        return None
+
     def is_descendant(self, x, y):
         '''True if y is ancestor-or-self of x (x's subtree ⊆ y's subtree).'''
         return y in self.lineage(x)
@@ -413,6 +424,17 @@ def _stack_fingerprint(layer_list, untrusted_sources):
             return None
         parts.append((os.path.normpath(lyr.path), lyr.role, digest))
     return (tuple(parts), untrusted_sources)
+
+
+def os_blocks(path, overrides_path=None, plugin_files=()):
+    '''{block: spec} — only the merged `os:` section of the layer stack load() reads (no components,
+    no route check): what a forced `--os` block is checked against before a command that may never
+    need the catalog (`show`, `keys`) runs (app-cli-20).'''
+    roots = [(path, 'repo')] + [_pf(p) for p in plugin_files]
+    if overrides_path is not None:
+        roots.append((overrides_path, 'user'))
+    layer_list, _warnings = layers.expand_tolerant(roots, {'plugin', 'primary'})
+    return layers.merge_dict_section(layer_list, 'os', layers.ALL_ROLES)
 
 
 def load(path, overrides_path=None, plugin_files=(), validate=True,

@@ -3,7 +3,7 @@
 Split out of app.py (review-2026-11-2 D2).
 '''
 
-import sys
+from .common import ask
 
 
 # Practical ceiling for a prefilled issues/new URL. GitHub's own docs cap the server at ~8k, and
@@ -28,13 +28,19 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
     lines = []
     if shutil.which('gh'):
         import tempfile
+        import contextlib
+        import os
         with tempfile.NamedTemporaryFile('w', suffix='.md', delete=False, encoding='utf-8') as f:
             f.write(body)
             bodyfile = f.name
-        proc = subprocess.run(['gh', 'issue', 'create', '--repo', REPORTS_REPO,
-                               '--title', title, '--body-file', bodyfile,
-                               '--label', label],
-                              capture_output=True, text=True)
+        try:
+            proc = subprocess.run(['gh', 'issue', 'create', '--repo', REPORTS_REPO,
+                                   '--title', title, '--body-file', bodyfile,
+                                   '--label', label],
+                                  capture_output=True, text=True)
+        finally:                                       # the body can hold scrubbed-but-personal output
+            with contextlib.suppress(OSError):
+                os.unlink(bodyfile)
         if proc.returncode == 0:
             return 0, [f'configsys: filed — {proc.stdout.strip()}']
         lines.append(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
@@ -66,6 +72,30 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
         if saved:
             lines.append(saved)
     return 0, lines
+
+
+def _review_and_file(ctx, title, body, args, *, what='this report', label='install-report',
+                     save_as='last-report.md', note=None):
+    '''The one review-then-file step `report`, `request` and `request-os` share: print the scrubbed
+    body, then (unless --print) ask before sending — a non-terminal without --yes refuses (rc 1), a
+    no is "not sent" (rc 0). `note` = an extra line under the body.'''
+    from .. import reportgen
+    print('\n' + '=' * 72)
+    print(f'{title}\n')
+    print(body)
+    print('=' * 72)
+    if note:
+        print(note)
+    if getattr(args, 'print_only', False):
+        return 0
+    go = ask(f'\nSend {what} to {reportgen.REPORTS_REPO}? [y/N] ', yes=getattr(args, 'yes', False),
+             refuse_note='\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
+    if go is None:
+        return 1
+    if not go:
+        print('configsys: not sent.')
+        return 0
+    return _send_report(ctx, title, body, label=label, save_as=save_as)
 
 
 def _send_report(ctx, title, body, label='install-report', save_as='last-report.md'):
@@ -101,27 +131,8 @@ def cmd_report(ctx, args):
     body = reportgen.render(payload, home=ctx.paths.home, secrets=secrets)
     title = reportgen.title(payload)
 
-    print('\n' + '=' * 72)
-    print(f'{title}\n')
-    print(body)
-    print('=' * 72)
-    if not failure and not multi:
-        print('note: no captured driver output (report either after a failed op, or paste it in).')
-    if getattr(args, 'print_only', False):
-        return 0
-
-    if not getattr(args, 'yes', False):
-        if not (sys.stdin.isatty() and sys.stdout.isatty()):
-            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
-            return 1
-        try:
-            ans = input(f'\nSend this report to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
-        except EOFError:
-            ans = ''
-        if ans not in ('y', 'yes'):
-            print('configsys: not sent.')
-            return 0
-    return _send_report(ctx, title, body)
+    return _review_and_file(ctx, title, body, args, note=None if failure or multi else (
+        'note: no captured driver output (report either after a failed op, or paste it in).'))
 
 
 def cmd_request(ctx, args):
@@ -139,26 +150,8 @@ def cmd_request(ctx, args):
     body = reportgen.render_request(payload, home=ctx.paths.home, secrets=secrets)
     title = reportgen.request_title(payload)
 
-    print('\n' + '=' * 72)
-    print(f'{title}\n')
-    print(body)
-    print('=' * 72)
-    if getattr(args, 'print_only', False):
-        return 0
-
-    if not getattr(args, 'yes', False):
-        if not (sys.stdin.isatty() and sys.stdout.isatty()):
-            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
-            return 1
-        try:
-            ans = input(f'\nSend this request to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
-        except EOFError:
-            ans = ''
-        if ans not in ('y', 'yes'):
-            print('configsys: not sent.')
-            return 0
-    return _send_report(ctx, title, body, label=reportgen.REQUEST_LABEL,
-                        save_as='last-request.md')
+    return _review_and_file(ctx, title, body, args, what='this request', label=reportgen.REQUEST_LABEL,
+                            save_as='last-request.md')
 
 
 def cmd_request_os(ctx, args):
@@ -171,23 +164,5 @@ def cmd_request_os(ctx, args):
     body = reportgen.render_os_request(payload, home=ctx.paths.home, secrets=secrets)
     title = reportgen.os_request_title(payload)
 
-    print('\n' + '=' * 72)
-    print(f'{title}\n')
-    print(body)
-    print('=' * 72)
-    if getattr(args, 'print_only', False):
-        return 0
-
-    if not getattr(args, 'yes', False):
-        if not (sys.stdin.isatty() and sys.stdout.isatty()):
-            print('\nconfigsys: not a terminal; re-run with --yes to file, or --print to just view.')
-            return 1
-        try:
-            ans = input(f'\nSend this to {reportgen.REPORTS_REPO}? [y/N] ').strip().lower()
-        except EOFError:
-            ans = ''
-        if ans not in ('y', 'yes'):
-            print('configsys: not sent.')
-            return 0
-    return _send_report(ctx, title, body, label=reportgen.OS_REQUEST_LABEL,
-                        save_as='last-os-request.md')
+    return _review_and_file(ctx, title, body, args, what='this', label=reportgen.OS_REQUEST_LABEL,
+                            save_as='last-os-request.md')

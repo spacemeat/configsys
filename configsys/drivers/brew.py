@@ -45,6 +45,23 @@ def brew_env():
     return None
 
 
+def brew_prefix():
+    '''Homebrew's prefix WITHOUT running brew: $HOMEBREW_PREFIX (`brew shellenv` exports it), else the
+    dir above the `brew` on PATH, else the first installed standard prefix; None with no brew at all.
+    Looked up per call like brew_env (cheap — no subprocess): Homebrew can arrive mid-batch.'''
+    env = os.environ.get('HOMEBREW_PREFIX')
+    if env:
+        return env
+    found = shutil.which('brew')
+    if found:
+        return os.path.dirname(os.path.dirname(found))    # <prefix>/bin/brew (a link, not resolved)
+    for prefix in _PREFIXES:
+        p = os.path.expanduser(prefix)
+        if os.access(os.path.join(p, 'bin', 'brew'), os.X_OK):
+            return p
+    return None
+
+
 class Brew(Driver):
     name = 'brew'
     # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
@@ -226,7 +243,9 @@ class Brew(Driver):
                                capture=False, env=brew_env())
 
     def location(self, rc):
-        r = self.runner.run(f'brew --prefix {shlex.quote(self._formula(rc))}', env=brew_env())
-        if r.ok and r.stdout.strip():
-            return r.stdout.strip()
-        return '(homebrew)'
+        # what `brew --prefix <formula>` answers — <prefix>/opt/<formula>, installed or not — without a
+        # brew spawn per unit (the shell glue's cold `location --all` ran one each; app-cli-20)
+        prefix = brew_prefix()
+        if not prefix:
+            return '(homebrew)'
+        return os.path.join(prefix, 'opt', self._formula(rc).rsplit('/', 1)[-1])   # a tap's user/tap/f -> f

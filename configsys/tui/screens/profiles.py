@@ -21,7 +21,7 @@ import curses
 from fnmatch import fnmatchcase
 
 from .. import menu
-from ..flows import _pick_method_name
+from ..flows import _pick_resolution
 from ..modals import (
     _attr_filter_modal, _component_machines_modal, _filter_edit, _find_edit, _machines_modal,
     _popup_choose)
@@ -663,13 +663,14 @@ class ProfilesScreen(Screen):
                         else 'selection cleared')
         elif pfact == 'method' and ps.focus == 'right':
             vcat = ps.vcatalog()
-            if vcat:                               # pin the selected component's install method
+            if vcat:                               # pin its install method or a provider (as Components `v`)
                 name = vcat[ps.rcur]
-                changed, note, deferred = _pick_method_name(stdscr, pal, ctx, name)
+                changed, note, deferred = _pick_resolution(stdscr, pal, ctx, name)
                 if deferred:
                     pending.append(deferred)
                 if changed:
-                    ctx.invalidate()               # re-read so the new [via] pin shows
+                    ctx.invalidate()               # re-read so the new [via] pin shows (a fresh
+                    # Resolver also drops every cached resolution — a provider-pin re-routes consumers)
                     ps._res.pop(name, None)        # its resolution changed -> drop the stale entry
                     ps._parts_cache.pop(name, None)   # its parts may change with the new method too
                     ps.reload()

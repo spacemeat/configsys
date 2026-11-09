@@ -24,6 +24,7 @@ from ..panes import (
     PluginScreen)
 from ..screen import suspended
 from . import table
+from ...cli.where import active_snapshot, delta_summary
 from .base import Intent, Screen, ViewModel, results_note
 
 
@@ -107,6 +108,12 @@ def _sync_note(ctx, results):
         if note:
             return note
     return None
+
+
+def _with_delta(note, before, ctx):
+    '''`note` plus how the sync moved this box's install set (cli.where.delta_summary), if it did.'''
+    delta = delta_summary(before, ctx.config)
+    return f'{note} · {delta}' if delta else note
 
 
 class PluginsScreen(Screen):
@@ -335,21 +342,23 @@ class PluginsScreen(Screen):
             elif pact == 'sync' and row:
                 tgt = [t['decl'] for t in pl.tree
                        if plugins.dir_name(t['decl']['source']) == plugins.dir_name(row['source'])]
+                before = active_snapshot(ctx.config)   # what the sync moves, like `plugin sync` prints
                 with suspended(stdscr):
                     res = actions.plugin_sync(ctx, tgt)
                 pl.reload()
                 dirty = True
-                note = (f'{row["name"]} is locked — not synced (L unlocks)'
-                        if res and res[0][1] == 'locked' else
-                        _sync_note(ctx, res) or f'synced {row["name"]}')
+                note = _with_delta((f'{row["name"]} is locked — not synced (L unlocks)'
+                                    if res and res[0][1] == 'locked' else
+                                    _sync_note(ctx, res) or f'synced {row["name"]}'), before, ctx)
             elif pact == 'sync-all':
+                before = active_snapshot(ctx.config)
                 with suspended(stdscr):
                     res = actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                 pl.reload()
                 dirty = True
-                note = _sync_note(ctx, res) or results_note(
+                note = _with_delta(_sync_note(ctx, res) or results_note(
                     ctx, 'synced', [(n, plugins.sync_succeeded(a), str(a)) for n, a in (res or [])],
-                    what='plugin(s)', nothing='no plugins declared')
+                    what='plugin(s)', nothing='no plugins declared'), before, ctx)
             elif pact == 'bless' and row:
                 with suspended(stdscr):
                     _ok, msg, _r = actions.plugin_bless(ctx, row['source'])

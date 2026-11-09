@@ -31,6 +31,8 @@ from .startup import (
 from .flows import _commit_primary_action, _quit_push, _reload, _seed_uninstall
 
 _KEYMAP = None       # the active tui.keyspec.Keymap (set in run(); paint._keymap() reads it)
+# the `!` page's `issues` keymap actions -> the _issue_flow kind each files
+_ISSUE_KINDS = {'report': 'report', 'request': 'request', 'suggest-os': 'os'}
 
 _MOVED = {  # name -> the module that defines it
     '_columns': 'paint', '_scroll_top': 'paint', '_scroll_reveal': 'paint',
@@ -314,11 +316,13 @@ def run(ctx):
                 if (oact in ('issues', 'quit') or ch == 27
                         or keymap.action_for(screen, ch) in ('issues', 'quit')):
                     show_diag = False
-                elif ch in (ord('r'), ord('f'), ord('s')):   # file a report / request / os-request in-TUI
-                    _kind = {'r': 'report', 'f': 'request', 's': 'os'}[chr(ch)]
-                    _n = _issue_flow(stdscr, pal, ctx, _kind, pending_report)
+                elif keymap.action_for('issues', ch) in _ISSUE_KINDS:   # file an issue, in-TUI
+                    _n = _issue_flow(stdscr, pal, ctx, _ISSUE_KINDS[keymap.action_for('issues', ch)],
+                                     pending_report)
                     if _n is not None:                  # sent / reviewed (None = cancelled at the prompt)
                         note, show_diag = _n, False
+                elif keymap.action_for('issues', ch) == 'help':
+                    _help_modal(stdscr, pal, 'issues')
                 elif oact in _NAV_ACTIONS:               # the limit is clamped by _draw_diagnostics
                     diag_top = ListNav.apply(oact, diag_top, 10 ** 6, _page_rows(stdscr))
                 continue

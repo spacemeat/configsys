@@ -223,12 +223,17 @@ class ConfigScreen(Screen):
             key = cs.keys[cs.cur]
             info = cs.settings[key]
             try:
-                if info['kind'] == 'bool':
-                    _set(
-                        ctx, key, ['false' if info['value'] else 'true'])
-                    note = f'{key} = {"false" if info["value"] else "true"}'
-                    cs.reload()
-                    dirty = True
+                if info['kind'] == 'bool':          # true / false / unset — unset drops the value that
+                    # lives where the setting is effective (a local one shadowing your primary's,
+                    # say), like `config unset` (parity-17)
+                    cur_idx = 2 if info.get('home') is None else (0 if info['value'] else 1)
+                    idx = _popup_choose(stdscr, pal, key, [('true', ''), ('false', ''),
+                                                           ('unset', '(→ the default below it)')], cur_idx)
+                    if idx is not None:
+                        _set(ctx, key, [['true'], ['false'], []][idx])
+                        note = f'{key} = {("true", "false")[idx]}' if idx < 2 else f'{key} unset'
+                        cs.reload()
+                        dirty = True
                 elif key == 'scope':                # scope: user (default) / system / unset
                     cur_idx = {'user': 0, 'system': 1}.get(info['value'], 2)
                     idx = _popup_choose(stdscr, pal, key,

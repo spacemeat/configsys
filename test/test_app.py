@@ -552,7 +552,7 @@ def test_location_reflects_actual_install_scope(tmp_path, monkeypatch, capsys):
 def test_installed_despite_failure_downgrades_present_package():
     # verify-after-fail: a non-zero install whose package IS present now -> not a real failure.
     import types
-    from configsys.app import _installed_despite_failure
+    from configsys.actions import installed_despite_failure as _installed_despite_failure
 
     def drv(ver, latest=None):
         return types.SimpleNamespace(get_version=lambda rc: ver, get_latest=lambda rc: latest)

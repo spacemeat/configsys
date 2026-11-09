@@ -245,6 +245,14 @@ profiles: {
             mode: M                 // cycle the view: to-do / tracked / installed+tracked
         }
 
+        // The `!` issues page (an overlay over any screen). down/up/top/bottom scroll and help (`?`)
+        // come from `global`; `issues` or quit closes it. Each opens the review-then-send flow.
+        issues: {
+            report: r               // file a report: a component, or the last run's failures
+            request: f              // request a component (where it installs today, where it doesn't)
+            suggest-os: s           // suggest this OS, or report that an update changed it
+        }
+
         // Config screen. down/up/top/bottom from `global`; confirm OR select edits the setting.
         config: {
             theme: t                // open the theme editor

@@ -158,7 +158,13 @@
         // (YYYYMMDDHHMM): scale-root so no parent's versioned atom misreads it. Alpha. `provides:` =
         // tools in the image per its mkosi package lists (git, unzip, xz, flatpak; curl via git's
         // deps), so tarball/source methods' prerequisites are met without a package manager.
-        kde_linux: { using: glibc_linux  provides: [ flatpak  curl  git  unzip  xz ]  scale-root: true }
+        kde_linux: { using: glibc_linux  provides: [ flatpak  curl  git  unzip  xz ]  scale-root: true
+            advisory: "KDE Linux detected (alpha, immutable, NO system package manager) — configsys
+                installs apps via Flatpak and CLI tools via userland methods (Homebrew, which configsys
+                installs first when a pick needs it; tarballs; `via: script` installers; cargo once rust
+                is in). pipx tools come through Homebrew's pipx; `via: pip` packages and anything offered
+                only as a distro package decline here. KDE Linux routing is NEW and not validated on real
+                hardware — review plans before running them." }
 
         // Arch family (pacman). Rolling — no version scale; membership is by identity only.
         arch:        { using: glibc_linux  native: pacman }
@@ -189,7 +195,12 @@
         // native-only here — tarball needs curl, flatpak/pipx/cargo need their tool (rust's rustup
         // script needs curl too) — so only dotfiles/glue and a few self-contained `via: script`
         // installers resolve. Under `linux`, not glibc_linux: glibc binaries decline.
-        chimera: { using: linux }
+        chimera: { using: linux
+            advisory: "Chimera Linux detected — configsys does not route its apk packages yet (Chimera's
+                package names differ from Alpine's), and nothing beyond python3 is assumed present, so
+                practically NOTHING installs here: tarballs and `via: script` installers need curl,
+                Flatpak and pipx need their own distro packages — all unroutable. Only dotfiles/glue and
+                self-contained methods apply. Chimera-named apk routes are a planned follow-up." }
 
         // Void Linux (xbps). Rolling — no version scale. Ships in TWO flavors differing only by C
         // library: `void` (glibc, under glibc_linux) and `void_musl` (under bare linux, like Alpine),

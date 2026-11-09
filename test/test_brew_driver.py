@@ -79,11 +79,23 @@ def test_is_locked_reads_pinned():
     assert Brew(FakeRunner([('brew list --pinned', 1, '')])).is_locked(formula()) is False
 
 
-def test_location_uses_prefix_else_generic():
-    fr = FakeRunner([('brew --prefix btop', 0, '/home/linuxbrew/.linuxbrew/opt/btop\n')])
+def test_location_is_prefix_opt_formula_without_running_brew(monkeypatch, tmp_path):
+    # app-cli-20: what `brew --prefix <formula>` answers, computed — no brew spawn per unit
+    import configsys.drivers.brew as B
+    monkeypatch.setenv('HOMEBREW_PREFIX', '/home/linuxbrew/.linuxbrew')
+    fr = FakeRunner()
     assert Brew(fr).location(formula('btop')) == '/home/linuxbrew/.linuxbrew/opt/btop'
-    # not installed / brew missing -> generic marker
-    assert Brew(FakeRunner([('brew --prefix', 1, '')])).location(formula()) == '(homebrew)'
+    assert Brew(fr).location(formula('user/tap/thing')) == '/home/linuxbrew/.linuxbrew/opt/thing'
+    assert fr.calls == []
+    # no $HOMEBREW_PREFIX: the dir above the `brew` on PATH
+    monkeypatch.delenv('HOMEBREW_PREFIX')
+    monkeypatch.setattr(B.shutil, 'which', lambda n: '/opt/hb/bin/brew' if n == 'brew' else None)
+    assert Brew(fr).location(formula('btop')) == '/opt/hb/opt/btop'
+    # brew nowhere -> the generic marker
+    monkeypatch.setattr(B.shutil, 'which', lambda n: None)
+    monkeypatch.setattr(B, '_PREFIXES', (str(tmp_path / 'none'),))
+    assert Brew(fr).location(formula()) == '(homebrew)'
+    assert fr.calls == []
 
 
 def test_no_homebrew_is_a_true_empty_and_reads_spawn_nothing():

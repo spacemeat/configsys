@@ -37,6 +37,17 @@ def cmd_check(ctx, args):
     return 1 if n_err else 0
 
 
+def _validated_routes(ctx):
+    '''The Context's Resolver when its validated load is the same catalog check's tolerant load would
+    build — it raised nothing and warned nothing, so no layer, component or facet was skipped and
+    every component passed routecheck.check_component. None = take the tolerant path (app-cli-19).'''
+    try:
+        r = ctx.routes
+    except ConfigsysError:
+        return None                        # e.g. an ambiguity in your config: the tolerant load reports it
+    return None if getattr(r, 'load_warnings', None) else r
+
+
 def check_report(ctx):
     '''Every `check` finding as data -> ([(level, text)], n_components): errors first, then warnings,
     in the order `check` prints them. Shared by `configsys check` and the TUI `!` page, which runs
@@ -44,10 +55,17 @@ def check_report(ctx):
     from .. import layers, routes, routecheck
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     _route_w = []
+    # the catalog: the Resolver's when it loaded cleanly (its load already route-checked each
+    # component — don't load and check ~870 again), else a tolerant load that keeps what a validated
+    # one would refuse, so an ambiguity is reported here as an issue instead of stopping check
+    validated = _validated_routes(ctx)
     try:
-        cascade, components, drivers, _never_auto_drivers = routes.load(
-            ctx.paths.routes_file, ctx.paths.user_config_file,
-            ctx.plugin_files, validate=False, warnings_out=_route_w)
+        if validated is not None:
+            cascade, components, drivers = validated.cascade, validated.components, validated.drivers
+        else:
+            cascade, components, drivers, _never_auto_drivers = routes.load(
+                ctx.paths.routes_file, ctx.paths.user_config_file,
+                ctx.plugin_files, validate=False, warnings_out=_route_w)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]
                  + list(ctx.plugin_files)                 # (path, role): 'primary' or 'plugin'
                  + [(ctx.paths.user_config_file, 'user')])
@@ -56,7 +74,8 @@ def check_report(ctx):
         raise                              # a parse/structural error before we can lint
 
     issues = routecheck.validate(components, cascade, drivers,
-                                 pending_vias=ctx.plugin_pending_vias)
+                                 pending_vias=ctx.plugin_pending_vias,
+                                 components_checked=validated is not None)
     include_warnings = (layers.ignored_section_warnings(layer_list)
                         + layers.unknown_section_warnings(layer_list)
                         + layers.setting_value_warnings(layer_list)

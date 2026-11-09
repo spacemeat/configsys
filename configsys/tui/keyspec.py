@@ -350,6 +350,7 @@ KNOWN_ACTIONS = {
                    'op-upgrade', 'op-install-all', 'op-upgrade-all', 'op-remove', 'execute',
                    'refresh', 'mode'},
     'config': {'theme', 'move'},
+    'issues': {'report', 'request', 'suggest-os'},         # the `!` page (an overlay, not a screen)
     'dotfiles': {'manage', 'manage-all', 'unmanage', 'unmanage-all', 'move-store', 'move-store-all'},
     'glue': {'activate', 'activate-group', 'deactivate', 'new-snippet', 'override', 'staged'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
@@ -385,6 +386,8 @@ ACTION_LABELS = {
     'execute': 'run staged ops', 'refresh': 'refresh versions + package index',
     'mode': 'cycle view: to-do / tracked / installed+tracked',
     'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
+    'report': 'file a report (a component, or the last failures)', 'request': 'request a component',
+    'suggest-os': 'suggest this OS (or report an update that changed it)',
     'manage': 'manage: capture + link', 'manage-all': 'manage every unmanaged config',
     'unmanage': 'unmanage (unlink; confirms)', 'unmanage-all': 'unmanage every managed config',
     'move-store': 'move store: local ⇄ primary', 'move-store-all': 'move all configs to a store',

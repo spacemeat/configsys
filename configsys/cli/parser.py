@@ -221,15 +221,16 @@ def build_parser():
                                           'configured scope, so they match the config (the config is '
                                           'not changed)')
     fs.add_argument('names', nargs='*', help='component names (default: every mismatched install)')
+    fs.add_argument('-y', '--yes', action='store_true', help='skip the confirmation prompt')
 
     sv = sub.add_parser('set-version', help='install a specific version of a component, where its '
                                             'install method can target one')
     sv.add_argument('name', help='component name')
     sv.add_argument('version', help='version to install (for flatpak, a commit id)')
 
-    mp = sub.add_parser('machine', help='list, add, remove or switch machines (the columns of '
-                                        '`picks:`)')
-    mpsub = mp.add_subparsers(dest='machine_command')
+    p_machine = sub.add_parser('machine', help='list, add, remove or switch machines (the columns '
+                                               'of `picks:`)')
+    mpsub = p_machine.add_subparsers(dest='machine_command')
     mpsub.add_parser('list', help='list machines and how many components each tracks, marking which '
                                   'one this box is (default)')
     mps = mpsub.add_parser('show', help="show one machine's picks")
@@ -323,9 +324,10 @@ def build_parser():
                                            '(portable to your other machines)')
     pnp.add_argument('component', help='component (or capability) name')
 
-    pr = sub.add_parser('profile', help='browse profiles: read-only component lists from the repo, '
-                                        'your plugins and your own config (installs come from picks)')
-    prsub = pr.add_subparsers(dest='profile_command')
+    p_profile = sub.add_parser('profile', help='browse profiles: read-only component lists from the '
+                                               'repo, your plugins and your own config (installs come '
+                                               'from picks)')
+    prsub = p_profile.add_subparsers(dest='profile_command')
     prsub.add_parser('list', help='list every profile and its components (default)')
     prs = prsub.add_parser('show', help="show one profile's terms, where it is defined, and what it "
                                         'expands to')
@@ -410,11 +412,12 @@ def build_parser():
                     help='if a plugin of the same name is already declared from another source, '
                          'drop that one and use this source instead (a copy holding unpushed or '
                          'uncommitted work is kept as <name>.replaced-<date>; a primary stays primary)')
-    pr = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy (refused '
-                                         'while the copy holds unpushed or uncommitted work)')
-    pr.add_argument('name', help='plugin name, source, or dir')
-    pr.add_argument('--force', action='store_true',
-                    help='delete the synced copy even if it holds work found nowhere else')
+    p_plugin_remove = plsub.add_parser('remove', help='undeclare a plugin and delete its synced copy '
+                                                      '(refused while the copy holds unpushed or '
+                                                      'uncommitted work)')
+    p_plugin_remove.add_argument('name', help='plugin name, source, or dir')
+    p_plugin_remove.add_argument('--force', action='store_true',
+                                 help='delete the synced copy even if it holds work found nowhere else')
     pu = plsub.add_parser('update',
                           help="re-sync a plugin, or all of them (--ref / --latest move its `ref:`)")
     pu.add_argument('name', nargs='?',
@@ -433,8 +436,8 @@ def build_parser():
                                             'trust every plugin that needs it)')
     pt.add_argument('--all', action='store_true',
                     help='trust every plugin that is currently untrusted or changed since trusted')
-    pun = plsub.add_parser('untrust', help="revoke a plugin's trust")
-    pun.add_argument('name', help='plugin name, source, or dir')
+    p_plugin_untrust = plsub.add_parser('untrust', help="revoke a plugin's trust")
+    p_plugin_untrust.add_argument('name', help='plugin name, source, or dir')
     plk = plsub.add_parser('lock', help='hold a plugin where it is on this machine: sync leaves it '
                                         'alone and update, bless and trust refuse it (its synced copy '
                                         'still loads)')
@@ -458,16 +461,19 @@ def build_parser():
     plg = plsub.add_parser('log', help="your primary plugin's recent commits: what each changed, which "
                                        "configsys made, which aren't pushed yet")
     plg.add_argument('-n', type=int, default=10, metavar='N', help='how many commits (default 10)')
-    pun = plsub.add_parser('undo', help='take back the newest change configsys committed to your '
-                                        'primary (dropped if never pushed, else reverted)')
-    pun.add_argument('-y', '--yes', action='store_true', help='undo without showing it and asking first')
-    pin = plsub.add_parser('init', help='create your primary plugin from local content (captured '
-                                        "dotfiles, your own glue, your config's component "
-                                        'definitions), or merge that into your existing primary')
-    pin.add_argument('name', nargs='?', help='plugin name (default: configsys-<user>)')
-    pin.add_argument('--force', action='store_true',
-                     help='overwrite dotfiles and glue already in the plugin')
-    pin.add_argument('--dry-run', action='store_true', help='show the plan and exit; write nothing')
+    p_plugin_undo = plsub.add_parser('undo', help='take back the newest change configsys committed to '
+                                                  'your primary (dropped if never pushed, else reverted)')
+    p_plugin_undo.add_argument('-y', '--yes', action='store_true',
+                               help='undo without showing it and asking first')
+    p_plugin_init = plsub.add_parser('init', help='create your primary plugin from local content '
+                                                  "(captured dotfiles, your own glue, your config's "
+                                                  'component definitions), or merge that into your '
+                                                  'existing primary')
+    p_plugin_init.add_argument('name', nargs='?', help='plugin name (default: configsys-<user>)')
+    p_plugin_init.add_argument('--force', action='store_true',
+                               help='overwrite dotfiles and glue already in the plugin')
+    p_plugin_init.add_argument('--dry-run', action='store_true',
+                               help='show the plan and exit; write nothing')
     pss = plsub.add_parser('set-source', help='swap a plugin\'s source (e.g. local path -> '
                                               'github:you/name after you push it)')
     pss.add_argument('name', help='declared plugin name')
@@ -583,14 +589,14 @@ def build_parser():
         u.add_argument('names', nargs='+', help='component name(s)')
     unsub.add_parser('clear', help='unstage everything')
 
-    mp = sub.add_parser('manpages', help='install or check the man pages '
-                                         '(configsys(1) + configsys.hu(5))')
-    mpsub = mp.add_subparsers(dest='manpages_command')
+    p_manpages = sub.add_parser('manpages', help='install or check the man pages '
+                                                 '(configsys(1) + configsys.hu(5))')
+    p_manpages_sub = p_manpages.add_subparsers(dest='manpages_command')
     for mname, mhelp in (('install', 'copy the man pages into a man directory (default: '
                                      '~/.local/share/man)'),
                          ('status', 'report whether the installed pages are present and current '
                                     '(default)')):
-        msp = mpsub.add_parser(mname, help=mhelp)
+        msp = p_manpages_sub.add_parser(mname, help=mhelp)
         msp.add_argument('--prefix', metavar='DIR',
                          help='man-dir prefix; pages go under <prefix>/share/man (default: ~/.local)')
 

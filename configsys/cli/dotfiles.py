@@ -9,17 +9,10 @@ from pathlib import Path
 from .. import shellguard
 from ..drivers import get_driver
 from ..errors import ConfigError
-from .common import _install_scope_label
+from .common import _install_scope_label, ask
 
 
 _GLUE_ORDER = ['loader-on', 'linked', 'drifted', 'template', 'loader-off']   # glue states, active-first (drifted = active but shipped source changed)
-
-
-def _active_dotfiles(ctx):
-    '''(driver, [ResolvedComponent]) — the via:dotfiles units for this machine's picks. Resolution
-    only (no install-state query), so it's cheap and side-effect-free.'''
-    from .. import actions
-    return actions.dotfiles_units(ctx)
 
 
 def _dotfiles_diagnostics(ctx):
@@ -28,8 +21,8 @@ def _dotfiles_diagnostics(ctx):
     must never break the diagnostics pass.'''
     out = []
     try:
-        from ..drivers import get_driver
-        _df, units = _active_dotfiles(ctx)
+        from .. import actions
+        _df, units = actions.dotfiles_units(ctx)     # resolution only: cheap, side-effect-free
         for rc in units:                         # glue.warnings is empty; config warns live on dotfiles
             out.extend(get_driver(rc.driver, ctx.runner, ctx.paths).warnings(rc))
     except Exception:
@@ -241,11 +234,6 @@ def cmd_dotfiles_discard(ctx, args):
     return rc
 
 
-def _dotfiles_root_label(ctx, root):
-    '''A short, stable label for a content root (see Paths.content_root_label).'''
-    return ctx.paths.content_root_label(root)
-
-
 def _print_user_glue(drv, entries):
     '''The `user glue` table of `dotfiles status`: every user.d snippet (`glue add`, an activated
     staged block) per shell, whether its conf.d link is live, and where the snippet lives.'''
@@ -269,7 +257,8 @@ def cmd_dotfiles_status(ctx, args):
     from ..drivers.glue import GLUE_STATE_LABEL
     from ..drivers.dotfiles import config_display_state, CONFIG_STATES
     from ..drivers import get_driver
-    df, units = _active_dotfiles(ctx)
+    from .. import actions
+    df, units = actions.dotfiles_units(ctx)
     cfg, glue = [], []   # (state, target, component, src_root|None, src_rel, here)
     for rc in units:                             # dispatch per unit: config->dotfiles, glue->glue
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
@@ -296,7 +285,7 @@ def cmd_dotfiles_status(ctx, args):
     roots = {}                                   # distinct src roots -> label, listed once
     for r in cfg + glue:
         if isinstance(r[3], Path):
-            roots.setdefault(r[3], _dotfiles_root_label(ctx, r[3]))
+            roots.setdefault(r[3], ctx.paths.content_root_label(r[3]))
     print()
     for root, label in sorted(roots.items(), key=lambda kv: kv[1]):
         print(f'  {label:9} {df.display_path(root)}')
@@ -349,7 +338,8 @@ def cmd_dotfiles_capture(ctx, args):
     else ~/.config/configsys/dotfiles) so a later install links YOUR content, not a template.
     Read-only on the system side — it only copies FROM your dotfiles INTO the store; it never
     modifies or deletes an on-system file.'''
-    df, units = _active_dotfiles(ctx)
+    from .. import actions
+    df, units = actions.dotfiles_units(ctx)
     want = set(args.names or [])
     store = df.capture_root()
     units = [rc for rc in units if rc.driver == 'dotfiles']   # capture is config-only; glue is shipped
@@ -383,12 +373,11 @@ def cmd_dotfiles_capture(ctx, args):
     if args.dry_run or ctx.runner.pretend:
         print('\n(dry run — nothing written)')
         return 0
-    if not args.yes:
-        caveat = ' — committed if you push the plugin' if is_plugin else ''
-        resp = input(f'\nCopy {len(plan)} target(s) into {df.display_path(store)}{caveat}? [y/N] ')
-        if resp.strip().lower() not in ('y', 'yes'):
-            print('aborted.')
-            return 1
+    caveat = ' — committed if you push the plugin' if is_plugin else ''
+    if not ask(f'\nCopy {len(plan)} target(s) into {df.display_path(store)}{caveat}? [y/N] ',
+               yes=args.yes, refuse_note='\nconfigsys: not a terminal — re-run with --yes to capture.'):
+        print('aborted.')
+        return 1
     captured, failed = 0, 0
     for rc in units:
         try:

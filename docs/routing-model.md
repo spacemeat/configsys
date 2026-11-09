@@ -528,8 +528,8 @@ an error about a missing driver. With no `native:` there is also no native index
   no non-native route, so the appImage driver can't work here (the derived gate, §8a) and **AppImage methods are not
   candidates**. VERSION_ID is a build timestamp
   (YYYYMMDDHHMM); `scale-root: true` keeps any parent's versioned atom from misreading it.
-  Diagnostics add an `immutable` warning (alpha, no system package manager, Flatpak + userland
-  methods only).
+  Its `advisory:` puts an `os-advisory` warning in the diagnostics (alpha, no system package
+  manager, Flatpak + userland methods only).
 - **`chimera`** (Chimera Linux: musl, LLVM, BSD userland, rolling): `{ using: linux }` — under bare
   `linux`, so glibc-requiring bindings (`requires: glibc`) decline as on Alpine. It has apk-tools v3
   but not Alpine's package names (`-devel` not `-dev`, `python` not `python3`), so every `apk:`
@@ -537,7 +537,8 @@ an error about a missing driver. With no `native:` there is also no native index
   `via: apk  when: "chimera"` bindings are verified** (a name sweep in the chimeralinux image).
   It declares no `provides:` beyond `linux`'s, so as shipped even the non-native methods are
   mostly unmet (tarballs need `curl`, flatpak apps need `flatpak`, and those have only native
-  routes) and most components decline. Diagnostics add a `partial-os` warning.
+  routes) and most components decline. Its `advisory:` puts an `os-advisory` warning in the
+  diagnostics.
 
 Writing a native-less block: omit `native:`, list in `provides:` exactly the tools the image
 ships (each entry is a promise that satisfies a driver requirement for free — overclaiming

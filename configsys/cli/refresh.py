@@ -9,13 +9,23 @@ import re
 from pathlib import Path
 from ..drivers import get_driver
 from ..ledger import Ledger
-from .common import print_reboot_advisory
+from .common import ask as _ask, print_reboot_advisory
+
+
+def _untrusted_binding(ctx, b):
+    '''True when `b` comes from an untrusted plugin layer and carries commands (a source, a key) —
+    the same trustgate check resolve._matching applies. Such a binding never makes its source
+    "configsys-managed": refresh never re-keys it as root or offers to remove it (app-cli-16).'''
+    from .. import trustgate
+    cascade = getattr(getattr(ctx, 'routes', None), 'cascade', None)
+    return cascade is not None and trustgate.gated(b, cascade) is not None
 
 
 def _owned_index_sources(ctx):
     '''{system source-file path -> owning component} for every route binding that writes a native
     package source (apt `source-path`, dnf `/etc/yum.repos.d/<repo-id>.repo`). Lets the refresh
-    diagnosis say "this broken source is one configsys wrote, for component X" vs a foreign file.'''
+    diagnosis say "this broken source is one configsys wrote, for component X" vs a foreign file.
+    A binding from an untrusted plugin layer doesn't count — its source reads foreign.'''
     owned = {}
     try:
         comps = ctx.routes.components
@@ -23,6 +33,8 @@ def _owned_index_sources(ctx):
         return owned
     for name, comp in comps.items():
         for b in getattr(comp, 'bindings', []) or []:
+            if _untrusted_binding(ctx, b):
+                continue
             d = getattr(b, 'details', {}) or {}
             sp = d.get('source-path')
             if sp:
@@ -106,6 +118,8 @@ def _source_key_fields(ctx, component, src_path):
     except Exception:
         comp = None
     for b in getattr(comp, 'bindings', []) or []:
+        if _untrusted_binding(ctx, b):
+            continue                                 # an untrusted layer's key is never fetched as root
         d = getattr(b, 'details', {}) or {}
         rid = d.get('repo-id')
         if str(d.get('source-path') or '') == src_path or (rid and f'/etc/yum.repos.d/{rid}.repo' == src_path):
@@ -141,10 +155,7 @@ def _offer_rekey(ctx, pm, output, owned, native_cmd, *, ask=None):
     import shlex
     if ask is None:
         def ask(prompt):
-            try:
-                return input(prompt).strip().lower() == 'y'
-            except EOFError:
-                return False
+            return bool(_ask(prompt, pretend=ctx.runner.pretend, noninteractive='no'))
     for src, comp, key_url, key_path in _rekey_candidates(ctx, output, pm, owned):
         if not ask(f'\nRe-fetch the signing key for `{comp}` (rotated?) into {key_path} and retry? [y/N] '):
             continue
@@ -205,10 +216,7 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
         return 0
     if ask is None:
         def ask(prompt):
-            try:
-                return input(prompt).strip().lower() == 'y'
-            except EOFError:
-                return False
+            return bool(_ask(prompt, noninteractive='no'))
     import shlex
     removed = 0
     print('\n── stale managed package sources (their component is neither picked nor installed here) ──')
@@ -338,16 +346,25 @@ def published_pending(ctx, fresh):
     return sorted(fresh & now) if now is not None else []
 
 
-def cmd_refresh(ctx, args):
+def cmd_refresh(ctx, args=None):
+    from ..installState import _parallel_map
     from ..routes import clear_facet_cache
     from ..versions import discover, source_key
     clear_facet_cache()                                # facets are probed afresh too (a new GPU / CUDA)
-    ctx.invalidate()
+    if hasattr(ctx, 'invalidate'):
+        ctx.invalidate()                              # the next read sees the refreshed state
     print('configsys refresh — re-querying version sources and the package index '
           '(this can take a moment; sudo may prompt)…', flush=True)
     _cfg, _req, units, _ledger, _states = ctx.load_pipeline()
     print('\nRefreshing discovered versions...')
-    seen = {}
+
+    def fetch(item):                              # (key, spec) -> (key, version) — one network wait each
+        k, spec = item
+        return k, discover(spec, ctx.paths, refresh=True, offline=ctx.runner.pretend)   # A14: a dry run asks nothing
+
+    # the unique sources first, then their lookups CONCURRENTLY (the cache writes are lock-safe — B9),
+    # printed in source order: wall time is the slowest source, not the sum (app-cli-21)
+    specs = {}
     for key in sorted(units):
         rc = units[key]
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
@@ -359,10 +376,9 @@ def cmd_refresh(ctx, args):
         spec = drv.version_spec(rc)
         if not isinstance(spec, dict) or 'static' in spec:
             continue
-        sk = source_key(spec)
-        if sk in seen:
-            continue
-        seen[sk] = discover(spec, ctx.paths, refresh=True, offline=ctx.runner.pretend)   # A14: a dry run asks nothing
+        specs.setdefault(source_key(spec), spec)
+    seen = dict(_parallel_map(fetch, list(specs.items())))
+    for sk in sorted(seen):
         print(f'  {sk:44} -> {seen[sk] or "(unknown)"}')
     if not seen:
         print('  (no discoverable versions among your tracked components)')
@@ -376,21 +392,20 @@ def cmd_refresh(ctx, args):
     # only, the pin stays authoritative and nothing auto-bumps, so you just learn WHEN to bump a pin
     # by hand. `check` re-surfaces this (from the stamp) without hitting the network. Deduped per comp.
     from .. import refreshstate
-    from ..versions import discover as _discover_latest
     from ..osversion import parse_version as _pv
-    stale, seen_lc = {}, set()
+    stale, checks, pinned = {}, {}, {}
     for key in sorted(units):
         rc = units[key]
         lc = rc.fields.get('latest-check')
-        if not isinstance(lc, dict) or rc.comp in seen_lc:
+        if not isinstance(lc, dict) or rc.comp in checks:
             continue
-        seen_lc.add(rc.comp)
+        checks[rc.comp] = lc
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-        pinned = drv.resolve_version(rc) if drv is not None else None
-        upstream = _discover_latest(lc, ctx.paths, refresh=True, offline=ctx.runner.pretend)
-        pu, pp = _pv(upstream), _pv(pinned)
+        pinned[rc.comp] = drv.resolve_version(rc) if drv is not None else None
+    for comp, upstream in _parallel_map(fetch, list(checks.items())):    # concurrently, like above
+        pu, pp = _pv(upstream), _pv(pinned[comp])
         if pu is not None and pp is not None and pu > pp:
-            stale[rc.comp] = [str(pinned), str(upstream)]
+            stale[comp] = [str(pinned[comp]), str(upstream)]
     if stale:
         print('\nManual version pins behind upstream (bump the pin in routes.hu / the plugin):')
         for comp in sorted(stale):
@@ -443,10 +458,8 @@ def cmd_refresh(ctx, args):
         full = _FULL_UPGRADE_REFRESH[pm]
         print(f'\nOn {pm} a safe refresh is a FULL SYSTEM UPGRADE (`{full}`) — an index-only sync\n'
               'leaves a partial-sync state that breaks the next install, so configsys never does one.')
-        try:
-            go = input(f'Run `{full}` now (upgrades ALL installed packages)? [y/N] ').strip().lower() == 'y'
-        except EOFError:
-            go = False
+        go = _ask(f'Run `{full}` now (upgrades ALL installed packages)? [y/N] ',
+                  pretend=ctx.runner.pretend, noninteractive='no')
         if go:
             ok = ctx.runner.run(full, sudo=True, capture=False).ok
         else:
@@ -456,4 +469,4 @@ def cmd_refresh(ctx, args):
         refreshstate.record(ctx.paths)                # stamp only a successful index refresh
     if getattr(ctx, 'config', None) is not None and ctx.config.reboot_advice():
         print_reboot_advisory(ctx)                    # a refresh can reveal a pending reboot too
-    return 0
+    return 0 if ok else 1                             # `refresh && upgrade --picks` stops on a failed index

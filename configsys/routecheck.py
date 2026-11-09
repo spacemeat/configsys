@@ -436,14 +436,17 @@ def _as_parts(v):
     return [v] if isinstance(v, str) else [x for x in (v or []) if isinstance(x, str)]
 
 
-def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_drivers=None):
+def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_drivers=None,
+             components_checked=False):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
     requires-nothing-provides (warnings — localized). Attribution via each Component.source.
 
     `pending_vias` are via names provided by a declared code plugin that is present but not
     loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
-    unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.'''
+    unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.
+    `components_checked` = every component already passed `check_component` (a validated
+    routes.load returned them), so the ambiguity pass is skipped rather than run twice.'''
     from .drivers import supported_names
     from .resolve import cap_names, standing_problem
     valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
@@ -457,10 +460,11 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
     for cycle in _parts_cycles(components):            # a parts loop would error every resolve (B4)
         add('parts-cycle', 'parts cycle: ' + ' -> '.join(cycle), components[cycle[0]])
     for name, comp in components.items():
-        try:
-            check_component(name, comp, cascade)
-        except AmbiguityError as e:
-            add('ambiguity', str(e), comp)
+        if not components_checked:
+            try:
+                check_component(name, comp, cascade)
+            except AmbiguityError as e:
+                add('ambiguity', str(e), comp)
         for msg in _method_tie_warnings(name, comp, cascade, never_auto_drivers):
             add('method-tie', msg, comp, 'warning')
         for msg in retired_key_warnings(comp):

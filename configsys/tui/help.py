@@ -218,4 +218,12 @@ _HELP = {
             ('*', 'a color, role or gradient end you changed from the default (reset restores it)'),
         ],
     },
+    'issues': {
+        'desc': "Everything configsys skipped or warned about while loading and inspecting this machine "
+                "(errors first), and the hub for filing an issue: each shows the exact scrubbed body "
+                "and sends only when you say so.",
+        'glossary': [
+            ('✗ / ⚠', 'an error (something was dropped or can\'t work) / a warning'),
+        ],
+    },
 }

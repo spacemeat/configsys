@@ -153,7 +153,11 @@ def _draw_diagnostics(stdscr, pal, diags, top):
     top = max(0, min(top, max(0, len(lines) - body_h)))
     for i, (text, attr) in enumerate(lines[top:top + body_h]):
         _put(stdscr, 2 + i, 0, _fit(text, w), attr)
-    foot = ' j/k scroll · r report a component · f request a component · s suggest this OS · ! or q back '
+    km = _keymap()                                   # the legend follows your `keys:` (parity-15)
+    g = lambda a: km.glyph('issues', a)              # noqa: E731
+    foot = (f' {g("down")}/{g("up")} scroll · {g("report")} report a component · {g("request")} request '
+            f'a component · {g("suggest-os")} suggest this OS · {g("help")} help · {g("issues")} or '
+            f'{g("quit")} back ')
     _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
     return top
@@ -656,7 +660,9 @@ def _machines_modal(stdscr, pal, ctx, targets):
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
         cursor_at = nshow - 1 if mode == 'add' else sel
         top = _keep_visible(cursor_at, top, vis)
-        _modal_frame(stdscr, pal, y0, x0, box_h, box_w, 'target machines (A/D fan out to ✓)')
+        _modal_frame(stdscr, pal, y0, x0, box_h, box_w,
+                     f'target machines ({_keymap().glyph("profiles", "track-all")}/'
+                     f'{_keymap().glyph("profiles", "track-one")} fan out to ✓)')
         for k in range(vis):
             idx = top + k
             if idx > nshow - 1:
@@ -733,7 +739,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
             sel = moved
         elif ch == ord(' '):
             tg ^= {rows[sel]}                         # toggle freely — the current machine included; an
-                                                     # empty set is allowed (A/D then simply no-op)
+                                                     # empty set is allowed (T/t then simply no-op)
         elif ch == ord('m'):                         # make the selected machine THIS box's current
             if rows[sel] != this:
                 ok, why = actions.set_machine_active(ctx, rows[sel])

@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from .. import primarygit
 from ..drivers import get_driver
+from .common import ask
 from .where import active_snapshot, print_sync_delta
 
 
@@ -405,18 +406,18 @@ def _plugin_log(ctx, args):
 def _plugin_undo(ctx, args):
     '''`plugin undo`: show the newest configsys change, ask on a terminal (unless --yes), take it back.'''
     def confirm(change):
-        if args.yes or not (sys.stdin.isatty() and sys.stdout.isatty()):
+        if args.yes:
             return True
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            print('configsys: not a terminal — re-run with --yes to undo it.')
+            return False                               # a script says --yes; a pipe isn't consent (app-cli-18)
         other = change.machine and change.machine != primarygit.machine_name(ctx)
         print(f'configsys: undo {change.short} "{change.subject}"'
               + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]'
               + (f'\n  NOTE: this change was made on {change.machine}, not this machine' if other else ''))
         print('  any file it ADDED leaves the primary (and your disk) — a copy is saved under '
               f'{ctx.paths.state_dir}/undo/{change.short}/ first')
-        try:
-            return input('Undo it? [y/N] ').strip().lower()[:1] == 'y'
-        except EOFError:
-            return False
+        return bool(ask('Undo it? [y/N] '))
     ok, lines = primarygit.undo(ctx, confirm)
     for line in lines:
         print(f'configsys: {line}')
@@ -471,9 +472,9 @@ def cmd_plugin(ctx, args):
         return 0 if ok else 1
 
     if sub == 'unbless':
-        _ok, msg = actions.plugin_unbless(ctx)
+        ok, msg = actions.plugin_unbless(ctx)
         print(f'configsys: {msg}')
-        return 0
+        return 0 if ok else 1
 
     if sub == 'add':
         ok, msg, results = actions.plugin_add(ctx, args.source, args.ref,
@@ -544,9 +545,9 @@ def cmd_plugin(ctx, args):
         return 0 if (ok or 'nothing to trust' in note) else 1
 
     if sub == 'untrust':
-        _ok, note = actions.plugin_untrust(ctx, args.name)
+        ok, note = actions.plugin_untrust(ctx, args.name)
         print(f'configsys: {note}')
-        return 0
+        return 0 if ok else 1
 
     if sub in ('lock', 'unlock'):
         ok, note = (actions.plugin_lock if sub == 'lock' else actions.plugin_unlock)(ctx, args.name)
@@ -606,8 +607,11 @@ def cmd_plugin(ctx, args):
             if r.get('locked'):
                 state += f'  [locked since {r["locked"]} — no sync/update/trust; configsys plugin unlock {r["name"]}]'
             if r['primary'] and r['synced']:
-                if getattr(args, 'fetch', False) and not primarygit.fetch(ctx):
-                    state += '  [could not fetch its remote — counts are as of the last fetch]'
+                if getattr(args, 'fetch', False):
+                    if ctx.runner.pretend:                 # a dry run fetches nothing — not a failure
+                        state += '  [pretend — not fetched]'
+                    elif not primarygit.fetch(ctx):
+                        state += '  [could not fetch its remote — counts are as of the last fetch]'
                 where = primarygit.describe(primarygit.state(ctx))
                 if where:
                     state += f'  [{where}]'

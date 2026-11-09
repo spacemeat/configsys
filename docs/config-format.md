@@ -628,6 +628,9 @@ An `os:` block describes one distro:
 - **`scale-root: true`** marks a block that numbers its own releases, so versioned atoms on a parent
   don't misread its version;
 - **`provides:`** capabilities the OS has out of the box;
+- **`advisory:`** a caveat shown as an `os-advisory` warning (the TUI `!` page, `inspect`) on this
+  block and every block that inherits from it — a block's own replaces its parent's, `advisory: ""`
+  silences it (KDE Linux and Chimera carry one);
 - **`driver-preference:`** an OS-specific tiebreak order, consulted before the machine setting on
   this block and the blocks that inherit from it (the nearest block's list first); drivers it
   doesn't name fall back to the setting, then to the default order;
@@ -859,8 +862,8 @@ live on the Theme screen or with `configsys theme`; see docs/theming.md.
 
 `keys:` rebinds TUI keys by action: `keys: { <key scope>: { <action>: <key or [ keys ]> } }`, where
 the key scope (unrelated to the install `scope:` setting) is `global`, `screens` (the number keys
-that switch screens) or a screen name (`components`, `profiles`, `plugins`, `glue`, `dotfiles`,
-`config`, `theme`). A key is a character (case matters), a named key (`enter`, `tab`, `esc`,
+that switch screens), a screen name (`components`, `profiles`, `plugins`, `glue`, `dotfiles`,
+`config`, `theme`) or `issues` (the `!` page's `report`, `request` and `suggest-os`). A key is a character (case matters), a named key (`enter`, `tab`, `esc`,
 `space`, arrows, `pgup`, `pgdn`, `home`, `end`, `del`, `shift-tab`, `f1` to `f12`) or `ctrl-<x>`.
 The on-screen hints follow your bindings, and `configsys keys` prints the effective map. The
 subsections below are the full reference.

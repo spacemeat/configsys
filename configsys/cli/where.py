@@ -207,11 +207,25 @@ def active_snapshot(cfg):
         return set()
 
 
+def sync_delta(before, cfg):
+    '''(added, removed) installable components vs the `before` snapshot, both sorted.'''
+    after = active_snapshot(cfg)
+    return sorted(after - before), sorted(before - after)
+
+
+def delta_summary(before, cfg):
+    '''print_sync_delta in one line, for a status bar (the TUI Plugins sync note — parity-17):
+    "install set +2 / -1 (review on Components)", or '' when nothing moved.'''
+    added, removed = sync_delta(before, cfg)
+    if not (added or removed):
+        return ''
+    return f'install set +{len(added)} / -{len(removed)} (review on Components)'
+
+
 def print_sync_delta(before, cfg):
     '''After a sync/update, print how the active set moved vs the `before` snapshot: added/removed
     installable components (an included profile that grew upstream).'''
-    after = active_snapshot(cfg)
-    added, removed = sorted(after - before), sorted(before - after)
+    added, removed = sync_delta(before, cfg)
     if added or removed:
         print('configsys: active set changed:')
         for c in added:
@@ -335,8 +349,8 @@ def _location_lines(ctx):
     '''`<comp>\\t<abspath>` for every REQUESTED component whose driver manages a location
     (tarball/appImage/source/…); native/PATH components (no managed location) are omitted. Uses the
     TARGET location (no per-component get_installed probe), so it's subprocess-free and fast — a
-    tarball tool's dir is the same whether or not it's installed (the glue snippet path-guards).'''
-    from ..resolve import ResolveError
+    tarball tool's dir is the same whether or not it's installed (the glue snippet path-guards).
+    One resilient resolve: an unroutable pick drops out, never blanks (or re-resolves) the list.'''
     r = ctx.routes
     try:
         names = list(ctx.config.requested())
@@ -344,10 +358,7 @@ def _location_lines(ctx):
         names = []
     if not names:
         return []
-    try:
-        units = r.resolve_names(names)
-    except ResolveError:
-        units, _errs = r.resolve_resilient(names)        # one bad entry shouldn't blank the whole list
+    units, _errs = r.resolve_resilient(names)
     ctx.prepare_units(units)                             # honor scope + `locations:` for the glue cache
     seen, lines = set(), []
     for rc in units.values():
@@ -380,12 +391,6 @@ def write_location_cache(ctx, lines=None):
         p.write_text(('\n'.join(lines) + '\n') if lines else '', encoding='utf-8')
     except Exception:                                    # noqa: BLE001 — a cache write must never fail an op
         pass
-
-
-def invalidate_location_cache(ctx):
-    '''Re-export of actions.invalidate_location_cache (kept here for the CLI pin paths + tests).'''
-    from .. import actions
-    actions.invalidate_location_cache(ctx)
 
 
 def _location_all(ctx):

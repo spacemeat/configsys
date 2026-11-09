@@ -10,20 +10,9 @@ from .. import reportgen
 from ..errors import ConfigsysError
 from ..drivers import get_driver
 from ..ledger import Ledger
-from .common import _install_scope_label, _pretend_edit, print_reboot_advisory
+from .common import _install_scope_label, _pretend_edit, ask, print_reboot_advisory
 from .issues import cmd_report
 from .refresh import maybe_refresh_before_plan, refresh_native_index
-
-
-_STATUS_LABEL = {
-    'installed': 'installed',
-    'outdated': 'outdated',
-    'missing': 'missing',
-    'locked': 'locked',
-    'unsupported': 'unsupported',
-    'untrusted': 'untrusted',
-    'error': 'error',
-}
 
 
 def cmd_inspect(ctx, args):
@@ -37,7 +26,7 @@ def cmd_inspect(ctx, args):
         s = states[key]
         lock = ' [locked]' if s.locked else ''
         na = '?' if s.untrusted else '-'      # untrusted: unknown (can't read without the driver)
-        print(f'{key:30} {_STATUS_LABEL.get(s.status, s.status):12} '
+        print(f'{key:30} {s.status:12} '
               f'{str(s.installed_version or na):20} {s.latest_version or na}{lock}')
         from ..stranded import REASON_TEXT, stranded_reasons
         strand = stranded_reasons(s)
@@ -62,19 +51,12 @@ def cmd_inspect(ctx, args):
     return 0
 
 
-def _expand_profile_args(ctx, names):
+def _expand_profile_args_detail(ctx, names):
     '''Expand any `profile:<name>` token to that profile's components (order-preserving, deduped);
     bare tokens pass through as component names. The `profile:` prefix disambiguates from a
-    component of the same name. Returns the expanded list, or None on a bad profile (after
-    printing the error).'''
-    got = _expand_profile_args_detail(ctx, names)
-    return None if got is None else got[0]
-
-
-def _expand_profile_args_detail(ctx, names):
-    '''_expand_profile_args plus WHICH names came only from a `profile:` expansion (not named
-    explicitly) — those may be skipped when they can't install here. Returns (names, from_profile)
-    or None on a bad profile.'''
+    component of the same name. Also says WHICH names came only from a `profile:` expansion (not
+    named explicitly) — those may be skipped when they can't install here. Returns (names,
+    from_profile), or None on a bad profile (after printing the error).'''
     out, seen, explicit, from_profile = [], set(), set(), set()
 
     def add(c, via_profile=False):
@@ -127,19 +109,11 @@ def _confirm_plan(ctx, plan, *, yes=False):
     print(f'\nplan ({len(plan)} op{"" if len(plan) == 1 else "s"}):')
     for op, key, _rc in plan:
         print(f'  {op:12} {key}')
-    if yes or getattr(ctx.runner, 'pretend', False):
-        return True
-    if not (sys.stdin.isatty() and sys.stdout.isatty()):
-        print('\nconfigsys: re-run with --yes to apply this plan non-interactively.')
-        return False
-    try:
-        ans = input(f'\nRun these {len(plan)} op(s) now? [y/N] ').strip().lower()
-    except EOFError:
-        ans = ''
-    if ans not in ('y', 'yes'):
+    go = ask(f'\nRun these {len(plan)} op(s) now? [y/N] ', yes=yes or getattr(ctx.runner, 'pretend', False),
+             refuse_note='\nconfigsys: re-run with --yes to apply this plan non-interactively.')
+    if go is False:
         print('Aborted — nothing changed.')
-        return False
-    return True
+    return bool(go)
 
 
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, confirm=False,
@@ -160,14 +134,15 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, co
         # a component with no install method here any more (dangling/unmet) can't resolve — but
         # if it's still installed via a stranded method (receipt / AUR heuristic / gated binding),
         # removing THAT install is exactly what the user asked for
-        from .. import stranded
+        from .. import probecache, stranded
+        cache = probecache.of(ctx)                    # one `pacman -Qm` for the whole loop, not one per name
         routable, skipped = [], []
         for n in names:
             try:
                 ctx.routes.resolve_names([n])
                 routable.append(n)
             except Exception:                        # noqa: BLE001 — unroutable: look for a stranded install
-                found = stranded.find(ctx, n, ledger=ledger, foreign=stranded.foreign_index(ctx))
+                found = stranded.find(ctx, n, ledger=ledger, foreign=stranded.foreign_index(ctx, cache))
                 if found:
                     stranded_removes += [('remove', s_.key, s_.rc) for s_ in found]
                 elif n in from_profile:
@@ -266,12 +241,6 @@ def _failure_diagnostics(ctx, states):
     return out
 
 
-def _installed_despite_failure(drv, rc, op, version):
-    '''Re-export of actions.installed_despite_failure (the op loop moved there); kept for tests.'''
-    from .. import actions
-    return actions.installed_despite_failure(drv, rc, op, version)
-
-
 def _offer_report(ctx, failures, fatal=None):
     '''The run's problems (real failures + installed-with-a-warning — run_plan has recorded them for
     `configsys report` and the ! page) — on a terminal, offer to file real failures now. `fatal` is
@@ -294,17 +263,13 @@ def _offer_report(ctx, failures, fatal=None):
     names = [f['component'] for f in failures]
     n = len(failures)
     who = names[0] if n == 1 else f'{n} components ({", ".join(names)})'
-    if not (sys.stdin.isatty() and sys.stdout.isatty()):
-        tail = names[0] if n == 1 else ''                 # `report` with no name files them all
-        print(f'\nconfigsys: {who} failed — run `configsys report {tail}`'.rstrip()
-              + ' to file a report.')
+    tail = names[0] if n == 1 else ''                     # `report` with no name files them all
+    go = ask(f'\nfile a report of {"this" if n == 1 else "these"} {who} failure{"" if n == 1 else "s"}? [y/N] ',
+             refuse_note=f'\nconfigsys: {who} failed — run `configsys report {tail}`'.rstrip()
+             + ' to file a report.')
+    if go is None:
         return
-    try:
-        ans = input(f'\nfile a report of {"this" if n == 1 else "these"} '
-                    f'{who} failure{"" if n == 1 else "s"}? [y/N] ').strip().lower()
-    except EOFError:
-        ans = ''
-    if ans in ('y', 'yes'):
+    if go:
         # no name -> report all saved failures; the saved list is what report reads
         nm = names[0] if n == 1 else None
         cmd_report(ctx, argparse.Namespace(name=nm, yes=False, print_only=False))
@@ -315,11 +280,13 @@ def _offer_report(ctx, failures, fatal=None):
 
 def cmd_fix_scope(ctx, args):
     '''Reconcile installed units whose ACTUAL scope differs from their DECLARED scope — make the
-    install match the config (never edits the config). No args = every mismatched active unit.'''
+    install match the config (never edits the config). No args = every mismatched active unit.
+    Each step uninstalls at one scope and reinstalls at the other, so the moves are shown and
+    confirmed first (app-cli-26) — --yes skips the question, a non-terminal without it stops.'''
     from .. import actions
     _cfg, _req, _units, ledger, states = ctx.load_pipeline()
     names = set(getattr(args, 'names', None) or [])
-    plan = []
+    plan, moves = [], []
     for key in sorted(states):
         st = states[key]
         rc = st.component
@@ -331,9 +298,14 @@ def cmd_fix_scope(ctx, args):
         if drv is None or not drv.honors_scope or st.scope == drv.scope(rc):
             continue                                  # one fixed scope, or already where it's declared
         plan.append(('fix-scope', key, rc))
+        moves.append(f'  {key}: installed at {st.scope} scope -> declared {drv.scope(rc)}')
     if not plan:
         print('configsys: no scope mismatches to fix')
         return 0
+    print('configsys: scope moves (each uninstalls, then reinstalls at the declared scope):')
+    print('\n'.join(moves))
+    if not _confirm_plan(ctx, plan, yes=getattr(args, 'yes', False)):
+        return 1
     # ONE run_plan batch (D3): the up-front sudo, the guard, ^C, every failure recorded for `report`
     result = actions.run_plan(ctx, plan, ledger=ledger)
     if result.failures:
@@ -503,17 +475,12 @@ def cmd_upgrade_system(ctx, args):
     _print_update_notes(notes)
     print(f'{total} package(s) across {len(groups)} manager(s) will be upgraded via each '
           "manager's own bulk command.")
-    if not getattr(args, 'yes', False):
-        if not (sys.stdin.isatty() and sys.stdout.isatty()):
-            print('\nconfigsys: re-run with --yes to apply system updates non-interactively.')
-            return 1
-        try:
-            ans = input('\nApply all system updates now? [y/N] ').strip().lower()
-        except EOFError:
-            ans = ''
-        if ans not in ('y', 'yes'):
+    go = ask('\nApply all system updates now? [y/N] ', yes=getattr(args, 'yes', False),
+             refuse_note='\nconfigsys: re-run with --yes to apply system updates non-interactively.')
+    if not go:
+        if go is False:
             print('Aborted — nothing upgraded.')
-            return 1
+        return 1
     # the SAME apply step the TUI runs (sysupdates.apply_bulk: cache invalidation + rescan), and the
     # same record: a failure reaches the ! page and `configsys report` (B17 / app-cli-05)
     from .. import actions as _actions

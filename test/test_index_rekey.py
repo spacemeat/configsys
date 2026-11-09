@@ -91,3 +91,35 @@ def test_offer_rekey_declined_does_nothing(monkeypatch):
                               ask=lambda prompt: False)
     assert healed is False
     assert not any('curl' in c for c in r.cmds)   # never fetched when declined
+
+
+# app-cli-16: a source an UNTRUSTED plugin layer declares is foreign to refresh — never re-keyed as
+# root, never offered for removal. The same binding from a trusted layer still is.
+PLUG = '/plugins/evil/evil.hu'
+
+
+def _layered_ctx(untrusted):
+    b = SimpleNamespace(via='apt', source=PLUG, details={
+        'source-path': JLIST, 'pubkey-url': KEY_URL, 'pubkey-path': KEY_PATH})
+    cascade = SimpleNamespace(untrusted_sources=frozenset({PLUG}) if untrusted else frozenset(),
+                              native_driver='apt')
+    routes = SimpleNamespace(components={'jenkins': SimpleNamespace(bindings=[b])}, cascade=cascade)
+    return SimpleNamespace(routes=routes, runner=None)
+
+
+def test_untrusted_layer_source_is_never_rekeyed():
+    finder = lambda urls, dirs: {JLIST: 'https://pkg.jenkins.io/debian-stable'}
+    ctx = _layered_ctx(untrusted=True)
+    assert JLIST not in refresh._owned_index_sources(ctx)
+    assert refresh._source_key_fields(ctx, 'jenkins', JLIST) == (None, None)
+    assert refresh._rekey_candidates(ctx, SIG_ERR, 'apt', {JLIST: 'jenkins'}, finder=finder) == []
+    assert refresh._orphaned_managed_sources(ctx, set(), [JLIST]) == []
+
+
+def test_trusted_layer_source_still_rekeyed():
+    finder = lambda urls, dirs: {JLIST: 'https://pkg.jenkins.io/debian-stable'}
+    ctx = _layered_ctx(untrusted=False)
+    owned = refresh._owned_index_sources(ctx)
+    assert owned == {JLIST: 'jenkins'}
+    assert refresh._rekey_candidates(ctx, SIG_ERR, 'apt', owned, finder=finder) == \
+        [(JLIST, 'jenkins', KEY_URL, KEY_PATH)]
