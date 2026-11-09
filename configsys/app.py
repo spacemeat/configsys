@@ -3922,9 +3922,11 @@ def build_parser():
     th_save.add_argument('name', help='theme plugin name')
     th_save.add_argument('--force', action='store_true',
                          help='overwrite an existing theme plugin of that name')
-    th_load = thsub.add_parser('load', help='apply a saved theme plugin (it replaces your current '
-                                            'theme overrides)')
+    th_load = thsub.add_parser('load', help='apply a saved theme plugin under your own theme '
+                                            'overrides (--reset replaces them)')
     th_load.add_argument('name', help='theme plugin name (see `theme list`)')
+    th_load.add_argument('--reset', action='store_true',
+                         help='replace your theme overrides with the pack instead of keeping them on top')
     th_load.add_argument('--local', action='store_true',
                          help="write to this machine's top config, not the primary plugin")
 
@@ -4808,7 +4810,8 @@ def cmd_theme(ctx, args):
               f'  to share: cd {pdir}; git init + push, then bless/declare it as a plugin')
         return 0
     if sub == 'load':
-        _changed, label = actions.load_theme(ctx, args.name, target=target)
+        _changed, label = actions.load_theme(ctx, args.name, target=target,
+                                             reset=getattr(args, 'reset', False))
         if label is None:
             print(f'configsys: no theme plugin {args.name!r} (see `configsys theme list`)',
                   file=sys.stderr)

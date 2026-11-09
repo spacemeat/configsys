@@ -337,3 +337,21 @@ def test_theme_profiles_sample_forces_overlay_without_a_scan(tmp_path):
     assert cfg.dispositions()                                 # ☆ interesting / · seen rows
     assert cfg.included()                                     # ● tracked rows on this box
     assert any(m in cfg.picks() for m in ('thisbox', 'laptop'))
+
+
+def test_a_theme_snapshot_keeps_the_theme_page_and_every_overridden_role():
+    # review-2026-11-2 B8 (tui-theme-03): export/promote dropped the Theme page and unlisted roles
+    from configsys.tui.theme import full_snapshot
+    snap = full_snapshot({'pages': {'theme': {'component': {'fg': '#ff0000'}},
+                                    'components': {'select_marker': {'fg': '#00ff00'},
+                                                   'my_odd_role': {'fg': '#0000ff'}}}})
+    assert snap['pages']['theme']['component']['fg'] == '#ff0000'
+    assert snap['pages']['components']['select_marker']['fg'] == '#00ff00'
+    assert snap['pages']['components']['my_odd_role']['fg'] == '#0000ff'
+
+
+def test_loading_a_theme_pack_keeps_your_overrides_on_top_unless_reset():
+    from configsys.actions import _overlay_theme
+    pack = {'colors': {'accent': '#111111', 'title': '#222222'}}
+    mine = {'colors': {'accent': '#ffffff'}}
+    assert _overlay_theme(pack, mine) == {'colors': {'accent': '#ffffff', 'title': '#222222'}}

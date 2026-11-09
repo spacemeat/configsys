@@ -193,24 +193,28 @@ ALL_PAGES = DEMO_PAGES + ['theme']
 
 # The roles each SCREEN actually uses — drives both the editor's per-page list (list 2) and its
 # sample mock, so they swap as you cycle pages and show only what that page needs.
-PAGE_ROLES = {
-    'components': ['label', 'os', 'issue_warning', 'menu_header', 'component', 'unit', 'driver',
-                   'version', 'scope', 'scope_choice', 'installed', 'outdated', 'partial', 'missing',
-                   'locked', 'switch', 'unmet', 'dangling', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'row_error',
-                   'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
-    'profiles':  ['label', 'os', 'menu_header', 'profile', 'link', 'component', 'menu_new', 'info',
-                  'info_dim', 'dependents', 'method_dim', 'orphan_lurking', 'issue_warning',
+PAGE_ROLES = {   # recorded from each screen's real paint (review-2026-11-2 tui-theme-08)
+    'components': ['label', 'os', 'issue_warning', 'issue_error', 'menu_header', 'profile', 'link',
+                   'component', 'unit', 'driver', 'version', 'scope', 'scope_choice', 'installed',
+                   'outdated', 'partial', 'missing', 'locked', 'switch', 'unmet', 'dangling', 'error',
+                   'unsupported', 'op_install', 'op_upgrade', 'op_remove', 'op_lock', 'op_mixed',
+                   'row_error', 'row_desc', 'methods', 'info', 'info_dim', 'status_line', 'footer',
+                   'selection', 'select_marker'],
+    'profiles':  ['label', 'menu_header', 'profile', 'link', 'component', 'installed', 'menu_new',
+                  'info', 'info_dim', 'dependents', 'method_dim', 'orphan_lurking', 'issue_warning',
+                  'status_line', 'footer', 'selection', 'select_marker'],
+    'plugins':   ['label', 'menu_header', 'component', 'installed', 'locked', 'untrusted', 'error',
+                  'accent', 'diff_add', 'diff_del', 'diff_hunk', 'diff_meta', 'info', 'info_dim',
+                  'status_line', 'footer', 'select_marker'],
+    'glue':      ['label', 'menu_header', 'component', 'installed', 'outdated', 'info_dim',
+                  'status_line', 'footer', 'selection', 'select_marker'],
+    'dotfiles':  ['label', 'menu_header', 'component', 'installed', 'outdated', 'info_dim',
                   'status_line', 'footer', 'selection'],
-    'plugins':   ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
-                  'missing', 'untrusted', 'error', 'accent', 'diff_add', 'diff_del', 'diff_hunk',
-                  'diff_meta', 'info', 'info_dim', 'status_line', 'footer', 'selection'],
-    'glue':      ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
-                  'missing', 'info_dim', 'status_line', 'footer', 'selection'],
-    'dotfiles':  ['label', 'os', 'menu_header', 'component', 'unit', 'installed', 'outdated',
-                  'missing', 'info_dim', 'status_line', 'footer', 'selection'],
-    'config':    ['label', 'os', 'menu_header', 'component', 'scope', 'scope_choice', 'installed',
-                  'outdated', 'header', 'method_dim', 'info_dim', 'status_line', 'footer', 'selection'],
-    'theme':     ['label', 'menu_header', 'info_dim', 'component', 'status_line', 'footer', 'selection'],
+    'config':    ['label', 'menu_header', 'component', 'scope', 'scope_choice', 'installed',
+                  'outdated', 'header', 'method_dim', 'info_dim', 'status_line', 'footer', 'selection',
+                  'select_marker'],
+    'theme':     ['label', 'menu_header', 'info_dim', 'component', 'unit', 'status_line', 'footer',
+                  'selection', 'select_marker'],
 }
 
 # Each page's default background gradient (top-left -> bottom-right) — a distinct dark hue per page,
@@ -331,10 +335,13 @@ def full_snapshot(theme):
     colors, pages = resolve_theme(theme)
     upages = (theme.get('pages') if isinstance(theme, dict) else None) or {}
     out_pages = {}
-    for page in DEMO_PAGES:
+    for page in ALL_PAGES:                                # the Theme page too (B8)
         spec = upages.get(page) if isinstance(upages.get(page), dict) else {}
         pg = {}
-        for role in PAGE_ROLES.get(page, []):
+        # every role the page paints, plus any role you overrode there that the list doesn't name —
+        # a pack must reproduce the WHOLE look, and promote then drops the local copy (B8)
+        extra = [r for r in spec if r != 'gradient' and r not in PAGE_ROLES.get(page, [])]
+        for role in list(PAGE_ROLES.get(page, [])) + extra:
             st = dict(ROLE_DEFAULTS.get(role, {}))
             ov = spec.get(role)
             if isinstance(ov, dict):

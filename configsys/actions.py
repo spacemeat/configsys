@@ -1262,15 +1262,27 @@ def save_theme_plugin(ctx, name, *, force=False):
     return pdir, existed
 
 
-def load_theme(ctx, name, *, target=None):
-    '''Apply a saved theme plugin's `theme:` to the edit target (replacing your theme overrides, so
-    the template becomes your look — retune on top after). Returns (changed, label|None).'''
+def _overlay_theme(base, top):
+    '''`top` laid over `base`, per key all the way down (your override of one role keeps the pack's
+    others).'''
+    out = {k: (dict(v) if isinstance(v, dict) else v) for k, v in (base or {}).items()}
+    for k, v in (top or {}).items():
+        out[k] = _overlay_theme(out.get(k), v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
+def load_theme(ctx, name, *, target=None, reset=False):
+    '''Apply a saved theme plugin's `theme:` to the edit target. By default the pack goes UNDER your
+    own theme overrides (they stay on top — decision 18); `reset=True` replaces them with the pack
+    (the TUI asks first). Returns (changed, label|None).'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
     theme = _plugin_theme(Path(ctx.paths.plugins_dir) / name)
     if not theme:
         return False, None
     tfile, label = (target, target) if target else edit_target(ctx, create=True)
+    if not reset:
+        theme = _overlay_theme(theme, plugins.read_theme(tfile))
     plugins.set_theme(tfile, theme)
     ctx.invalidate()
     return True, label

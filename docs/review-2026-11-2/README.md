@@ -182,7 +182,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **B7 [HIGH] `_alt` (clang/gcc) vendor-repo setup can leave a poison-pill apt source** (derivative
   codenames, a PPA on Debian, no validate/rollback). (drivers-lang-03) · effort M · [done — _alt reads UBUNTU_CODENAME first (derivatives), adds a PPA only on Ubuntu and only when the distro lacks the package, and rolls back a vendor list apt cannot load; routes give the PPA only to Ubuntu 22.04 (catalog pass)]
 - **B8 [HIGH] Theme export/promote drops the Theme page and unlisted roles; promote then deletes the local
-  original.** (tui-theme-03) · effort S · [open]
+  original.** (tui-theme-03) · effort S · [done — full_snapshot covers every page (Theme too) and every role you overrode; PAGE_ROLES re-recorded from each screen's real paint; theme load overlays the pack under your overrides (--reset / TUI choice replaces)]
 - **B9 [new, found by a checker] `plugin init` moves the dotfiles store but never re-points the live links**
   — every linked config dangles. (parity-01 verification note) · effort S · [open]
 - **B10 [MED] The ledger isn't robust:** last-writer-wins across processes; written in place and loaded

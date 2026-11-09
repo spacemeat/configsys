@@ -410,9 +410,14 @@ class ThemeScreen(Screen):
                 if names:
                     idx = _popup_choose(stdscr, pal, 'load theme', [(n, '') for n in names], 0)
                     if idx is not None:
-                        _w(actions.load_theme)(ctx, names[idx])
-                        new_pal = Palette(ctx.config.theme())
-                        note = f'loaded {names[idx]}'
+                        how = _popup_choose(stdscr, pal, f'load {names[idx]}',
+                                            [('under my overrides', 'keep everything I retuned'),
+                                             ('replace my overrides', 'reset to the pack — mine are lost')], 0)
+                        if how is not None:
+                            _w(actions.load_theme)(ctx, names[idx], reset=(how == 1))
+                            new_pal = Palette(ctx.config.theme())
+                            note = (f'loaded {names[idx]}' + (' (your overrides replaced)' if how == 1
+                                                              else ' under your overrides'))
                 else:
                     note = 'no theme plugins saved yet (s to save one)'
         except Exception as e:  # noqa: BLE001 — surface, don't crash
