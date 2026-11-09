@@ -90,3 +90,12 @@ def test_norm_repo_reads_forge_urls():
     assert regsweep.norm_repo('https://gitlab.com/a/b') == 'gitlab.com:a/b'
     assert regsweep.norm_repo('owner/repo') == 'owner/repo'
     assert regsweep.norm_repo('https://example.org/') is None
+
+
+@pytest.mark.parametrize('only,why', [('npm', "npm isn't swept"), ('cargo,snap', 'snap')])
+def test_only_refuses_a_method_it_does_not_sweep(monkeypatch, capsys, only, why):
+    # `--only npm` swept nothing and printed an empty report as if npm had been checked
+    monkeypatch.setattr(regsweep, 'load_catalog', lambda: pytest.fail('refused before the catalog'))
+    with pytest.raises(SystemExit) as e:
+        regsweep.main(['--only', only])
+    assert e.value.code == 2 and why in capsys.readouterr().err

@@ -11,11 +11,12 @@ when the registry entry's upstream repository matches the component's own declar
 upstream (from a tarball/native-pkg-file/source binding's `version: { github: … }`). That
 kills name-collision risk (npm/pypi/crates all have unrelated same-named packages). Candidates
 that plausibly match but can't be identity-confirmed land in a `probable` bucket for human review
-rather than being auto-applied. (An npm probe exists — npm_probe — but npm isn't swept yet.)
+rather than being auto-applied. (An npm probe exists — npm_probe — but npm isn't swept yet:
+`--only npm` is refused rather than reporting an empty sweep.)
 Registry GETs go through compaudit's disk-cached, throttled Fetcher.
 
 Usage:
-    python tools/regsweep.py [--emit report.json] [--only cargo,pipx,flatpak]
+    python tools/regsweep.py [--emit report.json] [--only cargo,pipx,flatpak]   (any subset)
 Networked; safe to run anytime. Prints a summary; --emit writes the full JSON report.
 """
 import argparse
@@ -174,6 +175,9 @@ def cand_names(comp, via):
     return res
 
 
+SWEPT = ('cargo', 'pipx', 'flatpak')    # the methods sweep() checks; --only takes a subset
+
+
 def sweep(catalog, only):
     confirmed, probable, rejected = [], [], []
 
@@ -252,13 +256,19 @@ def sweep(catalog, only):
     return dict(confirmed=confirmed, probable=probable, rejected=rejected)
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description='find universal install methods (cargo/pipx/flatpak) '
                                              'components could add, identity-confirmed')
     ap.add_argument('--emit', help='also write the full JSON report to this file')
     ap.add_argument('--only', help='comma list of methods to sweep: cargo,pipx,flatpak (default: all)')
-    a = ap.parse_args()
-    only = set(a.only.split(',')) if a.only else None
+    a = ap.parse_args(argv)
+    only = {m.strip() for m in a.only.split(',') if m.strip()} if a.only else None
+    unswept = sorted((only or set()) - set(SWEPT))
+    if unswept:
+        why = ("npm isn't swept (npm_probe exists, but no npm candidates are generated)"
+               if 'npm' in unswept else '')
+        ap.error(f"--only {','.join(unswept)}: not a swept method (sweeps {', '.join(SWEPT)})"
+                 + (f' — {why}' if why else ''))
     cat = load_catalog()
     rep = sweep(cat, only)
     if a.emit:

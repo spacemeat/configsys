@@ -911,7 +911,7 @@ is marked `@pytest.mark.network`.
 
 Maintenance tools live in `tools/`: `gen_manpages.py` regenerates the man pages (`--check` is run
 by the test suite), `namesweep.py` lists the native package names the name sweep checks (offline; the container check
-is `test/run-name-sweep-in-podman.sh`), `versionsweep.py` is the networked version-floor sweep, `regsweep.py` finds crates.io / PyPI / npm / Flathub methods a component
+is `test/run-name-sweep-in-podman.sh`), `versionsweep.py` is the networked version-floor sweep, `regsweep.py` finds crates.io / PyPI / Flathub methods a component
 could add, `compaudit.py` probes components for upstream drift, `osaudit.py` checks each OS
 release (the release registry in routes.hu) — what a new release loses, gains or changes, the
 per-release repos, and a name sweep of every live release — `docaudit.py`
