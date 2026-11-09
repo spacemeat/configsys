@@ -22,6 +22,8 @@ class ResolvedComponent:
     source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)
     native: str = ''                            # THIS machine's native package manager (apt/dnf/…), stamped by
                                                 # Context.prepare_units — what the resolver settled, not a host guess
+    binding: object = field(default=None, compare=False, repr=False)   # the Binding that won selection
+                                                # (None on a receipt / hand-built rc) — resolve.binding_of
 
     @property
     def name(self):

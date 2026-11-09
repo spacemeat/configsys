@@ -108,6 +108,7 @@ class Unit:
         self.component = component
         self.package = package
         self.via = None         # the winning binding's `via:` (maps binding-level floors to the unit)
+        self.binding = None     # the winning Binding itself (several may share a via: binding_of)
         self.deps = set()
         self.requested_as = set()
         self.source = None      # the .hu file that DEFINED the component (layer-relative content roots)
@@ -623,6 +624,23 @@ def resolve_asset(binding, cpu):
     return asset
 
 
+def binding_of(component, rc):
+    '''The binding of `component` a resolved unit `rc` came from: the one that WON selection
+    (`rc.binding`, carried from resolution). Several bindings may share a `via:` (`native` per OS,
+    a `when:`-split download), so "the first with that via" is not it. For an rc built without one
+    (an install receipt, a hand-built unit) it falls back to the same-via binding whose install
+    fields match rc's, else the first of that via — or None.'''
+    b = getattr(rc, 'binding', None)
+    if b is not None:
+        return b
+    same = [b for b in component.bindings if b.via == (rc.via or None)]
+    if len(same) > 1:
+        exact = [b for b in same if _install_fields(b.details, rc.name) == rc.fields]
+        if exact:
+            return exact[0]
+    return same[0] if same else None
+
+
 def unit_for_binding(component, binding, cascade, block, overrides=None):
     '''Build the Unit a SPECIFIC binding would produce — for per-method introspection (the
     `versions` view: what each install method offers), independent of which one wins. Mirrors the
@@ -637,6 +655,7 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
     package = override if override is not _NO_OVERRIDE else _package(binding, drv, component)
     unit = Unit(drv, component.name, package)
     unit.via = binding.via
+    unit.binding = binding
     unit.details = _install_fields(binding.details, unit.package)
     unit.source = binding.source or component.source
     return unit
@@ -908,6 +927,7 @@ class _State:
         package = override if override is not _NO_OVERRIDE else _package(binding, drv, comp)
         unit = Unit(drv, name, package)
         unit.via = binding.via
+        unit.binding = binding
         unit.requested_as = {root}
         unit.details = _install_fields(binding.details, unit.package)
         # the layer that DEFINED this binding (content roots for dotfiles follow it even across an

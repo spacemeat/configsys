@@ -188,3 +188,29 @@ def test_glue_still_wanted_by_another_pick_is_kept(tmp_path, monkeypatch):
     plan, _u = plan_with_swaps(ctx, [('remove', 'apt\\app', units['apt\\app'])], dict(units))
     removes = {k for op, k, _rc in plan if op == 'remove'}
     assert 'glue\\app-glue' not in removes and 'glue\\app-native-glue' in removes
+
+
+
+def test_companion_cleanup_reads_the_binding_that_won_not_the_first_of_its_via(tmp_path, monkeypatch):
+    # two `via: native` bindings, each with its own glue: removing the Debian install drops the
+    # Debian binding's glue — not the first native binding's (the Fedora one, never installed here)
+    import configsys.installState as ist
+    real = ist.get_driver
+    monkeypatch.setattr(ist, 'get_driver', lambda name, runner, paths: (
+        types.SimpleNamespace(get_version=lambda rc: 'installed') if name == 'glue'
+        else real(name, runner, paths)))
+    p = tmp_path / 'routes.hu'
+    p.write_text('{ os: { linux: {}  debian: { using: linux  native: apt }'
+                 '        fedora: { using: linux  native: dnf } }'
+                 '  components: {'
+                 '    app: { install: [ { via: native  when: "fedora"  suggests: app-fed-glue }'
+                 '                      { via: native  when: "debian"  suggests: app-deb-glue } ] }'
+                 '    app-fed-glue: { install: [ { via: glue  glue: app-fed } ] }'
+                 '    app-deb-glue: { install: [ { via: glue  glue: app-deb } ] } } }', encoding='utf-8')
+    r = Resolver(str(p), 'debian', '12')
+    cfg = types.SimpleNamespace(requested=lambda: {})
+    ctx = types.SimpleNamespace(routes=r, runner=_AppFlatpakRunner(), paths=None, config=cfg)
+    units = r.resolve_resilient(['app'])[0]
+    plan, _u = plan_with_swaps(ctx, [('remove', 'apt\\app', units['apt\\app'])], dict(units))
+    removes = {k for op, k, _rc in plan if op == 'remove'}
+    assert 'glue\\app-deb-glue' in removes and 'glue\\app-fed-glue' not in removes

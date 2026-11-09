@@ -322,3 +322,22 @@ def test_an_upper_bound_promise_does_not_meet_a_floor():
     comps2 = {'haskell': Component('haskell', {'install': [
         {'via': 'native'}, {'via': 'script', 'standing': 'never-auto', 'provides': {'haskell': '>=9.4'}}]})}
     assert flooradvise._provides_meets(comps2['haskell'], 'script', 'haskell', '>=8') is True
+
+
+
+def test_active_floors_reads_the_binding_that_won_not_the_first_of_its_via(tmp_path):
+    # two `via: native` bindings: the floor sits on the Fedora one, Debian's wins there — so no
+    # floor is active for the resolved Debian unit (the first same-via binding is not the winner)
+    from configsys.routes import Resolver
+    p = tmp_path / 'routes.hu'
+    p.write_text('{ os: { linux: {}  debian: { using: linux  native: apt }'
+                 '        fedora: { using: linux  native: dnf } }'
+                 '  components: {'
+                 '    cargo: { install: [ { via: native } ] }'
+                 '    rg: { install: [ { via: native  when: "fedora"  requires: [ { cargo: ">=1.96" } ] }'
+                 '                     { via: native  when: "debian" } ] } } }', encoding='utf-8')
+    for block, want in (('debian', {}), ('fedora', {'cargo': '>=1.96'})):
+        r = Resolver(str(p), block, None)
+        units, _errs = r.resolve_resilient(['rg'])
+        rc = next(u for u in units.values() if u.comp == 'rg')
+        assert flooradvise.active_floors(rc, r.components['rg']) == want, block

@@ -12,7 +12,7 @@ no-op when no floors are active, so it costs nothing until floors exist.
 '''
 
 from .osversion import implies
-from .resolve import cap_names
+from .resolve import binding_of, cap_names
 from .versionsweep import _pv, meets, providers_of
 
 
@@ -46,10 +46,11 @@ def _auto_tighten(ctx):
 
 def active_floors(rc, comp):
     '''The versioned requirements ACTIVE for this resolved unit: component-level floors, plus the
-    floors on the binding that actually WON (matched by via) — only for caps the unit really
-    requires. A floor on a binding that didn't win, or for an un-required cap, is not active.'''
+    floors on the binding that actually WON (resolve.binding_of — not merely one sharing its via) —
+    only for caps the unit really requires. A floor on a binding that didn't win, or for an
+    un-required cap, is not active.'''
     floors = {cap: con for cap, con in comp.req_versions.items() if cap in comp.requires}
-    b = next((b for b in comp.bindings if b.via == (rc.via or None)), None)
+    b = binding_of(comp, rc)
     if b is not None:
         reqs = set(cap_names(b.details.get('requires')))
         floors.update({cap: con for cap, con in b.req_versions.items() if cap in reqs})

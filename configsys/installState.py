@@ -427,7 +427,7 @@ def plan_companion_cleanup(ctx, plan, units):
     the old install on PATH. Only glue (dotfiles/config links are left alone), only when installed,
     and never one still wanted: in the resolution of this machine's picks (minus components being
     removed outright) or of the plan's own install targets. Returns (plan, units).'''
-    from .resolve import cap_names
+    from .resolve import binding_of, cap_names
     r = ctx.routes
     installing = {rc.comp for op, _k, rc in plan if op in _SWAP_INSTALLISH and rc is not None}
     removing = [(k, rc) for op, k, rc in plan if op == 'remove' and rc is not None]
@@ -439,7 +439,7 @@ def plan_companion_cleanup(ctx, plan, units):
         comp = r.components.get(rc.comp)
         if comp is None:
             continue
-        b = next((b for b in comp.bindings if b.via == (rc.via or None)), None)
+        b = binding_of(comp, rc)                               # the binding this unit came from
         if b is not None:
             caps += cap_names(b.details.get('suggests'))      # this METHOD's companions
         if rc.comp in gone:
