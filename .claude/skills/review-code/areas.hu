@@ -24,7 +24,7 @@
             files: [ "configsys/routes.py"  "configsys/resolve.py"  "configsys/predicate.py"
                      "configsys/routecheck.py"  "configsys/adapt.py"  "configsys/componentObj.py"
                      "configsys/detection.py"  "configsys/errors.py"  "configsys/planning.py"
-                     "configsys/stranded.py" ]
+                     "configsys/stranded.py"  "configsys/trustgate.py" ]
             context: [ "routes.hu"  "docs/routing-model.md"  "docs/stranded-installs.md"
                        "test/routing_golden.json" ]
             focus: [
@@ -124,7 +124,7 @@
         }
         app-cli: {
             title: "CLI: app.py (parser, handlers, Context)"
-            files: [ "configsys/app.py"  "configsys/__main__.py"  "configsys/__init__.py" ]
+            files: [ "configsys/app.py"  "configsys/__main__.py"  "configsys/__init__.py"  "configsys/parity.py" ]
             context: [ "configsys/actions.py"  "test/test_pretend_sweep.py" ]
             focus: [
                 "every write path honors ctx.runner.pretend, and every mutating verb is in test_pretend_sweep VERBS"
@@ -148,7 +148,7 @@
         }
         subsystems: {
             title: "Subsystems: state, versions, runner, OS detection, reports"
-            files: [ "configsys/installState.py"  "configsys/versions.py"  "configsys/versionreport.py"
+            files: [ "configsys/installState.py"  "configsys/versions.py"  "configsys/versionreport.py"  "configsys/cachefile.py"
                      "configsys/versionsweep.py"  "configsys/floorderive.py"  "configsys/flooradvise.py"
                      "configsys/orphans.py"  "configsys/reportgen.py"  "configsys/report.py"
                      "configsys/rebootcheck.py"  "configsys/refreshstate.py"  "configsys/startuptiming.py"

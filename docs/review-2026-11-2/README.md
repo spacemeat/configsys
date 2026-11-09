@@ -256,7 +256,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **D8 The release registry drives derivative gates** — a derivative's `base:` lets `ubuntu >= 24.04` reach
   Zorin 18 / Mint 22 (os-releases plan phase 5); retires 31 hand-kept lists and fixes 11 wrong gates.
   (os-releases.md §3) · effort M · [done — derivative releases carry base: in the registry; versioned base atoms evaluate through it at runtime and in the static grid; 31 hand-kept derivative lists retired (equivalence-checked); check warns for an unregistered derivative release]
-- **D9 A parity table that fails when a CLI verb ships without a TUI decision.** (parity-11) · S · [open]
+- **D9 A parity table that fails when a CLI verb ships without a TUI decision.** (parity-11) · S · [done — done — configsys/parity.py classifies every CLI verb and every TUI screen action (counterpart, cli-only/tui-only with why, or a named tui-gap); test/test_parity.py fails on an unclassified or stale one and checks every counterpart named is real]
 
 ### Tier E — docs vs code
 - **E1** docs/plugins.md §6 promises vendor-source/recipe data is refused until trust — fold into A1 (code
