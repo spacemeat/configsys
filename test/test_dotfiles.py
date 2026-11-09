@@ -18,12 +18,9 @@ def df_unit(specs=None, comp='neovim'):
                              fields=fields)
 
 
-def paths_for(tmp_path, shells='bash'):
-    # CONFIGSYS_GLUE_SHELLS pins which shells glue activates for, so tests don't depend on which
-    # shell binaries happen to be on the host's PATH (default: bash only).
+def paths_for(tmp_path):
     return Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'),
-                      'CONFIGSYS_REPO': str(tmp_path / 'repo'),
-                      'CONFIGSYS_GLUE_SHELLS': shells})
+                      'CONFIGSYS_REPO': str(tmp_path / 'repo')})
 
 
 @pytest.mark.real_runner
@@ -701,3 +698,47 @@ def test_uninstall_never_removes_another_tools_link(tmp_path):
     dst.symlink_to(other)
     df = DotFiles(Runner(pretend=False), paths=p)
     assert df.uninstall(df_unit()).ok and dst.is_symlink()
+
+
+# -- review-2026-11-2 dotfiles-glue-30: a hand-edited manifest.hu typo -------------------------------
+
+def _manifest(p, text, comp='neovim'):
+    cfs = p.user_dotfiles_dir / f'{comp}.cfs'
+    cfs.mkdir(parents=True, exist_ok=True)
+    (cfs / 'manifest.hu').write_text(text)
+    return cfs / 'manifest.hu'
+
+
+def test_a_malformed_manifest_names_the_file_and_is_kept(tmp_path):
+    from configsys.errors import ConfigError
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    man = _manifest(p, '{ specs: { nvim: { src: x  dst: ')
+    df = DotFiles(Runner(pretend=False), paths=p)
+    with pytest.raises(ConfigError, match='manifest.hu unreadable.*manifest.hu'):
+        df._read_manifest(man)
+    res = df.install(df_unit())                       # a clear failure, not a traceback ...
+    assert not res.ok and 'manifest.hu' in res.output
+    assert man.read_text() == '{ specs: { nvim: { src: x  dst: '      # ... and your file is untouched
+
+
+def test_a_list_shaped_specs_reads_as_no_specs(tmp_path):
+    p = paths_for(tmp_path)
+    man = _manifest(p, '{ specs: [ a b ] }\n')
+    assert DotFiles(Runner(pretend=True), paths=p)._read_manifest(man) == {}
+
+
+def test_dotfiles_capture_reports_a_malformed_manifest(tmp_path, monkeypatch, capsys):
+    import argparse
+    from configsys.cli import dotfiles as cli_df
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    (p.home / '.config' / 'nvim').mkdir(parents=True)
+    (p.home / '.config' / 'nvim' / 'init.lua').write_text('-- mine\n')
+    _manifest(p, '{ specs: { nvim: ')
+    df = DotFiles(Runner(pretend=False), paths=p)
+    ctx = types.SimpleNamespace(paths=p, runner=df.runner)
+    monkeypatch.setattr(cli_df, '_active_dotfiles', lambda _ctx: (df, [df_unit()]))
+    rc = cli_df.cmd_dotfiles_capture(ctx, argparse.Namespace(names=[], force=False, dry_run=False, yes=True))
+    out = capsys.readouterr()
+    assert rc == 1 and 'manifest.hu' in (out.out + out.err) and 'Traceback' not in out.err

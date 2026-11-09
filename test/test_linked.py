@@ -101,7 +101,8 @@ def test_one_shell_table_feeds_glue_and_the_guard():
     assert glue._GLUE_SHELLS == tuple(SHELLS)
     assert set(glue._INLINE_SHELLS) == {n for n, s in SHELLS.items() if s.mode == 'inline'}
     assert {n for _rel, n in shellguard.GUARDED} == set(SHELLS)       # every shell's rc is guarded
-    assert ('.zshenv', 'zsh') in shellguard.GUARDED and ('.config/fish/conf.d', 'fish') in shellguard.GUARDED_DIRS
+    assert ('.zshenv', 'zsh') in shellguard.GUARDED
+    assert ('$XDG_CONFIG_HOME/fish/conf.d', 'fish') in shellguard.GUARDED_DIRS   # fish reads $XDG_CONFIG_HOME
     for s in SHELLS.values():
         assert s.mode in ('native', 'rc-block', 'inline')
         assert (s.rc is None) == (s.mode == 'native')                  # only a native shell needs no rc

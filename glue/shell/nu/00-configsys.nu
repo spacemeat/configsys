@@ -24,7 +24,8 @@ def --wrapped configsys [...args] {
     if ($launcher | path exists) {
       ^$launcher ...$args
     } else {
-      print -e "configsys: launcher not found — set CONFIGSYS_LAUNCHER, or install configsys on your PATH"
+      # a failure, like bash/zsh/fish's `return 127` — a caller (the cache refresh below) sees it
+      error make { msg: "configsys: launcher not found — set CONFIGSYS_LAUNCHER, or install configsys on your PATH" }
     }
   }
 }
@@ -92,13 +93,15 @@ def cs-bash-delta [cmd: string] {
 
 # cs-bash-env <bash-command>: nushell's `bass` — import a bash env-setup script's PATH/env into $env.
 # For tools that ship only a bash env script (sdkman/vulkan-sdk/gnustep/miniforge) or whose init emits
-# bash (pyenv/opam/luarocks). MEMOIZED: the computed delta is cached under the state dir keyed by the
+# bash (pyenv/opam/luarocks). MEMOIZED: the computed delta is cached in ~/.cache/configsys/glue-eval/
+# nu-bash-env/ (beside the other shells' cs_cached init-evals; $XDG_CACHE_HOME honored), keyed by the
 # command (each ~250ms — a bash spawn + env capture + parse), so a normal launch applies a cached delta
 # (~ms) instead of re-running bash. Cache is fresh for 1h (the PATH dirs it adds are stable even across
 # `sdk use`, which only re-points a symlink). Caveat: bash FUNCTIONS (sdk/conda/pyenv) don't cross to
 # nu — only the PATH/env does. `--env` so it persists; self-guards (a failed bash run imports nothing).
 def --env cs-bash-env [cmd: string] {
-  let cache = (cs-state-dir | path join nu-bash-env $"(($cmd | hash md5)).nuon")
+  let cache = (($env.XDG_CACHE_HOME? | default $"($env.HOME)/.cache")
+    | path join configsys glue-eval nu-bash-env $"(($cmd | hash md5)).nuon")
   let fresh = (($cache | path exists) and (try { ((date now) - (ls $cache | get modified | first)) < 1hr } catch { false }))
   let delta = (if $fresh { (try { open $cache } catch { cs-bash-delta $cmd }) } else {
     let computed = (cs-bash-delta $cmd)

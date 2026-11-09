@@ -28,6 +28,7 @@ from pathlib import Path
 
 from .. import primarygit
 from ..driver import Driver
+from ..errors import ConfigError
 from ..runner import Result
 from . import _linked
 from ._linked import BACKUP_SUFFIX, free_backup   # noqa: F401 — glue + the CLI read them from here
@@ -219,16 +220,25 @@ class DotFiles(Driver):
         return False
 
     def _read_manifest(self, path):
-        '''Parse a `.cfs/manifest.hu` -> {specname: {src, dst, exclude:[...]}}. {} if absent/blank.'''
+        '''Parse a `.cfs/manifest.hu` -> {specname: {src, dst, exclude:[...]}}. {} if absent/blank. A
+        file that doesn't parse (a hand-edit typo — the docs invite editing `exclude:`) raises a
+        ConfigError naming it, never {}: rewriting it from {} would drop your excludes. A spec that
+        isn't a named map (`specs: [ a b ]`) is skipped.'''
         from ..troveio import load
         if not Path(path).exists() or not Path(path).read_text(encoding='utf-8-sig').strip():
             return {}
-        trove = load(path)
+        try:
+            trove = load(path)
+        except ConfigError as e:
+            raise ConfigError(f'dotfiles: manifest.hu unreadable: {e} — fix it (or delete it to '
+                              f'start over)') from e
         specs = trove.root['specs'] if trove.root is not None else None
         out = {}
         if specs is not None:
             for i in range(specs.num_children):
                 node = specs[i]
+                if node is None or node.key is None:
+                    continue                               # a list entry, not `name: { … }`
                 ex = []
                 exn = node['exclude'] if node is not None else None
                 if exn is not None:
@@ -259,11 +269,9 @@ class DotFiles(Driver):
             gi.unlink()
 
     def _config_specs(self, rc):
-        '''Config specs, EXCLUDING legacy shell-glue snippets declared the old way with an inline
-        src/dst under bash.d/ or shell/ — those belong to the shell layout (the glue driver), so
-        they never get a .cfs marker/manifest entry or a capture.'''
-        return [(n, src, dst, ab) for n, src, dst, ab in self._specs(rc)
-                if not (src.startswith('bash.d/') or src.startswith('shell/'))]
+        '''The config specs a `.cfs` marker / manifest / capture covers — every link spec (shell glue
+        is the glue driver's, so nothing here is glue any more).'''
+        return self._specs(rc)
 
     def _ensure_marker(self, rc):
         '''Create/refresh the `.cfs` marker + manifest for a component's config specs (the #5
@@ -278,11 +286,6 @@ class DotFiles(Driver):
             prev = existing.get(name, {})
             specs_map[name] = {'src': src, 'dst': dst, 'exclude': prev.get('exclude', [])}
         self._write_manifest(rc, specs_map)
-
-    def _excludes_for(self, rc, name):
-        '''The exclude globs recorded for a spec (from the manifest), [] if none.'''
-        man = self._read_manifest(self._cfs_dir(rc) / MANIFEST_NAME)
-        return man.get(name, {}).get('exclude', [])
 
     def _is_excluded(self, rel, globs):
         '''True if a relative path (POSIX) matches any exclude glob — matched against the full path
@@ -666,7 +669,10 @@ class DotFiles(Driver):
             if self._config_specs(rc):
                 self._echo(f'[pretend] would stamp the config marker {self._cfs_dir(rc)}/{MANIFEST_NAME}')
         else:
-            self._ensure_marker(rc)
+            try:
+                self._ensure_marker(rc)
+            except ConfigError as e:                       # a hand-edit typo: say which file, link nothing
+                return Result.fail(f'{rc.comp}: {e}')
         pairs, blocked = [], []
         for _name, src, dst, absorb in specs:
             srcpath, tier, _root = self._resolve(src, rc)

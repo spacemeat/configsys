@@ -201,7 +201,7 @@ class _FakeGlueDrv:
     def deploy_user_glue(self, shell):
         self.deployed.append(shell)
 
-    def install(self, rc, only_shells=None):
+    def install(self, rc, only_shells=None, hookup=True):
         self.installed.append((rc, tuple(only_shells or ())))
 
 
@@ -257,3 +257,39 @@ def test_handle_activate_group_includes_user_glue(ctx, monkeypatch):
     intent = scr.handle(grp, ctx, None, None)
     assert gs.gd.deployed == ['bash'] and len(gs.gd.installed) == 1
     assert '2 snippet(s)' in intent.note
+
+
+def test_activate_group_builds_an_inline_block_once(ctx, monkeypatch, tmp_path):
+    # dotfiles-glue-25: each snippet's install rebuilt the nu/elvish block (and re-ran every
+    # #!cs-eval generator) — N snippets, N rebuilds; now the group hooks the shell up once
+    from contextlib import nullcontext
+    from configsys.componentObj import ResolvedComponent
+    from configsys.drivers.glue import Glue
+    from configsys.paths import Paths
+    from configsys.runner import Runner
+    from configsys.tui.screens import glue as glue_mod
+    monkeypatch.setattr(glue_mod, 'suspended', lambda _s: nullcontext())
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo'),
+                   'CONFIGSYS_GLUE_SHELLS': 'nu'})
+    (p.glue_dir / 'shell' / 'nu').mkdir(parents=True)
+    rcs = []
+    for i in range(6):
+        (p.glue_dir / 'shell' / 'nu' / f's{i}.nu').write_text(f'let s{i} = {i}\n')
+        rcs.append(ResolvedComponent(key=f'glue\\s{i}-glue', driver='glue', comp=f's{i}-glue',
+                                     fields={'glue': f's{i}'}))
+    p.home.mkdir(parents=True)
+    built = []
+    real = Glue._inline_block
+    monkeypatch.setattr(Glue, '_inline_block', lambda self, sh: built.append(sh) or real(self, sh))
+    monkeypatch.setattr(Glue, '_valid_parts', lambda self, sh, parts: parts)
+    scr = GlueScreen(ctx, menu._sample_glue_state(ctx))
+    gs = scr.model
+    gs.gd = Glue(Runner(pretend=False), p)
+    gs.reload = lambda: None
+    gs.rows = [(rc, rc.comp, 't', 'template', 's', 'nu') for rc in rcs]
+    gs.cur = 0
+    grp = next(k for k in range(32, 127) if menu._KEYMAP.action_for('glue', k) == 'activate-group')
+    intent = scr.handle(grp, ctx, None, None)
+    assert built == ['nu'] and '6 snippet(s)' in intent.note, intent.note
+    block = gs.gd._expand('~/.config/nushell/config.nu').read_text()
+    assert all(f'let s{i} = {i}' in block for i in range(6))

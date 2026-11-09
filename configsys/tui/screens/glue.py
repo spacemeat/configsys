@@ -173,9 +173,16 @@ class GlueScreen(Screen):
                 results = []
                 with suspended(stdscr):
                     for rc in grp.values():                      # scope to THIS shell, not the component's others
-                        results.append((rc.comp, *result_ok(gs.gd.install(rc, only_shells=[shell]))))
-                    if user:                                     # + relink the shell's user.d snippets
-                        results.append(('your user glue', *result_ok(gs.gd.deploy_user_glue(shell))))
+                        # link only: the shell is hooked up ONCE below — an inline (nu/elvish) block
+                        # rebuilt per snippet re-ran every #!cs-eval generator N times
+                        results.append((rc.comp, *result_ok(gs.gd.install(rc, only_shells=[shell],
+                                                                          hookup=False))))
+                    hooked = gs.gd.deploy_user_glue(shell)       # the loader + the shell's user.d snippets
+                    if user:
+                        results.append(('your user glue', *result_ok(hooked)))
+                    for w in (getattr(gs.gd, 'hookup_warnings', None) or []) + \
+                            (getattr(gs.gd, 'inline_warnings', None) or []):
+                        results.append(('the loader', False, w))
                 gs.dirty.update(grp)
                 gs.reload()
                 note = results_note(ctx, '(re)activated', results, what='snippet(s)',

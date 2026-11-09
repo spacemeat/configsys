@@ -13,6 +13,20 @@ here="$(cd "$(dirname "$src")" && pwd)"
 export CONFIGSYS_INVOKED_CWD="$PWD"
 cd "$here"
 
+VENV="$here/.venv"
+VPY="$VENV/bin/python"
+# FAST path first — this runs on EVERY `configsys` call (the shell glue calls it at startup): ONE
+# interpreter start, the venv's own, that checks its version and only LOCATES pip/humon/packaging
+# (find_spec, no imports; ~40ms) — the python search below runs only when it fails. Only then do we
+# pay for the real repair (`-m pip --version` alone is ~0.7s). `-E`: your PYTHONPATH / PYTHONHOME
+# (a ROS setup.bash, a conda env) must not shadow the venv's packages.
+_venv_ok() {
+    "$VPY" -E -c 'import importlib.util as u, sys; sys.exit(0 if sys.version_info >= (3, 10) and all(u.find_spec(m) for m in ("pip", "humon", "packaging")) else 1)' >/dev/null 2>&1
+}
+if _venv_ok; then
+    exec "$VPY" -E -m configsys "$@"
+fi
+
 # 1. python3 >= 3.10. $PYTHON if you set it; else the first of python3, python3.14 … python3.10 that
 # is new enough (EL 9 and Amazon Linux 2023 ship python3 = 3.9 beside a newer python3.1x).
 _py_ok() { "$1" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; }
@@ -40,17 +54,6 @@ fi
 # that's the separate pythonX.Y-venv package — and a failed `python -m venv` still leaves a
 # .venv/bin/python behind with no pip. So: require ensurepip up front, and judge an existing venv
 # by whether its pip WORKS (not whether bin/python exists), rebuilding a half-made one.
-VENV="$here/.venv"
-VPY="$VENV/bin/python"
-# FAST path first — this runs on EVERY `configsys` call (the shell glue calls it at startup): one
-# interpreter start that only LOCATES pip/humon/packaging (find_spec, no imports; ~40ms). Only if
-# that fails do we pay for the real repair below (`-m pip --version` alone is ~0.7s).
-_venv_ok() {
-    "$VPY" -c 'import importlib.util as u, sys; sys.exit(0 if all(u.find_spec(m) for m in ("pip", "humon", "packaging")) else 1)' >/dev/null 2>&1
-}
-if _venv_ok; then
-    exec "$VPY" -m configsys "$@"
-fi
 # a shell START (the glue preludes refreshing their location cache) never repairs: no venv rebuild,
 # no pip compile, no `sudo apt-get` behind a hidden stderr while a terminal opens — the prelude keeps
 # its cached values, and the next `configsys` you run yourself repairs it visibly (A15)
@@ -62,7 +65,7 @@ if command -v flock >/dev/null 2>&1 && [ -z "${_CONFIGSYS_REPAIR_LOCKED:-}" ]; t
     exec env _CONFIGSYS_REPAIR_LOCKED=1 flock "$VENV.lock" "$src" "$@"
 fi
 if _venv_ok; then                      # another process repaired it while we waited for the lock
-    exec "$VPY" -m configsys "$@"
+    exec "$VPY" -E -m configsys "$@"
 fi
 if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     if ! "$PY" -c 'import ensurepip' >/dev/null 2>&1; then
@@ -85,11 +88,29 @@ if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     fi
 fi
 
-# 3. python deps: humon (the .hu format) + packaging (PEP 440 version logic)
-if ! "$VPY" -c 'import humon, packaging' >/dev/null 2>&1; then
-    echo "configsys: installing python dependencies (humon, packaging)..." >&2
+# 3. python deps: humon (the .hu format) + packaging (PEP 440 version logic). Their version bounds
+# live in ONE place, pyproject.toml's `dependencies = [...]` line, so a fresh box gets a known-good
+# release, never just whatever is newest on PyPI (pure bash: nothing but the shell is assumed here).
+if ! "$VPY" -E -c 'import humon, packaging' >/dev/null 2>&1; then
+    deps=()
+    dep_re='^dependencies *= *\[(.*)\]'
+    quoted_re='"([^"]*)"(.*)'
+    if [ -f "$here/pyproject.toml" ]; then
+        while IFS= read -r line; do
+            if [[ $line =~ $dep_re ]]; then
+                rest="${BASH_REMATCH[1]}"
+                while [[ $rest =~ $quoted_re ]]; do deps+=("${BASH_REMATCH[1]}"); rest="${BASH_REMATCH[2]}"; done
+                break
+            fi
+        done < "$here/pyproject.toml"
+    fi
+    if [ "${#deps[@]}" -eq 0 ]; then
+        echo "configsys: no \`dependencies = [...]\` line in $here/pyproject.toml — is the checkout complete?" >&2
+        exit 1
+    fi
+    echo "configsys: installing python dependencies (${deps[*]})..." >&2
     "$VPY" -m pip install -q --upgrade pip || true
-    if ! "$VPY" -m pip install -q humon packaging; then
+    if ! "$VPY" -m pip install -q "${deps[@]}"; then
         # humon ships as SOURCE only (a C extension), so pip compiles it: that needs a C compiler and
         # the Python headers, which minimal installs/containers lack. Name the fix for this distro.
         hint="a C compiler and the Python development headers"
@@ -106,4 +127,4 @@ if ! "$VPY" -c 'import humon, packaging' >/dev/null 2>&1; then
 fi
 
 # 4. hand off to the app (pass all args through)
-exec "$VPY" -m configsys "$@"
+exec "$VPY" -E -m configsys "$@"

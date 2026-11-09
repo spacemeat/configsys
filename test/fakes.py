@@ -29,7 +29,7 @@ class FakeRunner:
         self.calls = []
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None,
-            presudo=False, **_future):
+            presudo=False, timeout=None, **_future):
         full = f'sudo {cmd}' if sudo else cmd
         self.calls.append(full)
         for needle, code, out in self.responses:

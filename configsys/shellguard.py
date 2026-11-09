@@ -30,9 +30,10 @@ import os
 import re
 from pathlib import Path
 
+from . import shells as _shells
 from .shells import SHELLS
 
-# Guarded rc files (relative to $HOME) and which shell each one feeds. A reverted ~/.bashrc block is
+# Guarded rc files (home-relative, or under $XDG_CONFIG_HOME — shells.expand) and which shell each one feeds. A reverted ~/.bashrc block is
 # bash glue; a ~/.zshrc block is zsh glue — routed by this mapping. Every shell configsys supports is
 # covered, login and env files included (rustup-style installers write ~/.zshenv; a safety feature
 # has uniform coverage or doesn't ship — review-2026-11-2 A15).
@@ -43,6 +44,20 @@ GUARDED = [(rel, n) for n, spec in SHELLS.items() for rel in spec.guarded]
 GUARDED_DIRS = [(rel, n) for n, spec in SHELLS.items() for rel in spec.guarded_dirs]
 
 _STAGE_DIR = 'staged-glue'          # under the state dir: <shell>/<component>.<ext> candidates
+
+
+def _where(entries, home, env):
+    '''{abs_path_str: (label, shell)} for GUARDED / GUARDED_DIRS rows: the label is the path relative
+    to the home (`.zshrc`, `.config/fish/config.fish`), or absolute when $XDG_CONFIG_HOME is elsewhere.'''
+    out = {}
+    for rel, shell in entries:
+        path = _shells.expand(rel, home, env)
+        try:
+            label = str(path.relative_to(home))
+        except ValueError:
+            label = str(path)
+        out[str(path)] = (label, shell)
+    return out
 
 # A configsys-owned rc block: `# >>> configsys<tag> >>>` … `# <<< configsys<tag> <<<` (the glue
 # loader's tag is ` glue`). The tag pairs a begin with its end.
@@ -72,9 +87,10 @@ def _write(path, text):
 
 class Snapshot(dict):
     '''{abs_path_str: content|None} plus `.ident` {abs_path_str: what the path IS} — a regular file,
-    absent, or a symlink to a given target (see _identity).'''
+    absent, or a symlink to a given target (see _identity) — and the `.env` its paths were expanded in.'''
     ident = None
     dirs = None
+    env = None
 
 
 def _identity(path):
@@ -89,14 +105,16 @@ def _identity(path):
         return ('other',)
 
 
-def snapshot(home):
+def snapshot(home, env=None):
     '''{abs_path_str: content|None} for every guarded rc file (None = absent), and each one's
     identity. Cheap: a handful of small text files, read just before an install so the writer is
-    known by diff afterward.'''
+    known by diff afterward. `env` supplies $XDG_CONFIG_HOME (default <home>/.config).'''
     home = Path(home)
-    snap = Snapshot({str(home / rel): _read(home / rel) for rel, _shell in GUARDED})
-    snap.ident = {str(home / rel): _identity(home / rel) for rel, _shell in GUARDED}
-    snap.dirs = {str(home / rel): _listing(home / rel) for rel, _shell in GUARDED_DIRS}
+    files = _where(GUARDED, home, env)
+    snap = Snapshot({p: _read(Path(p)) for p in files})
+    snap.ident = {p: _identity(Path(p)) for p in files}
+    snap.dirs = {p: _listing(Path(p)) for p in _where(GUARDED_DIRS, home, env)}
+    snap.env = env
     return snap
 
 
@@ -179,8 +197,9 @@ def revert_and_capture(home, snap):
     (no revert, no capture); alongside installer lines, the installer lines are reverted and the
     block is carried through.'''
     home = Path(home)
-    shell_of = {str(home / rel): shell for rel, shell in GUARDED}
-    rel_of = {str(home / rel): rel for rel, _shell in GUARDED}
+    files = _where(GUARDED, home, getattr(snap, 'env', None))
+    shell_of = {p: shell for p, (_label, shell) in files.items()}
+    rel_of = {p: label for p, (label, _shell) in files.items()}
     per_shell = {}                                  # shell -> [ (filename, [added lines]) ]
     idents = getattr(snap, 'ident', None) or {}
     for path_str, before in snap.items():
@@ -215,8 +234,9 @@ def revert_and_capture(home, snap):
                 pass
         else:
             _write(path, target)
-    shell_of_dir = {str(home / rel): shell for rel, shell in GUARDED_DIRS}
-    rel_of_dir = {str(home / rel): rel for rel, _shell in GUARDED_DIRS}
+    dirs = _where(GUARDED_DIRS, home, getattr(snap, 'env', None))
+    shell_of_dir = {p: shell for p, (_label, shell) in dirs.items()}
+    rel_of_dir = {p: label for p, (label, _shell) in dirs.items()}
     for dir_str, before in (getattr(snap, 'dirs', None) or {}).items():
         for name in sorted(_listing(dir_str) - before):
             f = Path(dir_str) / name
@@ -239,7 +259,8 @@ def _format_block(blocks):
     source file's block under a `# from ~/<file>` header so the user sees where it came from.'''
     parts = []
     for name, lines in blocks:
-        parts.append(f'# from ~/{name} (captured by configsys — installer wanted to write this)')
+        where = name if name.startswith('/') else f'~/{name}'
+        parts.append(f'# from {where} (captured by configsys — installer wanted to write this)')
         parts.extend(lines)
         parts.append('')
     return '\n'.join(parts).rstrip('\n') + '\n'
@@ -265,7 +286,7 @@ def arm(paths, config, component, op, driver=None):
             return None
     except AttributeError:
         return None
-    return snapshot(paths.home)
+    return snapshot(paths.home, getattr(paths, 'env', None))
 
 
 def finish(paths, component, snap):
@@ -278,7 +299,7 @@ def finish(paths, component, snap):
         return None
     staged = stage(paths, component, captured)
     n = sum(1 for b in captured.values() for ln in b.splitlines()          # the installer's lines,
-            if ln.strip() and not (ln.startswith('# from ~/') and _CAPTURE_MARK in ln))   # not headers
+            if ln.strip() and not (ln.startswith('# from ') and _CAPTURE_MARK in ln))   # not headers
     shells = ', '.join(sorted({s for s, _ in staged}) or captured)
     return (f'guarded: reverted {n} line(s) {component} tried to add to your {shells} rc '
             f'(configsys owns shell integration). Staged as inactive glue — review with '

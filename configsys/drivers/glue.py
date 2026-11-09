@@ -1,19 +1,21 @@
 '''glue.py — the glue driver: shell-integration enablement (`via: glue`).
 
 Glue is the shell wiring a component needs to be USABLE — PATH, aliases, env, completions,
-shell init — deployed as small snippets under the uniform `~/.config/<shell>/conf.d/` dir, plus
+shell init — deployed as small snippets under the uniform `<config>/<shell>/conf.d/` dir (`<config>` =
+`~/.config` for bash/zsh; `$XDG_CONFIG_HOME`, default `~/.config`, for fish/nushell/elvish, which
+read their own config there — configsys/shells.py), plus
 the per-shell LOADERS that make each shell source that dir. It is the sibling of the dotfiles
 driver (`via: dotfiles`), which manages a component's own reposited CONFIG. The two were one driver
 historically; they are split so each is its own concern (and, later, its own TUI page).
 
 A `via: glue` binding is one of:
-  * `glue: <name>`   — a snippet: link `shell/<shell>/<name>.<ext>` (a `bash.d/<name>.sh` fallback
-                       for the pre-move layout) into `~/.config/<shell>/conf.d/50-<name>.<ext>`, for
-                       each INSTALLED shell that ships a variant. Snippets deploy through the
-                       machine-local store MIRROR (never linking the repo).
-  * `loader: <shell>`— hook one shell up to source its conf.d (zsh needs an rc marker-block; fish
-                       auto-sources natively; bash rides `~/.bash_aliases`; elvish/nushell inline the
-                       snippets into the rc — they can't dynamically source a dir).
+  * `glue: <name>`   — a snippet: link `shell/<shell>/<name>.<ext>` into
+                       `<config>/<shell>/conf.d/50-<name>.<ext>`, for each INSTALLED shell that ships
+                       a variant. Snippets deploy through the machine-local store MIRROR (never
+                       linking the repo).
+  * `loader: <shell>`— hook one shell up to source its conf.d (bash and zsh get an rc marker-block;
+                       fish auto-sources natively; elvish/nushell inline the snippets into the rc —
+                       they can't dynamically source a dir).
 
 User-space only (no sudo); no version — glue is "active" or not. Spec: docs/shell-glue.md (loaders,
 the conf.d load-order bands 00-/50-/90-/99-, user.d, overrides, the shell-writes guard).
@@ -22,6 +24,14 @@ Storage is SEGREGATED from the dotfiles driver: glue authoring lives at `glue/sh
 <name>.<ext>` (repo/plugin), materializes into the machine-local glue store `<state>/glue/<shell>/
 conf.d/<name>.<ext>`, and links into `~/.config/<shell>/conf.d/`. The dotfiles driver's `dotfiles/`
 tree (config `*.cfs/` captures) and this `glue/` tree never share a directory.
+
+TRUST: every snippet is code — your shells source it at every start, and a `#!cs-eval` generator
+runs a command inside configsys at (de)activation. So: a plugin's glue deploys only when that plugin
+is trusted (`command_trusted`, and a primary override / a primary user.d snippet by the primary's
+`primary-trust:` — `_source_trusted`); a generator runs only from a conf.d file that resolves into a
+glue root configsys owns, only when its directive sits in the file's leading comment header, and
+only for `_EVAL_TIMEOUT` seconds. conf.d itself is configsys's dir: whoever can write it can write
+your rc too, so a foreign file there is inlined as text but never run as a generator.
 '''
 
 import hashlib
@@ -40,11 +50,9 @@ from . import _linked
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
 BACKUP_SUFFIX = '.pre-configsys'
-# bash has no native conf.d — it rides the distro `~/.bash_aliases` convention: shell-glue links
-# ~/.bash_aliases to the shipped `bash_aliases` loader file (which sources conf.d/*.sh), absorbing
-# any pre-existing real ~/.bash_aliases into conf.d so the user's own aliases keep running.
+# bash once rode the Debian-only `~/.bash_aliases` convention (a link to the shipped `bash_aliases`
+# loader's store copy); it is a ~/.bashrc block now (B3), and only OUR old link is retired.
 _BASH_ALIASES_SRC = 'bash_aliases'
-_BASH_ABSORB = '~/.config/bash/conf.d/pre-configsys-aliases.sh'
 
 # Per-shell facts come from ONE table, configsys/shells.py (a ShellSpec row per shell); these are
 # its views. A shell activates the moment a snippet variant for it exists.
@@ -85,10 +93,9 @@ _USER_GLUE_HEADER = (
 # the component that INSTALLS each shell (for the managed-install detection) — identity except nu.
 _SHELL_COMPONENT = {n: s.component for n, s in SHELLS.items() if s.component != n}
 
-# loaders (`loader: <shell>`): hook a shell up to run its ~/.config/<shell>/conf.d/* snippets.
-# fish auto-sources conf.d natively (no rc edit); bash rides the distro ~/.bash_aliases convention;
-# zsh needs one configsys-owned, marker-delimited rc block that SOURCES the dir; elvish and nushell
-# are INLINE (see below). The markers make the block idempotent + cleanly removable.
+# loaders (`loader: <shell>`): hook a shell up to run its <config>/<shell>/conf.d/* snippets.
+# fish auto-sources conf.d natively (no rc edit); bash and zsh need one configsys-owned,
+# marker-delimited rc block that SOURCES the dir; elvish and nushell are INLINE (see below). The markers make the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
 _SHELL_RC = {n: s.rc for n, s in SHELLS.items() if s.rc}
@@ -110,8 +117,15 @@ _INLINE_SHELLS = tuple(n for n, s in SHELLS.items() if s.mode == 'inline')
 # A `#!cs-eval <cmd>` line makes a snippet a GENERATOR: the inline loader runs <cmd> at (de)activation
 # and inlines its stdout (an init-eval tool's shell code) instead of the snippet text — the bridge for
 # tools like zoxide/atuin on nushell, which has no runtime source/eval. Self-guards: a failing command
-# inlines nothing.
+# inlines nothing. Honored only in the file's leading comment header, in a file inside a glue root
+# configsys owns, and cut off after _EVAL_TIMEOUT seconds (a hung init must not hang the TUI).
 _EVAL_DIRECTIVE = re.compile(r'^#!\s*cs-eval\s+(.+?)\s*$')
+_EVAL_TIMEOUT = 10
+
+# _installed_shells' answer per detection key (PATH + each PATH dir's mtime + the managed shell dirs
+# and their mtimes): a new binary changes its dir's mtime, so the memo never goes stale, yet a status
+# pass over every glue component costs a few stats instead of 5 `which` walks + globs per name.
+_SHELLS_MEMO = {}
 
 # GLUE speaks a binary vocabulary (active/available/inactive) — a ship->activate toggle. This maps
 # the underlying spec/loader states to those labels (identity for anything unlisted). Shared by the
@@ -128,9 +142,15 @@ _RC_SOURCE = {
     # rc top level isn't local to anything — it leaked null_glob into your session; B13)
     'zsh': ('for _f in {confd}/*.zsh(N); do source "$_f"; done\n'
             'unset _f'),
-    # Elvish: [nomatch-ok] (attached to the * wildcard) so an empty conf.d doesn't error; the list
-    # brackets make the glob a single iterable; `eval (slurp < $f)` sources each file.
 }
+
+
+def _mtime(path):
+    '''`path`'s mtime (ns), or None when it can't be stat'ed — a memo-key ingredient.'''
+    try:
+        return os.stat(path).st_mtime_ns
+    except (OSError, ValueError):
+        return None
 
 
 def _read_rc(path):
@@ -181,21 +201,33 @@ class Glue(Driver):
         forced = env.get('CONFIGSYS_GLUE_SHELLS')
         if forced is not None:
             return [s.strip() for s in forced.split(',') if s.strip()]
-        on_path = {s for s in _GLUE_SHELLS if shutil.which(s, path=env.get('PATH'))}
-        managed = self._managed_shells()
+        path = env.get('PATH')
+        search = path if path is not None else os.environ.get('PATH', os.defpath)
+        dirs = self._managed_shell_dirs()
+        key = (search, tuple((d, _mtime(d)) for d in search.split(os.pathsep)),
+               tuple((s, str(d), _mtime(d)) for s, d in dirs))
+        hit = _SHELLS_MEMO.get(key)
+        if hit is not None:
+            return list(hit)
+        on_path = {s for s in _GLUE_SHELLS if shutil.which(s, path=path)}
+        managed = {s for s, d in dirs if self._shell_binary_in(s, d)}
         found = [s for s in _GLUE_SHELLS if s in on_path or s in managed]   # _GLUE_SHELLS order, deduped
-        return found or ['bash']
+        if len(_SHELLS_MEMO) > 64:
+            _SHELLS_MEMO.clear()
+        _SHELLS_MEMO[key] = tuple(found or ['bash'])
+        return list(_SHELLS_MEMO[key])
 
-    def _managed_shells(self):
-        '''Glue shells configsys manages: the shell's binary is present in its managed install dir (read
-        from the glue-locations cache — component -> dir). Lets a tarball shell be glue-managed before a
-        fresh shell puts it on PATH. Empty when the cache is cold (falls back to PATH detection).'''
+    def _managed_shell_dirs(self):
+        '''[(shell, dir)] — each glue shell's managed install dir from the glue-locations cache
+        (component -> dir), whether or not its binary is there yet. A shell whose binary IS there counts
+        as installed: a tarball shell is glue-managed before a fresh shell puts it on PATH. Empty when
+        the cache is cold (PATH detection alone).'''
         locs = self._read_location_cache()
         out = []
         for shell in _GLUE_SHELLS:
             d = locs.get(_SHELL_COMPONENT.get(shell, shell))
-            if d and self._shell_binary_in(shell, self._expand(d)):
-                out.append(shell)
+            if d:
+                out.append((shell, self._expand(d)))
         return out
 
     def _read_location_cache(self):
@@ -323,7 +355,8 @@ class Glue(Driver):
 
     def new_user_snippet(self, name, shell, local=False):
         '''Create (if absent) a user.d snippet `<name>.<ext>` for `shell` in the destination glue root
-        (primary plugin if set + not `local`, else the local store), with a small header + a+x. The
+        (primary plugin if set + not `local`, else the local store), with a small header (its mode is left
+        to your umask — no loader needs the x bit, and a private snippet stays private). The
         front door for `configsys glue add`; the caller opens $EDITOR then deploys via
         `_ensure_shell_loader(shell)`. Returns (path, created), or (None, False) for an unknown shell /
         no store. A trailing `.<ext>` in `name` is stripped so `glue add foo` and `foo.sh` agree.'''
@@ -343,12 +376,13 @@ class Glue(Driver):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(f'# {stem} — your own {shell} glue. configsys links this into conf.d but\n'
                             f'# never edits it; loads after component glue, so your definitions win.\n')
-            path.chmod(0o755)
         return path, created
 
     def deploy_user_glue(self, shell):
         '''Public wrapper: hook up `shell` and (re)link its user.d namespace into conf.d — so a snippet
-        just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.'''
+        just written by `glue add` is deployed (and inlined, for a gestalt shell) without a full op.
+        What it left out lands in `self.hookup_warnings` / `self.inline_warnings`.'''
+        self.inline_warnings, self.hookup_warnings = [], []
         return self._ensure_shell_loader(shell)
 
     def user_glue_link(self, shell, filename):
@@ -379,7 +413,6 @@ class Glue(Driver):
         if text.strip() not in cur:
             sep = '' if (not cur or cur.endswith('\n')) else '\n'
             path.write_text(f'{cur}{sep}{text}')
-        path.chmod(0o755)
         self.deploy_user_glue(shell)
         return path, self.user_glue_link(shell, path.name)
 
@@ -461,7 +494,7 @@ class Glue(Driver):
             return []
         out = []
         for name, src, _dst in self._specs(rc):
-            sh = name.rsplit('@', 1)[1] if '@' in name else None
+            sh = self._shell_of(name)
             if sh is None or (shell is not None and sh != shell):
                 continue
             glue = name.rsplit('@', 1)[0]
@@ -473,7 +506,6 @@ class Glue(Driver):
                 primarygit.will_write(target)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(shipped, target)
-                target.chmod(0o755)
             self._record_override(dest, rc.comp, sh, hashlib.sha256(shipped.read_bytes()).hexdigest())
             out.append((target, sh))
         return out
@@ -561,10 +593,14 @@ class Glue(Driver):
     def _deploy_user_glue(self, shell):
         '''Deploy the user-glue namespace for `shell`: scaffold the blessed 99-user home the first time
         (when NO user.d dir exists yet in any root — so emptying it doesn't resurrect it), then link
-        every user.d snippet (local root wins over primary) into ~/.config/<shell>/conf.d/. conf.d
+        every user.d snippet (local root wins over primary) into <config>/<shell>/conf.d/. conf.d
         shells source these; the inline/gestalt shells inline them (the block reads all of conf.d).
         Links point straight at the layer file so editing the linked snippet edits the (portable)
-        source — the layers idea. Idempotent; runs on every shell hookup.'''
+        source — the layers idea. A snippet's mode is never touched (no loader needs the x bit). Our
+        user-band link whose snippet is gone (deleted, or synced away) is pruned, and a snippet from a
+        primary that `primary-trust:` doesn't trust right now is not linked (its link, if any, goes;
+        named in `self.hookup_warnings`). Idempotent; runs on every shell hookup.'''
+        self.hookup_warnings = []
         ext = _SHELL_EXT.get(shell)
         if ext is None:
             return
@@ -578,7 +614,6 @@ class Glue(Driver):
                 if not home.exists():
                     primarygit.will_write(home)
                     home.write_text(_USER_GLUE_HEADER)
-                    home.chmod(0o755)
                 if dest not in roots:
                     roots.append(dest)
         snippets = {}
@@ -587,18 +622,49 @@ class Glue(Driver):
             if d.is_dir():
                 for f in sorted(d.glob(f'*.{ext}')):
                     snippets.setdefault(f.name, f)                       # first (local) root wins
-        if not snippets:
-            return
-        confd = self._ensure_confd(shell)
+        ours = lambda d: self._link_into_owned(d, user_d=True)          # noqa: E731 — a user.d link of ours
+        confd = self._ensure_confd(shell) if snippets else self._confd(shell)
+        trust = {}
         for name, srcpath in snippets.items():
-            try:
-                if srcpath.stat().st_mode & 0o777 != 0o755:
-                    primarygit.will_write(srcpath)                       # git tracks the x bit
-                    srcpath.chmod(0o755)                                 # loaders source only a+x files
-            except OSError:
-                pass
             tgt = confd / user_link_name(name)                           # the user band (90-, or NN- kept)
+            if not self._source_trusted(srcpath, trust):
+                self.hookup_warnings.append(f'{shell}: your user glue {name} is not linked — '
+                                            f'{self._untrusted_why(srcpath)}')
+                _linked.unlink(self.runner, tgt, ours=ours)              # an earlier link to it goes too
+                continue
             _linked.link(self.runner, srcpath, tgt, ours=self._link_into_owned)   # your file kept aside
+        try:
+            entries = sorted(confd.iterdir()) if confd.is_dir() else []
+        except OSError:
+            entries = []
+        for link in entries:                                             # prune: the snippet is gone
+            if link.is_symlink() and not link.exists() and ours(link):
+                _linked.unlink(self.runner, link, ours=ours)             # (a foreign dangling link stays)
+
+    def _source_trusted(self, path, memo=None):
+        '''Whether a glue file at `path` may go live: True for the repo, the local store and your own
+        config; a file inside a synced plugin (your primary included, per `primary-trust:`) only when
+        that plugin's current content is trusted — plugins.command_source_trusted. `memo` ({plugin:
+        bool}) saves re-hashing one plugin per snippet. No paths (unit tests) = trusted.'''
+        p = self.paths
+        if p is None or getattr(p, 'plugins_dir', None) is None:
+            return True
+        from .. import plugins
+        name = plugins.plugin_of_source(p, str(path))
+        if name is None:
+            return True
+        if memo is None:
+            memo = {}
+        if name not in memo:
+            memo[name] = plugins.command_source_trusted(p, str(path))
+        return memo[name]
+
+    def _untrusted_why(self, path):
+        '''The reason + remedy for an untrusted glue file (names its plugin).'''
+        from .. import plugins
+        name = plugins.plugin_of_source(self.paths, str(path)) if self.paths is not None else None
+        return (f'it comes from the plugin {name or "?"!r}, which is not trusted at its current content '
+                f'— review it, then `configsys plugin trust {name or "<plugin>"}`')
 
     def _resolve(self, src, rc):
         '''(resolved_src_path, tier, root) — the first content root that actually HAS `src` wins
@@ -619,8 +685,9 @@ class Glue(Driver):
     def _materialize_to(self, srcpath, dest, executable=False, refresh=False):
         '''Copy `srcpath` to `dest` (idempotent — only when `dest` is absent, or `refresh` and the
         content differs; glue is SHIPPED content, so refreshing the store cache from an updated
-        source is safe and desired). With `executable`, set a+x on the result (the loader sources
-        only executable files). Returns dest (or srcpath if there's nothing to copy / no dest).'''
+        source is safe and desired). With `executable`, set a+x on the result (shipped content only —
+        no loader needs it, the store copy just keeps the historical mode; a user's own snippet is
+        never chmod'ed). Returns dest (or srcpath if there's nothing to copy / no dest).'''
         if dest is None or not srcpath.exists():
             return srcpath
         if getattr(self.runner, 'pretend', False):         # --pretend must not touch the store
@@ -649,17 +716,20 @@ class Glue(Driver):
         return dest
 
     def _glue_store(self, dst):
-        '''The machine-local glue-store MIRROR of a snippet dst: ~/.config/<shell>/conf.d/<x> maps to
+        '''The machine-local glue-store MIRROR of a snippet dst: <config>/<shell>/conf.d/<x> maps to
         <glue-store>/<shell>/conf.d/<x>, so the store lines up with the deployed layout (and links are
-        uniform, never the repo). None if there's no store or the dst isn't under ~/.config.'''
+        uniform, never the repo). `<config>` is $XDG_CONFIG_HOME (fish/nushell/elvish read theirs
+        there) or ~/.config (bash/zsh). None if there's no store or the dst is under neither.'''
         store = getattr(self.paths, 'user_glue_dir', None) if self.paths is not None else None
         if store is None:
             return None
-        try:
-            rel = self._expand(dst).relative_to(self._home() / '.config')
-        except ValueError:
-            return None
-        return Path(store) / rel
+        tgt = self._expand(dst)
+        for base in (self._expand('$XDG_CONFIG_HOME'), self._home() / '.config'):
+            try:
+                return Path(store) / tgt.relative_to(base)
+            except ValueError:
+                continue
+        return None
 
     def _expand(self, dst):
         '''Expand env vars + ~ in a destination against configsys HOME.'''
@@ -718,7 +788,8 @@ class Glue(Driver):
         conf.d, regenerated whenever a snippet is (de)activated (install/uninstall call
         _ensure_shell_loader). conf.d entries are symlinks into the store; read_text follows them.
         A snippet carrying a `#!cs-eval <cmd>` directive is a GENERATOR: its command's stdout is inlined
-        instead of its text (the init-eval bridge — see _eval_directive).'''
+        instead of its text (the init-eval bridge — see _generator); a file that isn't configsys's is
+        inlined as text, never run.'''
         ext = _SHELL_EXT[shell]
         confd = self._confd(shell)
         parts = []
@@ -730,7 +801,7 @@ class Glue(Driver):
                     content = f.read_text(errors='replace')
                 except OSError:
                     continue
-                cmd = self._eval_directive(content)
+                cmd = self._generator(f, content)
                 if cmd is not None:                        # a generator snippet: inline the cmd's stdout
                     out = self._run_eval(cmd)
                     if out.strip():
@@ -762,7 +833,7 @@ class Glue(Driver):
             except OSError:
                 continue
             h.update(f.name.encode() + b'\0' + content.encode('utf-8', 'replace') + b'\0')
-            cmd = self._eval_directive(content)
+            cmd = self._generator(f, content)
             if cmd:
                 tool = shutil.which(cmd.split()[0]) if cmd.split() else None
                 try:
@@ -823,20 +894,34 @@ class Glue(Driver):
         return kept
 
     def _eval_directive(self, content):
-        '''The `<cmd>` of a `#!cs-eval <cmd>` line anywhere in a snippet (a GENERATOR snippet), else
-        None. Used for init-eval tools (zoxide/atuin) on a shell with no runtime `source`/eval: the
-        driver runs the command at (de)activation and inlines its stdout into the gestalt block.'''
+        '''The `<cmd>` of a `#!cs-eval <cmd>` line in a snippet's leading comment header (a GENERATOR
+        snippet), else None — a directive after the first line of code is just a comment. Used for
+        init-eval tools (zoxide/atuin) on a shell with no runtime `source`/eval: the driver runs the
+        command at (de)activation and inlines its stdout into the gestalt block.'''
         for line in content.splitlines():
-            m = _EVAL_DIRECTIVE.match(line.strip())
+            s = line.strip()
+            if s and not s.startswith('#'):
+                return None                                # past the header: code, not a directive
+            m = _EVAL_DIRECTIVE.match(s)
             if m:
                 return m.group(1).strip()
         return None
 
+    def _generator(self, f, content):
+        '''The generator command of conf.d file `f` — only when the file resolves into a glue root
+        configsys owns (the store, your primary's glue/, the repo's): a file anything else dropped in
+        conf.d is inlined as text, never run.'''
+        cmd = self._eval_directive(content)
+        if cmd is None:
+            return None
+        return cmd if any(_linked.inside(f, r) for r in self._owned_glue_roots()) else None
+
     def _run_eval(self, cmd):
         '''Run a generator snippet's command, returning its stdout ('' on ANY failure — a tool that's
-        absent or too old to emit a nu/elvish init must never break the block).'''
+        absent or too old to emit a nu/elvish init must never break the block; one that hangs is cut
+        off after _EVAL_TIMEOUT seconds).'''
         try:
-            r = self.runner.run(cmd, capture=True)
+            r = self.runner.run(cmd, capture=True, timeout=_EVAL_TIMEOUT)
         except Exception:                                  # noqa: BLE001 — a flaky init must not brick glue
             return ''
         return (r.stdout or '') if (r is not None and r.ok) else ''
@@ -907,13 +992,13 @@ class Glue(Driver):
             pass
 
     def _retire_bash_aliases_link(self):
-        '''Drop OUR ~/.bash_aliases link (one into the glue store); a real file or another link stays.'''
+        '''Drop OUR ~/.bash_aliases link — one to the loader's store copy, or into a glue root configsys
+        owns. A real file stays, and so does anyone else's link (stow/chezmoi), whatever it is named.'''
         dst = self._home() / '.bash_aliases'
         store = self._store_path(_BASH_ALIASES_SRC)
         try:
-            if dst.is_symlink() and (store is None
-                                     or os.path.realpath(dst) == os.path.realpath(store)
-                                     or _BASH_ALIASES_SRC in os.readlink(dst)):
+            if dst.is_symlink() and ((store is not None and os.path.realpath(dst) == os.path.realpath(store))
+                                     or self._link_into_owned(dst)):
                 dst.unlink()
         except OSError:
             pass
@@ -1049,11 +1134,13 @@ class Glue(Driver):
         '''The shell a snippet spec belongs to (its `glue@<shell>` suffix), or None.'''
         return spec_name.rsplit('@', 1)[1] if '@' in spec_name else None
 
-    def install(self, rc, only_shells=None):
+    def install(self, rc, only_shells=None, *, hookup=True):
         '''Activate `rc`'s glue. `only_shells` (a set/list of shell names) scopes the op to just those
         shells — the TUI passes it so activating a snippet in one shell group doesn't light up the
         component's OTHER shells (each per-shell row is independently activatable). None = all shells
-        (the CLI install path).'''
+        (the CLI install path). `hookup=False` links the snippets but leaves each shell's loader to the
+        caller — a bulk activate hooks each shell up ONCE at the end (`deploy_user_glue`) instead of
+        regenerating an inline block, and re-running every generator, per snippet.'''
         # A glue snippet lands in the user's conf.d and is sourced by every interactive shell (and a
         # #!cs-eval snippet runs a command at activation) — so it is code. Refuse to materialize an
         # untrusted plugin's glue; the user must `plugin trust` it first.
@@ -1063,29 +1150,37 @@ class Glue(Driver):
         if only_shells is not None:
             loaders = [l for l in loaders if l in only_shells]
         if loaders:                                        # a loader component (loader: zsh | all)
-            hooked, not_hooked = [], []
+            hooked, not_hooked, warns = [], [], []
             for shell in loaders:
+                self.hookup_warnings = []
                 (hooked if self._ensure_shell_loader(shell, rc) else not_hooked).append(shell)
+                warns += self.hookup_warnings                      # user glue left unlinked (untrusted)
             if not_hooked:
                 # your rc is a captured/managed link: its loader line is part of YOUR config, so say
                 # exactly what to add instead of claiming success (dotfiles-glue-18)
-                lines = [f'{_SHELL_RC.get(s, s)}: it is a link to your captured config — add the '
+                lines = [f'{self.display_path(self._expand(_SHELL_RC[s])) if s in _SHELL_RC else s}: it is a link to your captured config — add the '
                          f'conf.d loader to it yourself:\n{self._rc_block(s)}' for s in not_hooked]
                 head = (f'glue: conf.d loader hooked up ({", ".join(hooked)}); ' if hooked else 'glue: ')
                 return Result(head + 'not hooked: ' + ', '.join(not_hooked), 1,
                               stderr='\n'.join(lines), advisory=True)
-            return Result(f'glue: conf.d loader hooked up ({", ".join(hooked)})', 0)
+            return Result(f'glue: conf.d loader hooked up ({", ".join(hooked)})', 0, stdout='\n'.join(warns))
         specs = self._specs(rc)
         if only_shells is not None:
             specs = [s for s in specs if self._shell_of(s[0]) in only_shells]
         if not specs:
             return Result(f'glue: {rc.comp} has no snippet for any installed shell', 0, advisory=True)
-        # Deploy each snippet into the machine-local store MIRROR (<store>/<shell>/conf.d/),
-        # executable, so the loader sources it and a link never references the repo. `refresh=True`
+        # Deploy each snippet into the machine-local store MIRROR (<store>/<shell>/conf.d/), so a link
+        # never references the repo. `refresh=True`
         # re-caches a store copy that has drifted from its (updated) authoritative source.
         pairs, shells, updated = [], set(), 0
+        trust = {}
         for name, src, dst in specs:
             srcpath, _tier, _root = self._resolve(src, rc)
+            # the snippet that resolved may not be the defining layer's (your primary's override of a
+            # repo snippet): the file that goes live must be trusted too, not just rc.source
+            if not self._source_trusted(srcpath, trust):
+                return Result.fail(f'{rc.comp}: refusing to activate {self.display_path(srcpath)} — '
+                                   f'{self._untrusted_why(srcpath)}', category='untrusted-plugin')
             store = self._glue_store(dst) or srcpath
             if store != srcpath and store.is_file() and srcpath.is_file():   # drift check vs source
                 try:
@@ -1094,7 +1189,7 @@ class Glue(Driver):
                 except OSError:
                     pass
             self._materialize_to(srcpath, store, executable=True, refresh=True)
-            sh = name.rsplit('@', 1)[1] if '@' in name else None
+            sh = self._shell_of(name)
             if sh:
                 shells.add(sh)
             pairs.append((srcpath, src, store, self._expand(dst)))
@@ -1116,10 +1211,10 @@ class Glue(Driver):
         # sources — checked on every install AND update (upgrade == install). The snippet's own
         # `requires: shell-glue` covers the CLI pipeline, but a direct activate (TUI) bypasses it.
         warns = []
-        for shell in shells:
-            self.inline_warnings = []
+        for shell in (shells if hookup else ()):
+            self.inline_warnings, self.hookup_warnings = [], []
             self._ensure_shell_loader(shell, rc)
-            warns += getattr(self, 'inline_warnings', [])
+            warns += getattr(self, 'hookup_warnings', []) + getattr(self, 'inline_warnings', [])
         msg = f'activated {rc.comp}'
         if updated:
             msg += f' ({updated} snippet(s) refreshed from source)'

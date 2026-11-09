@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from .. import shellguard
 from ..drivers import get_driver
+from ..errors import ConfigError
 from .common import _install_scope_label
 
 
@@ -388,8 +389,12 @@ def cmd_dotfiles_capture(ctx, args):
         if resp.strip().lower() not in ('y', 'yes'):
             print('aborted.')
             return 1
-    captured = 0
+    captured, failed = 0, 0
     for rc in units:
-        captured += len(df.capture(rc, force=args.force))
+        try:
+            captured += len(df.capture(rc, force=args.force))
+        except (ConfigError, RuntimeError) as e:          # a hand-edited manifest.hu, a failed copy
+            print(f'configsys: {rc.comp}: {e}', file=sys.stderr)
+            failed += 1
     print(f'\ncaptured {captured} target(s) into {df.display_path(store)}.')
-    return 0
+    return 1 if failed else 0

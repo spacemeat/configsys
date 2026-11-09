@@ -38,7 +38,9 @@ end
 # invalidated on a pin/pick edit or plugin sync); startup reads it once, and only a cold/stale (>1h)
 # cache spawns ONE `configsys location --all` (which rewrites it). Covers this machine's picks.
 set -l _cs_cache (set -q CONFIGSYS_STATE_DIR; and echo $CONFIGSYS_STATE_DIR; or echo (set -q XDG_CONFIG_HOME; and echo $XDG_CONFIG_HOME; or echo $HOME/.config)/configsys)/glue-locations.tsv
-if test -f $_cs_cache; and test -n (find $_cs_cache -mmin -60 2>/dev/null | string collect)
+# (a list, not `test -n (…)`: an empty substitution is NO argument, and a one-argument `test -n` is true)
+set -l _cs_fresh (find $_cs_cache -mmin -60 2>/dev/null)
+if test -f $_cs_cache; and set -q _cs_fresh[1]
     set -g __cs_locs (cat $_cs_cache)
 else
     # CONFIGSYS_NO_BOOTSTRAP: a shell start never repairs the launcher's venv (no hidden sudo); on a

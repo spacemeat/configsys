@@ -21,7 +21,8 @@ readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Trevor Schrock" }]
 keywords = ["provisioning", "dotfiles", "package-manager", "bootstrap", "cli", "humon"]
-dependencies = ["humon>=0.1.0", "packaging"]
+# configsys.sh reads THIS line for its bootstrap pip install (one place for the bounds; keep it one line)
+dependencies = ["humon>=0.1,<0.2", "packaging>=23"]
 dynamic = ["version"]
 
 [project.scripts]

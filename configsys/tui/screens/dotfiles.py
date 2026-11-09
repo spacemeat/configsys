@@ -17,6 +17,7 @@ via:dotfiles CONFIG units + the driver ops), composed unchanged; this adds the t
 from pathlib import Path
 
 from ...drivers.dotfiles import config_display_state
+from ...errors import ConfigError
 from .. import menu
 from ..modals import _popup_choose
 from ..paint import _fit, _page_rows, _panel, _put
@@ -144,8 +145,11 @@ class DotfilesScreen(Screen):
                 with suspended(stdscr):
                     for rc in pend.values():
                         drv = ds.driver_for(rc)
-                        drv.capture(rc, force=False)
-                        results.append((rc.comp, *result_ok(drv.install(rc))))
+                        try:                          # one bad manifest.hu must not stop the rest
+                            drv.capture(rc, force=False)
+                            results.append((rc.comp, *result_ok(drv.install(rc))))
+                        except (ConfigError, RuntimeError) as e:
+                            results.append((rc.comp, False, str(e)))
                 ds.dirty.update(pend)
                 ds.reload()
                 note = results_note(ctx, 'now managing', results, what='config(s)', nothing='nothing to manage')

@@ -504,9 +504,11 @@ class Runner:
             self.end_sudo()
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None,
-            cwd=None, env=None, presudo=False) -> Result:
+            cwd=None, env=None, presudo=False, timeout=None) -> Result:
         # `presudo` is accepted but IGNORED (compat for plugins that still pass it): a batch with root
         # work authenticates up front (begin_sudo) and then keeps every streamed op on the real tty.
+        # `timeout` (seconds) bounds a CAPTURED probe (a glue generator): past it the child is killed
+        # and the Result fails with rc 124, like timeout(1). A streamed op is never cut off.
         full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(full)
 
@@ -573,8 +575,12 @@ class Runner:
             # the TUI back into cooked/echo (keys echo, need Enter). Detach stdin so a probe child can
             # NEVER touch the controlling terminal; a STREAMED (capture=False) op keeps the tty (sudo
             # password, interactive build) and is fenced by terminal_released on the main thread.
-            cp = subprocess.run(argv, capture_output=capture, text=True, cwd=cwd, env=env,
-                                stdin=(subprocess.DEVNULL if capture else None))
+            try:
+                cp = subprocess.run(argv, capture_output=capture, text=True, cwd=cwd, env=env,
+                                    stdin=(subprocess.DEVNULL if capture else None),
+                                    timeout=(timeout if capture else None))
+            except subprocess.TimeoutExpired:
+                return Result(full, 124, stderr=f'timed out after {timeout}s')
         return Result(full, cp.returncode,
                       stdout=cp.stdout if capture else '',
                       stderr=cp.stderr if capture else '')

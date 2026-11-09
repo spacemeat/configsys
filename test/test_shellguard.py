@@ -94,7 +94,7 @@ def test_activate_becomes_user_glue_and_clears_stage(tmp_path):
     assert done == [('bash', link)]
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(snippet)
     assert 'export SDKMAN_DIR=x' in snippet.read_text()
-    assert os.stat(snippet).st_mode & 0o111                # executable so loaders source it
+    assert not os.stat(snippet).st_mode & 0o111            # your file's mode is left alone (no loader needs +x)
     assert shellguard.staged_for(p, 'sdkman') == []        # staged copy consumed
 
 

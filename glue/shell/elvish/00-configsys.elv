@@ -28,7 +28,7 @@ fn configsys {|@a|
     if (path:is-regular $launcher) {
       (external $launcher) $@a
     } else {
-      echo "configsys: launcher not found — set CONFIGSYS_LAUNCHER, or install configsys on your PATH" >&2
+      fail "configsys: launcher not found — set CONFIGSYS_LAUNCHER, or install configsys on your PATH"
     }
   }
 }

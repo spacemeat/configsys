@@ -60,7 +60,10 @@ def test_no_new_enough_python_names_the_fix(tmp_path):
     bindir, log = tmp_path / 'bin', tmp_path / 'log'
     bindir.mkdir()
     _stub(bindir / 'python3', '3.9', log)
-    r = subprocess.run(['/bin/bash', str(REPO / 'configsys.sh'), '--help'], cwd=tmp_path,
+    repo = tmp_path / 'repo'                               # no .venv: a healthy one is used first
+    repo.mkdir()
+    (repo / 'configsys.sh').write_text((REPO / 'configsys.sh').read_text())
+    r = subprocess.run(['/bin/bash', str(repo / 'configsys.sh'), '--help'], cwd=tmp_path,
                        env={'HOME': str(tmp_path), 'PATH': f'{bindir}:{_tools(tmp_path)}'},
                        capture_output=True, text=True, timeout=60)
     assert r.returncode == 1 and 'PYTHON=' in r.stderr and '3.9' in r.stderr
@@ -85,3 +88,64 @@ def test_a_shell_start_never_repairs_the_venv(tmp_path):
                        env={**os.environ, 'CONFIGSYS_NO_BOOTSTRAP': '1'}, capture_output=True, text=True)
     assert r.returncode == 75
     assert not (repo / '.venv').exists()
+
+
+def _venv_stub(repo, log, *, healthy):
+    '''A repo `.venv/bin/python` that logs its argv: healthy = the fast-path probe passes; else the
+    probe and the deps import fail (a fresh venv), while pip "works".'''
+    vpy = repo / '.venv' / 'bin' / 'python'
+    vpy.parent.mkdir(parents=True)
+    vpy.write_text(f'''#!/bin/sh
+echo "$*" >> {log}
+case "$*" in
+  *find_spec*) {'exit 0' if healthy else 'exit 1'};;
+  *"import humon, packaging"*) exit 1;;
+esac
+exit 0
+''')
+    vpy.chmod(0o755)
+
+
+def test_a_healthy_venv_starts_one_interpreter_with_E(tmp_path):
+    # dotfiles-glue-36: the python floor search ran before the venv fast path (two extra starts);
+    # dotfiles-glue-35: and the exec lacked -E, so a PYTHONPATH could shadow the venv's packages
+    bindir, plog, vlog = tmp_path / 'bin', tmp_path / 'py.log', tmp_path / 'venv.log'
+    bindir.mkdir()
+    for v in ('3', '3.14', '3.13', '3.12', '3.11', '3.10'):
+        _stub(bindir / f'python{v}', '3.12', plog)
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    (repo / 'configsys.sh').write_text((REPO / 'configsys.sh').read_text())
+    _venv_stub(repo, vlog, healthy=True)
+    r = subprocess.run(['/bin/bash', str(repo / 'configsys.sh'), 'inspect'], cwd=tmp_path,
+                       env={'HOME': str(tmp_path), 'PATH': f'{bindir}:{_tools(tmp_path)}',
+                            'PYTHONPATH': str(tmp_path / 'shadow')},
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    assert not plog.exists()                                    # no candidate python was started
+    calls = vlog.read_text().splitlines()
+    assert len(calls) == 2 and calls[0].startswith('-E -c ') and calls[1] == '-E -m configsys inspect'
+
+
+def test_the_bootstrap_installs_the_bounded_deps_from_pyproject(tmp_path):
+    # dotfiles-glue-35: `pip install humon packaging` took whatever was newest; the bounds now live in
+    # pyproject.toml's one `dependencies` line, which the launcher reads
+    import re
+    bindir, plog, vlog = tmp_path / 'bin', tmp_path / 'py.log', tmp_path / 'venv.log'
+    bindir.mkdir()
+    _stub(bindir / 'python3', '3.12', plog)
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    (repo / 'configsys.sh').write_text((REPO / 'configsys.sh').read_text())
+    (repo / 'pyproject.toml').write_text((REPO / 'pyproject.toml').read_text())
+    _venv_stub(repo, vlog, healthy=False)
+    r = subprocess.run(['/bin/bash', str(repo / 'configsys.sh'), 'inspect'], cwd=tmp_path,
+                       env={'HOME': str(tmp_path), 'PATH': f'{bindir}:{_tools(tmp_path)}',
+                            '_CONFIGSYS_REPAIR_LOCKED': '1'},
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0, r.stderr
+    deps = re.search(r'^dependencies = \[(.*)\]$', (REPO / 'pyproject.toml').read_text(), re.M).group(1)
+    want = re.findall(r'"([^"]*)"', deps)
+    assert want and all(re.search(r'[<>=]=?\s*\d', d) for d in want)          # every dep is bounded
+    assert f'-m pip install -q {" ".join(want)}' in vlog.read_text().splitlines()
+    assert vlog.read_text().splitlines()[-1] == '-E -m configsys inspect'

