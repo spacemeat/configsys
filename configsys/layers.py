@@ -429,6 +429,17 @@ def merge_name_overrides(layers, roles=None):
     return merge_two_level(layers, 'component-names', roles)
 
 
+def name_override_source(layers, driver, component):
+    '''The path of the layer whose `component-names` entry for (driver, component) wins — the
+    highest one setting it (merge_name_overrides' later-wins) — or None. For `where` provenance.'''
+    for layer in reversed(layers):
+        sec = layer.data.get('component-names') if isinstance(layer.data, dict) else None
+        inner = sec.get(driver) if isinstance(sec, dict) else None
+        if isinstance(inner, dict) and component in inner:
+            return layer.path
+    return None
+
+
 def merge_version_floors(layers, roles=None):
     '''Overlay the `version-floors` section across layers -> {component: {cap: constraint}}. The
     analog of component-names for VERSION constraints: a higher layer patches a (component,

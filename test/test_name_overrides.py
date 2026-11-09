@@ -66,3 +66,15 @@ def test_override_lands_in_install_fields(tmp_path):
     r = _resolver(tmp_path, '{ component-names: { apt: { btop: btop-custom } } }')
     rc = r.resolve_names(['btop'])['apt\\btop']
     assert rc.fields.get('name') == 'btop-custom'
+
+
+def test_where_names_the_drop_that_removed_it(tmp_path):
+    # `where` on a dropped component said only "nothing": name the `component-names` entry + layer
+    from configsys.app import Context, build_parser, where_report
+    d = tmp_path / '.config' / 'configsys'
+    d.mkdir(parents=True)
+    (d / 'configsys.hu').write_text('{ component-names: { apt: { nmap: {} } } }')
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'ubuntu:24.04', 'inspect']))
+    tail = where_report(ctx, 'nmap')[-1]
+    assert 'nothing' in tail and 'component-names: { apt: { nmap: {} } }' in tail
+    assert '~/.config/configsys/configsys.hu' in tail

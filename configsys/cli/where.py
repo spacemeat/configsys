@@ -54,6 +54,22 @@ def _source_label(comp, paths):
     return f'{where}   (overrides routes.hu)' if comp.shadows else f'{where}   (new; not in routes.hu)'
 
 
+def _drop_note(r, comp, selected, paths):
+    '''" — `component-names: { apt: { nmap: {} } }` in <layer> …" when the winning method's driver is
+    patched to package nothing for `comp` here (a `{}` drop: silently not offered), else ''.'''
+    if selected is None:
+        return ''
+    from .. import layers
+    from ..resolve import _driver, _name_override
+    drv = _driver(selected, r.cascade, r.block)
+    if not _name_override(r.overrides, drv, comp.name)[1]:
+        return ''
+    src = layers.name_override_source(getattr(r, 'layers', None) or [], drv, comp.name)
+    where = f' in {_layer_label(src, paths)}' if src else ''
+    return (f' — `component-names: {{ {drv}: {{ {comp.name}: {{}} }} }}`{where} says {drv} packages '
+            f'nothing for it here, so it is dropped (not offered, never an error)')
+
+
 def _os_version_conditions(comp, cx):
     '''The versioned OS atoms in `comp`'s `when:`s that name a block in this machine's lineage
     (`alpine >= 3.24`), as text — each reads false while no OS version is known.'''
@@ -154,7 +170,7 @@ def where_report(ctx, name):
         out.append(f'    ERROR: {e}')
         return out
     if not units:
-        out.append('    nothing')
+        out.append('    nothing' + _drop_note(r, comp, selected, ctx.paths))
         return out
     own = {k for k in units if k.split('\\', 1)[-1] == name}
     for key in sorted(units):
