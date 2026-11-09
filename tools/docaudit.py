@@ -51,7 +51,7 @@ GLOSSARY_BEGIN = '<!-- glossary:begin'
 GLOSSARY_END = '<!-- glossary:end -->'
 # historical records: retired terms are expected there, and they're not maintained for accuracy
 HISTORICAL = ('docs/done/', 'docs/history/', 'docs/review-')
-SKIP_DIRS = {'.venv', '.git', 'node_modules', '__pycache__', '.pytest_cache'}
+SKIP_DIRS = {'.venv', '.git', 'node_modules', '__pycache__', '.pytest_cache', 'worktrees'}   # worktrees: .claude/worktrees/ agent checkouts
 
 
 # -- markdown discovery -------------------------------------------------------
