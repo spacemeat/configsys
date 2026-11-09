@@ -139,3 +139,20 @@ def test_handle_switch_pane_toggles_focus(ctx):
     tab = next(k for k in range(1, 400) if km.action_for('plugins', k) == 'switch-pane')
     scr.handle(tab, ctx, None, None)
     assert scr.model.focus == 'diff'
+
+
+def test_adding_a_local_path_keeps_it_on_this_machine(ctx, monkeypatch, tmp_path):
+    # G3 / §7 default: a project checkout's path is this machine's — never published to the primary
+    from contextlib import nullcontext
+    from configsys import actions
+    from configsys.tui.screens import plugins as pmod
+    seen = {}
+    answers = iter([(str(tmp_path), False), ''])           # the source box (+toggle), then the ref box
+    monkeypatch.setattr(pmod, '_input_box', lambda *a, **k: next(answers))
+    monkeypatch.setattr(pmod, 'suspended', lambda _s: nullcontext())
+    monkeypatch.setattr(actions, 'plugin_add',
+                        lambda c, src, ref=None, **kw: seen.update(src=src, ref=ref, **kw) or (True, 'added', []))
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    add = next(k for k in range(32, 127) if menu._KEYMAP.action_for('plugins', k) == 'add')
+    scr.handle(add, ctx, None, None)
+    assert seen['local'] is True and seen['src'] == str(tmp_path) and seen['ref'] is None

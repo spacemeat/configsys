@@ -14,6 +14,8 @@ seams:
   mutating loop-scope locals.
 '''
 
+import os
+
 from .. import menu
 from ..menu import (_DIFF_ELEM, _PLUGIN_HEADERS, PluginScreen, _draw_nav, _fill_bg, _fit,
                     _input_box, _page_rows, _panel, _plugin_cells, _plugin_code_elem,
@@ -307,14 +309,69 @@ class PluginsScreen(Screen):
                     pl.cur = max(0, len(pl.rows) - 1); pl._invalidate_diff()
             elif pact == 'add':
                 src, replace = _input_box(
-                    stdscr, pal, 'add plugin — source (github:owner/repo)', '',
+                    stdscr, pal, 'add plugin — source (github:owner/repo, a git URL, or a local path)', '',
                     toggle=('replace an existing plugin of the same name (retarget)', False))
                 if src and src.strip():
+                    src = src.strip()
+                    # a local path (a project checkout) is THIS machine's — it can't sync anywhere else
+                    # (§7 default; G3); a remote source with a primary blessed: ask where it goes
+                    local = src.startswith(('/', '~', '.', 'file:')) or os.path.isdir(os.path.expanduser(src))
+                    prim = plugins.primary_name(plugins.declared(ctx.paths.user_config_file))
+                    if not local and prim:
+                        where = menu._popup_choose(stdscr, pal, f'add {src} for …',
+                                                   [(f'all your machines (in {prim})', ''),
+                                                    ('this machine only', '')], 0)
+                        if where is None:
+                            return Intent(note='not added')
+                        local = where == 1
+                    ref = _input_box(stdscr, pal, f'{src} — ref (tag / branch / sha; empty = its default)', '')
                     with suspended(stdscr):
-                        _ok, msg, _r = actions.plugin_add(ctx, src.strip(), replace=replace)
+                        _ok, msg, _r = actions.plugin_add(ctx, src, (ref or '').strip() or None,
+                                                          local=local, replace=replace)
                     pl.reload()
                     dirty = True
                     note = msg.split('\n')[0]
+            elif pact == 'picks-to-primary':
+                n, label = actions.move_picks_to_primary(ctx)
+                note = menu._pretend_note(ctx, (
+                    'no primary plugin — picks already live in your top config' if label == 'no primary'
+                    else f'moved {n} pick(s) into {label} — they travel to your other machines' if n
+                    else f'nothing to move — no local picks (they already live in {label})'), bool(n))
+                dirty = dirty or bool(n)
+            elif pact == 'set-source' and row:
+                cur = row.get('source', '')
+                new = _input_box(stdscr, pal, f'{row["name"]} — new source (e.g. github:you/{row["name"]})', cur)
+                if new and new.strip() and new.strip() != cur:
+                    import argparse
+                    from ...app import cmd_plugin_set_source
+                    with suspended(stdscr):
+                        rc = cmd_plugin_set_source(ctx, argparse.Namespace(name=row['name'], source=new.strip()),
+                                                   plugins.declared(ctx.paths.user_config_file))
+                    pl.reload()
+                    dirty = True
+                    note = (f'{row["name"]} now syncs from {new.strip()}' if rc == 0
+                            else f'{row["name"]}: source unchanged')
+            elif pact == 'init-primary':
+                import argparse
+                from ...app import cmd_plugin_init
+                decls = plugins.declared(ctx.paths.user_config_file)
+                name = None
+                if not plugins.primary_name(decls):
+                    name = _input_box(stdscr, pal, 'new primary plugin — name', '')
+                    if name is None:
+                        return Intent(note='no primary made')
+                with suspended(stdscr):               # show the plan, then ask, on the plain terminal
+                    a = argparse.Namespace(name=(name or '').strip() or None, force=False, dry_run=True)
+                    cmd_plugin_init(ctx, a, decls)
+                    try:
+                        go = input('\nGo ahead? [y/N] ').strip().lower() == 'y'
+                    except EOFError:
+                        go = False
+                    rc = cmd_plugin_init(ctx, argparse.Namespace(**{**vars(a), 'dry_run': False}), decls) if go else None
+                pl.reload()
+                dirty = dirty or rc == 0
+                note = ('plugin init done' if rc == 0 else 'plugin init: nothing changed' if rc is None
+                        else 'plugin init failed — see the output above')
             elif pact == 'remove' and row:
                 _ok, note = actions.plugin_remove(ctx, row['name'])
                 pl.reload()

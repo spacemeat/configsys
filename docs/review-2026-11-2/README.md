@@ -284,7 +284,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **G2 [MED]** `check`'s lints never reach the TUI `!` page (plugin conflicts, driver shadowing, key
   lockouts, bad setting values). (parity-06, config-layers-18) · [done — done — check_report() is check as data (cmd_check prints it); the TUI runs it on a background thread at start and after each reload, and its findings join the ! page (deduped against what the page already says)]
 - **G3 [MED]** TUI `plugin add` has no `--local`/ref/pin — a project path gets published to every machine;
-  no `picks to-primary`; `plugin init`/`set-source` CLI-only. (parity-08/10/13, tui-screens-24) · [open]
+  no `picks to-primary`; `plugin init`/`set-source` CLI-only. (parity-08/10/13, tui-screens-24) · [done — done — Plugins `a` keeps a local path on this machine (§7 default), asks "all your machines / this machine only" for a remote source when a primary is blessed, and takes a ref; new keys n (plugin init: plan, confirm, run), O (set-source), M (picks to-primary)]
 - **G4 [LOW]** Glue verbs split between surfaces (staged glue under `dotfiles`; `glue add/override`
   CLI-only); the uninstall queue has no CLI. (dotfiles-glue-33, parity-12, actions-29, app-cli-22) · [open]
 - **G5 [LOW]** Primary UX: the TUI push popup doesn't list files; `plugin undo` takes back another
