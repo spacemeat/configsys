@@ -20,8 +20,10 @@ def test_versioned_compilers_provide_standards_and_are_optin():
     for name in VERSIONED:
         comp = r.components[name]
         assert comp.opt_in, f'{name} must be opt-in so it does not shadow cpp-toolchain'
-        for cap in ('cc', 'cxx', 'C11', 'C17', 'C23', 'C++17', 'C++20', 'C++23'):
+        for cap in ('cc', 'cxx', 'C11', 'C17', 'C++17', 'C++20', 'C++23'):
             assert cap in comp.provides, f'{name} should provide {cap}'
+    # C23 (`-std=c23`) arrived in GCC 14; GCC 13 has only the partial -std=c2x
+    assert 'C23' in r.components['gcc-14'].provides and 'C23' not in r.components['gcc-13'].provides
     # the newest gain C++26, the older ones do not (a hand-tunable label)
     assert 'C++26' in r.components['gcc-15'].provides
     assert 'C++26' in r.components['clang-20'].provides

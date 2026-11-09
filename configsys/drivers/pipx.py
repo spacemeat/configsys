@@ -33,7 +33,7 @@ _UV_MIN = '0.9.17'
 # The python3 providers routes.hu ships, used when the routes can't be read (no paths / a parse
 # failure). Normally `_shipped_pythons` derives the list from the routes themselves.
 _FALLBACK_PYTHONS = (('3.10', 'python3.10'), ('3.11', 'python3.11'), ('3.12', 'python3.12'),
-                     ('3.13', 'python3.13'), ('3.14', 'python3.14'))
+                     ('3.13', 'python3.13'), ('3.14', 'python3.14'), ('3.15', 'python3.15'))
 
 
 @functools.lru_cache(maxsize=4)
@@ -97,13 +97,18 @@ class Pipx(Driver):
         return idx
 
     def batch_index(self, rcs):
-        return self.installed_index() or {}
+        # the installed map AND each venv's interpreter: one `pipx list --json` for the whole batch
+        # (get_latest's interpreter lookup re-ran it per unit — C4 / drivers-lang-15)
+        idx = self.installed_index() or {}
+        return {'installed': idx, 'pythons': dict(getattr(self, '_pyver_cache', None) or {})}
 
     def batch_installed_index(self, batch):
-        return batch if isinstance(batch, dict) else None   # the batch IS the installed index
+        return batch.get('installed') if isinstance(batch, dict) else None
 
     def get_version(self, rc):
-        idx = self.batch if self.batch is not None else self.installed_index()
+        idx = (self.batch.get('installed') if isinstance(self.batch, dict) else None)
+        if idx is None:
+            idx = self.installed_index()
         if not idx:
             return None
         want = self._dist(rc)
@@ -115,6 +120,9 @@ class Pipx(Driver):
     def _venv_pythons(self):
         '''{norm_dist: "Python X.Y.Z"} — the interpreter each installed venv runs. Populated as a
         side effect of the batch's installed_index; parsed on demand for a single-component call.'''
+        if getattr(self, '_pyver_cache', None) is None and isinstance(self.batch, dict) \
+                and 'pythons' in self.batch:
+            self._pyver_cache = self.batch['pythons']      # the batch already listed them
         if getattr(self, '_pyver_cache', None) is None:
             self.installed_index()
             if getattr(self, '_pyver_cache', None) is None:
@@ -205,7 +213,11 @@ class Pipx(Driver):
         '''pipx's venv backend, chosen UP FRONT and cached per driver instance: `--backend pip ` (with
         a one-line note) when a uv is on PATH but older than `_UV_MIN`; otherwise `''` (pipx's default
         — uv when it's present and new enough, pip when uv is absent). Read-only; same pipx method +
-        venv either way. Cached so a batch probes uv (and notes) once, not per component.'''
+        venv either way. Cached on the RUNNER (one per batch; each op builds a fresh driver), so a
+        batch probes uv (and notes) once, not per component.'''
+        memo = self.runner.__dict__.setdefault('_pipx_backend', {})   # per runner = per batch (C4)
+        if 'flag' in memo:
+            return memo['flag']
         cached = getattr(self, '_backend_flag', None)
         if cached is not None:
             return cached
@@ -220,6 +232,7 @@ class Pipx(Driver):
                                  f'needed for pipx’s uv backend)')
                 flag = '--backend pip '
         self._backend_flag = flag
+        memo['flag'] = flag
         return flag
 
     def install(self, rc):

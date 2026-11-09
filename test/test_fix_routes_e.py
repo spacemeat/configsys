@@ -106,8 +106,9 @@ def test_pipx_suggest_pin_derives_from_routes_python_providers():
     from types import SimpleNamespace
     from configsys.drivers.pipx import Pipx, _shipped_pythons
     shipped = [n for _v, n in _shipped_pythons(ROUTES)]
-    assert shipped == ['python3.10', 'python3.11', 'python3.12', 'python3.13', 'python3.14']
+    assert shipped == ['python3.10', 'python3.11', 'python3.12', 'python3.13', 'python3.14', 'python3.15']
     p = Pipx(None, SimpleNamespace(routes_file=ROUTES))
+    assert p._suggest_pin('>=3.15') == 'python3.15'
     assert p._suggest_pin('>=3.14') == 'python3.14'
     assert p._suggest_pin('>=3.12') == 'python3.12'
     assert p._suggest_pin('>=3.10') == 'python3.10'

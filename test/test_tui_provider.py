@@ -32,7 +32,7 @@ class _Pal:
 
 
 def _ctx(tmp_path):
-    return Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    return Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop_os!:22.04', 'inspect']))
 
 
 def _row(name):

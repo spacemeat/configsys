@@ -219,7 +219,7 @@ def test_preference_list_without_a_driver_still_ranks_it_by_the_default():
              'jbang', 'jmeter']
     units, errs = r.resolve_resilient(names)
     assert errs == {}
-    assert 'brew\\dysk' in units and 'brew\\ant' in units
+    assert 'brew\\dysk' in units and 'brew\\conan' in units
 
 
 def test_effective_preference_chain_order():
