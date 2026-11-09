@@ -17,7 +17,7 @@ def _mkctx(mode, pm='apt'):
     ctx = SimpleNamespace(
         config=SimpleNamespace(refresh_before_execute=lambda: mode),
         routes=SimpleNamespace(cascade=SimpleNamespace(native=lambda b: pm)),
-        os_info=SimpleNamespace(block='pop'),
+        os_info=SimpleNamespace(block='pop'), paths=SimpleNamespace(home=None),
         runner=R())
     return ctx, calls
 

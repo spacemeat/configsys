@@ -133,3 +133,33 @@ def test_brew_off_path_is_found_in_its_prefix(tmp_path, monkeypatch):
     assert Runner().run('brew list --versions', env=brew.brew_env()).stdout.strip() == 'brew list --versions'
     monkeypatch.setattr(brew, '_PREFIXES', (str(tmp_path / 'absent'),))
     assert brew.brew_env() is None                                # not installed anywhere: inherit
+
+
+def test_per_user_prefix_is_under_configsys_home(tmp_path, monkeypatch):
+    # `~/.linuxbrew` is configsys's home (--home / CONFIGSYS_HOME), never the real $HOME — a sandboxed
+    # run finds (and only finds) the sandbox's Homebrew
+    from configsys.drivers import brew as B
+    from configsys.paths import Paths
+    from configsys.runner import Result
+    home = tmp_path / 'home'
+    (home / '.linuxbrew' / 'bin').mkdir(parents=True)
+    exe = home / '.linuxbrew' / 'bin' / 'brew'
+    exe.write_text('#!/bin/sh\n'); exe.chmod(0o755)
+    monkeypatch.delenv('HOMEBREW_PREFIX', raising=False)
+    monkeypatch.setenv('HOME', str(tmp_path / 'real-home'))         # the real $HOME has no brew
+    monkeypatch.setattr(B.shutil, 'which', lambda n: None)
+    monkeypatch.setattr(B, '_PREFIXES', (str(tmp_path / 'no-shared'), '~/.linuxbrew'))
+    paths = Paths(env={'CONFIGSYS_HOME': str(home)})
+    assert Brew(FakeRunner(), paths).location(formula('btop')) == str(home / '.linuxbrew' / 'opt' / 'btop')
+    assert B.brew_env(home)['PATH'].endswith(str(home / '.linuxbrew' / 'bin'))
+    assert B.brew_env() is None                                       # the real $HOME: nothing there
+
+    class R(FakeRunner):
+        envs = []
+
+        def run(self, cmd, env=None, **kw):
+            self.envs.append(env)
+            return Result(cmd, 0)
+    r = R()
+    Brew(r, paths).installed_index()
+    assert r.envs[-1]['PATH'].endswith(str(home / '.linuxbrew' / 'bin'))

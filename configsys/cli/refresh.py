@@ -270,7 +270,7 @@ def _run_native_refresh(ctx, pm, cmd):
     output captured for the failure diagnosis. -> the Result.'''
     from ..failures import retry_transient
     from ..drivers.brew import brew_env
-    env = brew_env() if pm == 'brew' else None
+    env = brew_env(ctx.paths.home) if pm == 'brew' else None
     return retry_transient(lambda: ctx.runner.run(cmd, sudo=(pm != 'brew'), capture=True, env=env))
 
 
