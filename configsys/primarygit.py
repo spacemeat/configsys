@@ -180,6 +180,11 @@ class PrimaryRepo:
                 return what
         return None
 
+    def ignored(self):
+        '''The set of ignored, untracked paths in the checkout (a `.cfs` dir's secrets), or set().'''
+        r = self.git('ls-files', '--others', '--ignored', '--exclude-standard', '-z')
+        return {os.fsdecode(p) for p in r.out.split(b'\0') if p} if r.ok else set()
+
     def incoming(self, upstream):
         '''The paths `upstream` changed since it and HEAD diverged.'''
         r = self.git('diff', '--name-only', '-z', f'HEAD...{upstream}')
@@ -820,22 +825,35 @@ def push(ctx, ui=None):
     branch = repo.branch()
     if not branch:
         ref = decl.get('ref')
-        target = plugins.default_branch(ctx.runner, root) or 'main'
+        head_ref = repo.text('rev-parse', '--abbrev-ref', 'origin/HEAD')
+        target = (head_ref[len('origin/'):] if head_ref.startswith('origin/') else '') or 'main'
         lines.append(f'{name} is pinned to {ref or "a fixed commit"}, so your other machines stay '
                      f'frozen there and a push wouldn\'t reach them (configsys never tags for you).')
         if not ui.ask(question('switch-branch', name=name, ref=ref, branch=target)):
             return False, lines + [f'Left as is. To publish anyway, tag and push it yourself in {root}, '
                                    f'then `configsys plugin update {name} --ref <tag>` on each machine.']
         was = repo.text('rev-parse', 'HEAD')           # switch first; write `ref:` only once it worked
-        res = plugins.sync(ctx.runner, ctx.paths.plugins_dir, [dict(decl, ref=target)],
-                           verify_primary=_verify(ctx))
-        action = res[0][1] if res else 'failed'
-        if action not in ('updated', 'cloned', 'ahead'):
-            if repo.branch() and was:                  # half switched: back to where it was pinned
-                repo.git('checkout', '--quiet', '--detach', was)
-            return False, lines + [plugins.sync_note(name, action, ctx.paths.plugins_dir, primary=True)
-                                   or f'{name}: could not switch to {target} ({action}).',
-                                   f'{name} is still pinned to {ref or "its commit"}; your config is unchanged.']
+        # through the primary's OWN repo (scrubbed env: never the dotfiles repo a `yadm enter` points
+        # GIT_DIR at), the primary alone — not a plugins.sync fan-out that also moved locked
+        # transitive plugins (A13 / primary-05)
+        why = None
+        fetched = _fetch(repo, url, ui.interactive)
+        if not fetched.ok:
+            why = explain_git_failure(fetched.stderr or fetched.stdout, name=name, root=root, source=source)
+        elif _verify(ctx):
+            r = repo.git('log', '--format=%G? %h', f'{was}..origin/{target}')
+            if not r.ok or any(ln.strip() and not ln.startswith('G ') for ln in r.stdout.splitlines()):
+                why = plugins.sync_note(name, 'unsigned', ctx.paths.plugins_dir, primary=True)
+        if why is None:
+            co = repo.git('checkout', '--quiet', target)
+            ff = repo.git('merge', '--ff-only', '--quiet', f'origin/{target}') if co.ok else co
+            if not (co.ok and ff.ok):
+                why = f'{name}: could not switch to {target} ({_err(ff)}).'
+        if why is not None:
+            if was and (repo.branch() or repo.text('rev-parse', 'HEAD') != was):
+                repo.git('checkout', '--quiet', '--detach', was)   # half switched: back where it was pinned
+            return False, lines + [why, f'{name} is still pinned to {ref or "its commit"}; your config '
+                                        f'is unchanged.']
         decl['ref'] = target
         plugins.set_declared(ctx.paths.user_config_file, decls)
         branch = target
@@ -911,8 +929,14 @@ def push(ctx, ui=None):
                                f'them; `configsys plugin unlock {name}` takes them in.']
     if behind:
         ui.progress(f'combining {name} with your other machines\' changes …')
+        # an IGNORED file of yours (a secret a `.cfs/.gitignore` keeps out of git) that the other
+        # machine now tracks would be replaced by the combine — or deleted by a Stop, as "not in
+        # HEAD". Move it aside first; a Stop / failure puts it back, a success says where it went
+        # (A13 / primary-03).
+        aside = _set_aside(repo, repo.ignored() & repo.incoming(upstream))
         ok, more = _combine(ctx, ui, name, repo, branch, upstream)
         lines += more
+        lines += _settle_aside(repo, name, aside, keep_theirs=ok)
         if not ok:
             return False, lines
         ahead, _b = repo.ahead_behind(upstream)
@@ -1001,7 +1025,8 @@ def undo(ctx, confirm=None):
                        f'nothing to undo.']
     if getattr(ctx.runner, 'pretend', False):
         how = 'drop' if (change is changes[0] and not change.pushed) else 'revert'
-        return True, [f'[pretend] would {how} {change.short} {change.subject} ({", ".join(change.files)})']
+        return True, [f'[pretend] would {how} {change.short} {change.subject} ({", ".join(change.files)}) '
+                      f'— saving any file it added under <state>/undo/{change.short}/ first']
     repo = PrimaryRepo(_primary(ctx)[3])
     busy = repo.in_progress()
     if busy:
@@ -1015,12 +1040,16 @@ def undo(ctx, confirm=None):
                        f'undone — commit or undo them first.']
     if confirm is not None and not confirm(change):
         return False, [f'{name}: left as is.']
+    # a commit that ADDED files (`plugin init` moving your dotfiles/glue in, a capture) — undoing it
+    # takes them out of the primary, and their local copies were moved in, not copied: save them
+    # first so the undo never deletes the only copy (A13 / primary-08)
+    saved = _save_added(ctx, repo, change)
     if change is changes[0] and not change.pushed:
         r = repo.git('reset', '--keep', '--quiet', 'HEAD~1')
         if not r.ok:
             return False, [f'{name}: could not undo "{change.subject}": {_err(r)}']
         return True, [f'{name}: undid "{change.subject}" ({change.short}) — it was never pushed, so it is '
-                      f'simply gone (`git -C {repo.root} reflog` still has it).']
+                      f'simply gone (`git -C {repo.root} reflog` still has it).'] + saved
     if not _has_ident(ctx, repo):
         return False, [_no_ident(name, repo.root)]
     r = repo.git('revert', '--no-commit', change.sha)
@@ -1033,7 +1062,26 @@ def undo(ctx, confirm=None):
         repo.git('revert', '--abort')
         return False, [f'{name}: could not commit the undo: {_err(c)}']
     return True, [f'{name}: undid "{change.subject}" ({change.short}) with a new commit, '
-                  f'"Undo: {change.subject}"' + ('' if not change.pushed else ' — `plugin push` shares it.')]
+                  f'"Undo: {change.subject}"' + ('' if not change.pushed else ' — `plugin push` shares it.')
+                  ] + saved
+
+
+def _save_added(ctx, repo, change):
+    '''Copy the files `change` ADDED, as committed, to `<state>/undo/<short sha>/<path>` -> the note
+    lines ([] when it added none).'''
+    r = repo.git('diff-tree', '--no-commit-id', '--name-only', '-r', '-z', '--diff-filter=A', change.sha)
+    added = [os.fsdecode(p) for p in (r.out.split(b'\0') if r.ok else []) if p]
+    if not added:
+        return []
+    dest = Path(ctx.paths.state_dir) / 'undo' / change.short
+    for rel in added:
+        blob = repo.git('show', f'{change.sha}:{rel}')
+        if not blob.ok:
+            continue
+        target = dest / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(blob.out)
+    return [f'  the {len(added)} file(s) it added leave the primary — a copy of each is saved in {dest}']
 
 
 def _outgoing(repo, upstream):
@@ -1131,12 +1179,17 @@ def _combine(ctx, ui, name, repo, branch, upstream):
     put back, any half-done rebase or merge is undone and your edits come back (an exception is then
     re-raised). Returns (ok, [lines]).'''
     head = repo.text('rev-parse', 'HEAD')
-    stashed = False
+    stashed = None                                     # the stash COMMIT we made (by identity, never stash@{0})
     if repo.dirty():
+        before = _stash_top(repo)
         if not repo.git('stash', 'push', '--include-untracked', '--quiet', '-m', 'configsys plugin push').ok:
             return False, [f'{name}: could not set your uncommitted edits aside, so nothing was combined '
                            f'or pushed.']
-        stashed = True
+        after = _stash_top(repo)
+        # a "dirty" tree git can't stash (a submodule with untracked content: ` M sub`, exit 0, nothing
+        # saved) made no entry — popping stash@{0} then applied and dropped YOUR older stash (A13 /
+        # primary-06)
+        stashed = after if after and after != before else None
     try:
         ok, lines = _replay(ctx, ui, name, repo, upstream)
     except BaseException:
@@ -1154,7 +1207,8 @@ def _combine(ctx, ui, name, repo, branch, upstream):
 
 def _restore(repo, head):
     '''Undo a half-done rebase / merge and put HEAD (and the tree) back at `head`. Your own
-    uncommitted edits are in the stash by now, so the tree holds nothing of yours to lose.'''
+    uncommitted edits are in the stash by now, and an ignored file the remote now tracks was moved
+    aside by push (_set_aside) — the reset would delete it as "not in HEAD" otherwise.'''
     busy = repo.in_progress()
     if busy in ('rebase', 'merge'):
         repo.git(busy, '--abort')
@@ -1325,12 +1379,52 @@ def _settle_hu(ui, name, repo, path, i, n):
     return 'done'
 
 
+def _set_aside(repo, paths):
+    '''Move each of `paths` (ignored files of yours) to a free `<path>.pre-configsys[.N]` -> {path: backup}.'''
+    out = {}
+    for rel in sorted(paths):
+        src = repo.root / rel
+        if not (src.is_file() or src.is_symlink()):
+            continue
+        dst, n = src.with_name(src.name + '.pre-configsys'), 0
+        while dst.exists() or dst.is_symlink():
+            n += 1
+            dst = src.with_name(f'{src.name}.pre-configsys.{n}')
+        os.replace(src, dst)
+        out[rel] = dst
+    return out
+
+
+def _settle_aside(repo, name, aside, *, keep_theirs):
+    '''After the combine: on success the other machine's tracked copy stays and yours is named; on a
+    stop / failure (HEAD restored, the path ignored again) yours goes back exactly where it was.'''
+    lines = []
+    for rel, dst in aside.items():
+        src = repo.root / rel
+        if keep_theirs and (src.exists() or src.is_symlink()):
+            lines.append(f'{name}: {rel} is now tracked by your other machine — its copy is in place; '
+                         f'yours (it was ignored here) is kept as {dst.name}.')
+        elif not (src.exists() or src.is_symlink()):
+            os.replace(dst, src)
+    return lines
+
+
+def _stash_top(repo):
+    r = repo.git('rev-parse', '-q', '--verify', 'refs/stash')
+    return r.stdout.strip() if r.ok else None
+
+
 def _unstash(repo, name, stashed):
-    '''Bring your set-aside edits back. If they don't apply cleanly, the tree is reset to the
-    committed result (no conflict markers left lying around) and they stay safe in the stash.'''
+    '''Bring your set-aside edits back — the stash commit `_combine` made, by identity. If they don't
+    apply cleanly, the tree is reset to the committed result (no conflict markers left lying around)
+    and they stay safe in the stash.'''
     if not stashed:
         return []
-    if repo.git('stash', 'pop', '--quiet').ok:
+    if repo.git('stash', 'apply', '--quiet', stashed).ok:
+        listing = repo.git('stash', 'list', '--format=%H')
+        shas = listing.stdout.split() if listing.ok else []
+        if stashed in shas:                            # drop exactly that entry, wherever it sits
+            repo.git('stash', 'drop', '--quiet', f'stash@{{{shas.index(stashed)}}}')
         return []
     repo.git('reset', '--hard', '--quiet')
     return [f'{name}: your uncommitted edits don\'t apply cleanly over the combined result, so they are '

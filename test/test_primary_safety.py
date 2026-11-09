@@ -451,3 +451,31 @@ def test_the_cli_confirms_on_a_terminal_unless_yes(monkeypatch, capsys):
     quiet = _CliPushUI()
     quiet.interactive = False                                       # a script: the command is consent
     assert quiet.ask(q) is True
+
+
+@needs_git
+def test_the_branch_switch_acts_on_the_primary_even_inside_a_yadm_session(primary, tmp_path, monkeypatch):
+    # A13 / primary-05: the tag->branch switch went through plugins.sync with the ambient env — inside
+    # `yadm enter` (GIT_DIR exported) it fetched and moved the DOTFILES repo, and synced locked plugins
+    from configsys import plugins
+    base, clone, bare, other = primary
+    _git(clone, 'tag', 'v1'); _git(clone, 'push', '-q', 'origin', 'v1')
+    ctx = _ctx(base)
+    decls = plugins.declared(ctx.paths.user_config_file)
+    decls[0]['ref'] = 'v1'
+    plugins.set_declared(ctx.paths.user_config_file, decls)
+    _other_pushes(other, 'p.hu', BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'checkout', '-q', '--detach', 'v1')
+    dot = tmp_path / 'dotfiles'
+    subprocess.run(['git', 'init', '-q', '-b', 'main', str(dot)], check=True)
+    (dot / '.bashrc').write_text('v1\n')
+    _git(dot, 'add', '-A'); _git(dot, 'commit', '-qm', 'dot')
+    dot_head = _git(dot, 'rev-parse', 'HEAD')
+    monkeypatch.setenv('GIT_DIR', str(dot / '.git'))
+    monkeypatch.setenv('GIT_WORK_TREE', str(dot))
+    ok, lines = primarygit.push(_ctx(base), Scripted(switch=True, include=False))
+    monkeypatch.delenv('GIT_DIR'); monkeypatch.delenv('GIT_WORK_TREE')
+    assert _git(dot, 'rev-parse', 'HEAD') == dot_head
+    assert _git(dot, 'symbolic-ref', 'HEAD') == 'refs/heads/main'
+    assert _git(clone, 'symbolic-ref', '--short', 'HEAD') == 'main', lines
+    assert 'yq' in (clone / 'p.hu').read_text()

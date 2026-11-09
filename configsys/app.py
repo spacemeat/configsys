@@ -3208,6 +3208,8 @@ def _plugin_undo(ctx, args):
             return True
         print(f'configsys: undo {change.short} "{change.subject}"'
               + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]')
+        print('  any file it ADDED leaves the primary (and your disk) — a copy is saved under '
+              f'{ctx.paths.state_dir}/undo/{change.short}/ first')
         try:
             return input('Undo it? [y/N] ').strip().lower()[:1] == 'y'
         except EOFError:
@@ -5110,13 +5112,23 @@ def main(argv=None):
         if command == 'tui':
             return _COMMANDS[command](ctx, args)       # the TUI commits per action (tui/menu.py)
         snap = primarygit.snapshot(ctx)                # commit what this command edits in the primary
+        finished = False
         try:
-            return _COMMANDS[command](ctx, args)
+            rc = _COMMANDS[command](ctx, args)
+            finished = True
+            return rc
         finally:
-            for note in primarygit.commit(ctx, snap, _command_words(argv, command)):
+            # an interrupted / failed command is still committed (so its writes stay undoable), marked
+            # as such — and NEVER pushed afterwards: you pressed Ctrl-C to stop (A13 / primary-07)
+            words = _command_words(argv, command)
+            for note in primarygit.commit(ctx, snap, words if finished else f'{words} (interrupted)'):
                 print(f'configsys: {note}')
             if snap is not None and snap.committed:
-                _after_primary_commit(ctx)
+                if finished:
+                    _after_primary_commit(ctx)
+                else:
+                    print(f'configsys: what it wrote is committed to {snap.name} as interrupted, not '
+                          'pushed — `configsys plugin undo` takes it back, `plugin push` shares it.')
     except ConfigsysError as e:
         print(f'configsys: {e}', file=sys.stderr)
         return 1

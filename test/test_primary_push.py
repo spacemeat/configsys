@@ -604,3 +604,65 @@ def test_a_locked_primary_is_never_combined_with_what_its_remote_holds(primary):
     ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
     assert not ok and any('is locked' in ln for ln in lines), lines
     assert 'ALARMING' not in (clone / 'notes.txt').read_text()
+
+
+@needs_git
+def test_a_dirty_tree_git_cannot_stash_never_pops_your_older_stash(primary, monkeypatch):
+    # A13 / primary-06: a submodule with untracked content reads dirty (` M sub`) but `stash push`
+    # saves nothing — `_combine` then popped stash@{0}: YOUR parked work, applied and dropped
+    base, clone, bare, other = primary
+    (clone / 'notes.txt').write_text(BASE_P + '// my parked WIP\n')
+    _git(clone, 'stash', 'push', '-q', '-m', 'my parked WIP')
+    _other_pushes(other, 'p.hu', BASE_P.replace('laptop: [ htop ]', 'laptop: [ htop bat ]'))
+    (clone / 'p.hu').write_text(BASE_P.replace('desk: [ jq ]', 'desk: [ jq fzf ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    monkeypatch.setattr(primarygit.PrimaryRepo, 'dirty', lambda self: {'vendor/thing'})
+    ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
+    assert ok, lines
+    assert 'my parked WIP' in _git(clone, 'stash', 'list')
+    assert 'parked WIP' not in (clone / 'notes.txt').read_text()
+
+
+@needs_git
+@pytest.mark.parametrize('choice', ['stop', 'mine'])
+def test_an_ignored_file_the_remote_now_tracks_is_never_lost(primary, choice):
+    # A13 / primary-03: a secret kept out of git by a .gitignore here; the other machine drops the
+    # ignore and commits its own copy. "Stop" deleted ours ("not in HEAD"), continuing replaced it.
+    base, clone, bare, other = primary
+    (clone / '.gitignore').write_text('secret.env\n')
+    _git(clone, 'add', '.gitignore'); _git(clone, 'commit', '-qm', 'ignore secret')
+    _git(clone, 'push', '-q', 'origin', 'main')
+    (clone / 'secret.env').write_text('MY SECRET\n')
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / '.gitignore').write_text('')
+    (other / 'secret.env').write_text('OTHER MACHINE\n')
+    (other / 'notes.txt').write_text('theirs\n')
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'other'); _git(other, 'push', '-q', 'origin', 'main')
+    (clone / 'notes.txt').write_text('mine\n')
+    _git(clone, 'commit', '-qam', 'mine')
+    ok, lines = primarygit.push(_ctx(base), Scripted(choice))
+    if choice == 'stop':
+        assert not ok and (clone / 'secret.env').read_text() == 'MY SECRET\n'
+    else:
+        assert ok, lines
+        assert (clone / 'secret.env.pre-configsys').read_text() == 'MY SECRET\n'
+        assert any('kept as secret.env.pre-configsys' in ln for ln in lines)
+
+
+@needs_git
+def test_undo_of_a_commit_that_added_files_saves_them_first(primary, capsys):
+    # A13 / primary-08: undoing `plugin init` (files MOVED in) deleted the only copy
+    from configsys import primarygit as pg
+    base, clone, bare, other = primary
+    ctx = _ctx(base)
+    snap = pg.snapshot(ctx)
+    pg.will_write(clone / 'dotfiles' / 'foo.cfs' / 'foo.conf')
+    (clone / 'dotfiles' / 'foo.cfs').mkdir(parents=True)
+    (clone / 'dotfiles' / 'foo.cfs' / 'foo.conf').write_text('only copy\n')
+    pg.commit(ctx, snap, 'plugin init')
+    ok, lines = pg.undo(_ctx(base))
+    assert ok, lines
+    saved = ctx.paths.state_dir / 'undo'
+    hits = list(saved.rglob('foo.conf'))
+    assert hits and hits[0].read_text() == 'only copy\n'
+    assert any('saved in' in ln for ln in lines)

@@ -143,7 +143,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A13 [MED] Primary edge-case data loss:** "Stop" deletes an ignored file of yours; `plugin undo` of a
   commit that moved files in deletes the only copy; the tag→branch switch bypasses PrimaryRepo and syncs
   locked plugins; a submodule breaks `_combine`'s stash assumption; Ctrl-C still commits. (primary-03/05/
-  06/07/08) · effort M · [open]
+  06/07/08) · effort M · [done — done — an ignored file the remote now tracks is moved aside before a combine (back on Stop, kept as .pre-configsys on success); the tag→branch switch runs through PrimaryRepo alone (no plugins.sync fan-out, scrubbed env, signature check); stash by identity (a dirty-but-unstashable tree never pops your older stash); an interrupted command is committed as "(interrupted)" and never pushed; undo saves the files a commit added to <state>/undo/<sha>/ first]
 - **A14 [MED] `--pretend refresh` hits the network and writes the version cache; `refresh` offers to delete
   the vendor source of an installed-but-unpicked component** (it prompts under --pretend against the real
   /etc). (app-cli-02/03) · effort S · [open]
