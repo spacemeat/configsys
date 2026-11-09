@@ -481,3 +481,123 @@ def test_the_branch_switch_acts_on_the_primary_even_inside_a_yadm_session(primar
     assert _git(dot, 'symbolic-ref', 'HEAD') == 'refs/heads/main'
     assert _git(clone, 'symbolic-ref', '--short', 'HEAD') == 'main', lines
     assert 'yq' in (clone / 'p.hu').read_text()
+
+
+# -- review-2026-11-2 primary-17 / -18 / -19 / -25 -----------------------------------------------
+
+@needs_git
+def test_an_empty_path_list_commits_nothing(primary):
+    # primary-17: to git an empty pathspec file is no pathspec — every path
+    base, clone, bare, other = primary
+    (clone / 'notes.txt').write_text('a hand edit\n')
+    head = _git(clone, 'rev-parse', 'HEAD')
+    repo = primarygit.PrimaryRepo(clone)
+    assert repo.git('add', '-A', paths=[]).ok
+    assert primarygit._commit_paths(repo, [], [], 's', 'b') == (True, '')
+    assert _git(clone, 'rev-parse', 'HEAD') == head
+    assert _git(clone, 'status', '--porcelain') == 'M notes.txt'
+
+
+@needs_git
+def test_a_worktree_rename_reads_as_its_two_real_paths(primary):
+    # primary-18: ` R new\0old` (after `git add -N`) — never an invented path, never a lost deletion
+    base, clone, bare, other = primary
+    (clone / 'notes.txt').rename(clone / 'renamed.txt')
+    _git(clone, 'add', '-N', 'renamed.txt')
+    assert primarygit.PrimaryRepo(clone).dirty() == {'renamed.txt', 'notes.txt'}
+    _git(clone, 'add', '-A')                                           # an index rename: as before
+    assert primarygit.PrimaryRepo(clone).dirty() == {'renamed.txt'}
+
+
+@needs_git
+def test_history_is_one_git_log_and_a_hostile_body_splits_nothing(primary, monkeypatch):
+    # primary-19: no `diff-tree` per commit; a remote-controlled body holding the old \x1e / \x1f
+    # separators no longer makes a commit vanish from the list
+    base, clone, bare, other = primary
+    for i in range(49):
+        (clone / f'f{i}.txt').write_text(str(i))
+        _git(clone, 'add', '-A')
+        body = 'evil \x1e body \x1f here' if i == 20 else 'Made by configsys on laptop.'
+        _git(clone, 'commit', '-qm', f'c{i}', '-m', body)
+    spawns = []
+    real = primarygit.PrimaryRepo.git
+    monkeypatch.setattr(primarygit.PrimaryRepo, 'git', lambda self, *a, **k: spawns.append(a) or real(self, *a, **k))
+    name, few = primarygit.history(_ctx(base), 2)
+    n_few = len(spawns)
+    spawns.clear()
+    name, changes = primarygit.history(_ctx(base), 50)
+    assert len(changes) == 50 and len(spawns) == n_few                 # not one more per commit
+    assert [c.subject for c in changes[:2]] == ['c48', 'c47'] and changes[-1].subject == 'A'
+    assert changes[0].files == ('f48.txt',) and changes[0].machine == 'laptop' and changes[0].by_configsys
+    evil = next(c for c in changes if c.subject == 'c20')
+    assert evil.files == ('f20.txt',) and not evil.by_configsys
+    assert set(changes[-1].files) == {'plugin.hu', 'p.hu', 'notes.txt'}  # the root commit lists its files
+
+
+@needs_git
+def test_the_network_env_honours_git_ssh(primary, monkeypatch):
+    # primary-25: git's order is GIT_SSH_COMMAND > core.sshCommand > GIT_SSH — never override GIT_SSH
+    base, clone, bare, other = primary
+    repo = primarygit.PrimaryRepo(clone)
+    monkeypatch.delenv('GIT_SSH_COMMAND', raising=False)
+    monkeypatch.setenv('GIT_SSH', '/x/ssh')
+    assert repo.network_env(interactive=False)['GIT_SSH_COMMAND'] == '/x/ssh -o BatchMode=yes'
+    monkeypatch.setenv('GIT_SSH_COMMAND', 'ssh -F /tmp/cfg')
+    assert repo.network_env(interactive=False)['GIT_SSH_COMMAND'] == 'ssh -F /tmp/cfg -o BatchMode=yes'
+
+
+def test_a_merge_that_fails_without_conflicts_says_why(tmp_path, monkeypatch):
+    # primary-25: the merge's own error reaches you, not just "nothing was pushed"
+    class Repo:
+        root = tmp_path
+        calls = 0
+
+        def git(self, *a, **k):
+            return primarygit.GitResult(1, b'', b'fatal: refusing to merge \x1b[31munrelated histories')
+
+        def unmerged(self):
+            Repo.calls += 1
+            return ['x.txt'] if Repo.calls == 1 else []
+    notes = tmp_path / 'notes'
+    notes.write_text('')
+    monkeypatch.setattr(primarygit, '_merge_driver', lambda repo: ([], notes))
+    ok, lines = primarygit._replay(None, primarygit.PushUI(), 'prim', Repo(), 'origin/main')
+    assert not ok and 'refusing to merge' in lines[0] and '\x1b' not in lines[0]
+
+
+def test_a_settled_hu_file_keeps_crlf_and_is_probed_before_asking(tmp_path, monkeypatch):
+    # primary-25: the per-key answers are never asked when the answered file can't be written; a CRLF
+    # file stays CRLF
+    from configsys import humerge
+    base = '{\r\n    splash: plain\r\n    x: 1\r\n}\r\n'
+    mine = base.replace('plain', 'ocean').replace('x: 1', 'x: 2')
+    theirs = base.replace('plain', 'braille-bar').replace('x: 1', 'x: 1\r\n    y: 3')
+    stages = {1: base, 2: mine, 3: theirs}
+    monkeypatch.setattr(primarygit, '_stage_text', lambda repo, path, n: stages[n])
+
+    class Repo:
+        root = tmp_path
+
+        def git(self, *a, **k):
+            return primarygit.GitResult(0, b'', b'')
+
+    class UI(primarygit.PushUI):
+        asked = []
+
+        def ask(self, q):
+            self.asked.append(q.kind)
+            return 'mine'
+    ui = UI()
+    assert primarygit._settle_hu(ui, 'prim', Repo(), 'p.hu', 0, 1) == 'done'
+    raw = (tmp_path / 'p.hu').read_bytes()
+    assert b'\r\n' in raw and b'\n' not in raw.replace(b'\r\n', b'')
+    assert b'ocean' in raw and b'y: 3' in raw and ui.asked == ['value']
+    real = humerge.merge
+
+    def answered_fails(b, m, t, answers=None):
+        if answers:
+            raise humerge.Unmergeable('cannot rewrite')
+        return real(b, m, t)
+    monkeypatch.setattr(humerge, 'merge', answered_fails)
+    ui.asked.clear()
+    assert primarygit._settle_hu(ui, 'prim', Repo(), 'p.hu', 0, 1) is None and ui.asked == []

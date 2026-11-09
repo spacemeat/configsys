@@ -222,7 +222,8 @@ def read_tree(path):
     return trove, data
 
 
-def _as_list(v):
+def as_list(v):
+    '''`v` as a list: None -> [], a scalar -> [v] (the one spelling routes / resolve / routecheck share).'''
     return [] if v is None else (v if isinstance(v, list) else [v])
 
 
@@ -298,7 +299,7 @@ def _visit(path, role, stack, done, order, guard=None):
     _trove, data = read_tree(path)            # keep alive: nodes point into it during walk
     stack.append(rp)
     base = os.path.dirname(os.path.abspath(path))
-    for inc in _as_list(data.get('include')):
+    for inc in as_list(data.get('include')):
         target = _resolve(inc, base)
         if guard is not None:
             roots, tree, warnings = guard

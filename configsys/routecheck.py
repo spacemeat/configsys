@@ -14,6 +14,8 @@ from itertools import combinations
 
 from . import predicate
 from .errors import ConfigError, ConfigsysError
+from .layers import as_list
+from .resolve import SPECIAL_VIAS as _SPECIAL_VIA   # special vias that aren't Drivers
 
 
 class AmbiguityError(ConfigsysError):
@@ -191,11 +193,6 @@ class Issue:
         return self.severity == 'error'
 
 
-_SPECIAL_VIA = frozenset({'native', 'parts'})   # special vias that aren't Drivers
-
-
-def _as_list(v):
-    return [] if v is None else (v if isinstance(v, list) else [v])
 
 
 def _providable_caps(components, cascade):
@@ -343,6 +340,71 @@ def release_registry_issues(cascade):
     return out
 
 
+def os_block_issues(cascade, valid_via):
+    '''[(message, source)] for `os:` blocks that can't be what they say: a `using:` parent no block
+    defines (the lineage silently stops there — no `linux`, no `python3`, no native manager), a
+    `using` cycle (reported once), a `native:` that names no driver, an unknown field.'''
+    from .routes import OS_BLOCK_FIELDS
+    out, cycles = [], set()
+    for block, spec in sorted(cascade.blocks.items()):
+        src = (getattr(cascade, 'os_sources', None) or {}).get(block)
+        if spec is not None and not isinstance(spec, dict):
+            out.append((f'os {block!r}: must be a map ({{ using: …  native: … }})', src))
+            continue
+        spec = spec or {}
+        parent = spec.get('using')
+        if parent is not None and parent not in cascade.blocks:
+            out.append((f'os {block!r}: `using: {parent}` names no os block — its lineage stops at '
+                        f'{block!r} (no linux, nothing it provides, no native manager)', src))
+        seen, n = [], block
+        while n in cascade.blocks and n not in seen:
+            seen.append(n)
+            blk = cascade.blocks.get(n)
+            n = blk.get('using') if isinstance(blk, dict) else None
+        if n in seen:                                  # walked back into the chain: a `using` cycle
+            loop = seen[seen.index(n):]
+            if frozenset(loop) not in cycles:
+                cycles.add(frozenset(loop))
+                out.append((f'os {block!r}: `using` cycle ' + ' -> '.join(loop + [n]), src))
+        native = spec.get('native')
+        if native is not None and str(native) not in valid_via:
+            out.append((f'os {block!r}: `native: {native}` is not a known driver', src))
+        for key in sorted(set(spec) - OS_BLOCK_FIELDS):
+            out.append((f'os {block!r}: unknown field {key!r} (an os block takes '
+                        f'{", ".join(sorted(OS_BLOCK_FIELDS))})', src))
+    return out
+
+
+def facet_name_issues(cascade):
+    '''[(message, source)] for a facet named like an OS block: evaluation and the ambiguity check
+    read such a versioned atom differently (a facet off this lineage, an OS on it) — rename one.'''
+    return [(f'facet {name!r} has the name of an os block — a `when:` atom over it is read as the OS '
+             f'on some machines and as the facet on others; rename the facet',
+             (getattr(cascade, 'os_sources', None) or {}).get(name))
+            for name in sorted(set(cascade.facet_specs) & set(cascade.blocks))]
+
+
+def _atom_issues(pred, cascade, where):
+    '''[(kind, message)] for a `when:`'s name atoms: an unknown OS (a typo), or a BARE atom naming a
+    facet — facets are versioned (`cuda >= 12`) or categorical (`gpu:nvidia`), so `when: "gpu"`
+    silently never matches.'''
+    out = []
+    for atom in predicate.os_atoms(pred):
+        name = atom.name
+        if name in cascade.blocks:
+            continue
+        if name in cascade.facet_specs:
+            if atom.op is None:
+                spec = cascade.facet_specs.get(name)
+                kind = spec.get('kind') if isinstance(spec, dict) else None
+                fix = f'{name} >= <version>' if kind == 'version' else f'{name}:<value>'
+                out.append(('bare-facet', f'{where}when: "{name}" never matches — {name!r} is a facet; '
+                                          f'write `{fix}`'))
+            continue
+        out.append(('unknown-os', f'{where}when: names unknown OS {name!r}'))
+    return out
+
+
 def _parts_cycles(components):
     '''Each distinct cycle through `via: parts` bindings (as a name list ending where it started).'''
     edges = {n: [p for b in c.bindings if b.via == 'parts' for p in _as_parts(b.details.get('parts'))]
@@ -383,7 +445,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
     loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
     unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.'''
     from .drivers import supported_names
-    from .resolve import cap_names
+    from .resolve import cap_names, standing_problem
     valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
     providable = _providable_caps(components, cascade)
     vprov = _versioned_providers(components)
@@ -403,6 +465,9 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
             add('method-tie', msg, comp, 'warning')
         for msg in retired_key_warnings(comp):
             add('retired-key', msg, comp, 'warning')
+        why = standing_problem({'standing': getattr(comp, 'standing', None)})
+        if why:
+            add('bad-standing', why, comp, 'warning')
         if getattr(comp, 'parts_ignored', False):
             add('parts-ignored', 'component-level `parts:` is ignored because the component also has '
                 '`install:` methods — put the bundle on a `{ via: parts  parts: [...] }` binding (or '
@@ -420,13 +485,15 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
         for b in comp.bindings:
             if b.via not in valid_via:
                 add('unknown-via', f'via:{b.via!r} is not a known driver', comp)
-            for os_name in predicate.os_names(b.pred):
-                # a versioned atom naming a declared facet (`cuda >= 12`) is a version FACET, not an
-                # OS typo — exempt it. (Bare-name facets don't exist; facets are versioned/categorical.)
-                if os_name not in cascade.blocks and os_name not in cascade.facet_specs:
-                    add('unknown-os', f'when: names unknown OS {os_name!r}', comp, 'warning')
+            # a versioned atom naming a declared facet (`cuda >= 12`) is a version FACET, not an OS
+            # typo; a BARE one never matches (facets are versioned/categorical) — routing-22
+            for kind, msg in _atom_issues(b.pred, cascade, ''):
+                add(kind, msg, comp, 'warning')
+            why = standing_problem(b.details)
+            if why:
+                add('bad-standing', f'binding via:{b.via} {why}', comp, 'warning')
             if b.via == 'parts':
-                for part in _as_list(b.details.get('parts')):
+                for part in as_list(b.details.get('parts')):
                     if part not in components:
                         add('unknown-part', f'parts references unknown component {part!r}', comp)
             if b.via == 'script':
@@ -459,10 +526,17 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
 
     for drv, (text, gate) in sorted((getattr(cascade, 'driver_gates', None) or {}).items()):
         src = (getattr(cascade, 'driver_sources', None) or {}).get(drv)
-        for os_name in predicate.os_names(gate):
-            if os_name not in cascade.blocks and os_name not in cascade.facet_specs:
-                issues.append(Issue('unknown-os', f'driver {drv!r}: when: names unknown OS '
-                                    f'{os_name!r}', None, src, 'warning'))
+        for kind, msg in _atom_issues(gate, cascade, f'driver {drv!r}: '):
+            issues.append(Issue(kind, msg, None, src, 'warning'))
+    for drv, spec in sorted((getattr(cascade, 'driver_specs', None) or {}).items()):
+        why = standing_problem(spec)
+        if why:
+            issues.append(Issue('bad-standing', f'driver {drv!r}: {why}', None,
+                                (getattr(cascade, 'driver_sources', None) or {}).get(drv), 'warning'))
+    for msg, src in os_block_issues(cascade, valid_via):
+        issues.append(Issue('os-block', msg, None, src, 'warning'))
+    for msg, src in facet_name_issues(cascade):
+        issues.append(Issue('facet-collision', msg, None, src, 'error'))
     for msg, src in retired_driver_key_warnings(cascade):
         issues.append(Issue('retired-key', msg, None, src, 'warning'))
     for msg, src in release_registry_issues(cascade):

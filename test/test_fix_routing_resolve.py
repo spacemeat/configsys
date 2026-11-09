@@ -210,3 +210,130 @@ def test_never_auto_still_excluded_from_standing_ranking(tmp_path):
         b:   { provides: cap  standing: never-auto  install: [ { via: native } ] }'''), 'debian', '12')
     assert 'apt\\a' in r.resolve_names(['app'])
     assert resolve.provider_standing(r.components)('b') == 0
+
+
+# -- review-2026-11-2 routing-23 / -25 / -36 / -37 ------------------------------------------------
+
+_UBU = 'os: { linux: {}  debian: { using: linux  native: apt }  ubuntu: { using: debian } }'
+
+
+def _ubuntu_routes(tmp_path, comps):
+    p = tmp_path / 'routes.hu'
+    p.write_text('{ ' + _UBU + '  components: { ' + comps + ' } }')
+    return str(p)
+
+
+def test_a_broader_binding_never_beats_two_narrower_ones_by_preference(tmp_path):
+    # routing-23: native (bare) ⊃ flatpak (ubuntu) and ⊃ tarball (cpu:x86_64), the two narrow ones
+    # incomparable — preference decides between THEM; native used to win, and dropping the tarball
+    # flipped the default to flatpak
+    three = '''x: { install: [ { via: native }  { via: flatpak  app: org.x.X  when: "ubuntu" }
+                               { via: tarball  installDir: x  when: "cpu:x86_64" } ] }'''
+    r = Resolver(_ubuntu_routes(tmp_path, three), 'ubuntu', None, 'x86_64')
+    sel = r.select('x')
+    assert sel.binding.via == 'flatpak' and sel.rule == 'driver-preference'
+    two = '''x: { install: [ { via: native }  { via: flatpak  app: org.x.X  when: "ubuntu" } ] }'''
+    assert Resolver(_ubuntu_routes(tmp_path, two), 'ubuntu', None, 'x86_64').select('x').binding.via == 'flatpak'
+
+
+def test_a_non_map_component_is_an_error_not_a_tombstone(tmp_path):
+    # routing-25: `foo: bar` silently cleared every lower layer's foo
+    from configsys.errors import ConfigError
+    routes = _routes(tmp_path, 'foo: { install: [ { via: native } ] }')
+    user = tmp_path / 'user.hu'
+    user.write_text('{ components: { foo: bar } }')
+    with pytest.raises(ConfigError, match='foo'):
+        load(routes, str(user))
+    plug = tmp_path / 'plug' / 'p.hu'
+    plug.parent.mkdir()
+    plug.write_text('{ components: { foo: bar } }')
+    warns = []
+    _c, comps, _d, _n = load(routes, None, [(str(plug), 'plugin')], warnings_out=warns)
+    assert [b.via for b in comps['foo'].bindings] == ['native']        # the repo's foo stands
+    assert any('foo' in w and 'not a scalar' in w for w in warns)
+    user.write_text('{ components: { foo: {} } }')                     # `{}` still removes it
+    assert load(routes, str(user))[1]['foo'].bindings == []
+
+
+def test_select_runs_once_per_component_per_resolution(tmp_path, monkeypatch):
+    # routing-36: _is_bindable selected each provider, then add_component selected it again
+    r = Resolver(_routes(tmp_path, '''
+        app: { requires: tool  install: [ { via: native } ] }
+        a:   { provides: tool  standing: 2  install: [ { via: native } ] }
+        b:   { provides: tool  install: [ { via: native } ] }'''), 'debian', '12')
+    calls = []
+    real = resolve.select_binding
+    monkeypatch.setattr(resolve, 'select_binding', lambda comp, *a, **k: calls.append(comp.name) or real(comp, *a, **k))
+    assert set(r.resolve_names(['app'])) == {'apt\\app', 'apt\\a'}
+    assert sorted(calls) == ['a', 'app', 'b']
+
+
+def test_the_gated_context_cache_never_answers_for_a_reused_id(tmp_path):
+    # routing-37: keyed on id(components) without holding it — a new dict reusing the id hit the entry
+    casc, comps, drivers, _n = load(_routes(tmp_path, 'x: { install: [ { via: native } ] }'))
+    first = resolve.gated_context(casc, dict(comps), drivers, 'debian', '12')
+    key_obj = dict(comps)
+    second = resolve.gated_context(casc, key_obj, drivers, 'debian', '12')
+    assert second is not first                                         # a different set: computed anew
+    assert resolve.gated_context(casc, key_obj, drivers, 'debian', '12') is second   # the same: cached
+    for entry in casc._gated_ctx_cache.values():
+        assert entry[1] is drivers                                     # the entry holds what it is keyed on
+
+
+def test_clear_facet_cache_empties_it():
+    from configsys import routes
+    routes.detect_facets({'gpu': {'kind': 'categorical', 'detect': 'true', 'match': {'x': 'x'}}},
+                         env={'CONFIGSYS_FACET_gpu': 'x'})
+    assert routes._FACET_CACHE
+    routes.clear_facet_cache()
+    assert routes._FACET_CACHE == {}
+
+
+# -- routing-28: every ResolveError says what kind it is --------------------------------------------
+
+_KIND_CASES = {
+    'unknown': ('', {}, ['nosuch']),
+    'no-candidate': ('x: { install: [ { via: native  when: "ubuntu" } ] }', {}, ['x']),
+    'gated': ('x: { install: [ { via: flatpak  app: org.x.X } ] }', {'disabled': ('flatpak',)}, ['x']),
+    'pin-unrealizable': ('x: { install: [ { via: native } ] }', {'pins': {'x': 'flatpak'}}, ['x']),
+    'method-tie': ('x: { install: [ { via: cargo  name: x }  { via: pipx  name: x } ] }', {}, ['x']),
+    'ambiguous-providers': ('''app: { requires: tool  install: [ { via: native } ] }
+        a: { provides: tool  install: [ { via: native } ] }
+        b: { provides: tool  install: [ { via: native } ] }''', {}, ['app']),
+    'unmet-require': ('app: { requires: "pinned to x"  install: [ { via: native } ] }', {}, ['app']),
+}
+
+
+@pytest.mark.parametrize('kind', sorted(_KIND_CASES))
+def test_each_resolve_error_carries_its_kind(kind, tmp_path):
+    comps, kw, names = _KIND_CASES[kind]
+    r = Resolver(_routes(tmp_path, comps), 'debian', '12', **kw)
+    out = {}
+    _u, errors = r.resolve_resilient(names, out=out)
+    assert set(errors) == set(names) and out['error_kinds'] == {names[0]: kind}
+    assert kind in resolve.KINDS
+    with pytest.raises(ResolveError) as e:
+        r.resolve_names(names)
+    assert e.value.kind == kind
+
+
+def test_check_classifies_resolve_errors_by_kind_not_text(tmp_path, monkeypatch, capsys):
+    # a method tie on a pick is the config's to fix (an error row); an unmet require whose message
+    # happens to read "pinned to" is not a config error
+    from configsys.app import main
+    home = tmp_path / 'home'
+    base = ['--home', str(home), '--os', 'pop', '-q']
+    assert main(base + ['inspect']) in (0, 1)
+    cfg = home / '.config' / 'configsys' / 'configsys.hu'
+    cfg.write_text('''{
+        picks: { this-machine: [ tie  odd ] }
+        components: {
+            tie: { install: [ { via: cargo  name: tie }  { via: pipx  name: tie } ] }
+            odd: { requires: "pinned to y"  install: [ { via: native } ] }
+        }
+    }''')
+    capsys.readouterr()
+    main(base + ['check'])
+    out = capsys.readouterr().out
+    assert "tie: tie: install methods ['cargo', 'pipx'] are equally valid" in out   # the resolve-time row
+    assert 'odd: nothing provides' not in out

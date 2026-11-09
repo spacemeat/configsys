@@ -534,9 +534,10 @@ def test_the_plugins_screen_history_key_undoes(primary, monkeypatch):
     ctx = _ctx(base)
     shown = []
     monkeypatch.setattr(menu, '_popup_choose', lambda *a, **k: shown.append((a[2], a[3])) or 0)
-    note = plugscreen._history(None, None, ctx, menu.PluginScreen(ctx))
+    note, undone = plugscreen._history(None, None, ctx, menu.PluginScreen(ctx))
     assert shown[0][1][0] == ('Undo "picks add fzf"', 'z')
     assert 'undid "picks add fzf"' in note and 'fzf' not in (clone / 'p.hu').read_text()
+    assert undone                                      # primary-16: the screens rebuild after an undo
 
 
 @needs_git
@@ -674,3 +675,110 @@ def test_history_names_the_machine_a_change_was_made_on(primary):
     _name, changes = primarygit.history(_ctx(base), 5)
     newest = next(c for c in changes if c.by_configsys)
     assert newest.machine == 'desk'
+
+
+# -- review-2026-11-2 primary-11 / -12 / -13 / -16 -----------------------------------------------
+
+def test_driver_notes_from_the_remote_are_made_safe(tmp_path):
+    # primary-11: notes carry remote file names and plugin refs — an OSC / colour escape goes out as text
+    notes = tmp_path / 'notes'
+    notes.write_text('both machines moved plugin github:x/y — kept the newer, v1\x1b]0;T\x07.\n'
+                     'a\x1b[31m.hu: both machines changed it — combined key by key.\n')
+    got = primarygit._driver_notes(notes)
+    assert len(got) == 2 and not any('\x1b' in ln or '\x07' in ln for ln in got)
+    assert '\\x1b]0;T\\x07' in got[0]
+
+
+@needs_git
+def test_a_conflicted_file_name_from_the_remote_is_made_safe(primary):
+    # primary-11: "combined — <files> settled as you chose" names files the remote chose
+    base, clone, bare, other = primary
+    odd = 'esc\x1b[31mred.txt'
+    _git(other, 'pull', '-q', '--rebase', 'origin', 'main')
+    (other / odd).write_text('theirs\n')
+    _git(other, 'add', '-A'); _git(other, 'commit', '-qm', 'other: odd'); _git(other, 'push', '-q', 'origin', 'main')
+    (clone / odd).write_text('mine\n')
+    _git(clone, 'add', '-A'); _git(clone, 'commit', '-qm', 'mine: odd')
+    ok, lines = primarygit.push(_ctx(base), Scripted('mine'))
+    assert ok, lines
+    assert any('settled as you chose' in ln for ln in lines)
+    assert not any('\x1b' in ln for ln in lines)
+
+
+@needs_git
+def test_a_combine_that_absorbs_every_change_pushes_nothing_and_asks_nothing(primary):
+    # primary-12: both machines made the same change — the rebase drops mine; no "push 0 changes?"
+    base, clone, bare, other = primary
+    same = BASE_P.replace('[ jq ]', '[ jq  yq ]')
+    _other_pushes(other, 'p.hu', same)
+    (clone / 'p.hu').write_text(same)
+    _git(clone, 'commit', '-qam', 'mine: the same')
+    ui = Scripted()
+    ok, lines = primarygit.push(_ctx(base), ui)
+    assert ok and 'nothing left to push' in lines[-1]
+    assert ui.confirms == []
+    assert _git(clone, 'rev-parse', 'HEAD') == _git(bare, 'rev-parse', 'main')
+    _clean(clone)
+
+
+def test_auto_push_after_a_cli_command_shows_every_line(monkeypatch, capsys):
+    # primary-12: under auto, "kept the newer" / "left out" notes were dropped — only the last line showed
+    from configsys.cli import plugin as cli_plugin
+    monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: 'auto')
+    monkeypatch.setattr(primarygit, 'push', lambda ctx: (True, [
+        'prim: both machines moved plugin github:me/blender — kept the newer, v0.3.0.', 'pushed 1 change to x']))
+    cli_plugin._after_primary_commit(_FakeCtx())
+    out = capsys.readouterr().out
+    assert 'kept the newer, v0.3.0' in out and 'pushed 1 change' in out
+    monkeypatch.setattr(primarygit, 'push', lambda ctx: (False, ['prim: 1 file left out', 'offline?']))
+    cli_plugin._after_primary_commit(_FakeCtx())
+    out = capsys.readouterr().out.splitlines()
+    assert out == ['configsys: prim: 1 file left out', 'configsys: not pushed automatically — offline?']
+
+
+def test_quit_under_auto_keeps_the_drivers_notes(monkeypatch):
+    _quit(monkeypatch, ahead=1, mode='auto')
+    monkeypatch.setattr(flows_mod, '_auto_push_primary', lambda s, p, c: (True, ['kept the newer, v2', 'pushed']))
+    assert menu._quit_push(None, None, _FakeCtx()) == (True, ['kept the newer, v2', 'pushed'])
+
+
+@needs_git
+def test_dont_push_after_a_combine_puts_head_back(primary):
+    # primary-13 (decided: "don't push" after a combine puts HEAD back) — declining must not leave the
+    # other machine's commits checked out here, unannounced
+    base, clone, bare, other = primary
+    _other_pushes(other, 'notes.txt', BASE_P.replace('[ btop ]', '[ btop  zsh ]'))
+    (clone / 'p.hu').write_text(BASE_P.replace('[ jq ]', '[ jq  yq ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    (clone / 'mine-only.txt').write_text('untracked, mine\n')
+    head = _git(clone, 'rev-parse', 'HEAD')
+    ok, lines = primarygit.push(_ctx(base), Scripted(confirm=False))
+    assert not ok and 'not combined in' in lines[-1]
+    assert _git(clone, 'rev-parse', 'HEAD') == head
+    assert 'zsh' not in (clone / 'notes.txt').read_text() and 'yq' in (clone / 'p.hu').read_text()
+    assert (clone / 'mine-only.txt').read_text() == 'untracked, mine\n'
+    assert 'yq' not in _remote_file(bare)
+    ok, lines = primarygit.push(_ctx(base), Scripted())                # and it combines again next time
+    assert ok and 'yq' in _remote_file(bare) and 'zsh' in _remote_file(bare, 'notes.txt')
+
+
+def test_the_plugins_screen_P_rebuilds_after_a_combine(monkeypatch, tmp_path):
+    # primary-16: a push that combined the other machine's picks left Components / Profiles stale
+    from configsys.tui.keyspec import Keymap
+    from configsys.tui.screens.plugins import PluginsScreen
+    from _render_harness import build_ctx
+    ctx = build_ctx(tmp_path)
+    monkeypatch.setattr(menu, '_KEYMAP', Keymap(ctx.config.keys()))
+    heads = iter(['aaa', 'bbb'])
+    monkeypatch.setattr(primarygit, 'head', lambda c: next(heads))
+    invalidated = []
+    monkeypatch.setattr(ctx, 'invalidate', lambda: invalidated.append(1), raising=False)
+    monkeypatch.setattr(flows_mod, '_push_primary', lambda s, p, c: (True, ['pushed 1 change']))
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    scr.model.load_diff = lambda: None
+    intent = scr.handle(ord('P'), ctx, None, None)
+    assert intent.dirty and invalidated
+    monkeypatch.setattr(primarygit, 'head', lambda c: 'same')        # nothing moved: nothing rebuilt
+    invalidated.clear()
+    intent = scr.handle(ord('P'), ctx, None, None)
+    assert not intent.dirty and not invalidated

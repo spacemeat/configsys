@@ -297,3 +297,63 @@ def test_validation_memo_never_hides_a_new_error(tmp_path):
                               '{ via: native  when: "debian" } { via: native  when: "cpu:x86_64" } ]'))
     with pytest.raises(ConfigsysError):                   # incomparable overlap, same via
         routes.load(str(p))
+
+
+# -- review-2026-11-2 routing-21 / -22 / -24 -------------------------------------------------------
+
+def _tiny(tmp_path, os_text, comps='', extra=''):
+    (tmp_path / 'routes.hu').write_text('{ os: { %s }  components: { %s }  %s }' % (os_text, comps, extra))
+    return routes.load(str(tmp_path / 'routes.hu'), validate=False)
+
+
+def _issues(loaded):
+    from configsys import routecheck
+    c, comps, drivers, _na = loaded
+    return routecheck.validate(comps, c, drivers)
+
+
+def test_os_blocks_are_linted(tmp_path):
+    # routing-21: a `using:` typo, a `using` cycle and an unknown `native:` all passed `check`
+    issues = _issues(_tiny(tmp_path, 'linux: {}  debian: { using: linux  native: apt }  '
+                           'mydistro: { using: debain }  loopa: { using: loopb }  loopb: { using: loopa }  '
+                           'x: { using: linux  native: aptt }  y: { using: linux  usings: debian }'))
+    msgs = sorted(i.message for i in issues if i.kind == 'os-block')
+    assert len(msgs) == 4 and all(not i.is_error for i in issues if i.kind == 'os-block')
+    assert any("'mydistro'" in m and 'debain' in m for m in msgs)
+    assert sum('cycle' in m for m in msgs) == 1                        # one cycle, reported once
+    assert any("native: aptt" in m for m in msgs) and any("'usings'" in m for m in msgs)
+
+
+def test_the_shipped_os_blocks_lint_clean(cascade):
+    from configsys import routecheck
+    from configsys.drivers import supported_names
+    assert routecheck.os_block_issues(cascade, {'native', 'parts'} | supported_names()) == []
+    assert routecheck.facet_name_issues(cascade) == []
+
+
+def test_a_bare_facet_atom_is_flagged_and_a_facet_named_like_an_os_errors(tmp_path):
+    # routing-22: `when: "gpu"` (meant `gpu:nvidia`) silently never matches
+    facets = ('facets: { gpu: { kind: categorical  detect: "true"  match: { nvidia: n } }  '
+              'cuda: { kind: version  detect: "true" }  debian: { kind: version  detect: "true" } }')
+    comps = ('a: { install: [ { via: native  when: "gpu" } ] }  b: { install: [ { via: native  when: "cuda" } ] }  '
+             'ok: { install: [ { via: native  when: "gpu:nvidia or cuda >= 12" } ] }')
+    issues = _issues(_tiny(tmp_path, 'linux: {}  debian: { using: linux  native: apt }', comps, facets))
+    bare = {i.component: i.message for i in issues if i.kind == 'bare-facet'}
+    assert set(bare) == {'a', 'b'} and 'gpu:<value>' in bare['a'] and 'cuda >= <version>' in bare['b']
+    assert not [i for i in issues if i.component == 'ok']
+    clash = [i for i in issues if i.kind == 'facet-collision']
+    assert len(clash) == 1 and clash[0].is_error and "'debian'" in clash[0].message
+
+
+def test_a_garbled_standing_is_flagged(tmp_path):
+    # routing-24: `standing: high` read as "no standing", silently
+    comps = ('a: { standing: high  install: [ { via: native } ] }  '
+             'b: { install: [ { via: native  standing: hi } { via: flatpak  app: x  standing: 3 } ] }  '
+             'c: { standing: never-auto  install: [ { via: native  standing: 2 } ] }')
+    issues = _issues(_tiny(tmp_path, 'linux: {}  debian: { using: linux  native: apt }', comps,
+                           'drivers: { snap: { standing: "5x" }  flatpak: { standing: never-auto } }'))
+    bad = [(i.component, i.message) for i in issues if i.kind == 'bad-standing']
+    assert sorted(str(c) for c, _m in bad) == ['None', 'a', 'b'] and all(
+        not i.is_error for i in issues if i.kind == 'bad-standing')
+    assert any("driver 'snap'" in m and '5x' in m for _c, m in bad)
+    assert any('via:native' in m and 'hi' in m for c, m in bad if c == 'b')

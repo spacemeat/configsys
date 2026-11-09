@@ -66,11 +66,12 @@ def _nav_str():
 
 def _history(stdscr, pal, ctx, pl):
     '''Plugins `H`: the primary's recent changes in a list (↑ not pushed, * made by configsys), with
-    "Undo …" for the newest configsys change on top. Returns the note to show.'''
+    "Undo …" for the newest configsys change on top. Returns (the note to show, whether it undid —
+    the picks / config the other screens show changed then).'''
     from ... import primarygit
     found = primarygit.history(ctx, 15)
     if found is None:
-        return 'no synced primary plugin on a branch'
+        return 'no synced primary plugin on a branch', False
     name, changes = found
     last = primarygit.undoable(changes)
     rows = [(f'{"↑" if not c.pushed else " "}{"*" if c.by_configsys else " "} {c.date}  {c.subject}', c.short)
@@ -79,7 +80,7 @@ def _history(stdscr, pal, ctx, pl):
     pick = menu._popup_choose(stdscr, pal, f'{name}: recent changes (↑ not pushed · * made by configsys)',
                               opts, start=0, shortcuts={'z': 0} if last else None)
     if not last or pick != 0:
-        return None
+        return None, False
     files = ', '.join(last.files[:4]) + (' …' if len(last.files) > 4 else '')
     other = last.machine and last.machine != primarygit._machine(ctx)
     sure = menu._popup_choose(stdscr, pal, f'Undo "{last.subject}"'
@@ -88,12 +89,12 @@ def _history(stdscr, pal, ctx, pl):
                                            f'to <state>/undo/{last.short}/ first',
                               [('Undo it', 'y'), ('Keep it', 'n')], start=1, shortcuts={'y': 0, 'n': 1})
     if sure != 0:
-        return None
-    _ok, lines = primarygit.undo(ctx)
+        return None, False
+    ok, lines = primarygit.undo(ctx)
     ctx.invalidate()
     pl.reload()
     pl._set_primary_state(primarygit.state(ctx))
-    return lines[-1] if lines else None
+    return (lines[-1] if lines else None), ok
 
 
 def _sync_note(ctx, results):
@@ -391,12 +392,17 @@ class PluginsScreen(Screen):
                     _ok, note = actions.plugin_lock(ctx, row['name'])
                 pl.reload()
             elif pact == 'push':
+                from ... import primarygit
+                was = primarygit.head(ctx)
                 _ok, lines = menu._push_primary(stdscr, pal, ctx)
+                if primarygit.head(ctx) != was:        # it combined your other machines' changes in:
+                    ctx.invalidate()                   # the picks / config shown are stale (primary-16)
+                    dirty = True
                 pl.reload()
                 note = lines[-1] if lines else None
                 pending = lines[:-1]
             elif pact == 'history':
-                note = _history(stdscr, pal, ctx, pl)
+                note, dirty = _history(stdscr, pal, ctx, pl)   # an undo changed what's shown (primary-16)
             elif pact == 'set-ref' and row:
                 ref = _input_box(stdscr, pal, f'{row["name"]} — set ref (tag/branch/sha)', '')
                 if ref and ref.strip():

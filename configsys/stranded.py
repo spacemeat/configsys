@@ -148,11 +148,18 @@ def find(ctx, comp_name, *, ledger, cache=None, foreign=None):
         else:
             reason = 'gated'
         found[key] = Stranded(rc, key, ver, reason)
-    # 2. bindings still in routes but not candidates here (gated by when:/cpu, or a disabled driver)
+    # 2. bindings still in routes but not candidates here (gated by when:/cpu, or a disabled driver).
+    # Not a driver EXPLICITLY gated out here (`drivers:` `when:` — aur off Arch, brew on musl): it
+    # can't have installed anything on this machine, and probing every aur binding spawned a
+    # `pacman -Q` each (routing-27). A derived gate (its requires can't be met NOW) or a `when:` gate
+    # can strand a real install, so those are still probed.
     if comp is not None:
         cand_ids = {id(b) for b in cand}
+        here = r.context()
+        explicit = (frozenset(getattr(here, 'gated_drivers', None) or ())
+                    - frozenset(getattr(here, 'derived_gates', None) or {}))
         for b in comp.bindings:
-            if id(b) in cand_ids or b.via in _SKIP_VIAS:
+            if id(b) in cand_ids or b.via in _SKIP_VIAS or b.via in explicit:
                 continue
             rc = _unit_rc(r, comp, b)
             if rc is None or rc.key in found or is_current(rc):

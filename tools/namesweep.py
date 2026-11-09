@@ -61,7 +61,9 @@ def _native_names(block, ver, manager, plugin_files=(), routes_path=ROUTES):
     catalog on `block`. `plugin_files` loads a plugin OS's layers (its os block + components).'''
     from configsys.routes import Resolver
     from configsys.resolve import ResolveError
-    r = Resolver(routes_path, block, ver or None, 'x86_64', plugin_files=plugin_files)
+    # the developer chose to sweep this plugin: its facet probes may run (routes.load fails closed)
+    r = Resolver(routes_path, block, ver or None, 'x86_64', plugin_files=plugin_files,
+                 command_trust=lambda _p: True)
     pkgs = {}
     for name in sorted(r.components):
         try:

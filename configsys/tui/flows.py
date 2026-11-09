@@ -179,8 +179,8 @@ def _quit_push(stdscr, pal, ctx, force=False):
     if then == 'note':
         return True, [later]
     if then == 'push':
-        ok, lines = _auto_push_primary(stdscr, pal, ctx)
-        return True, (lines[-1:] if ok else ['not pushed automatically — ' + (lines[-1] if lines else '')])
+        ok, lines = _auto_push_primary(stdscr, pal, ctx)  # every line, the driver's notes too (primary-12)
+        return True, (lines if ok else lines[:-1] + ['not pushed automatically — ' + (lines[-1] if lines else '')])
     c = _popup_choose(stdscr, pal, f'Quit? {primarygit.count_phrase(ahead)} to {st.name} not pushed yet.',
                       [('Push, then quit', 'p'), ('Quit, push later', 'q'), ('Keep working', 'n')],
                       start=2, shortcuts={'p': 0, 'q': 1, 'n': 2})

@@ -251,3 +251,13 @@ def test_skill_touchpoints_exist_and_are_named(module, symbol):
     assert hasattr(importlib.import_module(module), symbol), \
         f'{module}.{symbol} is gone — update {SKILL} and TOUCHPOINTS'
     assert symbol in _read(SKILL), f'{SKILL} does not mention {symbol}'
+
+
+def test_the_special_vias_are_spelled_once():
+    # routing-32: {'native', 'parts'} lived in resolve, routecheck and cli/check — now resolve.SPECIAL_VIAS
+    import pathlib
+    import re
+    root = pathlib.Path(__file__).resolve().parent.parent / 'configsys'
+    hits = [p for p in root.rglob('*.py')
+            if re.search(r"\{'native', 'parts'\}|\{'parts', 'native'\}", p.read_text(encoding='utf-8'))]
+    assert [p.name for p in hits] == ['resolve.py']

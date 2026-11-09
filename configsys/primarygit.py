@@ -88,19 +88,23 @@ class PrimaryRepo:
     def network_env(self, interactive):
         '''The env for fetch / push. Interactive (the CLI on a terminal): git may ask for a passphrase.
         Otherwise it never prompts: no terminal prompt, no credential-manager popup, and ssh in
-        BatchMode — appended to YOUR ssh command ($GIT_SSH_COMMAND, else core.sshCommand, else ssh),
-        so a key or proxy you configured there keeps working.'''
+        BatchMode — appended to YOUR ssh command (git's order: $GIT_SSH_COMMAND, else core.sshCommand,
+        else the $GIT_SSH program, else ssh), so a key or proxy you configured there keeps working.'''
         env = self.env()
         if interactive:
             return env
         env.update(GIT_TERMINAL_PROMPT='0', GCM_INTERACTIVE='never')
-        ssh = os.environ.get('GIT_SSH_COMMAND') or self.config('core.sshCommand') or 'ssh'
+        ssh = (os.environ.get('GIT_SSH_COMMAND') or self.config('core.sshCommand')
+               or (shlex.quote(os.environ['GIT_SSH']) if os.environ.get('GIT_SSH') else 'ssh'))
         env['GIT_SSH_COMMAND'] = ssh if 'BatchMode' in ssh else f'{ssh} -o BatchMode=yes'
         return env
 
     def git(self, *args, paths=None, env=None, input=None):
         '''Run `git <args>` in the primary. `paths` go as a NUL-separated pathspec list on stdin
-        (`--pathspec-from-file`), never on the command line.'''
+        (`--pathspec-from-file`), never on the command line. An EMPTY `paths` runs nothing: to git an
+        empty pathspec file is no pathspec — every path (primary-17).'''
+        if paths is not None and not paths:
+            return GitResult(0, b'', b'')
         argv = ['git', '-C', str(self.root), '--literal-pathspecs', *args]
         if paths is not None:
             argv += ['--pathspec-from-file=-', '--pathspec-file-nul']
@@ -142,8 +146,12 @@ class PrimaryRepo:
             entry = parts[i]
             if len(entry) > 3:
                 out.add(os.fsdecode(entry[3:]))
-                if entry[:1] in (b'R', b'C'):          # a rename/copy carries its source next
+                xy = entry[:2]                         # a rename/copy carries its source next — in
+                if b'R' in xy or b'C' in xy:           # either column (` R` after `git add -N`)
                     i += 1
+                    if xy[1:] == b'R' and i < len(parts) and parts[i]:
+                        out.add(os.fsdecode(parts[i]))   # a worktree rename's source is still in
+                        #                                  the index: its deletion is a change too
             i += 1
         return out
 
@@ -490,6 +498,15 @@ def state(ctx):
         return None
 
 
+def head(ctx):
+    '''The primary's HEAD commit, or None — so a caller can tell whether a push / undo moved it.'''
+    try:
+        pr = primary_root(ctx)
+        return (PrimaryRepo(pr[0]).text('rev-parse', 'HEAD') or None) if pr else None
+    except Exception:                                  # noqa: BLE001
+        return None
+
+
 def fetch(ctx):
     '''Fetch the primary's remote (non-interactive, refs only — the working tree is untouched), so
     `state()` can count what your other machines pushed. Through the push URL, as `push` does (a
@@ -798,9 +815,7 @@ def push(ctx, ui=None):
     commits on top of the remote's, show what will leave and push to its branch. Returns (ok, [lines]).
     Every question is a `Question` passed to `ui.ask` — a conflict per key in a `.hu` file, per file
     otherwise; anything left unsettled ends with nothing pushed and your work intact. Nothing happens
-    under --pretend (it previews instead).'''
-    from . import plugins
-    ui = ui or PushUI()
+    under --pretend (it previews instead). The steps are `_PushSession`'s.'''
     try:
         found = _primary(ctx)
     except Exception as e:                             # noqa: BLE001 — an unreadable config
@@ -814,36 +829,74 @@ def push(ctx, ui=None):
     if not (root / '.git').exists():
         return False, [f'{name} isn\'t synced here yet — `configsys plugin sync` first.'
                        if not root.exists() else f'{name} ({root}) isn\'t a git repository.']
-    repo = PrimaryRepo(root)
-    lines = []
-    url = repo.text('remote', 'get-url', '--push', 'origin')
-    if not url:
-        return False, [f'{name} has no remote to push to yet. Create an empty repository for it (on '
-                       f'GitHub: `gh repo create {name} --private`, or the website), then run '
-                       f'`configsys plugin set-source {name} github:<you>/{name}` and push again.']
-    source = decl['source']
-    branch = repo.branch()
-    if not branch:
-        ref = decl.get('ref')
+    return _PushSession(ctx, ui or PushUI(), decls, decl, name, root).run()
+
+
+class _PushSession:
+    '''One `plugin push` over the primary's `PrimaryRepo` (primary-23): `STEPS` run in order, each
+    returning None to go on, or the (ok, [lines]) that ends the push; `lines` collects what each step
+    said on the way.'''
+
+    STEPS = ('remote', 'follow_branch', 'preflight', 'hand_edits', 'fetch', 'overlap', 'incoming',
+             'combine', 'confirm_and_send')
+
+    def __init__(self, ctx, ui, decls, decl, name, root):
+        self.ctx, self.ui, self.decls, self.decl, self.name, self.root = ctx, ui, decls, decl, name, root
+        self.repo = PrimaryRepo(root)
+        self.source = decl['source']
+        self.lines = []
+        self.url = self.branch = self.upstream = None
+        self.first, self.ahead, self.behind = False, 0, 0
+        self.left_out, self.left_out_at = set(), None  # your edits left out, and the line saying so
+        self.head, self.aside = None, {}               # HEAD before the combine; ignored files set aside
+
+    def run(self):
+        for step in self.STEPS:
+            end = getattr(self, step)()
+            if end is not None:
+                return end
+        raise AssertionError('confirm_and_send always ends the push')
+
+    def end(self, ok, *more):
+        return ok, self.lines + list(more)
+
+    def remote(self):
+        self.url = self.repo.text('remote', 'get-url', '--push', 'origin')
+        if not self.url:
+            name = self.name
+            return False, [f'{name} has no remote to push to yet. Create an empty repository for it (on '
+                           f'GitHub: `gh repo create {name} --private`, or the website), then run '
+                           f'`configsys plugin set-source {name} github:<you>/{name}` and push again.']
+        self.branch = self.repo.branch()
+        return None
+
+    def follow_branch(self):
+        '''A tag-pinned primary: offer to follow its branch, so a push reaches your other machines.'''
+        if self.branch:
+            return None
+        from . import plugins
+        repo, name, root, ui = self.repo, self.name, self.root, self.ui
+        ref = self.decl.get('ref')
         head_ref = repo.text('rev-parse', '--abbrev-ref', 'origin/HEAD')
         target = (head_ref[len('origin/'):] if head_ref.startswith('origin/') else '') or 'main'
-        lines.append(f'{name} is pinned to {ref or "a fixed commit"}, so your other machines stay '
-                     f'frozen there and a push wouldn\'t reach them (configsys never tags for you).')
+        self.lines.append(f'{name} is pinned to {ref or "a fixed commit"}, so your other machines stay '
+                          f'frozen there and a push wouldn\'t reach them (configsys never tags for you).')
         if not ui.ask(question('switch-branch', name=name, ref=ref, branch=target)):
-            return False, lines + [f'Left as is. To publish anyway, tag and push it yourself in {root}, '
-                                   f'then `configsys plugin update {name} --ref <tag>` on each machine.']
+            return self.end(False, f'Left as is. To publish anyway, tag and push it yourself in {root}, '
+                                   f'then `configsys plugin update {name} --ref <tag>` on each machine.')
         was = repo.text('rev-parse', 'HEAD')           # switch first; write `ref:` only once it worked
         # through the primary's OWN repo (scrubbed env: never the dotfiles repo a `yadm enter` points
         # GIT_DIR at), the primary alone — not a plugins.sync fan-out that also moved locked
         # transitive plugins (A13 / primary-05)
         why = None
-        fetched = _fetch(repo, url, ui.interactive)
+        fetched = _fetch(repo, self.url, ui.interactive)
         if not fetched.ok:
-            why = explain_git_failure(fetched.stderr or fetched.stdout, name=name, root=root, source=source)
-        elif _verify(ctx):
+            why = explain_git_failure(fetched.stderr or fetched.stdout, name=name, root=root,
+                                      source=self.source)
+        elif _verify(self.ctx):
             r = repo.git('log', '--format=%G? %h', f'{was}..origin/{target}')
             if not r.ok or any(ln.strip() and not ln.startswith('G ') for ln in r.stdout.splitlines()):
-                why = plugins.sync_note(name, 'unsigned', ctx.paths.plugins_dir, primary=True)
+                why = plugins.sync_note(name, 'unsigned', self.ctx.paths.plugins_dir, primary=True)
         if why is None:
             co = repo.git('checkout', '--quiet', target)
             ff = repo.git('merge', '--ff-only', '--quiet', f'origin/{target}') if co.ok else co
@@ -852,116 +905,195 @@ def push(ctx, ui=None):
         if why is not None:
             if was and (repo.branch() or repo.text('rev-parse', 'HEAD') != was):
                 repo.git('checkout', '--quiet', '--detach', was)   # half switched: back where it was pinned
-            return False, lines + [why, f'{name} is still pinned to {ref or "its commit"}; your config '
-                                        f'is unchanged.']
-        decl['ref'] = target
-        plugins.set_declared(ctx.paths.user_config_file, decls)
-        branch = target
-        lines.append(f'{name} now follows {target} here; on your other machines run '
-                     f'`configsys plugin update {name} --ref {target}` once.')
-    busy = repo.in_progress()
-    if busy:
-        return False, lines + [f'{name} is in the middle of a {busy}, so nothing was pushed. Finish it, '
-                               f'or `git -C {root} {busy} --abort`, then push again.']
-    if not _has_ident(ctx, repo):                      # combining and your edits need a committer
-        return False, lines + [f'{name}: no git identity is set, so nothing was pushed — set one (`git '
-                               f'config --global user.name "Your Name"` and `user.email you@example.com`), '
-                               f'then push again.']
-    hand_edited, left_out = repo.dirty() or set(), set()
-    if hand_edited:
-        if ui.ask(question('include-own', name=name, items=sorted(hand_edited))):
-            ok, why = _commit_paths(repo, [], sorted(hand_edited), 'Edits made by hand',
-                                    _made_by(ctx, 'Included by configsys plugin push'))
-            if not ok:
-                return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
+            return self.end(False, why, f'{name} is still pinned to {ref or "its commit"}; your config '
+                                        f'is unchanged.')
+        self.decl['ref'] = target
+        plugins.set_declared(self.ctx.paths.user_config_file, self.decls)
+        self.branch = target
+        self.lines.append(f'{name} now follows {target} here; on your other machines run '
+                          f'`configsys plugin update {name} --ref {target}` once.')
+        return None
+
+    def preflight(self):
+        '''What stops a push before anything is touched: a half-done merge / rebase, no committer.'''
+        name, root = self.name, self.root
+        busy = self.repo.in_progress()
+        if busy:
+            return self.end(False, f'{name} is in the middle of a {busy}, so nothing was pushed. Finish '
+                                   f'it, or `git -C {root} {busy} --abort`, then push again.')
+        if not _has_ident(self.ctx, self.repo):        # combining and your edits need a committer
+            return self.end(False, f'{name}: no git identity is set, so nothing was pushed — set one (`git '
+                                   f'config --global user.name "Your Name"` and `user.email '
+                                   f'you@example.com`), then push again.')
+        return None
+
+    def hand_edits(self):
+        '''Your uncommitted edits: committed if you say so, else left out (and said).'''
+        hand_edited = self.repo.dirty() or set()
+        if not hand_edited:
+            return None
+        if self.ui.ask(question('include-own', name=self.name, items=sorted(hand_edited))):
+            return self._commit_yours(sorted(hand_edited))
+        self.left_out, self.left_out_at = hand_edited, len(self.lines)
+        self.lines.append(self._left_out_line())
+        return None
+
+    def _left_out_line(self):
+        return (f'{self.name}: {_count(len(self.left_out), "file")} with edits of your own left out '
+                f'of the push (still here, uncommitted).')
+
+    def _commit_yours(self, paths):
+        ok, why = _commit_paths(self.repo, [], paths, 'Edits made by hand',
+                                _made_by(self.ctx, 'Included by configsys plugin push'))
+        return None if ok else self.end(False, f'{self.name}: could not commit your edits: {why[:160]}')
+
+    def fetch(self):
+        self.ui.progress(f'fetching {self.name} …')
+        # fetch through the PUSH url (ssh for a github:/gitlab: source), so a private repo you can push
+        # to is also one you can fetch from here — the https fetch url may need a sign-in you don't have
+        fetched = _fetch(self.repo, self.url, self.ui.interactive)
+        if not fetched.ok:
+            return self.end(False, explain_git_failure(fetched.stderr or fetched.stdout, name=self.name,
+                                                       root=self.root, source=self.source))
+        self.upstream = f'origin/{self.branch}'
+        self.first = not self.repo.has_ref(self.upstream)
+        if self.first:                                 # an empty remote: this is the first push
+            self.ahead, self.behind = int(self.repo.text('rev-list', '--count', 'HEAD') or 0), 0
         else:
-            lines.append(f'{name}: {_count(len(hand_edited), "file")} with edits of your own left out '
-                         f'of the push (still here, uncommitted).')
-            left_out = hand_edited
-    ui.progress(f'fetching {name} …')
-    # fetch through the PUSH url (ssh for a github:/gitlab: source), so a private repo you can push
-    # to is also one you can fetch from here — the https fetch url may need a sign-in you don't have
-    fetched = _fetch(repo, url, ui.interactive)
-    if not fetched.ok:
-        return False, lines + [explain_git_failure(fetched.stderr or fetched.stdout, name=name, root=root,
-                                                   source=source)]
-    upstream = f'origin/{branch}'
-    first = not repo.has_ref(upstream)
-    if first:                                          # an empty remote: this is the first push
-        n = repo.text('rev-list', '--count', 'HEAD')
-        ahead, behind = int(n or 0), 0
-    else:
-        ahead, behind = repo.ahead_behind(upstream)
-    if not ahead:
-        msg = f'nothing to push — {name} has no changes your remote lacks.'
-        if behind:
-            msg += (f' {_count(behind)} from your other machines {"are" if behind != 1 else "is"} '
-                    f'waiting; `configsys plugin sync` brings {_them(behind)} in.')
-        return True, lines + [msg]
-    overlap = sorted(left_out & repo.incoming(upstream)) if behind and left_out else []
-    if overlap:                                        # combining would leave conflict markers in them
-        if ui.ask(question('overlap', name=name, items=overlap)) != 'include':
-            return False, lines[:-1] + [
-                f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what your other '
-                f'machine pushed, so nothing was combined or pushed, and nothing here changed. Commit '
-                f'or undo them, or push again and include them.']
-        ok, why = _commit_paths(repo, [], overlap, 'Edits made by hand',
-                                _made_by(ctx, 'Included by configsys plugin push'))
-        if not ok:
-            return False, lines + [f'{name}: could not commit your edits: {why[:160]}']
-        ahead, behind = repo.ahead_behind(upstream)
-    if behind and _verify(ctx):                        # primary-verify: signed — check before combining
-        r = repo.git('log', '--format=%G? %h %s', f'HEAD..{upstream}')
+            self.ahead, self.behind = self.repo.ahead_behind(self.upstream)
+        if not self.ahead:
+            msg = f'nothing to push — {self.name} has no changes your remote lacks.'
+            if self.behind:
+                behind = self.behind
+                msg += (f' {_count(behind)} from your other machines {"are" if behind != 1 else "is"} '
+                        f'waiting; `configsys plugin sync` brings {_them(behind)} in.')
+            return self.end(True, msg)
+        return None
+
+    def overlap(self):
+        '''Left-out edits that overlap what came in: combining would leave conflict markers in them.'''
+        if not (self.behind and self.left_out):
+            return None
+        overlap = sorted(self.left_out & self.repo.incoming(self.upstream))
+        if not overlap:
+            return None
+        name = self.name
+        if self.ui.ask(question('overlap', name=name, items=overlap)) != 'include':
+            del self.lines[self.left_out_at]
+            return self.end(False, f'{name}: your uncommitted edits to {", ".join(overlap)} overlap what '
+                                   f'your other machine pushed, so nothing was combined or pushed, and '
+                                   f'nothing here changed. Commit or undo them, or push again and include '
+                                   f'them.')
+        end = self._commit_yours(overlap)
+        if end is not None:
+            return end
+        self.left_out -= set(overlap)                  # included now: the left-out count says the rest
+        if self.left_out:
+            self.lines[self.left_out_at] = self._left_out_line()
+        else:
+            del self.lines[self.left_out_at]
+        self.ahead, self.behind = self.repo.ahead_behind(self.upstream)
+        return None
+
+    def incoming(self):
+        '''What may stop the combine, about the commits that came in: each check, in order.'''
+        if not self.behind:
+            return None
+        for check in (self._unsigned_incoming, self._locked):
+            line = check()
+            if line:
+                return self.end(False, line)
+        return None
+
+    def _unsigned_incoming(self):
+        if not _verify(self.ctx):                      # primary-verify: signed — check before combining
+            return None
+        r = self.repo.git('log', '--format=%G? %h %s', f'HEAD..{self.upstream}')
         bad = ([_printable(ln[2:]) for ln in r.stdout.splitlines() if ln.strip() and not ln.startswith('G ')]
                if r.ok else ['(could not read them)'])
-        if bad:
-            return False, lines + [f'{name}: your remote has {_count(len(bad), "commit")} without a good '
-                                   f'signature from a key you trust ({"; ".join(bad[:3])}'
-                                   f'{" …" if len(bad) > 3 else ""}), so nothing was combined or pushed '
-                                   f'(primary-verify: signed). Look at them: `git -C {root} log '
-                                   f'--show-signature HEAD..{upstream}`.']
-    if behind and name in plugins.read_locks(getattr(ctx.paths, 'plugin_lock_file', None)):
+        if not bad:
+            return None
+        return (f'{self.name}: your remote has {_count(len(bad), "commit")} without a good signature from a '
+                f'key you trust ({"; ".join(bad[:3])}{" …" if len(bad) > 3 else ""}), so nothing was '
+                f'combined or pushed (primary-verify: signed). Look at them: `git -C {self.root} log '
+                f'--show-signature HEAD..{self.upstream}`.')
+
+    def _locked(self):
+        from . import plugins
+        if self.name not in plugins.read_locks(getattr(self.ctx.paths, 'plugin_lock_file', None)):
+            return None
         # you LOCKED it: the lock holds back what its remote brought in (sync honours it) — a push
         # must not combine those commits in either (review-2026-11-2 A12; pushing when not behind is
         # still fine: nothing comes in)
-        return False, lines + [f'{name} is locked — its remote has {_count(behind)} you held back, so '
-                               f'nothing was combined or pushed. `configsys plugin diff {name}` shows '
-                               f'them; `configsys plugin unlock {name}` takes them in.']
-    if behind:
-        ui.progress(f'combining {name} with your other machines\' changes …')
+        return (f'{self.name} is locked — its remote has {_count(self.behind)} you held back, so nothing '
+                f'was combined or pushed. `configsys plugin diff {self.name}` shows them; `configsys '
+                f'plugin unlock {self.name}` takes them in.')
+
+    def combine(self):
+        if not self.behind:
+            return None
+        repo = self.repo
+        self.ui.progress(f'combining {self.name} with your other machines\' changes …')
+        self.head = repo.text('rev-parse', 'HEAD')
         # an IGNORED file of yours (a secret a `.cfs/.gitignore` keeps out of git) that the other
         # machine now tracks would be replaced by the combine — or deleted by a Stop, as "not in
-        # HEAD". Move it aside first; a Stop / failure puts it back, a success says where it went
-        # (A13 / primary-03).
-        aside = _set_aside(repo, repo.ignored() & repo.incoming(upstream))
-        ok, more = _combine(ctx, ui, name, repo, branch, upstream)
-        lines += more
-        lines += _settle_aside(repo, name, aside, keep_theirs=ok)
+        # HEAD". Move it aside first; a Stop / failure / "don't push" puts it back, a push says where
+        # it went (A13 / primary-03)
+        self.aside = _set_aside(repo, repo.ignored() & repo.incoming(self.upstream))
+        ok, more = _combine(self.ctx, self.ui, self.name, repo, self.branch, self.upstream)
+        self.lines += more
         if not ok:
-            return False, lines
-        ahead, _b = repo.ahead_behind(upstream)
-    commits, files = _outgoing(repo, None if first else upstream)
-    warn = None
-    if _verify(ctx) and commits:                       # primary-verify: signed — your OWN outgoing ones
-        r = repo.git('log', '--format=%G?', *([f'{upstream}..HEAD'] if not first else ['HEAD']))
-        unsigned = sum(1 for ln in r.stdout.split() if ln != 'G') if r.ok else 0
-        if unsigned:                                   # (G5 / primary-21) — they'd be refused elsewhere
-            verb = 'is not' if unsigned == 1 else 'are not'
-            warn = (f'{unsigned} of these {verb} signed — your other machines (primary-verify: signed) '
-                    f'will refuse them; set `commit.gpgsign` in {root}')
-    if not ui.ask(question('confirm-push', name=name, items=commits, files=files, source=source,
-                           detail=warn)):
-        return False, lines + [f'{name}: not pushed — your changes stay committed here.']
-    ui.progress(f'pushing {name} …')
-    pushed = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
-                      env=repo.network_env(ui.interactive))
-    if not pushed.ok:
-        return False, lines + [explain_git_failure(pushed.stderr or pushed.stdout, name=name, root=root,
-                                                   source=source)]
-    if first:
-        repo.git('branch', '--quiet', f'--set-upstream-to={upstream}')
-    return True, lines + [f'pushed {_count(ahead)} to {source}. Your other machines get '
-                          f'{_them(ahead)} on their next `configsys plugin sync`.']
+            self.lines += _settle_aside(repo, self.name, self.aside, keep_theirs=False)
+            return self.end(False)
+        self.ahead, _b = repo.ahead_behind(self.upstream)
+        if not self.ahead:                             # every change of mine was already there (primary-12)
+            self.lines += _settle_aside(repo, self.name, self.aside, keep_theirs=True)
+            return self.end(True, f'nothing left to push — your changes were already on {self.name}\'s '
+                                  f'remote; what your other machines pushed is combined in here.')
+        return None
+
+    def confirm_and_send(self):
+        repo, name, root, upstream, first = self.repo, self.name, self.root, self.upstream, self.first
+        commits, files = _outgoing(repo, None if first else upstream)
+        warn = None
+        if _verify(self.ctx) and commits:              # primary-verify: signed — your OWN outgoing ones
+            r = repo.git('log', '--format=%G?', *([f'{upstream}..HEAD'] if not first else ['HEAD']))
+            unsigned = sum(1 for ln in r.stdout.split() if ln != 'G') if r.ok else 0
+            if unsigned:                               # (G5 / primary-21) — they'd be refused elsewhere
+                verb = 'is not' if unsigned == 1 else 'are not'
+                warn = (f'{unsigned} of these {verb} signed — your other machines (primary-verify: signed) '
+                        f'will refuse them; set `commit.gpgsign` in {root}')
+        if not self.ui.ask(question('confirm-push', name=name, items=commits, files=files,
+                                    source=self.source, detail=warn)):
+            return self.end(False, *self._take_back_combine())
+        self.lines += _settle_aside(repo, name, self.aside, keep_theirs=True)
+        self.ui.progress(f'pushing {name} …')
+        pushed = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{self.branch}',
+                          env=repo.network_env(self.ui.interactive))
+        if not pushed.ok:
+            return self.end(False, explain_git_failure(pushed.stderr or pushed.stdout, name=name, root=root,
+                                                       source=self.source))
+        if first:
+            repo.git('branch', '--quiet', f'--set-upstream-to={upstream}')
+        return self.end(True, f'pushed {_count(self.ahead)} to {self.source}. Your other machines get '
+                              f'{_them(self.ahead)} on their next `configsys plugin sync`.')
+
+    def _take_back_combine(self):
+        '''"Don't push" after a combine: put HEAD back where it was before it (`reset --keep`, so
+        your uncommitted edits stay) — declining must not leave the other machines' changes checked
+        out here, unannounced (primary-13). -> the lines to end with.'''
+        name = self.name
+        if not self.head or self.repo.text('rev-parse', 'HEAD') == self.head:
+            return [f'{name}: not pushed — your changes stay committed here.']
+        back = self.repo.git('reset', '--keep', '--quiet', self.head)
+        if back.ok:
+            return _settle_aside(self.repo, name, self.aside, keep_theirs=False) + [
+                f'{name}: not pushed — your changes stay committed here, and what your other machines '
+                f'pushed was not combined in (`configsys plugin push` combines it again).']
+        return _settle_aside(self.repo, name, self.aside, keep_theirs=True) + [
+            f'{name}: not pushed — but what your other machines pushed is combined in here (putting it '
+            f'back failed: {_printable(_err(back))}); `git -C {self.root} reset --keep {self.head[:12]}` '
+            f'takes it back.']
 
 
 # -- seeing and undoing configsys's own commits (review-2026-11 G2: `plugin log` / `plugin undo`, Plugins `H`) --
@@ -997,15 +1129,8 @@ def history(ctx, n=10):
         upstream = f'origin/{branch}'
         unpushed = set((repo.text('rev-list', 'HEAD', f'^{upstream}') if repo.has_ref(upstream)
                         else repo.text('rev-list', 'HEAD')).split())
-        out = repo.git('log', f'-n{int(n)}', '--format=%H%x1f%h%x1f%as%x1f%s%x1f%b%x1f%P%x1e')
         changes = []
-        for rec in (out.stdout.split('\x1e') if out.ok else []):
-            parts = rec.strip('\n').split('\x1f')
-            if len(parts) < 6:
-                continue
-            sha, short, date, subject, body, parents = parts[:6]
-            files = repo.git('diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', sha)
-            names = tuple(os.fsdecode(f) for f in files.out.split(b'\0') if f) if files.ok else ()
+        for sha, short, date, parents, subject, body, names in _log(repo, n):
             m = re.search(re.escape(_MADE_BY) + r' on (.+?)\.?$', body, re.M)
             changes.append(Change(sha, short, date, _printable(subject), tuple(map(_printable, names)),
                                   sha not in unpushed,
@@ -1014,6 +1139,33 @@ def history(ctx, n=10):
         return name, changes
     except Exception:                                  # noqa: BLE001 — best-effort, never a crash
         return None
+
+
+def _log(repo, n):
+    '''[(sha, short, date, parents, subject, body, (files…))] for the last `n` commits — ONE `git log`
+    (primary-19: not a `diff-tree` per commit). With `-z` every record and file name ends in NUL, which
+    no commit message or file name can hold, and each file comes as a `:<modes> <blobs> <status>`
+    token then its name — so a header is any token in a token's place that isn't one, and a body
+    holding `\\x1e` / `\\x1f` (the old separators, remote-controlled) splits nothing. Files as
+    `diff-tree --root -r` listed them: a merge lists none.'''
+    out = repo.git('log', f'-n{int(n)}', '-z', '--raw', '--no-renames', '--root', '--no-show-signature',
+                   '--no-abbrev', '--format=%H %h %as %P%n%s%n%b')
+    recs, toks, i = [], out.out.split(b'\0') if out.ok else [], 0
+    while i < len(toks):
+        tok = toks[i]
+        if recs and tok.lstrip(b'\n').startswith(b':'):     # one changed file: its raw line, its name
+            if i + 1 < len(toks) and toks[i + 1]:
+                recs[-1][-1].append(os.fsdecode(toks[i + 1]))
+            i += 2
+            continue
+        i += 1
+        head, _nl, rest = tok.decode('utf-8', 'surrogateescape').lstrip('\n').partition('\n')
+        fields = head.split(' ')
+        if len(fields) < 3:                            # the trailing empty token
+            continue
+        subject, _nl, body = rest.partition('\n')
+        recs.append((fields[0], fields[1], fields[2], ' '.join(fields[3:]), subject, body, []))
+    return [r[:-1] + (tuple(r[-1]),) for r in recs]
 
 
 def undoable(changes):
@@ -1173,9 +1325,12 @@ def _scratch(repo):
 
 
 def _driver_notes(notes):
+    '''The merge driver's notes, each once and safe to show: they carry file names and plugin
+    sources / refs from the remote, so a terminal escape in one goes out as `\\xNN` (primary-11).'''
     try:
         seen = []
-        for ln in notes.read_text(encoding='utf-8').splitlines():
+        for ln in notes.read_text(encoding='utf-8', errors='replace').splitlines():
+            ln = _printable(ln)
             if ln.strip() and ln not in seen:
                 seen.append(ln)
         notes.write_text('', encoding='utf-8')
@@ -1243,11 +1398,11 @@ def _replay(ctx, ui, name, repo, upstream):
     repo.git('rebase', '--abort')
     _driver_notes(notes)
     if not conflicted:
-        return False, [f'{name}: could not combine with the remote: {_err(rebased)}']
+        return False, [f'{name}: could not combine with the remote: {_printable(_err(rebased))}']
     merged = repo.git(*driver_opts, 'merge', '--no-ff', '--no-commit', '--quiet', upstream)
     conflicted = repo.unmerged() if not merged.ok else []
     if not merged.ok and not conflicted:
-        return False, []
+        return False, [f'{name}: could not combine with the remote: {_printable(_err(merged))}']
     renamed = _type_renames(repo, conflicted, upstream)   # `x~HEAD` → x: a file whose type differs
     conflicted = [p for p in conflicted if p not in renamed]
     conflicted += sorted(x for x in set(renamed.values()) if x not in conflicted)   # x became a folder
@@ -1290,7 +1445,7 @@ def _replay(ctx, ui, name, repo, upstream):
         return False, [f'{name}: could not commit the combined result: {_err(combined)}']
     lines = [f'{name}: {n}' for n in _driver_notes(notes)]
     if conflicted:
-        lines.append(f'{name}: combined — {", ".join(conflicted)} settled as you chose.')
+        lines.append(f'{name}: combined — {", ".join(map(_printable, conflicted))} settled as you chose.')
     return True, lines
 
 
@@ -1381,6 +1536,9 @@ def _settle_hu(ui, name, repo, path, i, n):
         return None
     try:
         res = humerge.merge(base or '', mine, theirs)
+        if res.conflicts:                              # can it write the answered file at all? Probe
+            humerge.merge(base or '', mine, theirs,    # first, or a failure after the per-key answers
+                          {c.path: 'mine' for c in res.conflicts})   # asks the whole file again
     except Exception:                                  # noqa: BLE001 — Unmergeable, or a malformed
         return None                                    # text humerge can't read: the file question
     answers = {}
@@ -1397,7 +1555,10 @@ def _settle_hu(ui, name, repo, path, i, n):
             return None
     if res.text is None:
         return None
-    (repo.root / path).write_text(res.text, encoding='utf-8')
+    text = res.text
+    if '\r\n' in mine:                                 # keep the file's own line ending (as the driver does)
+        text = text.replace('\r\n', '\n').replace('\n', '\r\n')
+    (repo.root / path).write_bytes(text.encode('utf-8'))
     repo.git('add', paths=[path])
     return 'done'
 

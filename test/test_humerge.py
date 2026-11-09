@@ -490,3 +490,29 @@ def test_the_same_key_added_on_both_sides_is_kept_once(tmp_path):
     theirs = '{\n    splash: plain\n    picks: { desk: [ btop ] }\n}\n'
     rc, out = _driver(tmp_path, base, mine, theirs)
     assert rc == 0 and layers.duplicate_keys_in_text(out) == []
+
+
+def test_one_new_term_added_at_two_points_is_asked():
+    # primary-10: mine `+editors` first ("no vim"), theirs `+editors` last ("vim") — never both
+    base = PROFILES
+    mine = PROFILES.replace('[ btop  ~vim ]', '[ +editors  btop  ~vim ]')
+    theirs = PROFILES.replace('[ btop  ~vim ]', '[ btop  ~vim  +editors ]')
+    assert humerge._merge_sequence(['btop', '~vim'], ['+editors', 'btop', '~vim'],
+                                   ['btop', '~vim', '+editors']) is None
+    res = humerge.merge(base, mine, theirs)
+    assert res.text is None and [c.path for c in res.conflicts] == [('profiles', 'mine')]
+    # the same new term at the same point is still one insert
+    assert humerge._merge_sequence(['a'], ['a', 'x'], ['a', 'x']) == ['a', 'x']
+
+
+def test_a_new_plugin_goes_where_its_side_put_it():
+    # primary-10: theirs PREPENDS c (lowest precedence) — it must not land last (highest)
+    base = _plugins_text(('a', 'v1'), ('b', 'v1'))
+    mine = _plugins_text(('a', 'v1'), ('b', 'v1'), ('x', 'v1'))
+    theirs = _plugins_text(('c', 'v1'), ('a', 'v1'), ('b', 'v1'))
+    got = [p['source'][len('github:me/'):] for p in _data(humerge.merge(base, mine, theirs).text)['plugins']]
+    assert got == ['c', 'a', 'b', 'x']
+    # two new ones keep their own side's order, beside their neighbour
+    theirs2 = _plugins_text(('a', 'v1'), ('c', 'v1'), ('d', 'v1'), ('b', 'v1'))
+    got = [p['source'][len('github:me/'):] for p in _data(humerge.merge(base, mine, theirs2).text)['plugins']]
+    assert got == ['a', 'c', 'd', 'b', 'x']

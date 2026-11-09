@@ -3,23 +3,46 @@ concrete unit closure (worklist to a fixpoint over requires/provides/parts).
 '''
 
 import os
+from collections import deque
 
 from . import predicate, trustgate
 from .errors import ConfigsysError
+from .layers import as_list
 
 
 class ResolveError(ConfigsysError):
     '''A component could not be routed here (unknown name, no binding, unsatisfiable
-    requirement, ambiguity). A ConfigsysError so the app surfaces it as a clean message.'''
+    requirement, ambiguity). A ConfigsysError so the app surfaces it as a clean message. `kind`
+    (one of KINDS) says which, set where it is raised — so a consumer switches on it instead of
+    reading the message text (routing-28).'''
+    default_kind = None
+
+    def __init__(self, message='', kind=None):
+        super().__init__(message)
+        self.kind = kind or self.default_kind
 
 
 class AmbiguityError(ResolveError):
     '''Two equally-ranked providers of a capability — a decision the user makes (a provider-pin or a
     `standing:` rank). Unlike an unmet requirement it never closes a derived driver gate (B15).'''
+    default_kind = 'ambiguous-providers'
 
 
 class PartsCycleError(ResolveError):
     '''A `parts:` bundle that contains itself — structural, never skipped like an unroutable part.'''
+    default_kind = 'parts-cycle'
+
+
+# What a ResolveError is about: an unknown name; no candidate method here (none valid, or only ones a
+# driver gate / disabled driver / untrusted layer removed: 'gated'); a hard requirement nothing meets;
+# two equally-ranked providers; two equally-preferred methods; a pin that can't be honored; a parts loop.
+KINDS = ('unknown', 'no-candidate', 'gated', 'unmet-require', 'ambiguous-providers', 'method-tie',
+         'pin-unrealizable', 'parts-cycle')
+# the kinds that are the CONFIG's to fix (a pin, a preference, a rank) — `check` reports these as errors
+CONFIG_ERROR_KINDS = frozenset({'pin-unrealizable', 'ambiguous-providers', 'method-tie'})
+
+# the vias that name no Driver of their own: `native` (the OS's manager) and `parts` (an aggregator)
+SPECIAL_VIAS = frozenset({'native', 'parts'})
 
 
 # sentinel: no `component-names` entry for this (driver, component) — distinct from an entry
@@ -39,12 +62,6 @@ def _name_override(overrides, driver, component):
     return _NO_OVERRIDE, True
 
 
-def _as_list(v):
-    if v is None:
-        return []
-    return v if isinstance(v, list) else [v]
-
-
 def pin_via_names():
     '''The set of `pins:` values that name an install METHOD (a via/driver) rather than a provider
     component — `native`, `parts`, and every registered driver. A flat-`pins:` value in this set is
@@ -52,7 +69,7 @@ def pin_via_names():
     identically by resolve, app._validate_pin and routecheck so all three classify a pin the same
     way — critical when a name is BOTH a via and a component (pyenv, flatpak, clang, cabal, …).'''
     from .drivers import supported_names
-    return {'native', 'parts'} | supported_names()
+    return SPECIAL_VIAS | supported_names()
 
 
 def cap_names(raw):
@@ -61,7 +78,7 @@ def cap_names(raw):
     (a versioned entry contributes exactly its capability name); version constraints are read
     separately via cap_constraints, so adding a floor never alters which units resolve.'''
     names = []
-    for item in _as_list(raw):
+    for item in as_list(raw):
         if isinstance(item, dict):
             names.extend(item.keys())
         else:
@@ -74,7 +91,7 @@ def cap_constraints(raw):
     {} when none carry a version. The constraint reuses the when:-DSL comparison vocabulary
     (`>=1.96`, `>1.0`, `=2.0`, and `,`-AND ranges).'''
     cons = {}
-    for item in _as_list(raw):
+    for item in as_list(raw):
         if isinstance(item, dict):
             for k, v in item.items():
                 cons[k] = str(v)
@@ -149,7 +166,8 @@ def _matching(component, context, pins):
     if pin is not None:                     # binding-pin: force this method, still context-valid
         bindings = [b for b in bindings if b.via == pin]
         if not bindings:
-            raise ResolveError(f'{component.name}: pinned to via:{pin!r}, which is not a binding')
+            raise ResolveError(f'{component.name}: pinned to via:{pin!r}, which is not a binding',
+                               'pin-unrealizable')
     # a DISABLED driver (machine `disabled-drivers:` setting) makes its bindings non-matching here,
     # exactly like a false `when:` — so a component whose only method is via it becomes unroutable
     # (a `suggests:` skips it silently, a hard `requires:`/explicit want errors honestly).
@@ -253,8 +271,11 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
            frozenset(disabled or ()), frozenset((k, str(v)) for k, v in pins.items()),
            tuple(preference or ()), frozenset(never_auto_drivers or ()))
     cache = cascade.__dict__.setdefault('_gated_ctx_cache', {})
-    if key in cache:
-        return cache[key]
+    hit = cache.get(key)
+    # the entry HOLDS the keyed objects, and a hit must be them: an id() is reused once its object is
+    # gone, so a transient dict must never inherit another one's answer (routing-37)
+    if hit is not None and hit[0] is components and hit[1] is drivers and hit[2] is overrides:
+        return hit[3]
     ctx = cascade.context(block, version, cpu, disabled or ())
     explicit = frozenset(getattr(ctx, 'gated_drivers', ()) or ())
     derived = {}
@@ -284,7 +305,7 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
             break
         derived.update(new)
     ctx.derived_gates = derived
-    cache[key] = ctx
+    cache[key] = (components, drivers, overrides, ctx)
     return ctx
 
 
@@ -382,6 +403,15 @@ def _standing(spec):
         return None
 
 
+def standing_problem(spec):
+    '''Why `spec`'s `standing:` means nothing, or None (absent, `never-auto`, or an integer) — a
+    value _standing reads as "normal" without a word, so `check` says it (`bad-standing`).'''
+    if not isinstance(spec, dict) or spec.get('standing') is None or _standing(spec) is not None:
+        return None
+    return (f'`standing: {spec["standing"]}` is neither `never-auto` nor an integer rank — it is '
+            f'ignored (read as no standing)')
+
+
 def _prefer_rank(binding):
     '''The binding's `standing:` preference rank (higher wins), default 0. A `never-auto` binding has
     no rank (it's excluded from the auto-default pool anyway).'''
@@ -403,7 +433,7 @@ def _effective_preference(cascade, context, preference):
     drivers the earlier ones don't name, in its own order — so a list fully decides every driver it
     names, and one written before a driver existed still ranks that driver (by the default) instead
     of leaving it tied last with every other unlisted one. Only drivers named in NO list tie.'''
-    chain = [_as_list(pref) for name in context.lineage
+    chain = [as_list(pref) for name in context.lineage
              if (pref := (cascade.blocks.get(name) or {}).get('driver-preference'))]
     if preference:
         chain.append(list(preference))
@@ -461,7 +491,7 @@ def _by_preference(matching, component, cascade, context, preference):
         raise ResolveError(
             f'{component.name}: install methods {tied} are equally valid AND equally preferred '
             f'here — set a `driver-preference` order or a per-binding `standing:` rank to choose one '
-            f'(do not narrow `when:`: every one of these methods genuinely works here)')
+            f'(do not narrow `when:`: every one of these methods genuinely works here)', 'method-tie')
     rule = 'standing:' if _prefer_rank(best) != _prefer_rank(ranked[1]) else 'driver-preference'
     return best, rule
 
@@ -483,8 +513,9 @@ def _select(component, cascade, context, pins=None, preference=None, never_auto_
     matching, pin = _matching(component, context, pins)
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
-        raise ResolveError(f'no binding for {component.name} in this context{extra}'
-                           f'{_gate_note(component, context, pin)}')
+        note = _gate_note(component, context, pin)
+        raise ResolveError(f'no binding for {component.name} in this context{extra}{note}',
+                           'gated' if note else 'no-candidate')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
     excluded = never_auto_drivers or frozenset()
@@ -499,8 +530,22 @@ def _select(component, cascade, context, pins=None, preference=None, never_auto_
     ms = _most_specific_binding(pool, cascade)
     if ms is not None:
         return ms, matching, 'most-specific when:'
-    winner, rule = _by_preference(pool, component, cascade, context, preference)
+    # no unique narrowest: preference decides among the MINIMAL ones only — a binding strictly
+    # broader than another candidate never beats it, so adding an offered method can't flip the
+    # default between two others (routing-23; principles.md: specificity before preference)
+    minimal = _minimal_bindings(pool, cascade)
+    if len(minimal) == 1:
+        return minimal[0], matching, 'most-specific when:'
+    winner, rule = _by_preference(minimal, component, cascade, context, preference)
     return winner, matching, rule
+
+
+def _minimal_bindings(pool, cascade):
+    '''The bindings of `pool` no other one is STRICTLY inside (`when:` ⊂, not ≡) — the narrowest
+    alternatives, in pool order. Never empty (a finite pool has a minimal element).'''
+    def strictly_inside(o, b):
+        return predicate.subset(o.pred, b.pred, cascade) and not predicate.subset(b.pred, o.pred, cascade)
+    return [b for b in pool if not any(o is not b and strictly_inside(o, b) for o in pool)] or pool
 
 
 def select_binding(component, cascade, context, pins=None, preference=None, never_auto_drivers=None):
@@ -512,7 +557,7 @@ def _driver(binding, cascade, block):
     if binding.via == 'native':
         drv = cascade.native(block)
         if drv is None:
-            raise ResolveError(f'no native package manager on {block}')
+            raise ResolveError(f'no native package manager on {block}', 'no-candidate')
         return drv
     return binding.via
 
@@ -625,7 +670,8 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
                       pins=None, overrides=None, preference=None, never_auto_drivers=None, disabled=None,
-                      soft=None, dropped_out=None, provider_rules_out=None, skipped_parts_out=None):
+                      soft=None, dropped_out=None, provider_rules_out=None, skipped_parts_out=None,
+                      kinds_out=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
@@ -636,22 +682,25 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     pin is honored when it can be, but one that can't (its provider fails a version constraint, or
     its method/provider isn't valid here) is DROPPED for that edge and normal selection proceeds —
     never an error. `dropped_out` (a dict) collects {pin key: why it was dropped};
-    `provider_rules_out` (a dict) collects {cap: the rule that picked its auto provider}.'''
+    `provider_rules_out` (a dict) collects {cap: the rule that picked its auto provider};
+    `kinds_out` (a dict) {requested_name: the ResolveError kind behind its error} (KINDS).'''
     hard = {k: v for k, v in (pins or {}).items() if k not in (soft or ())}   # soft pins never open a gate
     ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, hard,
                         overrides, preference, never_auto_drivers)
     st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
                 never_auto_drivers, soft=soft, dropped=dropped_out)
     errors = {}
+    kinds = kinds_out if kinds_out is not None else {}
     root_keys = {}
     for name in names:
         try:
             root_keys[name] = st.add_component(name, root=name)
         except ResolveError as e:
             errors[name] = str(e)
-    st.drain(errors=errors)
+            kinds[name] = e.kind
+    st.drain(errors=errors, kinds=kinds)
     if st.failed_keys:
-        _prune_failed(st, root_keys, errors)
+        _prune_failed(st, root_keys, errors, kinds)
     st.propagate_requested()
     if provider_rules_out is not None:
         provider_rules_out.update(st.provider_rules)
@@ -660,7 +709,7 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     return st.units, errors
 
 
-def _prune_failed(st, root_keys, errors=None):
+def _prune_failed(st, root_keys, errors=None, kinds=None):
     '''A unit whose HARD requirement failed can't be installed — so leave nothing of it installable.
     The failure can come AFTER the unit was added (a pinned provider that can't meet a version floor:
     blender-5.2's cuda-toolkit >=12.8 vs a cuda-toolkit -> cuda-toolkit-11 pin), and that half-resolved
@@ -692,6 +741,8 @@ def _prune_failed(st, root_keys, errors=None):
                 continue
             cause = next((st.failure_of[k] for k in sorted(gone) if k in st.failure_of), 'a dependency')
             errors[name] = f'needs something that can\'t be installed here: {cause}'
+            if kinds is not None:
+                kinds[name] = 'unmet-require'
     for u in st.units.values():
         u.deps = u.deps - gone                            # a dropped soft companion isn't a dep
 
@@ -777,7 +828,11 @@ class _State:
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
         self.never_auto = shared[1]
         self.via_names = pin_via_names()           # for binding-vs-provider pin classification
-        self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
+        self.queue = deque()                       # (req_key, req_name, cap, constraint, root, optional)
+        # each component's selection, ONCE per resolution: it depends only on the component under this
+        # state's fixed pins / context / preference, and _is_bindable asks it of every candidate
+        # provider before add_component asks again (routing-36). {name: (binding, None) | (None, error)}
+        self._selected = {}
 
     def _provider_index(self):
         return _component_indexes(self.components)[0]
@@ -785,7 +840,7 @@ class _State:
     def add_component(self, name, root):
         '''Resolve a component name -> the frozenset of unit keys it contributes.'''
         if name not in self.components:
-            raise ResolveError(f'unknown component: {name}')
+            raise ResolveError(f'unknown component: {name}', 'unknown')
         comp = self.components[name]
         # a component with NO bindings is "removed" (a user override `{}`): it contributes
         # nothing and is a no-op when named directly. This differs from a component that HAS
@@ -803,7 +858,7 @@ class _State:
             stack.append(name)
             try:
                 keys, skipped = set(), []
-                parts = _as_list(binding.details.get('parts'))
+                parts = as_list(binding.details.get('parts'))
                 for part in parts:
                     # a part with no route here is SKIPPED with a notice — the bundle is the union of
                     # what routes here, like `profile:` expansion (B15 / routing-08); a cycle is not
@@ -818,7 +873,7 @@ class _State:
             if skipped:
                 if len(skipped) == len(parts):
                     raise ResolveError(f'no part of {name} installs here: '
-                                       + '; '.join(f'{p}: {why}' for p, why in skipped))
+                                       + '; '.join(f'{p}: {why}' for p, why in skipped), 'no-candidate')
                 self.skipped_parts.setdefault(name, []).extend(skipped)
             return frozenset(keys)
 
@@ -873,7 +928,19 @@ class _State:
     def _select_binding(self, comp):
         '''select_binding under this resolution's pins — but a SOFT (detected) pin on `comp` that
         can't be honored here (names a method not valid on this machine) is ignored for it, falling
-        through to the normal default, instead of erroring.'''
+        through to the normal default, instead of erroring. Memoized per state (`_selected`).'''
+        hit = self._selected.get(comp.name)
+        if hit is None:
+            try:
+                hit = (self._select_binding_uncached(comp), None)
+            except ResolveError as e:
+                hit = (None, e)
+            self._selected[comp.name] = hit
+        if hit[1] is not None:
+            raise hit[1].with_traceback(None)          # (a fresh traceback each time, never a growing one)
+        return hit[0]
+
+    def _select_binding_uncached(self, comp):
         soft_pinned = comp.name in self.soft and comp.name in self.pins
         try:
             b = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
@@ -881,7 +948,7 @@ class _State:
             if soft_pinned:
                 why = self._method_requires_problem(comp, b)
                 if why is not None:            # the adopted method's OWN requires can't be met here
-                    raise ResolveError(why)    # (B15 / routing-10): drop the soft pin, not an error row
+                    raise ResolveError(why, 'unmet-require')   # (B15 / routing-10): drop the soft pin
             return b
         except ResolveError as e:
             if not soft_pinned:
@@ -915,13 +982,13 @@ class _State:
             return f'{comp.name}: the installed method via:{binding.via} needs {e}'
         return None
 
-    def drain(self, errors=None):
+    def drain(self, errors=None, kinds=None):
         '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous HARD
         provider raises). If `errors` is given, catch such failures into it (keyed by the
         requesting root) and keep going. A SOFT edge (`suggests:`) that can't be satisfied here
         is skipped silently — never an error, in either mode.'''
         while self.queue:
-            requiring_key, requiring_name, cap, constraint, root, optional = self.queue.pop(0)
+            requiring_key, requiring_name, cap, constraint, root, optional = self.queue.popleft()
             try:
                 got = self._satisfy(cap, constraint, root, requiring_name, requiring_key)
                 self.units[requiring_key].deps |= got
@@ -932,7 +999,10 @@ class _State:
                     continue                     # a `suggests:` unmet here is simply not pulled
                 if errors is None:
                     raise
-                errors.setdefault(root, str(e))
+                if root not in errors:
+                    errors[root] = str(e)
+                    if kinds is not None:
+                        kinds[root] = e.kind
                 self.failed_keys.add(requiring_key)   # this unit can't be installed (see _prune_failed)
                 self.failure_of.setdefault(requiring_key, str(e))   # why, for every pick it takes down
 
@@ -1025,10 +1095,11 @@ class _State:
             return self.inventory[cap]                  # reuse (keys, or empty for env)
         viable = self._bindable_viable(cap, requiring)
         if not viable:
-            raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})')
+            raise ResolveError(f'nothing provides "{cap}" here (required by {requiring})', 'unmet-require')
         if pin is not None:                             # provider-pin (may name a never-auto one)
             if pin not in viable:
-                raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here')
+                raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide it here',
+                                   'pin-unrealizable')
             chosen = pin
         else:
             # never-auto providers aren't AUTO-pulled to satisfy a CAPABILITY (e.g. a versioned gcc-13
@@ -1038,7 +1109,8 @@ class _State:
             auto = [p for p in viable if p not in self.never_auto or p == cap]
             if not auto:
                 hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
-                raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}')
+                raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}',
+                                   'unmet-require')
             chosen = self._pick_provider(cap, auto, requiring)
         keys = self.add_component(chosen, root)
         if not self_held:                               # the requirer stays the default resident
@@ -1074,11 +1146,12 @@ class _State:
             # a version that no provider carries. A provider-pin also stays hard.
             if pin is None and not self._version_scoped(cap):
                 return self._satisfy(cap, None, root, requiring, requiring_key)
-            raise ResolveError(f'nothing provides "{cap} {constraint}" here (required by {requiring})')
+            raise ResolveError(f'nothing provides "{cap} {constraint}" here (required by {requiring})',
+                               'unmet-require')
         if pin is not None:
             if pin not in viable:
                 raise ResolveError(f'"{cap}" pinned to {pin!r}, which cannot provide '
-                                   f'"{cap} {constraint}" here')
+                                   f'"{cap} {constraint}" here', 'pin-unrealizable')
             chosen = pin
         else:                                           # the constraint enables never-auto; prefer ordinary on a tie
             pool = [p for p in viable if p not in self.never_auto] or viable

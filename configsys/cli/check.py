@@ -6,6 +6,7 @@ Split out of app.py (review-2026-11-2 D2).
 import os
 import sys
 from ..errors import ConfigsysError
+from ..resolve import CONFIG_ERROR_KINDS, SPECIAL_VIAS
 from ..drivers import get_driver
 from .plugin import _fmt_conflict
 from .where import _layer_label
@@ -130,7 +131,7 @@ def check_report(ctx):
 
     # pins: value must be a known driver (binding-pin) or a known component (provider-pin)
     from ..drivers import supported_names
-    valid_via = {'native', 'parts'} | supported_names()
+    valid_via = SPECIAL_VIAS | supported_names()
     pin_issues = []
     for key, val in ctx.config.pins().items():
         if val in valid_via:
@@ -270,11 +271,14 @@ def check_report(ctx):
     resolve_errors = []
     _known_bad = {c for _p, c in prof_issues} | {
         n for n in ctx.config.picks().get(_this, []) if n not in components}
-    _config_err = ('pinned to', 'ambiguous providers')
     try:
-        _u, _rerrs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+        # the errors that are the config's to fix (a pin, a preference, a rank), by the kind the
+        # resolver raised — not by message text, which a cap or gate reason can echo (routing-28)
+        _out = {}
+        _u, _rerrs = ctx.routes.resolve_resilient(list(ctx.config.requested()), out=_out)
+        _kinds = _out.get('error_kinds') or {}
         resolve_errors = [f'{n}: {_rerrs[n]}' for n in sorted(_rerrs)
-                          if n not in _known_bad and any(s in _rerrs[n] for s in _config_err)]
+                          if n not in _known_bad and _kinds.get(n) in CONFIG_ERROR_KINDS]
     except ConfigsysError:
         pass                                        # a structural failure already surfaced above
 

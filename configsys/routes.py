@@ -11,7 +11,8 @@ from collections import namedtuple
 
 from . import layers, predicate
 from .errors import ConfigError, ConfigsysError
-from .resolve import cap_constraints, cap_names
+from .layers import as_list
+from .resolve import NEVER_AUTO, _standing, cap_constraints, cap_names
 
 
 class Binding:
@@ -93,6 +94,11 @@ def _binding_identity(b):
     return (b.get('via'), None if b.get('when') is None else str(b.get('when')).strip(), key)
 
 
+def _not_a_map(val):
+    '''A component value that is neither a definition (a map) nor a removal (`{}` / empty).'''
+    return not isinstance(val, dict) and val not in (None, '')
+
+
 def _merge_component_chain(name, chain):
     '''Merge a component's per-layer definitions (ascending precedence) into one spec, ADDITIVELY:
     - an empty spec `{}` is a TOMBSTONE — it clears everything accumulated so far (whole-component
@@ -104,6 +110,9 @@ def _merge_component_chain(name, chain):
     binding's content root, and provenance, follow the defining layer even across an amend).'''
     fields, bindings, attrs = {}, {}, []   # bindings: (via, when) -> spec dict (insertion order kept)
     for val, src in chain:
+        if _not_a_map(val):                # `foo: bar` is a typo, never a silent tombstone (routing-25)
+            raise ConfigError(f'component {name!r}: expected a map ({{ install: [ … ] }}, or {{}} to '
+                              f'remove it), got {val!r}')
         spec = val if isinstance(val, dict) else {}
         _check_component_keys(name, spec)
         if not spec:                   # {} tombstone: forget everything below, start fresh
@@ -112,7 +121,7 @@ def _merge_component_chain(name, chain):
         for k in _COMPONENT_FIELDS:
             if k in spec:
                 fields[k] = spec[k]
-        for a in _as_list(spec.get('attrs')):   # attrs UNION across layers (a plugin can add tags)
+        for a in as_list(spec.get('attrs')):   # attrs UNION across layers (a plugin can add tags)
             if a not in attrs:
                 attrs.append(a)
         for b in (spec.get('install') or []):
@@ -135,10 +144,11 @@ def _merge_component_chain(name, chain):
 
 
 class Component:
-    def __init__(self, name, spec):
+    def __init__(self, name, spec, checked=False):
         self.source = None       # file this definition came from (provenance for `where`)
         self.shadows = False     # True if more than one layer contributed to this component
-        _check_component_keys(name, spec)
+        if not checked:          # _merge_component_chain already checked each layer's spec
+            _check_component_keys(name, spec)
         self.name = name
         # provides/requires/suggests carry NAMES (resolver closes on these, unchanged) plus, for
         # any versioned `{ cap: constraint }` entries, a parallel constraint map (stage 2): the
@@ -148,12 +158,12 @@ class Component:
         self.requires = cap_names(spec.get('requires'))
         self.req_versions = cap_constraints(spec.get('requires'))
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
-        self.parts = _as_list(spec.get('parts'))
+        self.parts = as_list(spec.get('parts'))
         # a `standing: never-auto` provider satisfies a `requires:` only when explicitly wanted /
         # provider-pinned / version-constrained — NEVER auto-pulled to close someone else's
         # requirement. For best-effort/caveated providers (e.g. gcompat, a glibc shim) or the
         # non-default of a versioned pair. See resolve.py `_satisfy`.
-        from .resolve import NEVER_AUTO, _standing
+        self.standing = spec.get('standing')   # as written (routecheck lints a garbled one)
         _st = _standing(spec)
         self.never_auto = _st == NEVER_AUTO
         # an INTEGER component `standing:` RANKS this component among the providers of a capability
@@ -177,16 +187,10 @@ class Component:
         # Authored tags are UNIONed with a few derived from the route (via:dotfiles -> `dotfiles`,
         # via:service -> `service`, via:font -> `font`). See docs/component-attrs.md.
         seen, self.attrs = set(), []
-        for a in [str(x) for x in _as_list(spec.get('attrs'))] + _derived_attrs(self.bindings):
+        for a in [str(x) for x in as_list(spec.get('attrs'))] + _derived_attrs(self.bindings):
             if a.lower() not in seen:
                 seen.add(a.lower())
                 self.attrs.append(a)
-
-
-def _as_list(v):
-    if v is None:
-        return []
-    return v if isinstance(v, list) else [v]
 
 
 def _truthy(v):
@@ -200,6 +204,11 @@ def _truthy(v):
 # `base: "<block> <version>"` (OsCascade.bases_of — D8), so versioned atoms on the base's scale reach
 # it (docs/routing-model.md §6).
 RELEASE_STATUSES = ('prerelease', 'released', 'eol')
+
+# the fields an `os:` block may carry (routecheck warns `os-block` on any other — a typo'd `usings:`
+# would otherwise leave the block cut off from its lineage without a word)
+OS_BLOCK_FIELDS = frozenset({'using', 'native', 'scale-root', 'provides', 'detect', 'driver-preference',
+                             'releases'})
 RELEASE_FIELDS = frozenset({'status', 'released', 'eol', 'codename', 'image', 'glibc', 'python3',
                             'gcc', 'manager', 'note', 'base'})
 
@@ -270,7 +279,7 @@ class OsCascade:
         '''Capabilities baseline in this environment (union over the lineage's blocks).'''
         caps = set()
         for n in self.lineage(block):
-            caps.update(_as_list((self.blocks[n] or {}).get('provides')))
+            caps.update(as_list((self.blocks[n] or {}).get('provides')))
         return caps
 
     def lineage(self, name):
@@ -448,9 +457,11 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
             return True
         # a plugin/primary file — or a file some layer INCLUDES (it carries its includer's trust:
         # command_trust attributes a file under a synced plugin to that plugin, and treats the
-        # user's own / repo includes as the user) — merges its probes only when trusted.
+        # user's own / repo includes as the user) — merges its probes only when trusted. No
+        # `command_trust` at all is NOT trust: a probe runs shell, so the default fails closed — a
+        # caller that has vetted its plugins says so (`command_trust=lambda p: True`; routing-26).
         if lyr.role in ('plugin', 'primary', 'include'):
-            return command_trust is None or command_trust(lyr.path)
+            return command_trust is not None and command_trust(lyr.path)
         return False
     facets = {}
     for _lyr in layer_list:
@@ -511,9 +522,17 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         # A malformed / ambiguous component from a DISCOVERED or PLUGIN file is skipped (the
         # profile that referenced it then surfaces as a resilient error row) — never fatal.
         # From the repo or your own config it stays a loud, attributed error.
+        typos = sorted({s for _i, v, s in chain if _not_a_map(v) and os.path.normpath(s) in forgiving})
+        if typos:                                    # a plugin's `foo: bar`: that layer is left out, the
+            if warnings_out is not None:             # rest of `foo` (the repo's, say) stands (routing-25)
+                warnings_out.append(f'component "{name}": ignored {", ".join(typos)} for it — a component '
+                                    f'is a map, not a scalar')
+            chain = [c for c in chain if not (_not_a_map(c[1]) and os.path.normpath(c[2]) in forgiving)]
+            if not chain:
+                continue
         src = chain[-1][2]
         try:
-            comp = Component(name, _merge_component_chain(name, [(v, s) for _i, v, s in chain]))
+            comp = Component(name, _merge_component_chain(name, [(v, s) for _i, v, s in chain]), checked=True)
             if check:
                 routecheck.check_component(name, comp, cascade)
         except ConfigsysError as e:
@@ -528,7 +547,7 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
             mine = [(v, s) for _i, v, s in chain if os.path.normpath(s) not in forgiving]
             if len(mine) != len(chain):
                 try:
-                    comp = Component(name, _merge_component_chain(name, mine))
+                    comp = Component(name, _merge_component_chain(name, mine), checked=True)
                     if validate:
                         routecheck.check_component(name, comp, cascade)
                 except ConfigsysError:
@@ -548,7 +567,6 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     # a driver block's `standing: never-auto` marks EVERY binding of
     # that via as valid+listed but never the auto-default (see resolve._select). Ships on snap; a
     # user's primary plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:`.
-    from .resolve import NEVER_AUTO, _standing
     never_auto_drivers = frozenset(name for name, spec in drvs.items()
                                if isinstance(spec, dict) and _standing(spec) == NEVER_AUTO)
     cascade.never_auto_drivers = never_auto_drivers          # so routecheck.validate mirrors resolve._select
@@ -612,6 +630,12 @@ def _apply_version_floors(components, floors):
 
 
 _FACET_CACHE = {}
+
+
+def clear_facet_cache():
+    '''Forget every probed facet value, so the next Resolver re-runs the `detect:` probes — `configsys
+    refresh` (a new GPU / CUDA since the last run) and the test suite.'''
+    _FACET_CACHE.clear()
 
 
 def _facet_value(raw, kind):
@@ -828,21 +852,22 @@ class Resolver:
         pins = ({**soft_pins, **extra_pins, **self.pins}
                 if (extra_pins or soft_pins) else self.pins)
         soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)
-        dropped, rules, skipped = {}, {}, {}
+        dropped, rules, skipped, kinds = {}, {}, {}, {}
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
                                           self.never_auto_drivers,
                                           self.disabled if disabled is None else frozenset(disabled),
                                           soft=soft, dropped_out=dropped,
-                                          provider_rules_out=rules, skipped_parts_out=skipped)
+                                          provider_rules_out=rules, skipped_parts_out=skipped,
+                                          kinds_out=kinds)
         if record:
             self.dropped_soft_pins = dropped
             self.skipped_parts = skipped    # {bundle: [(part, why)]} parts with no route here
             self.provider_rules = rules     # {cap: rule that picked its auto provider} (for `where`)
         if out is not None:
             out.update(tighten_pins=extra_pins, dropped_soft_pins=dropped, skipped_parts=skipped,
-                       provider_rules=rules)
+                       provider_rules=rules, error_kinds=kinds)   # {name: ResolveError kind}
         return to_resolved_components(units), errors
 
     def resolve_with_roots(self, names, extra_pins=None, soft_pins=None, *, out=None):
@@ -933,7 +958,7 @@ class Resolver:
                 for b in c.bindings:                                      # + every binding's edges
                     edges |= set(cap_names(b.details.get('requires')))
                     edges |= set(cap_names(b.details.get('suggests')))
-                    edges |= set(_as_list(b.details.get('parts')))        # a `via: parts` bundle's members
+                    edges |= set(as_list(b.details.get('parts')))        # a `via: parts` bundle's members
                 for cap in edges:
                     idx.setdefault(cap, set()).add(other)
             self._dep_index = idx

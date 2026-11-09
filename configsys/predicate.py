@@ -112,11 +112,17 @@ class Categorical:
 def os_names(pred):
     '''Every OS block name a predicate's atoms reference (for validation — an unknown one
     is almost always a typo, since a `when:` naming a nonexistent OS silently never matches).'''
-    out = set()
+    return {a.name for a in os_atoms(pred)}
+
+
+def os_atoms(pred):
+    '''Every name atom (`Os`) of a predicate — bare (`op` None: OS subtree membership) or versioned
+    (an OS version, or a version facet `cuda >= 12`) — for validation that tells the two apart.'''
+    out = []
 
     def walk(p):
         if isinstance(p, Os):
-            out.add(p.name)
+            out.append(p)
         elif isinstance(p, Not):
             walk(p.term)
         elif isinstance(p, (And, Or)):
@@ -173,12 +179,7 @@ class Context:
 
     def scale_root_of(self, name):
         '''Nearest scale-root walking from `name` toward the root (itself if it is one).'''
-        if name not in self.lineage:
-            return None
-        for n in self.lineage[self.lineage.index(name):]:
-            if n in self.scale_roots:
-                return n
-        return None
+        return _scale_root(name, self.lineage, self.scale_roots)
 
 
 # -- parser ---------------------------------------------------------------

@@ -93,6 +93,8 @@ def _hermetic(request, monkeypatch, tmp_path_factory, _fake_sudo_dir):
     monkeypatch.setenv('CONFIGSYS_TEST_SUDO_LOG', str(sudo_log))
     monkeypatch.setenv('PATH', f'{_fake_sudo_dir}{os.pathsep}{os.environ.get("PATH", "")}')
 
+    from configsys import routes as _routes            # no facet probe answer leaks between tests
+    _routes.clear_facet_cache()
     from configsys import runner as _runner
     real_run = _runner.Runner.run
     allowed = request.node.get_closest_marker('real_runner') is not None

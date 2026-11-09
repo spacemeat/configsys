@@ -339,7 +339,10 @@ def published_pending(ctx, fresh):
 
 
 def cmd_refresh(ctx, args):
+    from ..routes import clear_facet_cache
     from ..versions import discover, source_key
+    clear_facet_cache()                                # facets are probed afresh too (a new GPU / CUDA)
+    ctx.invalidate()
     print('configsys refresh — re-querying version sources and the package index '
           '(this can take a moment; sudo may prompt)…', flush=True)
     _cfg, _req, units, _ledger, _states = ctx.load_pipeline()

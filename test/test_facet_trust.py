@@ -32,7 +32,8 @@ def test_trusted_plugin_facets_merge(tmp_path):
     assert not any('untrusted' in w for w in warns)
 
 
-def test_no_command_trust_predicate_allows_plugin_facets(tmp_path):
-    # back-compat: callers/tests that don't pass command_trust keep the old permissive merge
-    casc, _warns = _load(tmp_path, None)
-    assert 'gpu' in casc.facet_specs
+def test_no_command_trust_predicate_drops_plugin_facets(tmp_path):
+    # routing-26: no trust function is not trust — a probe runs shell, so the default fails closed
+    casc, warns = _load(tmp_path, None)
+    assert 'gpu' not in casc.facet_specs
+    assert any('untrusted plugin' in w for w in warns)

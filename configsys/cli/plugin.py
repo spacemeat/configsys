@@ -632,8 +632,11 @@ def _after_primary_commit(ctx):
     then = primarygit.PUSH_POLICY[primarygit.push_mode(ctx)]['after_cli']
     if then == 'push':
         ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
-        if lines:
-            print(f'configsys: {lines[-1] if ok else "not pushed automatically — " + lines[-1]}')
+        if lines:                                      # every line, not just the last: "kept the newer
+            if not ok:                                 # v0.3.0", "N files left out" (primary-12)
+                lines = lines[:-1] + ['not pushed automatically — ' + lines[-1]]
+            for ln in lines:
+                print(f'configsys: {ln}')
     elif then == 'hint':
         st = primarygit.state(ctx)
         if st and st.ahead:

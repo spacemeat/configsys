@@ -272,3 +272,27 @@ def test_tui_staging_rules_for_route_statuses():
     assert install(st(True, 'switch'))           # installed + stranded: `i` stages the swap
     assert not install(st(False, 'dangling')) and not install(st(False, 'unmet'))   # no method
     assert remove(st(True, 'dangling'))          # a dangling row's stranded install is removable
+
+
+def test_an_explicitly_gated_driver_is_never_probed(tmp_path):
+    # routing-27: aur is gated `when: arch` — off Arch every aur binding was probed (a `pacman -Q`
+    # each); a cpu/when-gated binding is still probed (a real stranded install)
+    p = tmp_path / 'gate.hu'
+    p.write_text('''{ components: {
+        aurish: { description: "x"  install: [ { via: native  when: "fedora" }  { via: aur  name: aurish-bin } ] }
+    } }''')
+    probed = []
+
+    class Recording(FakeCache):
+        def version(self, drv, rc):
+            probed.append(rc.driver)
+            return super().version(drv, rc)
+    ctx = SimpleNamespace(routes=Resolver(ROUTES, 'debian', '13', 'x86_64', plugin_files=[str(p)]),
+                          runner=Runner(pretend=True), paths=None)
+    assert stranded.find(ctx, 'aurish', ledger=Ledger(), cache=Recording({('aur', 'aurish-bin'): '1'})) == []
+    assert 'aur' not in probed
+    probed.clear()
+    q = tmp_path / 'stranded.hu'
+    q.write_text(PLUGIN)
+    stranded.find(ctx_for(str(q), cpu='aarch64'), 'gatedapp', ledger=Ledger(), cache=Recording({}))
+    assert 'appImage' in probed

@@ -706,7 +706,10 @@ the deciding rule — `configsys where <comp>` prints it):
    (listed, pinnable). One left → it wins (`only ordinary method here`).
 2. **Most specific** — the unique remaining binding whose `when:` ⊆ every other remaining
    binding's (`_most_specific_binding`; `most-specific when:`). If none is (incomparable `when:`s,
-   or several share the narrowest one), specificity is set aside and the whole pool goes to:
+   or several share the narrowest one), only the pool's MINIMAL bindings — those no other candidate
+   is strictly inside (`_minimal_bindings`) — go on, so a binding strictly broader than another
+   never wins by preference (bare `native` vs `flatpak when: ubuntu` + `tarball when: cpu:x86_64`
+   on Ubuntu x86_64: flatpak and tarball compete, native doesn't) — to:
 3. **`standing:` rank** — an integer, higher wins (default 0). A NARROW per-binding author signal,
    so it **outranks** the broad `driver-preference` below: a targeted per-package decision beats a
    blanket order (the machine owner still overrides any case with a **pin**).

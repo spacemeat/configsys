@@ -38,7 +38,7 @@ import subprocess
 import sys
 from difflib import SequenceMatcher
 
-from .hutext import emit as _emit, key as _safe_key, scalar_end as _scalar_end, skip_blank as _skip
+from .hutext import emit as _emit, key as _safe_key, scalar_end as _scalar_end, skip_blank
 
 GONE = object()                                       # "this side has no such key"
 
@@ -127,7 +127,8 @@ def _set_like(path):
 def _merge_sequence(base, mine, theirs):
     '''A three-way merge of ordered lists (diff3 over items): each side's edits against base, applied
     where they don't overlap; both inserting at the same point keeps mine's then theirs' (theirs'
-    duplicates dropped); identical edits apply once. None when edits overlap and differ.'''
+    duplicates dropped); identical edits apply once. None when edits overlap and differ, or when
+    both sides inserted the same new item at different points.'''
     def ops(side, who):
         sm = SequenceMatcher(a=base, b=side, autojunk=False)
         return [(i1, i2, side[j1:j2], who) for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag != 'equal']
@@ -150,6 +151,18 @@ def _merge_sequence(base, mine, theirs):
                 seg += base[pos:i1] + list(rep_)
                 pos = i2
         return seg + base[pos:ge]
+
+    # a NEW item (not in base) both sides inserted, at different points, means different things
+    # (mine's `+editors` before `~vim`, theirs' after it) — keeping both would apply theirs' twice
+    # (primary-10): asked
+    where = {}
+    for n, g in enumerate(groups):
+        for _i1, _i2, rep_, w in g:
+            for x in rep_:
+                if x not in base:
+                    where.setdefault((w, x), set()).add(n)
+    if any(w == 'm' and where.get(('t', x), gm) != gm for (w, x), gm in where.items()):
+        return None
 
     out, pos = [], 0
     for g in groups:
@@ -252,8 +265,21 @@ class _Merge:
             self.conflicts.append(Conflict(path, b, m, t))
             return m
         first, second = (list(tk), list(mk)) if (rt != rb and rm == rb) else (list(mk), list(tk))
+        # the other side's NEW entries go where that side put them — after their nearest preceding
+        # neighbour in its own list (the front, when it has none), past any new ones of first's at
+        # that point (both adding there: first's then second's) — not last: last is the highest
+        # precedence, which a plugin put first never asked for (primary-10)
+        order = list(first)
+        for k, src in enumerate(second):
+            if src in order:
+                continue
+            prev = next((s for s in reversed(second[:k]) if s in order), None)
+            at = order.index(prev) + 1 if prev is not None else 0
+            while at < len(order) and order[at] not in second and order[at] not in bk:
+                at += 1
+            order.insert(at, src)
         out = []
-        for src in first + [s for s in second if s not in first]:
+        for src in order:
             bv, mv, tv = bk.get(src, GONE), mk.get(src, GONE), tk.get(src, GONE)
             p = path + (src,)
             if p not in self.answers and bv not in (mv, tv) and _same_but_ref(mv, tv):
@@ -298,7 +324,7 @@ def merge(base_text, mine_text, theirs_text, answers=None):
 def _bounds(text):
     '''(open, close) indices of the `{ … }` map that `text` holds (leading comments allowed).'''
     from .hutext import value_end as _scan_value_end
-    o = _skip(text, 0)
+    o = skip_blank(text, 0)
     if o >= len(text) or text[o] != '{':
         raise Unmergeable('not a map')
     return o, _scan_value_end(text, o) - 1
@@ -312,7 +338,7 @@ def _key(text, k):
         return None
     start, end = span
     colon = text.index(':', start + len(k))
-    vs = _skip(text, colon + 1)                         # (section_span ends a scalar at its token)
+    vs = skip_blank(text, colon + 1)                    # (section_span ends a scalar at its token)
     return start, vs, end
 
 
@@ -321,7 +347,7 @@ def _indent_at(text, i):
     return i - ls
 
 
-def _emit_kv(k, v, indent, top):
+def _emit_entry(k, v, indent, top):
     if top and k == 'plugins' and isinstance(v, list) and all(isinstance(d, dict) for d in v):
         from .plugins import _emit_block
         return _emit_block(v, indent)
@@ -358,7 +384,7 @@ def _list_items(text):
     separators between them skipped).'''
     out, i, n = [], 1, len(text)
     while True:
-        i = _skip(text, i)
+        i = skip_blank(text, i)
         if i >= n:
             raise Unmergeable('an unclosed list')
         if text[i] == ']':
@@ -424,7 +450,7 @@ def _rewrite(text, m, t_text, t, merged, depth):
                 piece = t_text[tspan[0]:tspan[2]]
             else:
                 o, c = _bounds(text)
-                piece = _emit_kv(k, nv, _indent_at(text, c) + 4, depth == 0)
+                piece = _emit_entry(k, nv, _indent_at(text, c) + 4, depth == 0)
             text = _insert(text, piece)
             continue
         found = _key(text, k)
@@ -441,7 +467,7 @@ def _rewrite(text, m, t_text, t, merged, depth):
             piece = text[start:vs] + _rewrite(text[vs:end], mv, sub_t, tv if sub_t is not None else None,
                                               nv, depth + 1)
         else:
-            piece = _emit_kv(k, nv, _indent_at(text, start), depth == 0)
+            piece = _emit_entry(k, nv, _indent_at(text, start), depth == 0)
         text = text[:start] + piece + text[end:]
     return text
 
