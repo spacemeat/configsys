@@ -1246,7 +1246,8 @@ def theme_target(ctx, dotted_key=None, *, create=False):
 
 
 def set_theme_value(ctx, dotted_key, value, *, target=None):
-    '''Set one theme value by dotted path (`colors.accent`, `elements.profile.fg`, `gradient.from`);
+    '''Set one theme value by dotted path (`colors.accent`, `pages.profiles.profile.fg`,
+    `pages.components.gradient.from`);
     `value=None` removes it. bold/underline/reverse coerce to a bool. Returns (changed, label).'''
     if value is not None:                              # refuse what the TUI would ignore (G6)
         from .tui.theme import theme_problems

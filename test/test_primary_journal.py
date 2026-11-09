@@ -66,7 +66,7 @@ WRITES = [
     (['picks', 'add', 'jq'], 'plugins.set_section'),
     (['config', 'set', 'splash', 'plain'], 'plugins.set_section (a uniform setting)'),
     (['config', 'unset', 'effects'], 'plugins.remove_sections (a uniform setting)'),
-    (['theme', 'set', 'accent', '#ff0000'], 'plugins.set_theme'),
+    (['theme', 'set', 'colors.accent', '#ff0000'], 'plugins.set_theme'),
     (['dotfiles', 'capture', 'btop', '--yes'], 'Dotfiles.capture + _write_manifest_at'),
     (['glue', 'add', 'mine', '--shell', 'bash'], 'Glue.new_user_snippet + the 99-user scaffold'),
     (['glue', 'override', 'fzf', '--shell', 'bash'], 'Glue.override + _record_override'),

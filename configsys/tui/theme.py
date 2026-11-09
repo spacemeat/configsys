@@ -273,6 +273,10 @@ def parse_color(v):
 _ROLE_ATTRS = ('fg', 'bg', 'bold', 'underline', 'reverse')
 
 
+# the sections a `theme:` block may hold (anything else is never read)
+THEME_SECTIONS = frozenset({'colors', 'colors-basic', 'pages', 'splash'})
+
+
 def theme_problems(theme, colors=None):
     '''What a `theme:` section says that the TUI would silently ignore — an unknown page or role, a
     color that doesn't parse, a role attribute that isn't fg/bg/bold/underline/reverse — as
@@ -280,6 +284,10 @@ def theme_problems(theme, colors=None):
     out = []
     if not isinstance(theme, dict):
         return out
+    for section in theme:                              # `theme set accent …` must not land unread
+        if section not in THEME_SECTIONS:
+            out.append((str(section), f'no such theme section ({", ".join(sorted(THEME_SECTIONS))}; '
+                                      'a color is colors.<name>)'))
     names = set(COLOR_MAP) | set((theme.get('colors') or {}) if isinstance(theme.get('colors'), dict) else ())
 
     def color_ok(v):
