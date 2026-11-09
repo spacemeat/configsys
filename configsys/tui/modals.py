@@ -135,16 +135,27 @@ def _help_modal(stdscr, pal, screen):
             top = moved
 
 
+_DIAG_RANK = {'error': 0, 'warn': 1, 'warning': 1}   # anything softer (a note) sorts after both
+
+
+def _diag_order(diags):
+    '''The `!` page's order — errors, then warnings, then notes; stable within a level (as `inspect`
+    and `check` list them).'''
+    return sorted(diags, key=lambda d: _DIAG_RANK.get(d['level'], 2))
+
+
 def _draw_diagnostics(stdscr, pal, diags, top):
-    '''The `!` page: every non-fatal skip/warning, scrollable. Returns the clamped scroll top.'''
+    '''The `!` page: every non-fatal skip/warning, errors first, scrollable. Returns the clamped
+    scroll top.'''
     stdscr.erase()
     h, w = stdscr.getmaxyx()
     _put(stdscr, 0, 0, _fit(f' configsys — diagnostics ({len(diags)}) ', w),
          pal.get('title') | curses.A_BOLD | curses.A_REVERSE)
     lines = []                                       # [(text, attr)]
-    for d in diags:
-        col = pal.get('error' if d['level'] == 'error' else 'outdated')
-        mark = '✗' if d['level'] == 'error' else '⚠'
+    for d in _diag_order(diags):
+        rank = _DIAG_RANK.get(d['level'], 2)
+        col = pal.get(('error', 'outdated', 'info')[rank])
+        mark = ('✗', '⚠', '·')[rank]
         lines.append((f'{mark} {d["tag"]}', col | curses.A_BOLD))
         for seg in _wrap(d['text'], w - 4):
             lines.append(('    ' + seg, pal.get('dim')))

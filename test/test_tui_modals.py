@@ -151,3 +151,23 @@ def _sample_screen(screen, ctx):
 
 def _plain(v):
     return isinstance(v, (int, float, str, bool, type(None), tuple))
+
+
+def _rows(surf, h):
+    return [''.join(c.char for (yy, _x), c in sorted(surf.cells.items()) if yy == y) for y in range(h)]
+
+
+def test_issues_page_lists_errors_first(keymap):
+    # the `!` page promises "errors first" (help.py) like inspect / check: errors, then warnings,
+    # then anything softer — stable within a level
+    keymap()
+    diags = [{'level': 'warn', 'tag': 'w1', 'text': 'first warning'},
+             {'level': 'error', 'tag': 'e1', 'text': 'first error'},
+             {'level': 'note', 'tag': 'n1', 'text': 'a note'},
+             {'level': 'warn', 'tag': 'w2', 'text': 'second warning'},
+             {'level': 'error', 'tag': 'e2', 'text': 'second error'}]
+    scr = BufferSurface(40, 100)
+    menu._draw_diagnostics(scr, RecordingPalette(), diags, 0)
+    heads = [r.split()[1] for r in _rows(scr, 40)[2:] if r[:1] in ('✗', '⚠', '·')]
+    assert heads == ['e1', 'e2', 'w1', 'w2', 'n1']
+    assert diags[0]['tag'] == 'w1'                                  # the caller's list isn't reordered
