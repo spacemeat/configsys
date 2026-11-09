@@ -12,7 +12,6 @@ three MVVM seams (docs/tui-architecture.md):
 - handle: one key, returning an Intent (note / dirty) for the router.
 '''
 
-import os
 
 from ... import plugins
 from .. import menu
@@ -278,7 +277,7 @@ class PluginsScreen(Screen):
                     src = src.strip()
                     # a local path (a project checkout) is THIS machine's — it can't sync anywhere else
                     # (§7 default; G3); a remote source with a primary blessed: ask where it goes
-                    local = src.startswith(('/', '~', '.', 'file:')) or os.path.isdir(os.path.expanduser(src))
+                    local = plugins.is_local_source(src)
                     prim = plugins.primary_name(plugins.declared(ctx.paths.user_config_file))
                     if not local and prim:
                         where = menu._popup_choose(stdscr, pal, f'add {src} for …',

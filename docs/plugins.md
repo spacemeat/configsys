@@ -166,7 +166,7 @@ clone — a push URL you set by hand is kept), so you can push a plugin you auth
 
 | Command | What it does |
 | --- | --- |
-| `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` | Sync the source first; only if that works, declare it. With a primary plugin set, the entry goes into the primary's manifest (so it travels); `--local` keeps it in this machine's config instead (§9). `--replace` swaps out an already-declared plugin of the same name from another source: the old copy is kept as `<name>.replaced-<date>` if it holds work found nowhere else, and a primary stays primary. A locked plugin's name is refused. |
+| `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` | Sync the source first; only if that works, declare it. With a primary plugin set, the entry goes into the primary's manifest (so it travels) — unless the source is a local path, which exists only on this machine and so goes in your top config (configsys says so); `--local` keeps any source in this machine's config (§9). `--replace` swaps out an already-declared plugin of the same name from another source: the old copy is kept as `<name>.replaced-<date>` if it holds work found nowhere else, and a primary stays primary. A locked plugin's name is refused. |
 | `configsys plugin sync` | Fetch every declared plugin (and the plugins they list) to its ref, and report how your component set changed. New or changed code stays inert until trusted. A locked plugin is left as it is (`locked`); a primary under `primary-verify: signed` that would take in unsigned commits is left as it is (`unsigned`, §8). |
 | `configsys plugin list [--fetch]` | Each plugin: source, ref, `[primary]`, or `[via <plugin>]` naming the plugin that declared it, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
 | `configsys plugin diff <name> [--to REF]` | The review diff (§6a): what taking the plugin would change, before you sync, update or trust it. `--to` compares against that ref instead of the newest version tag. |
@@ -740,7 +740,8 @@ asks first.
 **Where edits go.** Each machine setting is either uniform (belongs in the primary, same on every
 machine) or machine-local (belongs in this machine's config). configsys writes each edit to the
 right place, and `configsys config move` (TUI Config screen `m`) carries a setting across. A new
-`plugin add` lands in the primary's manifest too, unless you pass `--local`. Changes to a primary
+`plugin add` of a remote source lands in the primary's manifest too, unless you pass `--local`
+(a local path always stays in this machine's config). Changes to a primary
 reach your other machines once you push them (`plugin push`) and they sync.
 
 A primary that has no data file yet (a `plugin init` with no components or profiles to move writes

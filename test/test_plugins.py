@@ -569,7 +569,7 @@ def test_cli_plugin_add_and_remove(tmp_path, capsys):
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys):
+def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys, monkeypatch):
     from configsys.app import main
 
     def _repo(name, plugin_hu, extra):
@@ -594,23 +594,39 @@ def test_cli_plugin_add_lands_in_primary_when_set(tmp_path, capsys):
     assert main(home + ['plugin', 'bless', str(prim)]) == 0     # prim becomes the primary
     capsys.readouterr()
 
-    # with a primary set, `add` lands in the PRIMARY's transitive plugins:, not the top config
+    # a LOCAL PATH exists only on this machine, so even with a primary it goes in the top config,
+    # said in one line (G3: what the TUI's `a` does)
     assert main(home + ['plugin', 'add', str(addon)]) == 0
+    out = capsys.readouterr().out
+    assert 'a local path' in out and 'this machine only' in out
+    assert 'addon' in top.read_text() and 'addon' not in prim_manifest.read_text()
+
+    # with a primary set, a remote `add` lands in the PRIMARY's transitive plugins:, not the top
+    # config (a local repo stands in for a remote here)
+    addon2 = _repo('addon2', '{ name: addon2  requires-abi: 1  data: [ r.hu ] }',
+                   {'r.hu': '{ components: { ac2: { install: [ { via: native } ] } } }'})
+    monkeypatch.setattr(plugins, 'is_local_source', lambda _s: False)
+    assert main(home + ['plugin', 'add', str(addon2)]) == 0
     assert 'in your primary plugin (prim)' in capsys.readouterr().out
-    assert 'addon' in prim_manifest.read_text()                 # rode the primary (portable)
-    assert 'addon' not in top.read_text()                       # NOT in the per-machine top config
+    assert 'addon2' in prim_manifest.read_text()                # rode the primary (portable)
+    assert 'addon2' not in top.read_text()                      # NOT in the per-machine top config
     # ...and it's transitively effective + synced locally right away
     assert main(home + ['plugin', 'list']) == 0
-    assert 'addon' in capsys.readouterr().out
+    assert 'addon2' in capsys.readouterr().out
 
     # --local forces the per-machine top config even with a primary set
-    assert main(home + ['plugin', 'add', str(addon), '--local']) == 0
+    assert main(home + ['plugin', 'add', str(addon2), '--local']) == 0
     assert 'this machine only' in capsys.readouterr().out
-    assert 'addon' in top.read_text()
+    assert 'addon2' in top.read_text()
+    monkeypatch.undo()
+    for s in ('/a/b', '~/x', './x', '../x', 'file:/a'):
+        assert plugins.is_local_source(s), s
+    for s in ('github:x/y', 'gitlab:x/y', 'https://h/x.git', 'git@h:x/y.git'):
+        assert not plugins.is_local_source(s), s
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-def test_cli_plugin_remove_and_update_are_primary_aware(tmp_path, capsys):
+def test_cli_plugin_remove_and_update_are_primary_aware(tmp_path, capsys, monkeypatch):
     from configsys.app import main
 
     def _repo(name, plugin_hu, extra):
@@ -634,7 +650,9 @@ def test_cli_plugin_remove_and_update_are_primary_aware(tmp_path, capsys):
     synced_addon = tmp_path / '.config' / 'configsys' / 'plugins' / 'addon'
 
     main(home + ['plugin', 'bless', str(prim)]); capsys.readouterr()
+    monkeypatch.setattr(plugins, 'is_local_source', lambda _s: False)   # stands in for a remote
     main(home + ['plugin', 'add', str(addon)]); capsys.readouterr()      # lands in the primary
+    monkeypatch.undo()
     assert 'addon' in prim_manifest.read_text() and synced_addon.exists()
 
     # update --ref: re-pins in the PRIMARY's manifest (where addon is declared), not the top config

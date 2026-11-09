@@ -1657,6 +1657,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     pretend = bool(getattr(ctx.runner, 'pretend', False))
     if not pretend:
         ctx.ensure_user_config()
+    typed_local = plugins.is_local_source(source)
     # a local-path source is saved ABSOLUTE (resolved from the CWD now), so the decl doesn't silently
     # point elsewhere when configsys is later run from another directory. Remote sources pass through.
     source = plugins.abs_local_source(source)
@@ -1670,6 +1671,15 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
     # unpinning is explicit: `plugin update --ref <branch>`
     prior = next((d for d in effective if d['source'] == source), None)
     sync_ref = ref if ref is not None else (prior or {}).get('ref')
+    # a local path exists only on this machine: with a primary blessed a NEW one still goes in the top
+    # config (review G3 — CLI and TUI alike), said in one line; a remote source keeps riding the
+    # primary (and one already declared stays where it is)
+    path_note = ''
+    if (not local and typed_local and prior is None
+            and plugins.primary_name(plugins.declared(ctx.paths.user_config_file))):
+        local = True
+        path_note = ('\na local path exists only on this machine, so it goes in your top config, '
+                     'not your primary')
     if new_dn in _locks(ctx):
         return False, f"'{new_dn}' is locked on this machine — unlock it first (configsys plugin unlock {new_dn})", []
     if clashes and not replace:
@@ -1727,7 +1737,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
             return True, (f'[pretend] {source} is already declared'
                           + (f' @{sync_ref}' if sync_ref else '') + ' — nothing to change'), results
         return True, (f'[pretend] would declare {source}' + (f' @{ref}' if ref else '')
-                      + f' in {where}{swap}' + (' with a sha256 pin' if pin else '')), results
+                      + f' in {where}{swap}' + (' with a sha256 pin' if pin else '') + path_note), results
 
     # sync confirmed: NOW drop the old clashing decl(s) — keep_dir, since the synced dir is the new
     # content, not the old one to delete.
@@ -1776,7 +1786,7 @@ def plugin_add(ctx, source, ref=None, *, local=False, pin=False, replace=False):
                f'shares it with your other machines')
     else:
         msg = f'{verb} {source}{at}' + (' (this machine only)' if primary else '')
-    return True, lead + msg + pin_msg + kept_note, results
+    return True, lead + msg + path_note + pin_msg + kept_note, results
 
 
 def plugin_remove(ctx, ident, *, keep_dir=False, force=False):

@@ -782,7 +782,8 @@ They clone to `~/.config/configsys/plugins/<name>/` and check out their `ref:` (
 follows its branch instead). Each declares the [ABI](#glossary) it needs; one configsys isn't
 compatible with is skipped, never loaded, instead of breaking the tool. `add` / `remove` / `update` edit
 your `plugins:` list **in place, preserving your comments**. If you have a primary plugin, `add`
-declares the new plugin there so it travels to your other machines; `--local` keeps it on this
+declares a new remote plugin there so it travels to your other machines (a local path exists only
+here, so it goes in your top config); `--local` keeps it on this
 one (`--replace` swaps a plugin already declared from another source, such as a local copy, for this one). `remove` refuses while the synced copy holds work found nowhere else — unpushed commits, uncommitted edits — until you push it or pass `--force`. `update --latest` moves a plugin to its newest version tag, or main/master if it has none (your
 primary, which follows its branch, stays on it), and `--pin` records the synced content's sha256 (if
 the content later stops matching, configsys stops loading the plugin).

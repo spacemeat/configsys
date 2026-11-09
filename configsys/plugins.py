@@ -1791,6 +1791,15 @@ def _local_source_path(source):
     return Path(source).expanduser()
 
 
+def is_local_source(source):
+    '''True for a local-path source as you'd type it (`/…`, `~…`, `./…`, `../…`, `file:…`, or a
+    directory that exists here): it names a directory on THIS machine, so `plugin add` (CLI and the
+    TUI's `a`) declares it in the top config rather than your primary, which would carry it to
+    machines where it doesn't exist (review G3).'''
+    s = str(source or '')
+    return s.startswith(('/', '~', '.', 'file:')) or os.path.isdir(os.path.expanduser(s))
+
+
 def abs_local_source(source):
     '''For a LOCAL PATH source (`./x`, `../x`, `~/x`, a bare or absolute path), its absolute form —
     resolved from the CWD at add-time — so the decl saved to the config is stable no matter where

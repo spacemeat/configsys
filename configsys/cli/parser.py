@@ -634,8 +634,9 @@ def build_parser():
     pa = plsub.add_parser('add', help='sync a plugin and declare it (nothing is declared if the sync '
                                       'fails)',
                           description='Sync a plugin, then declare it: in your primary plugin when you '
-                                      'have one (so it travels), else in your top config. Nothing is '
-                                      'declared if the sync fails.')
+                                      'have one (so it travels), else in your top config. A local '
+                                      'path always goes in your top config (it exists only on this '
+                                      'machine). Nothing is declared if the sync fails.')
     pa.add_argument('source', help='github:owner/repo | gitlab:owner/repo | git URL | local path')
     pa.add_argument('--ref', help='use this tag / commit / branch (saved as the plugin\'s `ref:`)')
     pa.add_argument('--pin', action='store_true',
@@ -644,7 +645,7 @@ def build_parser():
     pa.add_argument('--local', action='store_true',
                     help='add to this machine\'s top config even if a primary plugin is set, so it '
                          'applies only here, e.g. a project checkout (default: a new plugin rides the '
-                         'primary, portable to all machines)')
+                         'primary, portable to all machines — a remote source; a local path stays here anyway)')
     pa.add_argument('--replace', action='store_true',
                     help='if a plugin of the same name is already declared from another source, '
                          'drop that one and use this source instead (a copy holding unpushed or '
