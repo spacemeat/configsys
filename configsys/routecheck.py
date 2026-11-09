@@ -456,6 +456,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
     unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.
     `components_checked` = every component already passed `check_component` (a validated
     routes.load returned them), so the ambiguity pass is skipped rather than run twice.'''
+    from .attrs import unknown_attrs
     from .drivers import supported_names
     from .resolve import cap_names, standing_problem
     valid_via = _SPECIAL_VIA | supported_names() | set(pending_vias)
@@ -481,6 +482,10 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
         why = standing_problem({'standing': getattr(comp, 'standing', None)})
         if why:
             add('bad-standing', why, comp, 'warning')
+        odd = unknown_attrs(getattr(comp, 'attrs', ()))
+        if odd:                                         # a tag no filter axis knows never matches
+            add('unknown-attr', f'attrs: {" ".join(odd)} — not in the attrs vocabulary '
+                '(docs/component-attrs.md); the Profiles filter can never select it', comp, 'warning')
         if getattr(comp, 'parts_ignored', False):
             add('parts-ignored', 'component-level `parts:` is ignored because the component also has '
                 '`install:` methods — put the bundle on a `{ via: parts  parts: [...] }` binding (or '

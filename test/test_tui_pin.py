@@ -54,7 +54,7 @@ def test_target_machines_can_exclude_the_current(tmp_path):
 
 def _menu_on(ctx, component):
     cfg, _r, _u, _l, states = ctx.load_pipeline()
-    layouts, transitive = menu._menu_model(cfg)
+    layouts, transitive = menu._group_by_owner(cfg, set(cfg.requested()))
     ms = menu.MenuState(states, layouts, transitive)
     ms.cursor = next(i for i, n in enumerate(ms.rows) if _row_component(n) == component)
     return ms
@@ -219,7 +219,7 @@ def test_pick_method_popup_selects_and_writes(tmp_path):
     ctx = _ctx(tmp_path)
     ms = _menu_on(ctx, 'steam')                      # candidates: native (default) + flatpak
     scr = _Scr([ord('j'), ord('\r')])               # move down to flatpak, enter
-    changed, note, deferred = menu._pick_method(scr, _Pal(), ms, ctx)
+    changed, note, deferred = menu._pick_method_name(scr, _Pal(), ctx, _row_component(ms.cur()))
     assert changed and 'flatpak' in note and 'promote' in deferred
     assert plugins.read_pins(str(cfgdir / 'configsys.hu')).get('steam') == 'flatpak'
 
@@ -228,7 +228,7 @@ def test_pick_method_popup_esc_cancels(tmp_path):
     cfgdir = _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
     ms = _menu_on(ctx, 'steam')
-    changed, _note, _d = menu._pick_method(_Scr([27]), _Pal(), ms, ctx)   # esc
+    changed, _note, _d = menu._pick_method_name(_Scr([27]), _Pal(), ctx, _row_component(ms.cur()))   # esc
     assert not changed
     assert plugins.read_pins(str(cfgdir / 'configsys.hu')) == {}
 
@@ -237,7 +237,7 @@ def test_pick_method_single_method_is_a_noop(tmp_path):
     _steam_home(tmp_path)
     ctx = _ctx(tmp_path)
     ms = _menu_on(ctx, 'curl')                         # native-only here: no popup, no getch
-    changed, note, _d = menu._pick_method(_Scr([]), _Pal(), ms, ctx)
+    changed, note, _d = menu._pick_method_name(_Scr([]), _Pal(), ctx, _row_component(ms.cur()))
     assert not changed and 'only one install method' in note
 
 
@@ -266,7 +266,7 @@ def test_row_error_not_smeared_onto_profiles(tmp_path):
         '{ picks: { this-machine: [ lazygit, nushell ] } }')
     ctx = _ctx(tmp_path)
     cfg, _r, _u, _l, states = ctx.load_pipeline()
-    layouts, transitive = menu._menu_model(cfg)
+    layouts, transitive = menu._group_by_owner(cfg, set(cfg.requested()))
     ms = menu.MenuState(states, layouts, transitive)
     curl_key = next(k for k in states if k.endswith('\\curl'))
     ms.errors = {curl_key: 'install failed: exit 1'}

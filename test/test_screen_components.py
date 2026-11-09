@@ -93,7 +93,7 @@ def test_footer_lock_verb_flips_to_unlock_when_target_locked(ctx):
     from configsys.tui.screens.components import _lock_verb
     scr = ComponentsScreen(ctx, menu._sample_components_state())
     ms = scr.model
-    ms.clear_all_staged()                                    # deterministic: nothing staged anywhere
+    ms.staged.clear()                                    # deterministic: nothing staged anywhere
     ms.selected.clear()
     for i in range(len(ms.rows)):                            # park on a truly-unlocked lockable row
         ms.cursor = i
@@ -102,7 +102,7 @@ def test_footer_lock_verb_flips_to_unlock_when_target_locked(ctx):
     else:
         pytest.skip('sample has no lockable unlocked row')
     assert 'L unlock' in _rows(scr, ctx)[-1]                 # a lock is staged -> the toggle now UNLOCKS
-    ms.clear_all_staged()
+    ms.staged.clear()
     assert 'L lock' in _rows(scr, ctx)[-1]                   # cleared -> back to "lock" on the same row
 
 

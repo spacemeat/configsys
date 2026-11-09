@@ -10,9 +10,11 @@ from . import keyspec
 from .theme import SCREEN_REGISTRY
 
 
-def _page_rows(stdscr):
-    '''One screenful of the content area — how far page-up/page-down jump the cursor.'''
-    return max(1, stdscr.getmaxyx()[0] - 5)
+def _page_rows(stdscr, drawn=None):
+    '''How far page-up/page-down jump the cursor: `drawn` — the list height the last frame painted
+    (a screen records it with vm.settle, so a page is exactly one visible window, no rows skipped) —
+    else, before the first draw, a screenful of the content area.'''
+    return drawn if drawn else max(1, stdscr.getmaxyx()[0] - 5)
 
 
 def _columns(w):
@@ -163,20 +165,14 @@ def _fill_bg(stdscr, pal, h, w):
 SCREENS = [(key, sid, title) for sid, title, key in SCREEN_REGISTRY]   # (default key, id, title)
 
 
-IMPLEMENTED = {sid for _key, sid, _title in SCREENS}
-
-
-KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
-
-
 def _draw_nav(stdscr, pal, screen, h, w):
-    '''Row-0 chip bar: press a number to switch screens. Unbuilt screens are dimmed. The switch key
-    and the issues/quit hint come from the keymap, so a rebind shows here too.'''
+    '''Row-0 chip bar: press a number to switch screens. The switch key and the issues/quit hint
+    come from the keymap, so a rebind shows here too.'''
     x = 0
     km = _keymap()
     for _key, sid, name in SCREENS:
         chip = f' {km.glyph("screens", sid)} {name} '
-        elem = 'label' if sid == screen else ('menu_header' if sid in IMPLEMENTED else 'info_dim')
+        elem = 'label' if sid == screen else 'menu_header'
         _put(stdscr, 0, x, chip, pal.style(elem, 0, x, h, w))
         x += len(chip) + 1
     hint = f' {km.glyph(screen, "issues")} issues · {km.glyph(screen, "quit")} quit '   # as this page resolves them

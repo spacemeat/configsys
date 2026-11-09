@@ -9,6 +9,7 @@ from .. import primarygit
 from ..errors import ConfigError
 from ..drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL   # glue's active/available/inactive
 from .modals import _attr_pass
+from .models import _is_companion_comp
 
 
 # Serializes the ProfileScreen catalog warm-up (`_resolve` over ~800 components) against the UI
@@ -34,7 +35,6 @@ class ProfileScreen:
         self.lcur = self.rcur = self.ltop = self.rtop = 0
         self.rcol_left = 0           # matrix table horizontal CHAR offset (←/→ scroll; rhmax set at draw)
         self.lhoff = 0               # browse pane horizontal CHAR offset (for long names; lhmax at draw)
-        self.rrows, self.rncols = 1, 1   # grid dims, set each draw; the key handler moves by column
         self.expanded_parts = set()      # catalog: `via: parts` comps drilled open -> parts as child rows
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
@@ -46,12 +46,18 @@ class ProfileScreen:
         self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
                                                # by default (each has its own page)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
-        self._res_lock = threading.Lock()   # guards _res/_res_rid: _warm_cache fills it off-thread
+        self._res_lock = threading.Lock()   # guards _res/_res_routes: _warm_cache fills it off-thread
         self._parts_cache = {}           # component -> its context-valid `via: parts` list; same lifecycle
                                          # as _res (a `when:`/pin thing, not a membership edit) — the
                                          # hot per-frame call, ~28ms/frame uncached on a 760-component catalog
         self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
         self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
+        self._caches_routes = None       # the Resolver those three were computed for (_routes_caches)
+        self._os_lock = threading.Lock()   # the coverage worker (request_available_oses): one thread,
+        self._os_want = None             # the NEWEST request wins (a scrolling cursor never computes
+        self._os_busy = False            # the rows it passed over)
+        self._os_done = 0                # results landed (the worker counts up) ...
+        self._os_painted = 0             # ... and how many a frame had seen (Profiles settles it)
         self.show_install = 1 if ctx.config.install_overlay_default() else 0   # `O` toggles the install
         self._overlay = None             # overlay off/on (default from `install-overlay`, on unless set):
                                          # installed underlined, installed-but-unpicked ⊙ coloured
@@ -69,6 +75,7 @@ class ProfileScreen:
         self._probe_queue = []           # pending names for the probe thread
         self._probe_thread = None
         self._probe_dirty = False        # a new probe result arrived -> the menu loop repaints
+        self._probe_gen = 0              # bumped by invalidate_overlay: an in-flight probe's result is stale
         self.reload()
 
     def overlay(self):
@@ -137,6 +144,7 @@ class ProfileScreen:
         self._probe_installed = {}       # on-disk reality changed -> re-probe the non-enumerable ones
         self._probe_seen = set()
         self._probe_queue = []
+        self._probe_gen += 1             # ...and drop what a probe still in flight finds
 
     def ensure_probes(self, names):
         '''Queue on-screen catalog rows NOT covered by the batch installed index for an individual
@@ -155,47 +163,58 @@ class ProfileScreen:
         if self._probe_thread is None or not self._probe_thread.is_alive():
             self._start_probe()
 
-    def _start_probe(self):
-        # Check EVERY candidate binding of the component (like installState.detect_coexisting), not
-        # just the resolved one — a tool is often installed via a NON-default method (e.g. ollama's
-        # `script`/PATH install while `tarball` is the preference-picked default). Enumerable drivers
-        # are skipped (the batch overlay set already covers them); non-enumerable ones use get_version.
+    def _leaf_installed(self, r, cx, name):
+        '''True when a NON-enumerable candidate method of `name` finds it installed (get_version) —
+        every candidate binding, like installState.detect_coexisting, not just the resolved one: a tool
+        is often installed via a non-default method (ollama's `script` install while `tarball` is the
+        preference-picked default). Enumerable drivers are skipped: the batch installed index already
+        covers them. `r` / `cx`: the routes and their context, fetched once by the caller.'''
         from ..driver import Driver
         from ..drivers import get_driver
         from ..adapt import to_resolved_component
         from ..resolve import candidate_bindings, unit_for_binding, via_representatives
+        comp = r.components.get(name)
+        if comp is None or not comp.bindings:
+            return False
+        try:
+            reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
+        except Exception:                            # noqa: BLE001
+            return False
+        for b in reps:
+            unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
+            if unit is None:
+                continue
+            rc = to_resolved_component(unit)
+            drv = get_driver(rc.driver, self.ctx.runner, self.ctx.paths)
+            if drv is None or type(drv).installed_index is not Driver.installed_index:
+                continue                             # enumerable -> already in the batch set; skip
+            try:
+                if drv.get_version(rc) is not None:
+                    return True
+            except Exception:                        # noqa: BLE001 — a flaky probe just leaves it un-underlined
+                pass
+        return False
+
+    def _start_probe(self):
+        # the per-component installed check (_leaf_installed) for the queued non-enumerable rows
         r = self.ctx.routes
         cx = r.context()
+        # generation guard: invalidate_overlay() (an execute changed disk reality) swaps in a fresh
+        # dict and bumps _probe_gen; a probe still in flight must not repopulate it with stale results
+        gen, found = self._probe_gen, self._probe_installed
 
         def installed_any(name):
-            comp = r.components.get(name)
-            if comp is None or not comp.bindings:
-                return False
-            try:
-                reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
-            except Exception:                        # noqa: BLE001
-                return False
-            for b in reps:
-                unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
-                if unit is None:
-                    continue
-                rc = to_resolved_component(unit)
-                drv = get_driver(rc.driver, self.ctx.runner, self.ctx.paths)
-                if drv is None or type(drv).installed_index is not Driver.installed_index:
-                    continue                         # enumerable -> already in the batch set; skip
-                try:
-                    if drv.get_version(rc) is not None:
-                        return True
-                except Exception:                    # noqa: BLE001 — a flaky probe just leaves it un-underlined
-                    pass
-            return False
+            return self._leaf_installed(r, cx, name)
 
         def run():
             while self._probe_queue:
+                if self._probe_gen != gen:           # invalidated: a fresh probe takes the new queue
+                    self._start_probe()
+                    return
                 name = self._probe_queue.pop()
                 try:
-                    if installed_any(name):
-                        self._probe_installed[name] = True
+                    if installed_any(name) and self._probe_gen == gen:
+                        found[name] = True
                         self._probe_dirty = True
                 except Exception:                    # noqa: BLE001
                     pass
@@ -248,9 +267,6 @@ class ProfileScreen:
             walk(r, 0, [], 'profile')
         self._vpn_sig, self._vpn_cache = sig, out
         return out
-
-    def node_kind(self, nd):
-        return nd[5] if nd and len(nd) > 5 else 'profile'
 
     def cur_node(self):
         v = self.visible_pnodes()
@@ -329,21 +345,34 @@ class ProfileScreen:
             return 0
         return sum(1 for c in mem if c not in tracked and self.install_state(c, force=True) != 'none')
 
+    def _routes_caches(self):
+        '''Drop the per-routes caches (`_parts_cache`, `_hard_dep_cache`, `_avail_os_cache`) when
+        `ctx.routes` is not the Resolver they were computed for — a pin / route / plugin edit, from
+        ANY screen, calls ctx.invalidate, which swaps in a fresh one. Kept by identity (the object
+        itself, not its id(), which a freed Resolver's successor may reuse). -> the current routes.'''
+        routes = self.ctx.routes
+        if routes is not self._caches_routes:
+            # fresh dicts, not .clear(): a background coverage result for the old routes lands in
+            # the dict it captured, never in these
+            self._parts_cache, self._hard_dep_cache, self._avail_os_cache = {}, {}, {}
+            self._caches_routes = routes
+        return routes
+
     def _parts(self, name):
         '''The parts of `name`'s CONTEXT-VALID `via: parts` binding — component-level `parts:` plus the
         parts of the binding(s) whose `when:` applies on THIS machine. Empty for an ordinary component.
         Filtering by `when:` is essential: a component like vulkan-runtime lists DIFFERENT parts per OS,
         so unioning across all bindings would count another distro's packages as missing parts and
         falsely read the aggregate as partially installed (◐).'''
+        r = self._routes_caches()
         cached = self._parts_cache.get(name)
         if cached is not None:
             return cached
-        comp = self.ctx.routes.components.get(name)
+        comp = r.components.get(name)
         if comp is None:
             self._parts_cache[name] = []
             return []
         out = list(getattr(comp, 'parts', []) or [])
-        r = self.ctx.routes
         try:
             from ..resolve import candidate_bindings
             cx = r.context()
@@ -369,10 +398,10 @@ class ProfileScreen:
         component-to-component dependencies (the `virt-manager -> libvirt-service` service-companion
         shape). Deliberately EXCLUDES capability requires (fuzzy — satisfied by any provider) and
         `suggests:` soft-deps (the -dotfiles/-select/-glue companions), so this never flags the
-        incidental "optional companion not materialized" partial. Cached per reload.'''
+        incidental "optional companion not materialized" partial. Cached per routes.'''
+        comps = self._routes_caches().components
         if name in self._hard_dep_cache:
             return self._hard_dep_cache[name]
-        comps = self.ctx.routes.components
         comp = comps.get(name)
         out = set()
         if comp is not None and name not in _stack:
@@ -406,21 +435,13 @@ class ProfileScreen:
             return 'some'
         return 'all'
 
-    def is_installed(self, name, force=False):
-        '''True iff `name` is FULLY installed (a parts aggregator: all parts). For the name underline
-        and the C claim.'''
-        return self.install_state(name, force=force) == 'all'
-
-    def installed_scan(self):
+    def installed_scan(self, progress=None):
         '''Full-catalog installed detection for `C` (claim): the enumerable-driver batch set
         (catalog-wide) PLUS a per-component get_version across every NON-enumerable candidate binding
         (so tarball/script/appImage installs are caught, not just the on-screen probed ones) PLUS
-        parts aggregators whose parts are all present. Synchronous — the caller flashes a busy note.'''
+        parts aggregators whose parts are all present. Synchronous — the caller flashes a busy note,
+        and `progress(done, total)` (if given) is called as the per-component probe goes.'''
         from .. import orphans as _orph
-        from ..driver import Driver
-        from ..drivers import get_driver
-        from ..adapt import to_resolved_component
-        from ..resolve import candidate_bindings, unit_for_binding, via_representatives
         ctx, r = self.ctx, self.ctx.routes
         cx = r.context()
         try:
@@ -430,32 +451,11 @@ class ProfileScreen:
             inst = self._overlay[0] if self._overlay else frozenset()
         hits = set(inst)
 
-        def leaf_installed(name):
-            comp = r.components.get(name)
-            if comp is None or not comp.bindings:
-                return False
-            try:
-                reps = via_representatives(candidate_bindings(comp, r.cascade, cx, None), r.cascade)
-            except Exception:                        # noqa: BLE001
-                return False
-            for b in reps:
-                unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
-                if unit is None:
-                    continue
-                rc = to_resolved_component(unit)
-                drv = get_driver(rc.driver, ctx.runner, ctx.paths)
-                if drv is None or type(drv).installed_index is not Driver.installed_index:
-                    continue                         # enumerable driver -> already covered by `inst`
-                try:
-                    if drv.get_version(rc) is not None:
-                        return True
-                except Exception:                    # noqa: BLE001
-                    pass
-            return False
-
         cat = list(self.catalog)
-        for c in cat:
-            if c not in hits and not self._parts(c) and leaf_installed(c):
+        for i, c in enumerate(cat):
+            if progress is not None and i % 25 == 0:
+                progress(i, len(cat))
+            if c not in hits and not self._parts(c) and self._leaf_installed(r, cx, c):
                 hits.add(c)
         for c in cat:                                # a parts aggregator installed iff all its parts are
             p = self._parts(c)
@@ -482,15 +482,9 @@ class ProfileScreen:
 
     # -- v3 matrix: machines (columns) + Included (picks) state --
     def machines_list(self):
-        '''Every machine to show a column for: the defined `machines:` names, else just the current
-        machine (a one-machine user never has to name it). Sorted, current machine first.'''
-        ms = self.ctx.config.machine_names()
-        cur = self.ctx.config.current_machine()
-        if cur not in ms:
-            ms = [cur] + ms
-        else:
-            ms = [cur] + [m for m in ms if m != cur]
-        return ms
+        '''Every machine to show a column for (the `picks:` machines, else just the current machine —
+        a one-machine user never has to name it): the current machine first, the rest sorted.'''
+        return self.ctx.config.machines_current_first()
 
     def targets(self):
         '''The edit-target machines T/t/enter fan out to. `target_machines` is None by DEFAULT (the
@@ -574,10 +568,7 @@ class ProfileScreen:
     def _is_companion(self, comp):
         '''True if `comp` is a -dotfiles / -glue companion — it lives on the Dotfiles/Glue page, not
         the Components catalog, so it's excluded from the catalog's NEW/interesting badges.'''
-        o = self.ctx.routes.components.get(comp)
-        if o is None:
-            return False
-        return bool({a.lower() for a in getattr(o, 'attrs', [])} & {'dotfiles', 'glue'})
+        return _is_companion_comp(self.ctx.routes, comp)
 
     def set_pfilter(self, text):
         self.pfilter = text
@@ -611,7 +602,7 @@ class ProfileScreen:
         '''Populate _resolve for the whole catalog on a daemon thread. The menu loop blocks in
         getch() (GIL released) while idle, so this fills within a few seconds of opening the screen
         without stuttering the UI. A generation guard makes a later reload() abandon this sweep.'''
-        if (getattr(self, '_res_rid', None) == id(self.ctx.routes)
+        if (getattr(self, '_res_routes', None) is self.ctx.routes
                 and all(nm in self._res for nm in self.catalog)):
             return                                   # already warm FOR THESE routes (survives reloads)
         self._warm_gen = getattr(self, '_warm_gen', 0) + 1
@@ -644,21 +635,14 @@ class ProfileScreen:
         except ConfigError:
             return set()
 
-    def relation(self, profile):
-        '''Provenance of the profile's top definition vs any lower same-name def: 'tracked' (`+self`),
-        'shadowed', or 'base' — drives the pane's provenance badge glyph.'''
-        try:
-            return self.ctx.config.profile_relation(profile) if profile else 'base'
-        except Exception:                                # noqa: BLE001
-            return 'base'
-
     def _resolve(self, name):
         '''(available, resolved_via, pinned) for a component — cached. The resolved via is the
         method it installs with now (the pin, else the preference-picked default); `pinned` is set
         when a binding-pin chose it. One candidates() call feeds both the grey-out and the method.'''
         # Drop the cache when ctx.routes was rebuilt (a pin / route / plugin edit calls ctx.invalidate,
         # which swaps in a fresh Resolver) — even one made from ANOTHER screen. A membership/profile
-        # edit does NOT invalidate, so its `id` is unchanged and the cache survives (the perf win).
+        # edit does NOT invalidate, so the Resolver is the same object and the cache survives (the
+        # perf win). Compared by identity, not id(): a new Resolver may reuse a freed one's id.
         #
         # Thread-safe: the `_warm_cache` daemon thread calls this concurrently with the UI thread. The
         # cache check/clear/insert runs under `_res_lock`; the (slow) resolve runs outside it, under
@@ -667,11 +651,10 @@ class ProfileScreen:
         # present (another thread's, or a deliberate priming) wins — and is skipped if ctx.routes was
         # swapped mid-resolve (that result belongs to the old routes).
         routes = self.ctx.routes
-        rid = id(routes)
         with self._res_lock:
-            if rid != getattr(self, '_res_rid', None):
+            if routes is not getattr(self, '_res_routes', None):
                 self._res.clear()
-                self._res_rid = rid
+                self._res_routes = routes
             hit = self._res.get(name)
         if hit is not None:
             return hit
@@ -683,7 +666,7 @@ class ProfileScreen:
         win = next((c for c in cands if c['default']), None)
         val = (bool(cands), win['via'] if win else None, bool(win and win['pinned']))
         with self._res_lock:
-            if getattr(self, '_res_rid', None) != rid:
+            if getattr(self, '_res_routes', None) is not routes:
                 return val                           # routes rebuilt meanwhile: don't cache a stale value
             return self._res.setdefault(name, val)
 
@@ -692,15 +675,53 @@ class ProfileScreen:
 
     def available_oses(self, name):
         '''Representative OS-family labels where `name` DOES resolve (the coverage matrix) — for the
-        infobox hint on a component with no install method on THIS box. Lazy + cached (7 resolves).'''
-        if name not in self._avail_os_cache:
+        infobox hint on a component with no install method on THIS box. Lazy + cached (7 resolves —
+        the UI asks through request_available_oses / cached_available_oses, off its own thread).'''
+        self._routes_caches()
+        cache = self._avail_os_cache                 # the dict for THESE routes (a swap makes a new one)
+        if name not in cache:
             try:
                 from .. import reportgen
-                self._avail_os_cache[name] = [r['label'] for r in reportgen.coverage(self.ctx, name)
-                                              if r.get('ok')]
+                cache[name] = [r['label'] for r in reportgen.coverage(self.ctx, name) if r.get('ok')]
             except Exception:                        # noqa: BLE001 — never let it break the detail box
-                self._avail_os_cache[name] = []
-        return self._avail_os_cache[name]
+                cache[name] = []
+        return cache[name]
+
+    def cached_available_oses(self, name):
+        '''available_oses(name) if it has been computed for the current routes, else None (still
+        being worked out — request_available_oses).'''
+        self._routes_caches()
+        return self._avail_os_cache.get(name)
+
+    def request_available_oses(self, name):
+        '''Compute available_oses(name) on the single background worker, so the 7 coverage resolves
+        never freeze the UI thread. Only the newest request is worked; os_busy() keeps the menu loop
+        polling until the result is painted.'''
+        if self.cached_available_oses(name) is not None:
+            return
+        with self._os_lock:
+            self._os_want = name
+            if self._os_busy:
+                return
+            self._os_busy = True
+
+        def run():
+            while True:
+                with self._os_lock:
+                    want, self._os_want = self._os_want, None
+                    if want is None:
+                        self._os_busy = False
+                        return
+                try:
+                    self.available_oses(want)
+                except Exception:                    # noqa: BLE001 — available_oses already never raises
+                    pass
+                self._os_done += 1
+        threading.Thread(target=run, daemon=True).start()
+
+    def os_busy(self):
+        '''True while a coverage request is running or its result is not yet painted.'''
+        return self._os_busy or self._os_done != self._os_painted
 
     def method(self, name):
         '''(resolved_via, pinned) for the row's method label.'''
@@ -981,9 +1002,6 @@ _DF_STATE_ELEM = {  # config DISPLAY states (managed/unmanaged/no config) + glue
     'linked': 'installed', 'loader-on': 'installed', 'template': 'info_dim', 'loader-off': 'info_dim',
     'drifted': 'outdated',                              # active but the shipped snippet changed -> re-activate
     'unlinked': 'info_dim'}                             # a user glue snippet not linked into conf.d
-
-
-_DF_CAPTURE_STATES = ('managed', 'unmanaged')          # rows a capture would adopt
 
 
 class _ContentRootLabelMixin:

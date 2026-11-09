@@ -328,8 +328,8 @@ def cmd_dotfiles_status(ctx, args):
     if parts:
         print('\n' + '   '.join(parts))
     if ccounts.get('unmanaged'):
-        print('  ! unmanaged = needs action: capture (c) an on-system file, or link content '
-              'that is ready — the SRC column says which.')
+        print('  ! unmanaged = needs action: `configsys dotfiles capture` adopts an on-system file, or '
+              'links content that is ready — the SRC column says which.')
     return 0
 
 

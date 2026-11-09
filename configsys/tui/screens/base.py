@@ -47,7 +47,6 @@ class Intent:
     goto: str = None            # switch to this screen id
     note: str = None            # status-line note to show next frame
     dirty: bool = False         # the Components tree must be rebuilt (a pick/route/config edit)
-    quit: bool = False          # leave the TUI
     new_pal: object = None      # a rebuilt Palette to adopt (Theme live-preview edits re-instantiate it)
     open_where: object = None   # (lines, subject) -> open the full-page `where` overlay
     pending_notes: object = None  # messages to surface AFTER the TUI exits (deferred install hints)

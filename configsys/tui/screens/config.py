@@ -17,7 +17,8 @@ composed unchanged; this adds the three MVVM seams:
 
 import os
 
-from ... import layers
+from ... import actions, layers
+from ... import plugins as _pl
 from .. import menu
 from ..modals import _input_box, _order_list, _popup_choose
 from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_v, _wordwrap
@@ -92,13 +93,14 @@ class ConfigScreen(Screen):
     # -- build_vm ---------------------------------------------------------
 
     def build_vm(self, ctx, size):
-        from ... import actions
-        from ... import plugins as _pl
         cs = self.model
         vm = ConfigVM()
         h, w = size
         iw = w - 2                                    # panel interior width (panel spans the row)
-        vm.has_primary = bool(_pl.primary_name(_pl.declared(ctx.paths.user_config_file)))
+        # where edits actually route (actions._nature_target): a primary that is blessed AND synced.
+        # A declared-but-unsynced primary takes no edits, so nothing reads as relocated to it.
+        declared = bool(_pl.primary_name(_pl.declared(ctx.paths.user_config_file)))
+        vm.has_primary = declared and actions.edit_target(ctx)[1] != 'top config'
         from ...paths import tilde
         local_path = tilde(ctx.paths.user_config_file, os.path.expanduser('~'))
         for key in cs.keys:
@@ -112,6 +114,8 @@ class ConfigScreen(Screen):
         cur_key = cs.keys[cs.cur] if cs.keys else None
         tgt = cs.settings.get(cur_key, {}).get('target') if cur_key else None
         vm.status = f' {cur_key}: edits → {tgt}' if tgt else f' edits → {actions.edit_target(ctx)[1]}'
+        if declared and not vm.has_primary:
+            vm.status += '   (primary not synced)'
         vm.nav = _nav_str()
         return vm
 
@@ -163,7 +167,8 @@ class ConfigScreen(Screen):
         y, shown = it + 1, 0
         for i in range(top, len(cs.keys)):
             bh = block_h(i)
-            if y + bh - 1 > it + ih:                      # the whole block wouldn't fit
+            cut = y + bh - 1 > it + ih                    # the whole block wouldn't fit…
+            if cut and not (i == cs.cur or shown == 0):   # …skip it, unless it is all there is to show
                 break
             sel = i == cs.cur
             if sel:
@@ -175,6 +180,15 @@ class ConfigScreen(Screen):
             col(y, dx, st_txt, dw, st_role, sel)
             col_store(y, ex, s_name, s_suffix, ew, s_role, sel)
             dy = y + 1
+            if cut:                                       # a block taller than the panel (the cursor's,
+                room = it + ih - dy                       # or the only one): as much as fits, then …
+                for line in vm.descs[i][:max(0, room - 1)]:
+                    _put(surface, dy, il + 3, _fit(line, iw - 4), pal.style('info_dim', dy, il, h, w))
+                    dy += 1
+                if room > 0:
+                    _put(surface, dy, il + 3, '…', pal.style('info_dim', dy, il, h, w))
+                shown += 1
+                break
             for line in vm.descs[i]:                      # word-wrapped description, not cut off
                 _put(surface, dy, il + 3, _fit(line, iw - 4), pal.style('info_dim', dy, il, h, w))
                 dy += 1
@@ -304,7 +318,8 @@ class ConfigScreen(Screen):
                     from ...resolve import DEFAULT_DRIVER_PREFERENCE
                     cur = info['value'] or list(DEFAULT_DRIVER_PREFERENCE)
                     new = _order_list(stdscr, pal,
-                                      'driver-preference — space grab, j/k move', cur,
+                                      f'driver-preference — space grab, {km.glyph("global", "down")}/'
+                                      f'{km.glyph("global", "up")} move', cur,
                                       label=lambda d: f'{_DRIVER_ABBR.get(d, d) + ":":<5}{d}')
                     if new is not None:
                         _set(ctx, key, new)

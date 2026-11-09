@@ -169,23 +169,23 @@ def test_own_components_includes_self_amendment():
     assert c.profile_own_components('user') == ['a', 'b', 'c']
 
 
-def test_menu_model_groups_picked_components_by_owning_profile():
+def test_group_by_owner_groups_picked_components_by_owning_profile():
     # matrix Components tree: the picked (tracked) components, grouped under the system profile that
     # DECLARES each (own-components) — a component reached only via +include lands under its owner,
     # not the includer, so it's shown once.
-    from configsys.tui.menu import _menu_model
+    from configsys.tui.menu import _group_by_owner
     c = cfg(OWN, '{ picks: { this-machine: [ a, b, blender ] } }')
-    lay = dict(_menu_model(c)[0])
+    lay = dict(_group_by_owner(c, set(c.requested()))[0])
     assert lay['user'] == [('component', 'a'), ('component', 'b')]   # user owns a, b
     assert lay['sculpture'] == [('component', 'blender')]            # sculpture owns just blender
 
 
-def test_menu_model_orphans_untracked_and_unprofiled():
+def test_group_by_owner_orphans_untracked_and_unprofiled():
     # a picked component in no system profile falls under the synthetic (other) group; unpicked
     # components don't appear at all.
-    from configsys.tui.menu import _menu_model
+    from configsys.tui.menu import _group_by_owner
     c = cfg(OWN, '{ picks: { this-machine: [ a, loner ] } }')
-    lay = dict(_menu_model(c)[0])
+    lay = dict(_group_by_owner(c, set(c.requested()))[0])
     assert lay['user'] == [('component', 'a')]           # b is not picked -> absent
     assert lay['(other)'] == [('component', 'loner')]    # picked but in no profile
 

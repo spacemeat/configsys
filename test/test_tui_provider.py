@@ -56,13 +56,19 @@ def test_providers_and_capability_choices(tmp_path):
 
 # -- picker writes a provider-pin ----------------------------------------
 
+def _pick_cuda(scr, ctx):
+    '''The provider picker as `m` reaches it from cuda-toolkit-12's row: its one capability.'''
+    (cap, provs), = menu._capability_choices(ctx.routes, 'cuda-toolkit-12')
+    return menu._pick_provider_cap(scr, _Pal(), ctx, 'cuda-toolkit-12', cap, provs)
+
+
 def test_pick_provider_writes_a_capability_pin(tmp_path):
     ctx = _ctx(tmp_path)
     ENTER = 13
     # single capability -> straight to the provider list; start sits on the default (cuda-toolkit-12,
     # index 1). 'k' moves up to cuda-toolkit-11 (index 0), enter selects.
     scr = _Scr([ord('k'), ENTER])
-    changed, note, deferred = menu._pick_provider(scr, _Pal(), _row('cuda-toolkit-12'), ctx)
+    changed, note, deferred = _pick_cuda(scr, ctx)
     assert changed
     assert 'cuda-toolkit' in note and 'cuda-toolkit-11' in note
     assert 'promote' in (deferred or '')                         # portability hint deferred to exit
@@ -74,15 +80,14 @@ def test_pick_provider_noop_when_choosing_current(tmp_path):
     ctx = _ctx(tmp_path)
     ENTER = 13
     scr = _Scr([ENTER])                                          # start is already the current default
-    changed, note, _d = menu._pick_provider(scr, _Pal(), _row('cuda-toolkit-12'), ctx)
+    changed, note, _d = _pick_cuda(scr, ctx)
     assert not changed and 'already provided by' in note
     assert not plugins.read_pins(str(ctx.paths.user_config_file))   # nothing written
 
 
-def test_pick_provider_declines_a_row_without_alternatives(tmp_path):
+def test_pick_choices_offers_no_provider_axis_without_alternatives(tmp_path):
     ctx = _ctx(tmp_path)
-    changed, note, _d = menu._pick_provider(_Scr([]), _Pal(), _row('git'), ctx)
-    assert not changed and 'no capability with alternative providers' in note
+    assert menu._capability_choices(ctx.routes, 'git') == []     # so `m` lists no provider axis
 
 
 # -- unified `m`: the choices chooser folds the method picker + the provider picker -----------

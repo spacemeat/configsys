@@ -350,7 +350,7 @@ def test_resolve_never_overwrites_a_primed_value_or_caches_across_a_routes_swap(
 
     def swap_mid_resolve(name):                            # ctx.routes rebuilt while resolving
         ps.ctx.routes = new_routes
-        ps._res_rid = id(new_routes)
+        ps._res_routes = new_routes
         return orig(name)
     routes.candidates = swap_mid_resolve
     ps._res.clear()

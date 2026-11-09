@@ -96,24 +96,34 @@ def _cache_terminfo_dir(env):
     return os.path.join(base, 'configsys', 'terminfo')
 
 
-def _build_direct_entry(name, term, env):
-    '''Build `name` = $TERM + the direct-color overlay into configsys' cache. Returns the terminfo dir
-    holding it, or None if it can't be built. Reused once built. First in pure Python (terminfo.py —
-    byte-identical to tic's output, and needs no ncurses-bin, which minimal containers lack), then
-    with `tic` for a database layout that reader doesn't handle (e.g. a hashed .db). A cached entry
-    older than the terminal's own base entry (a terminal upgrade) is rebuilt. A name that isn't one
-    safe path segment is never built.'''
+def terminfo_cache_dir(paths):
+    '''Where a built direct-color entry goes for this configsys home: `<cache>/configsys/terminfo`,
+    <cache> being `$XDG_CACHE_HOME` or `<home>/.cache` — and under `--home` / CONFIGSYS_HOME always
+    the sandbox home's own `.cache` (XDG ignored, the way the state dir ignores XDG_CONFIG_HOME), so a
+    sandboxed TUI never writes into the real home.'''
+    env = paths.env
+    xdg = None if env.get('CONFIGSYS_HOME') else env.get('XDG_CACHE_HOME')
+    base = xdg or os.path.join(str(paths.home), '.cache')
+    return os.path.join(base, 'configsys', 'terminfo')
+
+
+def _build_direct_entry(name, term, env, cache_dir=None):
+    '''Build `name` = $TERM + the direct-color overlay into configsys' cache (`cache_dir`, default
+    the env's XDG cache). Returns the terminfo dir holding it, or None if it can't be built. Reused
+    once built. First in pure Python (terminfo.py — byte-identical to tic's output, and needs no
+    ncurses-bin, which minimal containers lack), then with `tic` for a database layout that reader
+    doesn't handle (e.g. a hashed .db). A cached entry older than the terminal's own base entry (a
+    terminal upgrade) is rebuilt. A name that isn't one safe path segment is never built.'''
     from . import terminfo
     if not (terminfo.safe_name(name) and terminfo.safe_name(term)):
         return None
-    out = _cache_terminfo_dir(env)
+    out = cache_dir or _cache_terminfo_dir(env)
     if _terminfo_exists(name, {'TERMINFO': out}, system=False) and not _cache_stale(name, term, env, out):
         return out
     # the base is searched like ncurses would — including a terminal's private TERMINFO (kitty)
     if terminfo.build_direct(name, term, _terminfo_dirs(env), out):
         return out
     return _tic_direct_entry(name, term, env, out)
-
 
 def _cache_stale(name, term, env, out):
     '''Is the cached `name` older than `term`'s base entry (so it predates a terminal upgrade)?'''
@@ -172,7 +182,7 @@ def _truecolor_signal(env):
         return False
 
 
-def direct_color_setup(env=None):
+def direct_color_setup(env=None, cache_dir=None):
     '''(terminfo name, terminfo dir or None) to initialize curses with for direct 24-bit color, or
     None to keep $TERM. Only when the terminal renders truecolor (see _truecolor_signal, or an
     explicit --color 24bit), the color cap allows it, and python's curses can address >256 colors.
@@ -196,7 +206,7 @@ def direct_color_setup(env=None):
     name = f'{base}-direct'
     if _terminfo_exists(name, env):
         return name, None
-    built = _build_direct_entry(name, term, env)
+    built = _build_direct_entry(name, term, env, cache_dir)
     return (name, built) if built else None
 
 
@@ -207,58 +217,83 @@ def direct_color_term(env=None):
 
 
 @contextmanager
-def direct_color_env():
+def direct_color_env(cache_dir=None, pretend=False):
     '''Swap TERM (and TERMINFO, for a cache-built entry) to the direct-color entry for curses
     initialization only (ncurses reads them once, at initscr), restoring them after, so children run
-    from the TUI still see the user's real TERM.'''
-    setup = direct_color_setup()
-    saved = {k: os.environ.get(k) for k in ('TERM', 'TERMINFO')}
-    if setup:
-        os.environ['TERM'] = setup[0]
-        if setup[1]:
-            os.environ['TERMINFO'] = setup[1]
+    from the TUI still see the user's real TERM. A built entry goes to `cache_dir` (default: the
+    env's XDG cache); under `pretend` it is built into a throwaway temp dir, removed once curses has
+    read it — a dry run caches nothing.'''
+    tmp = None
+    if pretend:
+        import tempfile
+        tmp = cache_dir = tempfile.mkdtemp(prefix='configsys-terminfo-')
     try:
-        yield
-    finally:
+        setup = direct_color_setup(cache_dir=cache_dir)
+        saved = {k: os.environ.get(k) for k in ('TERM', 'TERMINFO')}
         if setup:
-            for k, v in saved.items():
-                if v is None:
-                    os.environ.pop(k, None)
-                else:
-                    os.environ[k] = v
+            os.environ['TERM'] = setup[0]
+            if setup[1]:
+                os.environ['TERMINFO'] = setup[1]
+        try:
+            yield
+        finally:
+            if setup:
+                for k, v in saved.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+    finally:
+        if tmp is not None:
+            import shutil
+            shutil.rmtree(tmp, ignore_errors=True)   # a mkdtemp dir of our own, never a home path
+
+
+def _quietly(fn, *args):
+    '''One teardown step: a curses.error must not skip the steps after it (endwin above all).'''
+    try:
+        fn(*args)
+    except curses.error:
+        pass
 
 
 @contextmanager
-def curses_screen():
-    with direct_color_env():
+def curses_screen(cache_dir=None, pretend=False):
+    '''initscr + our input modes, and a teardown that always reaches endwin. `cache_dir` / `pretend`
+    go to direct_color_env (where a built direct-color terminfo entry may be written).'''
+    with direct_color_env(cache_dir, pretend):
         stdscr = curses.initscr()
-    curses.noecho()
-    curses.cbreak()
-    stdscr.keypad(True)
-    distinct_return_mode()                    # CR != LF (see module docstring)
+    sigint = False
     try:
-        # cbreak keeps ISIG, so Ctrl-C raises SIGINT — but a blocking getch() would restart through
-        # it (SA_RESTART) and hang. Let SIGINT interrupt the read, so KeyboardInterrupt propagates and
-        # the teardown below restores the terminal even on Ctrl-C.
-        signal.siginterrupt(signal.SIGINT, True)
-    except (ValueError, OSError):
-        pass
-    try:
-        curses.curs_set(0)
-    except curses.error:
-        pass
-    try:
-        yield stdscr
-    finally:
+        curses.noecho()
+        curses.cbreak()
+        stdscr.keypad(True)
+        distinct_return_mode()                # CR != LF (see module docstring)
         try:
-            curses.curs_set(1)
+            # cbreak keeps ISIG, so Ctrl-C raises SIGINT — but a blocking getch() would restart
+            # through it (SA_RESTART) and hang. Let SIGINT interrupt the read, so KeyboardInterrupt
+            # propagates and the teardown below restores the terminal even on Ctrl-C.
+            signal.siginterrupt(signal.SIGINT, True)
+            sigint = True
+        except (ValueError, OSError):
+            pass
+        try:
+            curses.curs_set(0)
         except curses.error:
             pass
-        curses.nocbreak()
-        stdscr.keypad(False)
-        curses.echo()
-        curses.endwin()
-        _restore_cr_nl()                      # hand the shell back a normal Return
+        yield stdscr
+    finally:
+        _quietly(curses.curs_set, 1)
+        _quietly(curses.nocbreak)
+        _quietly(stdscr.keypad, False)
+        _quietly(curses.echo)
+        _quietly(curses.endwin)
+        _quietly(_restore_cr_nl)              # hand the shell back a normal Return
+        if sigint:
+            try:
+                signal.siginterrupt(signal.SIGINT, False)   # SA_RESTART again, as before the TUI
+            except (ValueError, OSError):
+                pass
 
 
 @contextmanager

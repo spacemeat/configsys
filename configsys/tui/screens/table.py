@@ -10,8 +10,8 @@ A table VM is any object with:
   display   None (rows in order) or the scrolled list: ('row', i) entries interleaved with
             ('hdr', text) section rules (painted full-width, padded with ─, never selectable)
 
-`draw_table` paints one into a panel interior and returns the clamped (top, hscroll) for the screen to
-keep; the painter itself writes nothing.
+`draw_table` paints one into a panel interior and returns the clamped (top, hscroll) plus the rows it
+shows (the page size) for the screen to keep; the painter itself writes nothing.
 '''
 
 from ..paint import _fit, _put, _put_hscroll, _scroll_top, _scrollbar_h, _scrollbar_v
@@ -33,7 +33,7 @@ def draw_table(surface, pal, rect, vm, cur, top, hscroll, h, w):
     '''Paint table `vm` into the panel interior `rect` = (inner top, left, height, width) with row
     `cur` selected: a sticky header that scrolls horizontally with the rows, the display list from
     `top`, the vertical scrollbar on the right border and the horizontal one on the bottom border.
-    -> the clamped (top, hscroll).'''
+    -> the clamped (top, hscroll) and the number of body rows (what a page-down moves by).'''
     it, il, ih, iw = rect
     hscroll = max(0, min(hscroll, max(0, vm.virt_w - iw)))
     for hdr, vx0 in zip(vm.headers, vm.xs):
@@ -61,4 +61,4 @@ def draw_table(surface, pal, rect, vm, cur, top, hscroll, h, w):
                          pal.style('label' if sel else role, y, il, h, w, selected=sel))
     _scrollbar_v(surface, pal, it + 1, il + iw, rows_h, top, rows_h, len(disp), h, w)
     _scrollbar_h(surface, pal, it + ih, il, iw, hscroll, iw, vm.virt_w, h, w)
-    return top, hscroll
+    return top, hscroll, rows_h

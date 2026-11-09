@@ -1407,17 +1407,36 @@ def theme_plugins(ctx):
     return sorted(d.name for d in pdir.iterdir() if d.is_dir() and _plugin_theme(d))
 
 
+def _theme_only_plugin(pdir):
+    '''True when the plugin dir `pdir` holds nothing but a theme pack (what save_theme_plugin writes):
+    no `code:` / `plugins:`, a `data:` of just theme.hu, and no other data file — so rewriting its
+    manifest as theme-only can't silently stop anything else in it from loading.'''
+    man = plugins.read_manifest(pdir) or {}
+    if man.get('code') or man.get('plugins'):
+        return False
+    data = man.get('data')
+    if data is not None and [str(d) for d in (data if isinstance(data, list) else [data])] != ['theme.hu']:
+        return False
+    return not ({p.name for p in Path(pdir).glob('*.hu')} - {'plugin.hu', 'theme.hu'})
+
+
 def save_theme_plugin(ctx, name, *, force=False):
     '''Snapshot the current effective theme overrides into a theme-only plugin `name` under the
     plugins dir (data-only: plugin.hu + theme.hu). Returns (path, existed); refuses to overwrite an
-    existing plugin unless `force` (the caller warns first). `name` must be one safe path segment
-    (a plugin dir name: `[A-Za-z0-9._-]`, not starting with a dot) — anything else, `../x` included,
-    raises ValueError before a thing is written.'''
+    existing plugin unless `force` (the caller warns first). Raises ValueError — even with `force` —
+    for a name that isn't one safe directory segment (no `/`, no `..`, no leading `.`), for your
+    primary plugin, and for an existing plugin that ships more than a theme (its manifest would be
+    rewritten theme-only and its data / code / plugins would stop loading).'''
     if not plugins._SAFE_DIR_RE.match(name or ''):
         raise ValueError(f'{name!r} is not a usable theme pack name — one word of letters, digits, '
                          '`.`, `_` or `-` (no `/`, not starting with a dot)')
+    if name == plugins.primary_name(plugins.declared(ctx.paths.user_config_file)):
+        raise ValueError(f'{name} is your primary plugin — export the pack under another name, or '
+                         f'promote the theme into the primary instead')
     pdir = Path(ctx.paths.plugins_dir) / name
     existed = pdir.exists()
+    if existed and not _theme_only_plugin(pdir):
+        raise ValueError(f'{name} is a plugin that ships more than a theme — not overwritten')
     if (existed and not force) or _pretend(ctx):     # --pretend: nothing written (caller checks _pretend)
         return pdir, existed
     from .tui import theme as _theme
@@ -1956,14 +1975,24 @@ def plugin_trust(ctx, ident):
     return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — {what} will run'
 
 
+def _trust_rows(ctx):
+    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
+    return plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file,
+                          lock_file=getattr(ctx.paths, 'plugin_lock_file', None))
+
+
+def plugin_trust_pending(ctx):
+    '''The plugin status rows `plugin_trust_all` would trust: synced, not locked, and untrusted or
+    changed since their trust — what the TUI lists for you to confirm before `T` trusts them.'''
+    return [r for r in _trust_rows(ctx) if not r['locked'] and r['code_state'] in ('untrusted', 'changed')]
+
+
 def plugin_trust_all(ctx):
     '''Trust EVERY plugin currently untrusted or changed — code OR command-carrying recipes (the bulk
     `T` / `plugin trust --all`). Returns (n_trusted, note); the note's first line is a summary (what
     the TUI shows), followed by one `verb name` line per plugin. Unsynced trustable plugins are
     counted in the note but skipped (nothing on disk to hash yet).'''
-    eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
-    rows = plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file,
-                          lock_file=getattr(ctx.paths, 'plugin_lock_file', None))
+    rows = _trust_rows(ctx)
     held = [r for r in rows if r['locked'] and r['code_state'] in ('untrusted', 'changed')]
     pending = [r for r in rows if not r['locked'] and r['code_state'] in ('untrusted', 'changed')]
     unsynced = [r for r in rows if r['code_state'] == 'unsynced']

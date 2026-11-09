@@ -38,7 +38,7 @@ def _fake_model():
         remote={plugins.dir_name('github:me/x'): 'v1.0',      # up to date
                 plugins.dir_name('github:org/y'): 'v0.9'},    # newer than ref -> update available
         cur=0, top=0, hscroll=0, focus='table',
-        diff_files=[], diff_note='', dfile=0, dtop=0, dhscroll=0,
+        diff_files=[], diff_note='', diff_span=None, dfile=0, dtop=0, dhscroll=0,
         cur_row=lambda: rows[0])
 
 
@@ -170,3 +170,32 @@ def test_down_on_an_empty_table_keeps_the_cursor_at_zero(ctx):
     assert scr.model.cur == 0
     scr.model.rows = rows
     assert scr.model.cur_row() is rows[0]
+
+
+def test_trust_all_lists_what_it_would_trust_and_cancel_trusts_nothing(ctx, monkeypatch):
+    # tui-screens-18: `T` names every plugin it would trust (state + short content hash) and trusts
+    # only on an explicit yes — cancel is the default
+    from configsys import actions
+    pend = [{'name': 'alpha', 'code_state': 'untrusted', 'identity': 'sha256:0123456789abcdef'},
+            {'name': 'beta', 'code_state': 'changed', 'identity': 'sha256:fedcba9876543210'}]
+    calls, asked = [], []
+    monkeypatch.setattr(actions, 'plugin_trust_pending', lambda c: list(pend))
+    monkeypatch.setattr(actions, 'plugin_trust_all', lambda c: calls.append(1) or (2, 'trusted 2 plugin(s)'))
+    answers = []
+
+    def chooser(_s, _p, title, options, start=0, body=(), **_k):
+        asked.append((title, list(body), start))
+        return answers.pop(0)
+    monkeypatch.setattr(menu, '_popup_choose', chooser)
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    trust_all = next(k for k in range(32, 127) if menu._KEYMAP.action_for('plugins', k) == 'trust-all')
+    answers.append(0)                                         # cancel (the default)
+    intent = scr.handle(trust_all, ctx, None, None)
+    assert calls == [] and 'nothing trusted' in intent.note
+    title, body, start = asked[0]
+    assert start == 0 and '2 plugin' in title
+    assert any('alpha' in b and 'untrusted' in b and '0123456789ab' in b for b in body)
+    assert any('beta' in b and 'changed' in b for b in body)
+    answers.append(1)                                         # trust them all
+    intent = scr.handle(trust_all, ctx, None, None)
+    assert calls == [1] and intent.note.startswith('trusted 2')

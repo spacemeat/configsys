@@ -445,6 +445,12 @@ class Config:
         default `this-machine` key (a one-machine user never has to name it).'''
         return self.selected_machine() or 'this-machine'
 
+    def machines_current_first(self):
+        '''Every machine (machine_names), the current one first — even when it has no picks entry
+        yet — then the rest sorted: the column / list order every machines view uses.'''
+        cur = self.current_machine()
+        return [cur] + [m for m in self.machine_names() if m != cur]
+
     def included(self, machine=None):
         '''The set of components Included for `machine` (default: the current machine).'''
         return set(self.picks().get(machine or self.current_machine(), ()))

@@ -11,7 +11,7 @@ from ..osversion import clean_version
 from .screen import suspended
 from .modals import _input_box, _popup_choose
 from .models import MenuState, _added_extras, _components_model, _describe, _is_system_update, _row_component
-from .paint import _fit, _put
+from .paint import _busy, _fit, _put
 
 
 def _pretend_note(ctx, note, wrote):
@@ -50,32 +50,6 @@ def _summary_note(outcomes):
     if n_adv:
         parts.append(f'{n_adv} need input')
     return ', '.join(parts)
-
-
-def _with_uninstall_node(ctx, states, layouts, transitive):
-    '''Fold the reserved `!uninstall` queue into the Components model: FRESH-inspect the queued
-    components that aren't in the active set (orphans live outside it — and their install state must
-    be current, not a reused cache, so a re-added leftover shows), then add a `!uninstall` node
-    listing the PRESENT ones so their removals can be executed here. No-op when empty.'''
-    try:
-        q = list(ctx.config.uninstall_queue())
-    except Exception:                               # noqa: BLE001
-        return states, layouts, transitive
-    if not q:
-        return states, layouts, transitive
-    have = {st.component.comp for st in states.values()}
-    missing = [c for c in q if c not in have]
-    if missing:
-        try:
-            states = {**states, **ctx.inspect_components(missing)}   # fresh probe (no reuse) — accuracy
-        except Exception:                           # noqa: BLE001 — never let this brick the screen
-            pass
-    present = sorted(c for c in q
-                     if any(st.component.comp == c and st.present for st in states.values()))
-    if present:
-        layouts = list(layouts) + [('!uninstall', present)]
-        transitive = {**transitive, '!uninstall': present}
-    return states, layouts, transitive
 
 
 def _seed_uninstall(ms, ctx):
@@ -125,9 +99,14 @@ class _TuiPushUI(primarygit.PushUI):
             _edit_conflict(path)
 
     def progress(self, text):
-        h, w = self.stdscr.getmaxyx()
-        _put(self.stdscr, h - 2, 0, _fit(f' {text}'.ljust(w), w), self.pal.style('status_line', h - 2, 0, h, w))
-        self.stdscr.refresh()
+        _paint_progress(self.stdscr, self.pal, text)
+
+
+def _paint_progress(stdscr, pal, text):
+    '''A push's "pushing …" status line, on the row above the legend.'''
+    h, w = stdscr.getmaxyx()
+    _put(stdscr, h - 2, 0, _fit(f' {text}'.ljust(w), w), pal.style('status_line', h - 2, 0, h, w))
+    stdscr.refresh()
 
 
 class _TuiAutoPushUI(primarygit.PushUI):
@@ -140,7 +119,7 @@ class _TuiAutoPushUI(primarygit.PushUI):
 
     def progress(self, text):
         if self.stdscr is not None:
-            _TuiPushUI.progress(self, text)
+            _paint_progress(self.stdscr, self.pal, text)
 
 
 def _push_primary(stdscr, pal, ctx):
@@ -254,11 +233,10 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
                   + (f', {extra} of them published since the scan' if extra > 0 else '') + ')')
         for op, key, rc in plan:
             print(f'  {op:8} {key}  (pkg: {rc.name})')
-        try:
-            ans = input('\nProceed? [y/N] ').strip().lower()
-        except EOFError:
-            ans = 'n'
-        if ans != 'y':
+        # the CLI's one y/N policy (cli.common.ask): y/yes goes; like the CLI's plan confirm, a
+        # --pretend run doesn't ask (nothing happens anyway)
+        from ..cli.common import ask
+        if not ask('\nProceed? [y/N] ', yes=getattr(ctx.runner, 'pretend', False), noninteractive='no'):
             print('cancelled.')
             input('Press Enter to return...')
             return False, 'cancelled', []
@@ -372,14 +350,6 @@ def _offer_method_swap(stdscr, pal, ms, ctx):
     return f'queued {name}: remove {olds} → reinstall via {new_via} (run with execute)'
 
 
-def _pick_method(stdscr, pal, ms, ctx):
-    '''Components-screen entry to the install-method picker: the current row's component.'''
-    name = _row_component(ms.cur())
-    if not name:
-        return False, 'pick a component row to choose its install method', None
-    return _pick_method_name(stdscr, pal, ctx, name)
-
-
 def _pick_method_name(stdscr, pal, ctx, name):
     '''Install-method picker for component `name`: an in-place popup of its candidate methods;
     choosing one writes a binding-pin. Returns (changed, note, deferred). No drop to the terminal;
@@ -391,6 +361,7 @@ def _pick_method_name(stdscr, pal, ctx, name):
     # may briefly query native/discovery) + a "lags" flag vs the newest available, so the choice is
     # version-informed. Best-effort: a probe failure just omits versions.
     vers, tip = {}, None
+    _busy(stdscr, pal, 'checking versions…')         # a native query can take a moment: say so first
     try:
         from .. import versionreport
         rep = versionreport.report(ctx, name)
@@ -487,50 +458,42 @@ def _apply_provider_pin(ctx, cap, provider, current):
         f'set provider {cap} → {provider} (local); `configsys pin promote {cap}` makes it portable.'
 
 
-def _pick_provider(stdscr, pal, ms, ctx):
-    '''Components-screen entry: for the current row's component, choose which component PROVIDES a
-    capability it's tied to (a provider-pin). The generic answer to "this capability has several
-    providers — use that one instead" (e.g. the opt-in cuda-toolkit-11 vs default cuda-toolkit-12).
-    Returns (changed, note, deferred).'''
-    name = _row_component(ms.cur())
-    if not name:
-        return False, 'pick a component row to choose a provider', None
-    choices = _capability_choices(ctx.routes, name)
-    if not choices:
-        return False, f'{name}: no capability with alternative providers here', None
-    if len(choices) == 1:
-        cap, provs = choices[0]
-    else:                                                # more than one cap -> pick which first
-        cidx = _popup_choose(stdscr, pal, f'capability — {name}',
-                             [(c, f'{len(p)} providers') for c, p in choices], 0)
-        if cidx is None:
-            return False, 'provider unchanged', None
-        cap, provs = choices[cidx]
-    return _pick_provider_cap(stdscr, pal, ctx, name, cap, provs)
+def _default_provider(routes, provs, avail):
+    '''The provider the resolver auto-pulls for a capability among `provs` (resolve._State.
+    _pick_provider's rule): of those available here and not `never-auto`, the only one, else the one
+    with the strictly highest component `standing:` rank. None when nothing qualifies or the top rank
+    ties (the resolver calls that ambiguous — a pin decides). It doesn't see a detected-installed
+    provider's adoption or a version-constrained pick: those depend on what requires it.'''
+    from ..resolve import provider_standing
+    auto = [p for p in provs if avail.get(p) and not getattr(routes.components[p], 'never_auto', False)]
+    if not auto:
+        return None
+    rank = provider_standing(routes.components)
+    top = max(rank(p) for p in auto)
+    best = [p for p in auto if rank(p) == top]
+    return best[0] if len(best) == 1 else None
 
 
 def _pick_provider_cap(stdscr, pal, ctx, name, cap, provs):
     '''Provider picker for ONE already-chosen capability `cap` (providers `provs`), from `name`'s row.
-    Writes a provider-pin cap->provider. Split out of `_pick_provider` so the unified chooser, which
-    has already picked the capability axis, can jump straight here. Returns (changed, note, deferred).'''
+    Writes a provider-pin cap->provider. The unified chooser (`_pick_choices`) has already picked the
+    capability axis and jumps straight here. Returns (changed, note, deferred).'''
     routes = ctx.routes
     pins = ctx.config.pins()
     pinned = pins.get(cap)
-    default = next((p for p in provs if not getattr(routes.components[p], 'never_auto', False)), None)
-    # the provider in effect now: an explicit pin, else this row (if it provides cap), else the default
-    current = pinned or (name if cap in getattr(routes.components.get(name), 'provides', ()) else default)
-    avail, options = {}, []
+    avail = {p: bool(routes.candidates(p)) for p in provs}
+    default = _default_provider(routes, provs, avail)
+    current = pinned or default                  # the provider in effect now: the pin, else the default
+    options = []
     for p in provs:
-        here = bool(routes.candidates(p))
-        avail[p] = here
         tags = []
         if p == pinned:
             tags.append('pinned')
         elif p == current:
             tags.append('current')
-        if not getattr(routes.components[p], 'never_auto', False):
+        if p == default:
             tags.append('default')
-        if not here:
+        if not avail[p]:
             tags.append('n/a here')
         options.append((p, ' '.join(tags)))
     start = (provs.index(pinned) if pinned in provs

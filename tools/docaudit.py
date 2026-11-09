@@ -160,7 +160,8 @@ def tui_facts():
     except Exception:                                    # noqa: BLE001
         pass
     helps = {}
-    for screen, info in getattr(tui_help, '_HELP', {}).items():
+    for screen in getattr(tui_help, '_HELP', {}):
+        info = tui_help.help_page(screen)            # its {scope:action} keys rendered (shipped keymap)
         helps[screen] = {'desc': info.get('desc', ''),
                          'glossary': [t for t, _m in info.get('glossary', [])]}
     return {
@@ -588,7 +589,8 @@ def _check_help_retired(retired):
     blobs = [(f'argparse: configsys {c["command"]}'.strip(), ' '.join([c['help']] + [o['help'] for o in c['options']]))
              for c in cli_tree()]
     from configsys.tui import help as tui_help
-    for screen, info in getattr(tui_help, '_HELP', {}).items():
+    for screen in getattr(tui_help, '_HELP', {}):
+        info = tui_help.help_page(screen)
         blobs.append((f'TUI ? help: {screen}', info.get('desc', '') + ' ' +
                       ' '.join(f'{t} {m}' for t, m in info.get('glossary', []))))
     for where, text in blobs:

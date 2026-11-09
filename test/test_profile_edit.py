@@ -94,11 +94,11 @@ def test_parts_component_installed_iff_all_parts(tmp_path):
     ps.show_install = 1
     assert ps._parts('docker') == ['docker-engine', 'docker-service']
     ps._overlay = (frozenset(), {}, frozenset()); ps._probe_installed = {}
-    assert ps.is_installed('docker') is False                 # none installed
+    assert ps.install_state('docker') != 'all'                 # none installed
     ps._overlay = (frozenset({'docker-engine'}), {}, frozenset())
-    assert ps.is_installed('docker') is False                 # only one part
+    assert ps.install_state('docker') != 'all'                 # only one part
     ps._probe_installed = {'docker-service': True}            # the other part via probe
-    assert ps.is_installed('docker') is True                  # all parts -> installed
+    assert ps.install_state('docker') == 'all'                  # all parts -> installed
 
 
 def test_install_probe_underlines_nonenumerable(tmp_path):

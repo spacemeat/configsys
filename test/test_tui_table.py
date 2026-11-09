@@ -27,8 +27,8 @@ def test_rows_rules_and_selection():
     vm = _vm([['fd-glue', 'active'], ['zoxide-glue', 'changed']], ['installed', 'outdated'],
              display=[('hdr', 'bash  loader: active'), ('row', 0), ('row', 1)])
     surf = BufferSurface(10, 40)
-    top, hs = table.draw_table(surf, RecordingPalette(), (1, 1, 6, 30), vm, 1, 0, 0, 10, 40)
-    assert (top, hs) == (0, 0)
+    top, hs, page_h = table.draw_table(surf, RecordingPalette(), (1, 1, 6, 30), vm, 1, 0, 0, 10, 40)
+    assert (top, hs, page_h) == (0, 0, 5)                        # 6-row panel - the header row
     assert _text(surf, 1).startswith('name')                     # sticky header
     assert _text(surf, 2).startswith('bash  loader: active ─')   # a section rule, ─-padded
     assert 'zoxide-glue' in _text(surf, 4)
@@ -47,5 +47,5 @@ def test_per_cell_roles_and_hbar_on_the_panels_own_border():
 def test_hscroll_is_clamped_to_the_content():
     vm = _vm([['short', 'x']], ['component'])
     surf = BufferSurface(8, 40)
-    _top, hs = table.draw_table(surf, RecordingPalette(), (1, 1, 4, 30), vm, 0, 0, 99, 8, 40)
+    _top, hs, _ph = table.draw_table(surf, RecordingPalette(), (1, 1, 4, 30), vm, 0, 0, 99, 8, 40)
     assert hs == 0

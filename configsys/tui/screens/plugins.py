@@ -16,6 +16,7 @@ seams:
 
 import os
 
+from ... import plugins
 from .. import menu
 from ..modals import _input_box
 from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_h, _scrollbar_v
@@ -129,13 +130,12 @@ class PluginsScreen(Screen):
     # -- build_vm ---------------------------------------------------------
 
     def build_vm(self, ctx, size):
-        from ... import plugins
         pl = self.model
         vm = PluginsVM()
         vm.focus = pl.focus
         vm.has_rows = bool(pl.rows)
         if not pl.rows:
-            vm.empty_msg = '(no plugins declared — a to add)'
+            vm.empty_msg = f'(no plugins declared — {menu._keymap().glyph("plugins", "add")} to add)'
         else:
             remotes = [pl.remote.get(plugins.dir_name(r['source'])) for r in pl.rows]
             pst = getattr(pl, 'primary_state', None)
@@ -153,10 +153,9 @@ class PluginsScreen(Screen):
         return vm
 
     def _build_diff_vm(self, vm):
-        from ... import plugins
         pl = self.model
         row = pl.cur_row()
-        span = getattr(pl, 'diff_span', None)
+        span = pl.diff_span
         if row is not None and span:
             frm, to, what = span
             vm.diff_title = f'diff · {row["name"]} · {frm} → {to} · {what}'
@@ -166,7 +165,8 @@ class PluginsScreen(Screen):
             vm.diff_title = f'diff · {row["name"]} · {row["ref"] or "HEAD"} → {to}'
         files = pl.diff_files
         if not files:
-            vm.diff_msg = pl.diff_note or 'Tab here to review what an update would change'
+            vm.diff_msg = pl.diff_note or (f'{menu._keymap().glyph("plugins", "switch-pane")} here to '
+                                           'review what an update would change')
             return
         vm.diff_has_files = True
         dfile = max(0, min(pl.dfile, len(files) - 1))
@@ -175,7 +175,7 @@ class PluginsScreen(Screen):
         added = sum(1 for k, _t in f['lines'] if k == 'add')
         removed = sum(1 for k, _t in f['lines'] if k == 'del')
         vm.diff_header = (f'[{dfile + 1}/{len(files)}] {f["path"]}   '
-                          f'+{added} -{removed}   (Tab: next file)')
+                          f'+{added} -{removed}   ({menu._keymap().glyph("plugins", "switch-pane")}: next file)')
         vm.diff_lines = [(_DIFF_ELEM.get(k, 'info_dim'), t) for k, t in f['lines']]
         vm.diff_maxlen = max((len(t) for _k, t in f['lines']), default=0)
 
@@ -197,9 +197,9 @@ class PluginsScreen(Screen):
         if not vm.has_rows:
             _put(surface, tit, til, _fit(vm.empty_msg, tiw), pal.style('info_dim', tit, til, h, w))
             return
-        top, hscroll = table.draw_table(surface, pal, (tit, til, tih, tiw), vm, pl.cur,
-                                        pl.top, pl.hscroll, h, w)
-        vm.settle(top=top, hscroll=hscroll)
+        top, hscroll, page_h = table.draw_table(surface, pal, (tit, til, tih, tiw), vm, pl.cur,
+                                                pl.top, pl.hscroll, h, w)
+        vm.settle(top=top, hscroll=hscroll, page_h=page_h)
 
     def _draw_diff(self, surface, pal, vm, h, w, top, diff_h):
         pl = self.model
@@ -213,7 +213,7 @@ class PluginsScreen(Screen):
         lines = vm.diff_lines
         dtop = max(0, min(pl.dtop, max(0, len(lines) - body_h)))
         dhscroll = max(0, min(pl.dhscroll, max(0, vm.diff_maxlen - diw)))
-        vm.settle(dtop=dtop, dhscroll=dhscroll)
+        vm.settle(dtop=dtop, dhscroll=dhscroll, dpage_h=max(1, body_h))
         for vis, i in enumerate(range(dtop, min(len(lines), dtop + body_h))):
             elem, txt = lines[i]
             y = dit + 1 + vis
@@ -256,9 +256,11 @@ class PluginsScreen(Screen):
                     pl.focus = 'table'
             elif pact in menu._NAV_ACTIONS:
                 if pl.focus == 'diff':                  # the diff scroll is clamped by the draw
-                    pl.dtop = menu.ListNav.apply(pact, pl.dtop, 10 ** 6, lambda: _page_rows(stdscr))
+                    pl.dtop = menu.ListNav.apply(pact, pl.dtop, 10 ** 6,
+                                                 lambda: _page_rows(stdscr, getattr(pl, 'dpage_h', None)))
                 else:
-                    pl.cur = menu.ListNav.apply(pact, pl.cur, len(pl.rows) - 1, lambda: _page_rows(stdscr))
+                    pl.cur = menu.ListNav.apply(pact, pl.cur, len(pl.rows) - 1,
+                                                lambda: _page_rows(stdscr, getattr(pl, 'page_h', None)))
                     pl._invalidate_diff()
             elif pact == 'right':
                 if pl.focus == 'diff':
@@ -347,7 +349,8 @@ class PluginsScreen(Screen):
                     res = actions.plugin_sync(ctx, tgt)
                 pl.reload()
                 dirty = True
-                note = _with_delta((f'{row["name"]} is locked — not synced (L unlocks)'
+                note = _with_delta((f'{row["name"]} is locked — not synced '
+                                    f'({km.glyph("plugins", "lock")} unlocks)'
                                     if res and res[0][1] == 'locked' else
                                     _sync_note(ctx, res) or f'synced {row["name"]}'), before, ctx)
             elif pact == 'sync-all':
@@ -391,9 +394,21 @@ class PluginsScreen(Screen):
                 pl.reload()
                 dirty = _ok
             elif pact == 'trust-all':
-                _n, note = actions.plugin_trust_all(ctx)
-                pl.reload()
-                dirty = bool(_n)
+                pend = actions.plugin_trust_pending(ctx)
+                go = not pend                            # nothing pending: say why (the action's note)
+                if pend:                                 # what would RUN from now on — confirm first
+                    body = [f'{r["name"]:24} {r["code_state"]:9} '
+                            f'{str(r.get("identity") or "").split(":")[-1][:12]}' for r in pend]
+                    go = menu._popup_choose(
+                        stdscr, pal, f'trust {len(pend)} plugin(s)? their code / recipes may then run '
+                        f'(cancel, then {km.glyph("global", "switch-pane")} on a row reviews its diff)',
+                        [('cancel', ''), (f'trust all {len(pend)}', '')], 0, body=body) == 1
+                if go:
+                    _n, note = actions.plugin_trust_all(ctx)
+                    pl.reload()
+                    dirty = bool(_n)
+                else:
+                    note = 'trust cancelled — nothing trusted'
             elif pact == 'lock' and row:
                 if row.get('locked'):
                     _ok, note = actions.plugin_unlock(ctx, row['name'])

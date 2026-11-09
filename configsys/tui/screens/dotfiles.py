@@ -71,7 +71,7 @@ class DotfilesScreen(Screen):
         vm = DotfilesVM()
         vm.has_rows = bool(ds.rows)
         if not ds.rows:
-            vm.empty_msg = '(no dotfiles in the active profiles)'
+            vm.empty_msg = "(nothing in this machine's picks ships a dotfiles config)"
         else:
             # one cell-set per row; each column is sized to its longest cell so nothing is truncated —
             # horizontal scroll (h/l) reaches anything wider than the panel.
@@ -89,7 +89,8 @@ class DotfilesScreen(Screen):
                   + '   '.join(f'{counts[s]} {s}' for s in ('managed', 'unmanaged', 'no config')
                                if counts.get(s)))
         if n_risk:
-            status += f'   ! {n_risk} unmanaged file(s) at risk — capture (c) before linking'
+            g = menu._keymap().glyph('dotfiles', 'manage')
+            status += f'   ! {n_risk} unmanaged file(s) at risk — {g} manage adopts it before linking'
         vm.status = status
         vm.nav = _nav_str()
         return vm
@@ -104,9 +105,9 @@ class DotfilesScreen(Screen):
             _put(surface, it, il, _fit('   '.join(vm.headers), iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            top, hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
+            top, hscroll, page_h = table.draw_table(surface, pal, (it, il, ih, iw), vm, ds.cur,
                                             ds.top, ds.hscroll, h, w)
-            vm.settle(top=top, hscroll=hscroll)
+            vm.settle(top=top, hscroll=hscroll, page_h=page_h)
 
         self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
@@ -123,7 +124,7 @@ class DotfilesScreen(Screen):
         note = None
         try:
             if dact in menu._NAV_ACTIONS:
-                ds.cur = menu.ListNav.apply(dact, ds.cur, len(ds.rows) - 1, lambda: _page_rows(stdscr))
+                ds.cur = menu.ListNav.apply(dact, ds.cur, len(ds.rows) - 1, lambda: _page_rows(stdscr, getattr(ds, 'page_h', None)))
             elif dact == 'left':                      # horizontal scroll across the columns
                 ds.hscroll = max(0, ds.hscroll - 4)
             elif dact == 'right':

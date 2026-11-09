@@ -51,6 +51,7 @@ class ProfilesVM(ViewModel):
         self.focus = 'left'
         self.overlay = (frozenset(), {}, frozenset())   # install-axis overlay (empty unless `O` on)
         self.cur_oses = None       # the catalog cursor's component has no method here: where it has one
+        self.cur_oses_pending = None   # ...that component, while where-it-has-one is still being worked out
         # geometry
         self.top = 1               # panels start below the screen chips
         self.body_h = 1            # the panels' height (two status/legend rows + two nav rows below)
@@ -142,8 +143,11 @@ class ProfilesScreen(Screen):
         crows = ps._catalog_rows()                       # [(name, depth)] — parts children interleaved
         vcat = [nm for nm, _dep in crows]
         cur = vcat[ps.rcur] if vcat and 0 <= ps.rcur < len(vcat) else None
+        vm.settle(_os_painted=ps._os_done)             # read BEFORE the cache: a later landing repolls
         if cur is not None and not ps.available(cur):
-            vm.cur_oses = ps.available_oses(cur)
+            oses = ps.cached_available_oses(cur)       # computed off-thread (commit requests it)
+            vm.cur_oses = oses if oses is not None else []
+            vm.cur_oses_pending = cur if oses is None else None
 
         vm.top, vm.body_h = 1, max(1, h - 5)             # TWO status/legend rows, then TWO nav rows below
         vm.lw = max(16, w // 6) + 6                      # profiles pane: narrow, leaving the grid room
@@ -192,7 +196,7 @@ class ProfilesScreen(Screen):
         vm.left_n, vm.ltop, vm.left_max = len(vnodes), ltop, lmax
         lhmax = max(0, lmax - liw)                       # clamp target for ←/→ (the handler reads it)
         vm.lhoff = min(getattr(ps, 'lhoff', 0), lhmax)
-        vm.settle(ltop=ltop, reveal=None, lhmax=lhmax, lhoff=vm.lhoff)
+        vm.settle(ltop=ltop, reveal=None, lhmax=lhmax, lhoff=vm.lhoff, lpage_h=max(1, lih))
 
     def _detail_vm(self, vm, ps, ctx, prof, cur, dih, diw):
         '''The detail box: the browsed profile's authored definition (left pane focused), else the
@@ -222,7 +226,9 @@ class ProfilesScreen(Screen):
         lines.extend((k, line, 'info') for k, line in enumerate(_wrap(desc, diw)[:max(0, rows)]))
         if unavail:
             block = ctx.os_info.block
-            lines.append((dih - 5, f'⊘ no install method on {block} · available on: {", ".join(vm.cur_oses)}'
+            lines.append((dih - 5, f'⊘ no install method on {block} · checking where it installs…'
+                          if vm.cur_oses_pending else
+                          f'⊘ no install method on {block} · available on: {", ".join(vm.cur_oses)}'
                           if vm.cur_oses else f'⊘ no install method on {block} (declines on every '
                           'modeled OS)', 'issue_warning'))
         parts_here = ps._parts(cur)
@@ -303,7 +309,7 @@ class ProfilesScreen(Screen):
         # the key handler clamps ←/→ against rhmax; _probe_dirty is consumed (this frame reflects
         # any folded-in probes)
         vm.settle(rcur=rcur, rtop=rtop, rcol_left=vm.rcol_left, rhmax=max(0, vm.cat_w - riw),
-                  _probe_dirty=False)
+                  _probe_dirty=False, rpage_h=body_rows)
 
         vm.cat_header = ([(x_name, _fit('COMPONENT', name_w), 'menu_header', False),
                           (x_via, _fit('via', via_w), 'menu_header', False),
@@ -362,8 +368,8 @@ class ProfilesScreen(Screen):
 
     # -- draw -------------------------------------------------------------
 
-    def draw(self, stdscr, pal, vm):
-        h, w = self.begin_page(stdscr, pal)
+    def draw(self, surface, pal, vm):
+        h, w = self.begin_page(surface, pal)
         top, body_h, lw = vm.top, vm.body_h, vm.lw
         rleft, rw = lw + 1, w - lw - 1
         _sel = pal.sel_bg_rgb
@@ -372,7 +378,7 @@ class ProfilesScreen(Screen):
         rbg_of = lambda unfocused_cur: (None if low_color else residual_bg) if unfocused_cur else None
 
         # LEFT: the profile tree
-        lit, lil, lih, liw = _panel(stdscr, pal, top, 0, body_h, lw, vm.ltitle, vm.focus == 'left', h, w)
+        lit, lil, lih, liw = _panel(surface, pal, top, 0, body_h, lw, vm.ltitle, vm.focus == 'left', h, w)
         lho = vm.lhoff
         for vis, row in enumerate(vm.left_rows):
             y = lit + vis
@@ -381,32 +387,32 @@ class ProfilesScreen(Screen):
             rbg = rbg_of(unfoc)
             rev = curses.A_REVERSE if (low_color and unfoc) else 0
             if foc:
-                _put(stdscr, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
+                _put(surface, y, lil, ' ' * liw, pal.fill(y, lil, h, w, selected=True))
             elif unfoc:
-                _put(stdscr, y, lil, ' ' * liw,
+                _put(surface, y, lil, ' ' * liw,
                      curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=residual_bg))
-            _put(stdscr, y, lil, _fit(row.text[lho:], liw),
+            _put(surface, y, lil, _fit(row.text[lho:], liw),
                  pal.style('profile', y, lil, h, w, selected=foc, bg=rbg)
                  | rev | (curses.A_DIM if row.struck and not foc else 0))
             if not foc:                                  # the count badges in their own hues
                 for text, hue in row.badges:
                     vx = row.text.rindex(text) - lho
                     if 0 <= vx and vx + len(text) <= liw:
-                        _put(stdscr, y, lil + vx, text, pal.style(hue, y, lil + vx, h, w, bg=rbg) | rev)
-        _scrollbar_v(stdscr, pal, lit, lw - 1, lih, vm.ltop, lih, vm.left_n, h, w)
+                        _put(surface, y, lil + vx, text, pal.style(hue, y, lil + vx, h, w, bg=rbg) | rev)
+        _scrollbar_v(surface, pal, lit, lw - 1, lih, vm.ltop, lih, vm.left_n, h, w)
         if vm.left_max > liw:                            # horizontal thumb on the pane's bottom border
-            _scrollbar_h(stdscr, pal, top + body_h - 1, lil, liw, lho, liw, vm.left_max, h, w)
+            _scrollbar_h(surface, pal, top + body_h - 1, lil, liw, lho, liw, vm.left_max, h, w)
 
         # RIGHT TOP: the detail box
         if vm.detail_title is not None:
-            dit, dil, _dih, diw = _panel(stdscr, pal, top, rleft, vm.desc_h, rw, vm.detail_title,
+            dit, dil, _dih, diw = _panel(surface, pal, top, rleft, vm.desc_h, rw, vm.detail_title,
                                          False, h, w)
             for row, text, role in vm.detail_lines:
-                _put(stdscr, dit + row, dil, _fit(text, diw), pal.style(role, dit + row, dil, h, w))
+                _put(surface, dit + row, dil, _fit(text, diw), pal.style(role, dit + row, dil, h, w))
 
         # RIGHT BOTTOM: the catalog matrix
         ctop, cath = top + vm.desc_h, body_h - vm.desc_h
-        rit, ril, rih, riw = _panel(stdscr, pal, ctop, rleft, cath, rw, vm.ctitle, vm.focus == 'right', h, w)
+        rit, ril, rih, riw = _panel(surface, pal, ctop, rleft, cath, rw, vm.ctitle, vm.focus == 'right', h, w)
         rhoff = vm.rcol_left
 
         def hput(y, xoff, text, attr):                   # draw at xoff-rhoff, clipping both edges
@@ -416,7 +422,7 @@ class ProfilesScreen(Screen):
             if ax < 0:
                 text, ax = text[-ax:], 0
             if text:
-                _put(stdscr, y, ril + ax, _fit(text, riw - ax), attr)
+                _put(surface, y, ril + ax, _fit(text, riw - ax), attr)
 
         for x, text, role, bold in vm.cat_header:
             hput(rit, x, text, pal.style(role, rit, ril, h, w) | (curses.A_BOLD if bold else 0))
@@ -426,29 +432,31 @@ class ProfilesScreen(Screen):
             foc = row.cur and vm.focus == 'right'
             rev = curses.A_REVERSE if (low_color and row.cur and not foc) else 0
             if foc:
-                _put(stdscr, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
+                _put(surface, y, ril, ' ' * riw, pal.fill(y, ril, h, w, selected=True))
             elif rev:
-                _put(stdscr, y, ril, ' ' * riw, curses.A_REVERSE)
+                _put(surface, y, ril, ' ' * riw, curses.A_REVERSE)
             for x, text, role, flag in row.cells:
                 hput(y, x, text, pal.style(role, y, ril + x, h, w, selected=foc) | rev | flag_attr[flag])
         body_rows = max(1, rih - 1)
-        _scrollbar_v(stdscr, pal, rit + 1, rleft + rw - 1, body_rows, vm.rtop, body_rows, vm.cat_n, h, w)
+        _scrollbar_v(surface, pal, rit + 1, rleft + rw - 1, body_rows, vm.rtop, body_rows, vm.cat_n, h, w)
         if vm.cat_w > riw:                               # horizontal thumb on the bottom border
-            _scrollbar_h(stdscr, pal, ctop + cath - 1, ril, riw, rhoff, riw, vm.cat_w, h, w)
+            _scrollbar_h(surface, pal, ctop + cath - 1, ril, riw, rhoff, riw, vm.cat_w, h, w)
 
         status = vm.status + (f'    {vm.note}' if vm.note else '')
         _sty = lambda row, x: pal.style('status_line', row, x, h, w)
         lg1_x = max(0, w - len(vm.legend1))
         lg2_x = max(0, w - len(vm.legend2))
-        _put(stdscr, h - 4, 0, _fit(status, max(1, lg1_x - 1)), _sty(h - 4, 0))
-        _put(stdscr, h - 4, lg1_x, _fit(vm.legend1, w - lg1_x), _sty(h - 4, lg1_x))
-        _put(stdscr, h - 3, lg2_x, _fit(vm.legend2, w - lg2_x), _sty(h - 3, lg2_x))
-        self.end_page(stdscr, pal, None, [vm.nav1, vm.nav2], h, w)
+        _put(surface, h - 4, 0, _fit(status, max(1, lg1_x - 1)), _sty(h - 4, 0))
+        _put(surface, h - 4, lg1_x, _fit(vm.legend1, w - lg1_x), _sty(h - 4, lg1_x))
+        _put(surface, h - 3, lg2_x, _fit(vm.legend2, w - lg2_x), _sty(h - 3, lg2_x))
+        self.end_page(surface, pal, None, [vm.nav1, vm.nav2], h, w)
 
     def commit(self, vm):
         super().commit(vm)
         if self.model.show_install and getattr(vm, 'shown', None):
             self.model.ensure_probes(vm.shown)          # probe the just-drawn rows, after the paint
+        if getattr(vm, 'cur_oses_pending', None):
+            self.model.request_available_oses(vm.cur_oses_pending)   # coverage, off the UI thread
 
     # -- handle -----------------------------------------------------------
 
@@ -477,10 +485,10 @@ class ProfilesScreen(Screen):
         if pfact in menu._NAV_ACTIONS:
             if ps.focus == 'left':
                 ps.lcur = menu.ListNav.apply(pfact, ps.lcur, len(ps.visible_pnodes()) - 1,
-                                             lambda: _page_rows(stdscr))
+                                             lambda: _page_rows(stdscr, getattr(ps, 'lpage_h', None)))
             else:                              # the catalog: down = the next item
                 ps.rcur = menu.ListNav.apply(pfact, ps.rcur, len(ps.vcatalog()) - 1,
-                                             lambda: _page_rows(stdscr))
+                                             lambda: _page_rows(stdscr, getattr(ps, 'rpage_h', None)))
         elif pfact in ('switch-pane', 'switch-pane-back'):
             ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
         elif pfact == 'confirm' and ps.focus == 'left':
@@ -567,7 +575,9 @@ class ProfilesScreen(Screen):
         elif pfact in ('track-all', 'track-one'):
             # T = the multi-select set / whole selected profile; t = just the highlighted item.
             _targets = ps.action_targets() if pfact == 'track-all' else ps.cursor_targets()
-            if _targets:
+            if _targets and not ps.targets():      # nothing to fan out to: say how to pick some
+                note = f'no target machines — {km.glyph("profiles", "machine-target")} to pick'
+            elif _targets:
                 tg = sorted(ps.targets())          # the selected target machines (fan-out)
                 # toggle: if ALL targets are already fully tracked here, UNtrack; else track.
                 on = not all(ps.target_state(c) == 'all' for c in _targets)
@@ -611,7 +621,8 @@ class ProfilesScreen(Screen):
                 note = f'{nch} marked seen'
         elif pfact == 'claim':                 # `C`: track everything already INSTALLED (adopt a box)
             _busy(stdscr, pal, 'scanning installed…')   # a full scan; give feedback before the freeze
-            _claim = ps.installed_scan()       # full catalog: batch indices + per-component get_version
+            _claim = ps.installed_scan(        # full catalog: batch indices + per-component get_version
+                progress=lambda i, n: _busy(stdscr, pal, f'scanning installed… {i}/{n}'))
             tg = sorted(ps.targets())
             if not _claim:
                 note = 'nothing installed to claim'
@@ -680,7 +691,9 @@ class ProfilesScreen(Screen):
             if vcat:
                 _c = vcat[ps.rcur]
                 mnote = _w(_component_machines_modal)(stdscr, pal, ctx, _c)
-                ps.reload(); dirty = True
+                if mnote:                          # the modal notes only a toggle that wrote
+                    ps.reload()
+                dirty = bool(mnote)
                 note = mnote or f'{_c} machines'
         elif pfact == 'machine-target':          # target machines + add/rename/remove (modal)
             before = set(ps.targets())
@@ -717,6 +730,8 @@ class ProfilesScreen(Screen):
                 name = vcat[ps.rcur]
                 if ps.is_expandable(name):     # a `via: parts` aggregator -> reveal/hide its pieces
                     ps.toggle_expand_part(name)
+                elif not ps.targets():
+                    note = f'no target machines — {km.glyph("profiles", "machine-target")} to pick'
                 else:
                     tg = sorted(ps.targets())
                     on = ps.target_state(name) != 'all'   # not fully on -> include; else exclude

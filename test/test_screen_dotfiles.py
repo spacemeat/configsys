@@ -72,7 +72,7 @@ def test_build_vm_empty():
     scr = DotfilesScreen.__new__(DotfilesScreen)
     scr.model = SimpleNamespace(rows=[], display=[], cur=0, top=0, hscroll=0)
     vm = scr.build_vm(None, (40, 200))
-    assert not vm.has_rows and vm.empty_msg == '(no dotfiles in the active profiles)'
+    assert not vm.has_rows and vm.empty_msg == "(nothing in this machine's picks ships a dotfiles config)"
     assert vm.cells == [] and vm.elems == []
     assert vm.status.strip() == '0 config target(s)'
 
@@ -112,14 +112,14 @@ def test_draw_empty_state():
     scr.model = SimpleNamespace(cur=0, top=0, hscroll=0)
     vm = DotfilesVM()
     vm.has_rows = False
-    vm.empty_msg = '(no dotfiles in the active profiles)'
+    vm.empty_msg = "(nothing in this machine's picks ships a dotfiles config)"
     vm.status = ' 0 config target(s)   '
     vm.nav = ' q '
     surf = BufferSurface(24, 200)
     scr.draw(surf, RecordingPalette(), vm)
     joined = '\n'.join(surf.text_rows())
     assert 'component   state   link   source' in joined               # headers still drawn (3-space join)
-    assert '(no dotfiles in the active profiles)' in joined
+    assert "(nothing in this machine's picks ships a dotfiles config)" in joined
     assert '0 config target(s)' in joined
 
 
@@ -158,3 +158,12 @@ def test_handle_move_store_all_without_primary_plugin_notes(ctx):
     intent = scr.handle(key, ctx, None, None)
     assert intent.note == 'no primary plugin configured — nothing to move between'
     assert scr.model.dirty == set()
+
+
+def test_at_risk_status_names_the_manage_key_not_a_capture_key():
+    # tui-screens-20: the dotfiles page has no capture action — `manage` adopts the file
+    scr = DotfilesScreen.__new__(DotfilesScreen)
+    scr.model = _fake_model()
+    vm = scr.build_vm(None, (40, 200))
+    g = menu._keymap().glyph('dotfiles', 'manage')
+    assert f'{g} manage adopts it before linking' in vm.status and 'capture (c)' not in vm.status

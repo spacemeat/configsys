@@ -1,6 +1,6 @@
 '''Unit tests for the TUI Surface abstraction (configsys/tui/surface.py) — the off-screen
-BufferSurface the render harness paints into. CursesSurface is a transparent shim over a real
-window, covered by the live pty smoke test; here we pin the buffer's recording semantics.'''
+BufferSurface the render harness paints into. A real curses window satisfies the same contract
+directly (covered by the live pty smoke test); here we pin the buffer's recording semantics.'''
 
 from configsys.tui.surface import BufferSurface, Cell
 

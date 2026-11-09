@@ -5,9 +5,8 @@ handful of window operations: `getmaxyx`, `erase`, `addstr`, `move`, `refresh`, 
 Theme screen renders sub-pages into a sub-window). A Surface is exactly that contract, so a painter
 can render to a real curses window OR to an off-screen buffer without knowing which.
 
-- `CursesSurface` wraps a curses `stdscr`/window and delegates verbatim (a thin, transparent shim).
-  NOT used by `menu.run`, which hands each screen's draw the raw `stdscr` (it satisfies the same
-  duck-typed contract); it's kept as the explicit adapter for tests / a headless or embedding host.
+- A curses `stdscr`/window satisfies the contract as-is: `menu.run` hands each screen's draw the
+  raw `stdscr` (no adapter).
 - `BufferSurface` records every drawn cell into a `{(y, x): Cell}` grid and does nothing else. It is
   what makes the TUI renderable headlessly: the render tests (test/_render_harness.py) paint a screen
   from a fixed state into a BufferSurface and assert on the grid, and it is the seam an eventual
@@ -22,34 +21,6 @@ from collections import namedtuple
 
 # one painted character cell: the glyph and the opaque attr it was drawn with.
 Cell = namedtuple('Cell', 'char attr')
-
-
-class CursesSurface:
-    '''A transparent shim over a curses window: delegates every op to the underlying window. The
-    test/headless seam — production (`menu.run`) paints on `stdscr` directly, not through this.'''
-
-    __slots__ = ('win',)
-
-    def __init__(self, win):
-        self.win = win
-
-    def getmaxyx(self):
-        return self.win.getmaxyx()
-
-    def erase(self):
-        self.win.erase()
-
-    def addstr(self, y, x, s, attr=0):
-        self.win.addstr(y, x, s, attr)
-
-    def move(self, y, x):
-        self.win.move(y, x)
-
-    def refresh(self):
-        self.win.refresh()
-
-    def derwin(self, h, w, y, x):
-        return CursesSurface(self.win.derwin(h, w, y, x))
 
 
 class BufferSurface:

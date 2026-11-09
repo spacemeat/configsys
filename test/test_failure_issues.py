@@ -132,6 +132,8 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
         states={'su\\nano': _su_state(), 'apt\\tmux': SimpleNamespace(component=rc, present=True)})
     monkeypatch.setattr(flows_mod, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
+    tty = SimpleNamespace(isatty=lambda: True)      # the TUI's own terminal (cli.common.ask checks it)
+    monkeypatch.setattr('configsys.cli.common.sys', SimpleNamespace(stdin=tty, stdout=tty))
     monkeypatch.setattr(installState, 'plan_with_swaps', lambda c, raw, units: (raw, units))
     monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan',
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})

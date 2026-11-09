@@ -48,8 +48,10 @@ def test_review_shows_full_body_and_cancels():
 # -- pressing s files it (send stubbed) and reports the outcome ---------------
 
 def test_review_send_reports_filed_url(monkeypatch):
+    from configsys.cli.issues import IssueResult
     monkeypatch.setattr('configsys.cli.issues._file_issue',
-                        lambda *a, **k: (0, ['configsys: filed — https://github.com/x/issues/7']))
+                        lambda *a, **k: IssueResult(0, ['configsys: filed — https://github.com/x/issues/7'],
+                                                    filed_url='https://github.com/x/issues/7'))
     scr = _Scr([ord('s'), ord(' ')])                   # send, then any key to return
     note = menu._report_review(scr, RecordingPalette(), None, 'T', 'b', 'os-request', 'last.md')
     assert note == 'issue filed: https://github.com/x/issues/7'
@@ -57,12 +59,37 @@ def test_review_send_reports_filed_url(monkeypatch):
 
 def test_review_send_no_gh_points_to_saved_body(monkeypatch, tmp_path):
     import types
+    from configsys.cli.issues import IssueResult
     monkeypatch.setattr('configsys.cli.issues._file_issue',
-                        lambda *a, **k: (0, ['configsys: no `gh` …', '  https://github.com/x/issues/new?…']))
+                        lambda *a, **k: IssueResult(0, ['configsys: no `gh` …', '  https://github.com/x/issues/new?…'],
+                                                    saved_path=tmp_path / 'last-os.md'))
     scr = _Scr([ord('s'), ord(' ')])
     stub_ctx = types.SimpleNamespace(paths=types.SimpleNamespace(state_dir=tmp_path))
     note = menu._report_review(scr, RecordingPalette(), stub_ctx, 'T', 'b', 'os-request', 'last-os.md')
     assert 'not auto-filed' in note and 'last-os.md' in note
+
+
+def test_review_send_never_names_a_body_that_was_not_saved(monkeypatch, tmp_path):
+    # tui-core-16: under --pretend nothing is saved, and an unwritable state dir saves nothing — the
+    # note must not point at a file that doesn't exist.
+    import types
+    from configsys.cli import issues
+    scr = _Scr([ord('s'), ord(' ')])
+    pretend_ctx = types.SimpleNamespace(runner=types.SimpleNamespace(pretend=True),
+                                        paths=types.SimpleNamespace(state_dir=tmp_path))
+    note = menu._report_review(scr, RecordingPalette(), pretend_ctx, 'T', 'b', 'os-request', 'last.md')
+    assert '[pretend]' in note and 'saved at' not in note
+    assert not (tmp_path / 'last.md').exists()
+    blocked = tmp_path / 'blocked'
+    blocked.write_text('a file where the state dir should be')           # mkdir/write -> OSError
+    monkeypatch.setattr('shutil.which', lambda *_a, **_k: None)          # the no-gh path
+    ro_ctx = types.SimpleNamespace(runner=types.SimpleNamespace(pretend=False),
+                                   paths=types.SimpleNamespace(state_dir=blocked / 'sub'))
+    res = issues._file_issue(ro_ctx, 'T', 'b', 'os-request', 'last.md')
+    assert res.saved_path is None
+    note = menu._report_review(_Scr([ord('s'), ord(' ')]), RecordingPalette(), ro_ctx, 'T', 'b',
+                               'os-request', 'last.md')
+    assert 'could not save' in note and 'saved at' not in note
 
 
 # -- the os-request flow builds a real payload end-to-end (render, no send) ----

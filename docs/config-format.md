@@ -918,6 +918,7 @@ keys: {
 - **`global`**: the actions every screen shares (navigation, find, filter, help, quit).
 - **One key scope per screen** (`components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`,
   `theme`): that screen's own actions, which work only there.
+- **`issues`**: the actions of the issues (`!`) overlay, which files an issue from inside the TUI.
 
 How the TUI resolves a key:
 
@@ -937,7 +938,7 @@ How the TUI resolves a key:
   Down arrow still work there through `global`.
 - The where and issues overlays scroll with the navigation actions as the `components` key scope
   resolves them (so your `global` keys, unless you rebound them under `components`); the issues
-  overlay's `r`, `f` and `s` (file a report, request or OS request) are fixed. Pop-up choosers keep
+  overlay files a report, request or OS request with its `issues` keys. Pop-up choosers keep
   fixed keys (`j`/`k` or the arrows to move, Enter to choose, Esc or `q` to cancel), and text prompts
   such as find and filter take what you type.
 
@@ -970,6 +971,13 @@ one works.
 
 **screens**: `components` (`1`), `profiles` (`2`), `plugins` (`3`), `glue` (`4`), `dotfiles`
 (`5`), `config` (`6`), `theme` (`7`).
+
+**issues** (the `!` overlay; you review the exact text before anything is sent):
+
+- `report` (`r`): report a component that failed, as `configsys report` does.
+- `request` (`f`): request full support for a component, as `configsys request` does.
+- `suggest-os` (`s`): suggest this OS, or report that an update changed it, as
+  `configsys request-os` does.
 
 **components**:
 

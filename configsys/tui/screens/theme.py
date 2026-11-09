@@ -40,16 +40,23 @@ class ThemeVM(ViewModel):
         #   ('role', fg_rgb, bg_rgb_or_None, effects, text)  — effects = {bold, underline, reverse}
         self.role_rows = []
         self.edit_target = ''      # where edits land (actions.edit_target label)
+        self.pages_glyph = 'F1-F7'  # the sample-page keys (page-1 … page-7) for the roles title
         self.note = ''             # the transient action note (the host supplies it; '' when none)
+
+
+def _pages_glyph():
+    '''"F1-F7" — the sample-page keys as you bound them (page-1 … page-7).'''
+    km = menu._keymap()
+    return f'{km.glyph("theme", "page-1")}-{km.glyph("theme", "page-7")}'
 
 
 def _nav_str(focus):
     g = lambda a: menu._keymap().glyph('theme', a)
     if focus == 'map':
         return (f" {g('switch-pane')}→roles · {g('left')}/{g('right')}/{g('down')}/{g('up')} · "
-                f"F1-7 page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
+                f"{_pages_glyph()} page · {g('confirm')} set #rrggbb · {g('new')} new · {g('reset')} remove · "
                 f"{g('save')} save · {g('load')} load · {g('quit')} ")
-    return (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · F1-7 page · {g('confirm')} fg · "
+    return (f" {g('switch-pane')}→map · {g('down')}/{g('up')} · {_pages_glyph()} page · {g('confirm')} fg · "
             f"{g('edit-bg')} bg · {g('effect-bold')}/{g('effect-underline')}/{g('effect-reverse')} fx · "
             f"{g('reset')} reset · {g('gradient-toggle')} grad · {g('copy-page')} copy-page · "
             f"{g('save')} save · {g('load')} load · {g('quit')} ")
@@ -79,6 +86,7 @@ class ThemeScreen(Screen):
         vm = ThemeVM()
         vm.page = ALL_PAGES[ts.page]
         vm.focus = ts.focus
+        vm.pages_glyph = _pages_glyph()
         for name in ts.map_names:
             rgb = ts.colors.get(name, (235, 235, 235))
             mark = '*' if ts.color_override(name) is not None else ' '
@@ -118,7 +126,7 @@ class ThemeScreen(Screen):
         nw = 12 if ncols == 2 else 14
         map_top = _scroll_top(ts.map_cur % rows_per_col, ts.map_top, m_ih, rows_per_col)
         # the handler moves ←/→ between map columns by this frame's layout
-        vm.settle(map_ncols=ncols, map_rows_per_col=rows_per_col, map_top=map_top)
+        vm.settle(map_ncols=ncols, map_rows_per_col=rows_per_col, map_top=map_top, map_page_h=max(1, m_ih))
         for i, (name, rgb, mark) in enumerate(vm.map_rows):
             col, row = divmod(i, rows_per_col)
             if not (map_top <= row < map_top + m_ih):
@@ -136,10 +144,10 @@ class ThemeScreen(Screen):
         roles = vm.role_rows
         role_cur = max(0, min(ts.role_cur, len(roles) - 1))
         r_it, r_il, r_ih, r_iw = _panel(surface, pal, 1, mw, list_h, w - mw,
-                                        _fit(f'page roles — {page}  (F1-7)', (w - mw) - 4), ts.focus == 'roles',
+                                        _fit(f'page roles — {page}  ({vm.pages_glyph})', (w - mw) - 4), ts.focus == 'roles',
                                         h, w)
         role_top = _scroll_top(role_cur, ts.role_top, r_ih, len(roles))
-        vm.settle(role_cur=role_cur, role_top=role_top)
+        vm.settle(role_cur=role_cur, role_top=role_top, role_page_h=max(1, r_ih))
         for vis, i in enumerate(range(role_top, min(len(roles), role_top + r_ih))):
             rr, y = roles[i], r_it + vis
             sel = i == role_cur and ts.focus == 'roles'
@@ -199,22 +207,31 @@ class ThemeScreen(Screen):
             if tact in ('switch-pane', 'switch-pane-back'):
                 ts.focus = 'roles' if ts.focus == 'map' else 'map'    # toggle the two lists
             elif tact in ('left', 'right'):
+                # spatial: the map is the LEFT panel, the roles the RIGHT. Within the map ←/→ move
+                # between its columns; → off the map's last column enters roles, ← from roles
+                # returns to the map; the outer edges go nowhere.
                 left = tact == 'left'
-                if ts.focus == 'map' and ts.map_ncols > 1:            # move between columns
-                    step = ts.map_rows_per_col
-                    ts.map_cur = (max(0, ts.map_cur - step) if left
-                                  else min(len(ts.map_names) - 1, ts.map_cur + step))
-                else:
-                    ts.focus = 'roles' if ts.focus == 'map' else 'map'   # else cross panels
+                if ts.focus == 'map':
+                    step = max(1, ts.map_rows_per_col)
+                    col = ts.map_cur // step if ts.map_ncols > 1 else 0
+                    if left:
+                        if col > 0:
+                            ts.map_cur = max(0, ts.map_cur - step)
+                    elif col < ts.map_ncols - 1:
+                        ts.map_cur = min(len(ts.map_names) - 1, ts.map_cur + step)
+                    else:
+                        ts.focus = 'roles'
+                elif left:
+                    ts.focus = 'map'
             elif tact and tact.startswith('page-') and tact[5:].isdigit():
                 ts.page = min(len(ALL_PAGES) - 1, int(tact[5:]) - 1)  # F1-F7 select the sample page
             elif tact in menu._NAV_ACTIONS:
                 if ts.focus == 'map':
                     ts.map_cur = menu.ListNav.apply(tact, ts.map_cur, len(ts.map_names) - 1,
-                                                    lambda: _page_rows(stdscr))
+                                                    lambda: _page_rows(stdscr, getattr(ts, 'map_page_h', None)))
                 else:
                     ts.role_cur = menu.ListNav.apply(tact, ts.role_cur, len(ts.role_list()) - 1,
-                                                     lambda: _page_rows(stdscr))
+                                                     lambda: _page_rows(stdscr, getattr(ts, 'role_page_h', None)))
 
             # -- color-map edits --
             elif ts.focus == 'map' and tact in ('select', 'confirm'):
@@ -388,7 +405,7 @@ class ThemeScreen(Screen):
                             note = (f'loaded {names[idx]}' + (' (your overrides replaced)' if how == 1
                                                               else ' under your overrides'))
                 else:
-                    note = 'no theme plugins saved yet (s to save one)'
+                    note = f'no theme plugins saved yet ({menu._keymap().glyph("theme", "save")} to save one)'
         except Exception as e:  # noqa: BLE001 — surface, don't crash
             note = f'error: {e}'
             wrote.clear()                           # a failure is reported as such, not as "not saved"

@@ -14,11 +14,12 @@ only paints that; handle is the former fall-through dispatch.
 
 import curses
 
+from ... import primarygit, refreshstate, sysupdates
 from .. import menu
 from ..flows import _confirm_and_execute, _offer_method_swap, _pick_choices, _reload
 from ..modals import _filter_edit, _find_edit_tree
 from ..models import (
-    _COMP_OPS, _identity_line, _infoblock, _methods_line, _node_component, _REFRESH_WARN_DAYS,
+    _COMP_OPS, _identity_line, _infoblock, _methods_line, _REFRESH_WARN_DAYS,
     _row_component, _scope_is_choice, _switch_mode, COMPONENT, COMPONENT_MODES, LINK, OPS, PROFILE,
     UNIT)
 from ..paint import _columns, _fit, _page_rows, _put, _reveal_subtree, _scroll_top, _scrollbar_v
@@ -40,7 +41,6 @@ def _rescan_system_updates(ctx, ms, *, before_reload):
     (sysupdates.invalidate) so the rebuilt tree no longer injects the stale rows, returning how many
     SU rows were staged (their marks go with the rows); `before_reload=False` starts the background
     re-scan (sysupdates.start_scan), which the router folds in when it lands.'''
-    from ... import sysupdates
     if before_reload:
         n = sum(1 for k in ms.staged if sysupdates.is_synthetic(ms.states.get(k)))
         sysupdates.invalidate(ctx)
@@ -121,7 +121,6 @@ class ComponentsScreen(Screen):
         self.diags = ()
 
     def build_vm(self, ctx, size):
-        from ... import primarygit, refreshstate
         ms = getattr(self, 'model', None)
         h, w = size
         policy = primarygit.PUSH_POLICY[getattr(ctx, '_primary_push_mode', 'ask')]
@@ -143,7 +142,7 @@ class ComponentsScreen(Screen):
                                     first, vm.list_h)
         first = _scroll_top(ms.cursor, first, vm.list_h, len(ms.rows))
         vm.top, vm.n = first, len(ms.rows)
-        vm.settle(top=first, reveal=None)
+        vm.settle(top=first, reveal=None, page_h=vm.list_h)   # page_h: what PgDn/PgUp move by
         for i in range(first, min(len(ms.rows), first + vm.list_h)):
             vm.rows.append(self._tree_row(ms.rows[i], i == ms.cursor, ms, cols, descriptions, w))
         vm.cursor_lines = [(_identity_line(ms, ctx, descriptions), 'info'),
@@ -167,7 +166,6 @@ class ComponentsScreen(Screen):
         '''Row 1: the title, the OS / pretend / curating / view line, then the status chips — index
         age, reboot advice, the primary's push state, system updates, the issues badge — each placed
         only while it fits.'''
-        from ... import sysupdates
         chips = vm.chips
         title = ' configsys '
         chips.append((0, title, 'label'))
@@ -218,7 +216,8 @@ class ComponentsScreen(Screen):
         if vm.diags:
             n = len(vm.diags)
             elem = 'issue_error' if any(d['level'] == 'error' for d in vm.diags) else 'issue_warning'
-            badge = f' ⚠ {n} issue{"s" if n != 1 else ""} — press ! to view '
+            badge = (f' ⚠ {n} issue{"s" if n != 1 else ""} — press '
+                     f'{menu._keymap().glyph("global", "issues")} to view ')
             bx = max(rend + 2, w - len(badge) - 1)
             chips.append((bx, _fit(badge, w - bx), elem))
 
@@ -245,7 +244,7 @@ class ComponentsScreen(Screen):
         cells = [(0, '»' if n.id in ms.selected else ' ', 'select_marker'),
                  (1, bch, belem),
                  (nx, _fit(name, ncw).ljust(ncw), 'info_dim' if dim else _KIND_ELEM.get(n.kind, 'unit'))]
-        rc = _node_component(n)
+        rc = _row_component(n)
         rdesc = descriptions.get(rc, '') if rc else ''
         davail = ncw - len(name) - 2
         if rdesc and davail >= 6:
@@ -295,20 +294,23 @@ class ComponentsScreen(Screen):
         if _cursor_in_sysupd(ms):                       # System Updates: bulk-action, no per-row staging
             if act in _SU_BULK_ACTS:                    # i/u stages them ALL (all-or-nothing); X applies
                 n = ms.stage_system_updates()
-                intent.note = (f'staged {n} system update{"s" if n != 1 else ""} — press X to apply (bulk)'
+                intent.note = (f'staged {n} system update{"s" if n != 1 else ""} — press '
+                               f'{km.glyph("components", "execute")} to apply (bulk)'
                                if n else 'no system updates to apply')
                 return intent
             if act in _SU_NA_ACTS:
-                intent.note = 'System Updates apply in bulk — i/u stages them all, then X applies'
+                intent.note = (f'System Updates apply in bulk — {km.glyph("components", "op-install")}/'
+                               f'{km.glyph("components", "op-upgrade")} stages them all, then '
+                               f'{km.glyph("components", "execute")} applies')
                 return intent
         if act == 'down':
             ms.move(1)
         elif act == 'up':
             ms.move(-1)
         elif act == 'page-down':
-            ms.move(_page_rows(stdscr))
+            ms.move(_page_rows(stdscr, getattr(ms, 'page_h', None)))
         elif act == 'page-up':
-            ms.move(-_page_rows(stdscr))
+            ms.move(-_page_rows(stdscr, getattr(ms, 'page_h', None)))
         elif act == 'top':
             ms.go_top()
         elif act == 'bottom':
@@ -457,7 +459,7 @@ class ComponentsScreen(Screen):
                 except EOFError:
                     pass
             curses.flushinp()
-            self.note, self.diags = 'updating latest versions…', ms.states and self.diags
+            self.note, self.diags = 'updating latest versions…', self.diags if ms.states else ()
             self.render(stdscr, pal, ctx)
             # the package index just changed -> the System Updates scan (group + header count chip) is
             # stale too: drop it BEFORE the reload (so the rebuilt tree doesn't re-inject the old rows;

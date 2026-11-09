@@ -66,6 +66,8 @@ def _failing_batch(monkeypatch, ctx, *, pretend):
                          states={'apt\\tmux': SimpleNamespace(component=rc, present=False)})
     monkeypatch.setattr(flows, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
+    tty = SimpleNamespace(isatty=lambda: True)      # the TUI's own terminal (cli.common.ask checks it)
+    monkeypatch.setattr('configsys.cli.common.sys', SimpleNamespace(stdin=tty, stdout=tty))
     monkeypatch.setattr(actions, 'build_plan', lambda c, raw, units, states=None: (raw, units, []))
     monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan', lambda c, plan, system=False: set())
     monkeypatch.setattr(flows, 'execute_plan', lambda c, plan, led, refresh=True, version=None: [

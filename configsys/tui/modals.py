@@ -6,7 +6,8 @@ Split out of menu.py (review-2026-11-2 D2).
 '''
 
 import curses
-from .help import _HELP
+from ..attrs import ATTR_AXES, ATTR_AXIS_OF as _ATTR_AXIS_OF
+from .help import help_page
 from .models import COMPONENT, UNIT
 from .paint import _busy, _fit, _keymap, _put, _scrollbar_v, _wordwrap, _wrap
 
@@ -82,7 +83,8 @@ def _keep_visible(sel, top, vis):
 def _help_modal(stdscr, pal, screen):
     '''The per-page `?` overlay: a brief description, the live keybindings for this page, and a small
     glossary of its terms/markers. Scrollable; esc/q/? closes. Drawn OVER the current screen.'''
-    info = _HELP.get(screen, {})
+    km = _keymap()
+    info = help_page(screen, km)                           # its prose keys rendered through YOUR keymap
     h, w = stdscr.getmaxyx()
     box_w = min(78, max(40, w - 4))
     iw = box_w - 4
@@ -95,7 +97,7 @@ def _help_modal(stdscr, pal, screen):
         line(dl, 'info')
     line('', 'info')
     line('keys', 'menu_header', True)
-    for keys, label in _keymap().help_rows(screen):
+    for keys, label in km.help_rows(screen):
         rows.append([(f'{keys:>10}  ', 'scope_choice', False), (label, 'ink', False)])
     if info.get('glossary'):
         line('', 'info')
@@ -113,7 +115,7 @@ def _help_modal(stdscr, pal, screen):
     top, limit = 0, max(0, len(rows) - vis)
     while True:
         _modal_frame(stdscr, pal, y0, x0, box_h, box_w, f'{screen} · help',
-                     f'{_nav_glyphs()} scroll · esc close')
+                     f'{_nav_glyphs()} scroll · esc/{km.glyph("global", "help")} close')
         for i in range(vis):
             idx = top + i
             if idx >= len(rows):
@@ -126,7 +128,7 @@ def _help_modal(stdscr, pal, screen):
         _scrollbar_v(stdscr, pal, y0 + 1, x0 + box_w - 1, vis, top, vis, len(rows), h, w)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch == 27 or ch == ord('q') or _keymap().action_for(screen, ch) in ('quit', 'help'):
+        if ch == 27 or ch == ord('q') or km.action_for(screen, ch) in ('quit', 'help'):
             return
         moved = ListNav.key(ch, top, limit, vis, scope=screen)
         if moved is not None:
@@ -163,6 +165,18 @@ def _draw_diagnostics(stdscr, pal, diags, top):
     return top
 
 
+def _issue_note(result):
+    '''The status note after filing (a cli.issues.IssueResult), from what actually happened — never a
+    saved-at path that wasn't written (a --pretend run saves nothing; a failed write leaves none).'''
+    if result.filed_url:
+        return f'issue filed: {result.filed_url}'
+    if result.pretend:
+        return '[pretend] issue not sent — nothing filed or saved'
+    if result.saved_path:
+        return f'not auto-filed — body saved at {result.saved_path} (open the link shown)'
+    return 'not sent — could not save the body (open the link shown)'
+
+
 def _report_review(stdscr, pal, ctx, title, body, label, save_as):
     '''Full-text review-and-send overlay for an issue (report / request / os-request). Shows the
     EXACTLY-what-sends scrubbed body, scrollable, so the user verifies no private info before `s` files
@@ -179,7 +193,7 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
         _put(stdscr, 1, 0, _fit('  this is EXACTLY what will be sent — verify no private info', w),
              pal.get('dim'))
         bt, bh = 3, max(1, h - 5)
-        shown = result if result is not None else lines
+        shown = result.lines if result is not None else lines
         top = max(0, min(top, max(0, len(shown) - bh)))
         for i in range(top, min(len(shown), top + bh)):
             _put(stdscr, bt + (i - top), 0, _fit(shown[i], w), pal.get('info'))
@@ -189,21 +203,17 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
             foot = (f' {_nav_glyphs()} scroll · {km.glyph("global", "top")}/{km.glyph("global", "bottom")} '
                     f'top/bottom · s SEND to {reportgen.REPORTS_REPO} · Esc cancel ')
         else:
-            foot = ' filed — any key to return '
+            foot = f' {"filed" if result.filed_url else "not filed"} — any key to return '
         _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
         stdscr.refresh()
         ch = stdscr.getch()
         if result is not None:                             # showing the send result -> any key returns
-            filed = any('filed —' in ln for ln in result)
-            if filed:
-                url = next((ln.split('filed —', 1)[-1].strip() for ln in result if 'filed —' in ln), '')
-                return f'issue filed: {url}' if url else 'issue filed'
-            return f'not auto-filed — body saved at {ctx.paths.state_dir / save_as} (open the link shown)'
+            return _issue_note(result)
         if ch == 27:                                       # Esc
             return 'issue not sent'
         elif ch in (ord('s'), ord('S')):
             _busy(stdscr, pal, f'filing to {reportgen.REPORTS_REPO}…')
-            _rc, result = _file_issue(ctx, title, body, label, save_as)
+            result = _file_issue(ctx, title, body, label, save_as)
             top = 0
         else:
             moved = ListNav.key(ch, top, max(0, len(shown) - bh), bh)
@@ -286,7 +296,9 @@ def _draw_where(stdscr, pal, lines, top, subject):
     top = max(0, min(top, max(0, len(body) - body_h)))
     for i, (text, attr) in enumerate(body[top:top + body_h]):
         _put(stdscr, 2 + i, 0, _fit(text, w), attr)
-    foot = ' j/k scroll · g/G top/bottom · w or q back '
+    km = _keymap()
+    foot = (f' {_nav_glyphs()} scroll · {km.glyph("global", "top")}/{km.glyph("global", "bottom")} '
+            f'top/bottom · {km.glyph("components", "where")} or {km.glyph("global", "quit")} back ')
     _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
     stdscr.refresh()
     return top
@@ -491,19 +503,8 @@ def _find_edit_tree(stdscr, ms, redraw):
 
 # -- Profiles screen ------------------------------------------------------
 # ---- attrs filter (Profiles catalog) — faceted include/exclude over component attribute tags ----
-# Axes + vocabulary mirror docs/component-attrs.md. Used by the `A` filter modal + the catalog filter.
-ATTR_AXES = [
-    ('interface', ['CLI', 'TUI', 'GUI', 'daemon', 'web', 'headless']),
-    ('role',      ['lib', 'SDK', 'app', 'toolchain', 'runtime', 'driver', 'font',
-                   'theme', 'plugin', 'game', 'service', 'group', 'dotfiles', 'glue']),
-    ('license',   ['FOSS', 'FOSSish', 'proprietary', 'source-available', 'freeware',
-                   'GNU', 'copyleft', 'permissive']),
-    ('data',      ['tele', 'tele-never_auto', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),
-    ('pedigree',  ['electron', 'patent', 'legacy', 'beta']),
-]
-
-
-_ATTR_AXIS_OF = {t.lower(): axis for axis, tags in ATTR_AXES for t in tags}
+# The axes + vocabulary (ATTR_AXES / _ATTR_AXIS_OF) live in configsys/attrs.py, outside the TUI, so
+# `check`'s unknown-attr lint reads the same table. Used by the `A` filter modal + the catalog filter.
 
 
 def _attr_pass(tags, inc, exc):
@@ -584,9 +585,7 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
     dim = pal.get('dim')
 
     def machs():
-        ms = ctx.config.machine_names()
-        cur = ctx.config.current_machine()
-        return [cur] + [m for m in ms if m != cur]
+        return ctx.config.machines_current_first()
 
     note = ''
     while True:
@@ -643,9 +642,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
     dim = pal.get('dim')
 
     def machs():
-        ms = ctx.config.machine_names()
-        cur = ctx.config.current_machine()
-        return [cur] + [m for m in ms if m != cur]
+        return ctx.config.machines_current_first()
 
     while True:
         rows = machs()

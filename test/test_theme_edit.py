@@ -87,6 +87,31 @@ def test_theme_save_cli_refuses_a_path_name(tmp_path, capsys):
     assert not (tmp_path / 'x').exists() and not (tmp_path / '.config' / 'x').exists()
 
 
+def test_save_theme_plugin_refuses_unsafe_names_the_primary_and_non_theme_plugins(tmp_path):
+    # tui-screens-17: the export name is one safe dir segment, and even `force` never rewrites the
+    # primary's (or another real plugin's) manifest as a theme-only one
+    import pytest
+    ctx, _user, pdir = _ctx(tmp_path, '{ plugins: [ { source: "github:nobody/prim"  primary: true } ]  '
+                                      'theme: { colors: { accent: "#abcabc" } } }\n')
+    before = sorted(p.name for p in tmp_path.iterdir())
+    for bad in ('../x', 'a/b', '.hidden', '..', ''):
+        with pytest.raises(ValueError):
+            actions.save_theme_plugin(ctx, bad, force=True)
+    assert sorted(p.name for p in tmp_path.iterdir()) == before and not list(pdir.iterdir())
+    for name, manifest in (('prim', '{ name: prim  data: [ prim.hu ] }\n'),
+                           ('codey', '{ name: codey  code: drivers.py }\n'),
+                           ('datay', '{ name: datay  data: [ theme.hu  comps.hu ] }\n')):
+        (pdir / name).mkdir()
+        (pdir / name / 'plugin.hu').write_text(manifest, encoding='utf-8')
+        with pytest.raises(ValueError):
+            actions.save_theme_plugin(ctx, name, force=True)
+        assert (pdir / name / 'plugin.hu').read_text(encoding='utf-8') == manifest   # untouched
+        assert not (pdir / name / 'theme.hu').exists()
+    _p, existed = actions.save_theme_plugin(ctx, 'pack')               # an ordinary pack still works
+    _p, _e = actions.save_theme_plugin(ctx, 'pack', force=True)        # …and re-exports over itself
+    assert not existed and (pdir / 'pack' / 'theme.hu').exists()
+
+
 def test_load_theme_applies_it(tmp_path):
     ctx, user, _pdir = _ctx(tmp_path, '{ theme: { colors: { accent: "#abcabc" } } }\n')
     actions.save_theme_plugin(ctx, 'mytheme')

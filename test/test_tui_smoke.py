@@ -55,6 +55,7 @@ def test_tui_launches_navigates_and_quits(tmp_path, extra):
         'CONFIGSYS_HOME': str(tmp_path),
         'CONFIGSYS_OS': 'pop',
         'PYTHONPATH': str(REPO),
+        'XDG_CACHE_HOME': str(tmp_path / '.cache'),   # never the real ~/.cache (tui-core-13)
     })
     proc = subprocess.Popen(
         [sys.executable, '-m', 'configsys', '--pretend', *extra, 'tui'],
@@ -122,7 +123,8 @@ def test_tui_machine_target_selector(tmp_path):
 
     env = dict(os.environ)
     env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
-                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
+                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO),
+                'XDG_CACHE_HOME': str(tmp_path / '.cache')})
     proc = subprocess.Popen(
         [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
         stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)
@@ -167,7 +169,8 @@ def test_tui_profile_edit_and_where(tmp_path):
 
     env = dict(os.environ)
     env.update({'TERM': 'xterm-256color', 'CONFIGSYS_HOME': str(tmp_path),
-                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO)})
+                'CONFIGSYS_OS': 'pop', 'PYTHONPATH': str(REPO),
+                'XDG_CACHE_HOME': str(tmp_path / '.cache')})
     proc = subprocess.Popen(
         [sys.executable, '-m', 'configsys', '--pretend', 'tui'],
         stdin=slave, stdout=slave, stderr=slave, env=env, cwd=str(REPO), close_fds=True)

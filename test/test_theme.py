@@ -423,7 +423,7 @@ def test_the_screen_list_has_one_source():
     from configsys.tui.theme import SCREEN_REGISTRY
     ids = [sid for sid, _t, _k in SCREEN_REGISTRY]
     assert ALL_PAGES == ids and DEMO_PAGES == [p for p in ids if p != 'theme']
-    assert set(ids) == SCREEN_IDS == {sid for _k, sid, _n in paint.SCREENS} == set(paint.IMPLEMENTED)
+    assert set(ids) == SCREEN_IDS == {sid for _k, sid, _n in paint.SCREENS}
     assert set(ids) == set(PAGE_ROLES) == set(BUILTIN_GRADIENTS) == set(_FALLBACK['screens'])
     assert {a for a in KNOWN_ACTIONS['theme'] if _PAGE_N.match(a)} == {
         f'page-{i}' for i in range(1, len(ids) + 1)}

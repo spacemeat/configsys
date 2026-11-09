@@ -95,7 +95,7 @@ class GlueScreen(Screen):
         n_inactive = len(gs.rows) - n_active - n_changed
         status = f' {len(gs.rows)} glue snippet(s)   {n_active} active'
         if n_changed:
-            status += f'   {n_changed} changed (A to re-activate)'
+            status += f'   {n_changed} changed ({menu._keymap().glyph("glue", "activate-group")} to re-activate)'
         status += f'   {n_inactive} inactive'
         n_user = sum(1 for r in gs.rows if _is_user_glue(r))
         if n_user:
@@ -114,9 +114,9 @@ class GlueScreen(Screen):
             _put(surface, it, il, _fit(vm.empty_header, iw), pal.style('menu_header', it, il, h, w))
             _put(surface, it + 1, il, _fit(vm.empty_msg, iw), pal.style('info_dim', it + 1, il, h, w))
         else:
-            top, hscroll = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
+            top, hscroll, page_h = table.draw_table(surface, pal, (it, il, ih, iw), vm, vm.cur,
                                             gs.top, gs.hscroll, h, w)
-            vm.settle(top=top, hscroll=hscroll)
+            vm.settle(top=top, hscroll=hscroll, page_h=page_h)
 
         self.end_page(surface, pal, vm.status + (f'    {vm.note}' if vm.note else ''), [vm.nav], h, w)
 
@@ -133,7 +133,7 @@ class GlueScreen(Screen):
         note = None
         try:
             if gact in menu._NAV_ACTIONS:
-                gs.cur = menu.ListNav.apply(gact, gs.cur, len(gs.rows) - 1, lambda: _page_rows(stdscr))
+                gs.cur = menu.ListNav.apply(gact, gs.cur, len(gs.rows) - 1, lambda: _page_rows(stdscr, getattr(gs, 'page_h', None)))
             elif gact == 'left':                      # horizontal scroll across the columns
                 gs.hscroll = max(0, gs.hscroll - 4)
             elif gact == 'right':

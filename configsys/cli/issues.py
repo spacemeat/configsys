@@ -3,7 +3,16 @@
 Split out of app.py (review-2026-11-2 D2).
 '''
 
+from collections import namedtuple
+
 from .common import ask
+
+
+# What filing an issue did: `lines` to show (the CLI prints them, the TUI review overlay shows them),
+# plus the facts a caller words its own note from — the filed issue's URL, the path the body was
+# ACTUALLY saved at (None when it wasn't), and whether this was a --pretend dry run.
+IssueResult = namedtuple('IssueResult', 'rc lines filed_url saved_path pretend',
+                         defaults=(None, None, False))
 
 
 # Practical ceiling for a prefilled issues/new URL. GitHub's own docs cap the server at ~8k, and
@@ -12,11 +21,12 @@ _URL_PREFILL_LIMIT = 6000
 
 
 def _file_issue(ctx, title, body, label='install-report', save_as='last-report.md'):
-    '''File the (already-approved) report/request and RETURN (rc, display_lines) — the outcome as a
-    list of ready-to-show lines (an issue URL, a prefilled link, or a saved-body path). No printing and
-    no prompting, so both the CLI (_send_report prints these) and the TUI review overlay (shows them)
-    reuse the exact same send logic + consent contract. Prefers `gh issue create`; else saves the body
-    and offers a prefilled new-issue link.'''
+    '''File the (already-approved) report/request and RETURN an IssueResult — the outcome as a list
+    of ready-to-show lines (an issue URL, a prefilled link, or a saved-body path) plus filed_url /
+    saved_path / pretend. No printing and no prompting, so both the CLI (_send_report prints the
+    lines) and the TUI review overlay (shows them, and words its note from the facts) reuse the exact
+    same send logic + consent contract. Prefers `gh issue create`; else saves the body and offers a
+    prefilled new-issue link.'''
     import shutil
     import subprocess
     import urllib.parse
@@ -24,7 +34,8 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
 
     if getattr(ctx.runner, 'pretend', False):          # a dry run files nothing and saves nothing
         how = '`gh issue create`' if shutil.which('gh') else 'a prefilled new-issue link'
-        return 0, [f'configsys: [pretend] would file "{title}" at {REPORTS_REPO} via {how} — not sent']
+        return IssueResult(0, [f'configsys: [pretend] would file "{title}" at {REPORTS_REPO} via {how}'
+                               f' — not sent'], pretend=True)
     lines = []
     if shutil.which('gh'):
         import tempfile
@@ -42,7 +53,8 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
             with contextlib.suppress(OSError):
                 os.unlink(bodyfile)
         if proc.returncode == 0:
-            return 0, [f'configsys: filed — {proc.stdout.strip()}']
+            url = proc.stdout.strip()
+            return IssueResult(0, [f'configsys: filed — {url}'], filed_url=url or None)
         lines.append(f'configsys: gh could not file it ({proc.stderr.strip() or "error"}).')
         # fall through to the link path so the work isn't lost
 
@@ -55,7 +67,7 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
         out.write_text(body, encoding='utf-8')
         saved = f'The full report is saved at {out}.'
     except OSError:
-        saved = ''
+        saved, out = '', None
 
     base = f'https://github.com/{REPORTS_REPO}/issues/new'
     fields = {'title': title, 'labels': label}
@@ -71,7 +83,7 @@ def _file_issue(ctx, title, body, label='install-report', save_as='last-report.m
                   f'  {link}']
         if saved:
             lines.append(saved)
-    return 0, lines
+    return IssueResult(0, lines, saved_path=out)
 
 
 def _review_and_file(ctx, title, body, args, *, what='this report', label='install-report',
@@ -100,10 +112,10 @@ def _review_and_file(ctx, title, body, args, *, what='this report', label='insta
 
 def _send_report(ctx, title, body, label='install-report', save_as='last-report.md'):
     '''CLI path: file the report/request and print the outcome. Returns 0 on success/handed-off.'''
-    rc, lines = _file_issue(ctx, title, body, label, save_as)
-    for ln in lines:
+    res = _file_issue(ctx, title, body, label, save_as)
+    for ln in res.lines:
         print(ln)
-    return rc
+    return res.rc
 
 
 def cmd_report(ctx, args):

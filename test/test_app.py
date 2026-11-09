@@ -582,8 +582,9 @@ def test_file_issue_returns_display_lines(tmp_path, monkeypatch):
     # the no-gh path, so the test never touches the network / files a real issue
     import configsys.app as app
     ctx = _filing_ctx(tmp_path, monkeypatch)
-    rc, lines = app._file_issue(ctx, '[report] git on pop', 'a short body line')
-    assert rc == 0
+    res = app._file_issue(ctx, '[report] git on pop', 'a short body line')
+    rc, lines = res.rc, res.lines
+    assert rc == 0 and res.saved_path is not None and res.saved_path.exists()
     joined = '\n'.join(lines)
     assert 'issues/new?' in joined and 'a+short+body+line' in joined      # prefilled URL, body encoded
 
@@ -595,8 +596,10 @@ def test_file_issue_under_pretend_files_and_saves_nothing(tmp_path, monkeypatch)
     monkeypatch.setattr(shutil, 'which', lambda n, *a, **k: '/usr/bin/gh')
     monkeypatch.setattr(subprocess, 'run', lambda *a, **k: pytest.fail('nothing may run under --pretend'))
     ctx = _ctx(tmp_path)
-    rc, lines = app._file_issue(ctx, '[report] git on pop', 'body')
+    res = app._file_issue(ctx, '[report] git on pop', 'body')
+    rc, lines = res.rc, res.lines
     assert rc == 0 and 'would file' in lines[0] and 'not sent' in lines[0]
+    assert res.pretend and res.saved_path is None and res.filed_url is None
     assert not (ctx.paths.state_dir / 'last-report.md').exists()
 
 

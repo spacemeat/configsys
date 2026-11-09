@@ -17,7 +17,7 @@ are in [principles.md](principles.md).
 | `tui/menu.py` | `run` (the router + event loop), `MenuState` (the Components tree), the screen MODEL classes (`ProfileScreen`, `PluginScreen`, `ConfigScreen`, `ThemeScreen`, `DotfilesScreen`, `GlueScreen`), shared modals/painting helpers (`_put`, `_fit`, `_popup_choose`, `_input_box`, `_filter_edit`, `_find_edit*`, `_panel`, scrollbars, `_draw_nav`, `_fill_bg`), `_HELP`, the overlays (`_draw_where`, `_draw_diagnostics`), and the `_sample_*_state` fixtures |
 | `tui/screens/base.py` | the protocol: `Screen`, `ViewModel`, `Intent` |
 | `tui/screens/<id>.py` | one `<Id>Screen` + `<Id>VM` per screen: `components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`, `theme` |
-| `tui/surface.py` | `CursesSurface`, `BufferSurface`, `Cell` |
+| `tui/surface.py` | `BufferSurface`, `Cell` |
 | `tui/keyspec.py` | key-name parsing, `Keymap`, `merge_layer_keys`, `ROUTER_ACTIONS`, `KNOWN_ACTIONS`, `ACTION_LABELS`, `lint_keys` / `lint_merged` |
 | `tui/theme.py` | `COLOR_MAP`, `BASIC_MAP`, `ROLE_DEFAULTS`, `PAGE_ROLES`, `BUILTIN_GRADIENTS`, `resolve_theme`, `Palette`, `STATUSES`, `SCREEN_REGISTRY`, `env_color_cap`/`env_effects` |
 | `tui/screen.py` | curses lifecycle: `curses_screen`, `suspended`, Return/Ctrl-J separation, direct-color terminfo selection |
@@ -90,7 +90,7 @@ runs `load_pipeline` on a thread → enter `curses_screen` → splash if inspect
 build the `Keymap`, the Components model, the first `MenuState` → `sysupdates.start_scan`.
 
 **Screens.** `SCREENS` lists `(key, id, name)` for the row-0 chip bar (`_draw_nav`; chip glyphs come
-from the keymap's `screens` scope, so a rebind shows); `IMPLEMENTED` gates switching. Screens are
+from the keymap's `screens` scope, so a rebind shows). Screens are
 built **lazily** by `_screen(sid)` into `_reg = {id: Screen}` on first visit and then live for the
 session (model state — cursor, filters, caches, threads — persists across switches). Components is
 built over the live `MenuState`; the router re-assigns `scr.model = ms` each frame, because `ms` is
@@ -193,7 +193,7 @@ re-inject stale rows) and starts a fresh background scan after it (`_rescan_syst
   `getch` (GIL released). Results are written into model attributes and painted on a later frame.
 - **`_warm_cache` thread-safety.** The warm thread calls `ProfileScreen._resolve` concurrently with
   the UI thread, so `_resolve` uses two locks. `self._res_lock` (per screen) guards the result cache
-  `_res`/`_res_rid`: the routes-id check, the clear on a routes swap, the lookup and the insert. The
+  `_res`/`_res_routes`: the routes-identity check, the clear on a routes swap, the lookup and the insert. The
   slow `ctx.routes.candidates(...)` call runs outside it, under `menu._ROUTES_LOCK` (a process-wide
   `RLock`, via `_routes_lock(ctx)`), so no two threads drive one Resolver's internal caches at once —
   also across two ProfileScreens over one ctx (the Profiles sample). The insert is a `setdefault`
@@ -203,7 +203,7 @@ re-inject stale rows) and starts a fresh background scan after it (`_rescan_syst
 ## Surfaces and headless rendering
 
 A painter touches only `getmaxyx`, `erase`, `addstr`, `move`, `refresh`, `derwin`. That is the
-`Surface` contract. `CursesSurface` delegates verbatim (exists but is unused by `run`; see below). `BufferSurface(h, w)` records
+`Surface` contract. `BufferSurface(h, w)` records
 `{(y, x): Cell(char, attr)}`, clips out-of-bounds writes silently (as `_put` swallows `curses.error`),
 and its `derwin` writes into the parent grid at absolute coordinates (the Theme sample slot renders
 whole sub-screens into a `derwin`). `grid()` gives a sortable snapshot; `text_rows()` gives plain

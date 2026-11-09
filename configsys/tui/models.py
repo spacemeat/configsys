@@ -27,11 +27,6 @@ OPS = {
 }
 
 
-KEY_TO_OP = {
-    ord('i'): 'install', ord('u'): 'upgrade', ord('x'): 'remove',
-}
-
-
 _COMP_OPS = {'op-install': 'install', 'op-upgrade': 'upgrade', 'op-remove': 'remove'}   # action -> op
 
 
@@ -46,6 +41,15 @@ def _is_system_update(state):
     routed per-row through run_plan). None-safe (a missing state reads as not-a-system-update).'''
     comp = getattr(state, 'component', None)
     return bool(getattr(comp, 'fields', {}).get('system_update')) if comp is not None else False
+
+
+def _version_text(state, field):
+    '''A state's `installed_version` / `latest_version` as the TUI shows it: clean_version'd, except
+    on a System Updates row, which keeps the FULL version — the change there is usually in the
+    Debian revision (2.37.2-4ubuntu3.5 -> …3.6) that clean_version strips, which would read as "no
+    change". None when there is no version.'''
+    v = getattr(state, field)
+    return v if _is_system_update(state) else clean_version(v)
 
 
 class Node:
@@ -106,9 +110,7 @@ class Node:
                 # untrusted: version is UNKNOWN (the tool may well be installed — we just can't
                 # read it without the driver), not '—' which reads as "not installed".
                 return '?' if m.untrusted else '—'
-            # System Updates keep the FULL version: the change is usually in the Debian revision
-            # (2.37.2-4ubuntu3.5 -> …3.6) that clean_version strips, which would read as "no change".
-            v = (m.installed_version if _is_system_update(m) else clean_version(m.installed_version)) or '—'
+            v = _version_text(m, 'installed_version') or '—'   # full on System Updates rows
             return f'{v} [L]' if m.locked else v            # INSTALLED and LATEST columns line up
         present = sum(1 for m in self.members if m.present)
         return f'{present}/{len(self.members)}'
@@ -118,7 +120,7 @@ class Node:
             m = self.members[0]
             if not m.supported:
                 return '?' if m.untrusted else ''
-            v = (m.latest_version if _is_system_update(m) else clean_version(m.latest_version)) or '—'
+            v = _version_text(m, 'latest_version') or '—'
             return f'{v} [R]' if m.recipe_behind else v     # [R]: a recipe pin behind upstream
         return ''
 
@@ -591,9 +593,6 @@ class MenuState:
             del self.staged[k]
         return len(keys)
 
-    def clear_all_staged(self):
-        self.staged.clear()
-
     def plan(self):
         return [(op, k, self.states[k].component) for k, op in sorted(self.staged.items())]
 
@@ -738,7 +737,7 @@ def _identity_line(ms, ctx, descriptions):
     '''The ambient identity+edges line for the current row: `name — description` followed by its
     capability edges. Folds the "where" graph into the EXISTING description slot — no extra row, so
     it never squeezes the component list (the cramping we wanted to avoid).'''
-    name = _node_component(ms.cur())
+    name = _row_component(ms.cur())
     if not name:
         return ''
     desc = (descriptions or {}).get(name, '')
@@ -765,8 +764,8 @@ def _infoblock(ms, ctx):
     parts = [f'{rc.driver}\\{rc.comp}']
     if m.scope:
         parts.append(f'scope: {m.scope}')
-    parts += [f'installed: {clean_version(m.installed_version) or "—"}',
-              f'latest: {clean_version(m.latest_version) or "—"}']
+    parts += [f'installed: {_version_text(m, "installed_version") or "—"}',
+              f'latest: {_version_text(m, "latest_version") or "—"}']
     if m.locked:
         parts.append('version-locked')
     drv = get_driver(rc.driver, ctx.runner, ctx.paths)
@@ -812,17 +811,6 @@ def _row_component(node):
     return parts[2] if parts[0] in ('c', 'u') and len(parts) >= 3 else None
 
 
-def _node_component(node):
-    '''The component name a row represents — its OWN, so a child unit under a group reports its own
-    component (e.g. a gcc-13 part), not the parent's. A UNIT node carries the resolved component;
-    a group / leaf falls back to the name in the node id.'''
-    if node is None:
-        return None
-    if node.kind == UNIT and node.members:
-        return node.members[0].component.comp
-    return _row_component(node)
-
-
 def _describe(ctx):
     '''{component name -> one-line description}, built ONCE per menu build. `ctx.routes` rebuilds a
     Resolver (re-parsing routes.hu) on EVERY access, so this must never be called per-row/per-frame
@@ -865,12 +853,6 @@ def _group_by_owner(cfg, scope):
         layouts.append(('(other)', [('component', c) for c in orphan]))
         transitive['(other)'] = orphan
     return layouts, transitive
-
-
-def _menu_model(cfg):
-    '''(layouts, transitive) for the Components tree in the default 'tracked' mode: this machine's
-    install set (the picked components, `requested()`) grouped by owning profile.'''
-    return _group_by_owner(cfg, set(cfg.requested()))
 
 
 COMPONENT_MODES = ('to-do', 'tracked', 'installed+tracked')   # the Components view MODE cycle

@@ -623,6 +623,8 @@ keys: {
 \fB\fBglobal\fR\fR: the actions every screen shares (navigation, find, filter, help, quit).
 .IP \(bu 2
 \fBOne key scope per screen\fR (\fBcomponents\fR, \fBprofiles\fR, \fBplugins\fR, \fBglue\fR, \fBdotfiles\fR, \fBconfig\fR, \fBtheme\fR): that screen's own actions, which work only there.
+.IP \(bu 2
+\fB\fBissues\fR\fR: the actions of the issues (\fB!\fR) overlay, which files an issue from inside the TUI.
 .PP
 How the TUI resolves a key:
 .IP \(bu 2
@@ -634,7 +636,7 @@ A key the screen doesn't bind goes to \fBglobal\fR (\fBquit\fR, \fBquit-force\fR
 .IP \(bu 2
 A screen's key scope may also bind any other \fBglobal\fR action, which adds keys for it on that screen only: \fBprofiles: { down: ctrl-n }\fR makes Ctrl-N move down on Profiles, while \fBj\fR and the Down arrow still work there through \fBglobal\fR.
 .IP \(bu 2
-The where and issues overlays scroll with the navigation actions as the \fBcomponents\fR key scope resolves them (so your \fBglobal\fR keys, unless you rebound them under \fBcomponents\fR); the issues overlay's \fBr\fR, \fBf\fR and \fBs\fR (file a report, request or OS request) are fixed. Pop-up choosers keep fixed keys (\fBj\fR/\fBk\fR or the arrows to move, Enter to choose, Esc or \fBq\fR to cancel), and text prompts such as find and filter take what you type.
+The where and issues overlays scroll with the navigation actions as the \fBcomponents\fR key scope resolves them (so your \fBglobal\fR keys, unless you rebound them under \fBcomponents\fR); the issues overlay files a report, request or OS request with its \fBissues\fR keys. Pop-up choosers keep fixed keys (\fBj\fR/\fBk\fR or the arrows to move, Enter to choose, Esc or \fBq\fR to cancel), and text prompts such as find and filter take what you type.
 .PP
 With the shipped bindings no screen binds those keys, so \fBq\fR, \fBQ\fR, \fB!\fR, \fB?\fR and \fB1\fR to \fB7\fR work the same everywhere.
 .SS Actions and default keys
@@ -670,6 +672,14 @@ The defaults below are the shipped \fBconfig.hu\fR bindings; where an action has
 \fBquit-force\fR (\fBQ\fR): leave at once, without asking.
 .PP
 \fBscreens\fR: \fBcomponents\fR (\fB1\fR), \fBprofiles\fR (\fB2\fR), \fBplugins\fR (\fB3\fR), \fBglue\fR (\fB4\fR), \fBdotfiles\fR (\fB5\fR), \fBconfig\fR (\fB6\fR), \fBtheme\fR (\fB7\fR).
+.PP
+\fBissues\fR (the \fB!\fR overlay; you review the exact text before anything is sent):
+.IP \(bu 2
+\fBreport\fR (\fBr\fR): report a component that failed, as \fBconfigsys report\fR does.
+.IP \(bu 2
+\fBrequest\fR (\fBf\fR): request full support for a component, as \fBconfigsys request\fR does.
+.IP \(bu 2
+\fBsuggest-os\fR (\fBs\fR): suggest this OS, or report that an update changed it, as \fBconfigsys request-os\fR does.
 .PP
 \fBcomponents\fR:
 .IP \(bu 2

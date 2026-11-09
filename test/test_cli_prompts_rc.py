@@ -179,7 +179,7 @@ def test_gh_body_tempfile_is_removed(tmp_path, monkeypatch, code):
     monkeypatch.setattr(shutil, 'which', lambda n, *a, **k: '/usr/bin/gh' if n == 'gh' else None)
     monkeypatch.setattr(subprocess, 'run', fake_run)
     ctx = SimpleNamespace(runner=SimpleNamespace(pretend=False), paths=SimpleNamespace(state_dir=tmp_path))
-    rc, _lines = issues._file_issue(ctx, 'title', 'scrubbed body')
+    rc = issues._file_issue(ctx, "title", "scrubbed body").rc
     assert rc == 0 and seen and not os.path.exists(seen[0])
 
 

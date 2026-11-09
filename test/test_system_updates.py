@@ -488,6 +488,8 @@ def _tui_run(monkeypatch, ctx, managers, also=()):
                                states=states)
     monkeypatch.setattr(flows_mod, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
+    tty = types.SimpleNamespace(isatty=lambda: True)    # the TUI's own terminal (cli.common.ask checks it)
+    monkeypatch.setattr('configsys.cli.common.sys', types.SimpleNamespace(stdin=tty, stdout=tty))
     monkeypatch.setattr(cli_refresh, 'maybe_refresh_before_plan', lambda c, plan, system=False: set())
     monkeypatch.setattr(cli_refresh, 'published_pending', lambda c, fresh: [])
     monkeypatch.setattr(sysupdates, 'gather', lambda c, notes=None: {})   # the pre-confirm recount

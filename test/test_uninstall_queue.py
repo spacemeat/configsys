@@ -88,20 +88,3 @@ def test_inspect_components_excludes_the_requires_closure(tmp_path, monkeypatch)
     assert all(rc.comp == 'conan' for rc in got.values())         # ONLY conan's unit(s)
     assert all('pipx' not in k or rc.comp == 'conan' for k, rc in got.items())
     assert not any(rc.comp in ('pipx', 'bash-dotfiles', 'pipx-dotfiles') for rc in got.values())
-
-
-def test_with_uninstall_node_folds_present_queued_orphans():
-    from types import SimpleNamespace
-    from configsys.tui.menu import _with_uninstall_node
-    active = {'apt\\htop': SimpleNamespace(present=True, component=SimpleNamespace(comp='htop'))}
-
-    def inspect(names, reuse=None):   # git present, ncdu absent
-        return {'apt\\git':  SimpleNamespace(present=True,  component=SimpleNamespace(comp='git')),
-                'apt\\ncdu': SimpleNamespace(present=False, component=SimpleNamespace(comp='ncdu'))}
-    ctx = SimpleNamespace(config=SimpleNamespace(uninstall_queue=lambda: {'git', 'ncdu'}),
-                          inspect_components=inspect)
-    states, layouts, transitive = _with_uninstall_node(
-        ctx, dict(active), [('dev', ['htop'])], {'dev': ['htop']})
-    assert 'apt\\git' in states and 'apt\\ncdu' in states        # queued orphans inspected in
-    assert dict(layouts).get('!uninstall') == ['git']            # only the PRESENT one is listed
-    assert transitive['!uninstall'] == ['git']
