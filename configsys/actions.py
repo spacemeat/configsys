@@ -195,6 +195,18 @@ def pretend_unresolved_download(drv, rc):
     return not url
 
 
+def _unit_locked(drv, rc, key, ledger):
+    '''True if `key` is version-locked: in the ledger (every driver without a native hold), or by
+    the manager's own hold (apt-mark, dnf versionlock, brew pin…). Best-effort: a probe error reads
+    as unlocked.'''
+    if ledger is not None and ledger.is_locked(key):
+        return True
+    try:
+        return bool(drv.is_locked(rc))
+    except Exception:                                  # noqa: BLE001
+        return False
+
+
 def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     '''Execute an ordered `[(op, key, rc)]` plan — the ONE op-execution loop the CLI and TUI share.
     Per step it dispatches the op (install/remove/upgrade/lock/unlock/set-version), runs the
@@ -214,6 +226,7 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
     begin = getattr(ctx.runner, 'begin_sudo', None)
     if begin and any(_may_need_root(get_driver(rc.driver, ctx.runner, ctx.paths), rc) for _, _, rc in plan):
         begin(on_line)                   # the ONE prompt, up front — then the run can go unattended
+    swapped_locks = set()            # comps whose locked install a swap removed: the new one is held too
     for cur_op, key, rc in plan:
         drv = get_driver(rc.driver, ctx.runner, ctx.paths)
         if drv is None and rc.driver == '—':        # a dangling/unmet placeholder row (stranded.py)
@@ -233,6 +246,16 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             rc_code = rc_code or 1
             n_fatal += 1
             continue
+        locked = (cur_op in ('upgrade', 'set-version', 'remove')
+                  and _unit_locked(drv, rc, key, ledger))
+        if cur_op == 'upgrade' and locked:
+            # a lock is a promise (the ledger carries it for every driver without a native hold):
+            # never upgrade through it — and a native hold would just fail confusingly (B2)
+            on_line(f'upgrade {key}: locked — {rc.comp} stays at its held version '
+                    f'(`configsys unlock {rc.comp}` first)')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'locked', advisory=True))
+            rc_code = rc_code or 1                   # an explicit upgrade of a locked unit is refused
+            continue
         on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
         rc_snap = (None if pretend else      # nothing runs in a dry run, so nothing to guard or revert
                    shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op))
@@ -241,12 +264,27 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             try:
                 if cur_op == 'install':
                     res = drv.install(rc)
+                    if res.ok and rc.comp in swapped_locks:   # a lock follows the component across a swap
+                        if drv.lock(rc).ok and ledger is not None and not pretend \
+                                and getattr(drv, 'holds_version', True):
+                            ledger.set_lock(key, True)
                 elif cur_op == 'remove':
+                    if locked:                               # a native hold would refuse the removal
+                        drv.unlock(rc)
                     res = drv.uninstall(rc)
+                    if res.ok and locked:                    # removing it ends its lock
+                        swapped_locks.add(rc.comp)
+                        if ledger is not None and not pretend:
+                            ledger.set_lock(key, False)
                 elif cur_op == 'upgrade':
                     res = drv.upgrade(rc)
                 elif cur_op == 'set-version':
+                    # retarget-then-hold: a locked unit is released, moved, and held at the new version
+                    if locked:
+                        drv.unlock(rc)
                     res = drv.set_version(rc, version)
+                    if locked:
+                        drv.lock(rc)
                 elif cur_op == 'lock':
                     res = drv.lock(rc)
                     if (res.ok and ledger is not None and not pretend

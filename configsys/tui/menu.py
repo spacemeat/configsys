@@ -33,7 +33,8 @@ OPS = {
     'install': ('I', 'op_install', lambda s: s.supported
                 and getattr(s, 'route_status', None) not in ('dangling', 'unmet')
                 and (not s.present or getattr(s, 'route_status', None) == 'switch')),
-    'upgrade': ('U', 'op_upgrade', lambda s: s.supported and s.outdated),
+    # a LOCKED unit is never upgraded (bulk U/I skip it; a single `u` says why — review-2026-11-2 B2)
+    'upgrade': ('U', 'op_upgrade', lambda s: s.supported and s.outdated and not s.locked),
     'remove':  ('X', 'op_remove',  lambda s: s.supported and s.present),
     'lock':    ('L', 'op_lock',    lambda s: s.supported and s.present and not s.locked
                                              and s.holds_version),   # not on rolling managers (pacman/apk)
@@ -441,10 +442,45 @@ class MenuState:
 
     # -- staging (unit-keyed) ---------------------------------------------
 
+    _OWN_ONLY_OPS = frozenset({'remove', 'lock', 'unlock'})
+
+    def _own_members(self, node):
+        '''The units a remove/lock/unlock on `node` acts on: the row's OWN units, never the shared
+        dependencies its closure pulled in (curl, git, Homebrew, flatpak — review-2026-11-2 A7; the
+        CLI's `remove X` / `lock X` touch only X). A unit row is its own unit; a component row is the
+        units of that component (for a `parts` bundle with none of its own, the closure's roots — the
+        parts, not their dependencies); a profile/link row is its components' own units. A
+        dependency is acted on only from its own row.'''
+        if node.kind == UNIT:
+            return list(node.members)
+        if node.kind == COMPONENT:
+            own = [m for m in node.members if m.component.comp == node.label]
+            if own:
+                return own
+            dep_keys = set().union(*(set(getattr(m.component, 'deps', ()) or ()) for m in node.members))
+            return [m for m in node.members if m.key not in dep_keys]
+        out, seen = [], set()
+        for child in node.children:
+            for m in self._own_members(child):
+                if m.key not in seen:
+                    seen.add(m.key)
+                    out.append(m)
+        if node.kind == LINK and not node.children:      # a link carries no children: its target's
+            target = next((r for r in self.roots if r.id == node.link_target), None)
+            if target is not None:
+                return self._own_members(target)
+        return out
+
     def stage(self, op):
         staged_any = False
+        self.skip_note = ''                # why nothing was staged, when it was a lock (the screen shows it)
         for node in self._target_nodes():
-            for m in node.members:
+            members = self._own_members(node) if op in self._OWN_ONLY_OPS else node.members
+            for m in members:
+                if (op in ('install', 'upgrade') and m.supported and m.present and m.outdated
+                        and m.locked):
+                    self.skip_note = (f'{m.component.comp} is locked at {m.installed_version} — '
+                                      'L unlocks it first')
                 if m.component.fields.get('system_update'):   # System Updates are bulk-action, not staged
                     continue
                 # `i` (install) means "make it current": install if absent, else upgrade if
@@ -513,7 +549,7 @@ class MenuState:
         lock state.'''
         acted = False
         for node in self._target_nodes():
-            for m in node.members:
+            for m in self._own_members(node):              # never a shared dependency (A7)
                 if not (m.supported and m.present) or m.component.fields.get('system_update'):
                     continue                                # System Updates can't be version-locked here
                 staged = self.staged.get(m.key)

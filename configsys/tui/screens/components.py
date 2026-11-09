@@ -375,7 +375,8 @@ class ComponentsScreen(Screen):
                     intent.note = f'reload failed: {e}'
         elif act in _COMP_OPS:
             if not ms.stage(_COMP_OPS[act]):
-                intent.note = f'{_COMP_OPS[act]} not applicable here'
+                intent.note = (getattr(ms, 'skip_note', '')
+                               or f'{_COMP_OPS[act]} not applicable here')
         elif act == 'op-install-all':
             n = ms.stage_all('install')
             intent.note = (f'staged install/upgrade on {n} component(s) — run with execute'

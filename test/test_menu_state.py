@@ -237,3 +237,92 @@ def test_recipe_pin_behind_upstream_is_marked_not_outdated():
     # caught up (or no upstream declared): no marker
     st.upstream_version = '4.3.2'
     assert not st.recipe_behind and unit.latest_str() == '4.3.2'
+
+
+# -- review-2026-11-2 A7: remove / lock act on a row's OWN units, never its shared dependencies ------
+
+def _dep_state(key, deps, roots):
+    st = cs(key, 'installed', roots)
+    st.component.deps = set(deps)
+    return st
+
+
+def _ollama_tree():
+    states = {
+        'brew\\ollama': _dep_state('brew\\ollama', ['script\\homebrew'], ['ollama']),
+        'script\\homebrew': _dep_state('script\\homebrew', ['apt\\curl', 'apt\\git'], ['ollama']),
+        'apt\\curl': _dep_state('apt\\curl', [], ['ollama']),
+        'apt\\git': _dep_state('apt\\git', [], ['ollama', 'git']),
+        'flatpak\\tenacity': _dep_state('flatpak\\tenacity', ['apt\\flatpak'], ['tenacity']),
+        'apt\\flatpak': _dep_state('apt\\flatpak', [], ['tenacity']),
+        # a parts bundle: no unit of its own; its parts (and a part's dependency)
+        'apt\\a': _dep_state('apt\\a', ['apt\\liba'], ['bundle']),
+        'apt\\b': _dep_state('apt\\b', [], ['bundle']),
+        'apt\\liba': _dep_state('apt\\liba', [], ['bundle']),
+    }
+    return MenuState(states, [('user', ['ollama', 'git', 'tenacity', 'bundle'])])
+
+
+def _at(ms, node_id):
+    ms.cursor = next(i for i, n in enumerate(ms.rows) if n.id == node_id)
+
+
+def test_remove_on_a_component_row_leaves_its_shared_dependencies():
+    ms = _ollama_tree()
+    _at(ms, 'c:user:ollama')
+    ms.stage('remove')
+    assert ms.staged == {'brew\\ollama': 'remove'}           # not Homebrew, curl or git
+    ms.staged.clear()
+    _at(ms, 'c:user:tenacity')
+    ms.stage('remove')
+    assert ms.staged == {'flatpak\\tenacity': 'remove'}      # not flatpak itself
+
+
+def test_lock_on_a_component_row_holds_only_the_component():
+    ms = _ollama_tree()
+    _at(ms, 'c:user:ollama')
+    ms.toggle_lock()
+    assert ms.staged == {'brew\\ollama': 'lock'}
+
+
+def test_a_bundle_row_removes_its_parts_not_their_dependencies():
+    ms = _ollama_tree()
+    _at(ms, 'c:user:bundle')
+    ms.stage('remove')
+    assert set(ms.staged) == {'apt\\a', 'apt\\b'}
+
+
+def test_a_profile_row_removes_each_components_own_units():
+    ms = _ollama_tree()
+    _at(ms, 'p:user')
+    ms.stage('remove')
+    assert set(ms.staged) == {'brew\\ollama', 'apt\\git', 'flatpak\\tenacity', 'apt\\a', 'apt\\b'}
+
+
+def test_a_dependency_is_removable_from_its_own_unit_row():
+    ms = _ollama_tree()
+    _at(ms, 'c:user:ollama')
+    ms.toggle_expand()
+    _at(ms, 'u:user:ollama:script\\homebrew')
+    ms.stage('remove')
+    assert ms.staged == {'script\\homebrew': 'remove'}
+
+
+def test_install_still_covers_the_whole_closure():
+    ms = _ollama_tree()
+    for st in ms.states.values():
+        st.present = False
+    _at(ms, 'c:user:ollama')
+    ms.stage('install')
+    assert set(ms.staged) == {'brew\\ollama', 'script\\homebrew', 'apt\\curl', 'apt\\git'}
+
+
+def test_a_locked_outdated_unit_is_never_staged_for_upgrade():
+    # review-2026-11-2 B2: bulk U / I skip it; a single u/i says why
+    st = cs('tarball\\lazygit', 'outdated', ['lazygit'])
+    st.locked = True
+    ms = MenuState({'tarball\\lazygit': st}, [('user', ['lazygit'])])
+    assert ms.stage_all('upgrade') == 0 and ms.stage_all('install') == 0
+    _at(ms, 'c:user:lazygit')
+    assert not ms.stage('upgrade') and 'locked' in ms.skip_note
+    assert not ms.stage('install') and 'L unlocks' in ms.skip_note

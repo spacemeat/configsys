@@ -85,10 +85,16 @@ def test_dispatch_op_prints_the_failure_reason_to_the_console(tmp_path, capsys, 
         def install(self, rc):
             return Result.fail('blender-build: optix-root ~/sdks/optix has no include/optix.h')
 
+    # modules that bind `get_driver` at import must import BEFORE the patch, or they keep the stub
+    # for every later test in the session
+    import configsys.versionreport, configsys.orphans, configsys.stranded  # noqa: F401,E401
+    import configsys.detection, configsys.sysupdates, configsys.installState  # noqa: F401,E401
     import configsys.drivers as drivers_mod           # run_plan (in actions) resolves get_driver here
     monkeypatch.setattr(drivers_mod, 'get_driver', lambda *a, **k: StubDrv())
     monkeypatch.setattr(app, 'get_driver', lambda *a, **k: StubDrv())   # prepare_units' scope check
-    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
+    # --pretend: the op loop's native index refresh and up-front sudo must never run for real here
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', '--pretend',
+                                             'inspect']))
     code = app._dispatch_op(ctx, ['git'], 'install')
     out = capsys.readouterr().out
     assert code == 1 and 'FAILED (exit 1)' in out
@@ -103,3 +109,46 @@ def test_summary_note_formatting():
     assert _summary_note([O(True), O(True)]) == '2 ok'
     assert _summary_note([O(True), O(False)]) == '1 ok, 1 failed'
     assert _summary_note([O(False)]) == '0 ok, 1 failed'
+
+
+# -- review-2026-11-2 B2: a version lock is honored by every op path --------------------------------
+
+def _run(tmp_path, plan, led, version=None):
+    from configsys.actions import run_plan
+    fr = FakeRunner()
+    lines = []
+    res = run_plan(ctx_for(tmp_path, fr), plan, ledger=led, version=version, on_line=lines.append)
+    return fr, res, lines
+
+
+def test_an_explicit_upgrade_of_a_locked_unit_is_refused(tmp_path):
+    led = Ledger()
+    led.set_lock('apt\\btop', True)
+    fr, res, lines = _run(tmp_path, [('upgrade', 'apt\\btop', unit('btop'))], led)
+    assert not any('install' in c for c in fr.calls)             # the driver was never asked
+    assert res.outcomes[0].detail == 'locked' and res.rc_code == 1
+    assert any('configsys unlock btop' in ln for ln in lines)
+    assert led.is_locked('apt\\btop')
+
+
+def test_remove_ends_the_lock_and_set_version_re_holds(tmp_path):
+    led = Ledger()
+    led.set_lock('apt\\btop', True)
+    fr, res, _ = _run(tmp_path, [('remove', 'apt\\btop', unit('btop'))], led)
+    assert res.outcomes[0].ok and not led.is_locked('apt\\btop')
+    assert fr.calls.index(next(c for c in fr.calls if 'unhold' in c)) < \
+        fr.calls.index(next(c for c in fr.calls if 'remove' in c))   # released before removing
+    led.set_lock('apt\\fzf', True)
+    fr, res, _ = _run(tmp_path, [('set-version', 'apt\\fzf', unit('fzf'))], led, version='1.0')
+    seq = [c for c in fr.calls if 'mark' in c or 'install' in c]
+    assert 'unhold' in seq[0] and 'hold' in seq[-1] and 'unhold' not in seq[-1]
+    assert led.is_locked('apt\\fzf')
+
+
+def test_a_lock_follows_the_component_across_a_method_swap(tmp_path):
+    led = Ledger()
+    led.set_lock('apt\\btop', True)
+    plan = [('remove', 'apt\\btop', unit('btop')), ('install', 'snap\\btop', unit('btop', driver='snap'))]
+    fr, res, _ = _run(tmp_path, plan, led)
+    assert all(o.ok for o in res.outcomes)
+    assert not led.is_locked('apt\\btop') and led.is_locked('snap\\btop')

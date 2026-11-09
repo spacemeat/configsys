@@ -106,7 +106,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A5 [HIGH] A plugin that `include:`s your top config demotes it** — pins, picks, machine, scope,
   disabled-drivers vanish and `primary-verify: signed` reads `off`; your overrides sink below the
   plugin's. 2026-09 A5, still open. **Fix:** the top config is never an include target (dedupe keeps the
-  highest role). (security-03, config-layers-03) · effort S · [done — an include of a root layer (top config, primary, repo) is ignored with a warning; a plugin include must stay inside its own checkout]
+  highest role). (security-03, config-layers-03) · effort S · [done 9e8d60b — an include of a root layer (top config, primary, repo) is ignored with a warning; a plugin include must stay inside its own checkout]
 - **A6 [HIGH] Destructive-path guards are partial.** tarball `installDir: ../…` escapes the scope-base guard
   and `~/.local/bin` / `/usr/local/bin` aren't refused; install doesn't check the marker (uninstall does);
   font `locations:` → `rm -rf` anywhere; `locations:` paths unvalidated (CWD-relative; `~` is the real home
@@ -115,7 +115,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A7 [HIGH] TUI `x`/`L` on a component also removes/holds its shared dependencies** — `x` on a brew
   formula removed Homebrew + git + curl (apt then takes rust, cargo, steam); the confirm lists units only.
   The CLI touches only the component. **Fix:** act on `resolve_with_roots([name])` like the CLI. (tui-core-01)
-  · effort S · [open]
+  · effort S · [done — remove/lock/unlock act on a row's own units (bundle: its parts; profile: its components' own units); deps only from their own rows]
 - **A8 [HIGH] Glue/dotfiles writes through symlinks into your portable configs.** The shell-writes guard
   reverts THROUGH the `zsh-dotfiles` link (overwriting your captured zshrc in the primary); removing
   `shell-glue` strips the loader block through it; `dotfiles` uninstall restores `.pre-configsys` over a
@@ -158,7 +158,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   dependency (the TUI doesn't). (routing-01/09/15, app-cli-01/04) · effort M · [open]
 - **B2 [HIGH] Version locks kept in the ledger aren't honored** by `u`/`U`/`i`/`I` or `configsys upgrade
   <name>` (67 default methods on pop are ledger-locked). **Fix:** guard in `run_plan`. (actions-02,
-  tui-core-02, parity-02) · effort S · [open]
+  tui-core-02, parity-02) · effort S · [done — run_plan refuses an explicit upgrade of a locked unit (ledger or native hold), remove ends the lock, set-version re-holds, a lock follows a method swap; TUI U/I skip locked, u says why]
 - **B3 [HIGH] Bash glue loads only where `~/.bashrc` sources `~/.bash_aliases`** — Debian-family only; on
   Fedora/RHEL/Arch/Void/Alpine no bash glue runs. (dotfiles-glue-02) · effort S · [open]
 - **B4 [HIGH] Bad data still bricks load:** a `parts:` cycle (RecursionError in inspect/check/where/TUI);
