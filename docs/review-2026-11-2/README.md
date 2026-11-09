@@ -37,6 +37,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — C1 — batched candidates for every native manager.
 - 2026-11-08 — C2 — Profiles triage keys no longer rebuild the Resolver.
 - 2026-11-08 — C3 — startup re-resolution trimmed (seeded start 2.45 s -> 1.42 s; rebuild 1.7 s -> 0.7 s).
+- 2026-11-08 — C4 — version caches consolidated; suite 9 min -> 4 min.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -226,7 +227,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   effort M · [done — subset/witness memoized by a stable cascade fingerprint + when-text and persisted (state/grid-memo.json, never under --pretend); lineage + derivative cells cached; provider index once per component set; Config views cached per instance; diagnostics memoized; setting/theme edits invalidate only what they affect]
 - **C4 [MED] Version caches:** versions.hu parsed per unit and read torn under the thread pool (2026-09
   B9); method-versions a second cache class; serial superseded-install probes; pipx N+1; manifests re-parsed
-  per command. (subsystems-08/09/11, drivers-lang-15, plugins-06) · effort M · [open]
+  per command. (subsystems-08/09/11, drivers-lang-15, plugins-06) · effort M · [done — one TTL cache class (cachefile.py): memoized parse, atomic save, saved only when changed (versions.hu + method-versions.hu); pipx batches interpreters, pip/pipx probes per runner; manifests + plugin identity memoized; swap planning uses the probe cache and one ledger load]
 - **C5 [MED] Shell startup:** `cs_loc` linear scan + fork per call (~100 ms); cached `pyenv init` still
   rehashes (~70–110 ms). (dotfiles-glue-15/16) · effort S · [open]
 - **C6 [MED] TUI per-keystroke/preview:** Profiles untracked count re-merges per row; Theme previews build real

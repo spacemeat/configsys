@@ -247,15 +247,29 @@ def dir_name(source):
     return name
 
 
+_MANIFEST_MEMO = {}                                   # path -> ((mtime_ns, size), manifest)
+
+
 def read_manifest(plugin_dir):
-    '''The plugin's plugin.hu as python (name/requires-abi/provides/data/code), or {}.'''
-    p = plugin_dir / 'plugin.hu'
-    if not p.exists():
-        return {}
+    '''The plugin's plugin.hu as python (name/requires-abi/provides/data/code), or {}. Memoized on
+    the file's (mtime, size): a command reads each manifest ~8 times (C4 / plugins-06). A deep copy
+    comes back, so a caller editing it never edits the memo.'''
+    import copy
+    p = Path(plugin_dir) / 'plugin.hu'
     try:
-        return layers.materialize_string(p.read_text(encoding='utf-8'))
-    except Exception:                              # noqa: BLE001 — a broken manifest -> {}
+        st = p.stat()
+    except OSError:
         return {}
+    stamp = (st.st_mtime_ns, st.st_size)
+    hit = _MANIFEST_MEMO.get(str(p))
+    if hit is not None and hit[0] == stamp:
+        return copy.deepcopy(hit[1])
+    try:
+        man = layers.materialize_string(p.read_text(encoding='utf-8'))
+    except Exception:                              # noqa: BLE001 — a broken manifest -> {}
+        man = {}
+    _MANIFEST_MEMO[str(p)] = (stamp, man)
+    return copy.deepcopy(man)
 
 
 def _abi_ok(manifest):
@@ -361,6 +375,35 @@ def plugin_identity(plugin_dir):
     root = Path(plugin_dir)
     if not root.is_dir():
         return None
+    stamp = _tree_stamp(root)                          # memoized on the tree's stat signature (C4)
+    hit = _IDENTITY_MEMO.get(str(root))
+    if hit is not None and hit[0] == stamp:
+        return hit[1]
+    ident = _plugin_identity(root)
+    _IDENTITY_MEMO[str(root)] = (stamp, ident)
+    return ident
+
+
+_IDENTITY_MEMO = {}
+
+
+def _tree_stamp(root):
+    '''(count, newest mtime_ns, total size) over the tree (links not followed) — cheap stats, no reads.'''
+    n, newest, total = 0, 0, 0
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        dirnames[:] = [d for d in dirnames if d not in _HASH_SKIP_DIRS]
+        for f in filenames + dirnames:
+            try:
+                st = os.lstat(os.path.join(dirpath, f))
+            except OSError:
+                continue
+            n += 1
+            newest = max(newest, st.st_mtime_ns)
+            total += st.st_size
+    return (n, newest, total)
+
+
+def _plugin_identity(root):
     entries = []
     for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
         rel_dir = Path(dirpath).relative_to(root)

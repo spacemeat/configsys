@@ -133,7 +133,7 @@ class Pip(Driver):
     def _python_version(self, rc):
         '''"3.10.12" for the interpreter `rc` installs into, probed once per interpreter per driver
         instance; None when it can't be asked (a --pretend run, no such python).'''
-        cache = self.__dict__.setdefault('_pyver', {})
+        cache = self.runner.__dict__.setdefault('_pip_pyver', {})   # per runner: each unit gets a fresh driver (C4)
         interp = str(rc.fields.get('python') or 'python3')
         if interp not in cache:
             r = self.runner.run(f'{shlex.quote(interp)} -c '

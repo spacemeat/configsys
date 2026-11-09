@@ -18,10 +18,9 @@ from dataclasses import dataclass, field
 
 from .adapt import to_resolved_component
 from .drivers import get_driver
-from .errors import ConfigError
 from .osversion import parse_loose
 from .resolve import ResolveError, candidate_bindings, select_binding, unit_for_binding
-from .troveio import emit_hu, load
+from .cachefile import TTLRecords
 
 LATEST_TTL = 86400  # 24h — a method's available version drifts slowly
 
@@ -51,44 +50,13 @@ class VersionReport:
 
 # -- machine-local cache of get_latest results (keyed by unit key `driver\comp`) -----------------
 
-class _LatestCache:
-    def __init__(self, records=None):
-        self.records = dict(records) if records else {}
-
-    @classmethod
-    def load(cls, paths):
-        p = paths.method_versions_file
-        if not p.exists() or not p.read_text(encoding='utf-8-sig').strip():
-            return cls({})
-        try:
-            trove = load(p)
-        except ConfigError:
-            return cls({})
-        root = trove.root
-        recs = {}
-        for i in range(root.num_children):
-            ch = root[i]
-            ver = ch['version'].value if ch['version'] is not None else None
-            fetched = ch['fetched'].value if ch['fetched'] is not None else '0'
-            try:
-                fetched = float(fetched)
-            except (TypeError, ValueError):
-                fetched = 0.0
-            recs[ch.key] = {'version': ver, 'fetched': fetched}
-        return cls(recs)
-
-    def save(self, paths):
-        paths.state_dir.mkdir(parents=True, exist_ok=True)
-        obj = {k: {'version': r['version'] or '', 'fetched': repr(r['fetched'])}
-               for k, r in sorted(self.records.items())}
-        paths.method_versions_file.write_text(emit_hu(obj), encoding='utf-8')
-
-    def get(self, key, now, ttl):
-        r = self.records.get(key)
-        return r if (r and now - r['fetched'] <= ttl) else None
+class _LatestCache(TTLRecords):
+    '''method-versions.hu — each install method's get_latest, keyed by unit key (cachefile).'''
+    path_attr = 'method_versions_file'
 
     def set(self, key, version, now):
         self.records[key] = {'version': version, 'fetched': now}
+        self.dirty = True
 
 
 def _cached_latest(cache, rc, drv, refresh, now):

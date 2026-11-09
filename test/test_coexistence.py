@@ -111,7 +111,8 @@ def test_plan_with_swaps_noop_when_no_other_method_installed(tmp_path):
     r = Resolver(_routes(tmp_path, comps), 'debian', '12')
     units = r.resolve_resilient(['browser'])[0]
     (key, target), = units.items()
-    ctx = types.SimpleNamespace(routes=r, runner=StubRunner(), paths=None)  # apt+flatpak both absent
+    nothing = types.SimpleNamespace(run=lambda cmd, **kw: Result(cmd, 1))   # every probe: not found
+    ctx = types.SimpleNamespace(routes=r, runner=nothing, paths=None)        # apt+flatpak both absent
 
     plan, units2 = plan_with_swaps(ctx, [('install', key, target)], dict(units))
     assert plan == [('install', key, target)]            # no swap added

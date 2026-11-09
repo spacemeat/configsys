@@ -20,8 +20,7 @@ import threading
 import time
 import urllib.request
 
-from .errors import ConfigError
-from .troveio import emit_hu, load
+from .cachefile import TTLRecords
 
 # Serialize the cache's load-modify-WRITE (inspect discovers versions on ~8 threads; each was doing a
 # full read-modify-write of versions.hu, so concurrent writers clobbered each other — last-writer-wins,
@@ -399,53 +398,19 @@ def _discover_live(spec, fetch):
     return None, None
 
 
-class VersionCache:
-    def __init__(self, records=None):
-        self.records = dict(records) if records else {}
+class VersionCache(TTLRecords):
+    '''versions.hu — discovered upstream versions (+ download url) keyed by version source
+    (cachefile.TTLRecords: memoized parse, atomic save, saved only when changed).'''
+    path_attr = 'versions_file'
+    extra_fields = ('url',)
 
     @classmethod
-    def load(cls, paths):
-        p = paths.versions_file
-        if not p.exists() or not p.read_text(encoding='utf-8-sig').strip():
-            return cls({})
-        try:
-            trove = load(p)          # keep the trove alive while walking its nodes
-        except ConfigError:
-            return cls({})
-        root = trove.root
-        recs = {}
-        for i in range(root.num_children):
-            ch = root[i]
-            ver = ch['version'].value if ch['version'] is not None else None
-            url = ch['url'].value if ch['url'] is not None else None
-            fetched = ch['fetched'].value if ch['fetched'] is not None else '0'
-            try:
-                fetched = float(fetched)
-            except (TypeError, ValueError):
-                fetched = 0.0
-            if ver:
-                recs[ch.key] = {'version': ver, 'url': url, 'fetched': fetched}
-        return cls(recs)
-
-    def save(self, paths):
-        paths.state_dir.mkdir(parents=True, exist_ok=True)
-        obj = {}
-        for k, r in sorted(self.records.items()):
-            rec = {'version': r['version'], 'fetched': repr(r['fetched'])}
-            if r.get('url'):
-                rec['url'] = r['url']
-            obj[k] = rec
-        paths.versions_file.write_text(emit_hu(obj), encoding='utf-8')
-
-    def get(self, key, now, ttl):
-        r = self.records.get(key)
-        return r if r and (now - r['fetched'] <= ttl) else None
-
-    def any(self, key):
-        return self.records.get(key)
+    def _keep(cls, rec):
+        return bool(rec.get('version'))
 
     def set(self, key, version, url, now):
         self.records[key] = {'version': version, 'url': url, 'fetched': now}
+        self.dirty = True
 
 
 def _resolve(spec, paths, refresh, fetch, now, ttl, offline=False):

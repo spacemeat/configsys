@@ -509,3 +509,24 @@ def test_version_fetches_are_https_only_and_the_token_goes_only_to_the_api(monke
     versions.http_fetch('https://api.github.com/repos/a/b/releases')
     assert seen == [('https://evil.invalid/?api.github.com', None),
                     ('https://api.github.com/repos/a/b/releases', 'Bearer secret')]
+
+
+def test_the_version_cache_is_parsed_once_saved_atomically_and_only_when_changed(tmp_path, monkeypatch):
+    # review-2026-11-2 C4 (subsystems-08/09): no per-unit parse, no torn read, no needless rewrite
+    from configsys import cachefile
+    from configsys.paths import Paths
+    from configsys.versions import VersionCache
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path)})
+    c = VersionCache({})
+    c.set('github:a/b', '1.0', None, 100.0)
+    c.save(paths)
+    parses = []
+    real = cachefile.TTLRecords._parse.__func__
+    monkeypatch.setattr(VersionCache, '_parse', classmethod(lambda cls, p: parses.append(p) or real(cls, p)))
+    for _ in range(5):
+        assert VersionCache.load(paths).any('github:a/b')['version'] == '1.0'
+    assert len(parses) == 1                                   # memoized on (mtime, size)
+    st = paths.versions_file.stat()
+    VersionCache.load(paths).save(paths)                      # nothing set: no rewrite
+    assert paths.versions_file.stat().st_mtime_ns == st.st_mtime_ns
+    assert not list(tmp_path.rglob('*.tmp'))                  # the atomic save left no temp file

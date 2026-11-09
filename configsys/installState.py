@@ -336,7 +336,7 @@ def detect_coexisting(ctx, states):
 _SWAP_INSTALLISH = ('install', 'upgrade', 'set-version')
 
 
-def superseded_installs(ctx, target_rc):
+def superseded_installs(ctx, target_rc, *, ledger=None):
     '''ResolvedComponents for `target_rc`'s component that are CURRENTLY installed via a DIFFERENT
     method than target_rc's — the OLD installs a method-switch supersedes. Returns [(rc, version), …],
     empty when there's nothing to swap (the common case). Best-effort probes of the component's other
@@ -366,7 +366,10 @@ def superseded_installs(ctx, target_rc):
         if drv is None:
             continue
         try:
-            ver = drv.get_version(rc)
+            # the shared probe cache: one installed_index enumeration per driver answers every
+            # target, instead of a `brew list --versions <f>` (~0.7 s) per candidate (C4)
+            from . import probecache
+            ver = probecache.of(ctx).version(drv, rc)
         except Exception:                           # noqa: BLE001 — a flaky probe just finds nothing
             ver = None
         if ver is not None:
@@ -378,7 +381,7 @@ def superseded_installs(ctx, target_rc):
         from .ledger import Ledger
         cache = probecache.of(ctx)
         have = {rc.key for rc, _v in out} | {target_rc.key}
-        for s in stranded.find(ctx, target_rc.comp, ledger=Ledger.load(ctx.paths), cache=cache,
+        for s in stranded.find(ctx, target_rc.comp, ledger=ledger or Ledger.load(ctx.paths), cache=cache,
                                foreign=stranded.foreign_index(ctx, cache)):
             if s.key not in have:
                 out.append((s.rc, s.version))
@@ -395,10 +398,17 @@ def plan_with_swaps(ctx, base_plan, units):
     plan = list(base_plan)
     units = dict(units)
     seen = {k for _op, k, _rc in base_plan}
+    ledger = None
+    if any(op in _SWAP_INSTALLISH and rc is not None for op, _k, rc in base_plan):
+        try:
+            from .ledger import Ledger
+            ledger = Ledger.load(ctx.paths)         # once for the plan, not once per target (C4)
+        except Exception:                           # noqa: BLE001
+            ledger = None
     for op, _key, rc in base_plan:
         if op not in _SWAP_INSTALLISH or rc is None:
             continue
-        for old_rc, _ver in superseded_installs(ctx, rc):
+        for old_rc, _ver in superseded_installs(ctx, rc, ledger=ledger):
             if old_rc.key in seen:
                 continue
             seen.add(old_rc.key)
