@@ -29,8 +29,8 @@ say "termapod binary landed in ~/.local/bin"
 say "pipx tracks termapod"
 python3 -m pipx list --json | grep -q '"termapod"' || fail "pipx does not list termapod"
 
-say "startup dotfile linked"
-[ -e "$HOME/.bash.d/apod.sh" ] || fail "~/.bash.d/apod.sh not linked"
+say "startup glue linked (the component band of bash's conf.d)"
+[ -e "$HOME/.config/bash/conf.d/50-apod.sh" ] || fail "~/.config/bash/conf.d/50-apod.sh not linked"
 
 say "remove apod via configsys"
 bash configsys.sh remove apod

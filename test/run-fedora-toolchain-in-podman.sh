@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Gated (slow, networked) Fedora toolchain integration: installs versioned gcc/clang
-# compat packages through configsys in a throwaway fedora:41 container and asserts
+# compat packages through configsys in throwaway fedora containers (each release the script loops
+# over) and asserts
 # the Fedora acquisition model (versioned binaries, no update-alternatives).
 #
 # Usage: bash test/run-fedora-toolchain-in-podman.sh

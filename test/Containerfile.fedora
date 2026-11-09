@@ -2,7 +2,7 @@
 # touches the host: all installs/removes happen in the container, discarded on exit.
 # python3-devel + gcc are present so `pip install humon` can build the extension.
 # Release is selectable: podman build --build-arg FEDORA=42 ...
-ARG FEDORA=41
+ARG FEDORA=45
 FROM fedora:${FEDORA}
 
 RUN dnf install -y --setopt=install_weak_deps=False \

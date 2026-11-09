@@ -9,7 +9,7 @@ set -euo pipefail
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
 EL_IMAGE="${1:-almalinux:9}"
-IMAGE="configsys-test:el9"
+IMAGE="configsys-test:el-${EL_IMAGE//[:\/]/-}"     # one image per base (el9 / el10 / rocky…)
 
 command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 

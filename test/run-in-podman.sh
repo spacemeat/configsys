@@ -20,10 +20,10 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 echo ">> building $IMAGE from $BASE (context: $repo)"
 podman build -q -t "$IMAGE" --build-arg "BASE=$BASE" -f "$here/Containerfile" "$repo"
 
-echo ">> [1/3] apt lifecycle cycle (PKG=$PKG)"
+echo ">> [1/4] apt lifecycle cycle (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_apt.sh
 
-echo ">> [2/3] system-prerequisite (repo-component) test (PKG=$PKG)"
+echo ">> [2/4] system-prerequisite (repo-component) test (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_prereq.sh
 
 echo ">> [3/4] i386 multiarch prereq (behind native Steam)"

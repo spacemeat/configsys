@@ -1,7 +1,8 @@
-# Disposable EL9 (RHEL-family, dnf4) sandbox for configsys gcc-toolset tests.
-# AlmaLinux is a free, RHEL-binary-compatible stand-in (ID=almalinux -> rhel block).
-# EL9's default python3 is 3.9; configsys needs >= 3.10, so install python3.12 (in
-# AppStream) and point the bootstrap at it via PYTHON. gcc + headers build humon.
+# Disposable EL (RHEL-family) sandbox for configsys gcc-toolset / EPEL / RPM Fusion tests; the base
+# is selectable (EL_IMAGE=almalinux:10 …). AlmaLinux is a free, RHEL-binary-compatible stand-in
+# (ID=almalinux -> rhel block). EL9's default python3 is 3.9 and configsys needs >= 3.10, so this
+# installs python3.12 (AppStream on EL9; on EL10 the default python3 is 3.12 and provides it) and
+# points the bootstrap at it via PYTHON. gcc + headers build humon.
 ARG EL_IMAGE=almalinux:9
 FROM ${EL_IMAGE}
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Gated (slow, networked) language-toolchain + module-driver integration. Installs real
 # toolchains (rust/node/go/ruby) and exercises the npm/gem/go-install drivers inside a throwaway
-# container, asserting userland module installs and real version parsing. Nothing touches the host.
+# container, asserting userland module installs and real version parsing; then the opam/luarocks/
+# cabal, script (SDKMAN) and zip-tarball (deno/bun) round-trips in the same image. Nothing touches
+# the host.
 #
 # Usage: bash test/run-langs-in-podman.sh [distro ...]   (default: noble)
 #   distro ∈ noble fedora arch opensuse   — Containerfile.<distro> (noble -> Containerfile.noble)
@@ -21,4 +23,10 @@ for distro in "${@:-noble}"; do
     podman build -q -t "$img" -f "$file" "$repo"
     echo ">> language toolchains + module drivers on $distro"
     podman run --rm "$img" bash test/integration_langs.sh
+    # the other driver round-trips that share this image: opam/luarocks/cabal reads, the script
+    # driver (SDKMAN), and the tarball driver's zip path (deno, bun)
+    for extra in integration_lang_modules integration_script integration_zip; do
+        echo ">> $extra on $distro"
+        podman run --rm "$img" bash "test/$extra.sh"
+    done
 done

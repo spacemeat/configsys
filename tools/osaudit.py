@@ -499,6 +499,9 @@ def sweep(cascade, line, releases_wanted=None):
         except subprocess.TimeoutExpired:
             per_release[version] = {'error': 'verifier timed out'}
             continue
+        except namesweep.VerifierFailed as e:        # an outage is no verdict, never "0 missing"
+            per_release[version] = {'error': str(e)}
+            continue
         absent = set(missing)
         # a name-only guess must be an exact package name: the slow fallback (`dnf provides`,
         # `apt-cache show`) also matches files and virtual names (`clang-18` -> /usr/bin/clang-18)
@@ -506,8 +509,11 @@ def sweep(cascade, line, releases_wanted=None):
                          if c['confidence'] == 'name-only' and p not in absent)
         if guesses and manager in _FAST_INDEX:
             exact_check = _FAST_INDEX[manager][1]
-            not_exact, _rc = namesweep._run_verifier(
-                image, namesweep._build_snippet(_setup_for(line, manager), exact_check), guesses)
+            try:
+                not_exact, _rc = namesweep._run_verifier(
+                    image, namesweep._build_snippet(_setup_for(line, manager), exact_check), guesses)
+            except (subprocess.TimeoutExpired, namesweep.VerifierFailed):
+                not_exact = guesses                   # unverified guesses are not arrivals
             absent |= set(not_exact)
         per_release[version] = {
             'image': image, 'checked': len(names),
@@ -740,13 +746,27 @@ def fixtures(cascade):
             out.append({'fixture': 'tools/namesweep.py MANAGERS', 'line': line,
                         'message': f'{manager} sweeps {block_name} {version}; newest released is '
                                    f'{newest} (osaudit sweep covers every live release)'})
+    # a harness base that is a registered release: stale when the registry marks it EOL (the
+    # harness would test a release nobody can install any more — review-2026-11-2 tests-tools-08)
+    def _norm(image):
+        return re.sub(r'^(docker\.io/)?(library/)?', '', str(image or ''))
+    by_image = {_norm(e.get('image')): (ln, v, e.get('status')) for ln, table in registry.items()
+                for v, e in (table or {}).items() if isinstance(e, dict) and e.get('image')}
     for path in sorted((ROOT / 'test').glob('Containerfile*')):
         text = path.read_text(encoding='utf-8')
         for m in re.finditer(r'^(?:ARG\s+(\w+)=(\S+)|FROM\s+(\S+))', text, re.M):
             ref = m.group(2) or m.group(3)
-            out.append({'fixture': str(path.relative_to(ROOT)), 'line': None,
-                        'message': f"base: {m.group(1) + '=' if m.group(1) else 'FROM '}{ref}",
-                        'info': True})
+            base = f"{m.group(1) + '=' if m.group(1) else 'FROM '}{ref}"
+            image = ref if ':' in ref else None
+            if m.group(1) == 'FEDORA':                  # `ARG FEDORA=45` + `FROM fedora:${FEDORA}`
+                image = f'fedora:{ref}'
+            hit = by_image.get(_norm(image)) if image else None
+            if hit and hit[2] == 'eol':
+                out.append({'fixture': str(path.relative_to(ROOT)), 'line': hit[0],
+                            'message': f'base {base} is {hit[0]} {hit[1]}, which the registry marks eol'})
+            else:
+                out.append({'fixture': str(path.relative_to(ROOT)), 'line': None,
+                            'message': f'base: {base}', 'info': True})
     return out
 
 
@@ -893,7 +913,9 @@ def main(argv=None):
         _emit(data, args.json, render)
         if 'error' in data:
             return 2
-        return 1 if any(r.get('missing') for r in data['releases'].values()) else 0
+        if any(r.get('missing') for r in data['releases'].values()):
+            return 1
+        return 2 if any('error' in r for r in data['releases'].values()) else 0   # unchecked != OK
 
     if args.cmd == 'facts':
         data = facts(cascade, args.line, args.release, args.image)

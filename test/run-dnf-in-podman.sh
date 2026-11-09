@@ -4,13 +4,13 @@
 #
 # Usage: [FEDORA=45] bash test/run-dnf-in-podman.sh [PKG]
 #   PKG     dnf package to exercise (default: btop)
-#   FEDORA  the release to test on (default 41) — a new release's driver-lifecycle check (/update-os)
+#   FEDORA  the release to test on (default 45, the newest released) — a new release's driver-lifecycle check (/update-os)
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
 PKG="${1:-btop}"
-FEDORA="${FEDORA:-41}"
+FEDORA="${FEDORA:-45}"
 IMAGE="configsys-test:fedora-$FEDORA"
 
 command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }

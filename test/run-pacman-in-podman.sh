@@ -15,7 +15,7 @@ command -v podman >/dev/null 2>&1 || { echo "podman not found" >&2; exit 127; }
 echo ">> building $IMAGE (context: $repo)"
 podman build -q -t "$IMAGE" -f "$here/Containerfile.arch" "$repo"
 
-echo ">> [1/2] pacman lifecycle cycle (PKG=$PKG)"
+echo ">> [1/3] pacman lifecycle cycle (PKG=$PKG)"
 podman run --rm -e "PKG=$PKG" "$IMAGE" bash test/integration_pacman.sh
 
 echo ">> [2/3] AUR build/install/remove (makepkg)"
