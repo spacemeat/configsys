@@ -181,9 +181,9 @@ def test_real_native_still_beats_brew(real):
 
 
 def test_real_homebrew_pulled_when_brew_chosen_off_atomic(real):
-    units, errs = real('ubuntu', '24.04').resolve_resilient(['wrk'])
+    units, errs = real('ubuntu', '24.04').resolve_resilient(['croc'])
     assert not errs
-    assert {'brew\\wrk', 'script\\homebrew', 'apt\\curl', 'apt\\git'} <= set(units)
+    assert {'brew\\croc', 'script\\homebrew', 'apt\\curl', 'apt\\git'} <= set(units)
 
 
 def test_real_no_homebrew_cycle_on_kde_linux(real):
