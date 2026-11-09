@@ -112,6 +112,24 @@ def test_importing_code_does_not_invalidate_trust(tmp_path):
     assert plugins.plugin_identity(pdir) == before     # identity unchanged
 
 
+def test_loading_code_writes_no_bytecode_into_the_checkout(tmp_path, monkeypatch):
+    # a __pycache__/ left in a synced clone reads as uncommitted work to `plugin remove` /
+    # `--replace` (primarygit.local_work) — the loader imports with bytecode writing off
+    import sys
+    monkeypatch.setattr(sys, 'dont_write_bytecode', False)
+    pdir = _plugin(tmp_path / 'plugins' / 'p',
+                   '{ name: p  requires-abi: 1  code: driver.py }',
+                   {'driver.py': DRIVER_PY + 'import helper_p\n', 'helper_p.py': 'X = 1\n'})
+    tf = tmp_path / 'trust.hu'
+    plugins.set_trust(tf, 'p', plugins.plugin_identity(pdir))
+    monkeypatch.syspath_prepend(str(pdir))           # so its own sibling import resolves
+    reg = []
+    plugins.load_code(tmp_path / 'plugins', tf, [{'source': 'github:x/p'}], reg.append)
+    sys.modules.pop('helper_p', None)
+    assert reg and not (pdir / '__pycache__').exists()
+    assert sys.dont_write_bytecode is False          # restored after the import
+
+
 def test_load_code_skips_incompatible_and_broken(tmp_path):
     root = tmp_path / 'plugins'
     _plugin(root / 'old', '{ name: old  requires-abi: 99  code: driver.py }',

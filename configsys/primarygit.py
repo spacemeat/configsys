@@ -76,6 +76,11 @@ class GitResult:
         return self.returncode == 0
 
 
+def _is_bytecode(path):
+    '''A git status path (bytes) that is Python bytecode: under a `__pycache__/` dir, or *.pyc.'''
+    return path.endswith(b'.pyc') or b'__pycache__' in path.rstrip(b'/').split(b'/')
+
+
 class PrimaryRepo:
     '''The one way this module runs git on the primary's checkout at `root`.'''
 
@@ -136,7 +141,9 @@ class PrimaryRepo:
             return 0, 0
 
     def dirty(self):
-        '''The set of paths with uncommitted changes (tracked or untracked), or None.'''
+        '''The set of paths with uncommitted changes (tracked or untracked), or None. git-ignored
+        files never show, and neither does untracked Python bytecode (`__pycache__/`, `*.pyc`) —
+        importing a code plugin can leave some, and it is nobody's work.'''
         r = self.git('--no-optional-locks', 'status', '--porcelain', '-z', '--untracked-files=all')
         if not r.ok:
             return None
@@ -144,7 +151,9 @@ class PrimaryRepo:
         i = 0
         while i < len(parts):
             entry = parts[i]
-            if len(entry) > 3:
+            if entry[:3] == b'?? ' and _is_bytecode(entry[3:]):
+                pass
+            elif len(entry) > 3:
                 out.add(os.fsdecode(entry[3:]))
                 xy = entry[:2]                         # a rename/copy carries its source next — in
                 if b'R' in xy or b'C' in xy:           # either column (` R` after `git add -N`)

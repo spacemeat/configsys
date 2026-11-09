@@ -57,6 +57,19 @@ def test_local_work_names_each_kind_of_unsaved_work(tmp_path):
     assert any('its own source' in s for s in primarygit.local_work(lone, str(lone)))
 
 
+def test_local_work_ignores_untracked_bytecode(tmp_path):
+    # Python writes __pycache__/*.pyc next to a trusted code plugin's module: not anyone's work
+    bare = _remote(tmp_path, 'w')
+    c = tmp_path / 'c'
+    subprocess.run(['git', 'clone', '-q', str(bare), str(c)], check=True, capture_output=True)
+    (c / '__pycache__').mkdir()
+    (c / '__pycache__' / 'driver.cpython-310.pyc').write_bytes(b'\0')
+    (c / 'stray.pyc').write_bytes(b'\0')
+    assert primarygit.local_work(c) == []
+    (c / 'notes.txt').write_text('mine\n')                          # a real untracked file still counts
+    assert any('uncommitted' in s and 'notes.txt' in s for s in primarygit.local_work(c))
+
+
 def test_remove_refuses_a_primary_with_unpushed_commits(tmp_path, home, capsys):
     h, base = home
     bare = _remote(tmp_path, 'prim')

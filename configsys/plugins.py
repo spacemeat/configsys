@@ -1355,7 +1355,8 @@ def scaffold_primary(plug_dir, name, transitive_decls=(), sections=None):
 def _import_module(pdir, manifest):
     '''Import the plugin's `code:` module from disk and return the module object. This RUNS the
     module's top-level code — reached only for a plugin the user has trusted at this exact content.
-    Raises on a missing file / import error.'''
+    Bytecode writing is off for the import (it and whatever it imports): a `__pycache__/` in the
+    clone would only be noise in its git status. Raises on a missing file / import error.'''
     import importlib.util
     import sys
     code_file = pdir / manifest['code']
@@ -1367,11 +1368,14 @@ def _import_module(pdir, manifest):
     spec = importlib.util.spec_from_file_location(mod_name, code_file)
     module = importlib.util.module_from_spec(spec)
     sys.modules[mod_name] = module                       # so dataclasses / self-import resolve
+    no_bytecode, sys.dont_write_bytecode = sys.dont_write_bytecode, True
     try:
         spec.loader.exec_module(module)
     except BaseException:
         sys.modules.pop(mod_name, None)
         raise
+    finally:
+        sys.dont_write_bytecode = no_bytecode
     return module
 
 
