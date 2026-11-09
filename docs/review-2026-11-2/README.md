@@ -97,12 +97,12 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   for the primary that is your journal commits and — after `plugin init` — the only copy of your captured
   dotfiles (live links dangle). `--replace` also drops `primary: true`. **Fix:** refuse with a list of what
   would be lost unless `--force`; keep a `.replaced-<date>` copy; confirm popup on `x`; carry
-  `primary`/`ref` on replace. (actions-01, tui-screens-01, parity-01) · effort M · [done — plugin remove / Plugins x refuse a clone holding unpushed/uncommitted work, stashes, no remote or authored in place (naming it; --force); --replace keeps such a copy as <name>.replaced-<stamp> and keeps primary]
+  `primary`/`ref` on replace. (actions-01, tui-screens-01, parity-01) · effort M · [done a80cc91 — plugin remove / Plugins x refuse a clone holding unpushed/uncommitted work, stashes, no remote or authored in place (naming it; --force); --replace keeps such a copy as <name>.replaced-<stamp> and keeps primary]
 - **A4 [HIGH] A dotfiles `src:` with `..` makes capture rmtree any directory — your home included.**
   Unvalidated route paths; on a first capture no `--force` is needed; in the TUI one `m`/Enter. Also:
   capture follows symlinks (`keys -> ~/.ssh`) into the store, past the secret scan, and into the primary.
   **Fix:** reject absolute/`..` `src:`; resolve-and-contain before every rmtree; don't follow symlinks out of
-  the source tree. (dotfiles-glue-05, -04) · effort S · [open]
+  the source tree. (dotfiles-glue-05, -04) · effort S · [done — dotfiles src: must be relative/no .., dst:/absorb-into: under home (routecheck error + driver skip); rmtree/relocate contained; capture copies links as links, skips links out of the config and private-key files]
 - **A5 [HIGH] A plugin that `include:`s your top config demotes it** — pins, picks, machine, scope,
   disabled-drivers vanish and `primary-verify: signed` reads `off`; your overrides sink below the
   plugin's. 2026-09 A5, still open. **Fix:** the top config is never an include target (dedupe keeps the

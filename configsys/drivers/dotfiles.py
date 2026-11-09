@@ -31,6 +31,65 @@ from ..driver import Driver
 from ..runner import Result
 
 _VAR = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
+
+# A `dst:` / `absorb-into:` must name a place in your home; `src:` a place inside the content store.
+_HOME_ROOTS = ('~', '$HOME', '$XDG_CONFIG_HOME', '$XDG_DATA_HOME')
+
+
+def spec_problem(src, dst, absorb=None):
+    '''Why a dotfiles link spec is unsafe to act on, or None. `src:` must be a relative path inside
+    the content store (no leading `/` or `~`, no `..` part), and `dst:` / `absorb-into:` must start
+    at your home (`~/`, `$HOME/`, `$XDG_CONFIG_HOME`, `$XDG_DATA_HOME`) with no `..` part — else
+    capture's rmtree, relocate's move and install's backup could reach any directory, `~` itself
+    included (review-2026-11-2 A4). Checked at load (routecheck) and again by the driver.'''
+    s = str(src or '')
+    if not s or s.startswith(('/', '~')) or '..' in Path(s).parts:
+        return f'`src: {s}` must be a relative path inside the content store (no leading / or ~, no ..)'
+    for label, d in (('dst', dst), ('absorb-into', absorb)):
+        if d is None and label == 'absorb-into':
+            continue
+        d = str(d or '')
+        head = d.split('/', 1)[0]
+        if head not in _HOME_ROOTS or d.rstrip('/') in _HOME_ROOTS[:2] or '..' in Path(d).parts:
+            return (f'`{label}: {d}` must be a path under your home (~/…, $HOME/…, $XDG_CONFIG_HOME/…), '
+                    'not home itself, with no ..')
+    return None
+
+
+def link_specs(f):
+    '''[(name, src, dst, absorb)] from a dotfiles binding's fields: an inline top-level src/dst
+    (named after the component — the caller substitutes it) plus each named `{ src dst }` spec.'''
+    out = []
+    if 'src' in f and 'dst' in f:
+        out.append((None, f['src'], f['dst'], f.get('absorb-into')))
+    for key, val in f.items():
+        if isinstance(val, dict) and 'src' in val and 'dst' in val:
+            out.append((key, val['src'], val['dst'], val.get('absorb-into')))
+    return out
+
+
+_PRIVATE_KEY = re.compile(rb'-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----')
+
+
+def _private_key(path):
+    '''True if the file at `path` starts like a PEM/OpenSSH private key (first 8 KiB) — never
+    copied into the store, whatever the manifest says (secrets never sync).'''
+    try:
+        with open(path, 'rb') as f:
+            return bool(_PRIVATE_KEY.search(f.read(8192)))
+    except OSError:
+        return False
+
+
+def _inside(path, root):
+    rp, rr = os.path.realpath(path), os.path.realpath(root)
+    return rp == rr or rp.startswith(rr.rstrip(os.sep) + os.sep)
+
+
+def _contained(path, root):
+    '''Refuse (RuntimeError) to delete or overwrite `path` unless it resolves inside `root`.'''
+    if not _inside(path, root):
+        raise RuntimeError(f'dotfiles: refusing to touch {path} — it resolves outside {root}')
 BACKUP_SUFFIX = '.pre-configsys'
 
 # config: an app's own user config lives under a `<component>.cfs/` MARKER dir in the content store,
@@ -87,14 +146,8 @@ class DotFiles(Driver):
         '''[(name, src, dst, absorb)] link specs. A component may mix a single inline spec (top-level
         src/dst) with named specs (`config: {src,dst}`, `aliases: {src,dst}`, ...). `absorb-into`
         relocates a pre-existing real dst instead of a plain backup.'''
-        f = rc.fields
-        out = []
-        if 'src' in f and 'dst' in f:
-            out.append((rc.comp, f['src'], f['dst'], f.get('absorb-into')))
-        for key, val in f.items():
-            if isinstance(val, dict) and 'src' in val and 'dst' in val:
-                out.append((key, val['src'], val['dst'], val.get('absorb-into')))
-        return out
+        return [(n or rc.comp, s, d, a) for n, s, d, a in link_specs(rc.fields)
+                if spec_problem(s, d, a) is None]          # an unsafe spec is a routecheck error
 
     def _home(self):
         return self.paths.home if self.paths is not None else Path.home()
@@ -447,24 +500,43 @@ class DotFiles(Driver):
                 continue
             tgt = self._expand(dst)
             dest = self._cfs_dir(rc) / src
+            _contained(dest.parent, self._cfs_dir(rc))    # never rmtree outside the .cfs store dir
             excludes = specs_map[name]['exclude']
             dest.parent.mkdir(parents=True, exist_ok=True)
             if dest.is_symlink() or dest.is_file():
                 dest.unlink()
             elif dest.is_dir():
                 shutil.rmtree(dest)
+            skipped = []
             if tgt.is_dir():
                 def _ignore(dirpath, names, _tgt=tgt, _ex=excludes):
                     rel_base = os.path.relpath(dirpath, str(_tgt))
                     skip = []
                     for n in names:
                         rel = n if rel_base == '.' else f'{rel_base}/{n}'
+                        full = os.path.join(dirpath, n)
                         if self._is_excluded(rel, _ex):
                             skip.append(n)
+                        elif os.path.islink(full) and not _inside(full, _tgt):
+                            skip.append(n)                 # a link out of the config (keys -> ~/.ssh)
+                            skipped.append((rel, 'links outside it'))
+                        elif not os.path.islink(full) and _private_key(full):
+                            skip.append(n)
+                            skipped.append((rel, 'holds a private key'))
                     return set(skip)
-                shutil.copytree(tgt, dest, ignore=_ignore)
-            elif not self._is_excluded(src, excludes):
+                try:                                       # links are copied AS links, never followed
+                    shutil.copytree(tgt, dest, ignore=_ignore, symlinks=True)
+                except (shutil.Error, OSError) as e:       # roll back a partial copy, then report
+                    shutil.rmtree(dest, ignore_errors=True)
+                    raise RuntimeError(f'dotfiles: could not capture {tgt}: {e}') from e
+            elif self._is_excluded(src, excludes):
+                pass
+            elif _private_key(str(tgt)):
+                skipped.append((src, 'holds a private key'))
+            else:
                 shutil.copy2(tgt, dest)
+            for rel, why in skipped:
+                self._echo(f'dotfiles: not captured: {rel} ({why})')
             done.append((name, tgt, dest))
         # Always (re)write the marker/manifest so management is recorded even if nothing copied.
         if specs_map:
@@ -491,6 +563,8 @@ class DotFiles(Driver):
                 continue                                   # nothing user-captured here to move
             if os.path.realpath(srcpath) == os.path.realpath(newpath):
                 continue                                   # already at the target
+            _contained(newpath.parent, target_cfs)         # both ends stay inside their content roots
+            _contained(srcpath.parent, root)
             for side in (newpath, srcpath, root / f'{rc.comp}{CFS_SUFFIX}'):   # either may be the primary
                 primarygit.will_write(side)
             newpath.parent.mkdir(parents=True, exist_ok=True)

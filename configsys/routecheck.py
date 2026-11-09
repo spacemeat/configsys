@@ -44,6 +44,12 @@ def check_component(name, component, cascade):
         if m is not None and not (isinstance(m, dict) and m and all(isinstance(v, str) for v in m.values())):
             raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `cpu-names:` must be a '
                               f'non-empty map {{ <cpu>: <upstream token> }}, e.g. {{ x86_64: amd64  aarch64: arm64 }}')
+        if b.via == 'dotfiles':                        # paths a capture/relocate/backup acts on (A4)
+            from .drivers.dotfiles import link_specs, spec_problem
+            for _n, src, dst, absorb in link_specs(b.details):
+                why = spec_problem(src, dst, absorb)
+                if why:
+                    raise ConfigError(f'component {name!r}: binding #{i} (via:dotfiles) {why}')
     for (i, a), (j, b) in combinations(enumerate(component.bindings), 2):
         if a.via != b.via:
             continue                                   # cross-method overlap: preference decides

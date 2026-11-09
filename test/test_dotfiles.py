@@ -1,3 +1,4 @@
+import pytest
 import os
 from pathlib import Path
 
@@ -24,6 +25,7 @@ def paths_for(tmp_path, shells='bash'):
                       'CONFIGSYS_GLUE_SHELLS': shells})
 
 
+@pytest.mark.real_runner
 def test_template_materializes_to_store_and_link_survives_repo_removal(tmp_path):
     # #4 payoff: a shipped template is copied into the machine-local store on install and the link
     # points THERE — so the link keeps working even if the repo moves or is deleted.
@@ -141,6 +143,7 @@ def test_no_specs_is_an_error(tmp_path):
     assert not res.ok
 
 
+@pytest.mark.real_runner
 def test_real_symlink_install_getversion_uninstall(tmp_path):
     p = paths_for(tmp_path)
     src_dir = p.dotfiles_dir / 'neovim'
@@ -166,6 +169,7 @@ def test_real_symlink_install_getversion_uninstall(tmp_path):
     assert not target.exists()
 
 
+@pytest.mark.real_runner
 def test_existing_dir_is_backed_up_and_restored(tmp_path):
     p = paths_for(tmp_path)
     src_dir = p.user_dotfiles_dir / 'neovim'      # ADOPTED content (a user store) -> link is safe
@@ -189,6 +193,7 @@ def test_existing_dir_is_backed_up_and_restored(tmp_path):
     assert (target / 'old.txt').read_text() == 'old'   # original restored
 
 
+@pytest.mark.real_runner
 def test_unpopulated_source_is_a_noop(tmp_path):
     p = paths_for(tmp_path)
     p.home.mkdir(parents=True)
@@ -225,6 +230,7 @@ def test_primary_plugin_store_beats_template_but_not_local(tmp_path):
     assert df._pairs(df_unit())[0][0] == p.user_dotfiles_dir / 'neovim'      # local > plugin
 
 
+@pytest.mark.real_runner
 def test_spec_states(tmp_path):
     p = paths_for(tmp_path)
     p.home.mkdir(parents=True)
@@ -272,6 +278,7 @@ def test_install_refuses_template_over_real_dst(tmp_path):
     assert not (p.home / '.config' / 'nvim.pre-configsys').exists()   # no backup made either
 
 
+@pytest.mark.real_runner
 def test_install_force_overwrites_template(tmp_path):
     p = paths_for(tmp_path)
     (p.dotfiles_dir / 'neovim').mkdir(parents=True)
@@ -288,6 +295,7 @@ def test_install_force_overwrites_template(tmp_path):
     assert (backup / 'mine.lua').read_text() == 'mine'       # original preserved
 
 
+@pytest.mark.real_runner
 def test_install_over_real_dst_ok_once_adopted(tmp_path):
     # the sanctioned path: capture (content in a user store) makes the link safe, no --force needed
     p = paths_for(tmp_path)
@@ -329,6 +337,7 @@ def test_capture_plan_actions(tmp_path):
     assert df.capture_plan(rc, force=True)[0][3] == 'copy'    # --force overwrites
 
 
+@pytest.mark.real_runner
 def test_capture_plan_skips_our_own_link(tmp_path):
     p = paths_for(tmp_path)
     p.home.mkdir(parents=True)
@@ -381,6 +390,7 @@ def test_cli_capture_takes_the_tool_name_or_the_companion_name(tmp_path, monkeyp
 
 # -- phase 2: .cfs marker, managed-when-empty, exclude globs, secret suggest ----
 
+@pytest.mark.real_runner
 def test_config_install_creates_cfs_marker_even_without_content(tmp_path):
     # #5: installing a config -dotfiles with NO content anywhere still stamps the .cfs marker +
     # manifest, so the component reads as "managed" (installed) though nothing is linked yet.
@@ -399,6 +409,7 @@ def test_config_install_creates_cfs_marker_even_without_content(tmp_path):
     assert man['config']['dst'] == '$XDG_CONFIG_HOME/nvim'
 
 
+@pytest.mark.real_runner
 def test_managed_config_over_real_file_keeps_it_and_warns(tmp_path):
     # marker + a real un-captured file at dst -> state 'managed', file untouched, startup warns.
     p = paths_for(tmp_path)
@@ -454,6 +465,7 @@ def test_capture_respects_a_preexisting_manifest_exclude(tmp_path):
     assert not (store / 'big.log').exists() and not (store / 'cache').exists()
 
 
+@pytest.mark.real_runner
 def test_capture_then_install_links_from_cfs(tmp_path):
     p = paths_for(tmp_path)
     cfg = p.home / '.config' / 'nvim'
@@ -497,6 +509,7 @@ def _seed_bash_src(p):
     p.home.mkdir(parents=True, exist_ok=True)
 
 
+@pytest.mark.real_runner
 def test_absorb_moves_preexisting_aliases_into_bash_d(tmp_path):
     p = paths_for(tmp_path)
     _seed_bash_src(p)
@@ -517,6 +530,7 @@ def test_absorb_moves_preexisting_aliases_into_bash_d(tmp_path):
     assert not (p.home / '.bash_aliases.pre-configsys').exists()       # moved, not backed up
 
 
+@pytest.mark.real_runner
 def test_absorb_noop_when_no_preexisting_file(tmp_path):
     p = paths_for(tmp_path)
     _seed_bash_src(p)
@@ -526,6 +540,7 @@ def test_absorb_noop_when_no_preexisting_file(tmp_path):
     assert not (p.home / '.bash.d' / 'pre-configsys-aliases.sh').exists()   # nothing to absorb
 
 
+@pytest.mark.real_runner
 def test_absorb_is_restored_on_uninstall(tmp_path):
     p = paths_for(tmp_path)
     _seed_bash_src(p)
@@ -540,6 +555,7 @@ def test_absorb_is_restored_on_uninstall(tmp_path):
     assert not (p.home / '.bash.d' / 'pre-configsys-aliases.sh').exists()
 
 
+@pytest.mark.real_runner
 def test_absorb_falls_back_to_backup_if_target_taken(tmp_path):
     p = paths_for(tmp_path)
     _seed_bash_src(p)
@@ -574,3 +590,61 @@ def test_materialize_to_replaces_a_looping_symlink(tmp_path):
     assert a.is_file() and not a.is_symlink()  # now a real file, loop broken
     assert a.read_text() == '# glue\n'
 
+
+
+# -- review-2026-11-2 A4: route paths can't make capture/relocate reach outside their roots ----------
+
+@pytest.mark.parametrize('src', ['/home', '../../..', 'a/../../b', '~/x'])
+def test_an_unsafe_src_is_a_load_error_and_the_driver_ignores_it(tmp_path, src):
+    from configsys.drivers.dotfiles import spec_problem
+    assert spec_problem(src, '$XDG_CONFIG_HOME/x')
+    df = DotFiles(Runner(pretend=False), paths=paths_for(tmp_path))
+    rc = df_unit(specs={'config': {'src': src, 'dst': '$XDG_CONFIG_HOME/x'}})
+    assert df._specs(rc) == [] and df.capture(rc, force=True) == []
+
+
+@pytest.mark.parametrize('dst', ['~', '$HOME', 'relative/path', '/etc/x', '$UNSET/x', '~/../x'])
+def test_a_dst_outside_home_is_refused(dst):
+    from configsys.drivers.dotfiles import spec_problem
+    assert spec_problem('x', dst)
+    assert spec_problem('x', '~/.x') is None and spec_problem('x', '$XDG_CONFIG_HOME/x') is None
+
+
+def test_routecheck_rejects_a_dotfiles_src_with_dotdot():
+    from configsys import routecheck
+    from configsys.errors import ConfigError
+    from configsys.routes import Component
+    comp = Component('evil-dotfiles', {'install': [
+        {'via': 'dotfiles', 'config': {'src': '../../..', 'dst': '$XDG_CONFIG_HOME/evil'}}]})
+    with pytest.raises(ConfigError, match='src'):
+        routecheck.check_component('evil-dotfiles', comp, None)
+
+
+def test_capture_never_follows_a_link_out_of_the_config(tmp_path):
+    p = paths_for(tmp_path)
+    ssh = p.home / '.ssh'
+    ssh.mkdir(parents=True)
+    (ssh / 'id_ed25519').write_text('-----BEGIN OPENSSH PRIVATE KEY-----\nxx\n')
+    cfg = p.home / '.config' / 'nvim'
+    cfg.mkdir(parents=True)
+    (cfg / 'init.lua').write_text('cfg')
+    (cfg / 'keys').symlink_to(ssh)                           # keys -> ~/.ssh
+    (cfg / 'dangling').symlink_to(p.home / 'nowhere')
+    (cfg / 'deploy.pem.txt').write_text('-----BEGIN RSA PRIVATE KEY-----\n')   # name isn't secret-shaped
+    df = DotFiles(Runner(pretend=False), paths=p)
+    df.capture(df_unit())
+    store = p.user_dotfiles_dir / 'neovim.cfs' / 'neovim'
+    assert (store / 'init.lua').read_text() == 'cfg'
+    assert not (store / 'keys').exists() and not (store / 'keys').is_symlink()
+    assert not (store / 'deploy.pem.txt').exists()
+    assert not list(store.rglob('id_ed25519'))
+
+
+def test_a_single_file_spec_holding_a_private_key_is_not_captured(tmp_path):
+    p = paths_for(tmp_path)
+    p.home.mkdir(parents=True)
+    (p.home / '.netrc-key').write_text('-----BEGIN PRIVATE KEY-----\n')
+    df = DotFiles(Runner(pretend=False), paths=p)
+    rc = df_unit(specs={'key': {'src': 'netrc-key', 'dst': '~/.netrc-key'}}, comp='netrc')
+    df.capture(rc)
+    assert not (p.user_dotfiles_dir / 'netrc.cfs' / 'netrc-key').exists()
