@@ -41,7 +41,6 @@ import argparse
 import concurrent.futures
 import datetime
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -538,6 +537,15 @@ _NOT_PACKAGES = frozenset({'dotfiles', 'glue', 'service', 'group', 'parts'})
 _NATIVE_BACKED = ('gcc', 'clang', 'gcc-toolset')
 
 
+def _vendor_sourced(rc):
+    from configsys.drivers import get_driver
+    from configsys.runner import Runner
+    if rc.fields.get('ppa') or rc.fields.get('apt-source'):
+        return True
+    drv = get_driver(rc.driver, Runner(pretend=True), None)
+    return bool(getattr(drv, 'default_source', None))
+
+
 def release_names(line, version, manager):
     '''{package: [components]} to check on one release: namesweep's native names, plus the
     `packages:` of units whose driver installs through the native manager (gcc / clang /
@@ -554,6 +562,11 @@ def release_names(line, version, manager):
             continue
         for rc in units.values():
             if rc.driver in _NATIVE_BACKED:
+                # a toolchain the driver installs from a VENDOR apt source when the distro lacks it
+                # (a `ppa:` — ubuntu-toolchain-r — or clang's apt.llvm.org default) isn't a base-repo
+                # name: its absence here is the expected case, not a gap
+                if manager == 'apt' and _vendor_sourced(rc):
+                    continue
                 for pkg in rc.fields.get('packages') or []:
                     if comp not in names.setdefault(pkg, []):
                         names[pkg].append(comp)
