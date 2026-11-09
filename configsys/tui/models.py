@@ -36,6 +36,13 @@ _REFRESH_WARN_DAYS = 30   # a package index older than this shows in warn-color 
 PROFILE, COMPONENT, UNIT, LINK = 'profile', 'component', 'unit', 'link'
 
 
+def _key(action, scope='components'):
+    '''The key bound to `action` as a hint glyph — so a hint names YOUR `keys:` binding, never the
+    shipped letter.'''
+    from .paint import _keymap
+    return _keymap().glyph(scope, action)
+
+
 def _is_system_update(state):
     '''True for a synthetic System Updates row (bulk-action mark; applied via upgrade_all, never
     routed per-row through run_plan). None-safe (a missing state reads as not-a-system-update).'''
@@ -481,7 +488,7 @@ class MenuState:
                 if (op in ('install', 'upgrade') and m.supported and m.present and m.outdated
                         and m.locked):
                     self.skip_note = (f'{m.component.comp} is locked at {m.installed_version} — '
-                                      'L unlocks it first')
+                                      f'{_key("lock")} unlocks it first')
                 if m.component.fields.get('system_update'):   # System Updates are bulk-action, not staged
                     continue
                 # `i` (install) means "make it current": install if absent, else upgrade if
@@ -681,7 +688,8 @@ def _methods_line(ms, ctx):
     line = f' via: {"   ".join(parts)}'
     if choice:                                               # surface the deciding rule (the "why")
         why = _why(ctx, name)
-        line += f'      (default: {why} · v to change)' if why else '      (v to change)'
+        change = f'{_key("method")} to change'
+        line += f'      (default: {why} · {change})' if why else f'      ({change})'
     return line
 
 
@@ -776,7 +784,7 @@ def _infoblock(ms, ctx):
         from ..stranded import stranded_reasons
         strand = stranded_reasons(m)
         parts.append('also present: ' + ', '.join(
-            f'{via} {ver}' + (' (stranded — `i` swaps it out)' if (via, pkg) in strand else '')
+            f'{via} {ver}' + (f' (stranded — `{_key("op-install")}` swaps it out)' if (via, pkg) in strand else '')
             for via, pkg, ver in m.also_present))
     if m.recipe_behind:                           # [R]: upstream moved past what the recipe builds
         from ..installState import recipe_pin_text

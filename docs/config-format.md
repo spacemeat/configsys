@@ -973,7 +973,8 @@ refuses them. Edit it live on the Theme screen or with `configsys theme`; see do
 `keys:` rebinds TUI keys by action: `keys: { <key scope>: { <action>: <key or [ keys ]> } }`, where
 the key scope (unrelated to the install `scope:` setting) is `global`, `screens` (the number keys
 that switch screens), a screen name (`components`, `profiles`, `plugins`, `glue`, `dotfiles`,
-`config`, `theme`) or `issues` (the `!` page's `report`, `request` and `suggest-os`). A key is a
+`config`, `theme`), `issues` (the `!` page's `report`, `request` and `suggest-os`) or one of the
+modals' scopes (`issue-review`, `machines`, `attr-filter`). A key is a
 character (case matters), a named key (`enter`, `tab`, `esc`, `space`, arrows, `pgup`, `pgdn`,
 `home`, `end`, `del`, `shift-tab`, `f1` to `f12`) or `ctrl-<x>`. The on-screen hints follow your
 bindings, and `configsys keys` prints the effective map. The subsections below are the full
@@ -1032,6 +1033,9 @@ keys: {
 - **One key scope per screen** (`components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`,
   `theme`): that screen's own actions, which work only there.
 - **`issues`**: the actions of the issues (`!`) overlay, which files an issue from inside the TUI.
+- **`issue-review`**, **`machines`**, **`attr-filter`**: the actions of the issue review overlay,
+  the Profiles target-machines modal and the Profiles attr-filter modal. A key they don't bind
+  falls back to `global` there (navigation, `select`, `quit`).
 
 How the TUI resolves a key:
 
@@ -1053,9 +1057,9 @@ How the TUI resolves a key:
   resolves them (so your `global` keys, unless you rebound them under `components`); the issues
   overlay files a report, request or OS request with its `issues` keys. The where overlay closes on
   its `where` key, `quit` or Esc, the issues overlay on `issues`, `quit` or Esc. Pop-up choosers move
-  with your `global` navigation keys (`down`, `up`, `top`, `bottom`, `page-down`, `page-up`), but
-  choose with Enter (or the Right arrow) and cancel with Esc or `q`, whatever you bind; text prompts
-  such as find and filter take what you type.
+  with your `global` navigation keys (`down`, `up`, `top`, `bottom`, `page-down`, `page-up`),
+  choose with Enter (or the Right arrow) and cancel with Esc or your `quit` key; every modal and
+  the help page close on `quit` or Esc. Text prompts such as find and filter take what you type.
 
 With the shipped bindings no screen binds those keys, so `q`, `Q`, `!`, `?` and `1` to `7` work the
 same everywhere.
@@ -1093,6 +1097,21 @@ one works.
 - `request` (`f`): request full support for a component, as `configsys request` does.
 - `suggest-os` (`s`): suggest this OS, or report that an update changed it, as
   `configsys request-os` does.
+
+**issue-review** (the review overlay each of those opens; Esc or `quit` cancels):
+
+- `send` (`s`, `S`): send the reviewed text to the issues repo.
+
+**machines** (the Profiles target-machines modal; `select` toggles a target):
+
+- `use` (`m`): make the highlighted machine this box's current one.
+- `add` (`a`): add a machine, typing its name inline.
+- `rename` (`r`): rename the highlighted machine inline.
+- `remove` (`x`): remove the highlighted machine and its picks, after a y / n.
+
+**attr-filter** (the Profiles attr-filter modal; `select` cycles a tag, `confirm` applies):
+
+- `clear` (`c`): clear every include and exclude mark.
 
 **components**:
 

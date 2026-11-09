@@ -366,6 +366,9 @@ KNOWN_ACTIONS = {
                    'refresh', 'mode'},
     'config': {'theme', 'move'},
     'issues': {'report', 'request', 'suggest-os'},         # the `!` page (an overlay, not a screen)
+    'issue-review': {'send'},                              # its review-then-send overlay
+    'machines': {'use', 'add', 'rename', 'remove'},         # the Profiles target-machines modal
+    'attr-filter': {'clear'},                              # the Profiles attr-filter modal
     'dotfiles': {'manage', 'manage-all', 'unmanage', 'unmanage-all', 'move-store', 'move-store-all'},
     'glue': {'activate', 'activate-group', 'deactivate', 'new-snippet', 'override', 'staged'},
     'plugins': {'add', 'remove', 'sync', 'sync-all', 'bless', 'unbless', 'update', 'update-all',
@@ -404,6 +407,10 @@ ACTION_LABELS = {
     'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
     'report': 'file a report (a component, or the last failures)', 'request': 'request a component',
     'suggest-os': 'suggest this OS (or report an update that changed it)',
+    'issue-review.send': 'send the reviewed issue',
+    'machines.use': 'make it the current machine (this box)', 'machines.add': 'add a machine',
+    'machines.rename': 'rename the machine', 'machines.remove': 'remove the machine and its picks (confirms)',
+    'attr-filter.clear': 'clear every attr mark',
     'manage': 'manage: capture + link', 'manage-all': 'manage every unmanaged config',
     'unmanage': 'unmanage (unlink; confirms)', 'unmanage-all': 'unmanage every managed config',
     'move-store': 'move store: local ⇄ primary', 'move-store-all': 'move all configs to a store',

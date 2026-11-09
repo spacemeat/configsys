@@ -118,6 +118,18 @@ class RecordingPalette:
         return Attr(('rgbp', tuple(fg), tuple(bg)))
 
 
+def rebound_keymap(overrides):
+    '''The shipped keymap with `overrides` ({scope: {action: key}}) laid over it per action — a
+    user's `keys:` rebind, for tests that check a hint or a modal follows it.'''
+    from configsys.layers import read_tree
+    from configsys.paths import Paths
+    from configsys.tui.keyspec import Keymap
+    keys = {s: dict(a) for s, a in (read_tree(Paths({}).config_file)[1].get('keys') or {}).items()}
+    for scope, acts in overrides.items():
+        keys.setdefault(scope, {}).update(acts)
+    return Keymap(keys)
+
+
 def build_ctx(home):
     '''A real Context over a throwaway home (pop OS, --pretend) — real routes.hu/config so the
     profiles/config/theme samples read a genuine catalog. Primes the per-frame ctx fields the

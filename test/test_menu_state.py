@@ -323,3 +323,15 @@ def test_a_locked_outdated_unit_is_never_staged_for_upgrade():
     _at(ms, 'c:user:lazygit')
     assert not ms.stage('upgrade') and 'locked' in ms.skip_note
     assert not ms.stage('install') and 'L unlocks' in ms.skip_note
+
+
+def test_the_locked_skip_note_names_your_lock_key(monkeypatch):
+    # the hint follows a `keys:` rebind instead of naming the shipped `L`
+    from _render_harness import rebound_keymap
+    from configsys.tui import menu
+    monkeypatch.setattr(menu, '_KEYMAP', rebound_keymap({'components': {'lock': 'K'}}))
+    st = cs('tarball\\lazygit', 'outdated', ['lazygit'])
+    st.locked = True
+    ms = MenuState({'tarball\\lazygit': st}, [('user', ['lazygit'])])
+    _at(ms, 'c:user:lazygit')
+    assert not ms.stage('install') and 'K unlocks it first' in ms.skip_note

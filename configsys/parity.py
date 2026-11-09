@@ -118,6 +118,12 @@ TUI_ACTIONS = {
     ('issues', 'report'): 'report',
     ('issues', 'request'): 'request',
     ('issues', 'suggest-os'): 'request-os',
+    ('issue-review', 'send'): 'report',                 # files the reviewed report / request / OS request
+    ('machines', 'use'): 'machine use',
+    ('machines', 'add'): 'machine add',
+    ('machines', 'rename'): 'tui-gap: no CLI `machine rename` (machine add + picks, then machine rm)',
+    ('machines', 'remove'): 'machine rm',
+    ('attr-filter', 'clear'): 'tui-only: the attr-filter modal state',
     ('config', 'theme'): 'tui-only: switches to the Theme screen',
     ('dotfiles', 'manage'): 'dotfiles capture',
     ('dotfiles', 'manage-all'): 'dotfiles capture',

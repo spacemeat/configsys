@@ -343,6 +343,36 @@ def test_methods_line_names_the_method_even_with_one_option(tmp_path):
     assert '(v to change)' not in line                          # ...and no change hint
 
 
+def test_method_hints_name_your_method_key(tmp_path, monkeypatch):
+    # "v to change" and the pin's "`v` → promote" follow a `keys:` rebind of `method`
+    from _render_harness import rebound_keymap
+    _steam_home(tmp_path)
+    ctx = _ctx(tmp_path)
+    monkeypatch.setattr(menu, '_KEYMAP', rebound_keymap({'components': {'method': 'V'},
+                                                         'profiles': {'method': 'V'}}))
+    line = menu._methods_line(_menu_on(ctx, 'steam'), ctx)
+    assert 'V to change' in line and 'v to change' not in line
+    _changed, _note, deferred = menu._apply_method_pin(ctx, 'steam', 'flatpak', already_pinned=False)
+    assert '`V` → "promote the pin"' in deferred
+
+
+def test_staged_notes_name_your_execute_key(monkeypatch):
+    # "X runs it" follows a `keys:` rebind of `execute`
+    from _render_harness import rebound_keymap
+    from configsys.tui import flows
+    monkeypatch.setattr(menu, '_KEYMAP', rebound_keymap({'components': {'execute': 'E'}}))
+    monkeypatch.setattr(flows, '_input_box', lambda *a, **k: '1.2')
+
+    class _Ms:
+        def stage_unit(self, *a):
+            pass
+
+        def _refresh(self):
+            pass
+    _c, note, _d = flows._stage_set_version(None, None, _Ms(), None, 'nope-no-such', 'apt\\nope')
+    assert 'E runs it' in note and 'X runs it' not in note
+
+
 def _scope_node(driver, scope):
     from configsys.installState import ComponentState
     from configsys.componentObj import ResolvedComponent

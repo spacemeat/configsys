@@ -10,7 +10,8 @@ from ..drivers import get_driver
 from ..osversion import clean_version
 from .screen import suspended
 from .modals import _input_box, _popup_choose
-from .models import MenuState, _added_extras, _components_model, _describe, _is_system_update, _row_component
+from .models import (MenuState, _added_extras, _components_model, _describe, _is_system_update, _key,
+                     _row_component)
 from .paint import _busy, _fit, _put
 
 
@@ -309,9 +310,10 @@ def _reload(ctx, old, dirty):
     return ms, cfg, ledger, states, ctx.diagnostics(states)
 
 
-def _apply_method_pin(ctx, name, via, already_pinned):
+def _apply_method_pin(ctx, name, via, already_pinned, scope='components'):
     '''Write a binding-pin name->via through actions.set_pin (the writer `configsys pin set` uses —
-    validated the same way). Returns (changed, note, deferred).'''
+    validated the same way). `scope`: the screen whose `method` key the follow-up hint names.
+    Returns (changed, note, deferred).'''
     from .. import actions
     if already_pinned:
         return False, f'{name} already uses {via}', None
@@ -321,7 +323,8 @@ def _apply_method_pin(ctx, name, via, already_pinned):
     if label == actions.PRETEND_NOT_SAVED:
         return False, f'[pretend] would pin {name} → {via}', None
     return True, f'pinned {name} → {via}' + (f' — {note}' if note else ''), \
-        f'pinned {name} → {via} (local); `v` → "promote the pin" makes it portable via your primary.'
+        (f'pinned {name} → {via} (local); `{_key("method", scope)}` → "promote the pin" makes it '
+         f'portable via your primary.')
 
 
 def _offer_method_swap(stdscr, pal, ms, ctx):
@@ -350,10 +353,10 @@ def _offer_method_swap(stdscr, pal, ms, ctx):
     return f'queued {name}: remove {olds} → reinstall via {new_via} (run with execute)'
 
 
-def _pick_method_name(stdscr, pal, ctx, name):
+def _pick_method_name(stdscr, pal, ctx, name, scope='components'):
     '''Install-method picker for component `name`: an in-place popup of its candidate methods;
     choosing one writes a binding-pin. Returns (changed, note, deferred). No drop to the terminal;
-    the promote hint is deferred to TUI exit.'''
+    the promote hint (naming `scope`'s `method` key) is deferred to TUI exit.'''
     cands = ctx.routes.candidates(name)
     if len(cands) < 2:
         return False, f'{name}: only one install method available here', None
@@ -408,7 +411,7 @@ def _pick_method_name(stdscr, pal, ctx, name):
     chosen = cands[idx]
     if chosen.get('auto') and not chosen['pinned'] and not pinned:
         return False, f'{name}: already on the default method (no pin to write)', None
-    return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'])
+    return _apply_method_pin(ctx, name, chosen['via'], chosen['pinned'], scope)
 
 
 def _providers_of(routes, cap):
@@ -537,7 +540,7 @@ def _pick_resolution(stdscr, pal, ctx, name, ms=None):
         st = ms.states[unit]
         from ..actions import targets_version
         drv = get_driver(st.component.driver, ctx.runner, ctx.paths)
-        axes.append((f'rebuild / reinstall {name} (X runs it)', 'rebuild', unit))
+        axes.append((f'rebuild / reinstall {name} ({_key("execute")} runs it)', 'rebuild', unit))
         if drv is not None and targets_version(drv):
             axes.append((f'pin {name} to a version…', 'set-version', unit))
         want = drv.scope(st.component) if drv is not None else None
@@ -553,11 +556,11 @@ def _pick_resolution(stdscr, pal, ctx, name, ms=None):
             return False, 'unchanged', None
         _label, kind, payload = axes[idx]
     if kind == 'method':
-        return _pick_method_name(stdscr, pal, ctx, name)
+        return _pick_method_name(stdscr, pal, ctx, name, 'components' if ms is not None else 'profiles')
     if kind == 'rebuild':
         ms.stage_unit(payload, 'install')
         ms._refresh()
-        return False, f'staged a rebuild of {name} — X runs it (missing dependencies too)', None
+        return False, f'staged a rebuild of {name} — {_key("execute")} runs it (missing dependencies too)', None
     if kind == 'set-version':
         return _stage_set_version(stdscr, pal, ms, ctx, name, payload)
     if kind == 'fix-scope':
@@ -582,7 +585,8 @@ def _stage_set_version(stdscr, pal, ms, ctx, name, key):
         return False, 'unchanged', None
     ms.stage_unit(key, 'set-version', ver.strip())
     ms._refresh()
-    return False, f'staged {name} → {ver.strip()} (set-version; X runs it, a lock follows it)', None
+    return False, (f'staged {name} → {ver.strip()} (set-version; {_key("execute")} runs it, a lock '
+                   f'follows it)'), None
 
 
 def _fix_scope_row(stdscr, pal, ms, ctx, name, key):

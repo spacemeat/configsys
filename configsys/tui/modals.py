@@ -82,7 +82,7 @@ def _keep_visible(sel, top, vis):
 
 def _help_modal(stdscr, pal, screen):
     '''The per-page `?` overlay: a brief description, the live keybindings for this page, and a small
-    glossary of its terms/markers. Scrollable; esc/q/? closes. Drawn OVER the current screen.'''
+    glossary of its terms/markers. Scrollable; esc / quit / help closes. Drawn OVER the current screen.'''
     km = _keymap()
     info = help_page(screen, km)                           # its prose keys rendered through YOUR keymap
     h, w = stdscr.getmaxyx()
@@ -128,7 +128,7 @@ def _help_modal(stdscr, pal, screen):
         _scrollbar_v(stdscr, pal, y0 + 1, x0 + box_w - 1, vis, top, vis, len(rows), h, w)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch == 27 or ch == ord('q') or km.action_for(screen, ch) in ('quit', 'help'):
+        if ch == 27 or km.action_for(screen, ch) in ('quit', 'help'):
             return
         moved = ListNav.key(ch, top, limit, vis, scope=screen)
         if moved is not None:
@@ -190,12 +190,14 @@ def _issue_note(result):
 
 def _report_review(stdscr, pal, ctx, title, body, label, save_as):
     '''Full-text review-and-send overlay for an issue (report / request / os-request). Shows the
-    EXACTLY-what-sends scrubbed body, scrollable, so the user verifies no private info before `s` files
-    it to configsys-issues (the overlay IS the consent — no hidden send). Returns a status note.'''
+    EXACTLY-what-sends scrubbed body, scrollable, so the user verifies no private info before `send`
+    (`s`) files it to configsys-issues (the overlay IS the consent — no hidden send); esc / quit
+    cancels. Returns a status note.'''
     from .. import reportgen
     from ..cli.issues import _file_issue
     lines = body.split('\n')
     top, result = 0, None
+    km = _keymap()
     while True:
         stdscr.erase()
         h, w = stdscr.getmaxyx()
@@ -210,9 +212,9 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
             _put(stdscr, bt + (i - top), 0, _fit(shown[i], w), pal.get('info'))
         _scrollbar_v(stdscr, pal, bt, w - 1, bh, top, bh, len(shown), h, w)
         if result is None:
-            km = _keymap()
             foot = (f' {_nav_glyphs()} scroll · {km.glyph("global", "top")}/{km.glyph("global", "bottom")} '
-                    f'top/bottom · s SEND to {reportgen.REPORTS_REPO} · Esc cancel ')
+                    f'top/bottom · {km.glyph("issue-review", "send")} SEND to {reportgen.REPORTS_REPO} · '
+                    f'Esc cancel ')
         else:
             foot = f' {"filed" if result.filed_url else "not filed"} — any key to return '
         _put(stdscr, h - 1, 0, _fit(foot.ljust(w), w), pal.get('dim') | curses.A_REVERSE)
@@ -220,9 +222,10 @@ def _report_review(stdscr, pal, ctx, title, body, label, save_as):
         ch = stdscr.getch()
         if result is not None:                             # showing the send result -> any key returns
             return _issue_note(result)
-        if ch == 27:                                       # Esc
+        act = km.action_for('issue-review', ch)
+        if ch == 27 or act == 'quit':                      # Esc / quit
             return 'issue not sent'
-        elif ch in (ord('s'), ord('S')):
+        elif act == 'send':
             _busy(stdscr, pal, f'filing to {reportgen.REPORTS_REPO}…')
             result = _file_issue(ctx, title, body, label, save_as)
             top = 0
@@ -358,7 +361,7 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=())
             hit = shortcuts.get(chr(ch).lower())
             if hit is not None:
                 return hit
-        if ch in (27, ord('q')):
+        if ch == 27 or _keymap().action_for('global', ch) == 'quit':
             return None
         moved = ListNav.key(ch, sel, n - 1, vis)
         if moved is not None:
@@ -533,7 +536,8 @@ def _attr_pass(tags, inc, exc):
 
 def _attr_filter_modal(stdscr, pal, inc, exc):
     '''Tri-state faceted filter over the attr axes, drawn over the screen. space cycles a tag
-    neutral(·) -> include(✓) -> exclude(✗) -> neutral; `c` clears all; enter applies; esc cancels.
+    neutral(·) -> include(✓) -> exclude(✗) -> neutral; `clear` (`c`) clears all; enter applies; esc /
+    quit cancels. Its keys are the `attr-filter` scope (falling back to `global`).
     Returns (new_inc, new_exc) as lowercased sets, or None on cancel.'''
     rows = []                                       # ('head', axis) | ('tag', tag)
     for axis, tags in ATTR_AXES:
@@ -543,6 +547,8 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
     tags = [i for i, r in enumerate(rows) if r[0] == 'tag']     # the selectable rows (not axis heads)
     sel = tags[0] if tags else 0
     top = 0
+    km = _keymap()
+    g = lambda a: km.glyph('attr-filter', a)          # noqa: E731
     while True:
         h, w = stdscr.getmaxyx()
         box_w = min(48, max(30, w - 4))
@@ -551,7 +557,7 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
         y0, x0 = max(0, (h - box_h) // 2), max(0, (w - box_w) // 2)
         top = _keep_visible(sel, top, vis)
         _modal_frame(stdscr, pal, y0, x0, box_h, box_w, 'filter catalog by attributes',
-                     'space:·/✓/✗ · c:clear · enter · esc')
+                     f'{g("select")}:·/✓/✗ · {g("clear")}:clear · enter · esc')
         for k in range(vis):
             idx = top + k
             if idx >= len(rows):
@@ -566,18 +572,20 @@ def _attr_filter_modal(stdscr, pal, inc, exc):
                 _put(stdscr, yy, x0 + 2, _fit(f'  [{mark}] {val}'.ljust(box_w - 4), box_w - 4), attr)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch in (27, ord('q')):
+        act = km.action_for('attr-filter', ch)
+        if ch == 27 or act == 'quit':
             return None
         if ch in (ord('\r'), curses.KEY_ENTER):
             return inc, exc
-        moved = ListNav.key(ch, tags.index(sel) if sel in tags else 0, len(tags) - 1, vis) \
+        moved = ListNav.key(ch, tags.index(sel) if sel in tags else 0, len(tags) - 1, vis,
+                           scope='attr-filter') \
             if tags else None
         if moved is not None:                               # move over the tag rows (skip axis heads)
             sel = tags[moved]
-        elif ch == ord('c'):
+        elif act == 'clear':
             inc.clear()
             exc.clear()
-        elif ch == ord(' ') and rows[sel][0] == 'tag':
+        elif act == 'select' and rows[sel][0] == 'tag':
             t = rows[sel][1].lower()
             if t in inc:                            # ✓ -> ✗
                 inc.discard(t)
@@ -599,6 +607,7 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
         return ctx.config.machines_current_first()
 
     note = ''
+    km = _keymap()
     while True:
         rows = machs()
         this = ctx.config.current_machine()
@@ -621,16 +630,17 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
             _put(stdscr, y0 + 1 + k, x0 + 2,
                  _fit(f'  [{"✓" if on else "·"}] {m}{tag}'.ljust(box_w - 4), box_w - 4),
                  curses.A_REVERSE if idx == sel else curses.A_NORMAL)
-        _put(stdscr, y0 + box_h - 3, x0 + 2, _fit('space: toggle tracking on this machine', box_w - 4), dim)
+        _put(stdscr, y0 + box_h - 3, x0 + 2,
+             _fit(f'{km.glyph("global", "select")}: toggle tracking on this machine', box_w - 4), dim)
         _put(stdscr, y0 + box_h - 2, x0 + 2, _fit('enter / esc: close', box_w - 4), dim)
         stdscr.refresh()
         ch = stdscr.getch()
-        if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
+        if ch in (27, ord('\r'), curses.KEY_ENTER) or km.action_for('global', ch) == 'quit':
             return note
         moved = ListNav.key(ch, sel, len(rows) - 1, vis)
         if moved is not None:
             sel = moved
-        elif ch == ord(' '):
+        elif km.action_for('global', ch) == 'select':
             m = rows[sel]
             on = comp in picks.get(m, ())
             actions.set_included(ctx, comp, [m], not on)
@@ -642,15 +652,18 @@ def _component_machines_modal(stdscr, pal, ctx, comp):
 
 def _machines_modal(stdscr, pal, ctx, targets):
     '''Manage machines AND pick the edit-TARGET set — styled like the attr-filter modal, drawn OVER
-    the screen. All editing is IN-PLACE (no sub-dialogs to linger): space toggles a target; m sets the
-    current box; a adds (types a new row inline); r renames the selected row inline; x removes it
-    (inline y/n; refuses the current machine). enter/esc closes. Returns (target_set, note).'''
+    the screen. All editing is IN-PLACE (no sub-dialogs to linger): select (space) toggles a target;
+    the `machines` key scope's use (m) sets the current box, add (a) adds (types a new row inline),
+    rename (r) renames the selected row inline, remove (x) removes it (inline y/n; refuses the current
+    machine). enter / esc / quit closes. Returns (target_set, note).'''
     from .. import actions
     tg = set(targets)
     note = ''
     sel, top, held_h = 0, 0, 0
     mode, buf = None, ''                              # mode: None | 'rename' | 'add' | 'confirm'
     dim = pal.get('dim')
+    km = _keymap()
+    g = lambda a: km.glyph('machines', a)             # noqa: E731
 
     def machs():
         return ctx.config.machines_current_first()
@@ -699,7 +712,8 @@ def _machines_modal(stdscr, pal, ctx, targets):
         elif mode == 'confirm':
             l1, l2 = 'y: remove (drops its picks)', 'n / esc: cancel'
         else:
-            l1, l2 = 'space:target · m:current · a:add', 'r:rename · x:remove · enter/esc:close'
+            l1 = f'{g("select")}:target · {g("use")}:current · {g("add")}:add'
+            l2 = f'{g("rename")}:rename · {g("remove")}:remove · enter/esc:close'
         _put(stdscr, y0 + box_h - 3, x0 + 2, _fit(l1, box_w - 4), dim)
         _put(stdscr, y0 + box_h - 2, x0 + 2, _fit(l2, box_w - 4), dim)
         stdscr.refresh()
@@ -740,28 +754,29 @@ def _machines_modal(stdscr, pal, ctx, targets):
             mode = None
             continue
 
-        if ch in (27, ord('q'), ord('\r'), curses.KEY_ENTER):
+        act = km.action_for('machines', ch)
+        if ch in (27, ord('\r'), curses.KEY_ENTER) or act == 'quit':
             return tg, note
-        moved = ListNav.key(ch, sel, len(rows) - 1, vis)
+        moved = ListNav.key(ch, sel, len(rows) - 1, vis, scope='machines')
         if moved is not None:
             sel = moved
-        elif ch == ord(' '):
+        elif act == 'select':
             tg ^= {rows[sel]}                         # toggle freely — the current machine included; an
                                                      # empty set is allowed (T/t then simply no-op)
-        elif ch == ord('m'):                         # make the selected machine THIS box's current
+        elif act == 'use':                           # make the selected machine THIS box's current
             if rows[sel] != this:
                 ok, why = actions.set_machine_active(ctx, rows[sel])
                 ctx.invalidate()
                 note = f'current → "{rows[sel]}"' if ok else why
                 if ok:
                     sel = 0                          # current sorts first
-        elif ch == ord('a'):
+        elif act == 'add':
             mode, buf = 'add', ''
-        elif ch == ord('r'):
+        elif act == 'rename':
             mode, buf = 'rename', rows[sel]
-        elif ch == ord('x'):
+        elif act == 'remove':
             if rows[sel] == this:
-                note = 'can’t remove the current machine (switch with m first)'
+                note = f'can’t remove the current machine (switch with {g("use")} first)'
             else:
                 mode = 'confirm'
 

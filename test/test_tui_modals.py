@@ -171,3 +171,75 @@ def test_issues_page_lists_errors_first(keymap):
     heads = [r.split()[1] for r in _rows(scr, 40)[2:] if r[:1] in ('✗', '⚠', '·')]
     assert heads == ['e1', 'e2', 'w1', 'w2', 'n1']
     assert diags[0]['tag'] == 'w1'                                  # the caller's list isn't reordered
+
+
+@pytest.fixture
+def rebind(monkeypatch):
+    from _render_harness import rebound_keymap
+
+    def use(overrides):
+        km = rebound_keymap(overrides)
+        monkeypatch.setattr(menu, '_KEYMAP', km)
+        return km
+    return use
+
+
+@pytest.mark.parametrize('opener', ['help', 'popup', 'attrs'])
+def test_modals_close_on_your_quit_key_not_a_literal_q(rebind, opener):
+    # a modal closes on the `quit` action (and esc), whatever you bound it to — `q` is only the default
+    rebind({'global': {'quit': 'z'}})
+    scr = Keys([ord('q'), ord('z')])
+    if opener == 'help':
+        menu._help_modal(scr, RecordingPalette(), 'components')
+    elif opener == 'popup':
+        assert menu._popup_choose(scr, RecordingPalette(), 'pick', [('a', ''), ('b', '')]) is None
+    else:
+        assert menu._attr_filter_modal(scr, RecordingPalette(), set(), set()) is None
+    assert scr._keys == []                                          # `q` didn't close it; `z` did
+
+
+def test_attr_filter_clears_on_your_clear_key(rebind):
+    rebind({'attr-filter': {'clear': 'K'}})
+    scr = Keys([ord(' '), ord('c'), ord('\r')], h=30)               # `c` is no longer clear
+    inc, _exc = menu._attr_filter_modal(scr, RecordingPalette(), set(), set())
+    assert inc
+    scr = Keys([ord(' '), ord('K'), ord('\r')], h=30)
+    inc, exc = menu._attr_filter_modal(scr, RecordingPalette(), set(), set())
+    assert not inc and not exc
+    painted = ''.join(c.char for (_y, _x), c in sorted(scr.cells.items()))
+    assert 'K:clear' in painted
+
+
+class _MachCfg:
+    def machines_current_first(self):
+        return ['box', 'other']
+
+    def current_machine(self):
+        return 'box'
+
+
+def test_machines_modal_follows_your_keys(rebind):
+    # use/add/rename/remove are `machines` actions: the legend and the refusal name your keys
+    class Ctx:
+        config = _MachCfg()
+    rebind({'machines': {'use': 'u', 'remove': 'd'}})
+    scr = Keys([ord('x'), ord('d'), ord('z'), 27])                  # x: no longer remove; d: remove
+    _tg, note = menu._machines_modal(scr, RecordingPalette(), Ctx(), {'box'})
+    assert 'switch with u first' in note                           # the current box is refused
+    painted = ''.join(c.char for (_y, _x), c in sorted(scr.cells.items()))
+    assert 'u:current' in painted and 'd:remove' in painted
+
+
+def test_issue_review_sends_on_your_send_key(rebind, monkeypatch):
+    from types import SimpleNamespace
+    from configsys.cli import issues
+    sent = []
+    monkeypatch.setattr(issues, '_file_issue', lambda *a: sent.append(a) or SimpleNamespace(
+        lines=['ok'], filed_url='https://example.invalid/1', pretend=False, saved_path=None))
+    rebind({'issue-review': {'send': 'E'}})
+    scr = Keys([ord('s'), ord('E'), ord('x')])
+    note = menu._report_review(scr, RecordingPalette(), None, 't', 'body', 'lbl', 'x.md')
+    assert len(sent) == 1 and 'filed' in note and scr._keys == []
+    rebind({})
+    scr = Keys([ord('q')])                                          # quit cancels, like esc
+    assert menu._report_review(scr, RecordingPalette(), None, 't', 'body', 'lbl', 'x.md') == 'issue not sent'

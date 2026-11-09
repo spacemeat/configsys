@@ -258,6 +258,27 @@ profiles: {
             suggest-os: s           // suggest this OS, or report that an update changed it
         }
 
+        // The issue review overlay (opened by an `issues` action): the exact text that will be sent,
+        // scrollable with `global` nav. Esc or quit cancels without sending.
+        issue-review: {
+            send: [ s  S ]          // send it to the issues repo
+        }
+
+        // The Profiles target-machines modal (`machine-target`). select (space) toggles a target;
+        // confirm, quit or esc closes.
+        machines: {
+            use: m                  // make the highlighted machine this box's current one
+            add: a                  // add a machine (type its name inline)
+            rename: r               // rename the highlighted machine inline
+            remove: x               // remove the highlighted machine and its picks (asks y / n)
+        }
+
+        // The Profiles attr-filter modal (`attr-filter`). select (space) cycles a tag · -> ✓ -> ✗;
+        // confirm applies; quit or esc cancels.
+        attr-filter: {
+            clear: c                // clear every include / exclude mark
+        }
+
         // Config screen. down/up/top/bottom from `global`; confirm OR select edits the setting.
         config: {
             theme: t                // open the theme editor
