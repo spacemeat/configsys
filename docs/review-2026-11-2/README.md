@@ -248,9 +248,9 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **D4 `LinkedContentDriver` + a `ShellSpec` table** (D7) — glue/dotfiles link/backup in Python, one place for
   A8/A15. (dotfiles-glue-23) · L · [open]
 - **D5 Finish `ModuleDriver`** (D4) for the ten ecosystem installers; `GccToolset` onto `AltDriver`.
-  (drivers-lang-17/18) · effort M · [open]
+  (drivers-lang-17/18) · effort M · [done — done — configsys/drivers/_module.py ModuleDriver: TOOL / CMDS templates ({tool} {pkg} {ver} {spec} {scope} + per-op placeholders) / VERSION_SPEC / SCOPE_FLAGS / LIST_CMD + parse_list / BIN_DIR; the ten installers keep only their bespoke parts (commands byte-identical, test_module_driver pins them); GccToolset on AltDriver (inherits dnf latest via gcc-toolset-N-gcc, native_backed, index_key)]
 - **D6 `SelectionPolicy` + a stateless Resolver** (D6) — one caller already drops policy; TUI resolves
-  overwrite shared state. (routing-18/19, tui-core-06) · effort M · [open]
+  overwrite shared state. (routing-18/19, tui-core-06) · effort M · [done — done — routes.SelectionPolicy (Resolver.policy) + Resolver.select(name, pins=, context=) -> Selection(binding, candidates, rule) + unpinned() + resolve_at(names, block, version): every _select/select_binding re-thread in app/menu/reportgen/versionreport/candidates goes through it; request coverage now resolves under the whole machine policy; resolve_with_roots and stranded no longer write the shared Resolver (out= / disabled=)]
 - **D7 TUI view-model memo + shared chrome** — Profiles/Components paint from live models; draw writes the
   model; three hand-copied table screens; seven modal frames. (tui-screens-06..10, tui-core-08) · L · [open]
 - **D8 The release registry drives derivative gates** — a derivative's `base:` lets `ubuntu >= 24.04` reach

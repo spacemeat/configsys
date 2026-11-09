@@ -15,16 +15,14 @@ unit appears. Enter/→ expand, ← collapse, Tab expands/collapses all componen
 import curses
 import threading
 import time
-from pathlib import Path
 
 from .. import primarygit, reportgen
 from . import keyspec
 from ..drivers import get_driver, scope_meta
-from ..errors import ConfigError, ConfigsysError
+from ..errors import ConfigError, ConfigsysError   # noqa: F401 — ConfigsysError re-exported to the screens
 from ..osversion import clean_version
-from ..planning import expand_plan
 from .screen import curses_screen, suspended
-from .theme import STATUS_COLOR, Palette
+from .theme import STATUS_COLOR, Palette   # noqa: F401 — STATUS_COLOR re-exported to the screens
 
 # op -> (single-char badge, palette color, predicate on a ComponentState)
 OPS = {
@@ -670,9 +668,8 @@ class MenuState:
 
 
 # -- execution ------------------------------------------------------------
-# The op-execution loop + its helpers live in actions.run_plan now (shared by the CLI and TUI);
-# re-exported here for the TUI callers + tests that referenced them.
-from ..actions import OpOutcome, fail_detail as _fail_detail   # noqa: E402
+# The op-execution loop + its helpers live in actions.run_plan now (shared by the CLI and TUI).
+from ..actions import fail_detail as _fail_detail   # noqa: E402
 
 
 def execute_plan(ctx, plan, ledger, version=None, refresh=True):
@@ -1049,17 +1046,14 @@ def _methods_line(ms, ctx):
 def _why(ctx, name):
     '''The rule that picked the default method for `name` here — most-specific `when:` / `standing:` /
     driver-preference / only method — for the ambient "why" hint. '' if undecidable/unroutable.'''
-    from ..resolve import ResolveError, _select
+    from ..resolve import ResolveError, binding_pin
     r = ctx.routes
     comp = r.components.get(name)
     if comp is None or not comp.bindings:
         return ''
-    cx = r.context()
-    from ..resolve import binding_pin
     pinned = binding_pin(r.pins, name)
-    pins = {k: v for k, v in r.pins.items() if k != name} if pinned else r.pins
     try:
-        rule = _select(comp, r.cascade, cx, pins, r.preference, r.never_auto_drivers)[2]
+        rule = r.select(comp, pins=r.unpinned(name) if pinned else None).rule
     except ResolveError:
         rule = ''
     if pinned:                       # the pin decides; the rule is what the auto-default (`*`) follows
@@ -1081,10 +1075,8 @@ def _edges_text(ctx, name):
 
     req_names, reqs = list(comp.requires), dict(comp.req_versions)
     try:
-        from ..resolve import ResolveError, _select, cap_constraints, cap_names
-        r = ctx.routes
-        cx = r.context()
-        won = _select(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)[0]
+        from ..resolve import ResolveError, cap_constraints, cap_names
+        won = ctx.routes.select(comp).binding
         for cap in cap_names(won.details.get('requires')):
             if cap not in req_names:
                 req_names.append(cap)
@@ -1981,9 +1973,8 @@ def _capability_choices(routes, name):
         return []
     caps = set(getattr(comp, 'provides', ())) | set(getattr(comp, 'requires', ()))
     try:                                                 # + the winning binding's requires (mirrors _edges_text)
-        from ..resolve import ResolveError, _select, cap_names
-        cx = routes.context()
-        won = _select(comp, routes.cascade, cx, routes.pins, routes.preference, routes.never_auto_drivers)[0]
+        from ..resolve import ResolveError, cap_names
+        won = routes.select(comp).binding
         caps.update(cap_names(won.details.get('requires')))
     except ResolveError:
         pass

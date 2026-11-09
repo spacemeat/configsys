@@ -22,7 +22,6 @@ Globs: `*` stays inside one path segment, `**` crosses segments.
 
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys

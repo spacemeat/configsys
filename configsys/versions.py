@@ -18,7 +18,7 @@ import os
 import re
 import threading
 import time
-import urllib.request
+import urllib.request   # noqa: F401 — fetch() reaches it as urllib.request (its local `import urllib.error` hides this from pyflakes)
 
 from .cachefile import TTLRecords
 

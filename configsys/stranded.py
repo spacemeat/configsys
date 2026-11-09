@@ -240,15 +240,11 @@ def _routes(r, name):
 
 
 def _routes_without_disabled(r, name):
-    saved = r.disabled
     try:
-        r.disabled = frozenset()
-        _units, errs = r.resolve_resilient([name])
+        _units, errs = r.resolve_resilient([name], disabled=())     # no shared-state mutation (D6)
         return name not in errs
     except Exception:                                    # noqa: BLE001
         return False
-    finally:
-        r.disabled = saved
 
 
 def augment(ctx, states, ledger, cache=None):

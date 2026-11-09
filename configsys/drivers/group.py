@@ -12,7 +12,6 @@ Runs under sudo; `${SUDO_USER:-$USER}` targets the real user, not root.
 import shlex
 
 from ..driver import Driver
-from ..runner import Result
 
 _USER = '"${SUDO_USER:-$USER}"'   # the invoking user even under sudo
 

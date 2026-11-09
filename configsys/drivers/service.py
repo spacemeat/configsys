@@ -23,7 +23,6 @@ import re
 import shlex
 
 from ..driver import Driver
-from ..runner import Result
 
 _HAS_SYSTEMD = 'command -v systemctl >/dev/null 2>&1'
 _HAS_RUNIT = '[ -d /var/service ]'

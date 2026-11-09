@@ -172,7 +172,7 @@ def _os_pretty():
 def _route(ctx, name):
     '''Compact resolution of one component on this machine: winning binding + resolved units,
     or an error string. Mirrors what `configsys where` explains, without the printing.'''
-    from .resolve import select_binding, ResolveError
+    from .resolve import ResolveError
     r = ctx.routes
     comp = r.components.get(name)
     if comp is None:
@@ -181,7 +181,7 @@ def _route(ctx, name):
     if comp.bindings:
         cx = r.context()
         try:
-            b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)
+            b = r.select(comp, context=cx).binding
             out['binding'] = {'via': b.via, 'when': b.when or 'always'}
         except ResolveError:
             out['binding'] = None
@@ -380,13 +380,13 @@ _PLATFORMS = [
 def _parts_targets(r, name, block, version):
     '''If `name`'s winning binding on this platform is a pure `via: parts` aggregator (an alias
     like jdk-21 -> jdk, or a bundle like codecs), return the parts it delegates to; else None.'''
-    from .resolve import select_binding, ResolveError
+    from .resolve import ResolveError
     comp = r.components.get(name)
     if comp is None or not comp.bindings:
         return None
     cx = r.context(block, version or None)
     try:
-        b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)
+        b = r.select(comp, context=cx).binding
     except ResolveError:
         return None
     if b.via != 'parts':
@@ -401,14 +401,13 @@ def coverage(ctx, name):
     versus where it's missing. The heart of the request payload. A `via: parts` alias/aggregator
     carries its delegation targets in `row['parts']` so the matrix can tag it (it has no binding of
     its own to broaden — coverage is inherited from those parts).'''
-    from .resolve import resolve, ResolveError
+    from .resolve import ResolveError
     r = ctx.routes
     rows = []
     for label, block, version in _PLATFORMS:
         row = {'label': label, 'block': block}
         try:
-            units = resolve([name], r.cascade, r.components, r.drivers,
-                            block, version or None, r.cpu, r.pins)
+            units = r.resolve_at([name], block, version or None)    # the machine's whole policy (D6)
             # unit keys are "driver\comp"; the component's own unit names the winning driver
             primary = next((k.split('\\', 1)[0] for k in units
                             if k.split('\\', 1)[-1] == name), None)

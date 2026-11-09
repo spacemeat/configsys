@@ -17,7 +17,7 @@ Usage:
     python tools/regsweep.py [--emit report.json] [--only cargo,flatpak,pipx,npm]
 Networked; safe to run anytime. Prints a summary; --emit writes the full JSON report.
 """
-import argparse, json, re, sys, time, urllib.request, urllib.error
+import argparse, json, re, time, urllib.request, urllib.error
 
 UA = "configsys-regsweep (https://github.com/; spacemeat@gmail.com)"
 _CACHE = {}

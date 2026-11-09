@@ -25,7 +25,6 @@ import shlex
 import shutil
 
 from ..driver import Driver
-from ..runner import Result
 
 _NOT_FOUND = 127     # the shell's exit status for "command not found": Homebrew isn't installed
 # where Homebrew's installer puts it on Linux (the shared prefix, then a per-user one); /opt/homebrew

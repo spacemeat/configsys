@@ -367,7 +367,6 @@ class Context:
     def _resolver(self, block):
         # layer stack: routes.hu < plugin data files < ~/configsys.hu (components overlay + pins).
         # A malformed plugin file is skipped, not fatal.
-        from . import plugins
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
         from . import predicate
         memo = getattr(self.paths, 'grid_memo_file', None)
@@ -690,7 +689,7 @@ class Context:
                 r.event(report.VERBOSE, f'    · {c.name:22} {_source_label(c, self.paths)}')
         if r.level < report.DEBUG:
             return
-        from .resolve import select_binding, ResolveError
+        from .resolve import ResolveError
         cx = routes.context()
         r.event(report.DEBUG, '  winning binding per requested component:')
         for name in sorted(requested):
@@ -701,8 +700,7 @@ class Context:
                 r.event(report.DEBUG, f'    · {name:22} (removed / no binding)')
                 continue
             try:
-                b = select_binding(comp, routes.cascade, cx, routes.pins, routes.preference,
-                                   routes.never_auto_drivers)
+                b = routes.select(comp, context=cx).binding
             except ResolveError:
                 b = None
             if b is None:
@@ -1820,7 +1818,7 @@ def _os_version_conditions(comp, cx):
 def where_report(ctx, name):
     '''The `configsys where` report for `name` as a list of text lines — shared by the CLI
     (cmd_where prints them) and the TUI (`w` full-page overlay renders them). None if unknown.'''
-    from .resolve import (ResolveError, select_with_reason, candidate_bindings, via_representatives,
+    from .resolve import (ResolveError, candidate_bindings, via_representatives,
                           not_candidate_reason)
     r = ctx.routes
     comp = r.components.get(name)
@@ -1862,8 +1860,7 @@ def where_report(ctx, name):
     selected, candidates, reason = None, [], None
     if comp.bindings:
         try:
-            selected, candidates, reason = select_with_reason(comp, r.cascade, cx, r.pins, r.preference,
-                                                   r.never_auto_drivers)
+            selected, candidates, reason = r.select(comp, context=cx)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
@@ -3317,8 +3314,7 @@ def cmd_plugin(ctx, args):
         if not ok:
             return 1
         if ' from ' in msg:                          # removed from a plugin's own file
-            plug = msg.rsplit(' from ', 1)[1]
-            print(f'configsys: `configsys plugin push` shares the removal with your other machines')
+            print('configsys: `configsys plugin push` shares the removal with your other machines')
         return 0
 
     if sub == 'update':
@@ -4432,7 +4428,7 @@ def _open_in_editor(path):
             subprocess.run([*_shlex.split(editor), str(path)])
             return
         except Exception:                                # noqa: BLE001 — fall back to just naming it
-            print(f'  (could not launch $EDITOR — edit it yourself)')
+            print('  (could not launch $EDITOR — edit it yourself)')
     print(f'  edit it: {path}')
 
 

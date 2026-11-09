@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from .adapt import to_resolved_component
 from .drivers import get_driver
 from .osversion import parse_loose
-from .resolve import ResolveError, candidate_bindings, select_binding, unit_for_binding
+from .resolve import ResolveError, candidate_bindings, unit_for_binding
 from .cachefile import TTLRecords
 
 LATEST_TTL = 86400  # 24h — a method's available version drifts slowly
@@ -121,7 +121,7 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
     # you could pin to; the pin/default are marked per method below.
     cands = candidate_bindings(comp, r.cascade, cx, None)
     try:
-        default_binding = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)
+        default_binding = r.select(comp, context=cx).binding
     except ResolveError:
         default_binding = None                    # undecidable/none-here: no default marker
     pin = r.pins.get(name)

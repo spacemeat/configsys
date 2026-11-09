@@ -131,7 +131,6 @@ def test_tui_batch_refreshes_once_up_front(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(menu, 'suspended', lambda scr: contextlib.nullcontext())
     monkeypatch.setattr(builtins, 'input', lambda *a: 'y')
     monkeypatch.setattr(installState, 'plan_with_swaps', lambda c, raw, units: (raw, units))
-    monkeypatch.setattr(menu, 'expand_plan', lambda raw, units, states: raw)
     monkeypatch.setattr(app, 'maybe_refresh_before_plan',
                         lambda c, plan, system=False: seen.append(('refresh', system)) or {'tmux', 'nano'})
     monkeypatch.setattr(sysupdates, 'apply_bulk', lambda c, mgrs, refresh=True: (

@@ -663,6 +663,17 @@ def detect_facets(specs, env=None, run=None, overrides=None):
     return cat, ver
 
 
+# The machine's SELECTION POLICY — everything besides the OS context that decides which method wins:
+# your pins, the component-names patches, driver-preference, the never-auto drivers and the disabled
+# ones. Resolver.policy hands it out whole, so a caller resolving or selecting can't forget one of
+# them (review-2026-11-2 D6 / routing-18: request coverage resolved without four of the five).
+SelectionPolicy = namedtuple('SelectionPolicy', 'pins overrides preference never_auto_drivers disabled')
+
+# The outcome of one component's method selection: the winning binding, every candidate here, and the
+# rule that decided (most-specific `when:` / `standing:` / driver-preference / only method / pinned).
+Selection = namedtuple('Selection', 'binding candidates rule')
+
+
 class Resolver:
     '''The app-facing resolver: load routes.hu once, then resolve a profile's component
     names to `{key: ResolvedComponent}` for this machine's context (OS block + version +
@@ -701,6 +712,36 @@ class Resolver:
         self.provider_rules = {}                     # {cap: deciding rule} from the last resilient resolve
 
     @property
+    def policy(self):
+        return SelectionPolicy(self.pins, self.overrides, self.preference, self.never_auto_drivers,
+                               self.disabled)
+
+    def select(self, name, *, pins=None, context=None):
+        '''-> Selection for component `name` (or a Component) on this machine: the method resolution
+        would choose for it under this machine's policy — `pins` replaces your pins (`unpinned(name)`
+        asks what the auto-default would be), `context` a context() you already hold. Raises
+        ResolveError when nothing is valid here or the choice is undecidable.'''
+        from .resolve import ResolveError, _select
+        comp = self.components.get(name) if isinstance(name, str) else name
+        if comp is None:
+            raise ResolveError(f'unknown component: {name}')
+        return Selection(*_select(comp, self.cascade, context or self.context(),
+                                  self.pins if pins is None else pins, self.preference,
+                                  self.never_auto_drivers))
+
+    def unpinned(self, name):
+        '''Your pins without `name`'s own — what the auto-default for `name` follows.'''
+        return {k: v for k, v in self.pins.items() if k != name}
+
+    def resolve_at(self, names, block, version=None):
+        '''Raw units for `names` resolved on ANOTHER OS (`block`, `version`) under THIS machine's whole
+        selection policy — the request/report coverage matrix. Raises ResolveError.'''
+        from .resolve import resolve
+        p = self.policy
+        return resolve(list(names), self.cascade, self.components, self.drivers, block, version,
+                       self.cpu, p.pins, p.overrides, p.preference, p.never_auto_drivers, p.disabled)
+
+    @property
     def cascade_names(self):
         '''The OS lineage leaf-first (e.g. rhel -> redhat -> linux), for display/tests.'''
         return self.cascade.lineage(self.block)
@@ -734,7 +775,8 @@ class Resolver:
         from .adapt import to_resolved_components
         return to_resolved_components(self._resolve(names)[0])
 
-    def resolve_resilient(self, names, extra_pins=None, soft_pins=None, *, record=False, out=None):
+    def resolve_resilient(self, names, extra_pins=None, soft_pins=None, *, record=False, out=None,
+                          disabled=None):
         '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
         that can't route here is reported, not fatal (for inspect/TUI over the active set).
         Precedence (routing-model §10): YOUR config pins > `extra_pins` (auto-tighten floor pins) >
@@ -750,7 +792,8 @@ class Resolver:
         are written onto this shared Resolver only with `record=True` — the load pipeline's resolve,
         whose state `where`, context() and the `!` page describe. Every other resolve (a TUI overlay
         thread, a diagnostics helper) passes nothing and leaves them alone (B16 / tui-core-06); `out`
-        (a dict) receives them either way.'''
+        (a dict) receives them either way. `disabled` replaces the machine's disabled drivers for this
+        resolve only (`disabled=()`: what would route with none disabled).'''
         from .adapt import to_resolved_components
         from .resolve import resolve_resilient
         soft_pins, extra_pins = dict(soft_pins or {}), dict(extra_pins or {})
@@ -763,7 +806,8 @@ class Resolver:
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
-                                          self.never_auto_drivers, self.disabled,
+                                          self.never_auto_drivers,
+                                          self.disabled if disabled is None else frozenset(disabled),
                                           soft=soft, dropped_out=dropped,
                                           provider_rules_out=rules, skipped_parts_out=skipped)
         if record:
@@ -775,10 +819,12 @@ class Resolver:
                        provider_rules=rules)
         return to_resolved_components(units), errors
 
-    def resolve_with_roots(self, names, extra_pins=None, soft_pins=None):
+    def resolve_with_roots(self, names, extra_pins=None, soft_pins=None, *, out=None):
         '''-> ({key: ResolvedComponent}, root keys) for the named components. `extra_pins` (auto-
         tighten floor pins) and `soft_pins` (the detection tier) layer under YOUR pins exactly as in
-        resolve_resilient, so a CLI op on an adopted install targets that install (B1).'''
+        resolve_resilient, so a CLI op on an adopted install targets that install (B1). Like any
+        non-pipeline resolve it leaves the Resolver's recorded state alone; `out` (a dict) receives
+        the dropped soft pins.'''
         from .adapt import to_resolved_components
         if not (extra_pins or soft_pins):
             units, roots = self._resolve(names)
@@ -792,7 +838,8 @@ class Resolver:
                                      self.block, self.version, self.cpu, pins, self.overrides,
                                      self.preference, self.never_auto_drivers, self.disabled,
                                      soft=soft, dropped_out=dropped)
-        self.dropped_soft_pins = dropped
+        if out is not None:
+            out.update(dropped_soft_pins=dropped)
         return to_resolved_components(units), roots
 
     def candidates(self, name):
@@ -803,7 +850,7 @@ class Resolver:
         preference-picked binding); `pinned` flags the via a binding-pin names; `auto` the one that
         would resolve with no pin (== default when unpinned). [] if the component
         is unknown / removed / unroutable here.'''
-        from .resolve import candidate_bindings, _select, via_representatives, ResolveError
+        from .resolve import candidate_bindings, via_representatives, ResolveError
         comp = self.components.get(name)
         if comp is None or not comp.bindings:
             return []
@@ -818,8 +865,7 @@ class Resolver:
         # `via: native`) to the one that resolves for that via — one row per real choice.
         reps = via_representatives(valid, self.cascade)
         try:
-            winner = _select(comp, self.cascade, ctx, self.pins, self.preference,
-                             self.never_auto_drivers)[0]
+            winner = self.select(comp, context=ctx).binding
         except ResolveError:
             winner = None
         from .resolve import binding_pin
@@ -827,8 +873,7 @@ class Resolver:
         auto = winner
         if pinned_via is not None:                 # what UNPINNING would give you (B16 / tui-core-05)
             try:
-                auto = _select(comp, self.cascade, ctx, {k: v for k, v in self.pins.items() if k != name},
-                               self.preference, self.never_auto_drivers)[0]
+                auto = self.select(comp, pins=self.unpinned(name), context=ctx).binding
             except ResolveError:
                 auto = None
         auto_via = auto.via if auto is not None else None
