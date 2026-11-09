@@ -42,6 +42,10 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — C6 — TUI per-keystroke + preview costs, dnf versionlock.
 - 2026-11-08 — B4 — bad data no longer bricks load.
 - 2026-11-08 — B5 — no pick vanishes without an error row.
+- 2026-11-09 — tier D complete: D5 ModuleDriver + GccToolset on AltDriver; D6 SelectionPolicy / Resolver.select; D7 (6 parts: modal frame + ListNav, shared table, page chrome, draw writes nothing, complete VMs for Profiles + Components); D4 drivers/_linked.py + shells.py; D2 app.py → configsys/cli/, menu.py → tui/ siblings (both facades).
+- 2026-11-09 — §4 test gaps: no network in tests (04), routecheck verdict memo (05), sweeps/compaudit never read an outage as OK (06/07), podman harnesses fixed (08), golden covers every manager + newest releases (09), TUI --pretend sweep (tui-screens-11), verbs through main (app-cli-15).
+- 2026-11-09 — §5: Fedora 46 prerelease entry (0 missing); per-release vendor-repo probes for 8 live releases (mongodb on 26.10 fixed; osaudit probes only what runs); catalog flags triaged — 101 mechanical fixes applied, 49 already true, 143 decisions in `catalog-decisions.md`; configsys-source recipes take `$SUDO`.
+- 2026-11-09 — the unranked findings: of 186 area findings no ranked item cites, 22 were already fixed; the open LOW/NIT ones landed area by area (tui-theme, tests-tools, dotfiles-glue, primary + routing, app-cli + parity, drivers, config-layers + plugins; actions/subsystems and tui-core/screens in flight). Skips needing a decision are named in each commit.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -294,6 +298,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   README commands fail. (tui-theme-15/22, parity-18/19, app-cli-33, plugins-04) · [done — done — theme lint (tui.theme.theme_problems: unknown page/role/attr, bad colors; check warns, theme set refuses; #hex parse no longer takes negatives); `configsys keys` names the layer of each binding + lists cross-layer rebinds (Keymap.bindings, merge_layer_keys owners_out); `configsys search` (names/descriptions/--attr/--json); `configsys --version` (with the git commit); the example plugin README copies + git-inits before plugin add]
 
 ## 4. Test gaps
+[done 2026-11-09 — all items below: tests-tools 04–09 (d679cd1 d5c102a 3a32954 0c2b648 954fab5), tui-screens-11 + app-cli-15 (c3e70ab)]
 Mutating key paths are untested on every TUI screen (no TUI `--pretend` sweep — tui-screens-11); verbs no
 test drives through `main` (the gap that hid B1 — app-cli-15); every confirmed CRITICAL/HIGH above lacks a
 regression test (each area file's "Test gaps" section lists them). tests-tools adds: host-dependent tests (real dpkg/flatpak/brew probes, api.github.com — tests-tools-04); ~55% of suite time re-parses routes.hu (0.4 s per load — tests-tools-05, a session-scoped cache); namesweep/osaudit report OK when the container never ran, compaudit turns outages into "broken" (06/07 — weigh the component audit's broken count with this in mind); podman harnesses drifted from the code (08); the golden doesn't cover two managers or the newest releases (09, with os-releases §5).
