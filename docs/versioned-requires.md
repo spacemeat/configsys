@@ -225,8 +225,9 @@ Floors are *knowledge about a recipe*, so they should write themselves rather th
   `(component, cap)` (a later layer wins); (2) after components build, `routes._apply_version_floors`
   sets each constraint wherever that component ALREADY requires `cap` — at component level and on
   every binding that requires it. It constrains an existing requirement and never creates one (a
-  floor for a cap the component doesn't require is ignored); for that cap it replaces an inline
-  constraint. (3) Everything downstream — the resolver, the advisories, the sweep — reads the same
+  floor for a cap the component doesn't require is ignored); against an inline constraint it keeps
+  the stricter one (both when neither implies the other — `routes._stricter`), so it never loosens
+  one, and `check` warns `loose-floor` when a patch is looser and so has no effect. (3) Everything downstream — the resolver, the advisories, the sweep — reads the same
   `req_versions` maps, so a patched floor behaves exactly like one written in place (it selects a
   version-scoped provider; on a method-versioned cap it is a soft floor). Precedence is normal layer
   order (a user's `version-floors` > a plugin's > the repo's), so recipes ship BARE

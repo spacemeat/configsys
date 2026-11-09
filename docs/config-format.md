@@ -934,7 +934,10 @@ version-floors: {
 
 A floor applies only where the component already `requires:` that capability (at the component
 level or on a binding); a floor for a capability it doesn't require is ignored, so this section
-never adds a dependency. Later layers win per component and capability.
+never adds a dependency. It never loosens one either: where the requirement already carries a
+constraint, the stricter of the two applies (both, when neither implies the other), and a floor
+looser than the inline one has no effect — `configsys check` warns `loose-floor`. Later layers win
+per component and capability.
 
 ## facets
 

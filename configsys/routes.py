@@ -158,6 +158,7 @@ class Component:
         self.prov_versions = cap_constraints(spec.get('provides'))
         self.requires = cap_names(spec.get('requires'))
         self.req_versions = cap_constraints(spec.get('requires'))
+        self.loose_floors = []   # [(where, cap, floor, inline)] — version-floors with no effect (check)
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = as_list(spec.get('parts'))
         # a `standing: never-auto` provider satisfies a `requires:` only when explicitly wanted /
@@ -700,24 +701,42 @@ def _driver_gates(drvs, sources, forgiving, warnings_out=None):
     return gates
 
 
+def _stricter(inline, floor):
+    '''(constraint, looser) — the stricter of an inline constraint and a `version-floors:` patch.
+    The patch when it admits no version the inline one doesn't (osversion.implies), the inline one
+    when the patch is LOOSER (`looser` = True: the patch has no effect), and both together (`,` =
+    AND) when neither implies the other (`>=1.96` and `<2`).'''
+    from .osversion import implies
+    if inline is None or inline == floor or implies(floor, inline):
+        return floor, False
+    if implies(inline, floor):
+        return inline, True
+    return f'{inline},{floor}', False
+
+
 def _apply_version_floors(components, floors):
     '''Patch merged `version-floors` {component: {cap: constraint}} onto the built components: set
     the floor wherever the component ALREADY requires the cap (its component-level `requires`, and
     any binding that requires it). A patch only TIGHTENS an existing requirement — a floor for a cap
-    the component doesn't require is IGNORED, so it never creates a requirement. It DOES act like an
-    authored floor at either level: the resolver selects (or fails) a provider of that cap by
-    version, exactly as for `requires: { cap: ">=N" }` written in place (routing-model §11; B15).'''
+    the component doesn't require is IGNORED, so it never creates a requirement, and one looser than
+    an inline constraint keeps the inline one (_stricter; `check` warns `loose-floor`, recorded in
+    `comp.loose_floors`). It DOES act like an authored floor at either level: the resolver selects
+    (or fails) a provider of that cap by version, exactly as for `requires: { cap: ">=N" }` written
+    in place (routing-model §11; B15).'''
     for cname, cap_map in floors.items():
         comp = components.get(cname)
         if comp is None or not isinstance(cap_map, dict):
             continue
         for cap, con in cap_map.items():
             con = str(con)
-            if cap in comp.requires:
-                comp.req_versions[cap] = con
-            for b in comp.bindings:
-                if cap in cap_names(b.details.get('requires')):
-                    b.req_versions[cap] = con
+            targets = [('requires', comp.req_versions)] if cap in comp.requires else []
+            targets += [(f'binding via:{b.via} requires', b.req_versions) for b in comp.bindings
+                        if cap in cap_names(b.details.get('requires'))]
+            for where, cons in targets:
+                inline = cons.get(cap)
+                cons[cap], looser = _stricter(inline, con)
+                if looser:
+                    comp.loose_floors.append((where, cap, con, inline))
 
 
 _FACET_CACHE = {}

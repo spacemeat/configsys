@@ -1157,7 +1157,9 @@ The `version-floors:` section (`{ <component>: { <cap>: "<constraint>" } }`, ove
 by `layers.merge_version_floors`) patches floors onto existing components without redefining them;
 it only tightens a requirement the component (or one of its bindings) already has, never creates
 one, and acts exactly like a floor written in place, at component and binding level alike
-(`routes._apply_version_floors`). `configsys check` warns `unsatisfiable-constraint` when every
+(`routes._apply_version_floors`). Against an inline constraint the stricter one applies
+(`routes._stricter`; both when neither implies the other), and a looser patch has no effect —
+`check` warns `loose-floor`. `configsys check` warns `unsatisfiable-constraint` when every
 provider declares a concrete version and none meets a constraint, flags provider-pins that conflict
 with a consumer's constraint, and errors `bad-constraint` on a constraint whose operand doesn't
 parse (`>=3.1x` — at resolve time it abstains, so it is never met). Details: docs/versioned-requires.md.

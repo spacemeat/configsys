@@ -61,3 +61,41 @@ def test_resolution_is_unchanged_by_a_floor(tmp_path):
     floored = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', pins={'ripgrep': 'source'},
                        plugin_files=[_plugin(tmp_path, _SRC + '  version-floors: { ripgrep: { cargo: ">=1.96" } } }', 'f.hu')])
     assert set(plain.resolve_names(['ripgrep'])) == set(floored.resolve_names(['ripgrep']))
+
+
+_SRC_FLOORED = ('{ components: { ripgrep: { install: [ { via: source  repo: "https://x/y"  '
+                'requires: [ { cargo: ">=1.96" } ]  build: "x" } ] } }')
+
+
+def test_a_looser_floor_never_loosens_an_inline_one(tmp_path):
+    # version-floors only TIGHTEN: a patch below the inline floor keeps the inline floor
+    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.80" } } }'
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.96'}
+
+
+def test_a_stricter_floor_tightens_an_inline_one(tmp_path):
+    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.99" } } }'
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.99'}
+
+
+def test_an_incomparable_floor_adds_to_the_inline_one(tmp_path):
+    # neither implies the other (`>=1.96` vs `<2`): both must hold
+    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: "<2" } } }'
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+    from configsys.osversion import meets
+    con = _src_binding(r).req_versions['cargo']
+    assert meets('1.97', con) and not meets('1.90', con) and not meets('2.1', con)
+
+
+def test_check_warns_on_a_floor_looser_than_the_inline_one(tmp_path):
+    from configsys import routecheck
+    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.80" } } }'
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+    issues = routecheck.validate({'ripgrep': r.components['ripgrep']}, r.cascade, r.drivers,
+                                 components_checked=True)
+    loose = [i for i in issues if i.kind == 'loose-floor']
+    assert len(loose) == 1 and loose[0].severity == 'warning'
+    assert '>=1.80' in loose[0].message and '>=1.96' in loose[0].message
+    assert 'no effect' in loose[0].message

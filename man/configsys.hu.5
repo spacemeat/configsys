@@ -586,7 +586,7 @@ version-floors: {
 .fi
 .RE
 .PP
-A floor applies only where the component already \fBrequires:\fR that capability (at the component level or on a binding); a floor for a capability it doesn't require is ignored, so this section never adds a dependency. Later layers win per component and capability.
+A floor applies only where the component already \fBrequires:\fR that capability (at the component level or on a binding); a floor for a capability it doesn't require is ignored, so this section never adds a dependency. It never loosens one either: where the requirement already carries a constraint, the stricter of the two applies (both, when neither implies the other), and a floor looser than the inline one has no effect — \fBconfigsys check\fR warns \fBloose-floor\fR. Later layers win per component and capability.
 .SH FACETS
 .PP
 A \fBfacet\fR is a detected fact about the machine (a GPU vendor, a tool's version) that \fBwhen:\fR can test. The repo, plugins and included files declare facets with probes:
