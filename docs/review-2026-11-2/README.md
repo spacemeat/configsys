@@ -150,7 +150,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **A15 [MED] Glue/dotfiles safety, the rest:** glue backs up a displaced file only once (second real file
   clobbered); a shell start can trigger a bootstrap repair incl. `sudo apt-get`; the shell-writes guard
   covers 5 bash/zsh files only; nu/elvish inline blocks go stale silently; "move to local" deletes the config
-  from your primary for every machine without a confirm. (dotfiles-glue-06/12/14/20/22) · effort M · [open]
+  from your primary for every machine without a confirm. (dotfiles-glue-06/12/14/20/22) · effort M · [done — done — glue backups never overwrite (free .pre-configsys[.N]); a shell start never repairs the launcher (CONFIGSYS_NO_BOOTSTRAP → exit 75, the prelude keeps its cache; a repair takes a flock); the shell-writes guard covers every supported shell (.zshenv/.zlogin/.bash_login, fish config.fish + new files in fish conf.d, nushell config/env.nu, elvish rc.elv); the nu/elvish inline block is parse-checked (a snippet that breaks it is left out, named) and carries an input hash (stale = loader off); move-to-local copies (§7.15); legacy shims retired, check names leftover pre-band links (§7.16)]
 - **A16 [MED] Misc hardening:** aur builds in a fixed shared `/tmp/configsys-aur` (another local user can
   pre-create it); `--home` isn't a sandbox for module installers (commands use the ambient `$HOME`); the
   report scrubber misses URL-embedded credentials and non-GitHub tokens. (drivers-os-06, drivers-lang-06,

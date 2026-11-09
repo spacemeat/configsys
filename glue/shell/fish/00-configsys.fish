@@ -41,7 +41,13 @@ set -l _cs_cache (set -q CONFIGSYS_STATE_DIR; and echo $CONFIGSYS_STATE_DIR; or 
 if test -f $_cs_cache; and test -n (find $_cs_cache -mmin -60 2>/dev/null | string collect)
     set -g __cs_locs (cat $_cs_cache)
 else
-    set -g __cs_locs (configsys location --all 2>/dev/null)
+    # CONFIGSYS_NO_BOOTSTRAP: a shell start never repairs the launcher's venv (no hidden sudo); on a
+    # failure keep the stale cache rather than an empty one
+    begin
+        set -lx CONFIGSYS_NO_BOOTSTRAP 1
+        set -g __cs_locs (configsys location --all 2>/dev/null)
+        or begin; test -f $_cs_cache; and set -g __cs_locs (cat $_cs_cache); end
+    end
 end
 # split ONCE into two parallel lists: a lookup is one `contains -i`, not a split per line per call
 set -g __cs_loc_names

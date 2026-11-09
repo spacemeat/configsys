@@ -31,9 +31,18 @@ import re
 from pathlib import Path
 
 # Guarded rc files (relative to $HOME) and which shell each one feeds. A reverted ~/.bashrc block is
-# bash glue; a ~/.zshrc block is zsh glue — routed by this mapping. Extensible.
-GUARDED = [('.bashrc', 'bash'), ('.bash_profile', 'bash'), ('.profile', 'bash'),
-           ('.zshrc', 'zsh'), ('.zprofile', 'zsh')]
+# bash glue; a ~/.zshrc block is zsh glue — routed by this mapping. Every shell configsys supports is
+# covered, login and env files included (rustup-style installers write ~/.zshenv; a safety feature
+# has uniform coverage or doesn't ship — review-2026-11-2 A15).
+GUARDED = [('.bashrc', 'bash'), ('.bash_profile', 'bash'), ('.bash_login', 'bash'), ('.profile', 'bash'),
+           ('.zshrc', 'zsh'), ('.zprofile', 'zsh'), ('.zshenv', 'zsh'), ('.zlogin', 'zsh'),
+           ('.config/fish/config.fish', 'fish'),
+           ('.config/nushell/config.nu', 'nu'), ('.config/nushell/env.nu', 'nu'),
+           ('.config/elvish/rc.elv', 'elvish')]
+
+# Directories a shell sources EVERY file of, where installers drop a file of their own: a new regular
+# file there (never a link — configsys's glue links live there too) is staged and taken back out.
+GUARDED_DIRS = [('.config/fish/conf.d', 'fish')]
 
 _STAGE_DIR = 'staged-glue'          # under the state dir: <shell>/<component>.<ext> candidates
 
@@ -67,6 +76,7 @@ class Snapshot(dict):
     '''{abs_path_str: content|None} plus `.ident` {abs_path_str: what the path IS} — a regular file,
     absent, or a symlink to a given target (see _identity).'''
     ident = None
+    dirs = None
 
 
 def _identity(path):
@@ -88,7 +98,15 @@ def snapshot(home):
     home = Path(home)
     snap = Snapshot({str(home / rel): _read(home / rel) for rel, _shell in GUARDED})
     snap.ident = {str(home / rel): _identity(home / rel) for rel, _shell in GUARDED}
+    snap.dirs = {str(home / rel): _listing(home / rel) for rel, _shell in GUARDED_DIRS}
     return snap
+
+
+def _listing(d):
+    try:
+        return {e.name for e in Path(d).iterdir()}
+    except OSError:
+        return set()
 
 
 def _added_lines(before, after):
@@ -164,6 +182,7 @@ def revert_and_capture(home, snap):
     block is carried through.'''
     home = Path(home)
     shell_of = {str(home / rel): shell for rel, shell in GUARDED}
+    rel_of = {str(home / rel): rel for rel, _shell in GUARDED}
     per_shell = {}                                  # shell -> [ (filename, [added lines]) ]
     idents = getattr(snap, 'ident', None) or {}
     for path_str, before in snap.items():
@@ -186,7 +205,7 @@ def revert_and_capture(home, snap):
             continue                                # only configsys's own block changed — keep it
         added = _added_lines(before_rest, now_rest)
         if added:
-            per_shell.setdefault(shell_of[path_str], []).append((path.name, added))
+            per_shell.setdefault(shell_of[path_str], []).append((rel_of[path_str], added))
         # revert to exactly the prior state (with configsys's own blocks as they now stand)
         target = before
         if now is not None and (now_blocks or before_blocks):
@@ -198,6 +217,22 @@ def revert_and_capture(home, snap):
                 pass
         else:
             _write(path, target)
+    shell_of_dir = {str(home / rel): shell for rel, shell in GUARDED_DIRS}
+    rel_of_dir = {str(home / rel): rel for rel, _shell in GUARDED_DIRS}
+    for dir_str, before in (getattr(snap, 'dirs', None) or {}).items():
+        for name in sorted(_listing(dir_str) - before):
+            f = Path(dir_str) / name
+            if f.is_symlink() or not f.is_file():
+                continue                            # a link (glue's own, or a tool's) is left alone
+            text = _read(f)
+            if text is None:
+                continue
+            per_shell.setdefault(shell_of_dir[dir_str], []).append(
+                (f'{rel_of_dir[dir_str]}/{name}', text.splitlines()))
+            try:
+                f.unlink()                          # taken back out: staged for your review instead
+            except OSError:
+                pass
     return {shell: _format_block(blocks) for shell, blocks in per_shell.items()}
 
 

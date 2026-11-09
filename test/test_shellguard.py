@@ -196,3 +196,21 @@ def test_every_fish_append_really_appends():
     root = pathlib.Path(__file__).resolve().parent.parent / 'glue' / 'shell' / 'fish'
     bad = [f.name for f in root.glob('*.fish') if 'fish_add_path -ga ' in f.read_text()]
     assert bad == []
+
+
+def test_every_shell_is_guarded_and_fish_confd_drops_are_staged(tmp_path):
+    # A15 / dotfiles-glue-14: .zshenv, fish, nu and elvish were unwatched
+    from configsys import shellguard
+    home = tmp_path
+    (home / '.config' / 'fish' / 'conf.d').mkdir(parents=True)
+    (home / '.zshenv').write_text('# mine\n')
+    (home / '.config' / 'fish' / 'conf.d' / '50-bat.fish').symlink_to(home / '.zshenv')   # glue's link
+    snap = shellguard.snapshot(home)
+    (home / '.zshenv').write_text('# mine\n. "$HOME/.cargo/env"\n')
+    (home / '.config' / 'fish' / 'conf.d' / 'rustup.fish').write_text('fish_add_path ~/.cargo/bin\n')
+    captured = shellguard.revert_and_capture(home, snap)
+    assert (home / '.zshenv').read_text() == '# mine\n'
+    assert not (home / '.config' / 'fish' / 'conf.d' / 'rustup.fish').exists()
+    assert (home / '.config' / 'fish' / 'conf.d' / '50-bat.fish').is_symlink()
+    assert '.cargo/env' in captured['zsh'] and '# from ~/.zshenv' in captured['zsh']
+    assert 'fish_add_path' in captured['fish'] and '~/.config/fish/conf.d/rustup.fish' in captured['fish']

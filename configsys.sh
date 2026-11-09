@@ -51,6 +51,19 @@ _venv_ok() {
 if _venv_ok; then
     exec "$VPY" -m configsys "$@"
 fi
+# a shell START (the glue preludes refreshing their location cache) never repairs: no venv rebuild,
+# no pip compile, no `sudo apt-get` behind a hidden stderr while a terminal opens — the prelude keeps
+# its cached values, and the next `configsys` you run yourself repairs it visibly (A15)
+if [ -n "${CONFIGSYS_NO_BOOTSTRAP:-}" ]; then
+    exit 75
+fi
+# one repair at a time: two terminals opening together must not `venv --clear` the same .venv
+if command -v flock >/dev/null 2>&1 && [ -z "${_CONFIGSYS_REPAIR_LOCKED:-}" ]; then
+    exec env _CONFIGSYS_REPAIR_LOCKED=1 flock "$VENV.lock" "$src" "$@"
+fi
+if _venv_ok; then                      # another process repaired it while we waited for the lock
+    exec "$VPY" -m configsys "$@"
+fi
 if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     if ! "$PY" -c 'import ensurepip' >/dev/null 2>&1; then
         pyver="$("$PY" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"

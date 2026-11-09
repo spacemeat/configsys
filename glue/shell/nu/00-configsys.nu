@@ -38,7 +38,8 @@ $env.__cs_locs = (do {
   let cache = (cs-state-dir | path join glue-locations.tsv)
   let fresh = (($cache | path exists) and (try { ((date now) - (ls $cache | get modified | first)) < 1hr } catch { false }))
   let raw = (if $fresh { (open --raw $cache) } else {
-    (do --ignore-errors { configsys location --all | complete } | if (($in != null) and ($in.exit_code == 0)) { $in.stdout } else { "" })
+    (do --ignore-errors { with-env { CONFIGSYS_NO_BOOTSTRAP: "1" } { configsys location --all | complete } }
+      | if (($in != null) and ($in.exit_code == 0)) { $in.stdout } else if ($cache | path exists) { open --raw $cache } else { "" })
   })
   ($raw | lines | where {|l| $l != ""}
     | split column (char tab) name path

@@ -33,7 +33,10 @@ _cs_cache="${CONFIGSYS_STATE_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/configsys}/g
 if [ -f "$_cs_cache" ] && [ -n "$(find "$_cs_cache" -mmin -60 2>/dev/null)" ]; then
     _CS_LOCS=$(<"$_cs_cache")
 else
-    _CS_LOCS=$(configsys location --all 2>/dev/null)
+    # CONFIGSYS_NO_BOOTSTRAP: a shell start never repairs the launcher's venv (no hidden sudo); on any
+    # failure keep the stale cache rather than an empty one
+    _CS_LOCS=$(export CONFIGSYS_NO_BOOTSTRAP=1; configsys location --all 2>/dev/null) \
+        || { [ -f "$_cs_cache" ] && _CS_LOCS=$(<"$_cs_cache"); }
 fi
 unset _cs_cache
 # loaded ONCE into an associative array: a lookup is a hash hit, not a scan of the whole cache per call

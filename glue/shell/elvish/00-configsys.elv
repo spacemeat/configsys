@@ -45,7 +45,14 @@ fn -cs-load-locs {
   if (and (path:is-regular $cache) (not-eq (find $cache -mmin -60 2>/dev/null | slurp) '')) {
     set raw = (slurp < $cache)
   } else {
-    set raw = (configsys location --all 2>/dev/null | slurp)
+    # CONFIGSYS_NO_BOOTSTRAP: a shell start never repairs the launcher's venv (no hidden sudo); on a
+    # failure keep the stale cache rather than an empty one
+    try {
+      tmp E:CONFIGSYS_NO_BOOTSTRAP = 1
+      set raw = (configsys location --all 2>/dev/null | slurp)
+    } catch {
+      if (path:is-regular $cache) { set raw = (slurp < $cache) }
+    }
   }
   for _line [(str:split "\n" $raw)] {
     var parts = [(str:split "\t" $_line)]

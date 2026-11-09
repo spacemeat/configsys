@@ -72,3 +72,16 @@ def test_the_app_returns_to_the_invoking_directory(tmp_path):
                        cwd=REPO, env={**os.environ, 'CONFIGSYS_INVOKED_CWD': str(tmp_path)},
                        capture_output=True, text=True)
     assert r.stdout.strip() == str(tmp_path)
+
+
+def test_a_shell_start_never_repairs_the_venv(tmp_path):
+    # A15 / dotfiles-glue-12: the preludes call the launcher with CONFIGSYS_NO_BOOTSTRAP; a broken
+    # venv then exits 75 (the prelude keeps its cache) — no venv rebuild, no hidden `sudo apt-get`
+    import shutil
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    shutil.copy(REPO / 'configsys.sh', repo / 'configsys.sh')
+    r = subprocess.run(['bash', str(repo / 'configsys.sh'), 'location', '--all'],
+                       env={**os.environ, 'CONFIGSYS_NO_BOOTSTRAP': '1'}, capture_output=True, text=True)
+    assert r.returncode == 75
+    assert not (repo / '.venv').exists()

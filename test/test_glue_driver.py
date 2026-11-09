@@ -581,3 +581,44 @@ def test_removing_the_loader_never_edits_a_linked_zshrc(tmp_path):
     (p.home / '.zshrc').symlink_to(captured)
     Glue(Runner(pretend=False), paths=p)._remove_shell_loader('zsh')
     assert captured.read_text() == text and (p.home / '.zshrc').is_symlink()
+
+
+def test_an_unparsable_snippet_is_left_out_of_the_inline_block(tmp_path, monkeypatch):
+    # A15 / dotfiles-glue-20: one bad snippet made the whole config.nu unparsable
+    import shutil as _sh
+    p = paths_for(tmp_path, shells='nu')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    confd = g._ensure_confd('nu')
+    (confd / '00-configsys.nu').write_text('let ok = 1\n')
+    (confd / '50-bad.nu').write_text('def broken { \n')
+    (confd / '50-good.nu').write_text('let fine = 2\n')
+    monkeypatch.setattr(_sh, 'which', lambda name: '/usr/bin/' + name)
+
+    import subprocess as _sp
+
+    def fake_run(argv, **kw):
+        path = argv[-1].split("nu-check ")[1].split(")")[0].strip("'")
+        return _sp.CompletedProcess(argv, 1 if 'def broken {' in open(path).read() else 0)
+    monkeypatch.setattr(_sp, 'run', fake_run)
+    block = g._inline_block('nu')
+    assert 'let ok = 1' in block and 'let fine = 2' in block and 'def broken' not in block
+    assert any('50-bad.nu' in w for w in g.inline_warnings)
+
+
+def test_a_stale_inline_block_reads_loader_off(tmp_path, monkeypatch):
+    # A15 / dotfiles-glue-20: a user.d edit / a primary sync never reached the snapshot block, and
+    # the Glue screen kept showing it `linked`
+    import shutil as _sh
+    p = paths_for(tmp_path, shells='nu')
+    p.home.mkdir(parents=True)
+    monkeypatch.setattr(_sh, 'which', lambda name: None)          # no parse check here
+    g = Glue(Runner(pretend=False), paths=p)
+    confd = g._ensure_confd('nu')
+    (confd / '50-x.nu').write_text('let x = 1\n')
+    rc_path = g._expand('~/.config/nushell/config.nu')
+    rc_path.parent.mkdir(parents=True, exist_ok=True)
+    rc_path.write_text(g._inline_block('nu'))
+    assert g._loader_ok('nu')
+    (confd / '50-x.nu').write_text('let x = 2\n')                  # the input changed
+    assert not g._loader_ok('nu')

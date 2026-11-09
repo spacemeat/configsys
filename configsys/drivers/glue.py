@@ -747,8 +747,89 @@ class Glue(Driver):
                     # a tool that's absent / too old to emit a nu init -> nothing inlined (self-guard)
                 else:
                     parts.append(f'# >> {f.name}\n{content.rstrip(chr(10))}')
+        parts = self._valid_parts(shell, parts)
         body = '\n\n'.join(parts)
-        return f'{_RC_BEGIN}\n{body}\n{_RC_END}\n'
+        return f'{_RC_BEGIN}\n# cs-inputs: {self._inline_inputs(shell)}\n{body}\n{_RC_END}\n'
+
+    def _inline_inputs(self, shell):
+        '''A hash of what an inline block is built FROM — each conf.d snippet's text, and for a
+        generator snippet its command's binary (path + mtime, so a tool upgrade counts) — without
+        running any generator. Stored in the block; a different value now means the block is a stale
+        snapshot (a user.d edit, a primary sync, an upgraded zoxide) and the loader reads `off`.'''
+        ext = _SHELL_EXT[shell]
+        confd = self._confd(shell)
+        h = hashlib.sha256()
+        try:
+            entries = sorted(confd.iterdir()) if confd.is_dir() else []
+        except OSError:
+            entries = []
+        for f in entries:
+            if not f.name.endswith(f'.{ext}'):
+                continue
+            try:
+                content = f.read_text(errors='replace')
+            except OSError:
+                continue
+            h.update(f.name.encode() + b'\0' + content.encode('utf-8', 'replace') + b'\0')
+            cmd = self._eval_directive(content)
+            if cmd:
+                tool = shutil.which(cmd.split()[0]) if cmd.split() else None
+                try:
+                    stamp = f'{tool}:{os.stat(tool).st_mtime_ns}' if tool else 'absent'
+                except OSError:
+                    stamp = 'absent'
+                h.update(stamp.encode() + b'\0')
+        return h.hexdigest()[:16]
+
+    def _inline_current(self, shell, rc_path):
+        '''True when the inline block in `rc_path` was built from what conf.d holds now.'''
+        try:
+            text = Path(rc_path).read_text(errors='replace')
+        except OSError:
+            return False
+        m = re.search(r'^# cs-inputs: (\w+)$', text, re.M)
+        return bool(m) and m.group(1) == self._inline_inputs(shell)
+
+    # the shell's own parse-only check: nushell parses the WHOLE program before running any of it, so
+    # one bad snippet (or a generator's output from an incompatible tool version) disables every
+    # line of config.nu, PATH included — validate before writing (review-2026-11-2 A15)
+    _CHECKERS = {'nu': ("nu --no-config-file -c 'if (nu-check {f}) {{ exit 0 }} else {{ exit 1 }}'", 'nu'),
+                 'elvish': ('elvish -compileonly {f}', 'elvish')}
+
+    def _valid_parts(self, shell, parts):
+        '''`parts` minus any snippet that makes the block fail the shell's parse check — checked whole
+        first (one spawn); only on a failure snippet by snippet, keeping what still parses. Without
+        the shell binary (or under --pretend) nothing is checked. Dropped ones are named in
+        `self.inline_warnings`.'''
+        self.inline_warnings = []
+        spec = self._CHECKERS.get(shell)
+        if spec is None or not parts or getattr(self.runner, 'pretend', False) or not shutil.which(spec[1]):
+            return parts
+        import tempfile
+
+        def ok(chunk):
+            with tempfile.NamedTemporaryFile('w', suffix=f'.{_SHELL_EXT[shell]}', delete=False) as tf:
+                tf.write('\n\n'.join(chunk) + '\n')
+            try:                                           # a read-only parse probe (not an op)
+                import subprocess
+                r = subprocess.run(['bash', '-c', spec[0].format(f=shlex.quote(tf.name))],
+                                   stdin=subprocess.DEVNULL, capture_output=True, timeout=20)
+                return r.returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                return True                                # can't check: don't drop anything
+            finally:
+                os.unlink(tf.name)
+        if ok(parts):
+            return parts
+        kept = []
+        for part in parts:
+            if ok(kept + [part]):
+                kept.append(part)
+            else:
+                name = part.splitlines()[0][len('# >> '):] if part.startswith('# >> ') else '?'
+                self.inline_warnings.append(f'{shell}: {name} left out of the inline block — it does '
+                                            f'not parse with this {spec[1]} (fix or remove it)')
+        return kept
 
     def _eval_directive(self, content):
         '''The `<cmd>` of a `#!cs-eval <cmd>` line anywhere in a snippet (a GENERATOR snippet), else
@@ -776,9 +857,8 @@ class Glue(Driver):
             return False
 
     def _ensure_shell_loader(self, shell, rc=None):
-        '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; bash also gets its
-        ~/.bash_aliases link (see _link_bash_aliases); zsh inserts/refreshes ONE configsys-owned
-        marker block that SOURCES the dir; elvish and nushell (gestalt/inline shells) insert/refresh a
+        '''Idempotent hookup for a shell's conf.d loader. Always ensures the dir; bash and zsh
+        insert/refresh ONE configsys-owned marker block that SOURCES the dir; elvish and nushell (gestalt/inline shells) insert/refresh a
         marker block that INLINES the concatenated conf.d snippets (_inline_block); fish (native
         auto-source) gets the dir only. Returns True if a hookup is in place for this shell.'''
         if getattr(self.runner, 'pretend', False):         # --pretend: report hooked, write nothing
@@ -889,6 +969,9 @@ class Glue(Driver):
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
             return False
+        if shell in _INLINE_SHELLS and rc_rel is not None \
+                and not self._inline_current(shell, self._expand(rc_rel)):
+            return False                                   # a stale snapshot: re-activate refreshes it
         return True
 
     def _pairs(self, rc):
@@ -1051,11 +1134,16 @@ class Glue(Driver):
         # Ensure the conf.d LOADER is wired for each shell this snippet deploys to, so it actually
         # sources — checked on every install AND update (upgrade == install). The snippet's own
         # `requires: shell-glue` covers the CLI pipeline, but a direct activate (TUI) bypasses it.
+        warns = []
         for shell in shells:
+            self.inline_warnings = []
             self._ensure_shell_loader(shell, rc)
+            warns += getattr(self, 'inline_warnings', [])
         msg = f'activated {rc.comp}'
         if updated:
             msg += f' ({updated} snippet(s) refreshed from source)'
+        if warns:                                           # a snippet the shell can't parse was left out
+            msg += '\n' + '\n'.join(warns)
         return Result(f'glue install {rc.comp}', 0, stdout=msg)   # msg rides in stdout -> res.output
 
     def upgrade(self, rc):
