@@ -937,14 +937,19 @@ def main(argv=None):
         return 141
 
 
+def _color_flag_handoff(args):
+    '''--nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR_FLAG (tui.theme.env_color_cap
+    reads it), set before anything builds a Palette. An explicit flag wins over NO_COLOR and
+    CONFIGSYS_COLOR; `--color auto` means detect, whatever those say.'''
+    if getattr(args, 'nocolor', False):
+        os.environ['CONFIGSYS_COLOR_FLAG'] = 'none'
+    elif getattr(args, 'color', None):
+        os.environ['CONFIGSYS_COLOR_FLAG'] = args.color
+
+
 def _main(argv):
     args = build_parser().parse_args(argv)
-    # --nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR (which the Palette + NO_COLOR
-    # both read), set before anything builds a Palette. An explicit flag wins over the env.
-    if getattr(args, 'nocolor', False):
-        os.environ['CONFIGSYS_COLOR'] = 'none'
-    elif getattr(args, 'color', None) and args.color != 'auto':
-        os.environ['CONFIGSYS_COLOR'] = args.color
+    _color_flag_handoff(args)
     if getattr(args, 'effects', None):                # --effects wins over the setting + SSH default
         os.environ['CONFIGSYS_EFFECTS'] = args.effects
     command = args.command or 'tui'

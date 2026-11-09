@@ -21,7 +21,25 @@ def test_env_color_cap_clamps_down():
     assert env_color_cap({'CONFIGSYS_COLOR': '256'}) == '256'
     assert env_color_cap({'CONFIGSYS_COLOR': 'truecolor'}) == 'truecolor'
     assert env_color_cap({'CONFIGSYS_COLOR': '24bit'}) == 'truecolor'
-    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR wins
+    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR beats the env
+    # an explicit --color / --nocolor (CONFIGSYS_COLOR_FLAG, set by _main) beats both: NO_COLOR is a
+    # default a per-run flag overrides (no-color.org); `--color auto` means detect, NO_COLOR or not
+    assert env_color_cap({'NO_COLOR': '1', 'CONFIGSYS_COLOR_FLAG': '256'}) == '256'
+    assert env_color_cap({'NO_COLOR': '1', 'CONFIGSYS_COLOR_FLAG': 'auto'}) is None
+    assert env_color_cap({'CONFIGSYS_COLOR': '256', 'CONFIGSYS_COLOR_FLAG': 'none'}) == 'none'
+    assert env_color_cap({'CONFIGSYS_COLOR': '8', 'CONFIGSYS_COLOR_FLAG': '24bit'}) == 'truecolor'
+
+
+def test_color_flags_hand_off_to_the_cap(monkeypatch):
+    # _main turns --color / --nocolor into CONFIGSYS_COLOR_FLAG before anything builds a Palette
+    import os
+    from configsys import app
+    monkeypatch.setenv('NO_COLOR', '1')
+    monkeypatch.setenv('CONFIGSYS_COLOR_FLAG', '')                 # so monkeypatch restores it
+    for argv, want in ((['--color', '256'], '256'), (['--nocolor'], 'none'), (['--color', 'auto'], None)):
+        os.environ['CONFIGSYS_COLOR_FLAG'] = ''
+        app._color_flag_handoff(app.build_parser().parse_args(argv + ['inspect']))
+        assert env_color_cap() == want, argv
 
 
 def test_resolve_effects_priority(monkeypatch):

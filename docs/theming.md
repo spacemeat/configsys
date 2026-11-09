@@ -174,6 +174,10 @@ configsys detects what your terminal can render; these let you override it.
 | `--effects full\|reduced\|none`, or the `effects:` setting | motion: `full` = gradient + your splash, `reduced` = no gradient and a calmer splash (at most 15 frames a second), `none` = no gradient and only the plain built-in progress bar. Unset, it picks `reduced` over SSH and `full` otherwise. The flag overrides the setting. |
 | `configsys --probe` | prints the resolved color mode and motion and why (including the TERM curses actually uses), then exits. Honors the flags above. |
 
+An explicit `--color` or `--nocolor` wins over `NO_COLOR`, which wins over `CONFIGSYS_COLOR`:
+`NO_COLOR=1 configsys --color 256` runs at 256 colors, and `--color auto` detects the depth
+whatever the variables say.
+
 **Direct color is preferred.** Most truecolor terminals still say `TERM=xterm-256color` and
 advertise 24-bit through `COLORTERM=truecolor`. When they do — or another sign says so (a TERM
 like `xterm-kitty`/`alacritty`/`foot`/`xterm-ghostty`, which survives SSH where `COLORTERM`

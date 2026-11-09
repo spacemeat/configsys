@@ -370,7 +370,8 @@ status line's words). `STATUSES` names each status and routing status that has a
 
 - **Colour depth:** detected from `curses.COLORS`/`can_change_color` as `direct` (a `-direct`
   terminfo: ≥ 2²⁴ colours) → `truecolor` (`init_color` slots) → `256` → `16` → `8`. It can be clamped
-  *down* only, by `env_color_cap` (`NO_COLOR`, `CONFIGSYS_COLOR` from `--color`/`--nocolor`), to
+  *down* only, by `env_color_cap` (`CONFIGSYS_COLOR_FLAG` from `--color`/`--nocolor` > `NO_COLOR` >
+  `CONFIGSYS_COLOR`), to
   `none` (mono: flags only) at the bottom. On the 8/16 path each colour-map name takes its `BASIC_MAP`
   / `colors-basic` ANSI slot, and `_contrast` keeps fg off bg. When the 240 redefinable slots or the
   per-frame pairs run out, the nearest existing one is reused (`reduced`, which `color_mode` reports).

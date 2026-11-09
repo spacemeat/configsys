@@ -538,7 +538,7 @@ Environment variables (a flag in parentheses sets the same thing for one run):
 | `CONFIGSYS_REPO` | the data directory holding the shipped `routes.hu` and `config.hu` (default: this clone) |
 | `CONFIGSYS_USERSCOPE_DIR`, `CONFIGSYS_SYSTEMSCOPE_DIR` | base directories for user- and system-scope installs (default `~`, `/opt`) |
 | `CONFIGSYS_APP_DIR`, `CONFIGSYS_SDK_DIR`, `CONFIGSYS_SRC_DIR` | app, SDK and source-tree directories under that base (default `apps`, `sdks`, `src`); these five win over the `dirs:` setting |
-| `CONFIGSYS_COLOR`, `NO_COLOR` | cap the TUI color depth, same values as `--color`; a non-empty `NO_COLOR` means monochrome |
+| `CONFIGSYS_COLOR`, `NO_COLOR` | cap the TUI color depth, same values as `--color`; a non-empty `NO_COLOR` means monochrome and wins over `CONFIGSYS_COLOR`, while an explicit `--color` or `--nocolor` wins over both |
 | `CONFIGSYS_EFFECTS` | TUI motion: `full`, `reduced` or `none` (`--effects`) |
 | `CONFIGSYS_SPLASH` | `always` shows the startup splash even on a fast load; `linger` also keeps it up until you press a key (`--splash-linger`) |
 | `CONFIGSYS_NO_SPLASH` | set to anything to turn the startup splash off |

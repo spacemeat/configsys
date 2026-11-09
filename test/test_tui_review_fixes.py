@@ -227,7 +227,7 @@ def _fake_direct(monkeypatch, record):
     monkeypatch.setattr(terminfo, 'build_direct', build)
     monkeypatch.setattr(screen, '_terminfo_exists', lambda *_a, **_k: False)
     monkeypatch.setattr(screen.curses, 'has_extended_color_support', lambda: True, raising=False)
-    for k in ('NO_COLOR', 'CONFIGSYS_COLOR', 'TMUX', 'TERMINFO'):
+    for k in ('NO_COLOR', 'CONFIGSYS_COLOR', 'CONFIGSYS_COLOR_FLAG', 'TMUX', 'TERMINFO'):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv('TERM', 'xterm-256color')
     monkeypatch.setenv('COLORTERM', 'truecolor')

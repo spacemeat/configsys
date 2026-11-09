@@ -1349,7 +1349,8 @@ and `check` reports the key as unrecognized.
   with no version, version conditions such as `alpine >= 3.24` read false.
 - `CONFIGSYS_FACET_<name>`: a facet's value, overriding detection and your `facets:`.
 - `CONFIGSYS_COLOR`: caps the TUI color depth, with the same values as `--color`; `NO_COLOR`
-  (any non-empty value) forces monochrome.
+  (any non-empty value) forces monochrome over it. An explicit `--color` or `--nocolor` wins over
+  both.
 - `CONFIGSYS_EFFECTS`: overrides `effects:` (`--effects` sets it).
 - `CONFIGSYS_NO_SPLASH`: no startup splash; `CONFIGSYS_SPLASH=always` shows it even on a fast
   start, and `CONFIGSYS_SPLASH=linger` also holds it until you press a key (`--splash-linger`).

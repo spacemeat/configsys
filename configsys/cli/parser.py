@@ -58,7 +58,8 @@ environment:
   CONFIGSYS_APP_DIR, CONFIGSYS_SDK_DIR, CONFIGSYS_SRC_DIR
                                        app / SDK / source-tree dirs under that base (default apps,
                                        sdks, src); these five override the `dirs:` setting
-  CONFIGSYS_COLOR                      TUI color cap, same values as --color (NO_COLOR forces none)
+  CONFIGSYS_COLOR                      TUI color cap, same values as --color (NO_COLOR forces none;
+                                       an explicit --color / --nocolor wins over both)
   CONFIGSYS_EFFECTS                    TUI motion: full, reduced or none (--effects)
   CONFIGSYS_SPLASH                     always = show the startup splash even on a fast load;
                                        linger = also hold it until a key (--splash-linger)
@@ -133,8 +134,9 @@ def build_parser():
     p.add_argument('--color', choices=['auto', '24bit', '256', '16', '8', 'none'], default=None,
                    help='cap the TUI color depth (default auto: detect it). Lower values only clamp '
                         'down, 24bit forces direct RGB even without COLORTERM, 16 uses the theme\'s '
-                        '`colors-basic` ANSI set and 8 only the base eight; CONFIGSYS_COLOR sets the '
-                        'same, and NO_COLOR forces none')
+                        '`colors-basic` ANSI set and 8 only the base eight. An explicit --color wins '
+                        'over NO_COLOR (which otherwise forces none) and CONFIGSYS_COLOR (the same '
+                        'values)')
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
                    help='monochrome TUI, the same as --color none: no colors or gradient, and only the '
                         'plain built-in startup progress bar; reverse video and bold still mark the '
