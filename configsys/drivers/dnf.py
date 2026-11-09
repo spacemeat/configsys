@@ -166,8 +166,10 @@ class Dnf(NativePkgManager):
         if enable:
             self.runner.run('dnf install -y dnf-plugins-core', sudo=True, capture=False)
             for repo in enable:
-                self.runner.run(f'dnf config-manager --set-enabled {shlex.quote(repo)}',
-                                sudo=True, capture=False)
+                cmd = f'dnf config-manager --set-enabled {shlex.quote(repo)}'
+                if repo == 'crb':        # EL 8 calls CodeReady Builder `powertools` (EL 9+: `crb`)
+                    cmd += ' || dnf config-manager --set-enabled powertools'
+                self.runner.run(cmd, sudo=True, capture=False)
         repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
         if repo_id and repo_url:
             name = f.get('repo-name', repo_id)

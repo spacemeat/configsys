@@ -90,7 +90,7 @@ def test_enable_repo_turns_on_crb_before_install():
     Dnf(r).install(comp)
     assert 'sudo dnf install -y dnf-plugins-core' in r.calls
     i_plugins = r.calls.index('sudo dnf install -y dnf-plugins-core')
-    i_crb = r.calls.index('sudo dnf config-manager --set-enabled crb')
+    i_crb = r.calls.index('sudo dnf config-manager --set-enabled crb || dnf config-manager --set-enabled powertools')
     i_final = r.calls.index('sudo dnf install -y rpmfusion-free-release')
     assert i_plugins < i_crb < i_final          # plugins -> enable crb -> install release
     assert not any('rpm --import' in c for c in r.calls)   # templated key: left for dnf
