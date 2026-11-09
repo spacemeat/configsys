@@ -134,7 +134,19 @@ class AltDriver(Driver):
         # as a quoted "$CODENAME" into an otherwise-quoted deb line.
         ppa = rc.fields.get('ppa')
         if ppa:
-            return [f'add-apt-repository -y {shlex.quote("ppa:" + ppa)}', 'apt-get update']
+            # a PPA only on Ubuntu (a Launchpad PPA on Debian 404s and poisons apt), and only when the
+            # distro doesn't already ship the package (the toolchain *test* PPA would otherwise upgrade
+            # libstdc++ system-wide for nothing) — B7 / drivers-lang-03
+            pkg = shlex.quote(self._packages(rc)[0])
+            return [
+                'if ! grep -q "^UBUNTU_CODENAME=" /etc/os-release; then',
+                f'  echo "configsys: {rc.comp}: the PPA ppa:{ppa} is Ubuntu-only — not adding it here" >&2; exit 1',
+                'fi',
+                f'if ! apt-cache madison {pkg} 2>/dev/null | grep -q .; then',
+                f'  add-apt-repository -y {shlex.quote("ppa:" + ppa)}',
+                '  apt-get update',
+                'fi',
+            ]
         src = rc.fields.get('apt-source') or self.default_source
         if isinstance(src, dict) and src.get('key') and src.get('deb'):
             v = self._ver(rc)
@@ -151,13 +163,19 @@ class AltDriver(Driver):
             # "held broken packages". So when the distro has it: use the distro's, and drop OUR list
             # file if an earlier run left it (else apt keeps preferring the vendor's newer build).
             return [
-                'CODENAME="$(. /etc/os-release; echo "$VERSION_CODENAME")"',
+                # the UBUNTU codename on a derivative (Mint's `wilma` is noble here) — what vendor
+                # repos serve; the same lookup apt's source-line uses
+                'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"',
                 f'if apt-cache madison {pkg} 2>/dev/null | grep -v -F {shlex.quote(host or "//")} | grep -q .; then',
                 f'  if [ -f {listq} ]; then rm -f {listq}; apt-get update; fi',
                 'else',
                 f'  curl -fsSL {shlex.quote(src["key"])} | tee {shlex.quote(key_path)} >/dev/null',
                 f'  echo {deb_q} | tee {listq} >/dev/null',
-                '  apt-get update',
+                # validate-then-commit: a source apt can't read (no suite for this codename, a dead
+                # key) is taken back out at once, so it can never poison every later apt run
+                f'  if ! apt-get update; then rm -f {listq}; apt-get update || true; '
+                f'echo "configsys: {rc.comp}: the vendor repo failed to load and was removed again" >&2; '
+                'exit 1; fi',
                 'fi',
             ]
         return []

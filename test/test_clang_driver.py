@@ -51,7 +51,8 @@ def test_install_adds_llvm_repo_installs_and_registers_alternative():
     Clang(r).install(clang_unit())
     cmd = r.calls[0]
     assert cmd.startswith('sudo ')                       # whole script under root
-    assert 'CODENAME="$(. /etc/os-release; echo "$VERSION_CODENAME")"' in cmd
+    assert 'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"' in cmd   # derivative-safe (B7)
+    assert "if ! apt-get update; then rm -f" in cmd                         # a broken source is rolled back
     assert 'apt.llvm.org/llvm-snapshot.gpg.key' in cmd
     # the deb line is quoted with only "$CODENAME" left to expand in-shell (injection-safe)
     assert 'apt.llvm.org/' in cmd and 'llvm-toolchain-' in cmd and '-18 main' in cmd
@@ -128,3 +129,15 @@ def test_distro_carrying_the_package_skips_and_drops_the_vendor_repo(tmp_path):
 def test_distro_without_the_package_adds_the_vendor_repo(tmp_path):
     exists, log = _run_repo_lines(tmp_path, '', list_exists=False)
     assert exists and 'curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key' in log
+
+
+def test_a_ppa_is_only_added_on_ubuntu_and_only_when_the_distro_lacks_the_package():
+    # review-2026-11-2 B7: a Launchpad PPA on Debian 404s and poisons apt
+    from configsys.componentObj import ResolvedComponent
+    from configsys.drivers.gcc import Gcc
+    r = Runner(pretend=True)
+    Gcc(r).install(ResolvedComponent(key='gcc\\gcc-13', driver='gcc', comp='gcc-13',
+                                     fields={'packages': ['gcc-13', 'g++-13'], 'ppa': 'ubuntu-toolchain-r/test'}))
+    cmd = r.calls[0]
+    assert 'grep -q "^UBUNTU_CODENAME=" /etc/os-release' in cmd and 'Ubuntu-only' in cmd
+    assert cmd.index('apt-cache madison') < cmd.index('add-apt-repository')
