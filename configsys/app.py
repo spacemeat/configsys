@@ -781,7 +781,7 @@ _MOVED = {  # name -> the configsys/cli module that defines it
     'maybe_refresh_before_plan': 'refresh', '_upgradable_names': 'refresh',
     'published_pending': 'refresh', '_fmt_val': 'where', '_fmt_binding': 'where',
     '_os_version_conditions': 'where', 'where_report': 'where', 'where_profile_report': 'where',
-    'active_snapshot': 'where', 'print_sync_delta': 'where', 'catalog_search': 'where',
+    'picks_snapshot': 'where', 'print_sync_delta': 'where', 'catalog_search': 'where',
     '_location_lines': 'where', 'write_location_cache': 'where',
     '_location_all': 'where', '_validate_pin': 'matrix',
     '_pin_list': 'matrix', '_pin_set': 'matrix', '_swap_headsup': 'matrix', '_pin_unset': 'matrix',

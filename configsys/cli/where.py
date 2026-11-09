@@ -198,10 +198,9 @@ def where_profile_report(ctx, name):
     return out
 
 
-def active_snapshot(cfg):
+def picks_snapshot(cfg):
     '''This machine's picks (`requested()`) as a set — taken before/after a plugin sync/update to
-    report what it moved (a synced primary plugin can carry new or dropped picks). The name is
-    historical: there is no "active set" beyond the picks.'''
+    report what it moved (a synced primary plugin can carry new or dropped picks).'''
     try:
         return set(cfg.requested())
     except Exception:                                  # noqa: BLE001 — a broken config snapshots empty
@@ -210,7 +209,7 @@ def active_snapshot(cfg):
 
 def sync_delta(before, cfg):
     '''(added, removed) picks vs the `before` snapshot, both sorted.'''
-    after = active_snapshot(cfg)
+    after = picks_snapshot(cfg)
     return sorted(after - before), sorted(before - after)
 
 

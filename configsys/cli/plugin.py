@@ -11,7 +11,7 @@ from pathlib import Path
 from .. import primarygit
 from ..drivers import get_driver
 from .common import ask
-from .where import active_snapshot, print_sync_delta
+from .where import picks_snapshot, print_sync_delta
 
 
 def _fmt_conflict(kind, name, dirs):
@@ -452,7 +452,7 @@ def cmd_plugin(ctx, args):
         if not decls:
             print('configsys: no plugins declared (add one: `configsys plugin add <source>`)')
             return 0
-        before = active_snapshot(ctx.config)
+        before = picks_snapshot(ctx.config)
         _print_sync(ctx, actions.plugin_sync(ctx, decls))
         print_sync_delta(before, ctx.config)           # how this machine's picks changed across the sync
         return 0
@@ -500,7 +500,7 @@ def cmd_plugin(ctx, args):
         return 0
 
     if sub == 'update':
-        before = active_snapshot(ctx.config)           # report how this machine's picks change across the update
+        before = picks_snapshot(ctx.config)           # report how this machine's picks change across the update
         # No name means every plugin (like `sync`); --all is an explicit alias for the same.
         if getattr(args, 'all', False) or not args.name:
             if args.name:

@@ -23,7 +23,7 @@ from ..panes import (
     PluginScreen)
 from ..screen import suspended
 from . import table
-from ...cli.where import active_snapshot, delta_summary
+from ...cli.where import delta_summary, picks_snapshot
 from .base import Intent, Screen, ViewModel, results_note
 
 
@@ -342,7 +342,7 @@ class PluginsScreen(Screen):
             elif pact == 'sync' and row:
                 tgt = [t['decl'] for t in pl.tree
                        if plugins.dir_name(t['decl']['source']) == plugins.dir_name(row['source'])]
-                before = active_snapshot(ctx.config)   # what the sync moves, like `plugin sync` prints
+                before = picks_snapshot(ctx.config)   # what the sync moves, like `plugin sync` prints
                 with suspended(stdscr):
                     res = actions.plugin_sync(ctx, tgt)
                 pl.reload()
@@ -352,7 +352,7 @@ class PluginsScreen(Screen):
                                     if res and res[0][1] == 'locked' else
                                     _sync_note(ctx, res) or f'synced {row["name"]}'), before, ctx)
             elif pact == 'sync-all':
-                before = active_snapshot(ctx.config)
+                before = picks_snapshot(ctx.config)
                 with suspended(stdscr):
                     res = actions.plugin_sync(ctx, plugins.declared(ctx.paths.user_config_file))
                 pl.reload()
