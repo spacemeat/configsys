@@ -33,6 +33,8 @@ import shlex
 
 from ..driver import Driver
 
+_NOT_FOUND = 127     # the shell's exit status for "command not found": the tool isn't installed
+
 
 def pep503_name(dist):
     '''A PyPI distribution name, PEP 503-normalized: lowercase, runs of -_. collapsed to one -. pip
@@ -104,7 +106,12 @@ class ModuleDriver(Driver):
             cls.installed_index = ModuleDriver._listed_index
 
     def _listed_index(self):
+        '''{key: version} from LIST_CMD; None when the listing failed ("couldn't tell"). The tool not
+        being installed at all (exit 127) is a TRUE empty — nothing is installed via it — so that
+        answers {} (the frozen installed_index rule, docs/plugins.md §7a; brew does the same).'''
         r = self.runner.run(self.LIST_CMD.format(tool=self.tool()))
+        if r.returncode == _NOT_FOUND:
+            return {}
         if not r.ok:
             return None
         return self.parse_list(r.stdout or '')

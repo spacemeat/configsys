@@ -85,3 +85,18 @@ def test_parse_list_drives_installed_index():
             from configsys.runner import Result
             return Result(cmd, 0, stdout='ripgrep v14.1.0:\n    rg\nfd-find v10.2.0:\n    fd\n')
     assert get_driver('cargo', R()).installed_index() == {'ripgrep': '14.1.0', 'fd-find': '10.2.0'}
+
+
+@pytest.mark.parametrize('driver', ['cargo', 'gem', 'opam'])
+def test_listed_index_tool_not_installed_is_a_true_empty(driver):
+    # the frozen rule (docs/plugins.md §7a): a manager that isn't installed at all (the shell's
+    # command-not-found, exit 127) answers {} — nothing is installed via it — never the None that
+    # means "couldn't tell" (which sends every unit to a per-unit probe of a tool that isn't there)
+    def runner(code):
+        class R:
+            def run(self, cmd, **kw):
+                from configsys.runner import Result
+                return Result(cmd, code, stdout='')
+        return R()
+    assert get_driver(driver, runner(127)).installed_index() == {}
+    assert get_driver(driver, runner(1)).installed_index() is None     # a real query failure
