@@ -4215,7 +4215,7 @@
         // what IS available (Fedora / the AUR) and decline elsewhere (build from source there).
         boost: { attrs: [ lib FOSS permissive ] description: "Boost — peer-reviewed, portable C++ source libraries (dev)."
             install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  repo-component: universe
-                         name: { xbps: boost-devel apt: libboost-all-dev  dnf: boost-devel  pacman: boost  apk: boost-dev  zypper: boost-devel } } ]
+                         name: { xbps: boost-devel apt: libboost-all-dev  dnf: boost-devel  pacman: boost  apk: boost-dev  zypper: boost-devel } } ]   // zypper boost-devel: Tumbleweed 1.92 (x86_64/), Leap 16.0 1.86 (a noarch/ meta — not under x86_64/)
         }
         abseil: { attrs: [ lib FOSS permissive ] description: "Abseil — Google's C++ common libraries (dev)."
             install: [ { via: native  when: "debian or redhat or arch or opensuse or alpine or void or void_musl"  repo-component: universe
