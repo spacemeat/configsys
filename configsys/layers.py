@@ -163,7 +163,31 @@ def _resolve(inc, base_dir):
     return os.path.join(base_dir, inc)
 
 
-def _visit(path, role, stack, done, order):
+def _plugin_tree(path):
+    '''The plugin checkout a plugin/primary data file lives in: its nearest ancestor holding a
+    `plugin.hu` manifest (else the file's own dir).'''
+    d = os.path.dirname(os.path.realpath(path))
+    probe = d
+    while True:
+        if os.path.exists(os.path.join(probe, 'plugin.hu')):
+            return probe
+        parent = os.path.dirname(probe)
+        if parent == probe:
+            return d
+        probe = parent
+
+
+def _inside(path, tree):
+    rp = os.path.realpath(path)
+    return rp == tree or rp.startswith(tree.rstrip(os.sep) + os.sep)
+
+
+def _visit(path, role, stack, done, order, guard=None):
+    '''Expand one file and its includes post-order. `guard` = (root realpaths, plugin tree or None,
+    warnings): an `include:` of a ROOT layer (your top config, the primary's file, the repo's) is
+    ignored with a warning — a lower layer including it would visit it first, as an `include`, and
+    demote it below itself (2026-09 A5 / review-2026-11-2 A5) — and a plugin's includes must stay
+    inside its own checkout.'''
     rp = os.path.realpath(path)
     if rp in stack:
         raise ConfigError('include cycle: ' + ' -> '.join(stack + [rp]))
@@ -181,7 +205,18 @@ def _visit(path, role, stack, done, order):
     stack.append(rp)
     base = os.path.dirname(os.path.abspath(path))
     for inc in _as_list(data.get('include')):
-        _visit(_resolve(inc, base), 'include', stack, done, order)
+        target = _resolve(inc, base)
+        if guard is not None:
+            roots, tree, warnings = guard
+            if os.path.realpath(target) in roots:
+                warnings.append(f'{path}: `include: {inc}` ignored — it names a root config layer '
+                                '(your top config, the primary, or the repo), which keeps its own place')
+                continue
+            if tree is not None and not _inside(target, tree):
+                warnings.append(f'{path}: `include: {inc}` ignored — a plugin may only include files '
+                                'inside its own checkout')
+                continue
+        _visit(target, 'include', stack, done, order, guard)
     stack.pop()
     done.add(rp)
     order.append(Layer(os.path.normpath(path), role, data))
@@ -201,11 +236,13 @@ def expand_tolerant(roots, tolerant_roles=()):
     layer never takes down the rest. Returns (layers, warnings). A bad repo/user file still
     raises (your own config errors should be loud, not skipped).'''
     stack, done, order, warnings = [], set(), [], []
+    root_paths = {os.path.realpath(p) for p, _r in roots if p is not None}
     for path, role in roots:
         if path is None or not os.path.exists(path):
             continue
+        tree = _plugin_tree(path) if role in ('plugin', 'primary') else None
         try:
-            _visit(path, role, stack, done, order)
+            _visit(path, role, stack, done, order, (root_paths, tree, warnings))
         except ConfigError as e:
             if role in tolerant_roles:
                 msg = str(e)

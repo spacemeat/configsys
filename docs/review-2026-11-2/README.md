@@ -102,11 +102,11 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   Unvalidated route paths; on a first capture no `--force` is needed; in the TUI one `m`/Enter. Also:
   capture follows symlinks (`keys -> ~/.ssh`) into the store, past the secret scan, and into the primary.
   **Fix:** reject absolute/`..` `src:`; resolve-and-contain before every rmtree; don't follow symlinks out of
-  the source tree. (dotfiles-glue-05, -04) · effort S · [done — dotfiles src: must be relative/no .., dst:/absorb-into: under home (routecheck error + driver skip); rmtree/relocate contained; capture copies links as links, skips links out of the config and private-key files]
+  the source tree. (dotfiles-glue-05, -04) · effort S · [done 1d474b7 — dotfiles src: must be relative/no .., dst:/absorb-into: under home (routecheck error + driver skip); rmtree/relocate contained; capture copies links as links, skips links out of the config and private-key files]
 - **A5 [HIGH] A plugin that `include:`s your top config demotes it** — pins, picks, machine, scope,
   disabled-drivers vanish and `primary-verify: signed` reads `off`; your overrides sink below the
   plugin's. 2026-09 A5, still open. **Fix:** the top config is never an include target (dedupe keeps the
-  highest role). (security-03, config-layers-03) · effort S · [open]
+  highest role). (security-03, config-layers-03) · effort S · [done — an include of a root layer (top config, primary, repo) is ignored with a warning; a plugin include must stay inside its own checkout]
 - **A6 [HIGH] Destructive-path guards are partial.** tarball `installDir: ../…` escapes the scope-base guard
   and `~/.local/bin` / `/usr/local/bin` aren't refused; install doesn't check the marker (uninstall does);
   font `locations:` → `rm -rf` anywhere; `locations:` paths unvalidated (CWD-relative; `~` is the real home

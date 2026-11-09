@@ -89,7 +89,8 @@ def test_nested_relative_include_resolves_from_including_files_dir(tmp_path):
 
 def test_include_cycle_errors(tmp_path):
     _w(tmp_path / 'a.hu', '{ include: [ ./b.hu ] }')
-    _w(tmp_path / 'b.hu', '{ include: [ ./a.hu ] }')
+    _w(tmp_path / 'b.hu', '{ include: [ ./c.hu ] }')
+    _w(tmp_path / 'c.hu', '{ include: [ ./b.hu ] }')       # (a cycle back to a root is just ignored)
     with pytest.raises(ConfigError, match='cycle'):
         layers.expand([(str(tmp_path / 'a.hu'), 'user')])
 
@@ -120,3 +121,47 @@ def test_included_settings_are_ignored_with_a_warning(tmp_path):
     assert c.pins() == {}                                    # include's `pins:` ignored
     warns = layers.ignored_section_warnings(ls)
     assert any('scope' in w for w in warns) and any('pins' in w for w in warns)
+
+
+# -- review-2026-11-2 A5 (2026-09 A5): a plugin can't include a root layer to demote it ----------------
+
+def _stack(tmp_path, plug_text, prim=None):
+    state = tmp_path / 'state'
+    (state / 'plugins' / 'plug').mkdir(parents=True, exist_ok=True)
+    top = _w(state / 'configsys.hu', '{ scope: system  machine: laptop  disabled-drivers: [ snap ]\n'
+                                     '  picks: { laptop: [ btop ] } }')
+    (state / 'plugins' / 'plug' / 'plugin.hu').write_text('{ name: plug  requires-abi: 1 }')
+    plug = _w(state / 'plugins' / 'plug' / 'plug.hu', plug_text)
+    roots = [('/no/config.hu', 'repo'), (plug, 'plugin')]
+    if prim is not None:
+        (state / 'plugins' / 'mine').mkdir()
+        (state / 'plugins' / 'mine' / 'plugin.hu').write_text('{ name: mine  requires-abi: 1 }')
+        roots.append((_w(state / 'plugins' / 'mine' / 'mine.hu', prim), 'primary'))
+    roots.append((top, 'user'))
+    return layers.expand_tolerant(roots, tolerant_roles=('plugin', 'primary'))
+
+
+def test_a_plugin_including_the_top_config_does_not_demote_it(tmp_path):
+    order, warnings = _stack(tmp_path, '{ include: [ ../../configsys.hu ] }')
+    cfg = Config(order)
+    assert cfg.default_scope() == 'system' and cfg.current_machine() == 'laptop'
+    assert 'snap' in cfg.disabled_drivers() and list(cfg.requested()) == ['btop']
+    assert [lay.role for lay in order if lay.path.endswith('configsys.hu')] == ['user']
+    assert any('root config layer' in w for w in warnings)
+
+
+def test_a_plugin_including_the_primary_does_not_demote_it(tmp_path):
+    order, warnings = _stack(tmp_path, '{ include: [ ../mine/mine.hu ] }', prim='{ splash: plain }')
+    assert [lay.role for lay in order if lay.path.endswith('mine.hu')] == ['primary']
+    assert any('root config layer' in w for w in warnings)
+
+
+def test_a_plugin_include_must_stay_in_its_own_checkout(tmp_path):
+    outside = _w(tmp_path / 'elsewhere.hu', '{ components: { sneaky: { install: [ { via: native } ] } } }')
+    order, warnings = _stack(tmp_path, '{ include: [ %s ] }' % outside)
+    assert not any(lay.path == os.path.normpath(outside) for lay in order)
+    assert any('inside its own checkout' in w for w in warnings)
+    (tmp_path / 'again' / 'state' / 'plugins' / 'plug').mkdir(parents=True)
+    (tmp_path / 'again' / 'state' / 'plugins' / 'plug' / 'sub.hu').write_text('{ profiles: { extra: [ btop ] } }\n')
+    order, warnings = _stack(tmp_path / 'again', '{ include: [ sub.hu ] }')
+    assert any(lay.path.endswith('sub.hu') for lay in order) and not warnings
