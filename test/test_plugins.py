@@ -434,6 +434,49 @@ def test_set_declared_replaces_existing_and_keeps_the_rest(tmp_path):
                                         {'source': '/x/y', 'ref': None}]
 
 
+def test_set_declared_edits_the_list_in_place_keeping_its_comments(tmp_path):
+    # README: add/remove/update edit `plugins:` "in place, preserving your comments" — the whole
+    # list used to be re-emitted, dropping every comment inside it
+    p = tmp_path / 'configsys.hu'
+    p.write_text('{\n'
+                 '    plugins: [\n'
+                 '        // my personal layer\n'
+                 '        { source: "github:me/cfg"  primary: yes }   // blessed on day one\n'
+                 '        /* the blender build */\n'
+                 '        { source: "github:x/blender"  ref: v1 }\n'
+                 '        // a local checkout\n'
+                 '        { source: /src/old }\n'
+                 '        // end of list\n'
+                 '    ]\n'
+                 '}\n')
+    decls = plugins.declared(str(p))
+    decls[1]['ref'] = 'v2'                                    # update
+    del decls[2]                                              # remove
+    decls.append({'source': 'github:y/new', 'ref': None})     # add
+    plugins.set_declared(str(p), decls)
+    text = p.read_text()
+    assert plugins.declared(str(p)) == decls
+    for c in ('// my personal layer', '// blessed on day one', '/* the blender build */',
+              '// a local checkout', '// end of list'):
+        assert c in text, c
+    assert '{ source: "github:me/cfg"  primary: yes }' in text          # unchanged entry: its own text
+    assert '/src/old' not in text
+    assert '\n        { source: "github:y/new" }\n' in text                # its own line, the list's indent
+    assert text.index('github:y/new') > text.index('blender')
+
+    # a retargeted source is edited where it stands, under its comment
+    decls[1] = {'source': 'github:z/blender', 'ref': 'v2'}
+    plugins.set_declared(str(p), decls)
+    text = p.read_text()
+    assert '/* the blender build */\n        { source: "github:z/blender"  ref: v2 }' in text
+    # emptied: every entry's line goes, the comments stay
+    plugins.set_declared(str(p), [])
+    assert plugins.declared(str(p)) == [] and '// end of list' in p.read_text()
+    plugins.set_declared(str(p), [{'source': 'github:a/b', 'ref': None}])
+    assert plugins.declared(str(p)) == [{'source': 'github:a/b', 'ref': None}]
+    assert '// my personal layer' in p.read_text()
+
+
 def test_set_declared_empty(tmp_path):
     p = tmp_path / 'configsys.hu'
     p.write_text('{\n    plugins: [ { source: /x } ]\n}\n')

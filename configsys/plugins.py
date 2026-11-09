@@ -1037,17 +1037,7 @@ def _emit_block(decls, indent):
     pad, inner = ' ' * indent, ' ' * (indent + 4)
     if not decls:
         return 'plugins: []'
-    lines = ['plugins: [']
-    for d in decls:
-        entry = f'{{ source: {_scalar(d["source"])}'
-        if d.get('ref'):
-            entry += f'  ref: {_scalar(d["ref"])}'
-        if d.get('sha256'):
-            entry += f'  sha256: {_scalar(d["sha256"])}'
-        if d.get('primary'):
-            entry += '  primary: true'
-        lines.append(inner + entry + ' }')
-    lines.append(pad + ']')
+    lines = ['plugins: [', *(inner + _emit_decl(d) for d in decls), pad + ']']
     return '\n'.join(lines)
 
 
@@ -1142,8 +1132,107 @@ def set_section(user_config_file, section, emit):
 
 
 def set_declared(user_config_file, decls):
-    '''Rewrite the `plugins:` list in the user config in place, preserving every other line.'''
+    '''Set the `plugins:` list in the user config, editing it IN PLACE: an unchanged entry keeps its
+    own text, a changed one is re-emitted where it stands (its trailing comment kept), a removed
+    one's line is cut, a new one goes on its own line at the list's indent — so every comment in
+    the list (and outside it) survives (the scalar-list precedent is humerge._relist). A list that
+    isn't laid out one entry per line, or doesn't read back as `decls`, is rewritten whole instead
+    (comments outside it still kept).'''
+    path = Path(user_config_file)
+    before = path.read_text(encoding='utf-8') if path.exists() else ''
+    _parsed(before, path)                            # refuse early on a file that doesn't parse
+    text = _relist_decls(before, decls)
+    if text is not None:
+        try:
+            after = layers.materialize_string(text)
+        except Exception:                            # noqa: BLE001 — the full rewrite below then
+            after = None
+        got = [d for d in (_decl(e, allow_primary=True) for e in ((after or {}).get('plugins') or []))
+               if d]
+        if after is not None and got == [_decl(d, allow_primary=True) for d in decls]:
+            _checked_write(path, before, text, 'plugins', after.get('plugins'))
+            return
     set_section(user_config_file, 'plugins', lambda indent: _emit_block(decls, indent))
+
+
+def _emit_decl(d):
+    '''One `plugins:` entry, `{ source: …  ref: …  sha256: …  primary: true }`, on one line.'''
+    entry = f'{{ source: {_scalar(d["source"])}'
+    if d.get('ref'):
+        entry += f'  ref: {_scalar(d["ref"])}'
+    if d.get('sha256'):
+        entry += f'  sha256: {_scalar(d["sha256"])}'
+    if d.get('primary'):
+        entry += '  primary: true'
+    return entry + ' }'
+
+
+def _relist_decls(text, decls):
+    '''`text` with its top-level `plugins: [ … ]` edited in place to hold `decls`, or None when it
+    can't be done surgically: no such list, a list on one line, an entry that isn't a `{…}` map,
+    two entries sharing a line, or an entry whose text doesn't parse.'''
+    from difflib import SequenceMatcher
+    span = hutext.section_span(text, 'plugins')
+    if span is None:
+        return None
+    vs = hutext.skip_blank(text, text.index(':', span[0]) + 1)
+    if vs >= span[1] or text[vs] != '[' or '\n' not in text[vs:span[1]]:
+        return None
+    close = span[1] - 1                                  # the list's `]`
+    items, i = [], vs + 1                                # [(decl, start, end, line_start, line_end)]
+    while True:
+        i = hutext.skip_blank(text, i)
+        if i >= close:
+            break
+        if text[i] == ',':
+            i += 1
+            continue
+        if text[i] != '{':
+            return None
+        e = hutext.value_end(text, i)
+        ls = text.rfind('\n', 0, i) + 1
+        le = e
+        while le < len(text) and text[le] in ' \t,':
+            le += 1
+        if text.startswith('//', le):
+            le = text.find('\n', le)
+        if text[ls:i].strip() or le < 0 or le >= len(text) or text[le] != '\n':
+            return None                                  # not alone on its line
+        try:
+            entry = layers.materialize_string(text[i:e])
+        except Exception:                                # noqa: BLE001 — leave it to the full rewrite
+            return None
+        items.append((_decl(entry, allow_primary=True), i, e, ls, le + 1))
+        i = e
+    cl = text.rfind('\n', 0, close) + 1
+    if text[cl:close].strip():
+        return None                                      # `]` shares a line with something
+    if items:
+        indent = text[items[0][3]:items[0][1]]
+    else:
+        indent = text[cl:close] + '    '
+    ol = text.find('\n', vs)                             # the `[` line ends here (a comment may follow `[`)
+    if ol < 0 or text[vs + 1:ol].strip() and not text[vs + 1:ol].lstrip().startswith('//'):
+        return None
+    old = [it for it in items if it[0] is not None]      # a malformed entry (ignored on load) stays put
+    want = [_decl(d, allow_primary=True) for d in decls]
+    sm = SequenceMatcher(a=[d['source'] for d, *_ in old], b=[d['source'] for d in want],
+                         autojunk=False)
+    edits = []                                           # (start, end, replacement)
+    for tag, i1, i2, j1, j2 in sm.get_opcodes():
+        pairs = list(zip(range(i1, i2), range(j1, j2)))
+        for k, j in pairs:                               # same slot: keep it, or re-emit it in place
+            if old[k][0] != want[j]:
+                edits.append((old[k][1], old[k][2], _emit_decl(want[j])))
+        for k in range(i1 + len(pairs), i2):             # gone: cut its line (comments above stay)
+            edits.append((old[k][3], old[k][4], ''))
+        if j1 + len(pairs) < j2:                         # new: their own lines after the slot before
+            at = old[i1 + len(pairs) - 1][4] if i1 + len(pairs) > 0 else ol + 1
+            edits.append((at, at, ''.join(f'{indent}{_emit_decl(want[j])}\n'
+                                          for j in range(j1 + len(pairs), j2))))
+    for s, e, rep in sorted(edits, key=lambda x: (x[0], x[1]), reverse=True):
+        text = text[:s] + rep + text[e:]
+    return text
 
 
 def _read_top(config_file, key, shape):
