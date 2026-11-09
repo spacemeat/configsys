@@ -77,6 +77,19 @@ def test_set_disposition_roundtrip(tmp_path):
     assert plugins.read_dispositions(str(ctx.paths.user_config_file)) == {}  # node cleaned up
 
 
+def test_mark_all_seen_lands_where_set_disposition_does(tmp_path, monkeypatch):
+    # dispositions moved into the primary (`config move`): a mass-acknowledge must add to that block,
+    # like set_disposition — not start a second one in the top config that splits the triage
+    ctx = _ctx(tmp_path, '{ }')
+    pfile = tmp_path / 'mine.hu'
+    pfile.write_text('{ dispositions: { fd: interesting } }\n')
+    monkeypatch.setattr(actions, '_primary_data_file', lambda c: (str(pfile), 'primary mine'))
+    assert actions.set_disposition(ctx, 'bat', 'seen') == (True, 'primary mine')
+    assert actions.mark_all_seen(ctx, ['fd', 'htop']) == 1
+    assert plugins.read_dispositions(str(pfile)) == {'fd': 'interesting', 'bat': 'seen', 'htop': 'seen'}
+    assert plugins.read_dispositions(str(ctx.paths.user_config_file)) == {}
+
+
 def test_disp_cli_get_set_list(tmp_path):
     from configsys.app import build_parser, cmd_disp
     ctx = _ctx(tmp_path)

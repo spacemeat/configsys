@@ -906,10 +906,11 @@ def move_picks_to_primary(ctx):
 def mark_all_seen(ctx, names):
     '''Mark every UNDISPOSITIONED (NEW) component in `names` as `seen`, in ONE write — leaving any
     existing seen/interesting flag alone (SEEN never clobbers a flag). Returns the count newly seen.
-    Used by the `E` mass-acknowledge and by tracking (tracked implies seen).'''
+    Used by the `E` mass-acknowledge and by tracking (tracked implies seen). Lands where
+    set_disposition does (_nature_target), so a dispositions block you moved isn't split in two.'''
     if _pretend(ctx):
         return 0
-    tfile = str(ctx.paths.user_config_file)
+    tfile, _label = _nature_target(ctx, 'dispositions', lambda f: bool(plugins.read_dispositions(f)))
     disp = plugins.read_dispositions(tfile)
     added = 0
     for n in names:
