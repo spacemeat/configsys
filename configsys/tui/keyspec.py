@@ -88,7 +88,7 @@ _FALLBACK = {
 ROUTER_ACTIONS = ('quit', 'quit-force', 'issues', 'help')
 
 
-def merge_layer_keys(layers, warnings=None):
+def merge_layer_keys(layers, warnings=None, owners_out=None):
     """Merge every layer's `keys:` section (low -> high precedence) into `{scope: {action: spec}}`,
     REBIND-WINS (review-2026-11-2 B16 / tui-theme-04/05), in passes over the FINAL bindings:
 
@@ -166,16 +166,20 @@ def merge_layer_keys(layers, warnings=None):
         for vscope, vaction in victims:
             if vaction in out.get(vscope, {}) and owner[vscope][vaction][0] < tidx:
                 strip(vscope, vaction, tcodes, None, twhere, f'{tscope}.{taction}')
+    if owners_out is not None:                       # {scope: {action: the layer file it came from}}
+        for scope, acts in out.items():
+            owners_out[scope] = {a: owner[scope][a][1] for a in acts}
     return out
 
 
-def config_keys(config):
+def config_keys(config, owners_out=None):
     '''The merged `keys:` for a Config with rebind-wins (merge_layer_keys) applied over its layer
-    stack; falls back to `config.keys()` for an object without layers.'''
+    stack; falls back to `config.keys()` for an object without layers. `owners_out` (a dict) gets
+    {scope: {action: layer file}} — where each binding came from (`configsys keys`).'''
     if getattr(config, '_layers', None) is None:
         return config.keys()
     kl = getattr(config, 'key_layers', None)          # only trusted plugins' keys (A11)
-    return merge_layer_keys(kl() if kl is not None else config._layers)
+    return merge_layer_keys(kl() if kl is not None else config._layers, owners_out=owners_out)
 
 
 class Keymap:
@@ -197,6 +201,10 @@ class Keymap:
                 if codes:
                     am[action] = codes
             self._m[scope] = am
+
+    def bindings(self):
+        '''[(scope, action, [codes])] — every resolved binding (the public view of the map).'''
+        return [(s, a, list(codes)) for s, acts in self._m.items() for a, codes in acts.items()]
 
     def action_for(self, scope, code):
         '''The action `code` triggers in `scope` — page scope first, then falling back to `global`.'''

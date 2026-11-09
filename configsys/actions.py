@@ -1266,6 +1266,17 @@ def theme_target(ctx, dotted_key=None, *, create=False):
 def set_theme_value(ctx, dotted_key, value, *, target=None):
     '''Set one theme value by dotted path (`colors.accent`, `elements.profile.fg`, `gradient.from`);
     `value=None` removes it. bold/underline/reverse coerce to a bool. Returns (changed, label).'''
+    if value is not None:                              # refuse what the TUI would ignore (G6)
+        from .tui.theme import theme_problems
+        probe = {}
+        node = probe
+        parts = dotted_key.split('.')
+        for part in parts[:-1]:
+            node = node.setdefault(part, {})
+        node[parts[-1]] = value
+        bad = theme_problems(probe, colors=None)
+        if bad:
+            raise ValueError(f'theme {bad[0][0]}: {bad[0][1]}')
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
     tfile, label = (target, target) if target else theme_target(ctx, dotted_key, create=True)

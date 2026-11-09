@@ -1961,6 +1961,45 @@ def print_sync_delta(before, cfg):
         print('  review with `configsys inspect`, then install/upgrade to apply')
 
 
+def catalog_search(components, words=(), attrs=()):
+    '''[(name, component)] matching every word (case-insensitive, in the name or description) and
+    carrying every attr — the CLI's view of what the TUI browses with `/`, `F` and `f` (G6).'''
+    words = [w.lower() for w in words]
+    want = {a.lower() for a in attrs}
+    out = []
+    for name in sorted(components):
+        comp = components[name]
+        if not getattr(comp, 'bindings', None):
+            continue                                   # a `{}`-removed component
+        hay = f'{name} {getattr(comp, "description", "")}'.lower()
+        if not all(w in hay for w in words):
+            continue
+        if want and not want <= {a.lower() for a in getattr(comp, 'attrs', ())}:
+            continue
+        out.append((name, comp))
+    return out
+
+
+def cmd_search(ctx, args):
+    '''Search the catalog (G6 / parity-18).'''
+    hits = catalog_search(ctx.routes.components, args.text, args.attr)
+    picked = set(ctx.config.requested())
+    if args.json:
+        import json
+        print(json.dumps([{'name': n, 'description': c.description, 'attrs': list(c.attrs),
+                           'picked': n in picked} for n, c in hits], indent=2))
+        return 0
+    if not hits:
+        print('configsys: no component matches')
+        return 1
+    width = min(28, max(len(n) for n, _c in hits))
+    for n, c in hits:
+        mark = '+' if n in picked else ' '
+        print(f'{mark} {n:<{width}}  {c.description}' + (f'  [{" ".join(c.attrs)}]' if c.attrs else ''))
+    print(f'\n{len(hits)} component(s){"; + = picked on this machine" if picked & {n for n, _c in hits} else ""}')
+    return 0
+
+
 def cmd_where(ctx, args):
     if getattr(args, 'profile', False):
         lines = where_profile_report(ctx, args.name)
@@ -2601,8 +2640,11 @@ def check_report(ctx):
     # palette/elements block or a top-level gradient is ignored, so flag it rather than let a stale
     # theme silently do nothing.
     theme_warnings = []
+    from .tui.theme import theme_problems
     for lyr in layer_list:
         t = lyr.data.get('theme')
+        for key, why in theme_problems(t):
+            theme_warnings.append(f'{os.path.basename(lyr.path)}: theme {key}: {why} — ignored')
         if isinstance(t, dict):
             stale = [k for k in ('palette', 'elements', 'gradient') if k in t]
             if stale:
@@ -3726,20 +3768,30 @@ def _show_file(ctx, what):
 def cmd_keys(ctx, args):
     '''Print the effective TUI keybindings — the `keys:` section merged across every layer (repo <
     plugins < primary < your config). For a humon-only user (no TUI editor) to see what's active.'''
-    from .tui.keyspec import Keymap, config_keys, key_name
-    km = Keymap(config_keys(ctx.config))           # rebind-wins across layers, as the TUI resolves it
+    from .tui.keyspec import Keymap, config_keys, key_name, lint_keys
+    owners = {}
+    km = Keymap(config_keys(ctx.config, owners_out=owners))   # rebind-wins, as the TUI resolves it
     print('TUI keybindings — merged repo < plugins < primary < your config '
           '(edit the `keys:` section in ~/.config/configsys/configsys.hu or your primary plugin):')
     order = ['screens', 'global', 'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config',
              'theme']                                         # screen order (keys 1-7)
-    for scope in order + [s for s in km._m if s not in order]:
-        actions = km._m.get(scope)
+    by_scope = {}
+    for scope, action, codes in km.bindings():
+        by_scope.setdefault(scope, {})[action] = codes
+    for scope in order + [s for s in by_scope if s not in order]:
+        actions = by_scope.get(scope)
         if not actions:
             continue
         print(f'\n  [{scope}]')
         for action in sorted(actions):
             keys = ' / '.join(key_name(c) for c in actions[action])
-            print(f'    {action:18} {keys}')
+            src = (owners.get(scope) or {}).get(action) or 'built-in'
+            print(f'    {action:18} {keys:16} {src}')
+    steals = lint_keys(ctx.config.key_layers()) if hasattr(ctx.config, 'key_layers') else []
+    if steals:                                         # what a higher layer took from a lower one
+        print('\n  rebinds across layers:')
+        for line in steals:
+            print(f'    {line}')
     return 0
 
 
@@ -3821,6 +3873,27 @@ environment:
 '''
 
 
+def _version_string():
+    '''`configsys <version> (<short commit>)` — the commit when it runs from a git clone (the usual
+    clone-first install), for an issue someone files by hand (G6).'''
+    from . import __version__
+    import subprocess
+    try:
+        sha = subprocess.run(['git', '-C', str(Path(__file__).resolve().parent.parent), 'rev-parse',
+                              '--short', 'HEAD'], capture_output=True, text=True, timeout=5,
+                             stdin=subprocess.DEVNULL).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        sha = ''
+    return f'configsys {__version__}' + (f' ({sha})' if sha else '')
+
+
+class _VersionAction(argparse.Action):
+    '''`--version`, worked out only when asked (the git lookup isn't paid on every command).'''
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(_version_string())
+        parser.exit()
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog='configsys',
@@ -3832,6 +3905,8 @@ def build_parser():
                     'the interactive TUI opens.',
         epilog=_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument('--version', action=_VersionAction, nargs=0,
+                   help='print the configsys version (and the git commit it runs from) and exit')
     p.add_argument('--pretend', action='store_true',
                    help='dry run: print the commands an operation would run instead of running them')
     p.add_argument('--os', metavar='BLOCK[:VERSION]',
@@ -4017,6 +4092,12 @@ def build_parser():
     pksub.add_parser('to-primary', help="move this box's local picks into the primary plugin so they "
                                         'travel to your other machines (dispositions stay local)')
 
+    srch = sub.add_parser('search', help='find components in the catalog by name, description or '
+                                        'attrs (e.g. `search terminal`, `search --attr TUI git`)')
+    srch.add_argument('text', nargs='*', help='words that must each appear in the name or description')
+    srch.add_argument('--attr', action='append', default=[], metavar='ATTR',
+                      help='only components carrying this attr (repeatable; see docs/component-attrs.md)')
+    srch.add_argument('--json', action='store_true', help='machine-readable output')
     wh = sub.add_parser('where', help='explain a component: the layer that defines it, each install '
                                       'method (marking the default, the alternatives you can pin, and '
                                       "any whose driver can't work here, with why), the rule that chose "
@@ -5030,7 +5111,11 @@ def cmd_theme(ctx, args):
 
     if sub in ('set', 'unset'):
         val = None if sub == 'unset' else args.value
-        _changed, label = actions.set_theme_value(ctx, args.key, val, target=target)
+        try:
+            _changed, label = actions.set_theme_value(ctx, args.key, val, target=target)
+        except ValueError as e:
+            print(f'configsys: {e}', file=sys.stderr)
+            return 1
         verb = 'cleared' if val is None else f'set {args.key} = {args.value}'
         print(f'configsys: {"cleared " + args.key if val is None else verb}  (in {label})')
         return 0
@@ -5072,6 +5157,7 @@ _COMMANDS = {
     'set-version': cmd_set_version,
     'fix-scope': cmd_fix_scope,
     'where': cmd_where,
+    'search': cmd_search,
     'machine': cmd_machine,
     'orphans': cmd_orphans,
     'disp': cmd_disp,

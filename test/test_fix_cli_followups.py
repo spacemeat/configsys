@@ -88,7 +88,7 @@ def test_keys_shows_rebind_wins(tmp_path, capsys):
     out = capsys.readouterr().out
     screens = out.split('[screens]', 1)[1].split('\n  [', 1)[0]
     lines = {ln.split()[0]: ln.split()[1:] for ln in screens.strip().splitlines()}
-    assert lines['glue'] == ['1']
+    assert lines['glue'] == ['1', 'configsys.hu']           # the key, and the layer it came from
     assert 'components' not in lines          # its "1" was taken by the user's rebind
 
 

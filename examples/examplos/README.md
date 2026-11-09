@@ -38,10 +38,15 @@ time.
 
 ## Try it
 
+`plugin add` clones its source, so give the example a git repository of its own first (it lives
+inside the configsys repo, which isn't a plugin) — WALKTHROUGH.md does the same:
+
 ```console
-$ ./configsys.sh --os examplos plugin add examples/examplos     # a local path is fine
+$ cp -r examples/examplos /tmp/examplos && git -C /tmp/examplos init -q \
+      && git -C /tmp/examplos add -A && git -C /tmp/examplos commit -qm examplos
+$ ./configsys.sh --os examplos plugin add /tmp/examplos --local   # a local path, this machine only
 $ ./configsys.sh --os examplos plugin list
-  examplos   examples/examplos
+  examplos   /tmp/examplos
              ok  [ships code — untrusted; run: configsys plugin trust examplos]
 
 # its code — the toybox driver — won't load until you approve this content

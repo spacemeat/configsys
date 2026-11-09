@@ -15,6 +15,9 @@ to browse and pick from. With no command, the interactive TUI opens.
 \fB-h\fR, \fB--help\fR
 show this help message and exit
 .TP
+\fB--version\fR
+print the configsys version (and the git commit it runs from) and exit
+.TP
 \fB--pretend\fR
 dry run: print the commands an operation would run instead of running them
 .TP
@@ -96,6 +99,9 @@ list or edit a machine's picks: the components it installs (also editable in the
 .PP
 Subcommands: \fBlist\fR, \fBadd\fR, \fBrm\fR, \fBto-primary\fR.
 .RE
+.TP
+\fBsearch\fR
+find components in the catalog by name, description or attrs (e.g. \fBsearch terminal\fR, \fBsearch --attr TUI git\fR)
 .TP
 \fBwhere\fR
 explain a component: the layer that defines it, each install method (marking the default, the alternatives you can pin, and any whose driver can't work here, with why), the rule that chose the default, and what it resolves to on this machine

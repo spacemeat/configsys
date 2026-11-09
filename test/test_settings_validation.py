@@ -124,3 +124,26 @@ def test_check_lints_reach_the_issues_page(tmp_path):
     ctx._check_thread.join(60)
     texts = [d['text'] for d in ctx.diagnostics()]
     assert sum('`splash` set twice' in x for x in texts) == 1      # once, not doubled
+
+
+def test_theme_lint_flags_and_theme_set_refuses_what_the_tui_ignores(tmp_path, capsys):
+    # G6 / tui-theme-15
+    from configsys.tui.theme import theme_problems, parse_color
+    assert parse_color('#-1-1-1') is None
+    bad = theme_problems({'colors': {'accent': '#12345'},
+                          'pages': {'profile': {}, 'components': {'componnet': {'fg': 'red'},
+                                                                  'component': {'fg': 'reddish', 'blink': True}}}})
+    keys = {k for k, _w in bad}
+    assert keys == {'colors.accent', 'pages.profile', 'pages.components.componnet',
+                    'pages.components.component.fg', 'pages.components.component.blink'}
+    assert _cs(tmp_path, 'theme', 'set', 'pages.components.componnet.fg', 'red') == 1
+    assert _cs(tmp_path, 'theme', 'set', 'pages.components.component.fg', 'accent') == 0
+
+
+def test_search_and_version(tmp_path, capsys):
+    # G6 / parity-18, app-cli-33
+    assert _cs(tmp_path, 'search', 'terminal', 'emulator') == 0
+    assert 'kitty' in capsys.readouterr().out
+    with pytest.raises(SystemExit) as e:
+        app.main(['--version'])
+    assert e.value.code == 0 and capsys.readouterr().out.startswith('configsys ')

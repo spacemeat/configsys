@@ -257,11 +257,8 @@ def parse_color(v):
         h = s[1:]
         if len(h) == 3:
             h = ''.join(c * 2 for c in h)
-        if len(h) == 6:
-            try:
-                return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
-            except ValueError:
-                return None
+        if len(h) == 6 and all(c in '0123456789abcdefABCDEF' for c in h):   # int('-1', 16) parses
+            return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
         return None
     if ',' in s:
         try:
@@ -270,6 +267,47 @@ def parse_color(v):
             return None
         return tuple(max(0, min(255, c)) for c in parts) if len(parts) == 3 else None
     return None
+
+
+_ROLE_ATTRS = ('fg', 'bg', 'bold', 'underline', 'reverse')
+
+
+def theme_problems(theme, colors=None):
+    '''What a `theme:` section says that the TUI would silently ignore — an unknown page or role, a
+    color that doesn't parse, a role attribute that isn't fg/bg/bold/underline/reverse — as
+    [(dotted key, why)]. For `check` and `theme set` (G6 / tui-theme-15).'''
+    out = []
+    if not isinstance(theme, dict):
+        return out
+    names = set(COLOR_MAP) | set((theme.get('colors') or {}) if isinstance(theme.get('colors'), dict) else ())
+
+    def color_ok(v):
+        return v in (None, '', 'none', False, 'false') or v in names or parse_color(v) is not None
+    for name, v in (theme.get('colors') or {}).items() if isinstance(theme.get('colors'), dict) else ():
+        if parse_color(v) is None and v not in names:
+            out.append((f'colors.{name}', f'{v!r} is not a color (#rrggbb, #rgb, "r,g,b" or a map name)'))
+    pages = theme.get('pages') if isinstance(theme.get('pages'), dict) else {}
+    for page, spec in pages.items():
+        if page not in ALL_PAGES:
+            out.append((f'pages.{page}', f'no such page (pages: {", ".join(ALL_PAGES)})'))
+            continue
+        for role, st in (spec.items() if isinstance(spec, dict) else ()):
+            key = f'pages.{page}.{role}'
+            if role == 'gradient':
+                if isinstance(st, dict):
+                    for end in ('from', 'to'):
+                        if end in st and not color_ok(st[end]):
+                            out.append((f'{key}.{end}', f'{st[end]!r} is not a color'))
+                continue
+            if role not in ROLE_DEFAULTS:
+                out.append((key, 'no such role'))
+                continue
+            for attr, v in (st.items() if isinstance(st, dict) else ()):
+                if attr not in _ROLE_ATTRS:
+                    out.append((f'{key}.{attr}', f'not a role attribute ({", ".join(_ROLE_ATTRS)})'))
+                elif attr in ('fg', 'bg') and not color_ok(v):
+                    out.append((f'{key}.{attr}', f'{v!r} is not a color or a color-map name'))
+    return out
 
 
 def _ref_rgb(ref, colors):

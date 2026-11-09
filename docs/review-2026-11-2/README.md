@@ -291,7 +291,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   machine's change without saying so; a pushed `.hu` isn't parse-checked; signed-only push doesn't warn on
   unsigned outgoing commits. (primary-14/15/20/21) · [done — done — the TUI push popup lists the commits + files about to leave (Question.listing as the popup body); undo confirms name a change made on another machine (Change.machine); a .hu settled by edit or by side must parse (re-offered, else stop); signed-only push warns its own commits are unsigned]
 - **G6 [LOW]** Theme lint; `keys` provenance; CLI catalog search; `--version`; the example plugin's
-  README commands fail. (tui-theme-15/22, parity-18/19, app-cli-33, plugins-04) · [open]
+  README commands fail. (tui-theme-15/22, parity-18/19, app-cli-33, plugins-04) · [done — done — theme lint (tui.theme.theme_problems: unknown page/role/attr, bad colors; check warns, theme set refuses; #hex parse no longer takes negatives); `configsys keys` names the layer of each binding + lists cross-layer rebinds (Keymap.bindings, merge_layer_keys owners_out); `configsys search` (names/descriptions/--attr/--json); `configsys --version` (with the git commit); the example plugin README copies + git-inits before plugin add]
 
 ## 4. Test gaps
 Mutating key paths are untested on every TUI screen (no TUI `--pretend` sweep — tui-screens-11); verbs no
