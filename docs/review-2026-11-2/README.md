@@ -184,7 +184,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **B8 [HIGH] Theme export/promote drops the Theme page and unlisted roles; promote then deletes the local
   original.** (tui-theme-03) · effort S · [done — full_snapshot covers every page (Theme too) and every role you overrode; PAGE_ROLES re-recorded from each screen's real paint; theme load overlays the pack under your overrides (--reset / TUI choice replaces)]
 - **B9 [new, found by a checker] `plugin init` moves the dotfiles store but never re-points the live links**
-  — every linked config dangles. (parity-01 verification note) · effort S · [open]
+  — every linked config dangles. (parity-01 verification note) · effort S · [done — plugin init (create and merge) re-points every live dotfiles link into the moved store at the plugin's copy]
 - **B10 [MED] The ledger isn't robust:** last-writer-wins across processes; written in place and loaded
   intolerantly (a truncated `state.hu` bricks every command); `run_plan` isn't exception-safe.
   (actions-03/04/05) · effort M · [open]

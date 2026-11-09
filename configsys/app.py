@@ -2797,6 +2797,41 @@ def cmd_plugin_init(ctx, args, decls):
     return _plugin_init_merge(ctx, args, prim) if prim else _plugin_init_create(ctx, args, decls)
 
 
+def _repoint_dotfile_links(ctx, old_root, new_root):
+    """After the dotfiles store moved from `old_root` to `new_root`, re-point every LIVE link into it
+    (each picked dotfiles component's targets) at the same file under the new root — they used to
+    dangle after `plugin init` (B9). Returns the count re-pointed. Best-effort per link."""
+    from .drivers import get_driver
+    old, new = os.path.realpath(str(old_root)), str(new_root)
+    df = get_driver('dotfiles', ctx.runner, ctx.paths)
+    if df is None:
+        return 0
+    try:
+        units, _errs = ctx.routes.resolve_resilient(list(ctx.config.requested()))
+    except Exception:                                  # noqa: BLE001
+        return 0
+    n = 0
+    for rc in units.values():
+        if rc.driver != 'dotfiles':
+            continue
+        for _src, tgt, _absorb in df._pairs(rc):
+            try:
+                if not tgt.is_symlink():
+                    continue
+                dest = os.readlink(tgt)
+                full = os.path.normpath(os.path.join(os.path.dirname(str(tgt)), dest))
+                if not (full == old or full.startswith(old.rstrip(os.sep) + os.sep)):
+                    continue
+                moved = os.path.join(new, os.path.relpath(full, old))
+                if os.path.lexists(moved):
+                    tgt.unlink()
+                    tgt.symlink_to(moved)
+                    n += 1
+            except OSError:
+                continue
+    return n
+
+
 def _plugin_init_create(ctx, args, decls):
     import getpass
     import shutil
@@ -2825,6 +2860,7 @@ def _plugin_init_create(ctx, args, decls):
     dfdir = plug / 'dotfiles'
     for entry in store_entries:
         shutil.move(str(entry), str(dfdir / entry.name))
+    relinked = _repoint_dotfile_links(ctx, store, dfdir) if store_entries else 0
     gmoved, _ = _sweep_glue_to_primary(ctx, plug, dry_run=False, force=args.force)
     if gmoved:                                            # repoint user.d links at the new primary
         ctx.paths.primary_glue_dir = plug / 'glue'
@@ -2843,6 +2879,8 @@ def _plugin_init_create(ctx, args, decls):
     # from configsys.hu so it collapses toward the one-line bootstrap the primary model is for.
     stripped = plugins.remove_sections(ctx.paths.user_config_file, list(sections)) if sections else []
     print(f'\nconfigsys: created + blessed "{name}" as your primary plugin.')
+    if relinked:
+        print(f'  ({relinked} linked config(s) re-pointed at the plugin\'s copy.)')
     if stripped:
         print(f'  ({", ".join(stripped)} moved into the plugin and removed from configsys.hu.)')
     print('  capture now lands in it. When ready to share, create an empty repository for it')
@@ -2891,6 +2929,7 @@ def _plugin_init_merge(ctx, args, prim):
             elif dest.is_dir():
                 shutil.rmtree(dest)
             shutil.move(str(e), str(dest))
+        _repoint_dotfile_links(ctx, store, dfdir)        # live links follow the move (B9)
     gmoved, _ = _sweep_glue_to_primary(ctx, plug, dry_run=False, force=args.force)
     if gmoved:                                           # primary_glue_dir already set; repoint links
         _redeploy_user_glue(ctx)

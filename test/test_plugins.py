@@ -769,3 +769,21 @@ def test_plugin_sync_drops_the_glue_location_cache(tmp_path, monkeypatch):
     monkeypatch.setattr('configsys.plugins.sync', lambda runner, pdir, decls, **kw: [('configsys-blender', 'updated')])
     assert actions.plugin_sync(ctx, []) == [('configsys-blender', 'updated')]
     assert not cache.exists()
+
+
+@pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+def test_plugin_init_repoints_live_dotfile_links_at_the_moved_store(tmp_path):
+    # review-2026-11-2 B9: init MOVED the store into the plugin, and every linked config dangled
+    from configsys.app import main
+    home = tmp_path / 'home'
+    state = home / '.config' / 'configsys'
+    content = state / 'dotfiles' / 'btop-dotfiles.cfs' / 'btop'
+    content.mkdir(parents=True)
+    (content / 'btop.conf').write_text('theme = mine\n')
+    (state / 'configsys.hu').write_text('{ picks: { this-machine: [ btop ] } }\n')
+    live = home / '.config' / 'btop'
+    live.symlink_to(content)
+    assert main(['--home', str(home), '--os', 'pop_os!:24.04', '-q', 'plugin', 'init', 'configsys-me']) == 0
+    moved = state / 'plugins' / 'configsys-me' / 'dotfiles' / 'btop-dotfiles.cfs' / 'btop'
+    assert live.is_symlink() and os.path.realpath(live) == os.path.realpath(moved)
+    assert (live / 'btop.conf').read_text() == 'theme = mine\n'
