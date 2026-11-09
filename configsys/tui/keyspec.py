@@ -296,6 +296,9 @@ class Keymap:
             return '/'.join(glyphs[:2])
 
         for a in order:                                    # global (shared) keys, in a readable order
+            if a in OPTIONAL_GLOBALS and a not in SCREEN_GLOBALS.get(scope, ()) \
+                    and a not in self._m.get(scope, {}):
+                continue                                   # a global this page doesn't act on
             if a in self._m.get('global', {}) or a in self._m.get(scope, {}):
                 codes = self.effective_codes(scope, a)
                 if codes:
@@ -315,6 +318,17 @@ class Keymap:
             rows.append((keyglyph(self.keys_for(scope, a)), self.label(scope, a)))
         return rows
 
+
+# Global actions only SOME screens act on: a `?` page lists one only where its screen handles it
+# (SCREEN_GLOBALS — keep it in step with each screen's handle()). Every other global (navigation,
+# confirm/select, issues, help, quit) is honored on every page.
+OPTIONAL_GLOBALS = frozenset({'find', 'filter', 'switch-pane', 'switch-pane-back'})
+SCREEN_GLOBALS = {
+    'components': frozenset({'find', 'filter'}),
+    'profiles': OPTIONAL_GLOBALS,
+    'plugins': frozenset({'switch-pane', 'switch-pane-back'}),
+    'theme': frozenset({'switch-pane', 'switch-pane-back'}),
+}
 
 _PAGE_N = re.compile(r'page-\d+$')        # the theme screen's sample-page actions (not page-down/-up)
 

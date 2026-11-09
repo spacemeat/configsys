@@ -252,3 +252,19 @@ def test_control_glyphs_share_one_notation_and_bool_is_no_key():
     # tui-theme-27
     assert key_name(10) == '^j' and key_name(11) == '^k' and key_name(1) == '^a'
     assert parse_key(True) is None and parse_key(False) is None
+
+
+def test_help_rows_list_only_the_optional_globals_a_screen_handles():
+    from configsys.tui.keyspec import shipped_keymap
+    '''find / filter / switch-pane are global bindings, but only some screens act on them — a `?`
+    page must not advertise a key its screen ignores (docs audit 2026-11-09).'''
+    km = shipped_keymap()
+    labels = lambda scope: {lbl for _k, lbl in km.help_rows(scope)}
+    find, filt = km.label('global', 'find'), km.label('global', 'filter')
+    tab, back = km.label('global', 'switch-pane'), km.label('global', 'switch-pane-back')
+    for scope in ('glue', 'dotfiles', 'config'):
+        assert not labels(scope) & {find, filt, tab, back}, scope
+    assert {find, filt} <= labels('components') and back not in labels('components')
+    assert {find, filt, tab, back} <= labels('profiles')
+    for scope in ('plugins', 'theme'):
+        assert {tab, back} <= labels(scope) and not labels(scope) & {find, filt}, scope
