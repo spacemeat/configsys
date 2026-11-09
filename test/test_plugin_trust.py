@@ -167,6 +167,29 @@ def test_trust_all_trusts_every_untrusted_code_plugin(tmp_path, capsys, monkeypa
     assert 're-approved' in out2 and 'codeplug-a' in out2
 
 
+def test_list_and_trust_word_a_code_plus_recipes_plugin_alike(tmp_path, capsys):
+    # status scanned recipes only for a plugin WITHOUT code, so `plugin list` said "ships code"
+    # while `plugin trust` said "code + recipes will run"
+    from configsys.app import main
+    pdir = tmp_path / '.config' / 'configsys' / 'plugins' / 'both'
+    (pdir / 'glue' / 'bash').mkdir(parents=True)
+    (pdir / 'plugin.hu').write_text('{ name: both  requires-abi: 1  code: driver.py }')
+    (pdir / 'driver.py').write_text('DRIVERS = []\n')
+    (pdir / 'glue' / 'bash' / 'both.sh').write_text('export BOTH=1\n')
+    (tmp_path / '.config' / 'configsys' / 'configsys.hu').write_text(
+        '{ plugins: [ { source: "github:x/both" } ] }')
+    rows = plugins.status(pdir.parent, [{'source': 'github:x/both'}],
+                          trust_file=tmp_path / 'none.hu')
+    assert rows[0]['has_code'] and rows[0]['has_recipes']
+    home = ['--home', str(tmp_path), '--os', 'pop']
+    assert main(home + ['plugin', 'list']) == 0
+    assert 'ships code + recipes — untrusted' in capsys.readouterr().out
+    assert main(home + ['plugin', 'trust', 'both']) == 0
+    assert 'its code + recipes will run' in capsys.readouterr().out
+    assert main(home + ['plugin', 'list']) == 0
+    assert '[code + recipes trusted]' in capsys.readouterr().out
+
+
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 def test_trust_a_dataonly_plugin_is_a_noop(tmp_path, capsys):
     from configsys.app import main

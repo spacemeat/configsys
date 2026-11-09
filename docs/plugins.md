@@ -264,7 +264,7 @@ Trust is an explicit command, never an inline prompt, so the CLI stays scriptabl
 ```console
 $ configsys plugin list
   examplos               github:you/configsys-examplos @v0.1.0
-                         ok  [ships code — untrusted; run: configsys plugin trust examplos]
+                         ok  [ships code + recipes — untrusted; run: configsys plugin trust examplos]
                          provides: components, os, drivers, component-names
 $ configsys plugin trust examplos
 configsys: trusted examplos @ a2f1664d9e5f — its code + recipes will run

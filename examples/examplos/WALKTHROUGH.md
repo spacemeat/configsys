@@ -213,7 +213,7 @@ and manifest, sync, and you'll see the plugin sitting there, inert:
 $ ./configsys.sh --os examplos plugin sync
 $ ./configsys.sh --os examplos plugin list
   examplos               /home/you/configsys-examplos
-                         ok  [ships code — untrusted; run: configsys plugin trust examplos]
+                         ok  [ships code + recipes — untrusted; run: configsys plugin trust examplos]
                          provides: components, os, drivers
 ```
 
@@ -228,7 +228,7 @@ $ ./configsys.sh --os examplos plugin trust examplos
 configsys: trusted examplos @ 55c32248379a — its code + recipes will run
 $ ./configsys.sh --os examplos plugin list
   examplos               /home/you/configsys-examplos
-                         ok  [code trusted]
+                         ok  [code + recipes trusted]
                          provides: components, os, drivers
 $ ./configsys.sh --os examplos where toychest
   ...

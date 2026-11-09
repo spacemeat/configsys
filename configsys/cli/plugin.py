@@ -620,8 +620,7 @@ def cmd_plugin(ctx, args):
                 cs = r['code_state']
                 # word it by what actually needs trust: a code: module, command-carrying recipes
                 # (via:script/source/glue), or both.
-                what = ('code + recipes' if r.get('has_code') and r.get('has_recipes')
-                        else 'code' if r.get('has_code') else 'recipes')
+                what = plugins.trust_what(r.get('has_code'), r.get('has_recipes'))
                 if cs == 'trusted':
                     state += f'  [{what} trusted]'
                 elif cs == 'untrusted':

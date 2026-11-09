@@ -52,7 +52,7 @@ $ git -C /tmp/examplos init -q && git -C /tmp/examplos add -A \
 $ ./configsys.sh --os examplos plugin add /tmp/examplos --local   # a local path, this machine only
 $ ./configsys.sh --os examplos plugin list
   examplos               /tmp/examplos
-                         ok  [ships code — untrusted; run: configsys plugin trust examplos]
+                         ok  [ships code + recipes — untrusted; run: configsys plugin trust examplos]
                          provides: components, os, drivers, component-names
 
 # its code — the toybox driver — won't load until you approve this content

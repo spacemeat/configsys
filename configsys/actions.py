@@ -1978,10 +1978,8 @@ def plugin_trust(ctx, ident):
         return False, f'[pretend] would trust {disp} @ {identity.split(":")[-1][:12]} — not saved'
     plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
     ctx.invalidate()
-    what = 'its code' if has_code else 'its recipes'
-    if has_code and has_recipes:
-        what = 'its code + recipes'
-    return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — {what} will run'
+    what = plugins.trust_what(has_code, has_recipes)
+    return True, f'trusted {disp} @ {identity.split(":")[-1][:12]} — its {what} will run'
 
 
 def _trust_rows(ctx):

@@ -888,10 +888,10 @@ def status(plugins_dir, decls, *, trust_file=None, lock_file=None):
         synced = pdir.exists()
         manifest = read_manifest(pdir) if synced else {}
         has_code = bool(manifest.get('code'))
-        # a plugin needing trust ships code OR command-carrying data (recipes); recipe scan only
-        # when a trust decision is being surfaced (trust_file given) and something is on disk.
-        has_recipes = bool(synced and trust_file is not None and not has_code
-                           and ships_executable_data(pdir))
+        # a plugin needing trust ships code OR command-carrying data (recipes) — or both, which
+        # `plugin list` words exactly as `plugin trust` does; recipe scan only when a trust
+        # decision is being surfaced (trust_file given) and something is on disk.
+        has_recipes = bool(synced and trust_file is not None and ships_executable_data(pdir))
         trustable = has_code or has_recipes
         identity = plugin_identity(pdir) if (trust_file is not None and trustable) else None
         checksum = None
