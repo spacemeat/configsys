@@ -151,9 +151,10 @@ def unknown_block_message(name, blocks):
 def refine(block, cascade, env=None, exists=os.path.exists):
     '''Refine a detected block using os blocks' `detect:` markers. A derivative distro that does
     NOT rebrand /etc/os-release (Proxmox VE reports ID=debian) declares
-    `detect: { id: <base>  marker: <path> }` (marker may be a list). When the detected block is
-    that base (or a descendant of it) and every marker exists on disk, we route to the more-
-    specific block. This is the data-driven generalization of the built-in Fedora-Atomic
+    `detect: { id: <base>  marker: <path> }` (marker may be a list: ALL must exist) and/or
+    `marker-any: [ <path> … ]` (at least ONE must exist — Void musl's loader is named per cpu,
+    ld-musl-x86_64 / -aarch64 / -armhf). When the detected block is that base (or a descendant of
+    it) and the markers hold, we route to the more-specific block. This is the data-driven generalization of the built-in Fedora-Atomic
     ostree-marker detection — so a plugin can add a detectable OS with no code. A forced
     CONFIGSYS_OS is never second-guessed.'''
     env = os.environ if env is None else env
@@ -166,9 +167,13 @@ def refine(block, cascade, env=None, exists=os.path.exists):
         base = det.get('id') or det.get('base')
         markers = det.get('marker') or det.get('markers') or []
         markers = [markers] if isinstance(markers, str) else list(markers)
+        any_of = det.get('marker-any') or []
+        any_of = [any_of] if isinstance(any_of, str) else list(any_of)
         if base and not cascade.is_descendant(block, base):
             continue
-        if markers and all(exists(str(m)) for m in markers):
+        if not (markers or any_of):
+            continue
+        if all(exists(str(m)) for m in markers) and (not any_of or any(exists(str(m)) for m in any_of)):
             return name
     return block
 

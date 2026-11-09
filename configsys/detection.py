@@ -113,6 +113,8 @@ def detect_pins(ctx, units, progress=None):
         comp = r.components.get(name)
         if comp is None or not comp.bindings:
             return None
+        if all(a.via == rc.via for a in _candidate_rcs(ctx, comp, cx)):
+            return None                         # a single-method component: nothing to adopt, no probe
         # the RESOLVED method installed too? then keep it — adopting a first-listed alternative would
         # move management off the default, and the next swap would remove it (routing-09; provider
         # adoption has the same guard)

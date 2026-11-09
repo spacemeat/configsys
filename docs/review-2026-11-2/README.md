@@ -205,7 +205,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **B15 [MED] Routing correctness batch:** `disabled-drivers` ignores the native manager; provider-pin on a
   capability-that-is-a-component; `{}` name-drop satisfies a hard require; partial `parts` bundles; driver
   gated by one requires ambiguity; `version-floors` changes resolution; ARM void_musl detected as glibc;
-  soft pin with a failing hard requirement → error row. (routing-05..12/14) · effort M · [open]
+  soft pin with a failing hard requirement → error row. (routing-05..12/14) · effort M · [done — done — resolve.disabled_driver (disabled-drivers covers the manager a via: native reaches) and resolve.binding_pin (a provider-pin on a capability that is also a component is never a method filter); a component-names {} drop is not bindable for a hard require; an unroutable bundle part is skipped with a part-skipped notice (all parts unroutable = an error; a cycle stays an error); a soft pin whose method requires fail is dropped; AmbiguityError never closes a derived driver gate; version-floors select at binding level too; detect: marker-any (Void musl on every cpu); detection skips the resolved-probe for single-method components]
 - **B16 [MED] TUI correctness batch:** rebuild drops filter+scroll; to-do view hides non-green picks;
   pinned methods line; `handle` exceptions end the TUI; `M` moves the cursor; notes claim unchecked
   success; `--machine other` installs the other machine's picks (CLI refuses); execute skips auto-tighten;

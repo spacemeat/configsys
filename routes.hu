@@ -195,11 +195,14 @@
         // so glibc-only AppImages/tarballs work on one and cleanly decline on the other with no
         // per-component work. They're SIBLINGS (different libc parents), so a Void-wide gate is
         // `when: "void or void_musl"`. Both report ID=void; void_musl is told apart by the musl
-        // loader (detect: marker). xbps package names are libc-agnostic: one `xbps:` name map serves
-        // both. (Mirrored by the configsys-void plugin, kept as a worked example of an OS plugin.)
+        // loader (detect: marker-any — the loader is named per cpu). xbps package names are
+        // libc-agnostic: one `xbps:` name map serves both. (Mirrored by the configsys-void plugin,
+        // kept as a worked example of an OS plugin.)
         void:      { using: glibc_linux  native: xbps }
         void_musl: { using: linux        native: xbps
-                     detect: { id: void  marker: /lib/ld-musl-x86_64.so.1 } }
+                     detect: { id: void  marker-any: [ /lib/ld-musl-x86_64.so.1 /lib/ld-musl-aarch64.so.1
+                                                       /lib/ld-musl-armhf.so.1 /lib/ld-musl-arm.so.1
+                                                       /lib/ld-musl-i386.so.1 ] } }
 
         // openSUSE / SUSE (zypper). glibc. One synthetic parent declares the driver; Leap is a
         // scale-root (versioned, 15.x) while Tumbleweed is rolling (bare membership, like arch)

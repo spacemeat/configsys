@@ -107,10 +107,9 @@ def _probe(ctx, cache, rc):
 def find(ctx, comp_name, *, ledger, cache=None, foreign=None):
     '''[Stranded] — installs of `comp_name` via a method that isn't one of its current candidates
     here. Empty in the common case. `foreign` = the AUR driver's foreign_index() (None off Arch).'''
-    from .resolve import candidate_bindings
+    from .resolve import candidate_bindings, disabled_driver
     r = ctx.routes
     comp = r.components.get(comp_name)
-    disabled = getattr(r, 'disabled', frozenset())
     cand = candidate_bindings(comp, r.cascade, r.context()) if comp is not None else []
     cand_names = {}                                      # current method unit key -> package name
     for b in cand:
@@ -144,7 +143,7 @@ def find(ctx, comp_name, *, ledger, cache=None, foreign=None):
                 if (lambda u: u is not None and u.key == key and u.name == rc.name)(_unit_rc(r, comp, b))]
         if not same:
             reason = 'removed'
-        elif any(b.via in disabled for b in same):
+        elif any(disabled_driver(b, r.context()) for b in same):
             reason = 'disabled'
         else:
             reason = 'gated'
@@ -160,7 +159,8 @@ def find(ctx, comp_name, *, ledger, cache=None, foreign=None):
                 continue
             ver = _probe(ctx, cache, rc)
             if ver is not None:
-                found[rc.key] = Stranded(rc, rc.key, ver, 'disabled' if b.via in disabled else 'gated')
+                found[rc.key] = Stranded(rc, rc.key, ver,
+                                         'disabled' if disabled_driver(b, r.context()) else 'gated')
     # 3. the AUR heuristic — only for installs no receipt explains
     if foreign:
         key = f'aur\\{comp_name}'

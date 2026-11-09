@@ -238,6 +238,9 @@ class Context:
             add('error', 'ledger',
                 f'{self.paths.ledger_file} is unreadable — configsys is running without its locks and '
                 'install receipts; the next save keeps the bad file as state.hu.corrupt-<time>')
+        for bundle, parts in sorted((getattr(self.routes, 'skipped_parts', None) or {}).items()):
+            for part, why in parts:                      # B15: a bundle installs the parts that route here
+                add('warn', 'part-skipped', f'{bundle}: part {part} skipped here — {why}')
         for w in self.config.ignored_section_warnings():
             add('warn', 'ignored', w)
         for w in self.config.unknown_section_warnings():
@@ -1753,9 +1756,12 @@ def where_report(ctx, name):
                    if c in rules and rules[c] != 'only provider here']
         if decided:
             out.append(f'  providers   {", ".join(decided)}')
-    pinned = r.pins.get(name)
+    from .resolve import binding_pin
+    pinned = binding_pin(r.pins, name)
     if pinned is not None:
         out.append(f'  pinned      via:{pinned}   (from your config)')
+    elif r.pins.get(name) is not None:              # a provider-pin on the capability this component names
+        out.append(f'  provider    {name} -> {r.pins[name]}   (a provider-pin for what requires {name})')
 
     # which binding wins in this machine's context, plus the alternatives available here
     cx = r.context()

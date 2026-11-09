@@ -13,6 +13,15 @@ class ResolveError(ConfigsysError):
     requirement, ambiguity). A ConfigsysError so the app surfaces it as a clean message.'''
 
 
+class AmbiguityError(ResolveError):
+    '''Two equally-ranked providers of a capability — a decision the user makes (a provider-pin or a
+    `standing:` rank). Unlike an unmet requirement it never closes a derived driver gate (B15).'''
+
+
+class PartsCycleError(ResolveError):
+    '''A `parts:` bundle that contains itself — structural, never skipped like an unroutable part.'''
+
+
 # sentinel: no `component-names` entry for this (driver, component) — distinct from an entry
 # whose value is `{}`/null (a DROP: the driver has no package for the component here).
 _NO_OVERRIDE = object()
@@ -110,11 +119,33 @@ DEFAULT_DRIVER_PREFERENCE = ['native', 'aur', 'flatpak', 'snap', 'native-pkg-fil
                              'brew', 'tarball', 'source', 'script']
 
 
+def binding_pin(pins, name):
+    '''The binding-pin (a via) `pins:` sets for component `name`, or None. A value that names a
+    PROVIDER instead (`jdk: jdk-25` — jdk is a component AND the capability jdk-25 provides) is a
+    provider-pin for consumers, never a method filter on the component itself (B15 / routing-06).'''
+    v = (pins or {}).get(name)
+    return v if v is not None and str(v) in pin_via_names() else None
+
+
+def disabled_driver(binding, context):
+    '''The `disabled-drivers:` entry that turns `binding` off here — its own via, or for `via:
+    native` this OS's native manager (`disabled-drivers: [ brew ]` on Fedora Atomic covers every
+    native binding too — B15 / routing-05) — else None.'''
+    disabled = getattr(context, 'disabled', None) or ()
+    if binding.via in disabled:
+        return binding.via
+    if binding.via == 'native':
+        native = getattr(context, 'native_driver', None)
+        if native and native in disabled:
+            return native
+    return None
+
+
 def _matching(component, context, pins):
     '''(bindings valid in this context, the binding-pin or None). A binding-pin filters to that
     via first (still subject to `when:`); `when:` alone decides validity.'''
     bindings = component.bindings
-    pin = (pins or {}).get(component.name)
+    pin = binding_pin(pins, component.name)
     if pin is not None:                     # binding-pin: force this method, still context-valid
         bindings = [b for b in bindings if b.via == pin]
         if not bindings:
@@ -122,13 +153,12 @@ def _matching(component, context, pins):
     # a DISABLED driver (machine `disabled-drivers:` setting) makes its bindings non-matching here,
     # exactly like a false `when:` — so a component whose only method is via it becomes unroutable
     # (a `suggests:` skips it silently, a hard `requires:`/explicit want errors honestly).
-    disabled = getattr(context, 'disabled', frozenset())
     cpu = getattr(context, 'cpu', None)
     # an OS with no system package manager (KDE Linux): `via: native` can't work there, so it isn't a
     # candidate — the component falls through to flatpak/tarball/cargo/… instead of erroring
     no_native = not getattr(context, 'has_native', True)
     return [b for b in bindings
-            if b.via not in disabled and not (no_native and b.via == 'native')
+            if disabled_driver(b, context) is None and not (no_native and b.via == 'native')
             and driver_gated(b, context) is None and trustgate.gated(b, context) is None
             and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
 
@@ -180,8 +210,10 @@ def not_candidate_reason(binding, cascade, context, pin=None):
     rules out says why.'''
     if pin is not None and binding.via != pin:
         return f'you pinned via:{pin}'
-    if binding.via in (getattr(context, 'disabled', None) or ()):
-        return f'the {binding.via} driver is disabled here (disabled-drivers:)'
+    off = disabled_driver(binding, context)
+    if off is not None:
+        note = ' — this OS\'s native manager' if binding.via == 'native' else ''
+        return f'the {off} driver{note} is disabled here (disabled-drivers:)'
     if binding.via == 'native' and not getattr(context, 'has_native', True):
         return "this OS has no package manager, so `via: native` can't work here"
     gate = driver_gate_reason(binding, cascade, context)
@@ -241,6 +273,11 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
                 for cap in caps:
                     st._satisfy(cap, None, f'the {drv} driver', f'the {drv} driver')
                 st.drain()
+            except AmbiguityError:
+                # two equal providers of the driver's tool is YOUR decision, not "can't work here":
+                # the driver stays valid, and each pick through it reports the ambiguity with its fix
+                # (a provider-pin / `standing:`) instead of reading `dangling` (B15 / routing-11)
+                pass
             except ResolveError as e:
                 new[drv] = str(e)
         if not new:
@@ -258,6 +295,10 @@ def _gate_note(component, context, pin):
     notes = {}
     for b in component.bindings:
         if pin is not None and b.via != pin:
+            continue
+        off = disabled_driver(b, context)
+        if off is not None and b.via not in notes and arch_ok(b.details, cpu) and b.pred.eval(context):
+            notes[b.via] = f'the {off} driver is disabled here (disabled-drivers:)'
             continue
         untrusted = trustgate.gated(b, context)
         if untrusted is not None and b.via not in notes and arch_ok(b.details, cpu) \
@@ -584,7 +625,7 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
                       pins=None, overrides=None, preference=None, candidate_only=None, disabled=None,
-                      soft=None, dropped_out=None, provider_rules_out=None):
+                      soft=None, dropped_out=None, provider_rules_out=None, skipped_parts_out=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
@@ -614,6 +655,8 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     st.propagate_requested()
     if provider_rules_out is not None:
         provider_rules_out.update(st.provider_rules)
+    if skipped_parts_out is not None:
+        skipped_parts_out.update(st.skipped_parts)
     return st.units, errors
 
 
@@ -702,6 +745,7 @@ class _State:
         # error — when they can't be (see _select_binding / _satisfy). `dropped` records why.
         self.soft = frozenset(soft or ())
         self.dropped = dropped if dropped is not None else {}
+        self.skipped_parts = {}             # {bundle: [(part, why)]} parts with no route here (B15)
         self.provider_rules = {}           # cap -> the rule that picked its auto provider (explain/where)
         self.preference = preference       # driver-preference order (config global); None = built-in
         self.candidate_only = candidate_only or frozenset()   # vias never auto-defaulted (e.g. snap)
@@ -755,14 +799,27 @@ class _State:
         if binding.via == 'parts':
             stack = self.__dict__.setdefault('_parts_stack', [])
             if name in stack:                          # a parts cycle: an error row, never a crash (B4)
-                raise ResolveError('parts cycle: ' + ' -> '.join(stack[stack.index(name):] + [name]))
+                raise PartsCycleError('parts cycle: ' + ' -> '.join(stack[stack.index(name):] + [name]))
             stack.append(name)
             try:
-                keys = set()
-                for part in _as_list(binding.details.get('parts')):
-                    keys |= self.add_component(part, root)
+                keys, skipped = set(), []
+                parts = _as_list(binding.details.get('parts'))
+                for part in parts:
+                    # a part with no route here is SKIPPED with a notice — the bundle is the union of
+                    # what routes here, like `profile:` expansion (B15 / routing-08); a cycle is not
+                    try:
+                        keys |= self.add_component(part, root)
+                    except PartsCycleError:
+                        raise
+                    except ResolveError as e:
+                        skipped.append((part, str(e)))
             finally:
                 stack.pop()
+            if skipped:
+                if len(skipped) == len(parts):
+                    raise ResolveError(f'no part of {name} installs here: '
+                                       + '; '.join(f'{p}: {why}' for p, why in skipped))
+                self.skipped_parts.setdefault(name, []).extend(skipped)
             return frozenset(keys)
 
         drv = _driver(binding, self.cascade, self.block)
@@ -792,7 +849,10 @@ class _State:
         # edge carries its version CONSTRAINT (or None) so a versioned `requires: {cap: ">=12"}`
         # selects a resident by version. A component's config is just another required component
         # (a `via: dotfiles` one), so it flows through here too.
-        bind_cons = cap_constraints(binding.details.get('requires'))
+        # the binding's constraints INCLUDING any `version-floors:` patch (routes._apply_version_floors
+        # writes them to req_versions) — a floor tightens at component and binding level alike (B15)
+        bind_cons = dict(getattr(binding, 'req_versions', None)
+                         or cap_constraints(binding.details.get('requires')))
         # driver-level requires are keyed by the DRIVER that installs the unit: a `via: native`
         # binding reaches the OS's manager (`drv` — apt/dnf/brew/…), so that manager's `drivers:` block
         # applies too (fedora_atomic's native brew requires homebrew).
@@ -814,17 +874,46 @@ class _State:
         '''select_binding under this resolution's pins — but a SOFT (detected) pin on `comp` that
         can't be honored here (names a method not valid on this machine) is ignored for it, falling
         through to the normal default, instead of erroring.'''
+        soft_pinned = comp.name in self.soft and comp.name in self.pins
         try:
-            return select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
-                                  self.candidate_only)
+            b = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
+                               self.candidate_only)
+            if soft_pinned:
+                why = self._method_requires_problem(comp, b)
+                if why is not None:            # the adopted method's OWN requires can't be met here
+                    raise ResolveError(why)    # (B15 / routing-10): drop the soft pin, not an error row
+            return b
         except ResolveError as e:
-            if comp.name not in self.soft or comp.name not in self.pins:
+            if not soft_pinned:
                 raise
             unpinned = {k: v for k, v in self.pins.items() if k != comp.name}
             b = select_binding(comp, self.cascade, self.ctx, unpinned, self.preference,
                                self.candidate_only)
             self.dropped.setdefault(comp.name, str(e))
             return b
+
+    def _method_requires_problem(self, comp, binding):
+        '''Why `binding`'s method-specific HARD requirements (its own `requires:` + its driver's) can't
+        be met here, or None — tried in a scratch resolution under the HARD pins only, the way
+        gated_context tries a driver. Only asked for a soft-pinned (detected) method.'''
+        drv = _driver(binding, self.cascade, self.block) if binding.via != 'parts' else None
+        reqs = [(c, cap_constraints(binding.details.get('requires')).get(c))
+                for c in cap_names(binding.details.get('requires'))]
+        reqs += [(c, None) for c in self.drivers.get(binding.via, [])]
+        if binding.via == 'native' and drv and drv != binding.via:
+            reqs += [(c, None) for c in self.drivers.get(drv, [])]
+        if not reqs:
+            return None
+        hard = {k: v for k, v in self.pins.items() if k not in self.soft}
+        st = _State(self.cascade, self.components, self.drivers, self.ctx, hard, self.overrides,
+                    self.preference, self.candidate_only, shared=(self.providers, self.optin))
+        try:
+            for cap, con in reqs:
+                st._satisfy(cap, con, comp.name, comp.name)
+            st.drain()
+        except ResolveError as e:
+            return f'{comp.name}: the installed method via:{binding.via} needs {e}'
+        return None
 
     def drain(self, errors=None):
         '''Close requirements to a fixpoint. Strict by default (a missing/ambiguous HARD
@@ -853,11 +942,18 @@ class _State:
                 and self._is_bindable(self.components[p])]
 
     def _is_bindable(self, comp):
+        '''Can `comp` provide something here: a binding selects AND its driver packages it (a
+        `component-names: { <drv>: { comp: {} } }` drop means "nothing here" — it can't satisfy a
+        HARD requirement, exactly like a `{}`-removed component; B15 / routing-07).'''
         try:
-            self._select_binding(comp)
-            return True
+            binding = self._select_binding(comp)
         except ResolveError:
             return False
+        if binding.via != 'parts' and self.overrides:
+            drv = _driver(binding, self.cascade, self.block)
+            if _name_override(self.overrides, drv, comp.name)[1]:
+                return False
+        return True
 
     def _pick_provider(self, cap, cands, requiring, constraint=None):
         '''The provider to auto-pull among `cands` (already past pins / soft pins / the version
@@ -874,7 +970,7 @@ class _State:
         if len(top) > 1:
             tied = sorted(top)
             how = (f'equal standing: {rank(top[0])}' if rank(top[0]) else 'none ranked by standing:')
-            raise ResolveError(f'ambiguous providers for "{what}": {tied} (required by {requiring}; '
+            raise AmbiguityError(f'ambiguous providers for "{what}": {tied} (required by {requiring}; '
                                f'{how}) — needs a provider-pin (`pins: {{ {cap}: {tied[0]} }}`) or a '
                                f'component `standing: <integer>` rank (higher wins)')
         self.provider_rules[cap] = f'standing: {rank(top[0])}'

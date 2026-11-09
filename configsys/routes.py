@@ -563,8 +563,9 @@ def _apply_version_floors(components, floors):
     '''Patch merged `version-floors` {component: {cap: constraint}} onto the built components: set
     the floor wherever the component ALREADY requires the cap (its component-level `requires`, and
     any binding that requires it). A patch only TIGHTENS an existing requirement — a floor for a cap
-    the component doesn't require is IGNORED, so it never creates a requirement and resolution is
-    unchanged (only the sweep / advisory read the added version metadata).'''
+    the component doesn't require is IGNORED, so it never creates a requirement. It DOES act like an
+    authored floor at either level: the resolver selects (or fails) a provider of that cap by
+    version, exactly as for `requires: { cap: ">=N" }` written in place (routing-model §11; B15).'''
     for cname, cap_map in floors.items():
         comp = components.get(cname)
         if comp is None or not isinstance(cap_map, dict):
@@ -690,6 +691,7 @@ class Resolver:
         self.disabled = frozenset(disabled or ())   # vias disabled on this machine (`disabled-drivers:`)
         self._dep_index = None                       # lazy cap -> {dependent components} reverse index
         self.dropped_soft_pins = {}                  # {pin key: reason} soft pins the last resilient resolve dropped
+        self.skipped_parts = {}                      # {bundle: [(part, why)]} from the last resilient resolve
         self.provider_rules = {}                     # {cap: deciding rule} from the last resilient resolve
 
     @property
@@ -744,14 +746,15 @@ class Resolver:
         pins = ({**soft_pins, **extra_pins, **self.pins}
                 if (extra_pins or soft_pins) else self.pins)
         soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)
-        dropped, rules = {}, {}
+        dropped, rules, skipped = {}, {}, {}
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
                                           self.candidate_only, self.disabled,
                                           soft=soft, dropped_out=dropped,
-                                          provider_rules_out=rules)
+                                          provider_rules_out=rules, skipped_parts_out=skipped)
         self.dropped_soft_pins = dropped
+        self.skipped_parts = skipped        # {bundle: [(part, why)]} parts with no route here
         self.provider_rules = rules         # {cap: rule that picked its auto provider} (for `where`)
         return to_resolved_components(units), errors
 
@@ -811,7 +814,8 @@ class Resolver:
                              self.candidate_only)[0]
         except ResolveError:
             winner = None
-        pinned_via = self.pins.get(name)
+        from .resolve import binding_pin
+        pinned_via = binding_pin(self.pins, name)
         return [{'via': b.via, 'when': b.when, 'default': b is winner,
                  'pinned': pinned_via == b.via, 'available': b.via in valid_vias} for b in reps]
 
