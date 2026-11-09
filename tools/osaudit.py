@@ -100,7 +100,11 @@ _SETUPS = {
 # whole catalog once: the setup dumps every available name to a file, the check greps it and falls
 # back to the manager's own (slower) query only for a miss — virtual names, provides, groups.
 _FAST_INDEX = {
-    'dnf': ("dnf -q repoquery --qf '%{name}\\n' 2>/dev/null | sort -u > /tmp/osaudit-names",
+    # names AND every provided capability (a miss used to cost `dnf info` + `dnf provides`, ~5 s
+    # each on EL 8's modular metadata — the EL 8 sweep timed out); the slow query stays as a fallback
+    'dnf': ("{ dnf -q repoquery --qf '%{name}\\n' 2>/dev/null; "
+            "dnf -q repoquery --qf '%{provides}\\n' 2>/dev/null | cut -d' ' -f1; } "
+            "| sort -u > /tmp/osaudit-names",
             'grep -qxF "$p" /tmp/osaudit-names'),
     'apt': ('apt-cache pkgnames 2>/dev/null | sort -u > /tmp/osaudit-names',
             'grep -qxF "$p" /tmp/osaudit-names'),

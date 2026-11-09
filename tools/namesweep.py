@@ -149,7 +149,7 @@ def _load_allowlist(path=ALLOWLIST):
     return {mgr: set(v) for mgr, v in d.items() if isinstance(v, list)}
 
 
-def _run_verifier(image, snippet, names, timeout=1200):
+def _run_verifier(image, snippet, names, timeout=2400):
     proc = subprocess.run(['podman', 'run', '-i', '--rm', image, 'sh', '-c', snippet],
                           input='\n'.join(names) + '\n', capture_output=True, text=True,
                           timeout=timeout)
