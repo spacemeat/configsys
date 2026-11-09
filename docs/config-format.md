@@ -574,8 +574,10 @@ Driver-specific fields include:
   `gcc` 14), `slaves:` (the companion tools registered with it as update-alternatives slaves on
   apt), and an apt-only vendor source, added only when the distro doesn't already carry the
   package: `ppa:` (Ubuntu only) or `apt-source: { key: <url>  deb: <line> }` (with optional
-  `key-path:` and `list:`; `$VERSION` and `$CODENAME` are filled in). `CONFIGSYS_PM` forces apt or
-  dnf. **gcc-toolset**
+  `key-path:` and `list:`; `$VERSION` and `$CODENAME` are filled in). The key is its own keyring
+  (default `/etc/apt/keyrings/<driver>-<version>.asc`) that only that source trusts — the deb line
+  gets `signed-by=` — and removing the toolchain takes the list and keyring back out.
+  `CONFIGSYS_PM` forces apt or dnf. **gcc-toolset**
   (EL) takes no fields: the toolset number comes from the component name.
 - **sdkman**: `name:` (the SDKMAN candidate, such as `java`), and optionally `version:`, an exact
   SDKMAN version identifier (`21.0.12+1.1-tem`). A binding with a `version:` installs and reads

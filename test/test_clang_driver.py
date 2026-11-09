@@ -56,8 +56,28 @@ def test_repo_uses_version_specific_list_and_key_paths():
     Clang(r).install(clang_unit('clang-19'))
     cmd = r.calls[0]
     assert '/etc/apt/sources.list.d/clang-19.list' in cmd
-    assert '/etc/apt/trusted.gpg.d/clang.asc' in cmd
     assert 'llvm-toolchain-' in cmd and '-19 main' in cmd
+
+
+def test_vendor_key_is_a_per_source_keyring_named_by_signed_by():
+    # drivers-lang-03 (d): the key goes in its OWN keyring, trusted only for the source that names it
+    # with signed-by= — never the global trusted.gpg.d, where it would vouch for every repo
+    r = Runner(pretend=True)
+    Clang(r).install(clang_unit('clang-19'))
+    cmd = r.calls[0]
+    assert "tee /etc/apt/keyrings/clang-19.asc" in cmd
+    assert "'deb [signed-by=/etc/apt/keyrings/clang-19.asc] http://apt.llvm.org/'" in cmd
+    assert 'tee /etc/apt/trusted.gpg.d/' not in cmd
+    assert 'mkdir -p /etc/apt/keyrings' in cmd                  # absent before Debian 12 / Ubuntu 22.04
+    # an older configsys's global key goes once no list of ours still relies on it (no signed-by)
+    assert 'rm -f /etc/apt/trusted.gpg.d/clang.asc' in cmd
+    # a route's own [options] keep their place, signed-by joins them; one it already set is kept
+    rc = clang_unit('clang-19', {'apt-source': {'key': 'https://k', 'deb': '[arch=amd64] http://x/ y main'}})
+    assert "'deb [arch=amd64 signed-by=/etc/apt/keyrings/clang-19.asc] http://x/ y main'" in \
+        '\n'.join(Clang(Runner(pretend=True))._repo_lines(rc))
+    rc = clang_unit('clang-19', {'apt-source': {'key': 'https://k', 'deb': '[signed-by=/usr/share/keyrings/x.gpg] http://x/ y main'}})
+    assert "'deb [signed-by=/usr/share/keyrings/x.gpg] http://x/ y main'" in \
+        '\n'.join(Clang(Runner(pretend=True))._repo_lines(rc))
 
 
 def test_uninstall_removes_alternative_then_package():
@@ -66,6 +86,16 @@ def test_uninstall_removes_alternative_then_package():
     cmd = r.calls[0]
     assert 'update-alternatives --remove clang /usr/bin/clang-18' in cmd
     assert 'apt-get remove -y clang-18' in cmd
+
+
+def test_uninstall_takes_back_the_vendor_source_and_its_keyring():
+    r = Runner(pretend=True)
+    Clang(r).uninstall(clang_unit('clang-19'))
+    cmd = r.calls[0]
+    assert cmd.index('apt-get remove -y clang-19') < cmd.index('rm -f /etc/apt/sources.list.d/clang-19.list')
+    # the keyring only when no other source still names it
+    assert ('grep -rqsF /etc/apt/keyrings/clang-19.asc /etc/apt/sources.list.d/ || '
+            'rm -f /etc/apt/keyrings/clang-19.asc') in cmd
 
 
 def test_get_version_parses_compiler_output():
@@ -82,9 +112,10 @@ def test_switching_is_not_configsys_and_no_latest():
     assert fam.location(clang_unit()) == '/usr/bin/clang-18'
 
 
-def _run_repo_lines(tmp_path, madison_out, list_exists):
+def _run_repo_lines(tmp_path, madison_out, list_exists, setup=None):
     '''Execute the driver's generated repo logic in bash with stub apt-cache/apt-get/curl, against a
-    list file in tmp. Returns (list file exists after, log of stub calls).'''
+    list file (and the apt list/legacy key dirs) in tmp. Returns (list file exists after, log of stub
+    calls).'''
     import subprocess
     stub = tmp_path / 'bin'
     stub.mkdir()
@@ -101,7 +132,11 @@ def _run_repo_lines(tmp_path, madison_out, list_exists):
     rc = clang_unit('clang-20', {'apt-source': {
         'key': 'https://apt.llvm.org/llvm-snapshot.gpg.key', 'key-path': str(tmp_path / 'k.asc'),
         'deb': 'http://apt.llvm.org/$CODENAME/ llvm-toolchain-$CODENAME-20 main', 'list': str(lst)}})
-    script = '\n'.join(['set -e'] + Clang(Runner(pretend=True))._repo_lines(rc))
+    drv = Clang(Runner(pretend=True))
+    drv.apt_lists_dir, drv.legacy_key_dir = str(tmp_path), str(tmp_path / 'trusted.gpg.d')
+    if setup:
+        setup(tmp_path)
+    script = '\n'.join(['set -e'] + drv._repo_lines(rc))
     subprocess.run(['bash', '-c', script], check=True, env={'PATH': f'{stub}:/usr/bin:/bin'})
     return lst.exists(), (log.read_text() if log.exists() else '')
 
@@ -118,6 +153,21 @@ def test_distro_carrying_the_package_skips_and_drops_the_vendor_repo(tmp_path):
 def test_distro_without_the_package_adds_the_vendor_repo(tmp_path):
     exists, log = _run_repo_lines(tmp_path, '', list_exists=False)
     assert exists and 'curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key' in log
+
+
+def test_legacy_global_key_goes_once_no_list_of_ours_needs_it(tmp_path):
+    def legacy(d, unsigned):
+        (d / 'trusted.gpg.d').mkdir()
+        (d / 'trusted.gpg.d' / 'clang.asc').write_text('KEY')
+        if unsigned:   # an older configsys's clang-18 list, still relying on the global key
+            (d / 'clang-18.list').write_text('deb http://apt.llvm.org/noble/ llvm-toolchain-noble-18 main\n')
+    _run_repo_lines(tmp_path, '', list_exists=False, setup=lambda d: legacy(d, False))
+    assert not (tmp_path / 'trusted.gpg.d' / 'clang.asc').exists()
+    assert 'signed-by=' in (tmp_path / 'clang-20.list').read_text()
+    other = tmp_path / 'other'
+    other.mkdir()
+    _run_repo_lines(other, '', list_exists=False, setup=lambda d: legacy(d, True))
+    assert (other / 'trusted.gpg.d' / 'clang.asc').exists()                # still needed: kept
 
 
 def test_a_ppa_is_only_added_on_ubuntu_and_only_when_the_distro_lacks_the_package():

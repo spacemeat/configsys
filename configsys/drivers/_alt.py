@@ -25,7 +25,9 @@ System-scoped (needs root). Component fields (packages differ per OS block):
             when the distro already ships the package)
   apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only;
             added only when the distro doesn't carry the package, removed again if apt
-            can't load it)
+            can't load it, and on uninstall). The key is a per-source keyring (key-path,
+            default /etc/apt/keyrings/<driver>-<version>.asc) the deb line names with
+            signed-by=, never the global trusted.gpg.d
 '''
 
 import os
@@ -38,6 +40,19 @@ from ..driver import Driver
 from ..runner import Result
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
+_OPTIONS = re.compile(r'^\s*\[([^\]]*)\]\s*')      # a one-line source's leading `[opt=val ...]`
+
+
+def _signed_deb(deb, key_path):
+    '''`deb` (without its leading `deb `) with `signed-by=<key_path>` among its options — joined to
+    a route's own `[...]`, or kept as the route's when it already names one.'''
+    m = _OPTIONS.match(deb)
+    if not m:
+        return f'[signed-by={key_path}] {deb}'
+    opts = m.group(1).split()
+    if not any(o.startswith('signed-by=') for o in opts):
+        opts.append(f'signed-by={key_path}')
+    return f'[{" ".join(opts)}] {deb[m.end():]}'
 
 
 class AltDriver(Driver):
@@ -48,6 +63,8 @@ class AltDriver(Driver):
     default_slaves = ()          # subclasses (clang) may provide, routes may override
     default_source = None        # subclasses (clang) may provide the repo (key + deb)
     slaves_are_packages = True    # gcc: g++-N is its own package; clang: clang++ isn't
+    apt_lists_dir = '/etc/apt/sources.list.d'      # (tests point these at a scratch dir)
+    legacy_key_dir = '/etc/apt/trusted.gpg.d'      # where an older configsys put the vendor key
 
     @staticmethod
     def _link(rc):
@@ -158,38 +175,66 @@ class AltDriver(Driver):
                 '  apt-get update',
                 'fi',
             ]
-        src = rc.fields.get('apt-source') or self.default_source
-        if isinstance(src, dict) and src.get('key') and src.get('deb'):
-            v = self._ver(rc)
-            key_path = src.get('key-path', f'/etc/apt/trusted.gpg.d/{self.name}.asc')
-            list_path = src.get('list', f'/etc/apt/sources.list.d/{self.name}-{v}.list')
-            deb = src['deb'].replace('$VERSION', v)   # $CODENAME resolved in-shell (spliced below)
+        src = self._apt_source(rc)
+        if src:
+            key_path, list_path = self._source_paths(rc, src)
+            deb = _signed_deb(src['deb'].replace('$VERSION', self._ver(rc)), key_path)  # $CODENAME: in-shell
             deb_q = '"$CODENAME"'.join(shlex.quote(p) for p in ('deb ' + deb).split('$CODENAME'))
-            host = urlsplit(deb.split()[0]).netloc if deb.split() else ''
+            uri = _OPTIONS.sub('', deb).split()
+            host = urlsplit(uri[0]).netloc if uri else ''
             pkg = shlex.quote(self._packages(rc)[0])
-            listq = shlex.quote(list_path)
+            listq, keyq = shlex.quote(list_path), shlex.quote(key_path)
             # Only add the vendor repo when the DISTRO doesn't already carry the package. Ubuntu 24.04
             # ships clang-20 in noble-updates, and mixing apt.llvm.org's clang-20 with the distro's own
             # libllvm20 breaks — on Pop!_OS, which pins its repos above a vendor's, apt gives up with
             # "held broken packages". So when the distro has it: use the distro's, and drop OUR list
-            # file if an earlier run left it (else apt keeps preferring the vendor's newer build).
+            # (and its keyring) if an earlier run left it (else apt keeps preferring the vendor's build).
+            # The key is a keyring of its own that only this source trusts (signed-by=), never the
+            # global trusted.gpg.d, where an unverified vendor key would vouch for every repo.
             return [
                 # the UBUNTU codename on a derivative (Mint's `wilma` is noble here) — what vendor
                 # repos serve; the same lookup apt's source-line uses
                 'CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}")"',
                 f'if apt-cache madison {pkg} 2>/dev/null | grep -v -F {shlex.quote(host or "//")} | grep -q .; then',
                 f'  if [ -f {listq} ]; then rm -f {listq}; apt-get update; fi',
+                f'  {self._drop_keyring(key_path)}',
                 'else',
-                f'  curl -fsSL {shlex.quote(src["key"])} | tee {shlex.quote(key_path)} >/dev/null',
+                f'  mkdir -p {shlex.quote(os.path.dirname(key_path) or "/")}',
+                f'  curl -fsSL {shlex.quote(src["key"])} | tee {keyq} >/dev/null',
                 f'  echo {deb_q} | tee {listq} >/dev/null',
                 # validate-then-commit: a source apt can't read (no suite for this codename, a dead
                 # key) is taken back out at once, so it can never poison every later apt run
-                f'  if ! apt-get update; then rm -f {listq}; apt-get update || true; '
+                f'  if ! apt-get update; then rm -f {listq} {keyq}; apt-get update || true; '
                 f'echo "configsys: {rc.comp}: the vendor repo failed to load and was removed again" >&2; '
                 'exit 1; fi',
+                f'  {self._drop_legacy_key()}',
                 'fi',
             ]
         return []
+
+    def _apt_source(self, rc):
+        '''The `apt-source:` (else the driver's default_source) when it names a key and a deb line.'''
+        src = rc.fields.get('apt-source') or self.default_source
+        return src if isinstance(src, dict) and src.get('key') and src.get('deb') else None
+
+    def _source_paths(self, rc, src):
+        '''(keyring, list file) for this version's vendor source — both per source, so removing one
+        version's repo never strands another's.'''
+        v = self._ver(rc)
+        return (src.get('key-path', f'/etc/apt/keyrings/{self.name}-{v}.asc'),
+                src.get('list', f'/etc/apt/sources.list.d/{self.name}-{v}.list'))
+
+    def _drop_keyring(self, key_path):
+        '''Remove a keyring of ours unless some source still names it (a route may share one).'''
+        k = shlex.quote(key_path)
+        return f'grep -rqsF {k} {shlex.quote(self.apt_lists_dir)}/ || rm -f {k}'
+
+    def _drop_legacy_key(self):
+        '''An older configsys put the vendor key in the GLOBAL trusted.gpg.d; take it out once no list
+        of ours still relies on it (one without signed-by).'''
+        old = shlex.quote(f'{self.legacy_key_dir}/{self.name}.asc')
+        lists = f'{shlex.quote(self.apt_lists_dir)}/{shlex.quote(self.name)}-*.list'
+        return f'if [ -f {old} ] && ! grep -Ls signed-by {lists} | grep -q .; then rm -f {old}; fi'
 
     def _alt_install(self, rc):
         v, link = self._ver(rc), self._link(rc)
@@ -236,6 +281,13 @@ class AltDriver(Driver):
             master = shlex.quote(self._master_bin(rc))
             lines.append(f'update-alternatives --remove {link} {master} || true')
         lines.append(self._pm_remove(pm, pkgs))
+        src = self._apt_source(rc) if pm == 'apt' and not rc.fields.get('ppa') else None
+        if src:
+            # take back the vendor source install added (no `apt-get update`: a stale list cache is
+            # harmless, and the next refresh drops it)
+            key_path, list_path = self._source_paths(rc, src)
+            lines += [f'rm -f {shlex.quote(list_path)}', self._drop_keyring(key_path),
+                      self._drop_legacy_key()]
         return self.runner.run('\n'.join(lines), sudo=True, capture=False)
 
     def lock(self, rc):
