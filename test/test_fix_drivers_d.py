@@ -248,6 +248,7 @@ def test_link_name_bands():
     assert user_link_name('10-early.sh') == '10-early.sh'      # a deliberate user prefix is kept
 
 
+@pytest.mark.real_runner
 def test_confd_order_prelude_components_user(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', '00-configsys.sh', '# prelude\n')
@@ -272,6 +273,7 @@ def test_confd_order_prelude_components_user(tmp_path):
     assert out == names
 
 
+@pytest.mark.real_runner
 def test_gestalt_block_orders_prelude_components_user(tmp_path):
     p = paths_for(tmp_path, shells='elvish')
     ship(p, 'elvish', '00-configsys.elv', 'fn cf { }\n')
@@ -302,6 +304,7 @@ def _legacy_deploy(p, shell, glue, ext, text):
     return confd / f'{glue}.{ext}', mirror
 
 
+@pytest.mark.real_runner
 def test_install_migrates_a_legacy_unprefixed_link(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# bat\n')
@@ -332,6 +335,7 @@ def test_status_migrates_a_legacy_link_and_keeps_it_active(tmp_path):
     assert (p.home / '.config' / 'bash' / 'conf.d' / '50-bat.sh').is_symlink()
 
 
+@pytest.mark.real_runner
 def test_migration_never_touches_foreign_files_or_links(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# bat\n')
@@ -352,6 +356,7 @@ def test_migration_never_touches_foreign_files_or_links(tmp_path):
     assert (confd / 'fd.sh').is_symlink()                      # still not ours to remove
 
 
+@pytest.mark.real_runner
 def test_uninstall_removes_banded_and_legacy_links(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# bat\n')
@@ -378,6 +383,7 @@ def test_user_glue_legacy_unprefixed_link_is_migrated(tmp_path):
     assert os.path.realpath(confd / '90-mine.sh') == os.path.realpath(path)
 
 
+@pytest.mark.real_runner
 def test_override_follows_the_banded_name(tmp_path):
     p = paths_for(tmp_path, shells='bash')
     ship(p, 'bash', 'bat.sh', '# shipped\n')

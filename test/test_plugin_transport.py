@@ -10,6 +10,8 @@ import pytest
 from configsys import plugins
 from configsys.runner import Result
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 
 # -- non-interactive fetches (a bad/private repo fails fast, never hangs on a prompt) ------
 

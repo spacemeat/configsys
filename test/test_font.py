@@ -65,6 +65,7 @@ def test_get_latest_and_version(tmp_path):
 
 @pytest.mark.skipif(shutil.which('unzip') is None or shutil.which('curl') is None,
                     reason='needs unzip + curl')
+@pytest.mark.real_runner
 def test_real_install_extract_marker_uninstall(tmp_path):
     # build a real zip containing a fake .ttf
     zpath = tmp_path / 'F.zip'

@@ -11,8 +11,9 @@ import pytest
 from configsys import plugins, primarygit
 from configsys.app import Context, build_parser, main
 
-pytestmark = pytest.mark.skipif(shutil.which('git') is None or shutil.which('ssh-keygen') is None,
-                                reason='git and ssh-keygen needed')
+pytestmark = [pytest.mark.real_runner,
+              pytest.mark.skipif(shutil.which('git') is None or shutil.which('ssh-keygen') is None,
+                                 reason='git and ssh-keygen needed')]
 
 
 def _git(cwd, *a):

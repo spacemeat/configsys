@@ -277,10 +277,12 @@ be **0 errors**, and warning count must not rise. Then confirm each new componen
 *expected* method per OS with a resolve sweep (adapt this):
 ```python
 # reschk.py — prints "<comp>=<via>" per OS; ERR/EXC means it failed to route
+import tempfile
 from configsys.app import Context, build_parser
 comps = ['<comp1>', '<comp2>']
+home = tempfile.mkdtemp(prefix='reschk-home-')   # a fresh private home, never a fixed shared /tmp path
 for os in ('pop','fedora','arch','alpine','opensuse','rhel','fedora_atomic','void','void_musl'):
-    r = Context(build_parser().parse_args(['--home','/tmp/nohome','--os',os,'inspect'])).routes
+    r = Context(build_parser().parse_args(['--home',home,'--os',os,'inspect'])).routes
     row = []
     for c in comps:
         units, errs = r.resolve_resilient([c])

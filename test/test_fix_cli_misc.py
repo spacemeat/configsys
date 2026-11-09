@@ -2,6 +2,7 @@
 set-source retargets the clone, a data-file-less primary still takes picks, set-version refuses on
 version-less methods, profile ops skip unroutable members, keys order, epilog + advisory text.'''
 
+import pytest
 import subprocess
 import types
 
@@ -94,6 +95,7 @@ def _git_repo(d, name):
     subprocess.run(g + ['-C', str(d), 'commit', '-qm', 'init'], check=True)
 
 
+@pytest.mark.real_runner
 def test_set_source_retargets_the_synced_clone(tmp_path, capsys):
     a, b = tmp_path / 'a' / 'myplug', tmp_path / 'b' / 'myplug'
     _git_repo(a, 'myplug')
@@ -110,6 +112,7 @@ def test_set_source_retargets_the_synced_clone(tmp_path, capsys):
 
 # -- 6 ---------------------------------------------------------------------------------------------
 
+@pytest.mark.real_runner
 def test_primary_without_data_file_gets_one_on_first_edit(tmp_path, capsys):
     assert _cs(tmp_path, 'plugin', 'init', 'mine') == 0
     plug = tmp_path / '.config' / 'configsys' / 'plugins' / 'mine'

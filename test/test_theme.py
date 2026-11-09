@@ -275,10 +275,10 @@ def test_theme_components_sample_is_stable_and_covers_every_role():
     assert {'user', 'system'} <= {(st.scope or 'user') for st in pm.states.values()}
 
 
-def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states():
+def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states(tmp_path):
     from configsys.app import Context, build_parser
     from configsys.tui import menu
-    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     gs = menu._sample_glue_state(ctx)
     assert {r[3] for r in gs.rows} == {'linked', 'drifted', 'template'}       # active / changed / available
     assert set(gs.loader.values()) == {'loader-on', 'loader-off'}             # wired + not
@@ -288,11 +288,11 @@ def test_theme_glue_and_dotfiles_samples_are_stable_and_cover_states():
     assert all(hasattr(r[0], 'comp') for r in ds.rows)                        # _df_cells reads rc.comp
 
 
-def test_theme_plugins_sample_is_stable_and_covers_states():
+def test_theme_plugins_sample_is_stable_and_covers_states(tmp_path):
     from configsys.app import Context, build_parser
     from configsys.tui import menu
     from configsys import plugins
-    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     pl = menu._sample_plugins_state(ctx)
     assert any(r['primary'] for r in pl.rows)                                 # a ★ primary plugin
     assert {r['code_state'] for r in pl.rows} >= {'trusted', 'changed', 'unsynced', 'none'}
@@ -314,10 +314,10 @@ def test_profiles_page_has_one_orphan_role_after_user_profiles_retired():
         assert dead not in COLOR_MAP and dead not in ROLE_DEFAULTS   # fully removed, not just unlisted
 
 
-def test_theme_profiles_sample_forces_overlay_without_a_scan():
+def test_theme_profiles_sample_forces_overlay_without_a_scan(tmp_path):
     from configsys.app import Context, build_parser
     from configsys.tui import menu
-    ctx = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect']))
+    ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', 'inspect']))
     ps = menu._sample_profiles_state(ctx)
     assert ps.show_install == 1                               # overlay on -> install-state colours show
     assert ps.overlay() == (frozenset(), {}, frozenset())     # injected empty -> no real orphan scan

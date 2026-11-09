@@ -1,3 +1,4 @@
+import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.script import Script
@@ -87,6 +88,7 @@ def test_location_from_field():
 
 
 
+@pytest.mark.real_runner
 def test_version_probe_finds_a_tool_in_local_bin(tmp_path, monkeypatch):
     # claude-code: the official installer puts `claude` in ~/.local/bin, which a fresh login only has
     # on PATH if the dir existed at login — the bare `claude --version` probe failed and a

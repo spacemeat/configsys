@@ -136,6 +136,8 @@ def test_the_bracket_never_raises(primary, monkeypatch):
 
 from test_primary_push import Scripted, _both_change_line_one, _clean, _other_pushes, _remote_file  # noqa: E402
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 
 def _state(clone):
     return {'head': _git(clone, 'rev-parse', 'HEAD'), 'status': _git(clone, 'status', '--porcelain'),

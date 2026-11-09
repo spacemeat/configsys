@@ -17,6 +17,8 @@ from configsys.componentObj import ResolvedComponent
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 EXAMPLE = Path(__file__).resolve().parent.parent / 'examples' / 'examplos'
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 

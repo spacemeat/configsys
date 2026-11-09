@@ -13,6 +13,8 @@ from configsys import humerge, layers, primarygit
 
 from test_primary_push import BASE_P, Scripted, _clean, _ctx, _git, _other_pushes, _remote_file, primary  # noqa: F401
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 
 BASE = '''// my primary

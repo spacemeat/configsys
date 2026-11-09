@@ -10,6 +10,8 @@ import pytest
 
 from configsys import plugins
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 # A synthetic driver whose name is NOT one base ships (so `via: demopm` is genuinely unknown
 # until this plugin's code is trusted — the whole point of the end-to-end gate below).
 DRIVER_PY = '''from configsys.plugins import Driver

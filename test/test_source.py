@@ -140,6 +140,7 @@ OS = 'os: { linux: {}  debian: { using: linux  native: apt } }'
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+@pytest.mark.real_runner
 def test_real_build_clones_checks_out_and_installs(tmp_path):
     # a local git repo with a trivial Makefile that "installs" into $PREFIX, tagged v1.0.0
     repo = tmp_path / 'repo'

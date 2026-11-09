@@ -3,6 +3,7 @@
 Mirrors the glue/loader coverage that used to live under the dotfiles driver: snippet deploy to the
 store conf.d mirror, per-shell loaders, the `loader: all` shell-glue substrate, and get_version.'''
 
+import pytest
 import os
 
 from configsys.componentObj import ResolvedComponent
@@ -32,6 +33,7 @@ def test_glue_registered_under_via_glue(tmp_path):
     assert isinstance(drv, Glue)
 
 
+@pytest.mark.real_runner
 def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
     # a glue snippet deploys to <store>/<shell>/conf.d/50-<name>.<ext> (the store mirrors the deployed
     # ~/.config/<shell>/conf.d/ layout), made a+x; the link points at the store copy, never the repo.
@@ -56,6 +58,7 @@ def test_snippet_materializes_to_store_confd_mirror_executable(tmp_path):
     assert g.get_version(rc) is None
 
 
+@pytest.mark.real_runner
 def test_activate_refreshes_a_stale_store_copy_from_source(tmp_path):
     # the store is a deploy CACHE — when the authoritative source changes, a re-activate must
     # re-materialize over the stale cached copy (glue is shipped content).
@@ -75,6 +78,7 @@ def test_activate_refreshes_a_stale_store_copy_from_source(tmp_path):
     assert 'refreshed from source' in res.output
 
 
+@pytest.mark.real_runner
 def test_activate_ensures_the_shell_loader(tmp_path):
     # a direct activate bypasses the snippet's `requires: shell-glue`, so the snippet driver wires
     # the shell loader itself — else the linked conf.d file would never be sourced.
@@ -112,6 +116,7 @@ def test_zsh_loader_adds_idempotent_rc_block_and_uninstall_removes_it(tmp_path):
     assert g.get_version(rc) is None
 
 
+@pytest.mark.real_runner
 def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     # elvish's per-file `eval` isolates namespaces, so shell-glue uses the GESTALT loader: the rc.elv
     # marker block INLINES the concatenated conf.d snippet contents (so `fn`/`var` land in the
@@ -150,6 +155,7 @@ def test_elvish_gestalt_loader_inlines_snippets_into_rc(tmp_path):
     assert g.get_version(loader) is None
 
 
+@pytest.mark.real_runner
 def test_spec_states_flags_a_changed_source_as_drifted(tmp_path):
     # after a snippet is active, editing the SHIPPED source marks it 'drifted' (active but stale) — so
     # the Glue TUI shows it changed and the user knows to re-activate (the store copy holds the OLD
@@ -189,6 +195,7 @@ def test_installed_shells_counts_managed_tarball_shell_off_path(tmp_path):
     assert 'elvish' not in shells            # cache lists it but its dir/binary is absent -> not detected
 
 
+@pytest.mark.real_runner
 def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
     # nushell can't dynamically source a dir (it parses the whole program first, so `source` needs a
     # parse-time-constant path — no conf.d loop possible), so like elvish it uses the GESTALT loader:
@@ -226,6 +233,7 @@ def test_nushell_gestalt_loader_inlines_snippets_into_config(tmp_path):
     assert g.get_version(loader) is None
 
 
+@pytest.mark.real_runner
 def test_nushell_gestalt_cs_eval_inlines_generated_output(tmp_path):
     # a `#!cs-eval <cmd>` snippet is a GENERATOR: the inline loader runs the command and inlines its
     # STDOUT (an init-eval tool's shell code), not the directive — the bridge for zoxide/atuin on
@@ -290,6 +298,7 @@ def test_shell_glue_bash_absorbs_preexisting_bash_aliases(tmp_path):
     assert not link.is_symlink() and link.read_text() == 'alias mine="echo hi"\n'   # restored
 
 
+@pytest.mark.real_runner
 def test_snippet_activates_only_installed_shells(tmp_path):
     # a snippet deploys to conf.d for each INSTALLED shell that ships a variant (CONFIGSYS_GLUE_SHELLS
     # pins the set); a shell that isn't "installed" gets nothing.
@@ -305,6 +314,7 @@ def test_snippet_activates_only_installed_shells(tmp_path):
     assert not (p.home / '.config' / 'zsh' / 'conf.d' / '50-btop.zsh').exists()   # zsh not installed
 
 
+@pytest.mark.real_runner
 def test_install_only_shells_scopes_activation_to_one_shell(tmp_path):
     # the TUI Glue group action passes only_shells so activating a snippet in ONE shell group doesn't
     # light up the component's other shells (the A-activates-everything bug). Each per-shell row is
@@ -328,6 +338,7 @@ def test_install_only_shells_scopes_activation_to_one_shell(tmp_path):
     assert not bash.exists() and zsh.is_symlink()
 
 
+@pytest.mark.real_runner
 def test_confd_symlinked_to_store_makes_no_self_loop(tmp_path):
     # if ~/.config/<shell>/conf.d is itself a symlink to the store's conf.d dir, the store file IS the
     # deployed file — a naive `ln -sfn store/x conf.d/x` would resolve to a self-link (ELOOP). Install

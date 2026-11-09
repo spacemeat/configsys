@@ -116,8 +116,10 @@ import urllib.parse  # noqa: E402
 
 
 def load_catalog():
+    import tempfile
     from configsys.app import Context, build_parser
-    r = Context(build_parser().parse_args(['--home', '/tmp/nohome', '--os', 'pop', 'inspect'])).routes
+    with tempfile.TemporaryDirectory(prefix='regsweep-home-') as home:   # never a shared fixed /tmp path
+        r = Context(build_parser().parse_args(['--home', home, '--os', 'pop', 'inspect'])).routes
     out = []
     for name, c in r.components.items():
         if name.endswith(('-dotfiles', '-service', '-group')):

@@ -13,6 +13,8 @@ from configsys import plugins, primarygit
 from configsys.app import Context, build_parser, main
 from configsys.tui import menu
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 
 BASE_P = '{ picks: {\n    this-machine: [ btop ]\n    laptop: [ htop ]\n    desk: [ jq ]\n} }\n'

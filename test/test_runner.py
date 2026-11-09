@@ -100,6 +100,7 @@ def test_pretend_prefixes_sudo():
     assert r.calls == ['sudo apt-get install btop']
 
 
+@pytest.mark.real_runner
 def test_real_capture():
     r = Runner(pretend=False)
     res = r.run('printf hello')
@@ -107,6 +108,7 @@ def test_real_capture():
     assert res.stdout == 'hello'
 
 
+@pytest.mark.real_runner
 def test_real_nonzero_returncode():
     r = Runner(pretend=False)
     res = r.run('exit 3')
@@ -114,6 +116,7 @@ def test_real_nonzero_returncode():
     assert not res.ok
 
 
+@pytest.mark.real_runner
 def test_compound_failure_propagates_with_set_e():
     # a multi-line script's failure must be reported (not masked by a later `|| true`)
     r = Runner(pretend=False)
@@ -121,6 +124,7 @@ def test_compound_failure_propagates_with_set_e():
     assert not res.ok and res.returncode != 0
 
 
+@pytest.mark.real_runner
 def test_sudo_runs_whole_command_in_one_root_shell(monkeypatch):
     captured = {}
 
@@ -139,6 +143,7 @@ def test_sudo_runs_whole_command_in_one_root_shell(monkeypatch):
     assert r.calls == ['sudo mkdir -p /x && curl y']   # readable form unchanged
 
 
+@pytest.mark.real_runner
 def test_nonsudo_runs_in_plain_shell(monkeypatch):
     captured = {}
 
@@ -154,6 +159,7 @@ def test_nonsudo_runs_in_plain_shell(monkeypatch):
     assert captured['argv'] == ['bash', '-c', 'printf hi']
 
 
+@pytest.mark.real_runner
 def test_streamed_op_without_tty_falls_back_to_plain(monkeypatch):
     # capture=False on a non-tty (tests, pipes) must NOT try to tee — plain streaming, no capture
     calls = {}
@@ -194,6 +200,7 @@ def test_can_tee_false_off_tty():
     assert _can_tee() is False
 
 
+@pytest.mark.real_runner
 def test_run_works_from_a_worker_thread():
     '''Regression: the startup-splash runs inspection on a background thread, so every command
     goes through terminal_released off the main thread. signal.signal() raises there, which used
@@ -238,6 +245,7 @@ def test_terminal_released_is_a_noop_off_the_main_thread(monkeypatch):
     assert calls == []
 
 
+@pytest.mark.real_runner
 def test_teed_plain_stream_does_not_preauth(monkeypatch):
     # A plain unprivileged streamed op tees with NO sudo pre-auth (nothing needs elevation).
     from configsys import runner as R
@@ -250,6 +258,7 @@ def test_teed_plain_stream_does_not_preauth(monkeypatch):
     assert res.ok and res.captured == 'out' and order == ['tee']   # tee only, no pre-auth
 
 
+@pytest.mark.real_runner
 def test_sudo_op_preauths_then_captures_on_real_tty(monkeypatch):
     # A privileged streamed op pre-authenticates sudo ONCE (warming the real-tty ticket) then runs on
     # the REAL tty, capturing stdout via a pipe — NOT a pty. Under tty_tickets a pty'd op would be a
@@ -273,6 +282,7 @@ def test_sudo_op_preauths_then_captures_on_real_tty(monkeypatch):
     assert order == ['preauth', 'cap', 'stop']       # released at the end of the batch
 
 
+@pytest.mark.real_runner
 def test_sudo_batch_preauths_once_across_ops(monkeypatch):
     # The fix for the prompt cascade: a whole batch of sudo ops prompts AT MOST ONCE — the credential
     # is warmed on the first op and reused (tty_tickets ticket on the real tty) for the rest.
@@ -289,6 +299,7 @@ def test_sudo_batch_preauths_once_across_ops(monkeypatch):
     assert order.count('preauth') == 1               # one prompt for the whole batch, not per op
 
 
+@pytest.mark.real_runner
 def test_sudo_falls_back_to_plain_when_preauth_fails(monkeypatch):
     # If the credential can't be cached (user cancels), a sudo op skips the captured-tty path and
     # takes the plain inherited-stdio path (which may re-prompt) — never a wedge, never a broken run.
@@ -370,6 +381,7 @@ def test_terminal_released_restores_termios_on_a_fatal_signal(monkeypatch):
     assert ['SAVED'] in restored                          # termios reset to the saved (sane) attrs
 
 
+@pytest.mark.real_runner
 def test_warm_batch_keeps_nonsudo_ops_on_the_real_tty(monkeypatch):
     # Unattended installs: in a batch holding a warm sudo credential, a NON-sudo op may still sudo
     # internally (`curl … | sudo bash`, `sudo make install`, makepkg, a plugin build script). In its
@@ -404,6 +416,7 @@ def test_begin_sudo_skips_pretend_and_root(monkeypatch):
     assert calls == []
 
 
+@pytest.mark.real_runner
 def test_commands_run_outside_an_activated_virtualenv(tmp_path, monkeypatch):
     # configsys started from a shell with some project's venv active: `python3 -m pip install --user`
     # refuses there and `python3 -m pipx` isn't in it — so commands run with the venv dropped

@@ -12,6 +12,8 @@ from configsys import actions, plugins
 from configsys.runner import Runner
 from configsys.tui import menu
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 needs_git = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
 
 

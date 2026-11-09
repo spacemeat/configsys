@@ -12,7 +12,7 @@ import pytest
 from configsys import actions
 from configsys.app import main
 
-pytestmark = pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
+pytestmark = [pytest.mark.real_runner, pytest.mark.skipif(shutil.which('git') is None, reason='git not available')]
 
 
 def _snapshot(root):

@@ -1,3 +1,4 @@
+import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.go_install import GoInstall
@@ -80,6 +81,7 @@ def test_location_is_gobin():
     assert GoInstall(Runner(pretend=True)).location(tool()) == '~/go/bin'
 
 
+@pytest.mark.real_runner
 def test_version_reads_use_the_managed_go(tmp_path, monkeypatch):
     # with go ONLY from the tarball (~/sdks/go/bin — what a go>=X floor advises), a bare
     # `go version -m` isn't found: every go-installed tool read "not installed" though it was there

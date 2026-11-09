@@ -141,6 +141,7 @@ def test_location_is_the_target_path_home_collapsed():
 
 
 @pytest.mark.skipif(__import__('shutil').which('curl') is None, reason='needs curl')
+@pytest.mark.real_runner
 def test_real_install_chmod_marker_desktop_and_uninstall(tmp_path):
     src = tmp_path / 'src.AppImage'
     src.write_text('#!/bin/sh\necho hi\n')

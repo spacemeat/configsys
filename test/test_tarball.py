@@ -192,6 +192,7 @@ def test_get_latest_from_static_version_spec():
 
 
 @pytest.mark.skipif(shutil.which('curl') is None, reason='needs curl')
+@pytest.mark.real_runner
 def test_real_download_extract_and_uninstall(tmp_path):
     payload = tmp_path / 'hello.txt'
     payload.write_text('hi')

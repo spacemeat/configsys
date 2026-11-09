@@ -12,6 +12,8 @@ from configsys import plugins
 from configsys.routes import Resolver
 from configsys.runner import Runner
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 ROUTES = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
 
 

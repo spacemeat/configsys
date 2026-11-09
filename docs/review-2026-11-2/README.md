@@ -30,6 +30,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 
 ## Progress (updated as work lands)
 - 2026-11-08 — review written; report-only run (no fixes applied, per your choice).
+- 2026-11-08 — A17 — the suite is hermetic (conftest guard); A2 A3 A4 A5 A7 B2 follow.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -148,7 +149,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   `sudo apt-get update`; tests read and write the real config (`--home` loses to ambient env), and a global
   git config breaks 105 tests; a fixed world-writable `/tmp/nohome` is trusted as a configsys home.
   **Fix:** an autouse conftest fixture that scrubs `CONFIGSYS_*`/`GIT_CONFIG*`/`HOME`, a fake `sudo` first on
-  PATH, and a per-test tmp home. (tests-tools-01/02/03) · effort S–M · [open]
+  PATH, and a per-test tmp home. (tests-tools-01/02/03) · effort S–M · [done — hermetic conftest: tmp HOME, CONFIGSYS_*/XDG_* scrubbed, git config isolated, fake sudo, Runner guard + real_runner marker; no fixed /tmp/nohome]
 
 ### Tier B — correctness
 

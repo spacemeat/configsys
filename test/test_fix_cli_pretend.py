@@ -146,6 +146,7 @@ def test_backup_cmd_never_overwrites_existing_backups(tmp_path):
     assert not t.exists()
 
 
+@pytest.mark.real_runner
 def test_second_force_install_keeps_the_first_backup(tmp_path):
     p = _df_paths(tmp_path)
     (p.dotfiles_dir / 'neovim').mkdir(parents=True)

@@ -1,3 +1,4 @@
+import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.brew import Brew
@@ -117,6 +118,7 @@ def test_a_failing_brew_is_still_unknown_not_empty():
     assert d.installed_index() is None and d.batch_index([]) is None
 
 
+@pytest.mark.real_runner
 def test_brew_off_path_is_found_in_its_prefix(tmp_path, monkeypatch):
     # Homebrew installed earlier in the same batch isn't on this process's PATH: the driver still
     # runs `brew …`, with the prefix's bin APPENDED (nothing brew ships shadows a system tool)

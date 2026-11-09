@@ -10,6 +10,8 @@ import pytest
 from configsys import plugins
 from configsys.runner import Runner
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 
 def _plugin(plugins_dir, name, manifest, files=None):
     d = plugins_dir / name

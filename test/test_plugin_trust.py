@@ -10,6 +10,8 @@ import pytest
 
 from configsys import plugins
 
+pytestmark = pytest.mark.real_runner  # real git clones/commits in tmp dirs (conftest)
+
 
 # -- the trust store (pure data) ------------------------------------------
 
