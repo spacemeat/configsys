@@ -202,6 +202,9 @@ def check_report(ctx):
                            f'(only one may be primary)')
     conflict_warnings = [_fmt_conflict(*c) for c in
                          _plugins.declared_conflicts(ctx.paths.plugins_dir, _decls)]
+    conflict_warnings += [f'plugin {_src}: `primary: {_val}` is not a yes/no value — read as not '
+                          f'primary (use true or false)'
+                          for _src, _val in _plugins.bad_primary_values(ctx.paths.user_config_file)]
     conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
     conflict_warnings += [_plugins.fmt_shadow(*s) for s in
                           _plugins.shadowed_builtins(ctx.paths.plugins_dir, _decls)]

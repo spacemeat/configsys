@@ -110,6 +110,22 @@ def test_declared_reads_primary_flag(tmp_path):
     assert plugins.primary_name(decls) == 'cfg'
 
 
+def test_primary_flag_takes_every_bool_spelling_and_check_names_a_bad_one(tmp_path, capsys):
+    # `primary: True` / `on` / `1` were silently NOT primary (only true/yes counted)
+    for v in ('true', 'True', 'yes', 'on', '1'):
+        assert plugins._decl({'source': 'x/a', 'primary': v}, allow_primary=True).get('primary'), v
+    for v in ('false', 'off', '0', 'no', 'maybe'):
+        assert 'primary' not in plugins._decl({'source': 'x/a', 'primary': v}, allow_primary=True), v
+    top = tmp_path / '.config' / 'configsys' / 'configsys.hu'
+    top.parent.mkdir(parents=True)
+    top.write_text('{ plugins: [ { source: "github:me/cfg"  primary: maybe } ] }')
+    assert plugins.bad_primary_values(top) == [('github:me/cfg', 'maybe')]
+    from configsys.app import main
+    main(['--home', str(tmp_path), '--os', 'pop', 'check'])
+    out = capsys.readouterr().out
+    assert 'github:me/cfg' in out and '`primary: maybe`' in out
+
+
 def test_effective_declared_pulls_transitive_from_manifest(tmp_path):
     pdir = tmp_path / 'plugins'
     # the primary plugin's manifest declares a further plugin

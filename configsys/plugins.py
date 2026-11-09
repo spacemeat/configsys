@@ -85,9 +85,18 @@ def _decl(entry, *, allow_primary=False):
     d = {'source': source, 'ref': ref}
     if entry.get('sha256'):
         d['sha256'] = entry['sha256']               # only when pinned (keeps decls tidy)
-    if allow_primary and entry.get('primary') in (True, 'true', 'yes'):
+    if allow_primary and layers.parse_bool(entry.get('primary'), False):
         d['primary'] = True                         # only the TOP config may grant primary
     return d
+
+
+def bad_primary_values(user_config_file):
+    '''[(source, value)] for each top-config `plugins:` entry whose `primary:` is no yes/no spelling
+    (`layers.parse_bool`) — read as NOT primary, so `check` names it rather than let it pass quietly.'''
+    raw = layers.read_setting(user_config_file, 'plugins') or []
+    return [(str(e['source']), str(e['primary'])) for e in raw
+            if isinstance(e, dict) and e.get('source') and e.get('primary') is not None
+            and not layers.is_bool_token(e['primary'])]
 
 
 def declared(user_config_file):
