@@ -136,26 +136,38 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
     progress line keeps updating on a clean screen until inspection actually finishes, so dropping
     the eye-candy never hides the real state. `frac()`/`counts()`/`is_done()` are polled each frame;
     dt-based timing means a slow frame just eases further, never desyncs. Never raises for a
-    misbehaving provider frame — a broken render falls back to the text line.
+    misbehaving provider — a constructor or frame that raises falls back to the text line, and a
+    class's `fps` / `min_duration` are clamped to sane values.
 
     `linger`: don't auto-exit when inspection is done — keep the animation running (progress pinned
     at 1.0) until the user presses a key, which then ends it. For enjoying a splash when a fast load
     would otherwise whisk it away.'''
     h, w = scr.getmaxyx()
-    provider = provider_cls(scr, pal, (h, w), seed)
-    fps = getattr(provider_cls, 'fps', 30.0) or 30.0
+    try:                                              # a provider whose constructor fails falls back to
+        provider = provider_cls(scr, pal, (h, w), seed)   # the plain progress line (B16 / tui-theme-09)
+        animate_ok = True
+    except Exception:                                 # noqa: BLE001 — a broken splash never bricks startup
+        provider, animate_ok = None, False
+    try:                                              # clamp what the class declares: a negative fps
+        fps = float(getattr(provider_cls, 'fps', 30.0) or 30.0)   # busy-loops, 1e-6 sleeps for days
+    except (TypeError, ValueError):
+        fps = 30.0
+    fps = min(max(fps, 1.0), 120.0)
     if fps_cap:                                       # reduced motion (e.g. SSH): a calmer frame rate
         fps = min(fps, fps_cap)
     frame_dt = 1.0 / fps
-    min_dur = getattr(provider_cls, 'min_duration', MIN_DURATION)
-    raw = bool(getattr(provider_cls, 'raw', False))   # provider paints truecolor to the tty itself
+    try:
+        min_dur = max(0.0, float(getattr(provider_cls, 'min_duration', MIN_DURATION)))
+    except (TypeError, ValueError):
+        min_dur = MIN_DURATION
+    raw = animate_ok and bool(getattr(provider_cls, 'raw', False))   # provider paints truecolor itself
     scr.nodelay(True)
     used_raw = False
     if raw:
         _tty_write('\033[?25l\033[2J')                # hide cursor, clear once; frames repaint in place
     try:
         start = last = time.monotonic()
-        animate = True
+        animate = animate_ok
         while True:
             now = time.monotonic()
             dt = now - last

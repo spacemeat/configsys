@@ -89,15 +89,24 @@ ROUTER_ACTIONS = ('quit', 'quit-force', 'issues', 'help')
 
 
 def merge_layer_keys(layers, warnings=None):
-    '''Merge every layer's `keys:` section (low -> high precedence) into `{scope: {action: spec}}` —
-    Config.keys()'s per-action override, plus REBIND-WINS: when a higher layer binds a key that a
-    LOWER layer gave to another action in the same scope, that key is removed from the lower action
-    (an action left with no key is dropped), so the user's rebind wins deterministically instead of
-    whichever action happens to come first in the map. Each such steal appends a warning to
-    `warnings` (if given). `layers` are objects with `.data` (dict) and `.path`.'''
+    """Merge every layer's `keys:` section (low -> high precedence) into `{scope: {action: spec}}`,
+    REBIND-WINS (review-2026-11-2 B16 / tui-theme-04/05), in passes over the FINAL bindings:
+
+    1. a plain per-action overlay: each (scope, action) takes the highest layer's spec;
+    2. within a scope, a key two final actions hold stays with the one from the HIGHER layer and is
+       stripped from the other (an action left keyless is dropped). Computed against the final
+       bindings, so a middle layer's steal undone by a higher layer leaves nothing dead;
+    3. across scopes, following the router's precedence (page > global router actions > screens >
+       global nav): a HIGHER layer's `global` / `screens` binding of a key takes it from a LOWER
+       layer's page bindings — your `screens: { theme: t }` switches screens on Plugins too instead
+       of silently staying `trust` there — and a `screens` key takes it from a lower `global` nav
+       action. Within one layer the page keeps its key.
+
+    Each steal appends one warning to `warnings` (if given). `layers` are objects with `.data` (dict)
+    and `.path`."""
     import os
     out, owner = {}, {}                              # owner: scope -> action -> (layer idx, basename)
-    for idx, lyr in enumerate(layers):
+    for idx, lyr in enumerate(layers):               # pass 1: per-action overlay
         keys = (getattr(lyr, 'data', None) or {}).get('keys')
         if not isinstance(keys, dict):
             continue
@@ -105,30 +114,58 @@ def merge_layer_keys(layers, warnings=None):
         for scope, actions in keys.items():
             if not isinstance(actions, dict):
                 continue
-            dst, own = out.setdefault(scope, {}), owner.setdefault(scope, {})
             for action, spec in actions.items():
-                specs = spec if isinstance(spec, list) else [spec]
-                codes = {c for c in (parse_key(k) for k in specs) if c is not None}
-                for other in list(dst):
-                    if other == action or own.get(other, (idx,))[0] >= idx:
-                        continue                     # same action, or not from a LOWER layer
-                    ospecs = dst[other] if isinstance(dst[other], list) else [dst[other]]
-                    keep = [k for k in ospecs if parse_key(k) not in codes]
-                    if len(keep) == len(ospecs):
-                        continue
-                    lost = [k for k in ospecs if parse_key(k) in codes]
-                    if warnings is not None:
-                        gone = (f" — '{other}' is now unbound in keys.{scope}" if not keep else '')
-                        warnings.append(
-                            f"{where}: keys.{scope}.{action}: "
-                            f"{', '.join(repr(str(k)) for k in lost)} takes the key from "
-                            f"'{other}' ({own[other][1]}){gone}")
-                    if keep:
-                        dst[other] = keep
-                    else:
-                        del dst[other]
-                dst[action] = spec                   # per-action override (whole value replaced)
-                own[action] = (idx, where)
+                out.setdefault(scope, {})[action] = spec
+                owner.setdefault(scope, {})[action] = (idx, where)
+
+    def specs_of(scope, action):
+        s = out[scope][action]
+        return s if isinstance(s, list) else [s]
+
+    def strip(scope, action, codes, by, by_where, label):
+        """Remove `codes` from (scope, action); warn naming who took them."""
+        ospecs = specs_of(scope, action)
+        keep = [k for k in ospecs if parse_key(k) not in codes]
+        if len(keep) == len(ospecs):
+            return
+        lost = [k for k in ospecs if parse_key(k) in codes]
+        if warnings is not None:
+            gone = f" — '{action}' is now unbound in keys.{scope}" if not keep else ''
+            warnings.append(f"{by_where}: keys.{label}: {', '.join(repr(str(k)) for k in lost)} "
+                            f"takes the key from '{action}' in keys.{scope} "
+                            f"({owner[scope][action][1]}){gone}")
+        if keep:
+            out[scope][action] = keep
+        else:
+            del out[scope][action]
+
+    def codes_of(scope, action):
+        return {c for c in (parse_key(k) for k in specs_of(scope, action)) if c is not None}
+
+    for scope in list(out):                          # pass 2: within a scope, the higher layer keeps it
+        ranked = sorted(out[scope], key=lambda a: -owner[scope][a][0])
+        for hi in ranked:
+            if hi not in out[scope]:
+                continue
+            for lo in ranked:
+                if lo == hi or lo not in out[scope] or owner[scope][lo][0] >= owner[scope][hi][0]:
+                    continue
+                strip(scope, lo, codes_of(scope, hi), None, owner[scope][hi][1], f'{scope}.{hi}')
+
+    pages = [s for s in out if s not in ('global', 'screens')]
+    takers = [('global', a) for a in out.get('global', {}) if a in ROUTER_ACTIONS]
+    takers += [('screens', a) for a in out.get('screens', {})]
+    for tscope, taction in takers:                   # pass 3: across scopes, by layer
+        if taction not in out.get(tscope, {}):
+            continue
+        tidx, twhere = owner[tscope][taction]
+        tcodes = codes_of(tscope, taction)
+        victims = [(s, a) for s in pages for a in list(out.get(s, {}))]
+        if tscope == 'screens':
+            victims += [('global', a) for a in list(out.get('global', {})) if a not in ROUTER_ACTIONS]
+        for vscope, vaction in victims:
+            if vaction in out.get(vscope, {}) and owner[vscope][vaction][0] < tidx:
+                strip(vscope, vaction, tcodes, None, twhere, f'{tscope}.{taction}')
     return out
 
 

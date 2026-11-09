@@ -417,3 +417,27 @@ def test_startuptiming_load_update_roundtrip(tmp_path):
     assert got['head'] == startuptiming._DEFAULTS['head']            # unmeasured phase unchanged
     startuptiming.update(paths, {'detect': -5})                      # bad sample ignored, floored
     assert startuptiming.load(paths)['detect'] >= startuptiming.MIN
+
+
+def test_a_provider_whose_constructor_raises_falls_back_to_text(monkeypatch):
+    # B16 / tui-theme-09: a buggy splash never bricks TUI start; a silly fps is clamped
+    import curses
+
+    from configsys.tui import splash as hostmod
+    monkeypatch.setattr(curses, 'doupdate', lambda: None)
+    sleeps = []
+    monkeypatch.setattr(hostmod.time, 'sleep', lambda s: sleeps.append(s))
+    texts = []
+    monkeypatch.setattr(hostmod, '_draw_progress_text', lambda *a: texts.append(a))
+
+    class Broken(splashes.Splash):
+        name = 'broken'
+        fps = -1
+        min_duration = None
+        def __init__(self, *a, **k):
+            raise AttributeError("'Palette' object has no attribute 'depth'")
+
+    hostmod.run_splash(_FakeWin(), pal=None, provider_cls=Broken, is_done=lambda: True,
+                       frac=lambda: 1.0, counts=lambda: (1, 1), label='x')
+    assert texts                                  # the plain progress line took over
+    assert all(s <= 1.0 for s in sleeps)          # fps clamped to >= 1: no day-long sleep

@@ -431,9 +431,40 @@ def test_lint_merged_flags_a_plain_merge_duplicate_and_a_quit_lockout():
 
 
 def test_merge_without_conflicts_matches_config_keys():
-    c = _cfg(_repo_text(), '{ keys: { global: { quit: [ q  "ctrl-c" ] } screens: { theme: t } } }')
+    c = _cfg(_repo_text(), '{ keys: { global: { quit: [ q  "ctrl-c" ] } screens: { theme: z } } }')
     assert merge_layer_keys(c._layers) == c.keys()
     assert lint_keys(c._layers) == []
+
+
+def test_a_higher_screens_or_global_rebind_takes_the_key_from_lower_pages():
+    # B16 / tui-theme-04: config.hu's old example made `t` switch screens on four pages but TRUST a
+    # plugin on Plugins — now your rebind takes `t` everywhere, and check names each steal
+    c = _cfg(_repo_text(), '{ keys: { screens: { theme: t } } }')
+    km = c.keys()
+    assert 'trust' not in km.get('plugins', {}) or 't' not in str(km['plugins'].get('trust'))
+    warns = lint_keys(c._layers)
+    assert any("'trust' in keys.plugins" in w for w in warns), warns
+    c = _cfg(_repo_text(), '{ keys: { global: { quit: x } } }')
+    from configsys.tui.keyspec import parse_key
+    x = parse_key('x')
+    for scope, acts in c.keys().items():          # no lower page keeps `x`: quit works everywhere
+        if scope in ('global', 'screens'):
+            continue
+        for spec in acts.values():
+            assert x not in [parse_key(k) for k in (spec if isinstance(spec, list) else [spec])]
+    assert any("keys.global.quit" in w for w in lint_keys(c._layers))
+
+
+def test_a_middle_layers_steal_undone_above_leaves_nothing_dead():
+    # B16 / tui-theme-05: plugin binds components.where to `i`, you move where back to `w`
+    from configsys import layers
+    from configsys.tui.keyspec import merge_layer_keys as mlk
+    repo = layers.Layer('config.hu', 'repo', layers.materialize_string(_repo_text()))
+    plug = layers.Layer('p.hu', 'plugin', {'keys': {'components': {'where': 'i'}}})
+    you = layers.Layer('you.hu', 'user', {'keys': {'components': {'where': 'w'}}})
+    m = mlk([repo, plug, you])
+    assert m['components']['where'] == 'w'
+    assert 'i' in str(m['components'].get('op-install'))
 
 
 # -- 10/11. help labels -----------------------------------------------------------

@@ -355,3 +355,34 @@ def test_loading_a_theme_pack_keeps_your_overrides_on_top_unless_reset():
     pack = {'colors': {'accent': '#111111', 'title': '#222222'}}
     mine = {'colors': {'accent': '#ffffff'}}
     assert _overlay_theme(pack, mine) == {'colors': {'accent': '#ffffff', 'title': '#222222'}}
+
+
+def test_every_role_a_screen_paints_is_themeable_on_its_page(tmp_path):
+    # B16 / tui-theme-08: PAGE_ROLES (the editor's per-page list, the snapshot set) must cover what
+    # each screen actually paints — else a painted role can't be retinted on that page
+    from _render_harness import SCREENS, RecordingPalette, build_ctx, _render
+
+    class Rec(RecordingPalette):
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.seen = {}
+
+        def _note(self, name):
+            self.seen.setdefault(self._page, set()).add(name)
+
+        def style(self, element, *a, **k):
+            self._note(element)
+            return super().style(element, *a, **k)
+
+        def at(self, name, *a, **k):
+            self._note(name)
+            return super().at(name, *a, **k)
+
+    ctx = build_ctx(tmp_path)
+    for name in SCREENS:
+        pal = Rec()
+        for size in [(40, 160), (24, 80)]:
+            _render(name, ctx, pal, *size)
+        for page, painted in pal.seen.items():
+            missing = painted - set(PAGE_ROLES.get(page, []))
+            assert not missing, f'{name} paints {sorted(missing)} on page {page}, not in PAGE_ROLES'

@@ -190,9 +190,11 @@ profiles: {
     // pgup pgdn home end del ins backspace shift-tab f1…f12), or `ctrl-<x>`. Dispatch is by ACTION,
     // and the on-screen legends and `?` help read this same map, so a rebind updates the hints too
     // (`configsys check` flags unknown actions and clashes). A key you bind in a higher layer is TAKEN from whatever
-    // action a lower layer gave it in the same section (so your rebind wins; check names the action
-    // that lost it). Override just what you want:
-    //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: t } }
+    // action a lower layer gave it in the same section — and a `global` quit/quit-force/issues/help
+    // or `screens` key you bind is taken from every lower layer's page section too, so it works on
+    // every screen (your rebind wins; check names each action that lost a key). Override just what
+    // you want (`z` is free on every screen):
+    //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: z } }
     keys: {
         // The number-key screen switcher (the chip bar). One key each.
         screens: { components: "1"  profiles: "2"  plugins: "3"  glue: "4"  dotfiles: "5"  config: "6"  theme: "7" }

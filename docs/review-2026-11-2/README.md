@@ -211,7 +211,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   success; `--machine other` installs the other machine's picks (CLI refuses); execute skips auto-tighten;
   palette exhaustion; key-steal/shadow edge cases; `--color` on `-direct`; splash constructor crash; shared
   Resolver state written by TUI resolves. (tui-core-03..06, tui-screens-03..05, tui-theme-02/04..09,
-  parity-03/09) · effort M · [open]
+  parity-03/09) · effort M · [done — done — MenuState.adopt_view (filter/scroll survive every rebuild); Profiles M refreshes in place; to-do per tracked name incl. partial/error/untrusted; candidates auto + methods-line * + "pinned to X" + v-picker "auto — unpin" (actions.unset_pin, CLI shares it); --machine <other> = Components read-only with a banner; router guards handle/draw; bulk notes from results (+pretend); only the pipeline records resolver state; palette reuses the nearest slot/pair, packs capped colours on -direct, color_mode says so; PAGE_ROLES test; splash constructor/fps guarded; keys merged in passes (final-binding steals; higher global/screens takes the key from lower pages; screens beats lower global nav)]
 - **B17 [MED] Plan/ops misc:** verify-after-fail misreads reinstalls; `plugin update --ref`/`bless` report
   success on failed syncs; edits to a THIRD-PARTY manifest for transitive plugins; settings that move
   installs keep the 1-hour glue cache; theme edits land where the top config shadows them; `upgrade

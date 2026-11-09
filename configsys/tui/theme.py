@@ -382,6 +382,28 @@ def rgb_to_256(r, g, b):
     return (16 + 36 * round(r / 255 * 5) + 6 * round(g / 255 * 5) + round(b / 255 * 5))
 
 
+# xterm's standard rgb for the 16 ANSI slots (what a -direct terminfo needs packed for 8..15)
+_ANSI16_RGB = [(0, 0, 0), (205, 0, 0), (0, 205, 0), (205, 205, 0), (0, 0, 238), (205, 0, 205),
+               (0, 205, 205), (229, 229, 229), (127, 127, 127), (255, 0, 0), (0, 255, 0),
+               (255, 255, 0), (92, 92, 255), (255, 0, 255), (0, 255, 255), (255, 255, 255)]
+
+
+def _dist2(a, b):
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2
+
+
+def xterm_rgb(idx):
+    '''The rgb an xterm-256 palette index stands for (0..15 ANSI, 16..231 the cube, 232..255 greys).'''
+    if idx < 16:
+        return _ANSI16_RGB[idx]
+    if idx < 232:
+        i = idx - 16
+        lv = [0, 95, 135, 175, 215, 255]
+        return lv[i // 36], lv[(i // 6) % 6], lv[i % 6]
+    v = 8 + (idx - 232) * 10
+    return v, v, v
+
+
 def rgb_to_basic8(r, g, b):
     '''Nearest of the 8 ANSI colors. Low-saturation colors are GREY (which the 8-color set lacks), so
     map those to black/white by brightness rather than forcing a hue — the old hue-first version sent
@@ -441,6 +463,10 @@ class Palette:
             self.bg = curses.COLOR_BLACK
         self.have256 = curses.COLORS >= 256
         self.direct = curses.COLORS >= (1 << 24)
+        # how the TERMINFO numbers colors — fixed at initscr, unlike `direct` (the depth we paint at,
+        # which a --color cap lowers). A -direct entry reads an index as packed rgb, so a capped
+        # palette index must be sent as the rgb it stands for (B16 / tui-theme-06).
+        self.direct_numbering = self.direct
         try:
             self.truecolor = self.direct or (self.have256 and curses.can_change_color())
         except curses.error:
@@ -468,6 +494,8 @@ class Palette:
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
         self._next_pair = 1
         self._color_cache = {}         # rgb -> palette index
+        self._slot_rgb = {}            # redefined palette slot -> the rgb it holds
+        self.reduced = 0               # colours / pairs that had to borrow the nearest one (color_mode)
         self._pair_cache = {}          # (fg_idx, bg_idx) -> attr
         self._map = {name: self._color(rgb) for name, rgb in colors.items()}   # for at()/get()
 
@@ -500,9 +528,9 @@ class Palette:
         if self.mono:
             return 'none (monochrome)'
         if self.direct:
-            return 'direct 24-bit'
+            return 'direct 24-bit' + (' (some colors shared)' if self.reduced else '')
         if self.truecolor:
-            return '24-bit'
+            return '24-bit' + (' (palette full: nearest colors reused)' if self.reduced else '')
         if self.have256:
             return '256-color (approx)'
         return '16-color' if self.have16 else '8-color'
@@ -512,9 +540,10 @@ class Palette:
         encodes the pair number in only 8 bits (A_COLOR == 0xff00), so pair numbers MUST stay < 256
         or they wrap to a different pair's colors. One Palette is shared for the whole session and
         pairs never free, so without this a long session (or the pair-heavy Theme screen) eventually
-        exceeds 255 and every over-256 cell renders in the wrong color. Color SLOTS persist (they're
-        bounded by the theme's distinct colors, < 256); only pairs — the fg×bg combinations, of
-        which there are far more — are recycled each frame, which curses is built to handle.'''
+        exceeds 255 and every over-256 cell renders in the wrong color. Color SLOTS persist (a theme
+        past the 240 redefinable slots reuses the nearest allocated colour — `_color`); only pairs —
+        the fg×bg combinations, of which there are far more — are recycled each frame, which curses is
+        built to handle (a frame past 255 borrows the nearest same-fg pair — `_pair`).'''
         self._next_pair = 1
         self._pair_cache.clear()
 
@@ -556,8 +585,15 @@ class Palette:
                 curses.init_color(idx, round(r / 255 * 1000), round(g / 255 * 1000),
                                   round(b / 255 * 1000))
                 self._next_color += 1
+                self._slot_rgb[idx] = key
             except curses.error:
                 idx = None
+        elif self.truecolor and self._slot_rgb:
+            # every slot is taken: in this mode the xterm-256 indexes ARE the redefined slots, so
+            # rgb_to_256 would paint whatever theme colour holds that slot — reuse the NEAREST
+            # allocated colour instead (B16 / tui-theme-02)
+            idx = min(self._slot_rgb, key=lambda s: _dist2(self._slot_rgb[s], key))
+            self.reduced += 1
         if idx is None:
             if self.have256:
                 idx = rgb_to_256(*rgb)
@@ -567,8 +603,21 @@ class Palette:
                     idx = rgb_to_basic8(*rgb)
                 elif idx >= 8 and not self.have16:
                     idx -= 8                                # bright slot unavailable -> the base hue
+            if self.direct_numbering and idx >= 8:          # capped depth on a -direct terminfo: send
+                qr, qg, qb = xterm_rgb(idx)                 # the QUANTIZED colour as packed rgb (0..7
+                idx = max(8, (qr << 16) | (qg << 8) | qb)   # stay the ANSI slots there)
         self._color_cache[key] = idx
         return idx
+
+    def _index_rgb(self, idx):
+        '''The rgb a colour index paints (for nearest-match borrowing), best effort.'''
+        if idx is None or idx < 0:
+            return (0, 0, 0)
+        if idx in self._slot_rgb:
+            return self._slot_rgb[idx]
+        if self.direct_numbering and idx >= 8:
+            return (idx >> 16) & 255, (idx >> 8) & 255, idx & 255
+        return xterm_rgb(idx) if idx < 256 else (0, 0, 0)
 
     # Rough perceived luminance of each ANSI slot (0..1); -1 (terminal default) is assumed dark.
     _ANSI_LUM = {-1: 0.0, 0: 0.00, 1: 0.30, 2: 0.55, 3: 0.75, 4: 0.20, 5: 0.40, 6: 0.65, 7: 0.78,
@@ -599,7 +648,15 @@ class Palette:
         if attr is None:
             n = self._next_pair
             if n > 255:                      # color_pair() only encodes 8 bits — pair >255 would WRAP
-                return curses.A_NORMAL       # to another pair's colors; degrade instead of corrupt
+                # to another pair's colors: borrow this frame's pair with the same fg and the nearest
+                # bg (a one-band difference behind a glyph is invisible) — never the terminal's
+                # default colours punching a hole in the gradient (B16 / tui-theme-07)
+                near = [(_dist2(self._index_rgb(b), self._index_rgb(bg_idx)), a)
+                        for (f, b), a in self._pair_cache.items() if f == fg_idx and a != curses.A_NORMAL]
+                self.reduced += 1
+                attr = min(near, key=lambda d: d[0])[1] if near else curses.A_NORMAL
+                self._pair_cache[(fg_idx, bg_idx)] = attr
+                return attr
             try:
                 curses.init_pair(n, fg_idx, bg_idx)
                 attr = curses.color_pair(n)
