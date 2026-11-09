@@ -178,7 +178,18 @@ class Context:
         incompatible, a machine-setting section ignored from a non-primary plugin, a requested
         component that can't route here. With `states`, also flags scope mismatches (installed at
         a different scope than the config declares — `fix-scope` reconciles them). Surfaced by the
-        TUI (! page) and inspect. Call after a load so config/routes/resolve_errors are populated.'''
+        TUI (! page) and inspect. Call after a load so config/routes/resolve_errors are populated.
+        Memoized on (states, config, routes): `inspect` used to compute it twice — each re-resolving
+        the picks and re-hashing every plugin (C3 / app-cli-11).'''
+        key = (id(states), id(self._config), id(self._routes))
+        hit = getattr(self, '_diag_memo', None)
+        if hit is not None and hit[0] == key and hit[1] is states:
+            return [dict(d) for d in hit[2]]
+        out = self._diagnostics(states)
+        self._diag_memo = (key, states, out)
+        return [dict(d) for d in out]
+
+    def _diagnostics(self, states=None):
         from . import plugins
         out, seen = [], set()
 
@@ -315,6 +326,18 @@ class Context:
         # A malformed plugin file is skipped, not fatal.
         from . import plugins
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
+        from . import predicate
+        memo = getattr(self.paths, 'grid_memo_file', None)
+        if memo is not None and not getattr(self, '_memo_loaded', False):
+            predicate.load_memo(memo)                   # the when-grid answers of earlier runs (C3)
+            self._memo_loaded = True
+        r = self._new_resolver(block)
+        if memo is not None and not self.runner.pretend:
+            predicate.save_memo(memo)                   # (a cache: never written under --pretend)
+        return r
+
+    def _new_resolver(self, block):
+        from . import plugins
         return Resolver(self.paths.routes_file, block,
                         self.os_info.version, self._cpu(),
                         pins=self.config.pins(),
@@ -372,6 +395,7 @@ class Context:
         the next `routes` access to rebuild it from the new layers + drivers.
         Cheap: for the common no-plugin case the code reload loops over nothing.'''
         self._config = None
+        self._diag_memo = None
         self._routes = None              # drop the cached Resolver; next access rebuilds it
         self._plugin_files = None        # re-glob declared+synced plugin data layers
         self._plugin_code_loaded = False  # re-register trusted plugin drivers (idempotent overwrite)
@@ -383,6 +407,7 @@ class Context:
         Resolver (and every screen cache keyed on it) survives, so a Profiles triage key costs
         milliseconds, not a 0.5 s Resolver rebuild and a cold catalog (review-2026-11-2 C2).'''
         self._config = None
+        self._diag_memo = None
 
     def apply_scope_default(self, units):
         '''Stamp the machine-wide scope default onto units whose driver *honors*

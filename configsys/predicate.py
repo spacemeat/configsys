@@ -286,12 +286,18 @@ class _Parser:
 
 
 ALWAYS = And([])   # empty conjunction is vacuously true — the "no when:" default
+ALWAYS._text = ''  # (a memo key, like every parsed predicate's normalized text)
 
 
 def parse(text):
     if text is None or not text.strip():
         return ALWAYS
-    return _Parser(_tokenize(text), text).parse()
+    node = _Parser(_tokenize(text), text).parse()
+    try:
+        node._text = ' '.join(text.split())          # the memo key for subset/witness (C3)
+    except AttributeError:
+        pass
+    return node
 
 
 # -- specificity + static ambiguity (set inclusion, decided on a finite grid) ----
@@ -412,8 +418,10 @@ def _cells(preds, cascade):
         # stay too — they stand for a release the registry doesn't know (bases: none)
         extra = []
         if sroot in bases and hasattr(cascade, 'bases_of'):
-            for v in sorted(bases[sroot]):
-                extra.append(((v, 0), cascade.bases_of(leaf, v)))
+            memo = cascade.__dict__.setdefault('_leaf_bases', {})
+            if leaf not in memo:
+                memo[leaf] = [((v, 0), cascade.bases_of(leaf, v)) for v in sorted(bases[sroot])]
+            extra = memo[leaf]
         for cat_combo in itertools.product(*cat_lists):
             cat_assign = dict(zip(cat_names, cat_combo))
             for ver_combo in itertools.product(*ver_lists):
@@ -426,8 +434,83 @@ def _cells(preds, cascade):
                         yield lineage, sroot, blocks, cat_assign, va
 
 
+# subset/witness answers, memoized across Resolver rebuilds (C3: each rebuild re-ran the same ~250
+# distinct when-pairs over the whole grid, ~1 s per startup / TUI reload). Keyed by the cascade's
+# FINGERPRINT (lineages, scale-roots, registered bases — what the grid is made of) and the two
+# predicates' normalized text; a predicate built in code (no text) isn't memoized.
+_MEMO = {}
+_MEMO_MAX = 50000
+
+
+_MEMO_DIRTY = [False]
+
+
+def _fingerprint(cascade):
+    '''A STABLE digest of what the grid is made of (lineages, scale-roots, registered bases) — the
+    same across processes, so the memo can live on disk (save_memo / load_memo).'''
+    fp = cascade.__dict__.get('_grid_fp') if hasattr(cascade, '__dict__') else None
+    if fp is None:
+        import hashlib
+        shape = (sorted((b, cascade.lineage(b)) for b in cascade.blocks), sorted(cascade.scale_roots),
+                 sorted((k, sorted(v.items())) for k, v in (getattr(cascade, 'release_bases', None) or {}).items()))
+        fp = hashlib.sha256(repr(shape).encode()).hexdigest()[:20]
+        try:
+            cascade._grid_fp = fp
+        except AttributeError:
+            pass
+    return fp
+
+
+def _memo(kind, a, b, cascade, compute):
+    ta, tb = getattr(a, '_text', None), getattr(b, '_text', None)
+    if ta is None or tb is None:
+        return compute()
+    key = '\x1f'.join((kind, _fingerprint(cascade), ta, tb))
+    if key not in _MEMO:
+        if len(_MEMO) > _MEMO_MAX:
+            _MEMO.clear()
+        _MEMO[key] = compute()
+        _MEMO_DIRTY[0] = True
+    return _MEMO[key]
+
+
+def load_memo(path):
+    '''Seed the subset/witness memo from `path` (a JSON object written by save_memo) — so a cold
+    process doesn't recompute the same when-pairs over the whole grid (~1 s per startup). Entries
+    carry their cascade fingerprint, so a changed OS layer simply misses. Best-effort.'''
+    import json
+    try:
+        data = json.loads(open(path, encoding='utf-8').read())
+    except (OSError, ValueError):
+        return
+    if isinstance(data, dict):
+        for k, v in data.items():
+            _MEMO.setdefault(k, v)
+
+
+def save_memo(path):
+    '''Write the memo to `path` when this process added entries (never under --pretend — the caller
+    decides). Best-effort; keeps it bounded.'''
+    import json
+    import os
+    if not _MEMO_DIRTY[0]:
+        return
+    try:
+        tmp = f'{path}.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(dict(list(_MEMO.items())[-_MEMO_MAX:]), f)
+        os.replace(tmp, path)
+        _MEMO_DIRTY[0] = False
+    except OSError:
+        pass
+
+
 def subset(a, b, cascade):
     '''True if a's match-set ⊆ b's (a is at-least-as-specific as b), over all machines.'''
+    return _memo('subset', a, b, cascade, lambda: _subset(a, b, cascade))
+
+
+def _subset(a, b, cascade):
     sr = cascade.scale_roots
     for lineage, sroot, blocks, ca, va in _cells([a, b], cascade):
         if _holds(a, lineage, sroot, sr, blocks, ca, va) and not _holds(b, lineage, sroot, sr, blocks, ca, va):
@@ -437,6 +520,10 @@ def subset(a, b, cascade):
 
 def witness(a, b, cascade):
     '''A human-readable context where both a and b match, or None if disjoint.'''
+    return _memo('witness', a, b, cascade, lambda: _witness(a, b, cascade))
+
+
+def _witness(a, b, cascade):
     sr = cascade.scale_roots
     for lineage, sroot, blocks, ca, va in _cells([a, b], cascade):
         if _holds(a, lineage, sroot, sr, blocks, ca, va) and _holds(b, lineage, sroot, sr, blocks, ca, va):

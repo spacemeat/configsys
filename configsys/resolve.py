@@ -661,6 +661,27 @@ def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=Non
         return False
 
 
+_INDEX_CACHE = {}                        # id(components) -> (components, providers, optin)
+
+
+def _component_indexes(components):
+    '''(providers {cap: [component names]}, never-auto set) for a loaded component set — built once
+    per set (keyed by identity, holding the set so the id can't be reused while cached). Read-only
+    for every _State.'''
+    hit = _INDEX_CACHE.get(id(components))
+    if hit is not None and hit[0] is components:
+        return hit[1], hit[2]
+    providers = {}
+    for name, comp in components.items():
+        for cap in set(comp.provides) | {name}:         # a component always provides its own name
+            providers.setdefault(cap, []).append(name)
+    optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
+    if len(_INDEX_CACHE) > 16:
+        _INDEX_CACHE.clear()
+    _INDEX_CACHE[id(components)] = (components, providers, optin)
+    return providers, optin
+
+
 class _State:
     def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None,
                  candidate_only=None, soft=None, dropped=None, shared=None):
@@ -693,21 +714,20 @@ class _State:
         self.constrained = {}                      # (cap, constraint) -> frozenset(keys)
         # `shared` = (providers, optin) from a sibling _State over the same components (gated_context
         # runs many scratch resolutions) — both depend only on `components`, so reuse them
-        self.providers = shared[0] if shared else self._provider_index()
+        # Without one, the pair is cached per loaded component set (C3: rebuilding the provider index
+        # from all ~830 components was 81% of a single-name resolve — `where`, coverage, the golden).
+        if not shared:
+            shared = _component_indexes(components)
+        self.providers = shared[0]
         # never-auto providers are never AUTO-pulled to close a requirement — only used when the
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
-        self.optin = shared[1] if shared else {n for n, c in components.items()
-                                                if getattr(c, 'opt_in', False)}
+        self.optin = shared[1]
         self.via_names = pin_via_names()           # for binding-vs-provider pin classification
         self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
 
     def _provider_index(self):
-        idx = {}
-        for name, comp in self.components.items():
-            for cap in set(comp.provides) | {name}:     # a component always provides its own name
-                idx.setdefault(cap, []).append(name)
-        return idx
+        return _component_indexes(self.components)[0]
 
     def add_component(self, name, root):
         '''Resolve a component name -> the frozenset of unit keys it contributes.'''

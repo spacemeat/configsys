@@ -45,6 +45,28 @@ def _split_term(term):
     return '', t
 
 
+
+def _cached(fn):
+    """Memoize a no-argument Config view: a Config is rebuilt (never mutated) on every edit, so the
+    merged map is computed once per instance (C3: `is_new` over the catalog re-merged two views
+    per component — 77 ms vs 0.9 ms). Each call returns a fresh shallow copy, so a caller that
+    edits the result never edits the cache."""
+    import copy
+    name = fn.__name__
+
+    def wrapper(self):
+        cache = self.__dict__.setdefault('_view_cache', {})
+        if name not in cache:
+            cache[name] = fn(self)
+        v = cache[name]
+        if isinstance(v, dict):
+            return {k: (list(x) if isinstance(x, list) else x) for k, x in v.items()}
+        if isinstance(v, (set, list)):
+            return type(v)(v)
+        return copy.copy(v)
+    wrapper.__name__, wrapper.__doc__ = name, fn.__doc__
+    return wrapper
+
 class Config:
     def __init__(self, layer_list):
         self._layers = layer_list
@@ -106,6 +128,7 @@ class Config:
                 return (os.path.basename(layer.path), layer.role != 'repo')
         return None
 
+    @_cached
     def install_dirs(self):
         '''The install-layout dirs from the `dirs:` section (keys user/system/app/sdk/src), merged
         repo < primary < user — a machine setting. Paths applies the CONFIGSYS_*_DIR env overrides
@@ -130,12 +153,14 @@ class Config:
         errors honestly. Generalizes to "no snaps here" etc.'''
         return _leaves(layers.merge_scalar(self._layers, 'disabled-drivers', _MACHINE_ROLES))
 
+    @_cached
     def orphans_ignore(self):
         '''Name-or-glob patterns whose matching orphans stay quiet in `configsys orphans` (a machine
         setting; repo < primary < user). Acknowledged one-offs on THIS box don't nag; a glob matches
         an orphan's component name OR its installed key.'''
         return _leaves(layers.merge_scalar(self._layers, 'orphans-ignore', _MACHINE_ROLES))
 
+    @_cached
     def pins(self):
         '''The effective pin map, merged PER KEY across repo < primary < user (see
         merge_scalar_map): a machine's top config overrides a primary plugin's pins key-by-key
@@ -143,6 +168,7 @@ class Config:
         return layers.merge_scalar_map(self._layers, 'pins', _MACHINE_ROLES)
 
     # -- dispositions (the disposition model's side-store: seen / interesting) -----------------
+    @_cached
     def dispositions(self):
         '''The effective `dispositions:` map (component -> 'seen'|'interesting'), merged PER KEY
         across repo < primary < machine < user like pins(). A component's bookkeeping disposition;
@@ -180,6 +206,7 @@ class Config:
                 and comp not in self.uninstall_queue()
                 and comp not in self.user_layer_components())
 
+    @_cached
     def locations(self):
         '''The effective per-component install-location map (component -> absolute path), merged
         PER KEY across repo < primary < user like pins(). A machine setting: "this component's
@@ -396,6 +423,7 @@ class Config:
 
     PICKS_PROFILE = '@picks'          # reserved: the current machine's Included set (v3 matrix model)
 
+    @_cached
     def picks(self):
         '''Merged per-machine Included sets `{machine: [component, ...]}` across the machine-role
         layers (repo < primary < user, config._MACHINE_ROLES; a later layer replaces a machine's list). The v3
@@ -500,6 +528,7 @@ class Config:
 
     UNINSTALL_PROFILE = '!uninstall'
 
+    @_cached
     def uninstall_queue(self):
         '''Component names staged for uninstall — the top-level `uninstall:` list, a machine-local
         (top-config) pending-removal queue (`x` in the TUI adds here; TUI::Components executes or

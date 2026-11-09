@@ -28,7 +28,14 @@ def gated(binding, cascade):
     specificity), so a same-via pair overlapping inside the gate must still be raw-comparable.'''
     gp = getattr(cascade, 'gate_pred', None)
     g = gp(binding.via) if gp is not None else None
-    return binding.pred if g is None else predicate.And([binding.pred, g])
+    if g is None:
+        return binding.pred
+    node = predicate.And([binding.pred, g])
+    raw = getattr(binding.pred, '_text', None)
+    if raw is not None:                                # a memo key: the when plus which gate (C3)
+        gates = getattr(cascade, 'driver_gates', None) or {}
+        node._text = f'({raw}) and <gate {binding.via}: {sorted((k, v[0]) for k, v in gates.items())}>'
+    return node
 
 
 # Where a binding may make configsys write fetched bytes AS ROOT: apt keyrings and source lists, and

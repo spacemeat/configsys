@@ -36,6 +36,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — D8 — derivatives resolve like their base (Zorin/Mint/elementary/LMDE/MX).
 - 2026-11-08 — C1 — batched candidates for every native manager.
 - 2026-11-08 — C2 — Profiles triage keys no longer rebuild the Resolver.
+- 2026-11-08 — C3 — startup re-resolution trimmed (seeded start 2.45 s -> 1.42 s; rebuild 1.7 s -> 0.7 s).
 
 ## 0. Fixed during the review
 None — report-only.
@@ -222,7 +223,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 - **C3 [MED] Re-resolution on the startup path:** `when:` grid per Resolver build (~1 s), provider index per
   resolve (81% of a single-name resolve), Resolver discarded per config edit, `diagnostics()` twice per
   inspect, Config re-merges per call (77 ms → 0.9 ms). (routing-16/17, app-cli-10/11, config-layers-09) ·
-  effort M · [open]
+  effort M · [done — subset/witness memoized by a stable cascade fingerprint + when-text and persisted (state/grid-memo.json, never under --pretend); lineage + derivative cells cached; provider index once per component set; Config views cached per instance; diagnostics memoized; setting/theme edits invalidate only what they affect]
 - **C4 [MED] Version caches:** versions.hu parsed per unit and read torn under the thread pool (2026-09
   B9); method-versions a second cache class; serial superseded-install probes; pipx N+1; manifests re-parsed
   per command. (subsystems-08/09/11, drivers-lang-15, plugins-06) · effort M · [open]

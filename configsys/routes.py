@@ -256,7 +256,16 @@ class OsCascade:
         return caps
 
     def lineage(self, name):
-        '''Leaf-first chain following `using` to the root.'''
+        '''Leaf-first chain following `using` to the root (cached: blocks are fixed once loaded).'''
+        cache = self.__dict__.setdefault('_lineage_cache', {})
+        hit = cache.get(name)
+        if hit is not None:
+            return list(hit)
+        chain = self._lineage(name)
+        cache[name] = tuple(chain)
+        return chain
+
+    def _lineage(self, name):
         chain, seen = [], set()
         while name and name not in seen and name in self.blocks:
             chain.append(name)

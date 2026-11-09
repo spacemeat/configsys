@@ -101,6 +101,7 @@ class Paths:
         self.plugin_review_dir = self.state_dir / 'plugin-review'     # inert bare repos the pre-sync review diff fetches into
         self.last_refresh_file = self.state_dir / 'last-refresh'   # unix ts of the last `configsys refresh`
         self.glue_locations_file = self.state_dir / 'glue-locations.tsv'  # <comp>\t<path> cache the shell glue reads instead of spawning `configsys location --all` each startup
+        self.grid_memo_file = self.state_dir / 'grid-memo.json'   # the `when:` specificity grid's answers (predicate.save_memo)
         self.startup_timing_file = self.state_dir / 'startup-timing.json'  # learned per-phase durations (splash pacing)
 
         # dotfiles content overlay: the machine-local store (always) that capture writes to when

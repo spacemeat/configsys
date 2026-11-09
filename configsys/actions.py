@@ -538,6 +538,19 @@ def _nature_target(ctx, key, lives_in, *, create=False):
 UNINSTALL_PROFILE = '!uninstall'
 
 
+# the settings the Resolver (or the paths it lays installs out with) reads — an edit to one rebuilds
+# it; every other setting needs only the Config re-read (C3 / app-cli-10)
+_ROUTING_SETTINGS = frozenset({'driver-preference', 'disabled-drivers', 'pins', 'dirs', 'locations',
+                               'facets'})
+
+
+def _invalidate_for(ctx, key):
+    if str(key).split('.', 1)[0] in _ROUTING_SETTINGS:
+        ctx.invalidate()
+    else:
+        _invalidate_config(ctx)
+
+
 def _invalidate_config(ctx):
     '''Config-only invalidation (Context.invalidate_config) where the context has it.'''
     getattr(ctx, 'invalidate_config', ctx.invalidate)()
@@ -1090,13 +1103,13 @@ def set_config_setting(ctx, key, values, *, target=None):
         else:
             dirs.pop(sub, None)
         plugins.set_dirs(tfile, dirs)
-        ctx.invalidate()
+        _invalidate_for(ctx, key)
         return True, label
     if kind == 'map':                                     # `k=v` tokens replace the whole map
         _set_map_section(tfile, key, _parse_map_tokens(values) if values else {})
         if key == 'locations':
             invalidate_location_cache(ctx)                # WHERE things install just changed
-        ctx.invalidate()
+        _invalidate_for(ctx, key)
         return True, label
     if not values:                                        # clear
         (plugins.set_list_section if kind == 'list' else plugins.set_scalar_section)(
@@ -1111,7 +1124,7 @@ def set_config_setting(ctx, key, values, *, target=None):
         if choices and values[0].strip().lower() not in choices:
             raise ValueError(f'{key} takes one of {", ".join(choices)} (not {values[0]!r})')
         plugins.set_scalar_section(tfile, key, values[0].strip().lower() if choices else values[0])
-    ctx.invalidate()
+    _invalidate_for(ctx, key)
     return True, label
 
 
@@ -1139,7 +1152,7 @@ def move_config_setting(ctx, key):
     tokens = _setting_tokens(_read_setting(src, key), kind)
     set_config_setting(ctx, key, tokens, target=dst)      # write the value at the destination
     set_config_setting(ctx, key, [], target=src)          # clear it from the source
-    ctx.invalidate()
+    _invalidate_for(ctx, key)
     return True, f'{key} → {dst_label}'
 
 
@@ -1171,7 +1184,7 @@ def set_theme_value(ctx, dotted_key, value, *, target=None):
     else:
         node[leaf] = _to_bool(value) if leaf in _THEME_BOOL_ATTRS else value
     plugins.set_theme(tfile, theme)
-    ctx.invalidate()
+    _invalidate_config(ctx)   # cosmetic: never routing (C3)
     return True, label
 
 
