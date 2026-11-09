@@ -12,8 +12,10 @@ from .where import _layer_label
 
 
 def cmd_disp(ctx, args):
-    '''Component dispositions (v2 triage): seen / interesting / new. include/exclude are profile
-    membership; NEW is the undispositioned default. Local (per-machine) side-store.'''
+    '''Component dispositions (triage): seen / interesting / new — NEW is the undispositioned
+    default, nothing stores it. A machine-local side-store (`dispositions:`). `get` also names the
+    two things that keep a component out of NEW: membership in a profile you authored
+    (`Config.user_layer_components`) and a staged removal (`uninstall:`).'''
     from .. import actions
     cfg = ctx.config
     sub = getattr(args, 'disp_command', None) or 'list'
@@ -66,7 +68,7 @@ def cmd_disp(ctx, args):
 
 
 def cmd_picks(ctx, args):
-    '''The matrix Included set: the components a machine installs. A skin over
+    '''A machine's picks: the components it installs (its column of the matrix). A skin over
     actions.set_included — the same the TUI Profiles (matrix) screen calls.'''
     from .. import actions
     cfg = ctx.config
@@ -431,9 +433,9 @@ def cmd_machine(ctx, args):
 
 
 def cmd_profile(ctx, args):
-    '''Browse the shipped profile catalog (read-only). Profiles are BROWSE lenses over the
-    repo/plugin catalog — the matrix model installs from `picks:` (see `configsys picks`), so there
-    is no profile authoring or active set to edit here.'''
+    '''Browse the profile catalog (read-only): every layer's `profiles:` — the shipped ones, a
+    plugin's, and your own. Profiles are BROWSE lenses, never an install set: a machine installs
+    its `picks:` (see `configsys picks`), so there is nothing to activate or edit here.'''
     sub = getattr(args, 'profile_command', None) or 'list'
 
     cfg = ctx.config

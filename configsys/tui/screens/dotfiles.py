@@ -1,17 +1,14 @@
 '''dotfiles.py — the Dotfiles screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring the Plugins
-pattern-setter. The model is the existing `menu.DotfilesScreen` (link-state table over the
-via:dotfiles CONFIG units + the driver ops), composed unchanged; this adds the three MVVM seams:
+The model is `panes.DotfilesScreen` (link-state table over the via:dotfiles CONFIG units + the
+driver ops), composed as `self.model`; this adds the three MVVM seams (docs/tui-architecture.md):
 
 - build_vm: computes the PURE render content — the per-row cells, column widths / virtual x starts,
   the display list, the per-row state element, the status (counts + at-risk clause) and nav strings.
   No curses, no panel geometry.
-- draw: lays the content out (panel rect, scroll clamps, scrollbars via the shared widgets) and paints
-  it. Reproduces menu._draw_dotfiles cell for cell, which test_screen_dotfiles pins against the legacy
-  painter.
-- handle: the former `if screen == 'dotfiles'` dispatch, returning an Intent(note) instead of
-  mutating loop-scope locals.
+- draw: lays the content out (panel rect, the shared table painter — screens/table.py — whose clamped
+  scroll it records with vm.settle) and paints it.
+- handle: one key, returning an Intent(note) for the router.
 '''
 
 from pathlib import Path
@@ -115,8 +112,7 @@ class DotfilesScreen(Screen):
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model (cursor/scroll, `dirty` unit keys), runs the dotfiles driver ops
-        (under `suspended` where they own the terminal), returns an Intent(note). Ported verbatim from
-        the former dotfiles dispatch.'''
+        (under `suspended` where they own the terminal), returns an Intent(note).'''
         ds = self.model
         row = ds.cur_row()          # (rc, name, target, state, source, capturable)
         km = menu._keymap()
@@ -198,7 +194,7 @@ class DotfilesScreen(Screen):
                 if plug is None:
                     note = 'no primary plugin configured — nothing to move between'
                 else:
-                    # NB: `choice`, not `ch` — the legacy code rebound the key variable here.
+                    # NB: `choice`, not `ch` — never rebind the key variable here.
                     choice = _popup_choose(stdscr, pal, 'move ALL configs to which store?',
                                            [('primary plugin (travels to your machines)', ''),
                                             ('local (this box only)', ''), ('cancel', '')], 0)

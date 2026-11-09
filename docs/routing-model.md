@@ -2,7 +2,8 @@
 
 > **Status: REFERENCE** — the routing model as built; maintained. It is the sole resolver
 > (`configsys/routes.py` loads, `configsys/predicate.py` evaluates `when:`, `configsys/resolve.py`
-> resolves, `configsys/routecheck.py` lints, `configsys/detection.py` adopts installed reality).
+> resolves, `configsys/routecheck.py` lints, `configsys/detection.py` adopts installed reality,
+> `configsys/trustgate.py` keeps an untrusted plugin layer's command-carrying bindings out).
 > It replaced the old `\family`-block resolver **in place** (built in parallel, proven
 > byte-equivalent, then flipped; the old resolver and its data are deleted, and
 > `test/routing_golden.json` freezes the proven resolution as a regression gate). §1, §12 and §14
@@ -103,7 +104,16 @@ Schema (placeholders in `<…>`; every real entry is humon `key: value`, `when:`
 
 Any other top-level key is a load error (`routes._check_component_keys`) — a typo or a removed
 construct must fail loudly, not vanish. For the retired preference keys (`prefer:`, `opt-in:`,
-`candidate-only:`, `routes.RETIRED_STANDING_KEYS`) the error names the `standing:` replacement.
+`candidate-only:`, `routes.RETIRED_STANDING_KEYS`) the error names the `standing:` replacement. So
+are a component written as a scalar (`foo: bar` — only a map, or `{}` to remove it, is a
+definition), a binding with no `via:`, and a `when:` that doesn't parse or nests pathologically
+deep. `routecheck.check_component` also rejects malformed binding fields at load: a `cpu-names:`
+that isn't a non-empty map of tokens, a `sha256:` that isn't a 64-hex digest, a non-integer
+`strip:`, a key/source path outside the keyring and source-list dirs
+(`routecheck.vendor_path_problem`), an appImage with no `path:`, a script `version-re:` that isn't
+a regex, a dotfiles `src:` that is absolute or climbs out with `..` (or a `dst:` outside your
+home). From a plugin's checkout such a component
+is skipped with a warning; from the repo or your own config it is an attributed `ConfigError` (§8).
 
 The component-level `parts:` shorthand is expanded at load (`routes.Component`): a component with
 `parts:` and no `install:` gets the single binding `{ via: parts  parts: [...] }`, so it resolves
@@ -118,8 +128,9 @@ per OS puts `parts:` on `when:`-gated `via: parts` bindings instead.
 - Binding-level `requires:`/`suggests:` are edges taken only when that binding wins. A binding-level
   `provides:` contributes **no** capability names to resolution (providers are indexed from the
   component's `provides:` only); its versions feed the version-floor sweep/advisory (§11).
-- `requires`, `suggests`, `parts`, `app` and `standing` are resolver keys stripped before the fields
-  reach a driver (`resolve._RESOLVER_KEYS`); everything else is handed to the driver unchanged.
+- `requires`, `suggests`, `parts`, `app`, `standing` and `provides` are resolver keys stripped
+  before the fields reach a driver (`resolve._RESOLVER_KEYS`); everything else is handed to the
+  driver unchanged.
 - The `install:` list is **disjunctive selection** — "here are the ways; pick the best match" —
   *not* an implicit and/or. All validity logic lives in `when:`; preference lives in `standing:` /
   `driver-preference` (§8a). List order matters only for display and for the `{}`/merge identity.
@@ -180,9 +191,10 @@ Ubuntu/Pop commonly ship LibreOffice as its parts (`libreoffice-core`/`-calc`/�
 `libreoffice` meta, so probing the meta falsely reports "missing":
 
 ```humon
-{ libreoffice: { install: [ { via: native  when: "(not fedora_atomic) and not amzn"  repo-component: universe
-                              name: { pacman: libreoffice-fresh }
-                              installed-name: { apt: libreoffice-core  dnf: libreoffice-core } } ] } }
+{ libreoffice: { install: [ { via: native  when: "(not fedora_atomic) and not amzn and not (rhel >= 10)"
+                              repo-component: universe  name: { pacman: libreoffice-fresh }
+                              installed-name: { apt: libreoffice-core  dnf: libreoffice-core } }
+                            { via: flatpak  … } ] } }
 ```
 
 Like `name:`, it may be a **driver-keyed map** with an optional `default:`
@@ -219,7 +231,8 @@ Two flavors, same kind of atom:
     // abridged from routes.hu. Every versioned gcc/clang carries the standard labels, all `standing: never-auto`
     // (so a plain `requires: cxx` still resolves to the unversioned cpp-toolchain, no ambiguity).
     gcc-15:   { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23", "C++26" ]  standing: never-auto
-                install: [ { via: gcc  when: "debian"  packages: [ gcc-15, g++-15 ] }  { via: gcc-toolset  when: "rhel" } ] }
+                install: [ { via: gcc  when: "ubuntu >= 26.04"  packages: [ gcc-15, g++-15 ] }
+                           { via: gcc-toolset  when: "rhel" }  { via: brew  name: "gcc@15" } ] }
     clang-18: { provides: [ cc, cxx, C11, C17, C23, "C++17", "C++20", "C++23" ]  standing: never-auto
                 requires: [ c-toolchain, cxx-stdlib ]
                 install: [ { via: clang  when: "debian"  packages: [ clang-18 ] }  { via: clang  when: "fedora"  packages: [ clang18 ] } ] }
@@ -256,7 +269,8 @@ requiring one is free there and pulls a provider (or declines) elsewhere:
         alpine:      { using: linux  native: apk }         // musl: no `glibc`
     }
     components: {
-        gcompat: { provides: glibc  standing: never-auto  install: [ { via: apk  when: "alpine" } ] }
+        gcompat: { provides: glibc  standing: never-auto  install: [ { via: apk  when: "alpine" }
+                                                                     { via: xbps  when: "void_musl" } ] }
         tool:    { install: [ { via: native  when: "not alpine" }
                               { via: tarball  requires: glibc  url: "https://…/tool-linux-gnu.tgz" } ] }
     }
@@ -266,7 +280,7 @@ requiring one is free there and pulls a provider (or declines) elsewhere:
 A glibc tarball's `glibc` need is free on a glibc distro; on Alpine it fails ("nothing
 auto-provides glibc … e.g. pins: { glibc: gcompat }") because the only provider there is the
 best-effort `gcompat` shim, which is `never-auto` — opt in with that provider-pin. The appImage
-driver also `requires: [ libfuse2, glibc ]`, which makes the whole driver invalid on musl by the
+driver also `requires: [ libfuse2, glibc, curl ]`, which makes the whole driver invalid on musl by the
 derived driver gate (§8a); the same pin satisfies it, so `pins: { glibc: gcompat }` opens AppImage
 methods on Alpine too. (Driver gates read only hard pins, so picking `gcompat` without pinning
 satisfies a tarball's binding-level `requires: glibc` but doesn't open the appImage driver.) Repo
@@ -283,8 +297,10 @@ lists as carefully-authored, one-line-to-fix data.
 
 `when:` is a single boolean expression string, parsed by a small recursive-descent parser
 (`predicate.parse`; an absent/empty `when:` is `ALWAYS`). It is evaluated against a fixed
-`predicate.Context`: the OS lineage, the OS version, the cpu, the scale-roots, and the detected
-facets.
+`predicate.Context`: the OS lineage, the OS version, the cpu, the scale-roots, the registered bases
+of a derivative release (`base_versions`, §6), and the detected facets. (The same object carries
+the machine's driver facts `resolve._matching` reads — `disabled`, `has_native`, `gated_drivers`,
+`untrusted_sources` — which never appear in a `when:`.)
 
 **Atoms** (identifiers are `[A-Za-z_][A-Za-z0-9_]*` with an optional trailing `!`, so OS block
 names use `_`, never `-`: `opensuse_leap`, `pop_os!`):
@@ -323,7 +339,10 @@ when: "pop_os!"                                  // this OS or derivatives (Pop 
 ```
 
 A `when:` naming an OS block that doesn't exist (and isn't a declared facet) silently never
-matches, so `configsys check` warns `unknown-os` (`routecheck.validate`).
+matches, so `configsys check` warns `unknown-os` (`routecheck.validate`, also over each `drivers:`
+`when:` gate); a BARE atom naming a facet (`when: "gpu"`) never matches either and warns
+`bare-facet` (write `gpu:nvidia` / `cuda >= 12`); a facet named like an OS block is a
+`facet-collision` error, since evaluation and the checker would read its atom differently.
 
 ## 6. OS lineage, version scales, identity
 
@@ -337,16 +356,21 @@ matches, so `configsys check` warns `unknown-os` (`routecheck.validate`).
   atom never misreads them.
 - **Derivative bases.** A derivative's registered release names the release it is built on —
   `releases: { 18: { …  base: "ubuntu 24.04" } }` on `zorin` — and a versioned atom on that base's
-  scale compares against it (`OsCascade.bases_of` → `Context.base_versions`; the static grid adds a
-  cell per registered release, so specificity and overlap agree). So `ubuntu >= 24.04` holds on
-  Zorin 18 and Mint 22.x, and a gate never lists derivatives by hand; one names a derivative only
-  where it really differs from its base. A derivative release the registry doesn't know reads as
-  an unknown version (versioned atoms false) and `check` says to register it.
+  scale compares against it. `routes._release_bases` reads every `base:` at load into
+  `OsCascade.release_bases`; `OsCascade.bases_of(block, version)` follows them (a base's own base
+  too) into `Context.base_versions`, which `predicate.Os.eval` consults for an atom on a foreign
+  scale; the static grid (`predicate._cells`) adds a cell per registered release carrying the same
+  bases, so specificity and overlap agree with evaluation. So `ubuntu >= 24.04` holds on Zorin 18,
+  Mint 22.x and elementary 8, and a gate never lists derivatives by hand; one names a derivative
+  only where it really differs from its base. Today Zorin, Linux Mint, elementary, LMDE and MX
+  register bases (Pop borrows Ubuntu's scale outright and needs none). A derivative release the
+  registry doesn't know has no base, so atoms on its base's scale read false there (its own-scale
+  atoms still compare its VERSION_ID), and `check` warns that it should be registered (`/update-os`).
 - A **bare** OS atom is pure subtree membership (any version). A **versioned** OS atom matches only
   when the atom's nearest scale-root equals the system's (`Context.scale_root_of` /
   `system_scale_root`) — or is a registered base of it (above). So `debian < 12` matches Debian
-  proper and MX 21 / LMDE releases built on Debian 11, **not** Pop or Ubuntu; `ubuntu < 23.04`
-  matches Ubuntu, Pop and Mint 21.x; `debian` (bare) still matches all of them. Rolling blocks
+  proper and MX 21 (built on Debian 11), **not** Pop or Ubuntu; `ubuntu < 23.04` matches Ubuntu,
+  Pop, Mint 21.x and Zorin 17; `debian` (bare) still matches all of them. Rolling blocks
   (arch, tumbleweed, void) have no version, so only their bare atoms are meaningful.
 
 Identity and scale are orthogonal: sharing a version line does not make two OSes the
@@ -371,8 +395,14 @@ the component's `when:`s has such an atom.
 add a derivative distro and the top config may tweak a block on one machine): `using:` (parent),
 `native:` (package-manager driver, inherited; absent on native-less blocks, §3), `scale-root:`,
 `provides:` (environment capabilities, §4), `driver-preference:` (an OS-specific preference order,
-§8a), `detect:` (`{ id: …  marker: <path> }`, for os-release ambiguity — `pios`, `void_musl`;
-read by osdetect, not the resolver), and `releases:` (the release registry, below).
+§8a — an ordinary plugin's on a block it didn't define is ignored, §10b), `detect:` (`{ id: …
+marker: <path or [paths], all must exist>  marker-any: [paths, one must exist] }`, for os-release
+ambiguity — `pios` by `/etc/rpi-issue`, `void_musl` by its per-cpu musl loader; read by
+`osdetect.refine`, not the resolver), `advisory:` (an OS caveat shown as an `os-advisory` warning
+on inspect and the `!` page, inherited down the lineage, `advisory: ""` silences it;
+`OsCascade.advisory`), and `releases:` (the release registry, below). Any other field, a `using:`
+naming no block, a `using` cycle, or a `native:` naming no driver is a `check` `os-block` warning
+(`routes.OS_BLOCK_FIELDS`, `routecheck.os_block_issues`).
 
 **The release registry.** The block that owns a version line — a scale-root, or a block with no
 scale-root above it that declares `releases:` (alpine) — may list its releases:
@@ -380,14 +410,15 @@ scale-root above it that declares `releases:` (alpine) — may list its releases
 python3: 3.13  gcc: 15  manager: dnf5 } }`. Keys are VERSION_IDs; `status:`
 (`prerelease` / `released` / `eol`) is required; the other fields (`released`, `eol` as YYYY-MM-DD,
 `codename` for apt suites and PPAs, `image` for the container sweeps, the shipped `glibc` /
-`python3` / `gcc`, the package-manager `manager` version, a free-text `note`) are optional facts.
+`python3` / `gcc`, the package-manager `manager` version, a free-text `note`, and on a
+derivative's release its `base: "<block> <version>"`) are optional facts.
 `OsCascade.version_line(block)` names the owning block (a borrower like `pop_os!` or `nobara`
 reads its parent's table; an own-numbering derivative never falls through to its parent's) and
-`OsCascade.releases(block)` returns the table. The resolver does not consult it: it is the source
-of truth the maintenance tools (`tools/osaudit.py`, the `/update-os` skill) sweep and diff against,
-so "which releases do we support" has one answer. An EOL release keeps its `when:` gates — it stays
+`OsCascade.releases(block)` returns the table. The resolver reads ONE field of it, `base:` (above);
+the rest is the source of truth the maintenance tools (`tools/osaudit.py`, the `/update-os` skill)
+sweep and diff against, so "which releases do we support" has one answer. An EOL release keeps its `when:` gates — it stays
 routable and installable — but is no longer swept. `check` lints the table's shape
-(`routecheck.release_registry_issues`, `os-release` warnings). The C library is a lineage axis: glibc families hang off
+(`routecheck.release_registry_issues`, `os-release` warnings — a malformed `base:` included). The C library is a lineage axis: glibc families hang off
 `glibc_linux` (which `provides: glibc`); musl ones (`alpine`, `void_musl`, `chimera`) off bare
 `linux`.
 
@@ -424,7 +455,7 @@ that with ONE block:
   tool) or only a keg-only one (not linked onto `PATH` — brew's `openjdk@N`), the binding is gated
   `not fedora_atomic` and the component gets another method or declines: a flatpak for the apps;
   for `jdk`/`jdk-17`/`jdk-25`, a pinned SDKMAN Temurin binding (`{ via: sdkman  name: java
-  version: "21.0.12+1.1-tem"  requires: glibc }`), which is also their only route on `kde_linux`
+  version: "21.0.13.0+9-tem"  requires: glibc }`), which is also their only route on `kde_linux`
   and a pinnable alternative on every other glibc block. Conversely `{ via: native  when: "fedora_atomic" }` is the idiom for "brew has it here":
   it is narrower than any broad binding, so it wins by specificity (§8).
 - **`provides: flatpak`.** Flatpak ships in the image, so an app's `flatpak` driver requirement is
@@ -472,8 +503,9 @@ would join it) feeds `osdetect.is_atomic`, and `app.Context.diagnostics` emits a
 on inspect and the TUI `!` page: atomic routing is new and not hardware-validated; CLI tools go via
 Homebrew, apps via Flatpak, `via: rpm-ostree` is reboot-gated; dev toolchains, the GPU/Vulkan stack,
 docker and AppImages are not managed here (use distrobox, podman or rpm-ostree). Those exclusions
-are routing facts, not just text — e.g. `python-build-deps` has no route there, so the `python3.X`
-components (pyenv-only on this block) are unroutable; and the image ships fuse3 only (brew has no
+are routing facts, not just text — e.g. `python-build-deps` has no route there, so the pyenv driver
+is gated out (§8a) and the `python3.X` components route through their brew formulae
+(`python@3.X`) instead; and the image ships fuse3 only (brew has no
 libfuse2 formula, so `libfuse2` is gated `when: "not fedora_atomic"`), so the appImage driver
 can't work here (the derived gate, §8a) and **AppImage methods are not candidates** — an AppImage-only component
 declines instead of resolving to a brew install that can't exist. Where a brew formula's name differs from
@@ -492,7 +524,7 @@ would loop — while elsewhere the binding requires them for real (they carry no
 Homebrew therefore gets it installed on the first brew-routed op, instead of failing at the driver.
 
 **brew beyond the atomic block.** brew is not only `fedora_atomic`'s native: since the brew sweep,
-~266 components also carry an ordinary `{ via: brew  name: <formula> }` binding (CLI tools,
+~275 components also carry an ordinary `{ via: brew  name: <formula> }` binding (CLI tools,
 toolchains, servers; not libraries, keg-only formulae, or `curl`/`git`), valid on every glibc OS
 through the driver gate (§8a) and ranked just ahead of `tarball` in `DEFAULT_DRIVER_PREFERENCE`.
 On a glibc distro it therefore wins only where nothing ranked above it is valid — it beats
@@ -513,7 +545,7 @@ a "no native package manager" error from a component's bindings (`resolve._drive
 as a backstop); components fall through to whatever non-native methods are valid, and a component
 offered only as a distro package becomes unroutable — a dangling routing status (`stranded`), not
 an error about a missing driver. With no `native:` there is also no native index refresh
-(`app.refresh_native_index` finds no command) and no native reboot check.
+(`cli.refresh.refresh_native_index` finds no command) and no native reboot check.
 
 - **`kde_linux`** (os-release `ID=kde-linux`, aliased in `osdetect._ALIASES` because the `when:`
   DSL has no `-`): KDE's image-based distro, built from Arch packages with pacman removed from the
@@ -565,12 +597,14 @@ artifact (`resolve.resolve_asset`; native-pkg-file also accepts format-then-cpu
 resolve time — a cpu the map doesn't list makes the binding a non-candidate:
 
 ```humon
-{ fastfetch: { suggests: fastfetch-dotfiles  install: [
+{ fastfetch: { suggests: fastfetch-dotfiles  install: [      // abridged from routes.hu
     { via: native-pkg-file  when: "debian"
       version: { github: fastfetch-cli/fastfetch }
       asset: { x86_64: fastfetch-linux-amd64.deb  aarch64: fastfetch-linux-aarch64.deb } }
+    { via: native  when: "(debian >= 13) or (ubuntu >= 26.04)"  repo-component: universe }
     { via: native  when: "rhel"  requires: epel }
-    { via: native  when: "(not debian) and not amzn" } ] } }
+    { via: native  when: "(not debian) and not amzn" }
+    { via: brew } ] } }
 ```
 
 **`cpu-names:` — one glob, each upstream's spelling.** When the artifact is a single `$ARCH` glob
@@ -585,10 +619,13 @@ keys are the cpus upstream ships, so the binding declines elsewhere (`resolve.cp
     lazygit: { install: [
         { via: tarball  cpu-names: { x86_64: x86_64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/lazygit"
           version: { github: jesseduffield/lazygit  strip-v: true  asset: "lazygit_*_Linux_$ARCH.tar.gz" } } ] }
-    julia: { install: [
+    julia: { install: [                     // one release, a tarball per cpu: disjoint cpu-names
         { via: tarball  cpu-names: { x86_64: x86_64 }  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc
           version: { static: 1.13.3 }
-          url: "https://julialang-s3.julialang.org/bin/linux/x64/1.13/julia-1.13.3-linux-x86_64.tar.gz" } ] }   // x86-only
+          url: "https://julialang-s3.julialang.org/bin/linux/x64/1.13/julia-1.13.3-linux-x86_64.tar.gz" }
+        { via: tarball  cpu-names: { aarch64: aarch64 }  installDir: "$CONFIGSYS_APP_DIR/julia"  requires: glibc
+          version: { static: 1.13.3 }
+          url: "https://julialang-s3.julialang.org/bin/linux/aarch64/1.13/julia-1.13.3-linux-aarch64.tar.gz" } ] }
 }
 ```
 
@@ -597,8 +634,10 @@ of string tokens). Prefer it over a `when: "… and cpu: x86_64"` clause for an 
 `when:` clause makes the binding MORE SPECIFIC, so it would start out-ranking broader bindings (an
 ungated flatpak) on x86 — `cpu-names`/cpu-keyed asset maps gate validity without touching
 specificity. Two same-`via:` bindings whose `cpu-names:` key sets are disjoint are never
-ambiguous (routecheck skips the pair). `tools/compaudit.py` flags an x86-only literal with neither
-gate (`arch-unguarded`). In a `source` build command `$ARCH` stays the raw machine cpu.
+ambiguous (routecheck skips the pair), and their cpu sets are part of the merge identity (§10a), so
+the julia twins above are two bindings, not one overriding the other. `tools/compaudit.py` flags an
+x86-only literal with neither gate (`arch-unguarded`). A `source` build command's `$ARCH` expands
+the same way — the binding's `cpu-names:` token, else the raw machine cpu (`drivers/source.Source._sub`).
 
 Call the axis **cpu**, not `arch` — `arch:` collides with Arch Linux.
 
@@ -617,9 +656,13 @@ it (§9).
 (`routecheck.check_component`, raising `AmbiguityError` with a witness context) — never a silent
 tiebreak — because only `when:` can say which variant of one method applies. Pairs of different
 `via:`, and same-`via:` pairs with disjoint `cpu-names:` key sets, are skipped. `routes.load` runs
-the check on every merged component: an offending component from a plugin layer is skipped with a
-warning (never bricks the rest); from the repo or the user's own config it is an attributed
-`ConfigError`. In practice the idiom "one broad default binding + narrower overrides" keeps every
+the check on every merged component: an offending component defined in a plugin's checkout is
+skipped with a warning (never bricks the rest); from the repo or the user's own config it is an
+attributed `ConfigError` — unless a plugin contributed to that component, in which case it is
+rebuilt without the plugin layers' parts and kept, with a warning naming them (a plugin can't
+brick your config through a shared component). The verdict is memoized per process
+(`routes._VALIDATED`, keyed by `_stack_fingerprint`: every layer file's path, role and content hash
+plus the untrusted set), so a stack that already validated cleanly skips the check. In practice the idiom "one broad default binding + narrower overrides" keeps every
 pair comparable by construction.
 
 Bindings of **different `via:`** may overlap freely — that is a component with several valid
@@ -644,18 +687,28 @@ predicate — a pair that overlaps only where a derived gate removes one driver 
 **Checker shape:** decidable and cheap (`predicate._cells`). Enumerate a finite grid: every OS
 block as a possible leaf × each categorical namespace's mentioned values plus an "other" sentinel ×
 each version axis (the OS version, plus any version facet) sampled just below / at / just above
-every boundary the predicates mention. A predicate is then a boolean per cell, and ⊆ / overlap are
-cell-wise compares, so `or`/`not`/versioned atoms all fall out for free.
+every boundary the predicates mention. A derivative line with registered bases (§6) also gets one
+cell per registered release, carrying the bases that release stands for, so a base-scale atom
+(`ubuntu >= 24.04` on Zorin) is judged the way `predicate.Os.eval` reads it; the generic samples
+stay for releases the registry doesn't know. A predicate is then a boolean per cell, and ⊆ / overlap
+are cell-wise compares, so `or`/`not`/versioned atoms all fall out for free. `subset`/`witness`
+answers are memoized by the grid's fingerprint (lineages, scale-roots, registered bases) and each
+`when:`'s normalized text (`predicate._memo`), and persisted across runs in
+`<state>/grid-memo.json` (`predicate.load_memo` / `save_memo`; a cache, never written under
+`--pretend`), so a rebuilt Resolver doesn't recompute the same pairs.
 
 ## 8a. Choosing among valid methods
 
 **The candidate set** (`resolve._matching`, exposed as `candidate_bindings`) is every binding that
 passes all of:
 
-- a **binding-pin** filter, if the component is pinned (§10) — only that `via:` survives;
+- a **binding-pin** filter, if the component is pinned (§10) — only that `via:` survives (a pin
+  naming a via the component has no binding for is a `pin-unrealizable` error);
 - **not a disabled driver** — the machine setting `disabled-drivers:` makes those vias' bindings
-  non-matching, exactly like a false `when:` (a `suggests:` then skips silently; a hard require or
-  a pick errors — classified as `unmet` routing status, docs/stranded-installs.md);
+  non-matching, exactly like a false `when:`, and covers a `via: native` binding whose OS manager
+  it names (`disabled-drivers: [ brew ]` on fedora_atomic; `resolve.disabled_driver`). A
+  `suggests:` then skips silently; a hard require or a pick errors — classified as `unmet` routing
+  status, docs/stranded-installs.md;
 - **not `via: native` on a native-less OS** (§3);
 - **not gated out by its driver** (`resolve.driver_gated`). Two kinds of gate, both applying also
   to a `via: native` binding whose OS manager is that driver:
@@ -666,10 +719,13 @@ passes all of:
     requirements fail, so it terminates; a requirement whose only route is through a gated driver
     fails transitively). It honors your **hard** pins — your config's, and auto-tighten's — but never
     the detection tier's soft ones, so an opt-in stays explicit: `pins: { glibc: gcompat }` makes the
-    appImage driver valid on Alpine. Shipped effects, with no hand-written expression: snap isn't
-    offered where snapd has no method (openSUSE, Void, Alpine, Chimera, atomic, kde_linux, Amazon
-    Linux); appImage isn't offered on musl (no `glibc`) or on fedora_atomic/kde_linux (no
-    `libfuse2` route); pyenv isn't offered where `python-build-deps` has none. The reasons land in
+    appImage driver valid on Alpine. Only an UNMET requirement gates: two equally-ranked providers
+    of a driver's tool (an `AmbiguityError`) leave the driver valid, and each pick through it reports
+    the ambiguity with its fix instead of reading `dangling`. Shipped effects, with no
+    hand-written expression: snap isn't offered where snapd has no method (openSUSE, Void, Alpine,
+    Chimera, atomic, kde_linux, Amazon Linux); appImage isn't offered on musl (no `glibc`) or on
+    fedora_atomic/kde_linux (no `libfuse2` route); pyenv isn't offered where `python-build-deps`
+    has none, nor pip where `python3-pip` has none (fedora_atomic, kde_linux). The reasons land in
     `Context.derived_gates`. Cached per load × context × pins (`Resolver.context()` and both resolve
     entry points use it, so `where`, the picker, detection and resolution see one candidate set).
   - **explicit: a driver-wide `when:`** in its `drivers:` block, for a fact that isn't a
@@ -680,8 +736,16 @@ passes all of:
     an attributed `ConfigError`; an unknown OS name in one is a `check` `unknown-os` warning), and
     `OsCascade.context` evaluates each once per machine into `Context.gated_drivers`, to which
     `gated_context` then adds the derived ones;
+- **not held back by trust** (`trustgate.gated`) — a binding from an untrusted plugin layer is a
+  candidate only when it is a package by name from a trusted registry (an OS package manager,
+  rpm-ostree, flatpak, snap, brew — a driver class with `trusted_registry = True`) and sets none
+  of that driver's `command_fields` nor a `version: { url: }`; everything else waits for
+  `configsys plugin trust` (docs/plugins.md §6);
 - **`arch_ok`** — the cpu is among those a `cpu-names:`/cpu-keyed `asset:` declares (§7);
 - its **`when:`** holds.
+
+`resolve.not_candidate_reason` names, in this same order, why a binding is out — the text `where`
+prints beside each one.
 
 Both gates are **validity only**, like `cpu-names:`: they never enter a binding's match-set, so they
 add no specificity and cannot shift which method is the default where the driver IS valid. That is
@@ -703,7 +767,7 @@ the deciding rule — `configsys where <comp>` prints it):
 1. **`never-auto` filter** — drop candidates whose via is `standing: never-auto` in the `drivers:`
    section (for a `via: native` binding, the block of the OS manager it reaches), or whose binding
    carries `standing: never-auto`, *unless that would leave none* (then
-   they compete normally — e.g. chromium on Ubuntu, snap-only). They stay in the candidate set
+   they compete normally — e.g. flutter on Ubuntu, snap-only). They stay in the candidate set
    (listed, pinnable). One left → it wins (`only ordinary method here`).
 2. **Most specific** — the unique remaining binding whose `when:` ⊆ every other remaining
    binding's (`_most_specific_binding`; `most-specific when:`). If none is (incomparable `when:`s,
@@ -749,6 +813,8 @@ would pass through as inert driver fields — `configsys check` warns `retired-k
   methods (step 3 above); on a component it ranks that component among a capability's auto
   providers (`Component.standing_rank`, `resolve.provider_standing`, §9). On a `drivers:` block an
   integer has no effect.
+- anything else is read as no standing, and `check` warns `bad-standing`
+  (`resolve.standing_problem`).
 
 `never-auto` exists because a validity gate can hijack the default: a method gated narrowly for
 *validity* would be the §8 most-specific candidate and beat a broad `native` binding, even when it
@@ -761,7 +827,8 @@ flatpak to stay default and the `.deb` merely available. On a **component-provid
 non-default of a versioned pair or a caveated shim like gcompat. The `drivers:` section is overlaid
 per driver from every layer (`layers.merge_dict_section(…, layers.ALL_ROLES)`; §10b), so a primary
 plugin can add `flatpak: { standing: never-auto }` for all your machines, or the top config for
-this one only. The merge is per name and then per FIELD (`merge_dict_section` overlays each block's
+this one only. An ordinary plugin can't: its `standing:`/`when:` on a driver a lower layer defined
+are dropped with a `plugin-preference` warning (§10b). The merge is per name and then per FIELD (`merge_dict_section` overlays each block's
 fields), so an override changes only what it sets and keeps the shipped `requires:`/`when:`; a field
 it restates (e.g. a `requires:` list) replaces that field whole. A binding-pin still forces such a method. Because `when:` is
 validity-only, `configsys where <comp>` can show every candidate method, the default, and *which
@@ -784,7 +851,9 @@ for name in wants: add_component(name)
 add_component(name):
     {} / no bindings            -> contributes nothing (removed component)
     binding = _select(...)      // §8a; pins first (a SOFT pin that can't be honored is dropped, §10)
-    via: parts                  -> add_component(each part); no unit of its own
+    via: parts                  -> add_component(each part); no unit of its own. A part with no
+                                   route here is skipped (`part-skipped` notice); every part
+                                   unroutable = an error; a part cycle = a `parts-cycle` error
     driver  = native ? OsCascade.native(block) : via
     component-names drop        -> contributes nothing (§10a)
     unit key "driver\name"      -> reuse if already built (dedup), else build it
@@ -820,16 +889,35 @@ never-auto` (§8a step 1) and for both driver gates — its `when:` and the deri
 every `via: native` binding on a Debian-family box.
 
 `_pick_provider` records the deciding rule per capability (`only provider here` / `standing: N`)
-in `_State.provider_rules`; `Resolver.provider_rules` keeps the last resilient resolve's, and
+in `_State.provider_rules`; `Resolver.provider_rules` keeps the load pipeline's resolve's, and
 `configsys where` prints them on a `providers` line.
 
 **Strict vs resilient.** `resolve`/`resolve_roots` raise on the first failure. The app uses
 `resolve_resilient`: a pick that can't route is recorded (`{root: first error}`) and everything
 else still resolves; `_prune_failed` then drops each unit whose HARD requirement failed, every unit
 that hard-depends on it, and anything only those reached — a parent that merely *suggests* a failed
-unit keeps going without it. `resolve_roots` also returns the unit keys bound directly by the
-named components (a parts aggregator contributes its parts'), which the app applies an op to;
-`propagate_requested` records which picks pulled each dependency.
+unit keeps going without it. A later pick whose own unit went with such a shared failed
+dependency gets its own error row naming the cause ("needs something that can't be installed
+here: …"), never vanishing silently. Every `ResolveError` carries a `kind` (`resolve.KINDS`:
+`unknown`, `no-candidate`, `gated`, `unmet-require`, `ambiguous-providers`, `method-tie`,
+`pin-unrealizable`, `parts-cycle`), so consumers switch on it rather than on message text; the
+config's own (`CONFIG_ERROR_KINDS`: a pin, a preference, a rank) are what `check` reports as
+errors. `resolve_roots` also returns the unit keys bound directly by the named components (a parts
+aggregator contributes its parts'), which the app applies an op to; `propagate_requested` records
+which picks pulled each dependency.
+
+**The Resolver's surface** (`routes.Resolver`). `Resolver.policy` is the machine's whole
+`SelectionPolicy` — pins, `component-names` overrides, driver-preference, the never-auto drivers,
+the disabled ones — handed out together so no caller resolves without one of them.
+`Resolver.select(name, pins=, context=)` → `Selection(binding, candidates, rule)` is the one way to
+ask which method wins here (`unpinned(name)` gives the pins without `name`'s own — what the
+auto-default follows); `resolve_at(names, block, version)` resolves on ANOTHER OS under this
+machine's policy (the request/report coverage matrix). The per-resolve outputs (`tighten_pins`,
+`dropped_soft_pins`, `provider_rules`, `skipped_parts`) are written onto the shared Resolver only by
+the load pipeline's `resolve_resilient(…, record=True)`; every other resolve (a TUI overlay thread,
+a CLI op, a diagnostics helper) leaves them alone and may collect them in an `out=` dict.
+`resolve_resilient(disabled=…)` replaces the disabled drivers for one resolve (`disabled=()`: what
+would route with none disabled — stranded classification).
 
 Key rules:
 
@@ -877,11 +965,15 @@ namespace for both kinds) and sits at the **top of user precedence** — above r
 - A value that names a via — `native`, `parts`, or any registered driver
   (`resolve.pin_via_names`) — is a **binding-pin**; it forces that component's method (test apt vs
   flatpak; control which version-space you're in). Classifying via-first matters when a name is
-  both a via and a component (pyenv, flatpak, clang, cabal); `resolve`, `app._validate_pin` and
-  routecheck all use the same rule.
+  both a via and a component (pyenv, flatpak, clang, cabal); `resolve` (`resolve.binding_pin`),
+  `actions.validate_pin` (behind `configsys pin set` and the TUI picker) and routecheck all use the
+  same rule.
 - Otherwise, a value naming a component is a **provider-pin**: it forces which provider satisfies
   that capability whenever the capability is required (it may name a `never-auto` provider, and
   overrides reuse of an existing resident). A provider-pin on a capability nothing requires is inert.
+  When the key is itself a component as well as a capability (`jdk: jdk-25` — `jdk` is a component
+  and the capability `jdk-25` provides), the pin is a provider-pin for consumers and never a method
+  filter on the `jdk` component itself.
 
 A pin is a **filter**, not a suggestion: it restricts candidates to the pinned one, then
 selection runs on that set. It must be **realizable** here — a binding-pin to a via the component
@@ -889,9 +981,12 @@ has no binding for, or whose bindings are all invalid here (a false `when:`, a d
 gated-out driver), is an error; a provider-pin to a provider that can't bind here (or can't meet the constraint) is an
 error. The tool never silently ignores a pin and never silently falls back.
 
-The app layers two more pin sources per resolve (`Resolver.resolve_resilient`): with the opt-in
-`auto-tighten` setting, **floor** pins (§11, `flooradvise.tighten_pins`), and **detected** soft pins
-(the detection tier, below). Effective precedence:
+The app layers two more pin sources per resolve — the inspect/TUI pipeline through
+`Resolver.resolve_resilient`, CLI ops (`install`/`remove`/`upgrade`/… on named components) through
+`actions.resolve_targets` → `Resolver.resolve_with_roots`, so an op acts on the install the
+component actually has: with the opt-in `auto-tighten` setting, **floor** pins (§11,
+`flooradvise.tighten_pins`), and **detected** soft pins (the detection tier, below). Effective
+precedence:
 
 **user pin > auto-tighten floor pin > detected-installed soft pin > reuse > auto default.**
 
@@ -904,21 +999,24 @@ The app layers two more pin sources per resolve (`Resolver.resolve_resilient`): 
   merge order was once auto-tighten > user pin.)
 - **Detected pins are soft.** Only detected keys that neither you nor auto-tighten pinned are soft
   (`resolve_resilient(soft=…)`). A soft pin is honored when it can be; one that can't — its method
-  isn't valid here (`_State._select_binding`), or its provider fails a version constraint or can't
-  bind (`_State._satisfy`) — is **dropped for that resolution** and normal selection proceeds, never
-  an error. The dropped ones are recorded (`Resolver.dropped_soft_pins`, `{key: why}`), and the app
+  isn't valid here or that method's own hard requirements (its binding's and its driver's) can't be
+  met under your hard pins (`_State._select_binding`, `_method_requires_problem`), or its provider
+  fails a version constraint or can't bind (`_State._satisfy`) — is **dropped for that resolution**
+  and normal selection proceeds, never an error. The dropped ones are recorded (`Resolver.dropped_soft_pins`, `{key: why}`), and the app
   reports "not adopting installed X -> Y: …" at verbose level instead of "adopting installed".
 
 **Detection tier (`adopt-installed`, on by default).** Resolution is otherwise blind to the disk.
 After a first resolve, `detection.detect_pins` probes installed state (one batched
 `installed_index()` per package-manager driver, per-method `get_version` for the rest; no network)
 and proposes soft pins, then the app resolves again with them:
-- **method adoption** — a resolved component installed via a *different* candidate method → pin
-  that via (only for components with more than one candidate via);
+- **method adoption** — a resolved component installed via a *different* candidate method, and
+  not via its resolved one → pin that via (only for components with more than one candidate via;
+  when the resolved method is installed too it is kept, so management never moves off the default);
 - **provider adoption** — a capability provided by a resolved unit whose resolved provider is *not*
   installed while another provider of it *is* → pin that provider (cuda-toolkit-11 vs -12).
 
-User-pinned components/capabilities are left alone. It is skipped under `--pretend` and returns
+User-pinned components/capabilities are left alone. `adopt-installed: false` turns the tier off. It
+is skipped under `--pretend` and returns
 nothing on a fresh machine, so resolution there is byte-identical (the golden never runs it — it
 lives in the app pipeline, not the pure `Resolver`).
 
@@ -927,12 +1025,17 @@ lives in the app pipeline, not the pure `Resolver`).
 **Component merge.** Every layer (repo < plugins < primary < user, includes below their includer)
 may define `components:`; `routes._merge_component_chain` merges a component's definitions
 **additively**, lowest first:
-- `install:` bindings union keyed by **(via, `when:` text as written, stripped)**: a higher binding
-  with the same identity overrides the lower; a new identity adds a method; a binding with
-  `drop: true` and a matching identity retracts the inherited one;
+- `install:` bindings union keyed by **(via, `when:` text as written, stripped, the cpus it covers)**
+  (`routes._binding_identity`; the cpus are its `cpu-names:` keys or a cpu-keyed `asset:`'s, else
+  none): a higher binding with the same identity overrides the lower; one that names no cpus speaks
+  for every same (via, `when:`) binding below it, so it overrides (or `drop:`s) all the per-cpu
+  twins at once; a new identity adds a method; a binding with `drop: true` and a matching identity
+  retracts the inherited one;
 - `provides`/`requires`/`suggests`/`parts`/`standing`/`description` override per field (a layer
   that omits one keeps the lower); `attrs` union;
-- an empty spec `{}` is a tombstone that clears everything below (whole-component removal).
+- an empty spec `{}` is a tombstone that clears everything below (whole-component removal); a
+  scalar (`foo: bar`) is a load error, never a silent tombstone (from a plugin that layer is left
+  out of the component, with a warning).
 
 ```humon
 { components: { steam: { install: [ { via: native  when: "pop_os!"  drop: true } ] } } }
@@ -960,7 +1063,9 @@ the common "docker is `docker` under xbps" case — driver-keyed, not tied to a 
 It overlays across the whole layer stack, later wins per `(driver, component)`
 (`layers.merge_name_overrides`), and applies during resolution *after* the binding + driver are
 chosen (`resolve._name_override`): a string replaces the resolved package name; `{}` drops the unit
-as a silent no-op (not offered, never an error row — exactly like a `{}`-removed component). It is
+as a silent no-op (not offered, never an error row — exactly like a `{}`-removed component), and
+like one it can't satisfy a HARD requirement (`_State._is_bindable`: a dropped provider isn't
+viable, so the requirer pulls another or errors). It is
 **driver-keyed**, so it expresses cross-driver name facts (a plugin distro's package names) but
 deliberately does *not* address same-driver splits like Ubuntu-vs-Debian `perf` (both `apt`) —
 those remain `when:` splits. The configsys-void example plugin uses it to supply xbps names for core
@@ -973,10 +1078,11 @@ Every layer — repo, plugins, the primary plugin, the top config, and any file 
 `include:`s — may **define** things: `components:`, `profiles:`, `os:`, `drivers:`,
 `component-names:`, `version-floors:`, plus the cosmetic `theme:`/`keys:` (facet probe specs are
 definitions too, but still need plugin trust, §5 / docs/facets.md). Only the top config and the
-primary plugin may **set machine settings** (`layers.MACHINE_SETTING_SECTIONS` ∪ the top-level keys
-of `actions.CONFIG_SETTINGS`, via `layers.machine_setting_sections()`; read from the repo/primary/user
-roles, `config._MACHINE_ROLES`). An include or an ordinary plugin that sets one is ignored, and
-`layers.ignored_section_warnings` turns that into a `check` / `!` warning rather than a silent drop.
+primary plugin may **set machine settings** (the sections of the settings registry,
+`settings.SETTINGS` → `layers.MACHINE_SETTING_SECTIONS` / `layers.machine_setting_sections()`; read
+from the repo/primary/user roles, `config._MACHINE_ROLES`). An include or an ordinary plugin that
+sets one is ignored (`layers._forbidden_by_role`), and `layers.ignored_section_warnings` turns that
+into a `check` / `!` warning rather than a silent drop.
 
 Why the line falls there: a definition only *offers* something (a method, a block, a browse lens),
 and the machine's own picks and pins still decide what happens, so anyone may contribute one. A
@@ -990,15 +1096,23 @@ machine setting *decides*, so a shared plugin must not seize it unless the top c
   overlays the lower layer's block of that name field by field (a restated field replaces that
   field whole). (History: includes were once definitions-only *minus*
   `os:`/`drivers:`, and the top config's were ignored.)
+- **Preference knobs stay yours.** An ordinary (non-primary) plugin may define an os block or a
+  driver and set anything on it, but on one a lower layer outside that plugin already defined, its
+  preference knobs — an os block's `driver-preference:`, a driver's `standing:` and `when:` (which
+  act like `disabled-drivers:`) — are removed before the merge (`routes._plugin_knobs_ignored`,
+  `_PLUGIN_KNOBS`) and `check` / `!` warn `plugin-preference`. The primary and the top config keep
+  theirs.
 - User-authored `profiles:` are valid again — browse categories only; the install set is still
   `picks:`.
 - Retired top-level keys always warn (`layers._RETIRED_TOP_KEYS`: `configs:`, `machines:`,
-  `orphans-adopt-target:`), as does an unrecognized one (`last-refresh:` is no longer accepted
+  `orphans-adopt-target:`, `discover:`, `ignore-profiles:`), as does an unrecognized one (`last-refresh:` is no longer accepted
   silently — the refresh stamp lives in the state directory). The retired preference keys on
   bindings and `drivers:` blocks are §8a's `retired-key` warning.
 - An include's `~` expands against the configsys home (`Paths.home`: `--home` / `CONFIGSYS_HOME`,
-  via `layers.set_include_home`), not the real `$HOME`, so a sandboxed run reads the sandbox's
-  includes.
+  passed down as `routes.load(home=)` → `layers.expand_tolerant(home=)`), not the real `$HOME`, so
+  a sandboxed run reads the sandbox's includes. An include of a root layer (the top config, the
+  primary, the repo files) is ignored with a warning — it would demote that file below its
+  includer — and a plugin's includes must stay inside its own checkout.
 
 ## 11. Tool-version vs OS-version, and versioned capabilities
 
@@ -1042,9 +1156,11 @@ Resolution with a constraint (`_State._satisfy_constrained`):
 The `version-floors:` section (`{ <component>: { <cap>: "<constraint>" } }`, overlaid across layers
 by `layers.merge_version_floors`) patches floors onto existing components without redefining them;
 it only tightens a requirement the component (or one of its bindings) already has, never creates
-one. `configsys check` warns `unsatisfiable-constraint` when every provider declares a concrete
-version and none meets a constraint, and flags provider-pins that conflict with a consumer's
-constraint. Details: docs/versioned-requires.md.
+one, and acts exactly like a floor written in place, at component and binding level alike
+(`routes._apply_version_floors`). `configsys check` warns `unsatisfiable-constraint` when every
+provider declares a concrete version and none meets a constraint, flags provider-pins that conflict
+with a consumer's constraint, and errors `bad-constraint` on a constraint whose operand doesn't
+parse (`>=3.1x` — at resolve time it abstains, so it is never met). Details: docs/versioned-requires.md.
 
 ## 12. What the old constructs became (history)
 
@@ -1055,7 +1171,7 @@ are now deleted) onto the capability model.
 | --- | --- |
 | `\apt btop {name: btop}` (×3 families) | `btop: { install: [ { via: native } ] }` |
 | `*: apt\*` wildcard | `debian: { native: apt }` |
-| family `!depends` (e.g. `\appImage !depends libfuse2`) | per-driver config: `drivers: { appImage: { requires: [ libfuse2, glibc ] } }` |
+| family `!depends` (e.g. `\appImage !depends libfuse2`) | per-driver config: `drivers: { appImage: { requires: [ libfuse2, glibc, curl ] } }` |
 | OS-route `chrome: flatpak\chrome` | a binding in the `chrome` component |
 | version variant `"ubuntu@<23.04"` | a `when:` on a binding |
 | `\app` method selection (neovim, steam) | the general case — every component works this way |
@@ -1065,8 +1181,9 @@ are now deleted) onto the capability model.
 ## 13. Open questions
 
 - **Sugar** for the trivial single-binding component (a bare `btop: { via: native }` or string
-  form) — never built; a component must spell `install: [ { via: native } ]` (~44 do exactly that),
-  and `via:` at component level is rejected as an unknown key. Still a live decision: add the sugar
+  form) — never built; a component must spell `install: [ { via: native } ]` (~40 are one
+  unconditional native binding, most with a `name:` map), and `via:` at component level is
+  rejected as an unknown key. Still a live decision: add the sugar
   or leave it explicit. (The one shorthand that did ship is for bundles: component-level `parts:`
   with no `install:`, §3.)
 

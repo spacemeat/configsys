@@ -1,20 +1,18 @@
 '''profiles.py — the Profiles browse/matrix screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), after the Plugins / Config /
-Dotfiles / Glue pattern-setters. The model is the existing `menu.ProfileScreen` (profile tree +
-component catalog + matrix state, the overlay/probe machinery), composed unchanged; this adds the
-three MVVM seams:
+The model is `panes.ProfileScreen` (profile tree + component catalog + matrix state, the
+overlay/probe machinery), composed as `self.model`; this adds the three MVVM seams
+(docs/tui-architecture.md):
 
 - build_vm: the whole frame from the model + the frame size (review-2026-11-2 D7) — the panel
   geometry, the profile tree's visible rows (text, `~` attribution, badges), the detail box's lines
   and the catalog matrix's column spec + visible rows as positioned cells. It reads `self.model.ctx`
-  (a sample overlay ctx — menu._sample_profiles_state — is honoured), runs the overlay fold and the
+  (a sample overlay ctx — preview._sample_profiles_state — is honoured), runs the overlay fold and the
   coverage hint, and settles the scroll offsets (applied by commit).
 - draw: paints that VM — palette concerns only (the selection fill, the dim bar of an unfocused
   cursor, reverse video on a low-colour terminal).
-- handle: the former `if screen == 'profiles'` dispatch, returning an Intent (note / dirty /
-  pending_notes / open_where) instead of mutating loop-scope locals. The `machine-target` branch,
-  which REBOUND the loop's `ps`, rebinds `self.model` internally.
+- handle: one key, returning an Intent (note / dirty / pending_notes / open_where) for the router.
+  The `machine-target` branch updates the model's target set and reloads it in place.
 '''
 
 import curses
@@ -150,7 +148,7 @@ class ProfilesScreen(Screen):
             vm.cur_oses_pending = cur if oses is None else None
 
         vm.top, vm.body_h = 1, max(1, h - 5)             # TWO status/legend rows, then TWO nav rows below
-        vm.lw = max(16, w // 6) + 6                      # profiles pane: narrow, leaving the grid room
+        vm.lw = max(16, w // 6) + 6                      # profiles pane: narrow, leaving the matrix room
         rw = w - vm.lw - 1
         vm.desc_h = 8 if vm.body_h >= 13 else 0          # one extra inner row for the "needs" line
         self._left_vm(vm, ps, mctx, vm.body_h - 2, vm.lw - 2)
@@ -462,13 +460,13 @@ class ProfilesScreen(Screen):
 
     def _redraw(self, stdscr, pal, note):
         '''The modal redraw callback (filter/find edits) — re-render THIS screen so the modal paints
-        over a current frame (no dependency on the legacy painter).'''
+        over a current frame.'''
         self.render(stdscr, pal, self.model.ctx, note)
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model, runs the modals, returns an Intent(note, dirty, pending_notes,
-        open_where). Ported verbatim from the former profiles dispatch; the `machine-target` branch
-        rebuilds the model (as the loop used to rebind `ps`) and swaps it in as self.model.'''
+        open_where). The `machine-target` branch sets the model's target machines and reloads it in
+        place (expansion, filters, overlay and warm caches survive).'''
         from ... import actions
         ps = self.model
         km = menu._keymap()
@@ -718,7 +716,7 @@ class ProfilesScreen(Screen):
                     where_lines = where_profile_report(ctx, _wp) or [f'{_wp}: nothing to show']
                     open_where = (where_lines, _wp)
         elif pfact == 'select' and ps.focus == 'right':
-            vcat = ps.vcatalog()               # `space`: build the multi-select set (A/I/S/X batch)
+            vcat = ps.vcatalog()               # `space`: build the multi-select set (the T/S/I/x batch)
             if vcat:
                 nm = vcat[ps.rcur]
                 ps.selected_comps ^= {nm}

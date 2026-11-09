@@ -10,7 +10,8 @@ executables — it misses hlint et al.) cabal has no native uninstall for execut
 removal deletes the binary; and no native version lock, so lock intent lives in the ledger.
 
 The cabal tool is the driver `requires: cabal`, satisfied by the `cabal` component
-(which pulls ghc). Command syntax confirmed against cabal-install 3.8.1.
+(which requires `haskell`, the GHC toolchain). Command syntax confirmed against
+cabal-install 3.8.1; the ~/.local/bin layout of 3.10+ is probed alongside ~/.cabal/bin.
 '''
 
 import re
@@ -47,7 +48,8 @@ class Cabal(ModuleDriver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        # resolve the ~/.cabal/bin/<exe> symlink; the store path it points at carries the version.
+        # resolve the ~/.cabal/bin/<exe> symlink (else a ~/.local/bin/<exe> one into a cabal store);
+        # the store path it points at carries the version.
         # `readlink -e` requires the whole chain to EXIST (empty for an absent/broken link) — unlike
         # `-f`, which prints the path even when the final component is missing (false "installed").
         exe = shlex.quote(self._exe(rc))

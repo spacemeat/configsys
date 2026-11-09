@@ -151,8 +151,8 @@ class Apt(NativePkgManager):
     def ensure_prereqs(self, rc):
         '''System setup a component needs before it can install, declared on its
         route: extra CPU architectures to enable (`foreign-arch`, e.g. i386 for
-        Steam), archive components (`repo-component`), and third-party signing key +
-        source list (`pubkey-*`/`source-*`). Idempotent — each step is skipped when
+        Steam), archive components (`repo-component`), Launchpad PPAs (`ppa`), a third-party
+        signing key + source list (`pubkey-*`/`source-*`), and debconf preseeds (`debconf`). Idempotent — each step is skipped when
         already satisfied. Returns None normally, or a classified failing Result if a
         setup step failed or a vendor repo could not be verified (so install/upgrade abort
         cleanly).'''
@@ -210,7 +210,8 @@ class Apt(NativePkgManager):
         # `source-line`: an inline `deb ...` line written to source-path (for vendor repos
         # like Microsoft's that ship no downloadable .list — you echo the line yourself).
         # `$CODENAME` in the line is resolved on the target from /etc/os-release (UBUNTU_CODENAME
-        # first — set on Ubuntu + derivatives like Pop!_OS/Mint — else VERSION_CODENAME), so a
+        # first — set on Ubuntu + derivatives like Pop!_OS/Mint — then DEBIAN_CODENAME, which a
+        # Debian derivative sets, else VERSION_CODENAME), so a
         # codename-specific vendor repo (e.g. MongoDB's ubuntu/<codename>) works on any release
         # rather than a single hardcoded suite. Same mechanism the clang/gcc AltDriver uses.
         src_line = f.get('source-line')
@@ -452,8 +453,8 @@ class Apt(NativePkgManager):
 
     # _pkg_list / _pkgs (the whole `packages:` set, quoted) are inherited from NativePkgManager.
 
-    # install/uninstall/upgrade come from the NativePkgManager templates + ENV + the multi-package
-    # _pkgs override above (install/upgrade run ensure_prereqs first). set_version is apt-specific.
+    # install/uninstall/upgrade come from the NativePkgManager templates + ENV + the inherited
+    # multi-package _pkgs (install/upgrade run ensure_prereqs first). set_version is apt-specific.
     def set_version(self, rc, version):
         pre = self.ensure_prereqs(rc)
         if pre is not None:

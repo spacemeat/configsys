@@ -1,16 +1,20 @@
-'''plugins.py — the plugin subsystem (P1: data plugins + sync).
+'''plugins.py — the plugin subsystem: declaration, sync, data layers, code loading and trust.
 
-A plugin is a git repo synced to ~/.config/configsys/plugins/<name>/, contributing DATA
-layers (os / components / profiles) to the stack — precedence repo < plugins <
-user. The user declares plugins in their config; `configsys plugin sync` reconciles the
+A plugin is a git repo (or another registered transport's source) synced to
+~/.config/configsys/plugins/<name>/, contributing DATA layers (os / components / profiles /
+drivers …) to the stack — precedence repo < plugins < primary < the top config. The user declares
+plugins in their config (a primary plugin's manifest may declare more, transitively); `configsys plugin sync` reconciles the
 plugins dir to pinned refs. Loading uses whatever is already on disk (sync is separate), so a
 declared-but-unsynced or incompatible plugin is simply absent — its components then surface as
 resilient error rows, never a brick.
 
 This module is also the FROZEN PLUGIN SURFACE: it re-exports `Driver` + `register_driver` and
 owns `ABI_VERSION`/`ABI_SUPPORTED` (the manifest gates on it), so a code plugin imports
-everything from one place. P2b/P2c will add trusted loading of those Driver subclasses + the
-trust model, and further `register_*` hooks. See docs/plugins.md.
+everything from one place. A plugin's `code:` module is imported (`load_code`) only when its
+exact content is trusted (`plugin_identity` / the trust store), and an untrusted plugin's
+command-carrying DATA is gated the same way (`command_source_trusted`, trustgate.py); plugin
+locks, the primary's trust mode and the surgical config writers (`set_section` …) live here too.
+See docs/plugins.md.
 '''
 
 import hashlib
@@ -54,7 +58,7 @@ ABI_SUPPORTED = frozenset({1})
 # lock). The parallel hooks `register_version_source(name, fn)` (a new `version: { <name>: }`
 # backend), `register_transport(scheme, fn)` (a new `source:` sync scheme), and `register_splash`
 # (a startup wait-screen animation — a plugin subclasses `Splash` and exports `SPLASHES = [cls]`,
-# see configsys/splashes.py) let a plugin extend discovery, sync, and the splash too — all gated
+# see configsys/splashes.py) let a plugin extend version discovery, sync, and the splash too — all gated
 # the same way (only trusted plugin code ever calls them). Everything re-exported here is
 # ABI-stable within a given ABI_VERSION; the underscore members of Driver are internal and may
 # change without a bump.
@@ -1196,8 +1200,8 @@ def set_dispositions(config_file, disp):
 
 
 def read_picks(config_file):
-    '''`{machine: [component, ...]}` from ONE .hu file's `picks:` node, or {} — the v3 matrix model's
-    per-machine Included sets (a machine installs exactly the components picked for it). Same shape as
+    '''`{machine: [component, ...]}` from ONE .hu file's `picks:` node, or {} — each machine's picks
+    (a machine installs exactly the components picked for it). Same shape as
     `profiles:` (name -> list), but values are plain component names.'''
     pk = _read_top(config_file, 'picks', 'dict')
     # a scalar is a one-pick list (`laptop: btop` == `laptop: [ btop ]`), as Config.picks reads it
@@ -1373,8 +1377,8 @@ def _import_module(pdir, manifest):
 
 def _import_drivers(pdir, manifest):
     '''Import the plugin's code module and return its `DRIVERS` list (the explicit registration
-    export). Raises if the module defines no DRIVERS. (A splash-only plugin uses SPLASHES instead;
-    load_code reads both — this stays for the driver-plugin path and its tests.)'''
+    export). Raises if the module defines no DRIVERS. (load_code reads DRIVERS and SPLASHES itself;
+    this helper is what test/test_example_plugin.py imports the example plugin's drivers with.)'''
     exported = getattr(_import_module(pdir, manifest), 'DRIVERS', None)
     if exported is None:
         raise AttributeError('module defines no DRIVERS = [ ... ] export')
@@ -1393,16 +1397,17 @@ def _collect_reg_conflicts(out, kind, owners, builtins, builtin_note):
 
 
 def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
-    '''Import + register the drivers of each declared plugin that is synced, ABI-compatible,
-    ships code, AND is trusted at its CURRENT on-disk content. `register` is register_driver
-    (injected to keep this testable and cycle-free). Returns (loaded, skipped): loaded =
-    [(dir_name, [driver_name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
+    '''Import each declared plugin that is synced, ABI-compatible, ships code, passes its declared
+    sha256 AND is trusted at its CURRENT on-disk content, and register its `DRIVERS` (through
+    `register` — register_driver, injected to keep this testable and cycle-free) and `SPLASHES`
+    (register_splash); its import may also call register_version_source / register_transport.
+    Returns (loaded, skipped): loaded = [(dir_name, [driver / splash name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
     ships code but was gated out (untrusted / changed / incompatible / broken). Never raises —
     a plugin that can't load is skipped, and its `via:` simply stays unknown (degrades).
 
     If `conflicts` (a list) is given, code-level REGISTRATION collisions are appended to it: two
-    plugins registering the same version-source / transport (last loaded wins), or one shadowing
-    a built-in. These are observable only by running the code, so they can't be found
+    plugins registering the same version-source / transport / splash, or one shadowing a built-in
+    (a built-in version source wins; a splash is last-loaded-wins). These are observable only by running the code, so they can't be found
     declaratively — driver-name conflicts, which can, are left to declared_conflicts.'''
     loaded, skipped = [], []
     src_owners, tr_owners, spl_owners = {}, {}, {}   # registered name/scheme -> [plugin keys]
@@ -1758,8 +1763,8 @@ def unsigned_commits(runner, dq, since, target):
 
 
 def _git_transport(runner, dest, source, ref, *, follow_default=False, verify=False):
-    '''The built-in transport: clone/fetch a git repo to `dest`, then detach at `ref` as it is on
-    the remote now (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
+    '''The built-in transport: clone/fetch a git repo to `dest`, then check out `ref` as it is on
+    the remote now — a tag/commit detached, a branch attached and fast-forwarded (see _git_checkout). `fetch --force` so a re-pointed tag updates; a failed
     checkout is reported as 'failed', not silently 'updated'. A locally-authored plugin (source ==
     its own dir) is 'local' — untouched. Fetches run NON-INTERACTIVELY (never prompt for
     credentials — a bad/private source fails fast). `follow_default` (a primary): no ref = the

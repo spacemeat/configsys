@@ -5,19 +5,26 @@ Grammar (recursive descent):
     or_expr  := and_expr ('or' and_expr)*
     and_expr := not_expr ('and' not_expr)*
     not_expr := 'not' not_expr | atom
-    atom     := '(' expr ')' | cpu_atom | os_atom
-    cpu_atom := 'cpu' ':' (IDENT | '[' IDENT (','? IDENT)* ']')
-    os_atom  := IDENT [ CMP VERSION ]          # bare OS (subtree) or versioned (scale-bound)
+    atom     := '(' expr ')' | cat_atom | name_atom
+    cat_atom := IDENT ':' (IDENT | '[' IDENT (','? IDENT)* ']')   # cpu:x86_64, or a facet gpu:nvidia
+    name_atom:= IDENT [ CMP VERSION ]          # an OS block (bare or versioned) or a version facet
+    CMP      := < <= > >= = ==                 # IDENT may end in `!` (pop_os!)
 
-Semantics against a Context ⟨lineage, version, cpu, scale-roots⟩:
+Semantics against a Context ⟨lineage, version, cpu, scale-roots, facets, base versions⟩:
   * bare OS atom      -> the block is in the system's lineage (subtree membership)
   * versioned OS atom -> in lineage AND the atom's scale-root == the system's scale-root
-                         (so `debian < 12` never matches Pop, which is on ubuntu's scale)
-  * cpu atom          -> the system cpu is in the set
+                         (so `debian < 12` never matches Pop, which is on ubuntu's scale) — or,
+                         on a foreign scale, the registered base release this machine counts as
+                         (a derivative's `releases:` `base:`, OsCascade.bases_of: Zorin 18 is
+                         ubuntu 24.04 for `ubuntu >= 24.04`)
+  * versioned atom naming no OS block in the lineage but a detected version facet (`cuda >= 12`)
+                      -> compares the facet's version; an absent facet never matches
+  * categorical atom  -> the machine's tag-set for that namespace (cpu, or a categorical facet)
+                         intersects the listed values
 
-Evaluation is general over `and`/`or`/`not`. Specificity is set-inclusion over a per-dimension
-"box"; the grid-based ambiguity checker handles the full boolean case (`or`/`not` included), so
-negation is not restricted to OS atoms.
+Evaluation is general over `and`/`or`/`not`. Specificity is set inclusion of match-sets, decided
+on a finite grid of possible machines (subset / overlap / witness below), which handles the full
+boolean case (`or`/`not` included), so negation is not restricted to OS atoms.
 '''
 
 import itertools
@@ -136,8 +143,10 @@ def os_atoms(pred):
 # -- context --------------------------------------------------------------
 
 class Context:
-    '''A machine: OS lineage (leaf-first, from the cascade), version, cpu, and which
-    blocks are version scale-roots.'''
+    '''A machine: OS lineage (leaf-first, from the cascade), version, cpu, which blocks are version
+    scale-roots, detected facets, registered base versions, disabled drivers and whether the OS has
+    a native manager. OsCascade.context builds one and adds `native_driver`, `gated_drivers` and
+    `untrusted_sources`; resolve.gated_context adds the derived gates (`derived_gates`).'''
 
     def __init__(self, lineage, version=None, cpu=None, scale_roots=(),
                  facets_cat=None, facets_ver=None, disabled=(), has_native=True, base_versions=None):
@@ -400,8 +409,9 @@ def _holds(pred, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assig
 
 def _cells(preds, cascade):
     '''Yield (lineage, sroot, blocks, cat_assign, ver_assign) for every fully-concrete grid cell:
-       OS-leaf × each categorical dim's values × each version axis's samples. With no facets the
-       product collapses to the old OS×cpu×OS-version grid, so existing behavior is unchanged.'''
+       OS-leaf × each categorical dim's values × each version axis's samples (plus, on a derivative
+       line with registered bases, one cell per registered release). With no facets the product is
+       the plain OS×cpu×OS-version grid.'''
     cat_dims, vaxes = _collect(preds, cascade)
     blocks = set(cascade.blocks)
     cat_names = sorted(cat_dims)

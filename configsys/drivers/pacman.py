@@ -1,4 +1,4 @@
-'''pacman.py — the Arch driver (Arch, Manjaro, SteamOS).
+'''pacman.py — the Arch driver (Arch and its `using: arch` blocks: Manjaro, EndeavourOS, CachyOS).
 
 Native packages via pacman. Arch is a rolling release — there is one version (the
 current repo version), and a real upgrade is system-wide (`pacman -Syu`). There is no
@@ -7,7 +7,7 @@ here (holds_version=False) rather than recording an intent a `pacman -Syu` would
 holding one package back is an unsupported partial upgrade.
 
 Install uses the current sync db (deliberately no `-y`): keep it fresh with a full
-`pacman -Syu` yourself, the Arch way — a bare `pacman -Sy <pkg>` partial upgrade is
+`pacman -Syu`, the Arch way (`configsys refresh` offers one, after asking) — a bare `pacman -Sy <pkg>` partial upgrade is
 the classic breakage. Query ops (-Q/-Si) need no root; mutations run under sudo.
 '''
 

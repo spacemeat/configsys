@@ -1,8 +1,9 @@
 '''configsys.tui — interactive curses front-end.
 
-`run(ctx)` is the entry the app calls for the default (no-subcommand) invocation.
-The stageable interaction logic lives in MenuState (pure, unit-tested); the curses
-rendering/loop is a thin view over it.
+`run(ctx)` (menu.run, the router) is the entry the app calls for the default (no-subcommand)
+invocation. Each screen is a `Screen` (screens/: build_vm / draw / handle) over a state model
+(models.MenuState for Components; panes / preview for the rest), painting through a Surface
+(docs/tui-architecture.md).
 '''
 
 from .menu import run

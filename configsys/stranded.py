@@ -10,8 +10,9 @@ routing state, shown as a status distinct from `outdated`:
 
   switch   — installed via a method that isn't a candidate here any more (removed from routes,
              gated out, or its driver disabled) while another valid method exists. NOT staged
-             automatically (no surprises): the TUI shows the status, `v` repins, and the existing
-             method-switch swap (installState.plan_with_swaps) removes the stranded install.
+             automatically (no surprises): the TUI shows the status; installing it (`i`, after `v`
+             to choose another method if you like) runs the method-switch swap
+             (installState.plan_with_swaps), which removes the stranded install.
   unmet    — no install method enabled, but one would be valid if a `disabled-drivers:` driver
              were on (directly, or somewhere in its requires-closure). Not dangling.
   dangling — no install method valid on this OS at all. Never staged for removal: an existing
@@ -20,9 +21,10 @@ routing state, shown as a status distinct from `outdated`:
 Where a stranded install is found, in order:
   1. receipts — the ledger's record of the units configsys installed (exact; survives the binding's
      removal, and carries the fields the driver needs to remove it).
-  2. bindings not valid here — a `when:`/cpu-gated or disabled-driver binding still in routes.
-     `native` bindings are skipped: a gated native binding describes ANOTHER OS's package and would
-     only map onto this OS's manager by accident.
+  2. bindings not valid here — a `when:`/cpu-gated, derived-gated or disabled-driver binding still
+     in routes (not one whose driver an explicit `drivers:` `when:` gates out here: it can't have
+     installed anything on this machine). `native` bindings are skipped: a gated native binding
+     describes ANOTHER OS's package and would only map onto this OS's manager by accident.
   3. the AUR heuristic — a foreign pacman package (`pacman -Qm`) named <comp> or <comp>-<variant>
      (-bin/-git/-appimage/…) with no receipt: AUR installs from before receipts existed, whose
      binding has since been removed.

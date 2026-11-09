@@ -30,28 +30,39 @@ def _unskip(w):
 
 USER_CONFIG_TEMPLATE = '''{
     // configsys — this machine's settings and overrides. Overlays the repo's
-    // config.hu + routes.hu section by section (your definitions win).
+    // config.hu + routes.hu (and your plugins) section by section; what you set here wins.
+    // Every section is optional: uncomment what you need. `configsys config show` lists every
+    // setting with its value and where it lives, `configsys check` checks this file, and
+    // docs/config-format.md (configsys.hu(5)) is the full reference.
 
     // Pull in other files. An included file may define anything this file can (components,
     // profiles, os/drivers blocks); only machine settings like picks:, pins: and scope: are
-    // ignored there. Relative paths resolve against THIS file's directory.
+    // ignored there. Relative paths resolve against THIS file's directory; `~` is your home.
     // include: [ ~/src/myproject/configsys.hu ]
 
-    // Data plugins from git repos, pinned to a ref, then `configsys plugin sync`. A
-    // github:/gitlab: source has a colon so it must be quoted.
+    // Plugins: components, profiles and OS support from a git repo (or a local dir), pinned to a
+    // ref; `configsys plugin add <source>` adds one and `configsys plugin sync` fetches them. A
+    // github:/gitlab: source contains a colon, so quote it. Your primary plugin — your own config
+    // as a plugin, which travels to your other machines — is the entry `configsys plugin bless
+    // <source>` marks as primary.
     // plugins: [ { source: "github:someone/configsys-opensuse"  ref: v1.2.0 } ]
 
-    // The install set is per-machine `picks:` — the components tracked on this box. Browse the
-    // shipped profile catalog in the TUI (or `configsys profile list`) and track what you want;
-    // edits land here. A one-machine user can omit the machine key (defaults to `this-machine`).
+    // What each machine installs is its `picks:` — one component list per machine. `machine:`
+    // names which list is this box (unset = `this-machine`, fine if you have one machine). Browse
+    // the profiles in the TUI (or `configsys profile list`) and track what you want, or use
+    // `configsys picks add <component>`; edits land in your primary plugin when you have one,
+    // else here.
     // picks: { this-machine: [ btop  ripgrep  neovim ] }
 
-    // Machine-wide default install scope for scope-honoring drivers (user | system).
+    // Default install scope for the drivers that can install either way (appImage, flatpak,
+    // tarball, font, source, npm, gem, luarocks): user (~, the default when unset) or system
+    // (/opt, needs sudo).
     // scope: system
 
-    // Pins — the light way to reroute without redefining a component:
-    //   component -> driver  (binding-pin: force a method)
-    //   capability -> component  (provider-pin: force who satisfies a requirement)
+    // Pins — the light way to reroute without redefining a component (`configsys pin set`):
+    //   component -> via  (binding-pin: force an install method)
+    //   capability -> component  (provider-pin: force which component satisfies a requirement)
+    // `configsys where <component>` shows every method it has here and which one wins.
     // pins: {
     //     steam: flatpak
     // }
@@ -76,13 +87,14 @@ USER_CONFIG_TEMPLATE = '''{
     // }
 
     // Your own browse categories (they never install anything — `picks:` does). A profile is a
-    // list of components and `+other-profile` includes; same name as a shipped one replaces it,
-    // and `+<its own name>` first amends it instead.
+    // list of components, `+other-profile` includes and `~name` removes, applied left to right.
+    // Reusing a shipped profile's name replaces it; a `+<its own name>` term amends it instead.
     // profiles: { my-favorites: [ btop  ripgrep  +file-browsers ] }
 
     // Override component routes: bindings merge ADDITIVELY — add an install method (or your
     // own component), override a binding by its (via, when), `drop:` one, or {} to remove the
-    // whole component. To just pick an existing method, prefer a pin (above). See routes.hu.
+    // whole component. To just pick an existing method, prefer a pin (above). See
+    // docs/config-format.md ("Overriding a component") and the repo's routes.hu for examples.
     // components: {
     //     my-cli: { install: [ { via: native } ] }              // add your own
     //     steam:  { install: [ { via: native  when: "pop_os!"  drop: true } ] }  // drop a binding
@@ -336,7 +348,7 @@ class Context:
         self.plugin_pending_vias = pending
 
     def _resolver(self, block):
-        # layer stack: routes.hu < plugin data files < ~/configsys.hu (components overlay + pins).
+        # layer stack: routes.hu < plugin data files < primary < the top config (configsys.hu).
         # A malformed plugin file is skipped, not fatal.
         self.ensure_plugin_code()     # register trusted plugin drivers before `via:` resolves
         from . import predicate
@@ -410,10 +422,11 @@ class Context:
         return self._config
 
     def invalidate(self):
-        '''Drop cached state so the next access rebuilds it — after an in-process write. Config
-        edits (a pin, a profile toggle) need only the config reread; a plugin add/sync/trust also
-        changes what's on disk, so we also drop the plugin data-file layer and the once-only code
-        load. That way newly-available components, install methods, and plugin DRIVERS (e.g.
+        '''Drop ALL cached state so the next access rebuilds it — after an in-process write to
+        anything the Resolver reads (a pin, a component/route edit) or to what's on disk (a plugin
+        add/sync/trust): the merged Config, the cached Resolver, the plugin data-file layer and the
+        once-only code load. (An edit to a section the Resolver never reads uses the cheaper
+        `invalidate_config`.) That way newly-available components, install methods, and plugin DRIVERS (e.g.
         opencv-build) show up across the TUI without a restart — dropping the cached Resolver forces
         the next `routes` access to rebuild it from the new layers + drivers.
         Cheap: for the common no-plugin case the code reload loops over nothing.'''
@@ -446,9 +459,10 @@ class Context:
 
     def apply_locations(self, units):
         '''Stamp the per-component install-location override (config `locations:`) onto matching
-        units as the reserved `location` field, so a path-based driver finds/manages the install
-        where the user put it. Keyed by component name; a route field named `location` is left
-        alone (the config override only fills, never clobbers an explicit binding value).'''
+        units as the reserved `location-override` field (`Driver.location_override` — a distinct
+        key, since `location` is an authored display field on the source/script drivers), so a
+        path-based driver finds/manages the install where the user put it. Keyed by component name;
+        it only fills (setdefault), never clobbers a value already on the unit.'''
         locs = self.config.locations()
         if locs:
             for rc in units.values():
@@ -468,10 +482,11 @@ class Context:
         return m if m and m != self.own_machine() else None
 
     def prepare_units(self, units):
-        '''Stamp BOTH the scope default and the `locations:` override onto freshly-resolved units —
-        the single preparation every code path must run before handing units to a driver (inspect,
-        install/remove/upgrade/lock, `location`). Calling only one (as the CLI op path historically
-        did) makes a relocated component install/report at the wrong dir. No surprises.'''
+        '''Stamp the scope default, the `locations:` override and this machine's native manager onto
+        freshly-resolved units — the single preparation every code path must run before handing
+        units to a driver (inspect, install/remove/upgrade/lock, `location`). Skipping one (as the
+        CLI op path once did with `locations:`) makes a relocated component install/report at the
+        wrong dir. No surprises.'''
         self.apply_scope_default(units)
         self.apply_locations(units)
         self.apply_native(units)
@@ -548,8 +563,8 @@ class Context:
             r.error(_unskip(w))
         requested = cfg.requested()
         # resilient: a requested component that can't route here becomes a reported error
-        # (self.resolve_errors), not a hard stop — so one bad entry in the active set (e.g.
-        # from an auto-activated project profile) can't brick inspect/the TUI.
+        # (self.resolve_errors), not a hard stop — so one bad pick (e.g. one a plugin's routes
+        # no longer cover) can't brick inspect/the TUI.
         units, self.resolve_errors = routes.resolve_resilient(list(requested), record=True)
         tighten = {}
         if cfg.auto_tighten():
@@ -620,13 +635,14 @@ class Context:
         return cfg, requested, units, ledger, states
 
     def inspect_components(self, names, reuse=None):
-        '''Resolve + inspect component `names` that live OUTSIDE the active set — the `!uninstall`
-        queue's orphans — returning {unit_key: ComponentState} so TUI::Components can list and remove
-        them. Same scope/location/inspect path as load_pipeline, minus the reporting. {} if none route.
+        '''Resolve + inspect component `names` that live OUTSIDE this machine's picks — the
+        `uninstall:` queue's orphans — returning {unit_key: ComponentState} so TUI::Components can
+        list and remove them. Same scope/location/inspect path as load_pipeline, minus the reporting.
+        {} if none route.
 
         Only the units that ARE the named components are returned, NOT the requires-closure they pull
         in: uninstalling `conan` means removing the conan unit (pipx\\conan), never its shared deps
-        (pipx, bash-dotfiles, …) — surfacing those would let a "mark all" nuke infrastructure other
+        (pipx, pipx-glue, shell-glue, …) — surfacing those would let a "mark all" nuke infrastructure other
         components still need.'''
         from .installState import InstallState
         from .ledger import Ledger
@@ -696,7 +712,7 @@ class Context:
         '''Post-TUI recap printed to the console (after endwin restores the terminal), so once a long
         session ends its outcome persists in the scrollback where configsys was launched. Any ISSUES
         (errors + warnings — the ! page's contents) ALWAYS print, so a broken config is never silently
-        swallowed just because you ran the TUI and quit; the OS/profiles/state-tally recap stays -v+.'''
+        swallowed just because you ran the TUI and quit; the OS/install-set/state-tally recap stays -v+.'''
         r = self.reporter
         if r.level < report.VERBOSE:
             if diags:
@@ -726,30 +742,6 @@ class Context:
 
 
 # -- commands -------------------------------------------------------------
-
-
-# -- where: explain a component's routing ---------------------------------
-
-
-# -- pin: view / set / promote install-method (and provider) pins ----------
-
-
-# -- check: lint the merged config ----------------------------------------
-
-
-# -- plugin: declare in `plugins:`, sync from git -------------------------
-
-
-# NOTE: plugin add/remove/sync/bless/update orchestration moved to configsys.actions (F3 slice 4);
-# cmd_plugin + the first-run offer call it.
-
-
-# -- report: file an install-failure report (no hidden telemetry) ---------
-
-
-# -- argument parsing -----------------------------------------------------
-
-
 # Every verb lives in configsys/cli/ (review-2026-11-2 D2). What app.py itself calls is imported;
 # every other moved name still resolves as `configsys.app.<name>` (plugins, scripts, tests)
 # through the module __getattr__ below.

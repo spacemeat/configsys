@@ -25,10 +25,11 @@ _HELP = {
     'components': {
         'desc': "This machine's picks, as a tree. Each row is a component (or a unit under it) with its "
                 "install driver, scope, status, and installed/latest versions. Stage operations on rows, "
-                "then run them with the execute key.",
+                "then run them with {components:execute}.",
         'glossary': [
-            ('view ({components:mode})', 'to-do (the default: tracked components missing, outdated or with a routing '
-                         'status — switch / unmet / dangling — plus installed ones staged for uninstall) · tracked (all of this machine\'s picks) · '
+            ('view ({components:mode})', 'to-do (the default: tracked components that need you — missing, outdated, '
+                         'a dependency missing, an error, untrusted, or a routing status — plus installed ones '
+                         'staged for uninstall) · tracked (all of this machine\'s picks) · '
                          'installed+tracked (also installed components you haven\'t tracked)'),
             ('status', 'installed · outdated (newer available) · missing · locked (version held) · '
                        'partial (some units installed) · unsupported (no driver for its method here) · '
@@ -38,24 +39,38 @@ _HELP = {
                                'routes no longer offer here; {components:op-install} swaps it out) · unmet (installable only '
                                'with a driver you disabled, directly or through what it needs) · '
                                'dangling (no install method on this OS)'),
-            ('op badges', 'I install · U upgrade · X remove · L lock · l unlock · * mixed — staged, run '
-                          'with execute. ✗ marks a failed op; » a selected row'),
+            ('op badges', 'I install · U upgrade · X remove · L lock · l unlock · V set version · * mixed '
+                          '— staged, run with {components:execute}. ✗ marks a failed op; » a selected row'),
             ('make current ({components:op-install} / {components:op-install-all})', 'install if missing, upgrade if outdated, swap out a switch row\'s '
                                      'stranded install. {components:op-install} is the cursor/selection, {components:op-install-all} every tracked '
                                      'component (a row already staged — e.g. a remove from !uninstall '
-                                     '— is left as is). {components:op-upgrade}/{components:op-upgrade-all} upgrade outdated only'),
+                                     '— is left as is). {components:op-upgrade}/{components:op-upgrade-all} upgrade outdated only. A '
+                                     'locked component is never upgraded — {components:lock} unlocks it first'),
             ('tree', '▾/▸ expand/collapse. Components group under the profile that defines them '
-                     '((other) = none); a component opens to its units — itself plus what it requires'),
+                     '((other) = none); a component opens to its units — itself plus what it requires. '
+                     'A group row\'s installed column counts its units installed (N/M)'),
             ('System Updates', 'packages with pending updates outside your picks — from this OS\'s '
                                'package manager, flatpak and snap — by tier (kernel, core, standard, '
-                               'apps); auto-pulled ones are dimmed. {components:op-install}/{components:op-upgrade} stages them all, '
-                               '{components:clear} on any of them unstages them all (all or nothing), the execute key '
+                               'apps); in standard and apps, packages pulled in as dependencies are dimmed. '
+                               '{components:op-install}/{components:op-upgrade} (or {components:op-install-all}/{components:op-upgrade-all}) on any of them stages them all, '
+                               '{components:clear} on any of them unstages them all (all or nothing), {components:execute} '
                                'applies them in bulk. {components:refresh} rescans them'),
-            ('header', 'view mode · package-index age (refresh with {components:refresh}) · ⚠ reboot advised · your '
-                       'primary plugin\'s ↑N to push / ↓N to sync · ⟳ N system updates · ⚠ N issues '
+            ('header', 'this OS · [PRETEND] on a dry run · machine: <name> (curating — installs off) when '
+                       '--machine names another machine · view mode · package-index age (refresh with '
+                       '{components:refresh}; amber after 30 days or if never refreshed) · ⚠ reboot advised · your '
+                       'primary plugin\'s ↑N to push / ↓N to sync (no ↑ when primary-push is auto or '
+                       'auto-on-quit) · ⟳ N system updates (a spinner while it checks) · ⚠ N issues '
                        '({global:issues} to view)'),
-            ('scope', 'user (~, no sudo) vs system (/opt, needs sudo)'),
+            ('scope', 'user (~, no sudo) vs system (/opt, needs sudo). Highlighted when you chose a '
+                      'scope other than the method\'s default'),
             ('[L]', 'beside an installed version: the version is locked'),
+            ('?', 'in the version columns: unknown — the driver comes from a plugin you haven\'t trusted'),
+            ('via: line', 'every install method valid here. [via] = what installs now; via * = the automatic '
+                          'default, shown when a pin or a detected install put you on another; then the rule '
+                          'that chose the default'),
+            ('change ({components:method})', 'pick the install method or a provider (writes a pin); for an installed '
+                                         'component also rebuild it, pin it to a version (V) or fix its scope. '
+                                         'Staged ops run with {components:execute}'),
             ('also present', 'on the detail line: another install of this component via a different '
                              'method — pin it ({components:method}) to adopt it, or swap it out'),
             ('[R] recipe pin', 'beside LATEST: the method builds a version its route pins, and '
@@ -68,29 +83,33 @@ _HELP = {
                 "plugins' and your own — page through them to discover components. Right: a table of the components, with a column "
                 "per machine. Mark what you want per machine; each machine installs exactly its picks.",
         'glossary': [
-            ('columns', "per row: # multi-selected · name · via (resolved install method; [pinned]) · "
-                        "from (origin: repo / plugin / local) · inst'd (● installed+tracked / "
+            ('columns', "per row: # multi-selected · name · via (the method it installs with here; [via] = "
+                        "pinned; — = none here) · from (where it is defined: repo / a plugin's name / local) · "
+                        "inst'd (● installed+tracked / "
                         '⊙ installed+untracked [dimmed when orphans-ignore lists it] / ◐ partial: some parts, or a required component '
                         'missing / ○ none / ⮾ staged for uninstall / ⊘ no install method on this OS) · '
                         'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
-                        '(● tracked / ○ not)'),
-            ('track ({profiles:track-all} / {profiles:track-one})', '{profiles:track-all} toggles TRACKING of the multi-select set / the whole selected profile; '
-                              '{profiles:track-one} (or {global:confirm}) toggles just the HIGHLIGHTED component. Tracking = Included on the '
+                        '(● tracked / ○ not; bold on a target machine)'),
+            ('track ({profiles:track-all} / {profiles:track-one})', '{profiles:track-all} toggles TRACKING of the multi-select set, else of the highlighted item; '
+                              '{profiles:track-one} always the HIGHLIGHTED item, ignoring the set ({global:confirm} too, on a component). '
+                              'The highlighted item is the cursor component (right) or every member of the cursor '
+                              'profile (left). Tracking = Included on the '
                               'TARGET machines (see {profiles:machine-target}), and also marks the component seen.'),
             ('machines ({profiles:machine-target})', 'choose the TARGET machines (plural) {profiles:track-all}/{profiles:track-one} fan out to — toggle each; the modal '
                              'also adds / renames / removes machines. Target headers are highlighted.'),
             ('multi-select', '{global:select} toggles a component into the set (#); {profiles:select-all} (select-all) takes every row '
-                             'in view — or, in the browse pane, the whole profile’s members. {profiles:track-all} then tracks '
+                             'in view — or, in the browse pane, the whole profile’s members (again to deselect). '
+                             '{profiles:track-all}, {profiles:disp-interesting-all}, {profiles:disp-seen-all} and {profiles:stage-uninstall} then act on '
                              'the whole set.'),
             ('parts (▸ / ▾)', 'a `via: parts` aggregator (docker, vulkan-runtime) shows a ▸ twisty — {global:confirm} drills '
                               'it open to its pieces (indented ↳), each an ordinary component you can track '
-                              '({profiles:track-one}) or pin a method for ({profiles:method}). The infobox lists them (and a component’s '
+                              '({profiles:track-one}) or pin a method for ({profiles:method}). The detail box lists them (and a component’s '
                               'requires:) with each’s resolved method, so you see the composition first.'),
             ('scroll', '↑/↓ move · ←/→ scroll the pane horizontally when it overflows (a thumb shows on '
                        'the bottom border); in the browse pane ←/→ first fold/unfold the include tree.'),
-            ('interesting / seen', '{profiles:disp-interesting} toggles INTERESTING (☆, a flag) on the highlighted component; {profiles:disp-seen} '
-                                   'toggles NEW ↔ SEEN (·) — never clears a flag. {profiles:disp-interesting-all} / {profiles:disp-seen-all} set them across the '
-                                   'multi-select set / whole profile. Tracking ({profiles:track-all}/{profiles:track-one}) also marks seen. Kept '
+            ('interesting / seen', '{profiles:disp-interesting} toggles INTERESTING (☆, a flag) on the highlighted item; {profiles:disp-seen} '
+                                   'toggles NEW ↔ SEEN (·) — never clears a flag. {profiles:disp-interesting-all} / {profiles:disp-seen-all} set them on the '
+                                   'multi-select set, else the highlighted item. Tracking ({profiles:track-all}/{profiles:track-one}) also marks seen. Kept '
                                    'for this box, not per machine column.'),
             ('mark all seen ({profiles:mark-all-seen})', 'acknowledge every remaining NEW component at once (confirms first) — '
                                   'clears the ◆s after a triage pass; leaves seen/interesting flags alone'),
@@ -101,18 +120,21 @@ _HELP = {
                                   'table to its own members (▸ marks the shown one)'),
             ('⁺N / ☆N / ⊙N', 'on a browse profile (left): ⁺N = NEW members · ☆N = INTERESTING members · '
                              '⊙N = installed-here-but-UNTRACKED members (claimable) — the profile’s triage signal'),
+            ('browse tree (left)', '▾/▹ an open / closed include tree · +name a subprofile it includes · '
+                                   '~ marks the ancestor whose ~name removes a subprofile (that row is dimmed)'),
             ('row colours', 'the name is tinted by state: NEW in the new-accent colour · INTERESTING in '
                             'the link colour · SEEN dimmed · unavailable-here greyed · installed UNDERLINED'),
             ('install overlay ({profiles:toggle-install})', "toggles the install axis: the inst'd column and the installed "
                                     "underline (off, inst'd reads ○). On by default (the install-overlay "
-                                    'setting). {profiles:orphan-ignore} ignores / un-ignores the cursor orphan'),
+                                    'setting). The {profiles:orphan-ignore} key adds / removes the cursor component in orphans-ignore'),
             ('attr-filter ({profiles:attr-filter})', 'faceted kind filter over the catalog ({global:filter} = live substring filter)'),
             ('via ({profiles:method}) / machines ({profiles:comp-machines})', '{profiles:method} pins the selected component’s install method; {profiles:comp-machines} opens a '
                                        'machines dialog for JUST the cursor component (toggle its '
-                                       'tracking per machine) · {profiles:stage-uninstall} stages it for uninstall'),
-            ('detail box', 'on a browse profile (left): its raw .hu definition. On a component '
-                           '(right): description · ⊘ where it installs, if not here · parts or requires '
-                           '(each with its method) · attrs · required-by · in-profiles'),
+                                       'tracking per machine) · {profiles:stage-uninstall} stages it (or the set) for uninstall'),
+            ('detail box', 'on a browse profile (left): its raw .hu definition and the layer it comes from. '
+                           'On a component (right): description · ⊘ where it installs, if not here · parts or '
+                           'requires (each with its method; * = pinned) · attrs (✓/✗ = in your attr filter) · '
+                           'required by (⎈ = a driver needs it) · in profiles (● directly, ↳ through an include)'),
         ],
     },
     'plugins': {
@@ -120,8 +142,9 @@ _HELP = {
                 "diff for the selected plugin, fetched as the cursor settles. Sync, bless, trust, lock "
                 "and update from here.",
         'glossary': [
-            ('columns', 'name · source · ref (pinned) · remote-ref (upstream: green = current, amber = '
-                        'update available) · abi · code · provides'),
+            ('columns', 'name · source · ref (pinned; — = its default branch) · remote-ref (upstream: '
+                        'green = current, amber = update available, … = fetching, — = unknown; dimmed when '
+                        'locked) · abi · code · provides'),
             ('provides', 'what the plugin ships, one code each (its manifest `provides:` until synced):'),
             *_PROVIDES_LEGEND,
             ('diff', 'synced: your copy → the remote-ref (what {plugins:update} would pull in). Not synced: the ref → '
@@ -131,10 +154,11 @@ _HELP = {
                       'other machines ({plugins:sync} syncs them in), ● edits not committed yet. Both ↑ and ↓ = the '
                       'two sides need combining, which {plugins:push} does'),
             ('{plugins:push} push', 'publish your ★ primary: commit, combine with what your other machines pushed '
-                       '(a file both changed is asked about: keep this machine\'s, keep the other\'s, or '
-                       'edit both), then push. Edits you made by hand are only included if you say so. '
-                       'The primary-push setting decides whether quitting offers it (ask), does it '
-                       '(auto; auto-on-quit also on {global:quit-force}) or leaves it to you (manual)'),
+                       '(a setting or file both changed is asked about: keep this machine\'s, keep the '
+                       'other\'s, edit, or stop with nothing pushed), then push. Edits you made by hand are '
+                       'only included if you say so. The primary-push setting decides whether quitting '
+                       'offers it (ask), does it (auto and auto-on-quit; auto-on-quit also on '
+                       '{global:quit-force}) or leaves it to you (manual)'),
             ('{plugins:history} history', 'your ★ primary\'s recent changes, newest first (↑ not pushed yet, * made by '
                           'configsys), with "Undo" for the newest change configsys made: dropped if it '
                           'was never pushed, else taken back by a new commit (undo again to redo)'),
@@ -142,10 +166,12 @@ _HELP = {
                          'unlocks it. A synced copy keeps loading as it is — {plugins:remove} removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
             ('code', 'trust for its Python code or command-carrying recipes: trusted · untrusted · '
-                     'changed (content moved; trust again) · unsynced · — (nothing to trust)'),
+                     'changed (content moved; trust again) · unsynced · — (nothing to trust). Until you '
+                     'trust it, only its plain package-manager installs are offered — its downloads, '
+                     'builds, scripts, glue and key bindings wait'),
             ('dimmed row', 'not synced, ABI-incompatible, or quarantined (content fails its sha256)'),
-            ('★ primary', 'your primary plugin ({plugins:bless} blesses one, {plugins:unbless} clears it) — may set machine settings '
-                          'and travels to your machines'),
+            ('★ primary', 'your primary plugin ({plugins:bless} blesses one, syncing it first; {plugins:unbless} clears it) — may '
+                          'set machine settings and travels to your machines'),
             ('tree', '├─ a transitive plugin (declared by another plugin, not your top config)'),
         ],
     },
@@ -155,17 +181,22 @@ _HELP = {
                 "A ship→activate toggle — glue is shipped, never captured.",
         'glossary': [
             ('active', 'linked into ~/.config/<shell>/conf.d and sourced by the shell — done.'),
-            ('changed', 'active, but the shipped snippet has changed since — {glue:activate-group} re-activates it.'),
+            ('changed', 'active, but the shipped snippet has changed since — {glue:activate} or {glue:activate-group} re-activates it.'),
             ('available', 'shipped but not linked yet — activate ({glue:activate}) to enable it.'),
             ('empty', 'no snippet source found for this shell — nothing to activate.'),
+            ('inactive', 'one of your own snippets that is not linked into conf.d yet.'),
+            ('(user) rows', 'your own user glue, listed after the shipped snippets: {glue:new-snippet} adds one, '
+                            '{glue:staged} reviews installer writes the shell-writes guard held back. configsys '
+                            'links them but never edits them.'),
             ('shell groups', "each installed shell heads a group; its header shows the conf.d loader: "
-                             "active, inactive, or not wired (bash rides ~/.bash_aliases, zsh an "
-                             "~/.zshrc block, fish sources conf.d natively, elvish/nushell inline a "
+                             "active, inactive, or not wired (bash and zsh source it from a block in "
+                             "~/.bashrc / ~/.zshrc, fish loads conf.d natively, elvish/nushell inline a "
                              "block into their rc file)."),
             ('activate ({glue:activate} / {glue:activate-group})', "{glue:activate} enables the current snippet for ITS shell (the group it's under); {glue:activate-group} "
                                  "(re)activates the WHOLE shell group — enabling available snippets AND "
                                  "refreshing changed ones from source. Activating also wires the "
-                                 "loader. {glue:deactivate} deactivates this shell's link."),
+                                 "loader. {glue:deactivate} deactivates this shell's link. {glue:override} forks "
+                                 "a component's shipped snippet into your layer to edit."),
         ],
     },
     'dotfiles': {
@@ -184,7 +215,8 @@ _HELP = {
                           '~/.config/nvim). Managing it adopts + backs it up; until then a plain link '
                           'would refuse to overwrite it.'),
             ('manage ({dotfiles:manage})', 'adopt any on-system config into your store AND symlink it into place — one '
-                           'step. A pre-existing real file is first backed up to <dst>.pre-configsys.'),
+                           'step. A pre-existing real file is first backed up to <dst>.pre-configsys '
+                           '(then .pre-configsys.1, .2, … — never overwritten).'),
             ('manage all ({dotfiles:manage-all})', 'manage every unmanaged config at once.'),
             ('unmanage ({dotfiles:unmanage} / {dotfiles:unmanage-all})', "remove configsys's symlink and restore any backup — your content "
                                  "stays in your store. {dotfiles:unmanage} unmanages the current row, {dotfiles:unmanage-all} every managed "
@@ -192,15 +224,17 @@ _HELP = {
             ('source', "where the managed content lives: <plugin> travels to your machines (in your "
                        "primary plugin), <local> is this box only, <repo> is a shipped default, "
                        "<name> is shipped by that plugin."),
-            ('move store ({dotfiles:move-store} / {dotfiles:move-store-all})', "move a config between stores: {dotfiles:move-store} toggles the current one "
-                                   "<local>↔<plugin> (and normalizes any legacy layout); {dotfiles:move-store-all} opens a "
-                                   "chooser to move ALL configs to the plugin or local."),
+            ('move store ({dotfiles:move-store} / {dotfiles:move-store-all})', "move a config between stores: {dotfiles:move-store} sends the current one "
+                                   "to <plugin>, or from <plugin> to <local> (and normalizes any legacy layout); "
+                                   "{dotfiles:move-store-all} opens a chooser to move ALL configs to the plugin or "
+                                   "local. Needs a primary plugin."),
         ],
     },
     'config': {
         'desc': "Machine settings. Each row: the setting, its value, whether it's the built-in default, "
-                "and where it's stored (edits land there), with what it does below. {global:confirm} to edit; some "
-                "open a picker.",
+                "and where it's stored (edits land there), with what it does and its man page below. "
+                "{global:confirm} or {global:select} to edit; some open a picker, where unset drops your value "
+                "so the one below it applies.",
         'glossary': [
             ('default', 'default (built-in) · custom (you set it) · env (an environment variable wins)'),
             ('store', "a plugin name (primary plugin — travels to your machines) · a path (machine-local "
@@ -211,16 +245,20 @@ _HELP = {
         ],
     },
     'theme': {
-        'desc': "Live theme editor. Left: the shared color map (name → #rrggbb), then the focused "
-                "page's role styles. Right: a live sample of the selected page. Edits apply and save "
-                "instantly; {theme:save} exports a theme pack or promotes the full look to your primary plugin.",
+        'desc': "Live theme editor. Top left: the shared color map (name → #rrggbb). Top right: the "
+                "sampled page's role styles. Below: a live sample of that page. Edits apply and save "
+                "instantly; {theme:save} exports a theme pack or promotes the full look to your primary "
+                "plugin, {theme:load} loads a saved pack (under your own changes, or replacing them).",
         'glossary': [
             ('map', 'shared colors; a role references one by name, or uses a literal #rrggbb'),
-            ('fx', 'per-role bold / underline / reverse'),
+            ('roles', '{global:confirm} sets a role\'s foreground, {theme:edit-bg} its background (empty clears it) — a '
+                      'map name or #rrggbb'),
+            ('fx', 'per-role bold / underline / reverse ({theme:effect-bold} / {theme:effect-underline} / {theme:effect-reverse})'),
             ('sample', '{theme:page-1}-{theme:page-7} pick which page the sample previews'),
             ('gradient', "each page's diagonal background; toggle per page. Its colors are the "
                          "gradient from / to rows at the end of the role list"),
-            ('*', 'a color, role or gradient end you changed from the default ({theme:reset} restores it)'),
+            ('*', 'a color, role or gradient end you changed from the default ({theme:reset} restores it; '
+                  'a color you added is removed)'),
         ],
     },
     'issues': {
@@ -229,6 +267,10 @@ _HELP = {
                 "and sends only when you say so.",
         'glossary': [
             ('✗ / ⚠', 'an error (something was dropped or can\'t work) / a warning'),
+            ('file an issue', '{issues:report} reports a component (or the last run\'s failures), '
+                              '{issues:request} requests one, {issues:suggest-os} suggests this OS — each opens the '
+                              'exact text first, and nothing is sent until you press s there'),
+            ('close', '{global:issues}, {global:quit} or esc'),
         ],
     },
 }

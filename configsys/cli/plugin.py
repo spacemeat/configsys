@@ -454,7 +454,7 @@ def cmd_plugin(ctx, args):
             return 0
         before = active_snapshot(ctx.config)
         _print_sync(ctx, actions.plugin_sync(ctx, decls))
-        print_sync_delta(before, ctx.config)           # how the active set changed across the sync
+        print_sync_delta(before, ctx.config)           # how this machine's picks changed across the sync
         return 0
 
     if sub == 'init':
@@ -495,11 +495,12 @@ def cmd_plugin(ctx, args):
         if not ok:
             return 1
         if ' from ' in msg:                          # removed from a plugin's own file
-            print('configsys: `configsys plugin push` shares the removal with your other machines')
+            print('configsys: the removal reaches your other machines once the primary is pushed '
+                  '(`configsys plugin push`)')
         return 0
 
     if sub == 'update':
-        before = active_snapshot(ctx.config)           # report how the active set changes across the update
+        before = active_snapshot(ctx.config)           # report how this machine's picks change across the update
         # No name means every plugin (like `sync`); --all is an explicit alias for the same.
         if getattr(args, 'all', False) or not args.name:
             if args.name:

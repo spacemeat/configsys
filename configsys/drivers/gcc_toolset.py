@@ -1,6 +1,6 @@
 '''gcc_toolset.py — versioned GCC via Red Hat Software Collections (EL / gcc-toolset).
 
-RHEL-driver distros (RHEL, Rocky, AlmaLinux, CentOS Stream) ship versioned compilers
+RHEL-family distros (RHEL, Rocky, AlmaLinux, CentOS Stream) ship versioned compilers
 as `gcc-toolset-N` meta packages that install under /opt/rh/gcc-toolset-N — NOT on the
 default PATH (the system gcc stays put). You activate a toolset for a shell with
 `scl enable gcc-toolset-13 bash` or `source /opt/rh/gcc-toolset-13/enable` (EL 8/9), or on EL 10 —

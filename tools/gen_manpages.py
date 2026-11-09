@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 '''Generate configsys' man pages, single-sourced — no external dependencies:
 
-  man/configsys.1      from the argparse parser (configsys.app.build_parser)
+  man/configsys.1      from the argparse parser (configsys.cli.parser.build_parser)
   man/configsys.hu.5   from docs/config-format.md (a controlled Markdown subset)
 
 Usage:
@@ -109,7 +109,7 @@ def gen_man1():
     out.append('.SH COMMANDS')
     for name, sp in sub.choices.items():
         out += ['.TP', '\\fB' + name + '\\fR', _inline(sp.description or help_of.get(name) or '')]
-        nsub = _subparsers(sp)                          # one level of subcommands (plugin, dotfiles)
+        nsub = _subparsers(sp)                          # one level of subcommands (plugin, config, picks, …)
         if nsub is not None and nsub.choices:
             names = ', '.join('\\fB' + n + '\\fR' for n in nsub.choices)
             out += ['.RS', '.PP', 'Subcommands: ' + names + '.', '.RE']

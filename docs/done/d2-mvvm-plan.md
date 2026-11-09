@@ -1,8 +1,10 @@
 # D2 — TUI MVVM rewrite (build_vm / draw / handle + screen router)
 
-> **Status: DONE** — finished 2026-09-20 (commit 5641778). Lives on in: docs/tui-architecture.md
+> **Status: DONE** — finished 2026-09-20 (commit 5641778). Lives on in: docs/tui-architecture.md. The models,
+> helpers and samples this left in `menu.py` were later split into `tui/` sibling modules —
+> docs/done/split-app-menu-plan.md (0e2d083, 2026-11-09).
 
-The last big item from the Sept-2026 review ([[code-review-2026-09]]). The TUI is one
+The last big item from the Sept-2026 review ([docs/review-2026-09/](../review-2026-09/README.md)). The TUI is one
 6.3k-line `configsys/tui/menu.py`: state classes (`MenuState`, `ProfileScreen`, `ConfigScreen`,
 `ThemeScreen`, `PluginScreen`, `DotfilesScreen`, `GlueScreen`) mixed with module-level
 `_draw_*(stdscr, pal, state, ctx, note, screen)` painters and one ~800-line `run()` dispatch loop.
@@ -99,5 +101,5 @@ Existing non-curses model tests (`test_tui_nav`, `test_menu_state`, `test_menu_n
 `test_theme_edit`, …) keep passing — the model classes keep their public methods. New coverage:
 `test_render_equiv.py` (the harness) + a `test_surface.py` for the Surface/BufferSurface.
 
-Relates to [[code-review-2026-09]] (D2 is its last open refactor), [[tui-color-and-effects]]
-(the color modes the harness sweeps), [[profiles-matrix-model]] (the picks model the screens show).
+Relates to [docs/review-2026-09/](../review-2026-09/README.md) (D2 is its last open refactor), [theming.md § Color depth and motion](../theming.md#color-depth-and-motion)
+(the color modes the harness sweeps), [profiles-matrix-plan.md](profiles-matrix-plan.md) (the picks model the screens show).

@@ -1,17 +1,15 @@
 '''glue.py — the Glue screen as a Screen (build_vm/draw/handle).
 
-Second screen migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring
-screens/plugins.py. The model is the existing `menu.GlueScreen` (state + the glue driver ops),
-composed unchanged; this adds the three MVVM seams:
+The model is `panes.GlueScreen` (state + the glue driver ops), composed as `self.model`; this adds
+the three MVVM seams (docs/tui-architecture.md):
 
 - build_vm: computes the PURE render content — the per-row cells + column widths / virtual xs, the
   display list (per-shell group headers and rows) resolved to drawable form, each row's state->element
   role, and the status/nav strings. No curses, no geometry that needs the drawn borders.
-- draw: lays the content out (panel rect, scroll clamps written back to the model, scrollbars via the
-  shared widgets) and paints it — no decisions the VM didn't already settle. It reproduces
-  menu._draw_glue cell for cell, which test_screen_glue pins against the legacy painter.
-- handle: the former `if screen == 'glue'` dispatch, returning an Intent(note) instead of mutating
-  loop-scope locals. Glue tracks mutated unit keys in the model's own `dirty` SET.
+- draw: lays the content out (panel rect, the shared table painter — screens/table.py — whose clamped
+  scroll it records with vm.settle) and paints it — no decisions the VM didn't already settle.
+- handle: one key, returning an Intent(note) for the router. Glue tracks mutated unit keys in the
+  model's own `dirty` SET.
 '''
 
 from .. import menu
@@ -124,8 +122,7 @@ class GlueScreen(Screen):
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model (cursor/scroll, and `model.dirty` — the SET of unit keys an
-        activate/deactivate touched), runs glue driver ops under `suspended`, returns an Intent(note).
-        Ported verbatim from the former glue dispatch.'''
+        activate/deactivate touched), runs glue driver ops under `suspended`, returns an Intent(note).'''
         gs = self.model
         row = gs.cur_row()          # (rc, comp, tgt, state, src, shell)
         km = menu._keymap()

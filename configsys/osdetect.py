@@ -55,7 +55,8 @@ _ATOMIC_BLOCK = 'fedora_atomic'
 
 # Blocks that are immutable/atomic ENVIRONMENTS (brew CLI / flatpak apps / rpm-ostree layering).
 # Grows as more land (e.g. an openSUSE MicroOS block). Used to advise the user that atomic
-# routing is new + not hardware-validated (see app.Context.diagnostics).
+# routing is new + not hardware-validated (app.Context._diagnostics) and to tag reports
+# (reportgen).
 ATOMIC_BLOCKS = frozenset({_ATOMIC_BLOCK})
 
 

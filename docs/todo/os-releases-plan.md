@@ -1,9 +1,15 @@
 # OS releases: a registry, `/add-os`, `/update-os`
 
 > **Status: IN PROGRESS** — phases 1–3 done 2026-11-07 (9a9b0c6, d0afa5e, 23f40f0, b61874b);
-> phase 4 partly: fedora + fedora_atomic registered and `/update-os fedora 45` applied 2026-11-07;
-> the other lines (debian, ubuntu + derivatives, rhel, amzn, opensuse_leap, alpine, kde_linux) have
-> no registry yet. Phase 5 (engine uses) not started.
+> phase 4 done 2026-11-08: fedora + fedora_atomic registered and `/update-os fedora 45` applied
+> 2026-11-07 (c25bb0a), every other versioned line registered 2026-11-08 (956208e; kde_linux and
+> pikaos are unversioned, so they have none). Phase 5 partly: one engine use landed — the registry
+> drives derivative gates (a derivative release's `base:`, review-2026-11-2 D8, cdda3cf + 834a389,
+> 2026-11-08; `check` names an unregistered derivative release); the two listed uses — a `check` /
+> `!` note for an EOL or unknown-newer release on this machine, and per-release `provides: { glibc:
+> … }` replacing the hand-kept glibc-2.35 distro lists — are not started. The shipped behavior lives
+> in docs/routing-model.md §6 (the release registry, derivative bases) and the /add-os, /update-os
+> skills.
 
 ## Why
 
@@ -39,9 +45,9 @@ expressions, the golden's fixed contexts (`test/test_golden.py` `CONTEXTS`), con
 
 ## Phases
 
-1. **Schema** — `releases:` on OS blocks: `OsCascade.version_line` / `releases`, a `check` lint
+1. **Schema** (done, 9a9b0c6) — `releases:` on OS blocks: `OsCascade.version_line` / `releases`, a `check` lint
    (`routecheck.release_registry_issues`), docs (routing-model §6, config-format), tests.
-2. **`tools/osaudit.py`** — `releases` (the table + staleness: an EOL date passed, a prerelease past
+2. **`tools/osaudit.py`** (done, d0afa5e + 23f40f0) — `releases` (the table + staleness: an EOL date passed, a prerelease past
    its release date), `delta LINE OLD NEW` (offline: how every component's resolution differs
    between two releases — lost / gained / changed), `pinned LINE` (bindings with an upper bound or
    an exact release on the line, and the releases each covers — the gaps a new release falls
@@ -52,12 +58,13 @@ expressions, the golden's fixed contexts (`test/test_golden.py` `CONTEXTS`), con
    `compare` (proof that older releases resolve as before), and arrivals in the sweep (packages
    now in a release's repos for components that don't route natively there). The apt and dnf
    lifecycle harnesses take a release (`BASE=` / `FEDORA=`).
-3. **Skills** — `/add-os` (from os-block.md, plus the registry entry), `/update-os`, the
+3. **Skills** (done, b61874b) — `/add-os` (from os-block.md, plus the registry entry), `/update-os`, the
    add-component dispatch, `/update-component`'s scope note, `/review-code`'s chain; CLAUDE.md,
    README.
-4. **First run** — populate the registry (fedora + fedora_atomic first, then every line) and run
+4. **First run** (done 2026-11-08, 956208e) — populate the registry (fedora + fedora_atomic first, then every line) and run
    `/update-os fedora 45`.
-5. **Engine uses (later, each its own decision)** — `check` / `!` note an EOL or unknown-newer
+5. **Engine uses (later, each its own decision)** — partly: derivative `base:` gates done (D8,
+   cdda3cf); the two below not started — `check` / `!` note an EOL or unknown-newer
    release on this machine; per-release `provides: { glibc: … }` so the 14 copies of the long
    glibc-2.35 distro list become `requires: { glibc: ">=2.35" }` (docs/versioned-requires.md's
    "env-provided capabilities" slice).

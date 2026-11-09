@@ -139,8 +139,9 @@ def _fmt_setting_value(kind, val):
 
 
 def cmd_config(ctx, args):
-    '''View or edit machine settings (scope / driver-preference / auto-tighten).
-    A skin over configsys.actions — the same functions the TUI Config screen will call.'''
+    '''View or edit machine settings (`config show|get|set|unset|move` over every registered
+    setting — configsys/settings.py). A skin over configsys.actions — the same functions the TUI
+    Config screen calls.'''
     from .. import actions
     sub = getattr(args, 'config_command', None) or 'show'
     settings = actions.config_settings(ctx)
@@ -251,7 +252,7 @@ def _print_theme(ov, indent=2):
 
 def cmd_theme(ctx, args):
     '''View or edit the TUI theme, and save/load theme plugins. A skin over configsys.actions —
-    the same functions the TUI theme editor (Config screen) will call.'''
+    the same functions the TUI Theme screen calls.'''
     from .. import actions
     sub = getattr(args, 'theme_command', None) or 'show'
 

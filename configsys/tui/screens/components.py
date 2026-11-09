@@ -9,7 +9,7 @@ so the shared state has exactly one owner.
 The model is the existing MenuState, composed as self.model. build_vm settles the whole frame from
 it, ctx and the frame size — the title-row chips, the column header, the tree's visible rows as
 positioned cells, the three cursor lines, the status line and legends (review-2026-11-2 D7); draw
-only paints that; handle is the former fall-through dispatch.
+only paints that; handle dispatches one key through the keymap.
 '''
 
 import curses
@@ -281,7 +281,7 @@ class ComponentsScreen(Screen):
             _put(surface, y, 0, _fit(text, w), pal.style(role, y, 0, h, w))
         self.end_page(surface, pal, vm.status, vm.legends, h, w)
 
-    # -- handle (reproduces the components fall-through dispatch) ----------
+    # -- handle -----------------------------------------------------------
 
     def handle(self, ch, ctx, stdscr, pal, cfg, ledger):
         '''One key. Mutates the model; for pin/execute/refresh/clear it re-probes and returns the new

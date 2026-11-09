@@ -1,11 +1,11 @@
 '''_native.py — NativePkgManager: the shared skeleton for an OS package-manager driver.
 
-apt / dnf / zypper / pacman / apk are the same nine ops with different verbs. Their install /
+apt / dnf / zypper / pacman / apk / xbps are the same nine ops with different verbs. Their install /
 uninstall / upgrade differ only in the command word, so those come from class-level TEMPLATES here
 (`{pkgs}` = the quoted package argument(s)), run under sudo, with an `ensure_prereqs` hook a driver
 overrides to set up vendor repos/keys first. Everything version- or lock-specific — get_version,
 get_latest, installed_index, is_locked, lock/unlock, set_version — stays on each driver, because the
-query/lock mechanisms genuinely differ (rpm vs pacman -Q vs apk list; apt-mark hold vs dnf
+query/lock mechanisms genuinely differ (rpm vs pacman -Q vs apk list vs xbps-query; apt-mark hold vs dnf
 versionlock vs the ledger). The installed_index-based `batch_index` (one enumeration instead of a
 probe per unit) is inherited from Driver.
 '''

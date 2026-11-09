@@ -2,13 +2,16 @@
 
 For a component, report what version EACH candidate install method (native / tarball / source /
 flatpak / …) would install here, mark the default and any installed method, and flag methods that
-lag the newest available ("tip"). Read-only substrate shared by `configsys versions`, the TUI
-version panel, and (later) version-constrained requires.
+lag the newest available ("tip"). Read-only substrate shared by `configsys versions`
+(cli.where.cmd_versions), the TUI install-method picker (`v`, tui.flows._pick_method_name), the
+version-floor advisory (flooradvise) and the version sweep (versionsweep), the last two through the
+per-pass `Reports` memo.
 
 It reuses each driver's `get_latest` ("what would this method install"). Native `get_latest`
 queries the box's package manager and is slow, so latest results are cached machine-locally with a
-TTL (`state_dir/method-versions.hu`); `refresh=True` bypasses. Installed versions (`get_version`)
-are read live — they must be current right after an install/remove.
+TTL (`state_dir/method-versions.hu`); `refresh=True` bypasses. Installed versions (`get_version` /
+the installed index) are read through the context's shared ProbeCache (probecache.py) — current
+right after an install/remove, because a reload drops what the ops it ran touched.
 '''
 
 import time

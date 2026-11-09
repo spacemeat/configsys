@@ -1,12 +1,15 @@
-'''check.py — the static ambiguity check.
+'''routecheck.py — the static ambiguity check, and the full route lint behind `configsys check`.
 
-The soundness promise of the `when:` model: for any two candidates (a component's
-bindings, or a capability's providers) whose match-sets OVERLAP, one must be a subset
-of the other. If every overlapping pair is comparable, resolution is provably
-unambiguous for every possible machine. Any overlapping-but-incomparable pair is a
-load-time error, pointing at a witness context — never a silent tiebreak.
+The soundness promise of the `when:` model: for any two bindings of ONE component with the SAME
+`via:` whose match-sets OVERLAP (on the driver-gated candidate set — gated()), one `when:` must be a
+subset of the other. If every such pair is comparable, which variant of a method wins is decided for
+every possible machine. An overlapping-but-incomparable pair is a load-time error pointing at a
+witness context — never a silent tiebreak. Bindings of DIFFERENT vias may overlap freely: they are
+alternative methods, ranked by `standing:` / driver-preference at resolve time (_method_tie_warnings
+flags a would-be tie there as a warning).
 
-Run check_all() when loading routes.hu to reject an ambiguous routes file up front.
+routes.load runs check_component on every merged component (memoized per layer-stack content —
+routes._VALIDATED); validate() is the full lint (`configsys check`), returning [Issue].
 '''
 
 import re
@@ -148,7 +151,7 @@ def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
         return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
 
     # a `standing: never-auto` binding is never eligible to be the auto-default, so it can never
-    # TIE for it — resolution excludes it from the default pool. Mirror that here (else an opt-in
+    # TIE for it — resolution excludes it from the default pool. Mirror that here (else a
     # never-auto method overlapping an ordinary one reads as a false ambiguity).
     if never_auto_drivers is None:
         never_auto_drivers = getattr(cascade, 'never_auto_drivers', frozenset())
@@ -178,8 +181,8 @@ def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
 
 
 def check_all(components, cascade):
-    '''Validate every component. Raises AmbiguityError on the first offender. This is the
-    fast load-time gate (ambiguity only — see validate() for the full lint).'''
+    '''Validate every component. Raises AmbiguityError on the first offender (ambiguity only — see
+    validate() for the full lint; routes.load calls check_component per component itself).'''
     for name, component in components.items():
         check_component(name, component, cascade)
 
@@ -307,8 +310,9 @@ _ISO_DATE = re.compile(r'\d{4}-\d{2}-\d{2}\Z')
 def release_registry_issues(cascade):
     '''[(message, source)] for a malformed `releases:` registry on an OS block: on a block that
     doesn't own its version line, a key that isn't a version, a missing / unknown `status:`, an
-    unknown field, a date that isn't YYYY-MM-DD. Warnings — the registry feeds maintenance tools,
-    never resolution.'''
+    unknown field, a date that isn't YYYY-MM-DD, a malformed `base:`. Warnings — the registry feeds
+    the maintenance tools; resolution reads only a release's `base:` (OsCascade.bases_of), so a bad
+    one just leaves that release without its base's versioned atoms.'''
     from .osversion import parse_version
     from .routes import RELEASE_FIELDS, RELEASE_STATUSES
     out = []
@@ -447,9 +451,13 @@ def _as_parts(v):
 
 def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_drivers=None,
              components_checked=False):
-    '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
-    via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
-    requires-nothing-provides (warnings — localized). Attribution via each Component.source.
+    '''Lint the merged component set -> [Issue] (empty = clean). Errors: ambiguity, a parts cycle,
+    an unknown via: driver, an unknown component in parts:, a malformed version constraint, a script
+    with no install-cmd, a tarball with no installDir, a facet named like an os block. Warnings
+    (localized): method ties, retired / malformed preference keys, unknown attrs, ignored parts:,
+    unknown OS / bare-facet `when:` atoms, requires nothing provides, unsatisfiable version
+    constraints, os-block / release-registry / plugin-preference-knob problems. Attribution via each
+    Component.source (the os/drivers file for the rest).
 
     `pending_vias` are via names provided by a declared code plugin that is present but not
     loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
@@ -524,7 +532,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
                 # a tarball install dir is rm -rf'd on every (re)install; a missing installDir
                 # resolves to the bare scope base ($HOME / /opt) -> catastrophic. Require a dedicated one.
                 add('tarball-no-installdir', 'via:tarball needs an installDir (it is rm -rf\'d on '
-                    '(re)install; a missing one resolves to the scope base — $HOME/opt)', comp)
+                    '(re)install; a missing one resolves to the scope base — $HOME or /opt)', comp)
             for cap in cap_names(b.details.get('requires')):   # cap_names: tolerates versioned {cap: floor} entries
                 if cap not in providable:
                     add('dangling-requires', f'requires {cap!r} which nothing provides', comp, 'warning')

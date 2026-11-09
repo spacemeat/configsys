@@ -7,8 +7,8 @@ distro's own Python packages (apt's `pipx` package is the dist `pipx` in
 /usr/lib/python3/dist-packages), which would read as a pip install of that component —
 a false "also present" / stranded install that a method switch then tries to `pip
 uninstall`. There's no native version lock, so lock intent lives in the ledger.
-`python3 -m pip` is used (not bare `pip`/`pip3`) to avoid PATH ambiguity; python3-pip
-is the driver `!depends`.
+`python3 -m pip` is used (not bare `pip`/`pip3`) to avoid PATH ambiguity; the driver
+`requires: python3-pip` (routes.hu `drivers:`).
 
 PEP 668: on an externally-managed interpreter (Debian 12+, Ubuntu 23.04+, …) pip refuses
 `uninstall` as well as `install`. Removing a dist from the USER site can't break the
@@ -43,7 +43,7 @@ class Pip(ModuleDriver):
     # -- read -------------------------------------------------------------
 
     def installed_index(self):
-        '''ONE `pip list --format=json` -> {normalized-dist: version}, PEP-503-normalized so lookups
+        '''ONE `pip list --user --format=json` -> {normalized-dist: version}, PEP-503-normalized so lookups
         match regardless of case / -_. spelling. Feeds BOTH the inspect batch and the coexistence
         detector (N pip units -> one call). None on failure.'''
         return self._user_index(_PIP)
@@ -68,10 +68,10 @@ class Pip(ModuleDriver):
         return _norm(self.module(rc))                  # match installed_index's normalized keys
 
     def explicit_keys(self):
-        '''Cross-distro: keep only the dists PIP ITSELF installed (INSTALLER=pip), dropping the
-        OS-packaged Python modules that `pip list` also enumerates — apt `python3-*`, dnf/pacman/
-        zypper/apk equivalents all land in the interpreter's site and would otherwise flood the
-        orphan scan. pip records `INSTALLER=pip` in each dist it installs; no distro package manager
+        '''Cross-distro: keep only the dists PIP ITSELF installed (INSTALLER=pip) in the user site,
+        dropping anything another installer wrote there (the listing is `--user`, so the distro's
+        own `python3-*` modules in the system site never appear; this guards the rest of the
+        orphan scan the same way). pip records `INSTALLER=pip` in each dist it installs; no distro package manager
         writes that, so it's the same "the user chose it" signal apt-mark gives for native packages.
         `--not-required` further drops pip-pulled DEPENDENCIES (the pip analog of apt's manual-not-
         auto), leaving the top-level dists the user actually asked for. Read from `pip list -v`'s
@@ -131,8 +131,8 @@ class Pip(ModuleDriver):
         return spec
 
     def _python_version(self, rc):
-        '''"3.10.12" for the interpreter `rc` installs into, probed once per interpreter per driver
-        instance; None when it can't be asked (a --pretend run, no such python).'''
+        '''"3.10.12" for the interpreter `rc` installs into, probed once per interpreter per runner
+        (each unit builds a fresh driver, so the cache lives on the runner); None when it can't be asked (a --pretend run, no such python).'''
         cache = self.runner.__dict__.setdefault('_pip_pyver', {})   # per runner: each unit gets a fresh driver (C4)
         interp = str(rc.fields.get('python') or 'python3')
         if interp not in cache:

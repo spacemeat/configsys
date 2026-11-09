@@ -2,9 +2,13 @@
 
 Given the resolved plan for THIS machine, find every ACTIVE versioned requirement whose provider's
 DEFAULT install method can't meet the floor, and advise how to fix it — pin the provider to a method
-that does. Read-only: it NEVER swaps a method silently (the locked posture); it only surfaces the
-choice. Reuses versionreport (real per-method versions) + versionsweep.providers_of, and is a no-op
-when no floors are active, so it costs nothing until floors exist.
+that does. advise() / resident_advise() are read-only: by default nothing swaps a method silently
+(the locked posture); they only surface the choice. The opt-in `auto-tighten:` setting is the one
+exception — tighten_pins (floor pins for the app's second resolve pass, below YOUR pins, never
+replacing an installed provider) and resident_upgrades / resident_upgrades_probed (an `upgrade` of a
+too-old resident toolchain). A user pin always wins; advise() flags one that misses a floor
+(`pin-floor`). Reuses versionreport (real per-method versions) + versionsweep.providers_of, and is a
+no-op when no floors are active, so it costs nothing until floors exist.
 '''
 
 from .osversion import implies

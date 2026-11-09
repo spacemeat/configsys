@@ -66,6 +66,10 @@
             def: "A machine setting: the order of install mechanisms used to choose among equally specific candidates (default: native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script). Your list only needs the drivers you care about — the ones it leaves out follow in the default order."
             see: [ standing  specificity ]
         }
+        driver-gate: {
+            def: "A rule that takes a whole driver off the table on some machines, so none of its bindings are candidates there. A driver is gated wherever its own requirements can't be met (no snapd for snap, no glibc for AppImages), or by an explicit `when:` on its `drivers:` entry (Homebrew only on glibc Linux, the AUR only on Arch). `configsys where` names the reason."
+            see: [ driver  candidate  requires ]
+        }
         capability: {
             def: "A named feature a component offers or needs (`provides:` / `requires:`), optionally versioned (`provides: { jdk: 21 }`). Resolution satisfies a `requires:` with a component that provides it."
             see: [ requires  suggests  provider ]
@@ -104,6 +108,14 @@
             def: "Which picks column this box is (default `this-machine`). `configsys machine …` lists, adds and switches them."
             see: [ picks ]
         }
+        curating: {
+            def: "Editing another machine's picks from this box (`--machine <other>`): Profiles edits land in its column, and installs are refused here."
+            see: [ machine  picks ]
+        }
+        target-machine: {
+            def: "On the Profiles screen, the machine column(s) your tracking edits apply to — this box's machine by default; choose several with `M`."
+            see: [ track  machine  picks ]
+        }
         profile: {
             def: "A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin, or written in your own config as your own category. Profiles never install anything themselves; you pick from them."
             see: [ picks  subprofile ]
@@ -123,7 +135,7 @@
             see: [ plugin  primary-plugin ]
         }
         plugin: {
-            def: "A git repo (or local dir) that adds components, OS blocks, profiles, drivers or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Code — and data that runs shell commands, like build recipes or shell glue — loads only after you trust it."
+            def: "A git repo (hosted, or a local checkout) that adds components, OS blocks, profiles, drivers, dotfiles, shell glue or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Its code — and any data that downloads, builds or runs something, like build recipes, tarballs or shell glue — is used only after you trust it (your primary plugin's data follows `primary-trust`)."
             see: [ layer  primary-plugin  trust  transitive-plugin ]
         }
         primary-plugin: {
@@ -131,9 +143,19 @@
             def: "Your personal plugin: travels with you across machines and may also set machine settings that should be uniform."
             see: [ plugin  setting-nature ]
         }
+        local-plugin: {
+            short: "`configsys plugin add <dir> --local`"
+            def: "A plugin declared in your top config with `--local`: it adds components (and profiles, OS blocks or drivers) on this machine only, never sets machine settings, and never travels with your primary plugin."
+            see: [ plugin  top-config  primary-plugin ]
+        }
+        push: {
+            short: "`configsys plugin push`"
+            def: "Publishing your primary plugin: configsys commits each of its own edits there as you work, and a push combines them with what your other machines published, asking you about any conflict. The `primary-push` setting chooses when it happens (ask, auto, auto-on-quit, manual); `configsys plugin undo` takes back a change."
+            see: [ primary-plugin  setting-nature ]
+        }
         trust: {
             short: "`configsys plugin trust`"
-            def: "Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data."
+            def: "Approving a plugin's exact content (pinned by hash) before configsys runs its code or command-carrying data. Until then, its only usable install methods are plain packages by name from sources your system already trusts (the distro repos, Flathub, the Snap Store, Homebrew)."
             see: [ plugin  plugin-lock  review-diff ]
         }
         plugin-lock: {
@@ -155,6 +177,11 @@
             def: "configsys' model of a distro: its parent (`using:`), package manager (`native:`), version numbering (`scale-root:`) and built-in capabilities (`provides:`). `when:` atoms name these."
             see: [ lineage  scale-root  native ]
             avoid: [ distro-profile ]
+        }
+        release-registry: {
+            short: "`releases:` on an OS block"
+            def: "The facts configsys records about each release of a versioned distro — status (prerelease, released, end-of-life), container image, codename, glibc, python3 and gcc versions. A derivative's release names the release it is built on (`base:`), so a gate like `ubuntu >= 24.04` reaches it."
+            see: [ OS-block  lineage ]
         }
         lineage: {
             def: "An OS block's chain of parents (`pop_os!` → ubuntu → debian → glibc_linux → linux). A bare `when:` atom matches a block and all its descendants."
@@ -232,7 +259,7 @@
         }
         ledger: {
             short: "`state.hu`"
-            def: "configsys' small local state file: version locks, managed markers and install receipts. The system itself stays the source of truth for what's installed."
+            def: "configsys' small local state file: version locks and install receipts. The system itself stays the source of truth for what's installed."
             see: [ receipt  lock ]
         }
         lock: {
@@ -263,7 +290,7 @@
             see: [ component  profile ]
         }
         version-floor: {
-            def: 'A hard minimum version a component needs from a capability (`requires: { go: ">=1.21" }`); configsys surfaces methods that cannot meet it rather than silently upgrading.'
+            def: 'A minimum version a component needs from a capability (`requires: { python3: ">=3.11" }`). It is hard where the providers carry their own versions; for a tool whose version depends on how it is installed (`go`), configsys warns instead, and the opt-in `auto-tighten:` setting picks a method that meets it.'
             see: [ capability ]
         }
         refresh: {
@@ -285,6 +312,11 @@
         issues: {
             def: "The diagnostics list — the TUI `!` page, `configsys check`, and the end of `configsys inspect`: config warnings, picks that can't route, routing statuses, scope drift, version-floor advisories."
             see: [ routing-status ]
+        }
+        key-scope: {
+            short: "a `keys:` sub-section"
+            def: "One group of TUI key bindings: `global` (every screen), `screens` (the screen-switch keys), one per screen, and `issues` (the `!` page). A screen's own scope is consulted first. Unrelated to the install `scope:` setting."
+            see: [ issues ]
         }
         recipe-pin: {
             short: "`[R]`"
@@ -316,7 +348,7 @@
         }
         uninstall-queue: {
             short: "`uninstall:`"
-            def: "Removals you've staged on this machine for installs outside its picks (the TUI's `!uninstall` view); kept machine-local until you run them."
+            def: "Removals you've staged on this machine (Profiles `x`, `configsys uninstall add`; the TUI's `!uninstall` view); kept machine-local until you run them."
             see: [ orphan  picks ]
         }
         install-dirs: {
@@ -349,7 +381,7 @@
             see: [ primary-plugin ]
         }
         staged-glue: {
-            short: "`configsys dotfiles staged`"
+            short: "`configsys glue staged`"
             def: "Shell startup lines an installer tried to add, reverted by the shell-writes guard and held, inactive, on this machine until you activate them (they become your user glue) or discard them. Not the same as a staged TUI operation."
             see: [ shell-writes-guard  user-glue  staged ]
         }
@@ -364,7 +396,7 @@
         }
         golden: {
             short: "test/routing_golden.json"
-            def: "A frozen snapshot of how every component resolves on 15 reference machines; a test fails if routing changes unexpectedly."
+            def: "A frozen snapshot of how every component resolves on 24 reference machines; a test fails if routing changes unexpectedly."
         }
         name-sweep: {
             def: "A container test that checks every native package name configsys would install really exists in each distro's repos."

@@ -20,7 +20,8 @@ def _issue_loc(issue, paths):
 
 
 def cmd_check(ctx, args):
-    '''Lint the whole merged config (repo + your ~/configsys.hu + includes) without installing.'''
+    '''Lint the whole merged config (repo + plugins + primary + your top config, with includes)
+    without installing.'''
     try:
         rows, n_components = check_report(ctx)
     except ConfigsysError as e:
@@ -100,10 +101,9 @@ def check_report(ctx):
                     f'{os.path.basename(lyr.path)}: theme uses the old {"/".join(stale)} schema '
                     f'(now colors: + pages.<page>.<role>) — ignored; see docs/theming.md')
 
-    # profile references: a selected profile naming a component that doesn't exist, plus
-    # structural errors from expansion (undefined `+include`, include cycle).
-    # profiles are read-only BROWSE lenses now, so lint them ALL (not just an active subset — there
-    # is none): a lens naming a component that isn't defined is an authoring error worth surfacing.
+    # profile references: a profile naming a component that doesn't exist, plus structural errors
+    # from expansion (undefined `+include`, include cycle). Profiles are read-only BROWSE lenses, so
+    # every one is linted: a lens naming a component that isn't defined is an authoring error.
     prof_issues = []
     prof_errors = []
     for prof in ctx.config.profile_names():
@@ -243,7 +243,9 @@ def check_report(ctx):
         pass
 
     # glue-override drift (docs/done/glue-customization-plan.md P2): a user override whose SHIPPED source
-    # has since changed. Advisory — the override stays authoritative; nudge to refresh if wanted.
+    # has since changed. Advisory — the override stays authoritative. Re-running `glue override`
+    # never overwrites an existing fork (Glue.override): it only records the new shipped hash, so
+    # it is the "I've reviewed it" acknowledgement, not a refresh.
     glue_drift_warnings = []
     try:
         gdrv = get_driver('glue', ctx.runner, ctx.paths)
@@ -257,14 +259,15 @@ def check_report(ctx):
                 continue
             for _shell, _old, _new in gdrv.override_drift(_rc):
                 glue_drift_warnings.append(
-                    f"glue override for '{_comp}' ({_shell}) shadows a NEWER shipped version — "
-                    f'`configsys glue override {_comp}` to refresh, or keep yours')
+                    f"glue override for '{_comp}' ({_shell}) was forked from an older shipped "
+                    f'version — merge what you want from the new one into your copy, then '
+                    f'`configsys glue override {_comp}` marks it current (it never overwrites yours)')
     except Exception:                                    # noqa: BLE001 — drift lint must never break check
         pass
 
-    # RESOLVE the active set (no disk probe) so `check` surfaces resolve-TIME CONFIG inconsistencies
-    # the static lint sees only as latent — a pin that can't satisfy a versioned `requires:` for an
-    # ACTIVE consumer (e.g. a `cuda-toolkit` pin blocking `cudnn-9`), or an ambiguity needing a pin.
+    # RESOLVE this machine's picks (no disk probe) so `check` surfaces resolve-TIME CONFIG
+    # inconsistencies the static lint sees only as latent — a pin that can't satisfy a versioned
+    # `requires:` for a PICKED consumer (e.g. a `cuda-toolkit` pin blocking `cudnn-9`), or an ambiguity needing a pin.
     # This is the class the TUI `!` page / `inspect` flag as errors but that `check` used to downgrade
     # to a warning (or miss). We KEEP only pin/ambiguity errors (things the config author controls),
     # NOT pure OS-availability ("no binding for X in this context") — a config that lists a component

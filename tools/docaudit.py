@@ -17,12 +17,16 @@ Subcommands:
   inventory  [--json]            every markdown file: title, Status header, class (reference / todo /
                                  done / history, or todo? / done? for a plan misfiled in docs/ root),
                                  git created + last-changed dates, size
-  check      [--json] [paths…]   mechanical drift findings (exit 1 if any error-level finding)
+  check      [--json] [paths…]   mechanical drift findings (exit 1 if any error-level finding):
+                                 broken links, retired terms, `configsys …` examples that don't
+                                 parse, malformed ```hu blocks; a full run (no paths) adds README
+                                 CLI/env coverage, config-format.md key coverage, Status headers,
+                                 retired terms in --help / `?` help, stale man pages and glossary
   glossary   --write | --check   render README.md's Glossary section from docs/glossary.hu
 
 The vocabulary — every configsys term and the RETIRED terms with their replacements — lives in
-docs/glossary.hu. `check` flags retired terms in live docs (docs/done/ and docs/history/ are
-historical records and exempt), and the README glossary is generated from that file (test_docs.py
+docs/glossary.hu. `check` flags retired terms in live docs (docs/done/, docs/history/ and the
+docs/review-*/ reports are historical records and exempt), and the README glossary is generated from that file (test_docs.py
 keeps it current, like test_manpages.py keeps the man pages).
 '''
 
@@ -116,7 +120,14 @@ def env_vars():
             # quoted literals only — a docstring abbreviation ("CONFIGSYS_USER/SYSTEM…") isn't a read
             names.update(re.findall(r'''['"](CONFIGSYS_[A-Z0-9_]+)['"]''',
                                     p.read_text(encoding='utf-8', errors='replace')))
-    return sorted(n for n in names if not n.endswith('_'))
+    return sorted(n for n in names if not n.endswith('_') and n not in INTERNAL_ENV)
+
+
+# Variables configsys reads that are plumbing, not user knobs — documented for developers (CLAUDE.md),
+# never in the user docs, so `check` doesn't ask for them there.
+INTERNAL_ENV = {
+    'CONFIGSYS_INVOKED_CWD': 'configsys.sh -> __main__ handoff of the caller\'s directory',
+}
 
 
 def config_facts():
@@ -627,17 +638,18 @@ def _print_findings(findings):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     sub = ap.add_subparsers(dest='cmd', required=True)
-    p = sub.add_parser('facts')
-    p.add_argument('--json', action='store_true')
-    p = sub.add_parser('inventory')
-    p.add_argument('--json', action='store_true')
-    p = sub.add_parser('check')
-    p.add_argument('--json', action='store_true')
-    p.add_argument('paths', nargs='*')
-    p = sub.add_parser('glossary')
+    p = sub.add_parser('facts', help='ground truth extracted from the code (CLI, env, config, drivers, '
+                                     'OS blocks, TUI)')
+    p.add_argument('--json', action='store_true', help='print the full facts as JSON (else a summary)')
+    p = sub.add_parser('inventory', help='every markdown file with its class, Status header and dates')
+    p.add_argument('--json', action='store_true', help='print as JSON')
+    p = sub.add_parser('check', help='mechanical drift findings (exit 1 on any error)')
+    p.add_argument('--json', action='store_true', help='print the findings as JSON')
+    p.add_argument('paths', nargs='*', help='only these files/dirs (skips the whole-project checks)')
+    p = sub.add_parser('glossary', help="render README.md's Glossary from docs/glossary.hu")
     g = p.add_mutually_exclusive_group(required=True)
-    g.add_argument('--write', action='store_true')
-    g.add_argument('--check', action='store_true')
+    g.add_argument('--write', action='store_true', help='rewrite the README section')
+    g.add_argument('--check', action='store_true', help='exit 1 if the README section is stale')
     a = ap.parse_args(argv)
     if a.cmd == 'facts':
         f = facts()

@@ -1,6 +1,6 @@
 # Split app.py and menu.py (review-2026-11-2 D2)
 
-> **Status: DONE** — finished 2026-11-09 (commits 26e5dd8 + the TUI split, review-2026-11-2 D2).
+> **Status: DONE** — finished 2026-11-09 (commits 26e5dd8 CLI split + 0e2d083 TUI split, review-2026-11-2 D2).
 > Lives on in: the module docstrings of `configsys/app.py`, `configsys/cli/*`, `configsys/tui/menu.py` and its siblings; docs/tui-architecture.md.
 
 `configsys/app.py` (5,260 lines: the Context, every CLI command, the parser) and

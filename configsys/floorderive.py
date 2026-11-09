@@ -3,11 +3,13 @@
 A `via: source` binding that `requires: cargo` builds a Rust project whose Cargo.toml declares an
 MSRV (`rust-version`); one that `requires: go` builds a Go project whose go.mod declares a minimum
 (`go 1.25`). This reads those manifests straight from each recipe's repo and emits the floor —
-`{ component: { cap: ">=X" } }` — the shape the `version-floors:` section consumes. The maintainer's
-daily sweep runs this and commits/publishes the result (e.g. to a `main`-keyed version-data plugin),
-so recipe authors never hand-maintain toolchain floors.
+`{ component: { cap: ">=X" } }` — the shape the `version-floors:` section consumes. The maintainer
+runs it (`tools/versionsweep.py --derive`, with the source plugin loaded) and commits the printed
+block (e.g. to a version-data plugin that follows its `main` branch), so recipe authors never
+hand-maintain toolchain floors.
 
-Pure given an injected `fetch(url) -> text` (unit-tested offline); the CLI wires it to http_fetch.
+Pure given an injected `fetch(url) -> text` (unit-tested offline); tools/versionsweep.py wires it to
+versions.http_fetch.
 '''
 
 import re

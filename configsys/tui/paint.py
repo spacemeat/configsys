@@ -189,7 +189,7 @@ def _busy(stdscr, pal, msg):
     stdscr.refresh()
 
 
-# -- F2 primitive: a bordered panel ---------------------------------------
+# -- primitive: a bordered panel ---------------------------------------
 def _panel(stdscr, pal, top, left, height, width, title, focused, h, w):
     '''Draw a bordered box; return (inner_top, inner_left, inner_h, inner_w) for its content.'''
     elem = 'menu_header' if focused else 'info_dim'
@@ -253,7 +253,8 @@ def _eff_flags(st):
 
 def _put_hscroll(stdscr, y, left, win_w, vx, hscroll, text, attr):
     '''Draw `text` starting at virtual column `vx`, clipped to a window `win_w` wide scrolled by
-    `hscroll` — the primitive behind the plugins table's horizontal (h/l) scroll.'''
+    `hscroll` — the primitive behind the shared table painter's (screens/table.py: Plugins, Glue,
+    Dotfiles) horizontal (h/l) scroll.'''
     start = vx - hscroll
     if start >= win_w or start + len(text) <= 0:
         return

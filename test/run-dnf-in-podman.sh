@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a throwaway fedora image (default 41) and run the dnf integration cycle inside it.
+# Build a throwaway fedora image (default 45) and run the dnf integration cycle inside it.
 # Nothing touches the host: all installs/removes happen in the container.
 #
 # Usage: [FEDORA=45] bash test/run-dnf-in-podman.sh [PKG]

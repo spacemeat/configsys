@@ -1,11 +1,13 @@
-'''snap.py — the snap driver (Ubuntu + descendants).
+'''snap.py — the snap driver.
 
 Installs snaps from the Snap Store via snapd. System-owned (snapd runs as root), so the mutating
 ops sudo; reads don't. Route fields: `name` (the snap name), optional `classic: true` (classic
 confinement — some snaps, e.g. code/slack, need it), optional `channel:` (default the store's
-default, usually latest/stable). Snap bindings are gated to `ubuntu` in the routes (snapd ships on
-Ubuntu and its descendants; other distros can install snapd but that's a deliberate opt-in, not
-assumed here).
+default, usually latest/stable). The driver is `standing: never-auto` and `requires: [
+snapd-socket, snapd-snap-link ]` (routes.hu `drivers:`): a snap is listed and pinnable wherever
+snapd can be installed (a no-op on Ubuntu, which ships it), but never the auto-default while
+another method is valid; where snapd has no method the driver isn't valid at all (the derived
+driver gate).
 
 get_version parses `snap list <name>`; get_latest reads the channel line from `snap info <name>`
 (local store metadata, refreshed by snapd — no live fetch). Version lock uses `snap refresh --hold`.

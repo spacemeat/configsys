@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Gated (slow, networked) apod integration across BOTH OS-version paths:
-#   jammy (22.04) -> no apt pipx  -> pip --user bootstrap  (ubuntu@<23.04 variant)
-#   noble (24.04) -> apt pipx     -> apt\pipx              (base block, PEP 668-safe)
+#   jammy (22.04) -> no apt pipx  -> pip --user bootstrap  (the `when: "ubuntu < 23.04"` pip binding)
+#   noble (24.04) -> apt pipx     -> apt\pipx              (the native binding, PEP 668-safe)
 # Pulls termapod from PyPI (and pipx on noble), so it is NOT part of run-in-podman.sh.
 #
 # Usage: bash test/run-apod-in-podman.sh

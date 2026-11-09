@@ -146,8 +146,9 @@ class Dnf(NativePkgManager):
 
     def ensure_prereqs(self, rc):
         '''Third-party dnf repo setup declared on the route: import the signing key
-        (`pubkey-url`) and drop a .repo file (`repo-id`/`repo-name`/`repo-url`, gpgkey =
-        pubkey-url). Idempotent — the .repo write is skipped when it already exists.
+        (`pubkey-url`), enable a distro repo that ships disabled (`enable-repo`, e.g. EL's CRB),
+        and drop a .repo file (`repo-id`/`repo-name`/`repo-url`, gpgkey = pubkey-url). Idempotent —
+        the .repo write is skipped when it already exists.
 
         A key URL templated with dnf repo vars (`$releasever`/`$basearch`, e.g. RPM Fusion's
         per-release key) can't be imported eagerly — `rpm --import` doesn't expand them. Such
@@ -195,7 +196,7 @@ class Dnf(NativePkgManager):
         '''Write a third-party .repo (only if absent), then — for a NEWLY-created one — validate it
         by refreshing ONLY that repo. If the refresh fails (unreachable baseurl, bad repomd), roll
         the .repo back so it can't poison every later dnf op. Returns None on success, or a
-        classified failing Result. (GPG-at-install verification is dnf's own, later — see docs/
+        classified failing Result. (GPG-at-install verification is dnf's own, later — see docs/done/
         driver-resilience-plan.md P2/P4.)'''
         path = f'/etc/yum.repos.d/{repo_id}.repo'
         p = shlex.quote(path)

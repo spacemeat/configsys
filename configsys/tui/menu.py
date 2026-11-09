@@ -4,8 +4,8 @@ startup inspection hand-off) and `_route_key`, plus the active keymap the router
 Everything the screens draw with and act through lives in sibling modules (review-2026-11-2 D2):
 paint (primitives), modals (modals + overlays), help (the `?` pages), models (the Components
 MenuState tree), panes (the other screens' models), preview (the Theme editor + samples), flows
-(execute / pick / push), startup (inspection worker, splash, effects). Each of those names still
-resolves as `menu.<name>`.
+(execute / pick / push), startup (inspection worker, splash, effects). Every name listed in `_MOVED`
+still resolves as `menu.<name>` (PEP 562 `__getattr__`).
 
 The Components tree is three levels: a profile (expanded by default) → a component (collapsed) → its
 install units; staging is keyed by unit, so a mark is consistent everywhere the unit appears.
@@ -106,8 +106,6 @@ def _route_key(keymap, screen, ch):
     return None, keymap.screen_for(ch)
 
 
-#                         phase end (the next phase's first tick) to snap it forward — no false 100%.
-
 
 _GLUE_HEADERS = ['component', 'state', 'conf.d', 'source']
 
@@ -115,7 +113,7 @@ _GLUE_HEADERS = ['component', 'state', 'conf.d', 'source']
 
 
 def run(ctx):
-    '''Entry point used by app.cmd_tui. Returns an exit code.'''
+    '''Entry point used by cli.ops.cmd_tui. Returns an exit code.'''
     # First-run config generation + the interactive primary-plugin offer must happen on the MAIN
     # thread, in the normal terminal, BEFORE the worker/curses — it prompts on stdin, which would
     # collide with the background load and curses init. load_pipeline's own call then no-ops.
@@ -179,8 +177,9 @@ def run(ctx):
             curses.cbreak()
             stdscr.keypad(True)
             from .keyspec import Keymap
-            # migrated screens (lazy import: avoids an import cycle; the new *Screen classes intentionally
-            # shadow the like-named legacy MODEL classes within run(), which now only builds the new screens)
+            # the screens (lazy import: avoids an import cycle). Several share a name with their MODEL
+            # class in panes/preview (GlueScreen, DotfilesScreen, ConfigScreen, ThemeScreen); within
+            # run() these names are the Screens — the models are composed inside them.
             from .screens.plugins import PluginsScreen
             from .screens.glue import GlueScreen
             from .screens.dotfiles import DotfilesScreen
@@ -204,7 +203,7 @@ def run(ctx):
             from .. import rebootcheck                 # (reboot, reason) cached ONCE — the header chip reads
             ctx._primary_state = primarygit.state(ctx)  # the header's ↑/↓ chip (local; Plugins fetches)
             ctx._primary_push_mode = primarygit.push_mode(ctx)
-            ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in _draw
+            ctx._reboot_pending = (rebootcheck.reboot_pending(ctx)   # it per frame; never re-probe in a draw
                                    if ctx.config.reboot_advice() else (False, ''))
             diags = ctx.diagnostics(states)
             if hasattr(ctx, 'start_check_lints'):
@@ -405,7 +404,6 @@ def run(ctx):
                     screen = _enter(dest)
                     continue
 
-                # -- Profiles screen --
                 # -- per-screen input: every screen's handle() returns an Intent the router applies to
                 # the shared loop state; the components handle also gets cfg/ledger and re-probes/rebinds.
                 scr = _screen(screen)

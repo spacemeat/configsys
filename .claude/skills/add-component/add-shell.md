@@ -2,9 +2,9 @@
 
 configsys treats every shell uniformly: small snippets under `~/.config/<shell>/conf.d/` plus a
 per-shell LOADER that runs them (the `via: glue` driver, `configsys/drivers/glue.py`). bash/zsh/fish/
-elvish/nushell are all wired (elvish AND nushell via a GESTALT/inline loader — see Part A class 5).
-Adding a shell `<sh>` means teaching the glue driver about it, then porting the glue content into its
-language.
+elvish/nushell are all wired (elvish AND nushell via a GESTALT/inline loader — see Part A class 4).
+Adding a shell `<sh>` means one `ShellSpec` row in `configsys/shells.py` (plus loader code only for
+an rc-block shell's source loop), then porting the glue content into its language.
 Read this when the user adds a shell (elvish, xonsh, oil/osh, tcsh, …) — it's a component (route it
 across the OS matrix like any other, per SKILL.md) PLUS the glue wiring below.
 
@@ -16,14 +16,15 @@ Never conflate these. Getting the seam wrong re-creates the fish whole-dir/glue 
    matrix like any tool.
 2. **Glue** (`via: glue`, the `<tool>-glue` companions + the `shell-glue` substrate) — shell
    INTEGRATION that configsys ships and owns: PATH/aliases/env/completions/init snippets that live
-   under `~/.config/<sh>/conf.d/`, plus the per-shell LOADER that makes the shell source that dir.
+   under the shell's conf.d dir (`ShellSpec.confd` — `<config>/<sh>/conf.d/`), plus the per-shell
+   LOADER that makes the shell source that dir.
    Storage is the **`glue/` root** (segregated from dotfiles): authoring `glue/shell/<sh>/<name>.<ext>`
-   → machine store `<state>/glue/<sh>/conf.d/50-<name>.<ext>` → symlinked into
-   `~/.config/<sh>/conf.d/50-<name>.<ext>` (load-order bands: `00-configsys`, `50-` component glue —
+   → machine store `<state>/glue/<sh>/conf.d/50-<name>.<ext>` (the store mirrors the deployed layout) →
+   symlinked into `<config>/<sh>/conf.d/50-<name>.<ext>` (load-order bands: `00-configsys`, `50-` component glue —
    `glue.component_link_stem`, `90-` user glue, `99-user`; a name that already has an `NN-` prefix
    keeps it).
-   (The authoring dir is the shell's KEY — `nu` for nushell — while the conf.d/store dir follows
-   `_SHELL_CONFD`: `~/.config/nushell/conf.d/`.)
+   (The authoring dir is the shell's KEY — `nu` for nushell — while the conf.d dir is its
+   `ShellSpec.confd`: `$XDG_CONFIG_HOME/nushell/conf.d/`.)
    Shared across tools — one `fzf-glue` ships a bash/zsh/fish/… variant each.
 3. **Config** (`via: dotfiles`, the `<sh>-dotfiles` companion) — the USER's own shell config, captured
    into their layer (their primary plugin, else local), stored as `dotfiles/<sh>-dotfiles.cfs/`.
@@ -35,54 +36,67 @@ whole `~/.config/<sh>` dir.** A whole-dir `dst` (`$XDG_CONFIG_HOME/<sh>`) swallo
 nags, source-column lies). The dotfiles driver deploys a config spec as ONE whole-thing symlink and
 `exclude:` only affects capture/.gitignore, NOT deployment — so targeting the rc file is the only fix.
 Precedent: `fish→config.fish`, `zsh→~/.zshrc`. **bash, elvish, and nushell have NO `<sh>-dotfiles`** —
-bash's config is purely glue (`~/.bash_aliases`), and elvish's rc.elv / nushell's config.nu ARE the
-glue gestalt block (glue-owned, regenerated — see class 5; capturing it would freeze the block).
+no `bash` component ships at all (bash is the floor, wired by the `~/.bashrc` block — a STATIC block like
+zsh's), and elvish's rc.elv / nushell's config.nu ARE the glue gestalt block (glue-owned, regenerated —
+see class 4; capturing it would freeze the block).
 
-## Part A — register the shell in the glue driver (`configsys/drivers/glue.py`)
+## Part A — register the shell: one `ShellSpec` row (`configsys/shells.py`)
 
-Three module-level constants, all required (a missing one is a `KeyError` in `_glue_variants`/
-`_glue_specs`/`_confd`), plus one optional:
+Every per-shell fact lives in ONE table, `shells.SHELLS` — a `ShellSpec(name, ext, confd, rc, mode,
+component, guarded, guarded_dirs)` row per shell. The glue driver's views (`glue._SHELL_EXT`,
+`_SHELL_CONFD`, `_GLUE_SHELLS`, `_SHELL_RC`, `_INLINE_SHELLS`, `_SHELL_COMPONENT`) and the
+shell-writes guard's `shellguard.GUARDED` / `GUARDED_DIRS` are all DERIVED from it, so never edit
+those — add the row:
 
-- `_SHELL_EXT['<sh>'] = '<ext>'` — the snippet file extension (bash `sh`, zsh `zsh`, fish `fish`).
-- `_SHELL_CONFD['<sh>'] = '~/.config/<sh>/conf.d'` — its conf.d dir (keep the uniform shape).
-- add `'<sh>'` to the **`_GLUE_SHELLS`** tuple — the set `_installed_shells()` iterates. A shell
-  counts as installed when `shutil.which('<sh>')` finds it OR configsys manages it (`_managed_shells`:
-  its binary sits in the component's managed install dir, per the glue-locations cache). Only
-  installed shells get glue; bash is the floor if none are found.
-- (optional) `_SHELL_COMPONENT['<sh>'] = '<component>'` when the component that installs the shell
-  isn't named like its key (`nu` → `nushell`) — the managed-install check looks it up by component.
+- `name` — the shell id: the `glue/shell/<name>/` authoring dir and the `CONFIGSYS_GLUE_SHELLS`
+  word (`nu` for nushell).
+- `ext` — a snippet's file extension (bash `sh`, zsh `zsh`, fish `fish`, nu `nu`, elvish `elv`).
+- `confd` — the conf.d dir its loader sources: `$XDG_CONFIG_HOME/<shell>/conf.d` for a shell that
+  reads its own config under XDG (fish, nushell, elvish), `~/.config/<shell>/conf.d` where the dir is
+  configsys's own choice (bash, zsh). `shells.expand` makes one absolute.
+- `rc` — the rc file a loader block goes in, or `None` when the shell sources conf.d natively.
+- `mode` — the loader class (below): `'native'`, `'rc-block'` or `'inline'`.
+- `component` — the component that installs the shell, for the managed-install check (`nushell` for
+  `nu`). A shell counts as installed when `shutil.which(<name>)` finds it OR configsys manages it
+  (`_managed_shell_dirs`: its binary sits in that component's managed install dir, per the
+  glue-locations cache). Only installed shells get glue; bash is the floor if none are found.
+- `guarded` / `guarded_dirs` — the rc files an installer may scribble in, and dirs whose every file
+  the shell sources, so the shell-writes guard snapshots them (docs/shell-glue.md).
 
-Then pick the shell's **loader class** — how it comes to run its conf.d. Five kinds:
+Then the shell's **loader class** — how it comes to run its conf.d (`mode`):
 
-1. **Native auto-source** (like fish): the shell reads `~/.config/<sh>/conf.d/*` itself. Add nothing
-   to `_SHELL_RC`/`_RC_SOURCE` — `_ensure_shell_loader` just ensures the dir (its `rc_rel` is `None`).
-   Simplest; prefer it if the shell supports a native conf.d/`vendor_conf.d`.
-2. **rc marker-block** (like zsh): the shell needs an rc line to source conf.d. Add
-   `_SHELL_RC['<sh>'] = '~/.<sh>rc'` (its rc file) and `_RC_SOURCE['<sh>'] = '<code to source
-   {confd}/*.<ext>>'`. shell-glue then writes ONE marker-delimited (`# >>> configsys glue >>>`)
-   block into that rc — idempotent (replaced in place) and cleanly removed on uninstall. The source
-   snippet MUST be empty-glob-safe (zsh uses `null_glob`; a POSIX shell needs a `[ -e ]` guard or
-   `nullglob`) so an empty conf.d doesn't error. A captured/managed rc (a configsys symlink) OWNS its
-   own source line — `_ensure_shell_loader` returns False and skips it; don't fight that.
-3. **Convention ride** (bash only): bash has no native conf.d, so it rides `~/.bash_aliases` →
-   the shipped `bash_aliases` loader. A new shell won't reuse this; it's bash-specific.
-4. **Punt**: dir only, no auto-source, no rc block. Snippets deploy but aren't sourced until you
-   implement (1), (2) or (5). Acceptable as an explicit first cut — but say so; glue is inert until the
-   loader lands. (No shell ships this way today; nushell used to, before it became gestalt (5).)
-5. **Gestalt / inline** (like `elvish` and `nushell`): for a shell that can't dynamically source a dir
-   of snippets into the interactive scope — either its `eval`/`source` ISOLATES namespaces so a source
-   loop DISCARDS each file's defs (elvish), or it parses the whole program up front so `source` needs a
-   parse-time-CONSTANT path and a conf.d loop is impossible (nushell). Add `'<sh>'` to
-   **`_INLINE_SHELLS`** and `_SHELL_RC['<sh>']` (its rc file); the
-   loader's marker block then **inlines the concatenated conf.d snippet contents** directly (so defs run
-   in the interactive namespace), regenerated on every (de)activation via `_inline_block`. Trade-off:
-   one erroring snippet aborts the rest of the block, so **every snippet must SELF-GUARD** (no bare
-   command that can throw — wrap a failing init in the shell's swallow-error form). This is heavier
-   than (2) — reach for it only when (1)/(2) genuinely can't persist definitions (test first: does a
-   `fn` defined in a sourced conf.d file survive into the interactive shell?).
+1. **`native` — auto-source** (like fish): the shell reads its conf.d itself. `rc: None`;
+   `_ensure_shell_loader` just ensures the dir. Simplest; prefer it if the shell supports a native
+   conf.d/`vendor_conf.d`.
+2. **`rc-block`** (bash, zsh): the shell needs an rc line to source conf.d. Set `rc` and add the
+   source loop to `glue._RC_SOURCE['<sh>']` (`{confd}` is filled in, shell-quoted) — the one piece of
+   loader CODE a new rc-block shell needs. shell-glue then writes ONE marker-delimited
+   (`# >>> configsys glue >>>`) block into that rc — idempotent (replaced in place) and cleanly
+   removed on uninstall. The loop MUST be empty-glob-safe (zsh's `(N)` glob qualifier; bash's
+   `[ -r "$_f" ]` guard) so an empty conf.d doesn't error. A captured/managed rc (a configsys
+   symlink) OWNS its own source line — `_ensure_shell_loader` skips it; don't fight that. (bash also
+   gets a login profile that sources `~/.bashrc` where none exists — `_ensure_bash_profile`; its old
+   `~/.bash_aliases` link is retired, history.)
+3. **Punt**: dir only, no auto-source, no rc block. Snippets deploy but aren't sourced until you
+   implement (1), (2) or (4). Acceptable as an explicit first cut — but say so; glue is inert until the
+   loader lands. (No shell ships this way today; nushell used to, before it became inline.)
+4. **`inline` — gestalt** (like `elvish` and `nushell`): for a shell that can't dynamically source a
+   dir of snippets into the interactive scope — either its `eval`/`source` ISOLATES namespaces so a
+   source loop DISCARDS each file's defs (elvish), or it parses the whole program up front so `source`
+   needs a parse-time-CONSTANT path and a conf.d loop is impossible (nushell). Set `mode: 'inline'`
+   and `rc`; the loader's marker block then **inlines the concatenated conf.d snippet contents**
+   directly (so defs run in the interactive namespace), regenerated on every (de)activation via
+   `_inline_block`. Trade-off: one erroring snippet aborts the rest of the block, so **every snippet
+   must SELF-GUARD** (no bare command that can throw — wrap a failing init in the shell's
+   swallow-error form). This is heavier than (2) — reach for it only when (1)/(2) genuinely can't
+   persist definitions (test first: does a `fn` defined in a sourced conf.d file survive into the
+   interactive shell?).
 
-Once `<sh>` is in `_GLUE_SHELLS` and installed, the **shell-glue substrate** (`loader: all`) picks it
-up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit to shell-glue.
+A `mode` that is none of these three is new loader code in glue.py (`_ensure_shell_loader`,
+`_rc_block`, `_remove_shell_loader`, `_loader_ok`) — not just a row.
+
+Once the row exists and the shell is installed, the **shell-glue substrate** (`loader: all`) picks
+it up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit to shell-glue.
 
 ## Part B — data + content
 
@@ -132,7 +146,7 @@ up automatically — `_loader_shells('all')` == `_installed_shells()`. No edit t
      `glue/shell/bash/<name>.sh` originals — only the ones that make sense there.
    - Snippets you don't port simply don't attach on `<sh>` (a glue component with no `<sh>` variant
      yields no spec for that shell — a clean no-op, not an error).
-   - **Gestalt shells (class 5) — persistence + self-guard idioms.** Since snippets are inlined and
+   - **Gestalt shells (class 4) — persistence + self-guard idioms.** Since snippets are inlined and
      one throw aborts the rest: (a) a conditional definition must NOT be a bare `fn`/`def`/`alias`/`var`
      inside an `if`/`for` (that's block-local and won't persist) — use the shell's inject-into-the-
      interactive-namespace form (elvish: `edit:add-var name~ {…}`; **nushell: there is none** — a `def`
@@ -185,7 +199,7 @@ Drive with `CONFIGSYS_GLUE_SHELLS='<sh>'` to force the installed-shell set. Asse
 - a snippet materializes to `<store>/<sh>/conf.d/50-<name>.<ext>` (executable) and links into
   `~/.config/<sh>/conf.d/`;
 - the loader wires for `<sh>` — the rc marker block appears (class 2), the dir exists (class 1), or
-  the block INLINES the snippet content (class 5; assert a snippet's code is in the rc block and that
+  the block INLINES the snippet content (class 4; assert a snippet's code is in the rc block and that
   deactivating one regenerates the block without it — see `test_elvish_gestalt_loader_inlines_snippets_into_rc`),
   and `get_version` reads `linked`;
 - `uninstall` removes the hookup (rc block / link) and leaves content alone.
@@ -193,7 +207,9 @@ Then a routes `check` + golden regen for the new `<sh>` component (purely additi
 
 ## Gotchas
 
-- **Both `_SHELL_EXT` and `_SHELL_CONFD` must carry `<sh>`**, or `_glue_specs`/`_confd` `KeyError`.
+- **Edit `shells.SHELLS`, never glue.py's `_SHELL_*` views or `shellguard.GUARDED`** — they derive
+  from the row; an rc-block shell additionally needs its `glue._RC_SOURCE` loop, or the block is a
+  `KeyError`.
 - **Empty-glob safety** in the `_RC_SOURCE` snippet — an empty conf.d must not error the shell at
   startup (`null_glob` / a `[ -e ]` guard).
 - **Managed rc**: if the user has captured `~/.<sh>rc` as a configsys dotfile (symlink), the loader
@@ -203,7 +219,7 @@ Then a routes `check` + golden regen for the new `<sh>` component (purely additi
   it's the #1 trap). `<sh>-dotfiles` must target the rc file, NEVER `~/.config/<sh>` whole. Symptoms of
   getting it wrong: glue reads "not linked" through the dir-symlink, the Glue source column shows a raw
   path instead of `<repo>`, and the config capture bakes in the glue snippets (the fish split-brain).
-- **Gestalt: capture freezes the block.** A gestalt (class 5) rc is dynamic and glue-owned — never
+- **Gestalt: capture freezes the block.** A gestalt (class 4) rc is dynamic and glue-owned — never
   give such a shell a `<sh>-dotfiles`. If its rc is a captured symlink, `_ensure_shell_loader` skips it
   and the block freezes at whatever it was when captured (a stale loader, silently).
 - **Gestalt: one throw aborts the block; defs in `if`/`for` don't persist.** Every inlined snippet

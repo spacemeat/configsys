@@ -21,11 +21,13 @@ Probes (cached under $XDG_CACHE_HOME/configsys/compaudit, default TTL 1 day):
              full formulae.brew.sh index serves every brew binding (the per-formula API 404s on
              aliases).
   crates / pypi / npm — package exists; npm deprecation.
+  static   — (no network) a tarball/appImage/native-pkg-file/script binding that hard-codes an
+             x86-64 artifact with no `$ARCH`, `cpu-names:` or `when: cpu:` gate.
 
 Usage:
   python3 tools/compaudit.py list  <scope>
   python3 tools/compaudit.py scan  <scope> [names...] [--full | --due-days N] [--batch-size N]
-                                   [--out DIR] [--no-probe] [--ttl HOURS]
+                                   [--out DIR] [--no-probe] [--offline] [--ttl HOURS]
   python3 tools/compaudit.py record <scope> <names...>    # mark units deep-audited (ledger)
   python3 tools/compaudit.py token                        # preflight: is a GitHub token available?
 
@@ -711,23 +713,23 @@ def _select(units, names):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     sub = ap.add_subparsers(dest='cmd', required=True)
-    p = sub.add_parser('list')
-    p.add_argument('scope')
-    p = sub.add_parser('scan')
-    p.add_argument('scope')
-    p.add_argument('names', nargs='*')
+    p = sub.add_parser('list', help="print the scope's units (a component + its companions)")
+    p.add_argument('scope', help='`base` (routes.hu) or a plugin name / path')
+    p = sub.add_parser('scan', help='probe upstream and write audit batch files for the due units')
+    p.add_argument('scope', help='`base` (routes.hu) or a plugin name / path')
+    p.add_argument('names', nargs='*', help='only these components (always deep-audited)')
     g = p.add_mutually_exclusive_group()
     g.add_argument('--full', action='store_true', help='deep-audit every unit (ignore the ledger)')
     g.add_argument('--due-days', type=int, default=30, help='re-audit units older than N days (default 30)')
-    p.add_argument('--batch-size', type=int, default=20)
+    p.add_argument('--batch-size', type=int, default=20, help='units per batch file (default 20)')
     p.add_argument('--out', default=None, help='output dir (default: a fresh dir under the cache)')
-    p.add_argument('--no-probe', action='store_true')
+    p.add_argument('--no-probe', action='store_true', help='skip the upstream probes entirely')
     p.add_argument('--offline', action='store_true', help='probe from cache only')
     p.add_argument('--ttl', type=float, default=24, help='probe cache TTL in hours (default 24)')
     sub.add_parser('token', help='report whether a GitHub token is available (preflight)')
-    p = sub.add_parser('record')
-    p.add_argument('scope')
-    p.add_argument('names', nargs='+')
+    p = sub.add_parser('record', help='mark units deep-audited today in the ledger')
+    p.add_argument('scope', help='`base` (routes.hu) or a plugin name / path')
+    p.add_argument('names', nargs='+', help='the units audited')
     a = ap.parse_args(argv)
 
     if a.cmd == 'token':

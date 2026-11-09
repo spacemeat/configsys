@@ -13,9 +13,9 @@ Env overrides:
                        under CONFIGSYS_HOME, <home>/.config/configsys)
   XDG_CONFIG_HOME      base for the default state dir        (default: <home>/.config)
 
-Install-layout overrides (the "config for configsys" — also settable from the shipped
-glue/shell/bash/00-configsys.sh so your shell and configsys agree). A driver install location is
-<scope base>/<category>/<name>; each part is env-overridable with a sensible default:
+Install-layout overrides — normally set with the `dirs:` machine setting (`configsys config set
+dirs.app …`); an env var still wins over it, per invocation (CONFIG_DIR_KEYS: default < `dirs:` <
+env). A driver install location is <scope base>/<category>/<name>; each part has a sensible default:
   CONFIGSYS_USERSCOPE_DIR   base for user-scope installs         (default: ~ = configsys home)
   CONFIGSYS_SYSTEMSCOPE_DIR base for system-scope installs       (default: /opt)
   CONFIGSYS_APP_DIR         self-contained apps  ($CONFIGSYS_APP_DIR)  (default: apps)
@@ -105,7 +105,7 @@ class Paths:
         self.stale_pins_file = self.state_dir / 'stale-pins.json'   # {comp: [pinned, upstream]} manual pins behind upstream (last refresh)
         self.method_versions_file = self.state_dir / 'method-versions.hu'  # per-method get_latest cache (native queries are slow)
         self.plugins_dir = self.state_dir / 'plugins'         # synced remote plugin repos
-        self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved commit}
+        self.plugin_trust_file = self.state_dir / 'plugin-trust.hu'   # {plugin: approved content identity} (plugins.plugin_identity)
         self.plugin_lock_file = self.state_dir / 'plugin-locks.hu'    # {plugin: date locked} — no sync/update/trust
         self.plugin_review_dir = self.state_dir / 'plugin-review'     # inert bare repos the pre-sync review diff fetches into
         self.last_refresh_file = self.state_dir / 'last-refresh'   # unix ts of the last `configsys refresh`

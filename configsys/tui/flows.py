@@ -54,7 +54,7 @@ def _summary_note(outcomes):
 
 def _seed_uninstall(ms, ctx):
     '''Pre-stage a `remove` op for each PRESENT unit whose component is in the persisted `!uninstall`
-    queue — so removals staged from TUI::Profiles (or a prior session) surface here and execute via
+    queue — so removals staged on the Profiles screen (or in a prior session) surface here and execute via
     the normal Components flow. Never overrides an already-staged op; failures are silent.'''
     try:
         q = ctx.config.uninstall_queue()

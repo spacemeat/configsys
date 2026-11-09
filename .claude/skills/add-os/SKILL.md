@@ -22,7 +22,7 @@ correct. Once a block you add here has a registry, `/update-os` maintains it.
 
 ```
 <name>: { using: <parent>  [native: <mgr>]  [scale-root: true]  [provides: <caps>]  [detect: {…}]
-          [releases: { <VERSION_ID>: { status: …  … } }] }
+          [advisory: "…"]  [driver-preference: [ … ]]  [releases: { <VERSION_ID>: { status: …  … } }] }
 ```
 
 - **`using: <parent>`** — single-parent lineage. Everything cascades: the parent's `native:`,
@@ -46,15 +46,23 @@ correct. Once a block you add here has a registry, `/update-os` maintains it.
   per its image's package lists). Add one only when the environment genuinely ships the capability.
 - **`detect: { id: <base>  marker: <path|[paths]> }`** — see *Runtime detection* below; only for a
   derivative that does NOT rebrand `/etc/os-release`.
+- **`advisory: "…"`** — an OS caveat shown on the `!` page / in `inspect` (`os-advisory`) for this
+  block and every descendant (`OsCascade.advisory`: the nearest one up the lineage wins; `advisory:
+  ""` silences an inherited one). Use it for a new / not-hardware-validated / partly-routable
+  environment (`kde_linux`, `chimera`). May span lines.
+- **`driver-preference: [ … ]`** — rare: an OS-wide reordering of the default method preference
+  (first link of `resolve._effective_preference`'s chain; routing-model §8a). Never a validity tool.
 - **`releases:`** — the release registry; only on the block that OWNS a version line (see *The
   release registry* below).
+
+Any other field is an `os-block` `check` warning (`routes.OS_BLOCK_FIELDS`).
 
 ## The libc axis (orthogonal to family)
 
 glibc distros hang off **`glibc_linux`** (inherit the `glibc` capability). musl distros (Alpine, a
 musl Void) hang off **`linux`** directly — so glibc-only methods cleanly DECLINE there instead of
 installing a binary that can't run: a tarball's `requires: glibc`, the appImage driver's own
-`requires: [ libfuse2, glibc ]` (the derived driver gate), and brew's explicit `when: "glibc_linux"`
+`requires: [ libfuse2, glibc, curl ]` (the derived driver gate), and brew's explicit `when: "glibc_linux"`
 gate. If the new OS is musl, do NOT put it under `glibc_linux`.
 
 ## Native-less blocks
@@ -83,10 +91,11 @@ Three mechanisms; pick based on what `/etc/os-release` reports:
    (`steamos` → `arch`, `raspbian` → `pios`). Add an entry to `_ALIASES` in `configsys/osdetect.py`.
 3. **Derivative that keeps a base's os-release ID → a `detect:` marker (data-driven, no code).** A
    distro that reports a base ID (Proxmox VE reports `ID=debian`; Raspberry Pi OS Bookworm+ too)
-   declares `detect: { id: <base>  marker: <path> }` (marker may be a list). When the detected block
-   is that base (or a descendant) AND every marker exists on disk, `refine()` routes to your more-
-   specific block. `pios` (marker `/etc/rpi-issue`) and `void_musl` (`id: void`, marker the musl
-   loader `/lib/ld-musl-x86_64.so.1`) are the examples; `fedora_atomic` is the built-in
+   declares `detect: { id: <base>  marker: <path> }` (`marker:` may be a list — ALL must exist) and/or
+   `marker-any: [ … ]` (at least ONE must exist). When the detected block is that base (or a
+   descendant) AND the markers hold on disk, `osdetect.refine()` routes to your more-specific block.
+   `pios` (marker `/etc/rpi-issue`) and `void_musl` (`id: void`, `marker-any:` the per-cpu musl
+   loaders `/lib/ld-musl-x86_64.so.1`, `-aarch64`, …) are the examples; `fedora_atomic` is the built-in
    ostree-marker special case. A forced `CONFIGSYS_OS` is never second-guessed.
 
 `VERSION_ID` (osversion.py) feeds the `when:` version atoms; a `scale-root` governs which versioned
@@ -119,6 +128,8 @@ fedora: { using: redhat  scale-root: true
 ```
 
 - **Keys** are the VERSION_ID os-release reports (`22.04`, `13`, `3.24`; EL by its major, `9`).
+- **Fields** (`routes.RELEASE_FIELDS`; anything else is an `os-release` warning): `status`,
+  `released`, `eol`, `codename`, `image`, `glibc`, `python3`, `gcc`, `manager`, `note`, `base`.
 - **`status:`** (required) `prerelease` / `released` / `eol`. List every release still in use
   (released and supported upstream), the next one once it has a branched image, and recently EOL'd
   ones the routes still mention (`status: eol`) — an EOL release keeps its gates and stays
@@ -130,6 +141,12 @@ fedora: { using: redhat  scale-root: true
   `https://endoflife.date/api/<product>.json`); `codename:` is required for apt lines (PPAs and
   `$CODENAME` source lines are probed with it); `image:` is a fully qualified reference
   (`docker.io/library/…`) — without one the release can't be swept.
+- **`base: "<block> <version>"`** — on an own-numbering derivative's release (`linuxmint` 22 →
+  `"ubuntu 24.04"`, `zorin` 18, `elementary` 8, `lmde`/`mx` → a Debian release). The ONE registry
+  field the resolver reads (`OsCascade.bases_of`, followed transitively): the machine also counts as
+  that base release for versioned atoms, so `ubuntu >= 24.04` reaches Mint 22 without listing
+  derivatives in `when:`. A release with no `base:` (or a derivative with no registry, like
+  `pikaos`) is reached by no parent's versioned atom. `check` lints the shape (`os-release`).
 - **Sweepable?** `tools/osaudit.py sweep` needs a container-side repo setup for the line in
   `osaudit._SETUPS` (enable the repos its routes assume: universe, EPEL + CRB, RPM Fusion, Alpine
   community, …). Add one for a new line with an image; a line with no public image (most
@@ -163,7 +180,7 @@ fedora: { using: redhat  scale-root: true
    already exist. If the OS's manager exists but its package names don't match the existing maps,
    go native-less (above) rather than inheriting broken names.
 6. **Validate:**
-   - `.venv/bin/python -m configsys --os <block> check` → 0 errors; also run the existing spread
+   - `.venv/bin/python -m configsys --home <scratch-home> --os <block> check` → 0 errors; also run the existing spread
      (add-component SKILL.md §7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl)
      so a shared-parent edit didn't regress them. `check` also lints the `releases:` shape
      (`os-release` warnings) — none allowed.
@@ -177,10 +194,15 @@ fedora: { using: redhat  scale-root: true
    - **Name-existence sweep** for the manager (podman): `bash test/run-name-sweep-in-podman.sh
      <manager>` — the cheapest catch for native-name drift on the new OS.
    - Golden gate: `CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q`, then
-     semantic-diff vs HEAD. The golden covers a FIXED list of 15 contexts (`CONTEXTS` in
-     `test/test_golden.py`), so a new block adds no column by itself — and existing contexts must be
+     semantic-diff vs HEAD. The golden covers a FIXED list of contexts (`CONTEXTS` in
+     `test/test_golden.py`, 24 today — releases of each versioned line plus the rolling and
+     native-less blocks), so a new block adds no column by itself — and existing contexts must be
      unchanged (`changed=[]`); a shift means a new atom leaked into a sibling's routing (or a parent
      edit changed it). Add the block to `CONTEXTS` only for a new base family worth freezing.
+     `tools/osaudit.py fixtures` then checks the fixtures against the registry: a golden context
+     that names an unregistered release, a line whose newest live release has no golden context,
+     namesweep `MANAGERS` sweeping an older release, a `test/Containerfile*` base the registry marks
+     eol.
    - Add an **osdetect test** (`test/test_osdetect.py`; markers in `test/test_detect_marker.py`)
      asserting your ID/marker/alias maps to the block, and (if `scale-root`) that a versioned parent
      atom does NOT bind on it.
@@ -202,8 +224,9 @@ fedora: { using: redhat  scale-root: true
   NOT under the mutable family — keeps dnf/EPEL/repo-component bindings from misfiring; prefer
   flatpak + brew, `provides: flatpak` (or native-less, like `kde_linux`). Don't hand-gate AppImage
   or snap off it: with no libfuse2 / snapd route those drivers are already not offered (derived
-  gates). Add a brew/rpm-ostree-style atomic block to `ATOMIC_BLOCKS` in osdetect.py for the
-  not-hardware-validated advisory.
+  gates). Add a brew/rpm-ostree-style atomic block to `ATOMIC_BLOCKS` in osdetect.py — it drives the
+  built-in atomic diagnostic and the `atomic` flag in `configsys report`; any other caveat is the
+  block's `advisory:` field.
 - **musl under `glibc_linux`** installs binaries that can't run — put musl distros under `linux`.
 - **A shared-parent edit is global.** Editing a base block (debian/redhat/…) to fit a new child can
   change every descendant — re-run `check` + the golden diff across the family.

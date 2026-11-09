@@ -157,7 +157,7 @@ def start_scan(ctx):
         with _SCAN_LOCK:                                 # atomic vs invalidate()'s bump + clear
             if getattr(ctx, '_sysupd_gen', 0) != gen:
                 return                                   # superseded by an invalidate(): drop it
-            ctx._sysupd_notes = notes                    # the `!` page lists them (Context.issues)
+            ctx._sysupd_notes = notes                    # the `!` page lists them (Context._diagnostics)
             ctx._sysupd_groups = g
             ctx._sysupd_dirty = True
 
@@ -219,7 +219,7 @@ def apply_bulk(ctx, manager_names, *, refresh=True, on_start=None, on_line=print
     from . import reportgen
     from .actions import OpOutcome, RunResult, fail_detail
     if refresh:
-        from .cli.refresh import refresh_native_index             # lazy: app imports this module
+        from .cli.refresh import refresh_native_index             # lazy: the cli layer imports this module
         refresh_native_index(ctx)                         # non-fatal
     outcomes, failures, n_fatal, exit_code, interrupted = [], [], 0, 0, False
     for mgr in manager_names:

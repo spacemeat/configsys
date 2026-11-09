@@ -7,15 +7,16 @@ Two checks over the loaded routes for a machine context:
     the method actually delivers is BELOW F (a stale claim, e.g. after an upstream regression).
 
 The CORE is pure: it takes the loaded components/drivers plus two injected version lookups, so it's
-unit-testable without a network. The CLI (`sweep_ctx`) wires the lookups to real per-method versions
-via versionreport (each method's get_latest), so a run reflects THIS machine's repos/discovery.
-Networked + slow -> a maintenance tool, not part of pytest — like the name sweep.
+unit-testable without a network. `sweep_ctx` (run by tools/versionsweep.py) wires the lookups to
+real per-method versions via versionreport (each method's get_latest), so a run reflects THIS
+machine's repos/discovery. Networked + slow -> a maintenance tool, not part of pytest — like the
+name sweep.
 '''
 
 from . import osversion
 
 _pv = osversion.parse_loose   # strips a Debian epoch + leading `v` for cross-scheme compare
-meets = osversion.meets        # the one constraint check (re-exported: resolve/flooradvise import it here)
+meets = osversion.meets        # the one constraint check (re-exported: resolve/routecheck/flooradvise/pipx import it here)
 
 
 def collect_requirement_floors(components, drivers=None):

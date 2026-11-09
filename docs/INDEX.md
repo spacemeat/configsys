@@ -1,7 +1,7 @@
 # Docs index
 
-Last full audit: 2026-10-09 at f25cb60 (`/update-docs`, committed as d958cf9); bug batch + decisions 2026-10-10.
-Last scoped audit: 2026-10-10, `/update-docs --since da0a7ac` at 53512a6 (driver gates, brew, /add-driver, refresh/reboot/sweep declarations).
+Last full audit: 2026-11-09 at 4836d77 (`/update-docs --deep --since da0a7ac`, the review-2026-11-2 docs phase: 27 units incl. module docstrings).
+Previous: 2026-10-09 at f25cb60 (committed as d958cf9); scoped 2026-10-10 at 53512a6.
 
 Where every doc lives and what state it's in. Created = first git commit of the file; finished = the commit that landed the last phase (from the doc's Status header). Maintained by the `/update-docs` skill.
 
@@ -32,8 +32,8 @@ Unfinished plans: not started, in progress, or deferred.
 | doc | status | created | finished | summary |
 |---|---|---|---|---|
 | [community-routes-registry.md](todo/community-routes-registry.md) | DEFERRED | 2026-09-23 | — | Design note: crowdsourcing route data safely (catalog → curated repo → federated). *design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).* |
-| [method-broadening-plan.md](todo/method-broadening-plan.md) | IN PROGRESS | 2026-08-27 | — | Offer every working install method (`when:` is validity, not preference). *Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started.* |
-| [os-releases-plan.md](todo/os-releases-plan.md) | IN PROGRESS | 2026-11-07 | — | An OS release registry (`releases:` on os blocks) + `/add-os` / `/update-os` (new releases filled in, live ones swept, EOL ones frozen). *phases 1–3 done (schema, tools/osaudit.py, the skills); 4 partly (fedora + fedora_atomic registered, /update-os fedora 45 applied; the other lines unregistered); 5 (engine uses) not started.* |
+| [method-broadening-plan.md](todo/method-broadening-plan.md) | IN PROGRESS | 2026-08-27 | — | Offer every working install method (`when:` is validity, not preference). *Phase 1 done (8a15ff5); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d); Phase 2b flatpak backlog (foot/jmeter/racket; wine is an open catalog decision) and the pipx/npm ecosystem sweeps not started (the 2026-11 catalog pass added methods one component at a time).* |
+| [os-releases-plan.md](todo/os-releases-plan.md) | IN PROGRESS | 2026-11-07 | — | An OS release registry (`releases:` on os blocks) + `/add-os` / `/update-os` (new releases filled in, live ones swept, EOL ones frozen). *phases 1–3 done (9a9b0c6, d0afa5e + 23f40f0, b61874b); 4 done (fedora c25bb0a, every other versioned line 956208e); 5 partly — derivative `base:` drives versioned gates (D8, cdda3cf + 834a389); the EOL / unknown-newer release note and per-release `provides: { glibc }` not started.* |
 | [source-plugin-plan.md](todo/source-plugin-plan.md) | IN PROGRESS | 2026-08-02 | — | configsys-source: additive build-from-source bindings. *pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.* |
 
 ## Done — `docs/done/`
@@ -43,7 +43,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 |---|---|---|---|---|
 | [primary-safety-plan.md](done/primary-safety-plan.md) | DONE | 2026-11-07 | 2026-11-07 (0c62c22) | The primary push off the happy path: PrimaryRepo, an undoable combine, the small fixes, merge quality (review-2026-11). |
 | [primary-journal-plan.md](done/primary-journal-plan.md) | DONE | 2026-11-07 | 2026-11-07 (d99c1b3) | Commit configsys's primary edits from a write journal (`primarygit.will_write`) instead of snapshot differences (review-2026-11 B1/B3/C1). |
-| [primary-push-plan.md](done/primary-push-plan.md) | DONE | 2026-10-21 | 2026-10-21 | Publishing the primary plugin: it follows a branch (never version-tagged); configsys commits its own edits; ↑/↓/● marks; `plugin push` / `P` with plain-language conflicts; `primary-push: ask/auto/auto-on-quit/manual`; a `.hu`-aware merge (`humerge`) so most conflicts settle themselves. Lives on in docs/plugins.md §8. |
+| [primary-push-plan.md](done/primary-push-plan.md) | DONE | 2026-10-21 | 2026-10-21 (b96d54a) | Publishing the primary plugin: it follows a branch (never version-tagged); configsys commits its own edits; ↑/↓/● marks; `plugin push` / `P` with plain-language conflicts; `primary-push: ask/auto/auto-on-quit/manual`; a `.hu`-aware merge (`humerge`) so most conflicts settle themselves. Lives on in docs/plugins.md §8. |
 | [d2-mvvm-findings.md](done/d2-mvvm-findings.md) | DONE | 2026-09-20 | 2026-09-20 (aef1da9) | Findings log kept during the MVVM rewrite. |
 | [d2-mvvm-plan.md](done/d2-mvvm-plan.md) | DONE | 2026-09-20 | 2026-09-20 (5641778) | TUI rewrite to MVVM screens + a lazy router. |
 | [docs-audit-fixes-2026-10.md](done/docs-audit-fixes-2026-10.md) | DONE | 2026-10-10 | 2026-10-10 | The audit bug batch + grilled decisions (uniform layers, brew routes, glue bands). |
@@ -55,6 +55,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | [glue-customization-plan.md](done/glue-customization-plan.md) | DONE | 2026-09-24 | 2026-09-24 (d597377) | Customize shipped glue; a user startup space; portability to primary. |
 | [immutable-distros.md](done/immutable-distros.md) | DONE | 2026-07-22 | 2026-07-22 (7feec73) | Immutable/atomic distros: brew + rpm-ostree, the fedora_atomic block. |
 | [install-methods-plan.md](done/install-methods-plan.md) | DONE | 2026-07-29 | 2026-07-29 (2711a3e) | Install-method selection. |
+| [linked-content-plan.md](done/linked-content-plan.md) | DONE | 2026-11-09 | 2026-11-09 (fa2b781) | One link/unlink for the config drivers (`drivers/_linked.py`) and one shell table (`shells.py`) (review-2026-11-2 D4). *Lives on in docs/shell-glue.md, docs/config-format.md.* |
 | [keybindings-plan.md](done/keybindings-plan.md) | DONE | 2026-08-21 | 2026-08-21 (dec31b4) | User-configurable TUI keybindings (`keys:`). |
 | [managed-orphans-plan.md](done/managed-orphans-plan.md) | DONE | 2026-08-21 | 2026-08-25 (34ec1b8) | Discover installed things that aren't picked. |
 | [many-installs-including-src.md](done/many-installs-including-src.md) | SUPERSEDED | 2026-07-29 | — | Early notes on multiple install options incl. source. *by docs/done/install-methods-plan.md (shipped as multi-method selection + the declarative `source` driver), 2026-07-29.* |
@@ -66,10 +67,11 @@ Finished or superseded plans. The body is historical; the header says where the 
 | [python-versions-plan.md](done/python-versions-plan.md) | DONE | 2026-08-12 | 2026-08-12 (f48080d) | Python versions as version-scoped components. |
 | [routing-overhaul-plan.md](done/routing-overhaul-plan.md) | DONE | 2026-08-11 | 2026-08-11 (9d3b791) | Version-scoped providers, one `standing` knob, detection-first, where picker. |
 | [shell-writes-switch.md](done/shell-writes-switch.md) | DONE | 2026-08-18 | 2026-08-18 (58c8c4b) | Stop installers scribbling in rc files. |
+| [split-app-menu-plan.md](done/split-app-menu-plan.md) | DONE | 2026-11-09 | 2026-11-09 (26e5dd8 + 0e2d083) | Split app.py into `configsys/cli/` and tui/menu.py into router + siblings, behind `__getattr__` facades (review-2026-11-2 D2). *Lives on in CLAUDE.md, docs/tui-architecture.md.* |
 | [startup-perf-plan.md](done/startup-perf-plan.md) | DONE | 2026-08-12 | 2026-08-12 (c24a056) | Startup performance investigation + fixes (~50s → ~5s). |
 | [system-update-coverage-plan.md](done/system-update-coverage-plan.md) | DONE | 2026-09-21 | 2026-09-23 (cd65037) | configsys as the single updater: system updates P0–P3. |
 | [theme-redesign.md](done/theme-redesign.md) | DONE | 2026-08-03 | 2026-08-04 (cadaaa7) | Shared color map + per-page role styles. |
-| [trust-gate-plan.md](done/trust-gate-plan.md) | DONE | 2026-11-08 | 2026-11-08 | One trust gate at resolution: an untrusted plugin layer contributes only packages by name from trusted registries; everything that runs, builds, downloads or privileges waits for `plugin trust` (review-2026-11-2 A1). *Lives on in docs/plugins.md §6.* |
+| [trust-gate-plan.md](done/trust-gate-plan.md) | DONE | 2026-11-08 | 2026-11-08 (48507e9) | One trust gate at resolution: an untrusted plugin layer contributes only packages by name from trusted registries; everything that runs, builds, downloads or privileges waits for `plugin trust` (review-2026-11-2 A1). *Lives on in docs/plugins.md §6.* |
 | [tui-screens-plan.md](done/tui-screens-plan.md) | DONE | 2026-08-03 | 2026-08-03 (dad4f31) | The TUI screen set. |
 
 ## Archive — `docs/history/`, `docs/review-*/`

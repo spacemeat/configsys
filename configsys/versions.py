@@ -2,10 +2,12 @@
 
 Routes declare *how* to find the latest version instead of hardcoding it:
 
-    version: { github: neovim/neovim }              # latest release tag
-    version: { github: arduino/arduino-ide  strip-v: true }
-    version: { url: "https://.../latest.txt"  regex: "[0-9.]+" }   # fetch + extract
+    version: { github: neovim/neovim }              # latest stable release tag (atom feed)
+    version: { github: arduino/arduino-ide  strip-v: true }   # + tag-re: / pick: highest / asset:
+    version: { crates: ripgrep }                    # also pypi: (+ python:), aur:, hackage:, goproxy:
+    version: { url: "https://.../latest.txt"  regex: "[0-9.]+" }   # fetch + extract (https only)
     version: { static: 1.4.350.1 }                  # a deliberate pin
+    version: { <name>: ... }                        # a trusted code plugin's register_source
 
 Discovery is networked, so results are cached (state_dir/versions.hu) with a TTL;
 `refresh=True` bypasses the TTL. Offline / fetch failure falls back to any cached
@@ -113,8 +115,9 @@ _BUILTIN_KINDS = ('crates', 'pypi', 'aur', 'hackage', 'goproxy', 'url', 'static'
 def register_source(name, fn):
     '''Register a version-discovery source so `version: { <name>: <arg> }` resolves. `fn(spec,
     fetch) -> (version, download_url_or_None)`; `fetch(url)` is the injectable HTTP getter, so
-    caching/offline fallback stay in the core. Built-in kinds (github/crates/pypi/aur/url/
-    static) win over a registered name of the same key. Re-exported as register_version_source.'''
+    caching/offline fallback stay in the core. Built-in kinds (github/crates/pypi/aur/hackage/
+    goproxy/url/static — github and pypi special-cased, the rest `_BUILTIN_KINDS`) win over a
+    registered name of the same key. Re-exported as plugins.register_version_source.'''
     if not name or not callable(fn):
         raise ValueError('register_source(name, fn): name must be non-empty and fn callable')
     _SOURCES[name] = fn

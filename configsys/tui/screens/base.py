@@ -29,7 +29,8 @@ from dataclasses import dataclass
 class ViewModel:
     '''Base for a screen's render model: plain data, no curses, no ctx. A screen subclasses this with
     the fields its `draw` paints (header text, rows, cells, scroll offsets, legend). Kept trivial on
-    purpose — the value is that it is INSPECTABLE and comparable, not that it enforces a schema.
+    purpose — a plain attribute bag a test can read field by field (no `__eq__`/`__repr__`), not a
+    schema.
 
     The one thing a draw adds to it: the model attributes the frame's geometry settled (a scroll
     offset clamped to the panel height, a horizontal-scroll limit), recorded with `settle(...)` and

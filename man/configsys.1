@@ -6,10 +6,12 @@ configsys \- Install and manage the software on each of your machines from one c
 [\fIoptions\fR] [\fIcommand\fR] [\fIargs\fR ...]
 .SH DESCRIPTION
 Install and manage the software on each of your machines from one config.
-Each machine installs its own picks (the \fBpicks:\fR section of your config) through this OS's
-package manager (apt, dnf, pacman, zypper, apk, xbps) or the AUR, Homebrew, flatpak, snap,
-AppImages, tarballs, source builds, language toolchains and more. Profiles are read-only lists
-to browse and pick from. With no command, the interactive TUI opens.
+Each machine installs its own picks (the components listed for it in the \fBpicks:\fR section
+of your config) through this OS's package manager (apt, dnf, pacman, zypper, apk, xbps) or
+the AUR, Homebrew, flatpak, snap, AppImages, tarballs, source builds, language toolchains
+and more. Profiles are read-only lists to browse and pick from. With no command, the
+interactive TUI opens. \fBconfigsys <command> --help\fR shows a command's options; configsys.hu(5)
+describes the config file.
 .SH OPTIONS
 .TP
 \fB-h\fR, \fB--help\fR
@@ -19,19 +21,19 @@ show this help message and exit
 print the configsys version (and the git commit it runs from) and exit
 .TP
 \fB--pretend\fR
-dry run: print the commands an operation would run instead of running them
+dry run: print the commands an operation would run instead of running them, and change no file (no config edit, state, cache or plugin)
 .TP
 \fB--os\fR \fIBLOCK[:VERSION]\fR
-use this OS block, and optionally release, instead of the detected one (e.g. pop_os!:22.04, fedora:44, arch); without a version, version conditions read false. Same as CONFIGSYS_OS
+route as this OS block, and optionally release, instead of the detected OS (e.g. ubuntu:24.04, fedora:44, arch); without a version, every versioned condition (\fBubuntu >= 24.04\fR) reads false, and an unknown block is an error. Same as CONFIGSYS_OS
 .TP
 \fB--home\fR \fIDIR\fR
-use DIR in place of $HOME for every path configsys reads or writes (config, state, user-scope installs), for sandboxed runs; same as CONFIGSYS_HOME
+sandbox: use DIR in place of $HOME for every path configsys reads or writes (config, state, user-scope installs) and as HOME for the commands it runs, ignoring any inherited CONFIGSYS_STATE_DIR, CONFIGSYS_CONFIG and XDG_* dirs. System packages still install for real unless you add --pretend
 .TP
 \fB--machine\fR \fINAME\fR
-work on machine NAME's picks for this run instead of this box's \fBmachine:\fR (to view or curate another machine from here); installs still happen on this box
+work on machine NAME's picks for this run instead of this box's \fBmachine:\fR setting, to view or curate another machine from here. Nothing installs another machine's picks here: \fB--picks\fR refuses and the TUI's Components screen is read-only
 .TP
 \fB--config\fR \fIFILE\fR
-your user config file (default ~/.config/configsys/configsys.hu); same as CONFIGSYS_CONFIG
+your user config file (default ~/.config/configsys/configsys.hu, created from a template when first needed); same as CONFIGSYS_CONFIG
 .TP
 \fB--color\fR
 cap the TUI color depth (default auto: detect it). Lower values only clamp down, 24bit forces direct RGB even without COLORTERM, 16 uses the theme's \fBcolors-basic\fR ANSI set and 8 only the base eight; CONFIGSYS_COLOR sets the same, and NO_COLOR forces none
@@ -56,160 +58,162 @@ print nothing to the console while loading, not even errors (they still appear o
 .SH COMMANDS
 .TP
 \fBinspect\fR
-show the install state of this machine's picks (status, installed and latest versions) and any issues
+Show the install state of this machine's picks without changing anything. Each unit (a component bound to the driver that installs it, \fBdriver\ecomponent\fR) gets its status (installed, outdated, missing, locked, …), installed and latest versions, and any install of it through another method ("also present"); then the issues the TUI's \fB!\fR page lists. With --machine, the picks are that machine's.
 .TP
 \fBinstall\fR
-Install components. A name is a component; profile:<name> expands to that profile's components. A named component already present is not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. Its dependencies are installed only when missing (--with-deps re-runs them all; --no-deps skips them). An install configsys adopted through another method is the one acted on. A locked component is not upgraded until you unlock it. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first), and lets a tarball, font or AppImage replace a directory or file configsys did not install. A source component builds only in a checkout configsys created, or one you --adopt. Installing does not add a component to this machine's picks; \fBconfigsys picks add\fR does that. --picks installs every pick of this box that is not installed (with any names given), after showing the plan and asking (--yes skips the question); picks with no install method here are skipped with a notice.
+Install components, with any dependencies they are missing. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). A named component already present is not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running it picks up a recipe change even at the same version. Its dependencies are installed only when missing (--with-deps re-runs them all; --no-deps skips them). When the component is already installed through a method other than its default, that install is the one acted on; when a pin now names a different method, the old install is removed first, then the new one installs (a swap). The OS package index is refreshed once first when the plan reads it (the \fBrefresh-before-execute\fR setting). --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first), and lets a tarball, font or AppImage replace a directory or file configsys did not install. A source component builds only in a checkout configsys created, or one you adopted with \fBinstall --adopt\fR. Installing does not add a component to this machine's picks; \fBconfigsys picks add\fR does that. --picks installs every pick of this box that is not installed (with any names given), after showing the plan and asking (--yes skips the question); picks with no install method here are skipped with a notice.
 .TP
 \fBremove\fR
-Uninstall components. A name is a component; profile:<name> expands to that profile's components. Glue that only the removed components needed goes with them; their dependencies stay. A component with no install method left on this OS is still removed when a stranded install of it remains, through the method that made it. Removing does not unpick a component; \fBconfigsys picks rm\fR does that.
+Uninstall components. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). Glue that only the removed components needed goes with them; their dependencies and dotfiles stay. Removing a locked component releases its hold, and a removed component leaves this machine's uninstall queue. A component with no install method left on this OS is still removed when a stranded install of it remains, through the method that made it. Removing does not unpick a component; \fBconfigsys picks rm\fR does that.
 .TP
 \fBupgrade\fR
-Upgrade components to their latest version, or the whole system with --system. A name is a component; profile:<name> expands to that profile's components. A named component already present is not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running install picks up a recipe change even at the same version. Its dependencies are installed only when missing (--with-deps re-runs them all; --no-deps skips them). An install configsys adopted through another method is the one acted on. A locked component is not upgraded until you unlock it. --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first), and lets a tarball, font or AppImage replace a directory or file configsys did not install. A source component builds only in a checkout configsys created, or one you --adopt. --picks upgrades every outdated pick of this box (with any names given), after showing the plan and asking (--yes skips the question). --system upgrades the whole machine instead and takes no names; see \fBconfigsys updates\fR.
+Upgrade components to their latest version, or the whole system with --system. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). A named component already present is not skipped: a package manager re-runs (a no-op when current), and a \fBvia: source\fR component rebuilds from a clean checkout, so re-running it picks up a recipe change even at the same version. Its dependencies are installed only when missing (--with-deps re-runs them all; --no-deps skips them). When the component is already installed through a method other than its default, that install is the one acted on; when a pin now names a different method, the old install is removed first, then the new one installs (a swap). The OS package index is refreshed once first when the plan reads it (the \fBrefresh-before-execute\fR setting). --force lets a dotfiles install overwrite an on-system file that was never captured (it is backed up to .pre-configsys first), and lets a tarball, font or AppImage replace a directory or file configsys did not install. A source component builds only in a checkout configsys created, or one you adopted with \fBinstall --adopt\fR. Upgrading a locked component is refused until you \fBconfigsys unlock\fR it. --picks upgrades every outdated pick of this box (with any names given; locked picks are left alone), after showing the plan and asking (--yes skips the question). --system upgrades the whole machine instead and takes no names; see \fBconfigsys updates\fR.
 .TP
 \fBlock\fR
-Hold components at their installed version. A name is a component; profile:<name> expands to that profile's components. The hold is the package manager's own where it has one (apt-mark hold, dnf versionlock, …), else a record in configsys' ledger; managers that cannot hold a version, such as pacman and apk, decline.
+Hold components at their installed version. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). The hold is the package manager's own where it has one (apt-mark hold, dnf versionlock, …), else a record in configsys' ledger; managers that cannot hold a version, such as pacman and apk, decline. A locked component is skipped by \fBupgrade --picks\fR and refused by \fBupgrade\fR; \fBset-version\fR moves it and holds it again.
 .TP
 \fBunlock\fR
-Release the version hold on components. A name is a component; profile:<name> expands to that profile's components.
+Release the version hold on components. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). The component can then be upgraded again.
 .TP
 \fBfix-scope\fR
-move installs whose scope (user / system) differs from the configured scope, so they match the config (the config is not changed)
+Find installs whose actual scope differs from the scope your config declares for them (the \fBscope\fR setting, or a binding's own \fBscope:\fR) — user (under your home) or system (/opt, with sudo) — list each move, and after you confirm, reinstall each at the declared scope and remove the old one. Your config is never changed. Only drivers that can install either way are considered.
 .TP
 \fBset-version\fR
-install a specific version of a component, where its install method can target one
+Install a specific version of a component through its install method here, and its missing dependencies. Refused up front when that method installs only the version its route names (tarball, AppImage, font, native-pkg-file, aur, rpm-ostree, the gcc / clang alternatives, gcc-toolset, glue, dotfiles, service, group); \fBconfigsys versions <name>\fR shows what each method offers. A locked component is released, moved and held again at the new version.
 .TP
 \fBmachine\fR
-list, add, remove or switch machines (the columns of \fBpicks:\fR)
+Manage machines: each machine is a column of the \fBpicks:\fR matrix (the components it installs), and the \fBmachine:\fR setting says which one this box is (default \fBthis-machine\fR). Subcommands: list (the default), show, add, rm, use.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBshow\fR, \fBadd\fR, \fBrm\fR, \fBuse\fR.
 .RE
 .TP
 \fBdisp\fR
-view or set dispositions: your seen / interesting triage marks on catalog components (they never install anything)
+View or set dispositions: your triage marks on catalog components — seen or interesting — so new ones stand out. Components you have not marked are NEW. Dispositions are kept per machine (your top config) and never install anything. Subcommands: list (the default), get, set.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBget\fR, \fBset\fR.
 .RE
 .TP
 \fBpicks\fR
-list or edit a machine's picks: the components it installs (also editable in the TUI Profiles screen)
+List or edit a machine's picks: the components that machine installs. Editing picks installs or removes nothing by itself (\fBconfigsys install --picks\fR installs the missing ones). Picks live in your primary plugin when you have one, so they travel to your other machines; else in your top config. Subcommands: list (the default), add, rm, to-primary.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBadd\fR, \fBrm\fR, \fBto-primary\fR.
 .RE
 .TP
 \fBsearch\fR
-find components in the catalog by name, description or attrs (e.g. \fBsearch terminal\fR, \fBsearch --attr TUI git\fR)
+Search the catalog — every component the loaded layers define — by words, each of which must appear (ignoring case) in the name or description, and by attrs. A + marks the components picked on this machine. Exits 1 when nothing matches.
 .TP
 \fBwhere\fR
-explain a component: the layer that defines it, each install method (marking the default, the alternatives you can pin, and any whose driver can't work here, with why), the rule that chose the default, and what it resolves to on this machine
+Explain how a component resolves on this machine: the layer that defines it, what it provides and requires, any pin, every binding (marking the default, the alternatives you can pin, and why each of the others is not a candidate here), the rule that chose the default, and the units it resolves to here. With -p, explain a profile instead.
 .TP
 \fBlocation\fR
-print a component's absolute install location as it resolves here (honoring scope, pins and \fBlocations:\fR), for shell snippets
+Print a component's absolute install location as it resolves on this machine (honoring scope, pins and the \fBlocations:\fR setting), for shell snippets such as \fBexport VULKAN_SDK=$(configsys location vulkan-sdk)\fR. A component a package manager puts on the system PATH has no managed location: nothing is printed and it still exits 0. A component that does not resolve here exits 1.
 .TP
 \fBversions\fR
-show the version each install method would install for a component (native vs tarball/source/…), and which lag the newest
+For each install method of a component that works here, show the version it would install (the native package vs a tarball, a source build, …), which one is the default or pinned, what is installed, and which lag the newest. Answers come from a cache (--refresh re-queries). Read-only.
 .TP
 \fBcheck\fR
-lint the merged config (repo, plugins, your config and its includes) without installing anything
+Lint the whole merged config — the shipped routes.hu and config.hu, your plugins and primary plugin, your top config, and everything they include — without installing or probing anything: unknown keys and drivers, ambiguous bindings, settings a layer may not set, profiles naming unknown components, key rebinds, theme mistakes and more. Exits 1 when it finds an error (warnings alone exit 0).
 .TP
 \fBpin\fR
-view or change install-method / provider pins (local, or portable via a primary plugin)
+View or change pins. A binding-pin chooses the install method for a component (\fBpin set steam flatpak\fR); a provider-pin chooses which component satisfies a capability. A pin is a filter, not a hint: one that cannot be met here is an error. New pins go in your top config (this machine only); \fBpin promote\fR moves one into your primary plugin so it travels. Subcommands: list (the default), set, unset, promote.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBset\fR, \fBunset\fR, \fBpromote\fR.
 .RE
 .TP
 \fBprofile\fR
-browse profiles: read-only component lists from the repo, your plugins and your own config (installs come from picks)
+Browse profiles: named, read-only lists of components from the repo, your plugins and your own config. A profile never installs anything — you pick from it (\fBconfigsys picks add\fR), or name profile:<name> on an install. Subcommands: list (the default), show.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBshow\fR.
 .RE
 .TP
 \fBconfig\fR
-view or edit machine settings (\fBconfig show\fR lists them all)
+View or edit machine settings (scope, driver-preference, splash, dirs.*, …). A uniform setting (the same on every machine) is written to your primary plugin when you have one; a machine-local one to your top config; a setting that already lives in one of them is edited there. Subcommands: show (the default), get, set, unset, move.
 .RS
 .PP
 Subcommands: \fBshow\fR, \fBget\fR, \fBset\fR, \fBunset\fR, \fBmove\fR.
 .RE
 .TP
 \fBtheme\fR
-view or edit the TUI theme; save/load shareable themes
+View or edit the TUI theme: colors, per-page role styles and background gradients. Edits go to your primary plugin when you have one (else your top config), or with --local to your top config. A theme plugin is a saved, shareable theme. Subcommands: show (the default), list, set, unset, save, load.
 .RS
 .PP
 Subcommands: \fBshow\fR, \fBlist\fR, \fBset\fR, \fBunset\fR, \fBsave\fR, \fBload\fR.
 .RE
 .TP
 \fBplugin\fR
-manage plugins: declare and sync them, bless or init your primary plugin, trust plugins that run code
+Manage plugins: git repos (or local dirs) that add components, OS blocks, profiles, drivers or splash screens. Declare and sync them (add, sync, update, remove, set-source), review a change before taking it (diff), trust the ones that run code or commands (trust, untrust), hold one where it is (lock, unlock), and manage your primary plugin — your personal layer that travels between machines (bless, unbless, init, push, log, undo). Subcommands: list (the default), sync, bless, unbless, add, remove, update, trust, untrust, lock, unlock, diff, push, log, undo, init, set-source.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBsync\fR, \fBbless\fR, \fBunbless\fR, \fBadd\fR, \fBremove\fR, \fBupdate\fR, \fBtrust\fR, \fBuntrust\fR, \fBlock\fR, \fBunlock\fR, \fBdiff\fR, \fBpush\fR, \fBlog\fR, \fBundo\fR, \fBinit\fR, \fBset-source\fR.
 .RE
 .TP
 \fBreport\fR
-assemble an install-failure report (OS + route + driver output) and file it upstream — you approve the full text first
+Assemble an install-failure report — this OS, the route and the driver's output, with secrets and your home path scrubbed — and file it in the configsys issue tracker (with \fBgh\fR when you have it, else as a prefilled link). You see the full text and approve it first; nothing is sent otherwise.
 .TP
 \fBrequest\fR
-ask upstream to support a component on more platforms — shows a coverage matrix of where it installs today; you approve before filing
+Ask upstream to support a component on more platforms: builds a coverage matrix of where it installs today and files it in the configsys issue tracker once you approve the full text.
 .TP
 \fBrequest-os\fR
-suggest THIS OS for inclusion, or report that a system update broke it — captures os-release; you approve before filing
+Suggest this OS for inclusion, or report that a system update changed or broke it: captures /etc/os-release and how configsys maps it today (OS block and package manager), and files it in the configsys issue tracker once you approve the full text.
 .TP
 \fBorphans\fR
-list installed software this machine's picks don't account for; adopt (track), remove or ignore it
+List installed software this machine's picks don't account for, grouped by driver: known orphans (a component describes them) and foreign ones (no component does). Then adopt one (--adopt: track it in picks), remove it (--remove), or quiet it (--ignore). By default only what you installed yourself is listed, OS-base packages are hidden, and foreign orphans come only from flatpak and snap.
 .TP
 \fBdotfiles\fR
-show and capture your dotfiles; review glue the shell-writes guard staged
+Dotfiles are your apps' own config files, kept in your content store (your primary plugin, else ~/.config/configsys/dotfiles) and linked into place. Show their state (status), adopt the ones already on this machine (capture), and review the shell startup lines the shell-writes guard took back from an installer (staged, activate, discard — also under \fBconfigsys glue\fR). Subcommands: status (the default), capture, staged, activate, discard.
 .RS
 .PP
 Subcommands: \fBstatus\fR, \fBcapture\fR, \fBstaged\fR, \fBactivate\fR, \fBdiscard\fR.
 .RE
 .TP
 \fBglue\fR
-add your own shell-startup snippets (aliases / env / functions), or override a component's shipped glue; kept in your primary plugin when you have one
+Glue is the small shipped shell snippets that wire tools into your shells, linked into each shell's ~/.config/<shell>/conf.d/. Write your own startup snippets (add), fork a component's shipped glue to edit it (override), and review the startup lines the shell-writes guard took back from an installer (staged, activate, discard). Yours are kept in your primary plugin when you have one (--local keeps them on this machine). Subcommands: add, override, staged, activate, discard.
 .RS
 .PP
 Subcommands: \fBadd\fR, \fBoverride\fR, \fBstaged\fR, \fBactivate\fR, \fBdiscard\fR.
 .RE
 .TP
 \fBuninstall\fR
-this machine's uninstall queue — removals staged (TUI \fBx\fR) to run with the next execute or \fBremove\fR
+Manage this machine's uninstall queue: removals you staged (the TUI's \fBx\fR), kept in your top config until they run. They run when you execute in the TUI (\fBX\fR); \fBconfigsys remove <name>\fR removes one now and takes it off the queue, and \fBconfigsys remove 'profile:!uninstall'\fR removes them all. Subcommands: list (the default), add, rm, clear.
 .RS
 .PP
 Subcommands: \fBlist\fR, \fBadd\fR, \fBrm\fR, \fBclear\fR.
 .RE
 .TP
 \fBmanpages\fR
-install or check the man pages (configsys(1) + configsys.hu(5))
+Install the configsys(1) and configsys.hu(5) man pages into a man directory, or check that the installed copies are present and current. Subcommands: status (the default), install.
 .RS
 .PP
 Subcommands: \fBinstall\fR, \fBstatus\fR.
 .RE
 .TP
 \fBupdates\fR
-list System Updates: pending updates from this OS's package manager, flatpak and snap for packages that aren't configsys components, grouped by tier; apply with \fBupgrade --system\fR
+List System Updates: everything this OS's package manager, flatpak and snap report upgradable that is not one of your components, grouped by manager and tier (kernel, core, standard, apps), with held packages marked. Read-only: \fBconfigsys upgrade --system\fR applies them. Run \fBconfigsys refresh\fR first if the package index may be stale.
 .TP
 \fBrefresh\fR
-re-check upstream versions for this machine's picks and refresh the package index of this OS's package manager (sudo may prompt). On Arch, where only a full upgrade is safe, it asks before running \fBpacman -Syu\fR instead
+Re-check upstream versions for this machine's picks and their dependencies, re-probe facets, and refresh this OS's package index (apt-get update and the like; sudo may prompt). Fixed version pins that name a \fBlatest-check:\fR are compared against upstream (advice only). If the index refresh fails, configsys explains why and can re-fetch a rotated signing key for a source it manages; it also offers to remove sources it added for components you no longer use. On Arch, where only a full upgrade is safe, it asks before running \fBpacman -Syu\fR instead. Exits 1 when the index refresh fails.
 .TP
 \fBshow\fR
-print the shipped routes.hu or config.hu template, or its path
+Print a shipped base file — routes (routes.hu: the components and OS blocks) or config (config.hu: the shipped profiles and default keybindings) — or with --path just where it is. With no name, list them.
 .TP
 \fBkeys\fR
-show the effective TUI keybindings (the merged \fBkeys:\fR section)
+Show the effective TUI keybindings — the \fBkeys:\fR section merged across every layer — with the layer each binding comes from, and any key a higher layer took from a lower one.
 .TP
 \fBtui\fR
-open the interactive TUI (the default; prints \fBinspect\fR output when not on a terminal)
+Open the interactive TUI, the same as running configsys with no command. When stdin or stdout is not a terminal, it prints \fBconfigsys inspect\fR output instead.
 .SH EXAMPLES
 .nf
   configsys                            open the interactive TUI (the default)
   configsys --machine laptop           open the TUI on the `laptop` machine's picks, to curate them
   configsys inspect                    install state of this machine's picks, plus any issues
+  configsys search terminal            find components whose name or description says "terminal"
   configsys picks add ripgrep          track ripgrep: add it to this machine's picks
+  configsys install --picks            install every pick of this machine that isn't installed yet
   configsys install rust ripgrep       install components now (dependencies pulled in and ordered)
   configsys install profile:finders    install every component in the `finders` profile
   configsys upgrade profile:finders btop
@@ -221,17 +225,22 @@ open the interactive TUI (the default; prints \fBinspect\fR output when not on a
   configsys pin set steam flatpak      choose an install method (a local pin)
   configsys pin promote steam          make that pin portable via your primary plugin
   configsys glue add aliases           write your own shell startup snippet in $EDITOR
+  configsys check                      lint your whole merged config
   configsys show routes                print the shipped routes.hu (--path prints its location)
   configsys --pretend install steam    dry run: print the commands instead of running them
 .fi
 .SH ENVIRONMENT
 .nf
-  CONFIGSYS_OS, CONFIGSYS_OS_VERSION   use this OS block[:version] / version instead of the detected one (--os)
+  CONFIGSYS_OS                         route as this OS block[:version] instead of the detected OS
+                                       (--os)
+  CONFIGSYS_OS_VERSION                 use this OS version instead of the detected one
   CONFIGSYS_ARCH                       CPU arch for `$ARCH` and `cpu:` conditions (default: detected)
-  CONFIGSYS_HOME                       stand-in for $HOME on every configsys path (--home)
+  CONFIGSYS_HOME                       stand-in for $HOME on every configsys path (--home also
+                                       gives the commands it runs that HOME)
   CONFIGSYS_CONFIG                     your user config file (--config)
   CONFIGSYS_STATE_DIR                  holds your user config, the ledger, caches and synced plugins
-                                       (default $XDG_CONFIG_HOME/configsys, else ~/.config/configsys)
+                                       (default ~/.config/configsys, or $XDG_CONFIG_HOME/configsys
+                                       when CONFIGSYS_HOME is unset)
   CONFIGSYS_REPO                       data root holding the shipped routes.hu and config.hu
   CONFIGSYS_USERSCOPE_DIR              base dir for user-scope installs (default ~)
   CONFIGSYS_SYSTEMSCOPE_DIR            base dir for system-scope installs (default /opt)
@@ -243,8 +252,10 @@ open the interactive TUI (the default; prints \fBinspect\fR output when not on a
   CONFIGSYS_SPLASH                     always = show the startup splash even on a fast load;
                                        linger = also hold it until a key (--splash-linger)
   CONFIGSYS_NO_SPLASH                  set to anything to turn the startup splash off
-  CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: detected)
-  CONFIGSYS_PM                         apt or dnf: the package manager the gcc / clang drivers use
+  CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: the
+                                       installed ones)
+  CONFIGSYS_PM                         apt or dnf: the package manager the gcc, clang and
+                                       gcc-toolset drivers use (default: this OS's)
   CONFIGSYS_GITHUB_TOKEN               GitHub API token: lifts the API rate limit for version checks
                                        (GITHUB_TOKEN also works)
   CONFIGSYS_GIT_TOKEN                  token for cloning private github: / gitlab: plugin repos

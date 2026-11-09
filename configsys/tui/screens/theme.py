@@ -1,22 +1,22 @@
 '''theme.py — the Theme editor screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring the Plugins
-pattern-setter. The model is the existing `menu.ThemeScreen` (the color map + per-page role state,
-cursors, preview cache), composed unchanged as `_ThemeModel`; this adds the three MVVM seams:
+The model is `preview.ThemeScreen` (the color map + per-page role state, cursors, preview cache),
+composed as `self.model` (imported as `_ThemeModel`); this adds the three MVVM seams
+(docs/tui-architecture.md):
 
-- build_vm: reloads the model (the legacy painter reloads at the top of every frame, so the swatches
-  and hexes track live edits) and computes the PURE content of the two lists — the color-map rows
+- build_vm: re-reads the model's theme when an edit replaced ctx.config (so the swatches and hexes
+  track live edits — not every frame) and computes the PURE content of the two lists — the color-map rows
   (name, rgb, override mark) and the focused page's role rows (the swatch's fg/bg rgb + effect flags,
   and the already-formatted row text), plus the page name, focus, and the edit-target label. No
   curses, no panel geometry.
-- draw: lays the content out (the two top panels, the 1-or-2 column map with its stride written back
-  to the model, the keep-cursor-in-view scrolls, scrollbars), paints the swatches from the VM's rgb
-  values, renders the live sample slot through the shared `_sample_page` (the real page painters —
-  unchanged), and the status/nav footer. It reproduces menu._draw_theme (top-level, sample=True) cell
-  for cell, which test_screen_theme pins against the legacy painter. The self-preview sub-page
-  (sample=False, inside _sample_real_page) keeps using the legacy painter.
-- handle: the former `if screen == 'theme'` dispatch, returning an Intent(note, new_pal) — every edit
-  that used to rebind the loop's `pal` now hands the rebuilt Palette to the router via `new_pal`.
+- draw: lays the content out (the two top panels side by side — the 1-or-2 column map top-left, the
+  page's roles top-right — with the map stride and the keep-cursor-in-view scrolls recorded via
+  vm.settle, scrollbars), paints the swatches from the VM's rgb values, renders the live sample slot
+  full-width below through `preview._sample_page` (the real Screens' build_vm + draw), and the
+  status/nav footer. When the Theme page previews ITSELF, `_sample_real_page` renders a ThemeScreen
+  with `suppress_sample` set, which paints a placeholder slot instead of recursing.
+- handle: one key, returning an Intent(note, new_pal) — an edit that rebuilds the Palette for the
+  live preview hands it to the router via `new_pal`.
 '''
 
 from .. import menu
@@ -166,8 +166,8 @@ class ThemeScreen(Screen):
         _scrollbar_v(surface, pal, r_it, r_il + r_iw, r_ih, role_top, r_ih, len(roles), h, w)
 
         # -- the sample page (BOTTOM, full width): a live, compressed instance of the REAL page (no outer
-        # frame — the mini page brings its own nav bar / panels / footer). The top-level render is
-        # always the sample=True path; the self-preview (sample=False) is the legacy painter's. --
+        # frame — the mini page brings its own nav bar / panels / footer). On the self-preview (a
+        # ThemeScreen rendered as a sample, `suppress_sample`) a placeholder fills the slot. --
         sy, sh = 1 + list_h, body_h - list_h
         if self.suppress_sample:                       # self-preview: no inner sample (avoid recursion)
             for yy in range(sy, sy + sh):
@@ -187,10 +187,9 @@ class ThemeScreen(Screen):
     # -- handle -----------------------------------------------------------
 
     def handle(self, ch, ctx, stdscr, pal):
-        '''One key. Mutates the model, runs the edit modals, returns an Intent(note, new_pal). Ported
-        verbatim from the former theme dispatch: every edit that rebuilt the loop's Palette for the live
-        preview now returns it as `new_pal` (None when nothing rebuilt it). Theme never marks the tree
-        dirty and never changes screen.'''
+        '''One key. Mutates the model, runs the edit modals, returns an Intent(note, new_pal): an edit
+        that rebuilds the Palette for the live preview returns it as `new_pal` (None when nothing
+        rebuilt it). Theme never marks the tree dirty and never changes screen.'''
         from ... import actions
         ts = self.model
         km = menu._keymap()

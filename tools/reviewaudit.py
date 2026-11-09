@@ -10,7 +10,8 @@ Subcommands:
   areas     [--json]               every area: title, owned files (resolved), line count, context,
                                    focus, inherited earlier review files
   coverage  [--json]               tracked files under `track:` that no non-cross area owns, globs that
-                                   match nothing, context paths that don't exist (exit 1 if any)
+                                   match nothing, context paths that don't exist (exit 1 if any),
+                                   plus files several areas own (listed, not an error)
   since     REF [--json]           the areas whose owned files changed between REF and HEAD (cross
                                    areas always run)
   prior     [--before DIR] [--json]
@@ -201,16 +202,16 @@ def _print_areas(resolved):
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='reviewaudit', description=__doc__.split('\n\n')[0])
     sub = parser.add_subparsers(dest='cmd', required=True)
-    p = sub.add_parser('areas')
-    p.add_argument('--json', action='store_true')
-    p = sub.add_parser('coverage')
-    p.add_argument('--json', action='store_true')
-    p = sub.add_parser('since')
-    p.add_argument('ref')
-    p.add_argument('--json', action='store_true')
-    p = sub.add_parser('prior')
-    p.add_argument('--before')
-    p.add_argument('--json', action='store_true')
+    p = sub.add_parser('areas', help='every area with its owned files and line count')
+    p.add_argument('--json', action='store_true', help='print as JSON')
+    p = sub.add_parser('coverage', help='gaps in the area map (exit 1 if any)')
+    p.add_argument('--json', action='store_true', help='print as JSON')
+    p = sub.add_parser('since', help='the areas whose owned files changed between REF and HEAD')
+    p.add_argument('ref', help='the git ref to diff from')
+    p.add_argument('--json', action='store_true', help='print as JSON')
+    p = sub.add_parser('prior', help='the latest earlier review and what each area inherits from it')
+    p.add_argument('--before', help='a review dir: look only at reviews older than it')
+    p.add_argument('--json', action='store_true', help='print as JSON')
     args = parser.parse_args(argv)
 
     amap = load_map()

@@ -15,10 +15,13 @@ developer's machine through configsys or git.
   — no password prompt mid-suite, no `apt-get update` as root.
 - `Runner.run` refuses to execute (raises `RealRunnerError`) unless the runner is `--pretend` or
   the test is marked `@pytest.mark.real_runner` (it needs real git / `curl file://` / shells).
-- No network from the test process: a socket connect to anything but loopback or a unix socket
-  raises `NetworkDisabledError` (an OSError, so version discovery reads it as offline) unless the
+- No network from the test process: a socket connect (or a DNS lookup) to anything but loopback
+  or a unix socket raises `NetworkDisabledError` (an OSError, so version discovery reads it as offline) unless the
   test is marked `@pytest.mark.network` — the suite never spends your api.github.com rate limit
-  or depends on what a remote serves (review-2026-11-2 tests-tools-04).
+  or depends on what a remote serves (review-2026-11-2 tests-tools-04); version discovery's
+  retry backoff is zeroed so a refused fetch doesn't sleep.
+- The facet-probe cache (`routes.clear_facet_cache`) is cleared, so no probe answer leaks between
+  tests.
 '''
 
 import os

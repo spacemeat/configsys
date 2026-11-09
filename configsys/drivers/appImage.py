@@ -1,7 +1,7 @@
-'''appImage.py — the \\appImage driver: a single self-contained executable.
+'''appImage.py — the appImage driver: a single self-contained executable.
 
-Software shipped as one .AppImage file. We download it to `path`, mark it
-executable, record the installed version in a marker (stateless inspection), and
+Software shipped as one .AppImage file. We download it next to `path`, mark it
+executable, move it into place, record the installed version in a marker (stateless inspection), and
 write a best-effort .desktop entry so it shows up in application menus. User-space
 by default (no sudo); `scope: system` switches file ops to sudo for system paths.
 
@@ -13,8 +13,10 @@ dock icon by that name, and an AppImage that self-integrates on launch (writes i
 `<desktop-id>.desktop`) then shares the ONE file instead of leaving a duplicate menu entry.
 Uninstall removes that entry and the app's `hicolor` icons named `<desktop-id>.*`.
 
-Note: AppImages need FUSE to *run*, so the driver !depends on libfuse2 — installed
-first via the normal cascade. We never launch the app ourselves.
+Note: AppImages need FUSE to *run*, so the driver `requires: [ libfuse2, glibc, curl ]`
+(routes.hu `drivers:`) — resolved first like any requirement, and where they can't be met
+the driver isn't valid at all. We never launch the app itself (only `--appimage-extract`
+for its icon, as you).
 '''
 
 import re
@@ -146,7 +148,7 @@ class AppImage(Driver):
             capture=False)
 
     def upgrade(self, rc):
-        return self.install(rc)  # curl overwrites the file + refreshes marker/desktop
+        return self.install(rc)  # a fresh download swapped in + marker/desktop refreshed
 
     def set_version(self, rc, version):
         return self.install(rc)  # url is version-templated; (re)install the routed one

@@ -19,9 +19,12 @@ as data and merged key by key:
   in plain words, and `merge(..., answers={path: 'mine' | 'theirs'})` settles it.
 
 The merged text is built from MINE's text: every key whose value doesn't change keeps its text and
-comments; a key taken whole from theirs is copied from theirs' text verbatim; a list combined from
-both sides is edited in place (items removed and inserted, its comments kept); only a map entry
-combined from both sides is written fresh. Theirs' text is taken whole only when this machine changed
+comments; a key taken whole from theirs is copied from theirs' text verbatim; a name list combined
+from both sides is edited in place (items removed and inserted, its comments kept); a map both sides
+changed is rewritten the same way, key by key, inside its own braces (`_rewrite` recurses). Only an
+entry whose merged value has no text to start from is written fresh — a key both sides added with a
+combined value, or a value (a `plugins:` list of maps, say) that is neither theirs' verbatim nor a
+name list or map in mine's text. Theirs' text is taken whole only when this machine changed
 nothing. The result is re-read and compared with the merged data, so a file this can't rewrite
 faithfully raises `Unmergeable` (the caller falls back to asking about the whole file).
 

@@ -43,9 +43,26 @@ has an `installed_index`, maybe a compaudit registry probe).
 
 ## 2. The class (configsys/drivers/<module>.py)
 
-Subclass `Driver` (or `drivers._native.NativePkgManager` for an OS package manager — §4), set
-`name` (= the `via:` value), and register it in `configsys/drivers/__init__.py` (`_REGISTRY` — the
-import + the dict entry; `BUILTIN_DRIVERS` snapshots it).
+Subclass the closest shared base, set `name` (= the `via:` value), and register it in
+`configsys/drivers/__init__.py` (`_REGISTRY` — the import + the dict entry; `BUILTIN_DRIVERS`
+snapshots it). The bases (underscore modules = core-internal, not plugin ABI — a plugin driver
+subclasses `Driver` only, §8):
+- **`drivers._native.NativePkgManager`** — an OS package manager (§4): `INSTALL`/`REMOVE`/`UPGRADE`
+  templates, `ENV`, `ensure_prereqs`, `packages:` + `installed-name:` handling (`_probe_name`).
+- **`drivers._module.ModuleDriver`** — a language-ecosystem installer (cargo, pip, pipx, npm, gem,
+  opam, luarocks, cabal, go-install, sdkman all are). State the mechanism as DATA — `TOOL`, `CMDS`
+  (`{op: template}` with `{tool}`/`{pkg}`/`{ver}`/`{spec}`/`{scope}`), `VERSION_SPEC`,
+  `SCOPE_FLAGS`, `LIST_CMD` + `parse_list(stdout)` (a `LIST_CMD` installs `installed_index` for you),
+  `BIN_DIR` — and override only what is bespoke (`tool(rc)`, `placeholders(op, rc)`, `module(rc)`).
+  PyPI names normalize through `_module.pep503_name`. Its generic `LIST_CMD` index returns `None` on
+  ANY failure, a missing tool included — map exit 127 to `{}` yourself (the rule below).
+- **`drivers._alt.AltDriver`** — a versioned toolchain slot (gcc, clang; gcc-toolset reuses its dnf
+  path): versioned binaries at fixed paths, apt update-alternatives vs dnf compat packages.
+- **`drivers._linked`** (functions, not a base) — a config-type driver that places content by
+  symlink (dotfiles, glue): `link`/`unlink` own the rules (re-point only a link we own; anything
+  else moves aside to the first free `<dst>.pre-configsys`, `.1`, … and is restored on unlink;
+  `--pretend`-aware), and `SpecState` is the row its `spec_states` returns for the status views.
+- **`Driver`** directly for anything else (the distribution family: tarball, appImage, flatpak, …).
 
 **Class attributes** — each is documented in the `driver.py` docstring, and two are mirrored in
 docs the inventory test compares against the code (as is the `installed_index` hook — Batching,
@@ -60,12 +77,25 @@ below):
   OS updater runs out of band (pacman, apk) — lock/set-version are declined and not offered.
 - `native_backed = True` when installs register in the OS package database (aur, native-pkg-file,
   the gcc/clang alternatives) — so the orphan scan doesn't call them foreign.
+- `trusted_registry = True` (+ `command_fields`) only for a driver that installs a package BY NAME
+  from a registry the system already trusts (the native managers, flatpak, snap, brew): then an
+  UNTRUSTED plugin layer's binding of it is still a candidate unless it sets one of
+  `command_fields` (a repo, key, remote, debconf answer, `classic:` — anything that runs a command
+  or widens privilege). Default `False`: the driver runs, builds or downloads code, and untrusted
+  bindings wait for `plugin trust` (`trustgate.binding_needs_trust`; docs/plugins.md §6). A new
+  field that adds a repo/key to a trusted-registry driver MUST join its `command_fields`.
 
 **The nine ops** (`get_version`, `get_latest`, `is_locked`, `install`, `uninstall`, `upgrade`,
 `set_version`, `lock`, `unlock`) plus usually `location`. Rules that bit us before:
 - **Everything through `self.runner.run`** — that is what makes `--pretend` and the tests work. A
   driver that writes files itself (dotfiles, glue, tarball, appImage) must check
   `self.runner.pretend` before any write; `--pretend` is a full dry run (CLAUDE.md).
+- **A write into a content root** (your primary plugin's `dotfiles/`/`glue/` tree) calls
+  `self.will_write(path)` BEFORE writing — the primary's write journal commits exactly the announced
+  paths (an unannounced write reads as your hand edit; test/test_primary_journal.py `WRITES`).
+- **Read a binding's `installed-name:` with `self.installed_name(rc, driver=None)`** — it handles
+  both the scalar and the driver-keyed map (`{ apt: …  default: … }`); hand-reading the field
+  crashes on the map form.
 - **Read ops return data; `None` = unknown, never a guess.** A version that isn't installed is
   `None`. Mutating ops return a `runner.Result`.
 - **"Manager not installed" is a TRUE empty, not unknown.** When the tool itself is absent (the
@@ -84,9 +114,10 @@ below):
 
 **Optional hooks** (all frozen, all with working defaults — override what the mechanism can answer
 cheaply; `installState.InstallState` drives them):
-- **Batching** — `installed_index()` (one enumeration → `{key: version}`) + `index_key(rc)`; or a
-  custom `batch_index(rcs)` whose result the core stores on `self.batch`, read back with
-  `batched_version(rc)`. Any enumerable manager should batch: a subprocess per unit is what made
+- **Batching** — `installed_index()` (one enumeration → `{key: version}`) + `index_key(rc)`, and
+  `latest_index(names)` (every candidate in one query — the default `batch_index` carries it with
+  `held_keys()`); or a custom `batch_index(rcs)` whose result the core stores on `self.batch`, read
+  back with `batched_version(rc)` / `batched_latest(rc)` / `batched_held(rc)`. Any enumerable manager should batch: a subprocess per unit is what made
   startup slow (`InstallState._build_batch` runs each driver's batch once, concurrently). An `installed_index` override also puts the driver in the orphan
   scan — update the list in docs/orphans.md ("Today that means …").
 - **Orphans** — `explicit_keys()` (user-installed vs auto-pulled), `origin_index()`.
@@ -96,11 +127,13 @@ cheaply; `installState.InstallState` drives them):
   flatpak commits), `upstream_version(rc)`; plus `version_advisory(rc)`, which has no base default
   — the core looks it up with `getattr` (pipx).
 - **Download helpers** for artifact drivers: `resolve_version`, `download_url`, `download_target`,
-  `arch_token` (with `cpu-names:` — routing-model §7).
+  `arch_token` (with `cpu-names:` — routing-model §7), `expected_sha256` / `verify_download` (a
+  binding's `sha256:`), `download_failure`; install markers `marker_path` / `read_marker`. The full
+  list of helpers a subclass may call is the `driver.py` docstring's "Helpers a subclass MAY call".
 
-A NEW hook on `Driver` is a plugin-ABI change: add it to the `driver.py` frozen list, to
-`FROZEN_HOOKS` in test/test_abi_surface.py, and to docs/plugins.md §7a — and prefer an existing
-hook. Underscore members are internal.
+A NEW hook or class attribute on `Driver` is a plugin-ABI change: add it to the `driver.py` frozen
+list, to `FROZEN_HOOKS` / `FROZEN_ATTRS` in test/test_abi_surface.py, and to docs/plugins.md §7a —
+and prefer an existing hook. Underscore members are internal.
 
 ## 3. Routing (routes.hu `drivers:` + resolve.py)
 
@@ -127,18 +160,22 @@ hook. Underscore members are internal.
   (script needs its commands, tarball an `installDir:`).
 - **Auto-derived attrs** — if every binding of this via implies a component kind, map it in
   `routes._VIA_ATTR` (dotfiles/glue/service/font/group do) and docs/component-attrs.md.
-- **Command-carrying data** — if a binding's fields are shell commands (script, source, glue),
-  they're trust-gated: add the via to `plugins._scan_executable_data` and check the driver's commands
-  go through `command_trusted(rc)` / `untrusted_command_result(rc)`.
+- **Command-carrying data** — if a binding's fields are shell commands (script, source, glue), the
+  driver's ops gate on `command_trusted(rc)` and return `untrusted_command_result(rc)` when it isn't
+  (defense in depth behind the resolution-time trust gate, §2 `trusted_registry`).
+  `plugins._scan_executable_data` (what makes a data-only plugin trustable) derives from
+  `trustgate.binding_needs_trust`, so it needs no per-via edit.
 
 ## 4. A native package manager (an `os:` block's `native:`)
 
 Everything in §2–3, plus:
 - Subclass `NativePkgManager` (INSTALL/REMOVE/UPGRADE templates, `ENV`, `ensure_prereqs` for vendor
-  repos/keys); honor `name:` maps keyed by this driver and `installed-name:` (`_native.installed_name`)
-  and `packages:` lists.
-- The OS block (`native: <name>`) — the `/add-os` skill; the add-component matrix table; and, for a
-  versioned line, a sweep setup in `tools/osaudit.py` `_SETUPS` + a facts snippet in `_FACTS`.
+  repos/keys); honor `name:` maps keyed by this driver (`resolve._package` picks the entry),
+  `installed-name:` (`Driver.installed_name`, read through `_probe_name`) and `packages:` lists.
+  Set `trusted_registry = True` and list every repo/key-adding field in `command_fields` (§2).
+- The OS block (`native: <name>`) — the `/add-os` skill; the add-component matrix table; in
+  `tools/osaudit.py` a facts snippet in `_FACTS` (keyed by manager) and, for each versioned line, a
+  sweep setup in `_SETUPS` (keyed by line).
 - **Required hooks** (the inventory test checks them): `installed_index`, `upgradable_index`,
   `upgrade_all`, `explicit_keys`. A gap you accept goes in `KNOWN_GAPS` there, with why.
 - **A refresh style — exactly one of:** `cli.refresh._NATIVE_REFRESH`, an index-only refresh that is safe
@@ -171,6 +208,13 @@ Everything in §2–3, plus:
   test's name.
 - **test/test_driver_inventory.py** — add the driver to `FAMILIES`; to `UNRANKED` if unranked;
   native → the hooks/refresh/reboot/namesweep checks apply.
+- **test/test_driver_injection.py** — runs automatically over every built-in driver: a component
+  name carrying shell metacharacters goes through `install` and `uninstall` and must stay inside one
+  shell word. If install builds no command from a bare name (it needs a url, content root or
+  declared commands first), list the driver in `SHALLOW` with why.
+- **test/test_pretend_sweep.py** catches a write that ignores `--pretend`, and
+  **test/test_primary_journal.py** a primary write without `will_write` — both through the CLI verbs
+  that reach the driver.
 - test/test_abi_surface.py — only if you added a hook (§2).
 - Routing: regenerate `test/routing_golden.json` (add-component §8) and diff it — a new driver
   with no bindings must change nothing; bindings that use it change only those components.
@@ -208,11 +252,14 @@ Everything in §2–3, plus:
 | `orphans.USER_FACING` | foreign (no-recipe) installs are deliberate user apps worth listing |
 | `sysupdates._APP_MANAGERS` | it's a cross-distro app manager whose updates belong in System Updates |
 | `routes._VIA_ATTR` | every binding implies a component kind (§3) |
-| `plugins._scan_executable_data` | its binding fields carry shell commands (§3) |
+| `resolve._package` | it names its package with a field other than `name:` (flatpak `app:`), or has none (dotfiles, glue) |
+| `shellguard._OWN_DRIVERS` | it is a configsys config driver whose own rc-file writes are not "an installer scribbling" (dotfiles, glue) |
+| `plugins._scan_executable_data` | nothing to add: it derives from `trustgate.binding_needs_trust` — set `trusted_registry` / `command_fields` instead (§2) |
 | `versions._BUILTIN_KINDS` | it comes with a new `version:` source kind |
 | `cli.refresh._NATIVE_REFRESH` / `cli.refresh._FULL_UPGRADE_REFRESH` / `cli.refresh._INDEX_SRC_DIRS` / `rebootcheck._REBOOT_CHECKS` / `_NO_REBOOT_CHECK` / `namesweep.MANAGERS` / `UNSWEPT` | native manager (§4) |
 | `tui.panes._DRIVER_ABBR` | ranked in `DEFAULT_DRIVER_PREFERENCE` (§3) |
-| `shellguard` | nothing to add: install / upgrade / set-version of every driver run inside the rc-file guard (`installer-shell-writes`), so an installer that edits rc files (sdkman, rustup) is caught there |
+| `shellguard` (the guard itself) | nothing to add: install / upgrade / set-version / fix-scope of every driver outside `_OWN_DRIVERS` run inside the rc-file guard (`installer-shell-writes`), so an installer that edits rc files (sdkman, rustup) is caught there |
+| `parity.py` | only if the driver brings a new CLI verb or TUI action — classify it (`CLI_VERBS` / `TUI_ACTIONS`; test/test_parity.py) |
 
 Grep for any new ones before finishing: a quoted driver name outside configsys/drivers/ —
 `grep -rn "'<name>'" configsys --include=*.py | grep -v drivers/`.

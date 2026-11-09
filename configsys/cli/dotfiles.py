@@ -16,8 +16,8 @@ _GLUE_ORDER = ['loader-on', 'linked', 'drifted', 'template', 'loader-off']   # g
 
 
 def _dotfiles_diagnostics(ctx):
-    '''[(tag, text)] warn-only hygiene over the active via:dotfiles units — un-captured managed
-    config (#5) and any link still pointing into the repo (#4). Fully guarded: a dotfiles issue
+    '''[(tag, text)] warn-only hygiene over this machine's via:dotfiles / via:glue units (each
+    driver's `warnings`) — un-captured managed config and any link still pointing into the repo. Fully guarded: a dotfiles issue
     must never break the diagnostics pass.'''
     out = []
     try:
@@ -249,7 +249,7 @@ def _print_user_glue(drv, entries):
 
 
 def cmd_dotfiles_status(ctx, args):
-    '''Show every via:dotfiles target for this machine's picks, split into the two state machines:
+    '''Show every via:dotfiles and via:glue target for this machine's picks, split into the two state machines:
     CONFIG (content you own — a capture→link lifecycle) and GLUE (shipped shell integration — a
     ship→activate toggle: snippets + the per-shell conf.d loaders). Each row: state, target,
     component, and where its MANAGED content lives (or `→` where capture will put it). Content roots
@@ -373,7 +373,7 @@ def cmd_dotfiles_capture(ctx, args):
     if args.dry_run or ctx.runner.pretend:
         print('\n(dry run — nothing written)')
         return 0
-    caveat = ' — committed if you push the plugin' if is_plugin else ''
+    caveat = ' — committed to your primary plugin; `plugin push` shares it' if is_plugin else ''
     if not ask(f'\nCopy {len(plan)} target(s) into {df.display_path(store)}{caveat}? [y/N] ',
                yes=args.yes, refuse_note='\nconfigsys: not a terminal — re-run with --yes to capture.'):
         print('aborted.')

@@ -1,4 +1,5 @@
-'''_alt.py — shared base for versioned toolchains (gcc, clang) across apt and dnf.
+'''_alt.py — shared base for versioned toolchains (gcc, clang) across apt and dnf; gcc-toolset
+(gcc_toolset.py) reuses its dnf path.
 
 Both distros ship the same versioned binaries at the same paths (/usr/bin/gcc-13,
 /usr/bin/clang-18, ...), so version detection and location are identical. Only the
@@ -20,8 +21,11 @@ System-scoped (needs root). Component fields (packages differ per OS block):
   slaves    [g++, clang++, ...]  update-alternatives slaves (apt); default_slaves
   packages  packages to install ($VERSION expanded; default: link-N [+ slave-N]).
             Override per OS block: Debian [gcc-13, g++-13]; Fedora [gcc13, gcc13-c++]
-  ppa       owner/name toolchain PPA to add first (apt only)
-  apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only)
+  ppa       owner/name toolchain PPA to add first (apt only; Ubuntu only, and skipped
+            when the distro already ships the package)
+  apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only;
+            added only when the distro doesn't carry the package, removed again if apt
+            can't load it)
 '''
 
 import os

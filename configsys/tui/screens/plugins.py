@@ -1,17 +1,15 @@
 '''plugins.py — the Plugins screen as a Screen (build_vm/draw/handle).
 
-First screen migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md). The model is the
-existing `menu.PluginScreen` (state + git/trust ops), composed unchanged; this adds the three MVVM
-seams:
+The model is `panes.PluginScreen` (state + git/trust ops), composed as `self.model`; this adds the
+three MVVM seams (docs/tui-architecture.md):
 
 - build_vm: computes the PURE render content — every table cell + its role, column widths, the remote
   strings, the selected diff file's header and role-tagged lines, and the status/nav strings. No
   curses, no geometry that needs the drawn borders.
-- draw: lays the content out (panel rects, scroll clamps, scrollbars via the shared widgets) and
-  paints it — no decisions the VM didn't already settle. It reproduces menu._draw_plugins cell for
-  cell, which test_screen_plugins pins against the legacy painter.
-- handle: the former `if screen == 'plugins'` dispatch, returning an Intent (note / dirty) instead of
-  mutating loop-scope locals.
+- draw: lays the content out (panel rects, the shared table painter — screens/table.py — and the diff
+  pane, their clamped scrolls recorded with vm.settle) and paints it — no decisions the VM didn't
+  already settle.
+- handle: one key, returning an Intent (note / dirty) for the router.
 '''
 
 import os
@@ -225,7 +223,7 @@ class PluginsScreen(Screen):
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model, runs git/trust ops (under `suspended` where they own the
-        terminal), returns an Intent(note, dirty). Ported verbatim from the former plugins dispatch.'''
+        terminal), returns an Intent(note, dirty).'''
         from ... import actions, plugins
         pl = self.model
         row = pl.cur_row()

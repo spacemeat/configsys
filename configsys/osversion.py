@@ -1,20 +1,16 @@
-'''osversion.py — parse & compare the OS-version qualifiers on routes.hu blocks.
+'''osversion.py — parse and compare version strings: OS VERSION_IDs and package/upstream versions.
 
-A block key may carry an `@`-qualifier that scopes it to a range of OS versions:
+Versions parse to int tuples so they order naturally: `parse_version` reads a dotted string
+("22.04" -> (22, 4), "12" -> (12,)) — what osdetect, the versioned `when:` atoms of predicate.py
+(`ubuntu < 23.04`) and routecheck use; `parse_loose` normalizes across schemes (a Debian epoch and
+a leading `v` stripped) so a distro package version compares against an upstream tag;
+`clean_version` is the display form. Constraint text (`>=1.96`, `<23.04`, a bare `2.0` = exact,
+`,` = AND) parses with `parse_constraint`; `meets` (does a version satisfy a floor) and `implies`
+(does a method's promised range guarantee a floor) are what the version-floor subsystem uses,
+both abstaining (False) on anything unparseable.
 
-    "ubuntu@22.04"          exact VERSION_ID
-    "ubuntu@<23.04"         everything below 23.04
-    "ubuntu@>=24.04"        24.04 and up
-    "ubuntu@>=20.04,<23.04" comma = AND (a bounded range)
-
-Versions are the VERSION_ID from /etc/os-release (ubuntu "22.04", debian "12"),
-parsed to int tuples so they order naturally.
-
-Authoring pattern (keeps distro numberings from colliding across the cascade):
-put the modern/default behavior in the bare base block and use `@<version`
-variants for *older* exceptions. A constraint is compared against the one detected
-VERSION_ID, so scope constraints to your target's numbering — e.g. ubuntu 22.04
-never satisfies a `debian@<12` variant because (22,4) < (12,) is false.
+(History: `split_qualifier` / `satisfies` / `specificity` served the retired `ubuntu@<23.04`
+block-key qualifiers that versioned `when:` atoms replaced; only their own tests call them now.)
 '''
 
 import re

@@ -41,12 +41,17 @@ Flags: `--report-only` (stop after the report), `--no-lifecycle` (skip the podma
 The lines today, each with a registry: `debian`, `ubuntu` (+ the borrowers pop_os!), `fedora` (+
 nobara), `fedora_atomic`, `rhel` (rocky/alma/centos/ol/scientific borrow it; keyed by major),
 `amzn`, `opensuse_leap`, `alpine` (keyed by series, 3.22), and the own-numbering apt derivatives
-`elementary`, `linuxmint`, `zorin`, `lmde`, `mx` — these have no container images, so their
-registries are facts and dates only (`note:` names the base release) and the sweeps reach them
-through their base. `pikaos` (Debian sid) and `kde_linux` (a build stamp) are scale-roots no
-`when:` compares — `releases` prints them as `unversioned`, no registry needed. Rolling blocks
-(arch, tumbleweed, void, kali, chimera) have no releases; their drift is the plain name sweep's
-(`tools/namesweep.py`) and `/update-component`'s.
+`elementary`, `linuxmint`, `zorin`, `lmde`, `mx`. The derivatives have no container images, so the
+sweeps skip them (`releases` prints a `!` line per imageless live release) and their entries are
+facts and dates plus **`base: "<block> <version>"`** — the release they are built on. `base:` is the
+one registry field the resolver reads (`OsCascade.bases_of`): a versioned atom on the base's scale
+(`ubuntu >= 24.04`) reaches Zorin 18 / Mint 22.x through it, so a derivative is checked through its
+base's sweep. A NEW derivative release (Mint 22.4) therefore needs its entry with `base:` before
+any versioned gate reaches it — until then its versioned atoms read false, and `configsys check` on
+that box says to register it (`cli/check.py`). `pikaos` (Debian sid) and `kde_linux` (a build stamp)
+are scale-roots no `when:` compares — `releases` lists them as `unversioned` (a `·` line), no
+registry needed. Rolling blocks (arch, tumbleweed, void, kali, chimera) have no releases; their
+drift is the plain name sweep's (`tools/namesweep.py`) and `/update-component`'s.
 
 ## Phase 0 — preflight
 
@@ -234,8 +239,10 @@ Then validate:
 ## Notes
 
 - **The registry is facts, not policy.** It says what a release ships; whether configsys routes
-  something there is still the components' `when:`. The resolver doesn't read `releases:` (yet —
-  docs/todo/os-releases-plan.md phase 5).
+  something there is still the components' `when:`. The resolver reads only a derivative release's
+  `base:` (above; docs/routing-model.md §6 "Derivative bases"); the other engine uses — an EOL /
+  unknown-newer release note, per-release `provides: { glibc: … }` — are not built
+  (docs/todo/os-releases-plan.md phase 5).
 - **EL is keyed by major** (`9`, `10`): its `$releasever` is the major, and minor-release drift
   inside a major is the plain sweep's.
 - **Plugin OS lines** (a plugin's own os block with `releases:`): osaudit covers core routes only;

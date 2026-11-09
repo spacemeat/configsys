@@ -6,6 +6,10 @@ Networked + slow (it queries each provider method's available version), so it's 
 tool, NOT part of pytest — like tools/namesweep.py. Exits nonzero if any floor is stranded or
 dishonest. Reflects THIS machine's repos/discovery; run in per-distro containers for cross-distro
 coverage.
+
+Usage: tools/versionsweep.py            run the sweep (uses your configsys config, like `check`)
+       tools/versionsweep.py --derive   print a `version-floors:` block derived from each loaded
+                                        source recipe's cargo/go manifest (needs the source plugin)
 '''
 import os
 import sys

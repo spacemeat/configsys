@@ -1,12 +1,14 @@
 '''font.py — the font driver: install downloadable font archives.
 
 The freedesktop way of installing fonts: download a .zip of font files, extract the
-.ttf/.otf into a fonts directory, and refresh the font cache with fc-cache. Version
+.ttf/.otf/.ttc/.otc (any case) into a fonts directory, and refresh the font cache with
+fc-cache. Version
 is discovered like other download drivers ($VERSION substituted into the url).
 Each component gets its own dir (configsys-<comp>) so uninstall is clean.
 
 User-space by default (~/.local/share/fonts); `scope: system` installs into
-/usr/local/share/fonts with sudo. !depends on fontconfig (fc-cache) + unzip.
+/usr/local/share/fonts with sudo. The driver `requires: [ fontconfig, unzip, curl ]`
+(fc-cache, the unpack, the download — routes.hu `drivers:`).
 '''
 
 import shlex

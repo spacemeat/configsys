@@ -1,10 +1,13 @@
 '''tarball.py — the tarball driver: fetch a tarball and unpack it into a dir.
 
-For software distributed as a downloadable archive (e.g. the Vulkan SDK). Entirely
-user-space (no sudo): download the `url` to a temp file, extract into `installDir`,
-and record the installed version in a marker file so inspection is stateless. The
-declared version comes from the route ($SDKVERSION); "latest" is that declared
-version. There is no native version lock — lock intent lives in the ledger.
+For software distributed as a downloadable archive (e.g. the Vulkan SDK), or a bare /
+gzipped single binary (`archive: none` / `gz`). Scope-honoring: user scope needs no sudo,
+`scope: system` runs the file ops with sudo. Install downloads the release asset or the
+`$VERSION`/`$ARCH`-templated `url`, checks a declared `sha256:`, unpacks into a SIBLING stage
+dir with the version marker written inside it, then swaps the stage into `installDir` — so a
+failed download leaves the old install untouched, and inspection is stateless (it reads the
+marker). The version is the route's `version:` (a literal or a discovery spec); "latest" is
+what it resolves to. There is no native version lock — lock intent lives in the ledger.
 '''
 
 import os
@@ -14,10 +17,6 @@ from pathlib import Path
 from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
-# Never rm -rf one of these: a tarball install dir is wiped on every (re)install, so it MUST be a
-# dedicated subdir, never a shared base. Guards the empty/missing-`installDir:` case, where
-# scoped_dir('') resolves to the bare scope base ($HOME for user, /opt for system) and the swap would
-# `rm -rf $HOME`. A `locations:` override to one of these is refused for the same reason.
 def _plain_name(s):
     '''A `binary:` file name, never a path (a `../..` would write outside the stage dir).'''
     return os.path.basename(str(s)) or 'binary'

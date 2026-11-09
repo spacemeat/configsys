@@ -1,6 +1,6 @@
 # configsys-source — a build-from-source plugin (plan)
 
-> **Status: IN PROGRESS** — pilot (configsys-source 2927311), batch 2+ (batches 3–8, folly, suckless; configsys-source through 946e242) and the toolchain-floor follow-up (rustup d9db757, Go tarball bdf8a1b) done; heavy-app spin-outs partly done (configsys-blender/-kicad/-opencv exist), configsys-ghostty/-hyprland/-cosmic not started.
+> **Status: IN PROGRESS** — roadmap 1 (pilot, configsys-source 2927311, 2026-08-02) and 3 (the toolchain-floor follow-up: rustup d9db757, Go tarball bdf8a1b, 2026-08-02) done; 2 (batch 2+) done through batches 3–8, fastdds/EASTL/folly, xpilot and the suckless/dwl stack (configsys-source through 946e242, 2026-10-08; 3c697bb, 2026-11-09, local and not yet pushed, runs every recipe's install step under `$SUDO`) — open-ended, no further batch scheduled (fd and bat, dropped from the pilot until core had them, are in core now but still have no source recipe); 4 (heavy-app spin-outs) partly — configsys-blender/-kicad/-opencv exist, configsys-ghostty/-hyprland/-cosmic not started (named in configsys-source's README only). The `source` binding fields are specified in docs/config-format.md; the plugin is listed in README's known-plugins table.
 
 Goal: give (most) genuinely-buildable components a
 selectable `via: source` install method, so that (1) a contributor can build any tool from source
@@ -149,9 +149,9 @@ floor for the whole plugin. Tracked as a follow-up, not a pilot blocker.
 ## Roadmap
 
 1. **Pilot — DONE** (above). Ship configsys-source v0.1.0 (local repo; push when ready).
-2. **Batch 2+** — fan out research agents over the eligible set in build-system cohorts (cmake,
+2. **Batch 2+** (done through configsys-source 946e242 / 3c697bb; open-ended) — fan out research agents over the eligible set in build-system cohorts (cmake,
    meson, plain-make, more cargo/go, C libs); add dev-lib capability components as needed; grow the
    verified subset via `test/run-source-builds-in-podman.sh`.
-3. **Toolchain-floor follow-up** — optional recent-Rust/Go providers so builds aren't gated by
+3. **Toolchain-floor follow-up** (done: rustup d9db757, Go tarball bdf8a1b) — optional recent-Rust/Go providers so builds aren't gated by
    distro toolchain age.
-4. Spin out the parked heavy apps/DEs as their own plugins (ghostty, hyprland, cosmic, …).
+4. (Partly: blender, kicad, opencv done; ghostty, hyprland, cosmic not started.) Spin out the parked heavy apps/DEs as their own plugins (ghostty, hyprland, cosmic, …).

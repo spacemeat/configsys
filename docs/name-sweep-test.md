@@ -12,37 +12,42 @@ package exist?". Fast, container-only, no kernel/GPU/GUI/hardware needed, so it'
 ## Why this is the high-value cheap test
 
 configsys's routing is already frozen by the golden gate (`test/routing_golden.json`: every
-component × 15 reference machines). What the golden CANNOT know is whether the package *name* it
-resolves to still exists upstream — repos drift under us. This sweep closes exactly that gap, and only that gap. It's the 20% that catches 80% of
-real breakage.
+component × 24 reference machines). What the golden CANNOT know is whether the package *name* it
+resolves to still exists upstream — repos drift under us. This sweep closes exactly that gap, and
+only that gap. It's the 20% that catches 80% of real breakage.
 
 ## Architecture — three stages
 
 ```
   extractor (host, Python)        verifier (container, per manager)      differ
   resolve every component     ->  query each pkg exists in real repos ->  report renames/removals
-  collect native pkg names        (apt-cache / dnf / pacman / ... / xbps) (exit nonzero on drift)
+  collect native pkg names        (apt-cache / dnf / pacman / ... / xbps) (exit 1 drift, 2 no verdict)
 ```
 
 ### 1. Extractor (`tools/namesweep.py`)
 
 Resolves every component in a representative context per manager (`namesweep.MANAGERS`: ubuntu
-24.04=apt, fedora 45=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps) and collects
-the **native** package names each maps to (`_native_names`, `Resolver.resolve_names` per component,
-so its `requires:` closure's native units count too) — respecting `when:` (only what routes there)
-and `name:` (the real per-distro name). A multi-package unit contributes each of its real
-`packages:`. Skipped:
-non-native units (flatpak app-ids, pipx/npm/cargo dists, tarball URLs, `script`) — a different
-verification — and native units that first wire a third-party repo or fetch a package file
-(`_NON_REPO_FIELDS`: `source-line:`, `ppa:`, `deb-source:`, `repo-url:`, …), whose names only
-exist after that setup.
-Current volume: **~320–420 packages per manager** (~2,300 across the six).
+26.10=apt, fedora 45=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps; all on
+`x86_64`) and collects the **native** package names each maps to (`_native_names`,
+`Resolver.resolve_names` per component, so its `requires:` closure's native units count too) —
+respecting `when:` (only what routes there) and `name:` (the real per-distro name). A
+multi-package unit contributes each of its real `packages:`. Skipped: non-native units (flatpak
+app-ids, pipx/npm/cargo dists, tarball URLs, `script`) — a different verification — and native
+units that first wire a third-party repo or fetch a package file (`_NON_REPO_FIELDS`:
+`deb-source:`, `source-line:`, `source-path:`, `repo-url:`, `repo-id:`, `pubkey-url:`, `ppa:`),
+whose names only exist after that setup. Units of a native-backed driver (gcc, clang, gcc-toolset)
+are keyed on their own driver, so this tool never sees their `packages:`; `osaudit sweep` adds
+them (below).
+Current volume: **~390–460 packages per manager** (~2,550 across the six).
 
 ```
-$ python3 tools/namesweep.py                 # count per manager (apt 401 / dnf 393 / pacman 418 / zypper 344 / apk 321 / xbps 408)
+$ python3 tools/namesweep.py                 # count per manager (apt 434 / dnf 424 / pacman 461 / zypper 388 / apk 408 / xbps 430)
 $ python3 tools/namesweep.py --manager apt   # one name per line -> feed a container
 $ python3 tools/namesweep.py --json          # {manager: {pkg: [components]}}
 ```
+
+`--sweep` resolves only the managers it is about to sweep (`extract(only=…)`; each manager is a
+whole-catalog resolve).
 
 It already reflects known drift: `apt=redis-server`, `dnf=valkey`, `pacman=valkey`.
 
@@ -64,24 +69,39 @@ test_driver_inventory), so a version-gated `name:` map is checked against the re
 resolved for; rolling entries carry no version and use `:latest`. The images and query verbs (all
 read-only, nothing installed):
 
-- **apt** — `ubuntu:24.04`; `apt-cache show "$p"` (enables `restricted universe multiverse`;
+- **apt** — `ubuntu:26.10`; `apt-cache show "$p"` (enables `restricted universe multiverse`;
   `apt-get update`)
 - **dnf** — `fedora:45`; `dnf -q info "$p" || dnf -q provides "$p"` (enables RPM Fusion free +
   nonfree)
 - **pacman** — `archlinux:latest`; `pacman -Si "$p" || pacman -Sg "$p"` (groups like `xfce4`;
   `pacman -Sy`)
-- **zypper** — `opensuse/tumbleweed:latest`; `zypper -n se -x "$p"`, requiring a package row
-  (`zypper -n ref`)
-- **apk** — `alpine:3.24`; `apk search -x "$p"` (adds the `community` repo; `apk update`)
+- **zypper** — `opensuse/tumbleweed:latest`; `zypper -n se -x "$p"`, requiring a package row (a
+  fixed-string match, so a name with regex metacharacters like `gcc-c++` checks correctly;
+  `zypper -n --gpg-auto-import-keys ref`)
+- **apk** — `alpine:3.24`; `apk search -x "$p"`, requiring a `<name>-<version>` row (adds the
+  `community` repo; `apk update`)
 - **xbps** — `void-linux/void-glibc:latest`; `xbps-query -R "$p"` (enables `void-repo-nonfree`,
   which components there `requires:`; xbps names are the same on musl)
+
+**No verdict is never "OK".** The verifier snippet (`_build_snippet`) ends by echoing the sentinel
+`namesweep.DONE` (`__CFS_DONE__`); `_run_verifier` raises `VerifierFailed` when it is absent (an
+image that failed to pull, no network, a podman error), since that container's empty output would
+otherwise read as "every name exists". A failed or timed-out verifier marks its manager NOT
+CHECKED.
 
 ### 3. Differ + report
 
 Missing names → the components that map to them (the extractor's reverse map), printed as
-`DRIFT  dnf: package "sagemath" NOT FOUND  (component: sagemath)`. Exit 1 if any survive the
-allowlist; `namesweep.py --sweep` exits 2 if podman is missing (the wrapper script checks first and
-exits 127).
+`DRIFT  dnf: package "sagemath" NOT FOUND  (component: sagemath)`. `namesweep.py --sweep` exits:
+
+- **1** — some missing name survives the allowlist (drift is reported first, even when another
+  manager also went unchecked);
+- **2** — no verdict: podman missing, an unknown manager in `--only` (it is validated against the
+  verifier table, so `--only fedora` — a block, not a manager — errors instead of sweeping
+  nothing), or any manager NOT CHECKED (`name sweep: NOT CHECKED — <managers>`);
+- **0** — every name exists (`name sweep: OK`).
+
+The wrapper script checks for podman first and exits 127.
 
 ## The allowlist (avoid false alarms)
 
@@ -126,8 +146,15 @@ the catalog in each release's own context (so a release-gated binding is checked
 release it routes on), verifies the names in that release's `image:` from the release registry
 (`releases:` on the os block; docs/routing-model.md §6) after a per-line repo setup
 (`osaudit._SETUPS`), and reports each name missing on one release but present on another — a
-retirement or arrival to gate. It reuses this tool's checks, runner and allowlist. EOL releases are
-not swept by default (their repos move to archive mirrors); name one explicitly to sweep it.
+retirement to gate (`boundaries`). It also checks what this tool skips — the `packages:` of
+native-backed gcc / clang / gcc-toolset units (`release_names`; on apt, ones from a vendor source
+are left out) — and looks for **arrivals** (`arrival_candidates`): a package now in the release's
+repos for a component that doesn't route natively there (a gated-out native binding's own name;
+lower confidence, the component's own name). It reuses this tool's checks, runner, `DONE`
+sentinel and allowlist, with a faster whole-index lookup ahead of apt's and dnf's own query. EOL
+releases are not swept by default (their repos move to archive mirrors); name one explicitly to
+sweep it. `osaudit fixtures` flags a `MANAGERS` release that has fallen behind the line's newest
+live release.
 
 ## Sweeping a plugin OS
 
@@ -141,16 +168,20 @@ $ python3 tools/namesweep.py --sweep --plugin <plugin>/routes.hu \
       --image docker.io/library/debian:12 --setup <plugin>/test/pve-repo-setup.sh
 ```
 
-`--plugin` loads the plugin's routes file (its `os:` block + components) as a plugin layer, resolves the whole catalog on
+`--plugin` loads the plugin's routes file (its `os:` block + components) as a plugin layer —
+trusted, since you chose to sweep it, so its facet probes may run — resolves the whole catalog on
 `--context`, collects the `--manager` package names, and verifies them in `--image` (after
-`--setup`), reusing the core allowlist for that manager (union in a plugin-local one with
-`--allowlist`). The test itself lives WITH the plugin (image + setup are the plugin's business);
+`--setup`, a shell file), reusing the core allowlist for that manager (union in a plugin-local one
+with `--allowlist`). `--manager` must name a manager with a `_CHECK` verb; a missing `--context`,
+`--manager` or `--image` exits 2, and so does a verifier that never finished (the same `DONE`
+sentinel); drift exits 1. The test itself lives WITH the plugin (image + setup are the plugin's business);
 core just provides the mode. Two plugins use it:
 
 - **configsys-proxmox** (`apt` on `debian:12` + the PVE repo). Because it checks against real
   Debian, not Ubuntu, it's a *stricter* apt check — it's what caught `perf` naming Ubuntu's
   `linux-tools-generic` (Debian/Proxmox = `linux-perf`).
-- **configsys-void** (`xbps` on `void-glibc`) — a worked example of an OS plugin. Void itself is
+- **configsys-void** (`xbps`, swept twice: `void` on `void-glibc` and `void_musl` on
+  `void-musl`) — a worked example of an OS plugin. Void itself is
   supported in core, whose own `xbps` sweep (the core gate above) is authoritative. The plugin
   keeps its `component-names:` map (§10a of the routing model) as the teaching form of the same
   name facts core carries as `xbps:` names; it also ships a plugin-local allowlist (`--allowlist`)
@@ -159,11 +190,14 @@ core just provides the mode. Two plugins use it:
 ## Gating & cadence
 
 - **NOT part of `pytest`** — it's networked and container-bound. It's a separate `run-name-sweep-
-  in-podman.sh`, like the other `run-*-in-podman.sh` scripts.
+  in-podman.sh`, like the other `run-*-in-podman.sh` scripts. The verifier's own logic (the `DONE`
+  sentinel, the exit codes, `--only` validation, resolving only the swept managers) IS unit-tested
+  with a stubbed podman: `test/test_sweep_verifier.py`.
 - Run **on a schedule** (weekly cron / CI) and on-demand before a release. Repo drift is slow, so
   weekly is plenty; a failure is a heads-up, not a build blocker for unrelated work.
-- Wall-clock: 6 image pulls + 6 metadata refreshes + ~2,300 cheap queries ≈ a few minutes (each
-  verifier times out after 20 minutes and is skipped).
+- Wall-clock: 6 image pulls + 6 metadata refreshes + ~2,550 cheap queries ≈ a few minutes (each
+  verifier times out after 40 minutes — `_run_verifier`'s `timeout=2400` — and that manager reads
+  NOT CHECKED).
 
 ## What it deliberately does NOT do
 

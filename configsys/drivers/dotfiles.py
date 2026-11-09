@@ -1,16 +1,22 @@
-'''dotfiles.py — the dotfiles driver: symlink repo-synced CONFIG into place.
+'''dotfiles.py — the dotfiles driver: link an app's own CONFIG into place from your content store.
 
-A component maps to one or more *link specs*, each `{ src, dst }`:
-  * src — a path under a `dotfiles/` directory next to the .hu file that defined the
-    component (the base repo, or a plugin / user layer that ships its own content)
-  * dst — where it belongs on this machine; may use env vars / ~ for OS-portable
+A component maps to one or more *link specs*, each `{ src, dst }` (+ an optional `absorb-into`):
+  * src — a relative path inside a content root, under its `<component>.cfs/` marker dir. Roots
+    are searched highest first: the machine-local store (<state>/dotfiles), your primary plugin's
+    dotfiles/, then a `dotfiles/` dir next to the .hu file that defined the component (a TEMPLATE
+    that layer may or may not ship)
+  * dst — where it belongs on this machine, under your home; may use env vars / ~ for OS-portable
     locations (e.g. `$XDG_CONFIG_HOME/nvim`, which defaults to ~/.config/nvim)
 
-Install symlinks dst -> src (edits flow back to the repo, per the sync design). An
-existing non-symlink dst is backed up to `<dst>.pre-configsys` first (no surprises) — never over
-an earlier backup: a second displacement lands at `.pre-configsys.1`, `.2`, …; uninstall removes
-our symlink and restores the (first) backup. A component may have many
-specs (neovim's whole config, plus stray files), each with its own OS-dependent dst.
+Install symlinks dst -> your content, through drivers/_linked.py. A link never points into the
+repo or a plugin checkout: a shipped template is first copied into the machine-local store, and a
+template is never linked over a real file you haven't captured (`dotfiles capture` it, or
+`install --force`). Whatever sits at dst is moved aside first — into `absorb-into` when given, else
+`<dst>.pre-configsys`, then `.pre-configsys.1`, `.2`, … (never over an earlier backup). Uninstall
+removes only our own link (one resolving into a content root) and puts back what it displaced; a
+real file or another tool's link there is yours and stays. The `.cfs` marker dir + its manifest.hu
+make a component "managed" even before any content is captured. A component may have many specs
+(neovim's whole config, plus stray files), each with its own OS-dependent dst.
 
 SHELL-INTEGRATION GLUE (PATH/aliases/env + the conf.d loaders) is a SEPARATE concern —
 the `via: glue` driver (drivers/glue.py). This driver manages a component's own reposited
@@ -444,7 +450,7 @@ class DotFiles(Driver):
         return out
 
     def _suggest_secrets(self, dst):
-        '''Scan a to-be-captured dir for secret-shaped entries (top level + one deep) and return the
+        '''Scan a to-be-captured dir for secret-shaped entries (the whole tree) and return the
         matching exclude globs — pre-filled into a fresh manifest so credentials never enter the
         store. Cheap and best-effort; the user trims the list.'''
         found = set()

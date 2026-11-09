@@ -1,6 +1,6 @@
 '''Components-tree row -> component mapping. A child UNIT under an expanded group must report its
 OWN component (so subcomponents get their own description, not the parent's), and the description
-map is built once from ctx.routes (which rebuilds a Resolver on every access — never per frame).'''
+map is built once from ctx.routes (memoized on the context — never per frame).'''
 
 import types
 

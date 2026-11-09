@@ -2,8 +2,10 @@
 
 Reusable read+write operations that BOTH the CLI subcommands and the TUI screens call, so the two
 stay in lockstep (the TUI is a skin over these, never a parallel implementation). Each takes the app
-`Context`, edits config surgically via the `plugins.set_*` writers, and `ctx.invalidate()`s the
-cached config so the change takes effect on the next read. See docs/done/tui-screens-plan.md (F3).
+`Context`, edits config surgically via the `plugins.set_*` writers, and drops the cached state so
+the change takes effect on the next read (`ctx.invalidate()`, or the cheaper `invalidate_config`
+for a section the Resolver never reads). It also holds the ONE plan builder and op-execution loop
+both surfaces run (`build_plan` / `run_plan`). See docs/done/tui-screens-plan.md (F3).
 '''
 
 import os
@@ -340,9 +342,9 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     clobber) is explained not reported; a hard failure that nonetheless left the package present
     (apt's failed-Recommends case) is downgraded to installed-with-a-warning. Ctrl-C aborts the whole
     batch. If any op may need root, sudo is authenticated ONCE up front (begin_sudo) and kept warm
-for the whole batch, every streamed op reusing it — so a long run can go unattended after the first
-prompt; the keep-alive is released and the ledger saved at the end. Progress
-    prints via `on_line`. Returns a RunResult. Presentation of the reboot advisory and the report
+    for the whole batch, every streamed op reusing it — so a long run can go unattended after the
+    first prompt; the keep-alive is released and the ledger saved at the end. Progress prints via
+    `on_line`. Returns a RunResult. Presentation of the reboot advisory and the report
     offer stays with each surface.'''
     from . import reportgen, shellguard
     from .drivers import get_driver
@@ -763,7 +765,8 @@ def _invalidate_config(ctx):
 def stage_uninstall(ctx, comp, *, on=True):
     '''Stage (`on`) or unstage (`on=False`) `comp` in the top-level `uninstall:` queue — a
     machine-local (top-config) pending-removal list. Returns (changed, label). The TUI `x` calls
-    this; the real uninstall runs later from TUI::Components (execute) — or `clear_uninstall` cancels.'''
+    this (CLI: `configsys uninstall add|rm`); the real removal runs with the next execute (TUI `X`)
+    or `configsys remove` (`after_run` drains it) — or `clear_uninstall` cancels.'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED
     tfile = str(ctx.paths.user_config_file)          # machine-local, like pins — never a plugin
@@ -818,8 +821,8 @@ def _picks_target(ctx, machine, *, create=False):
 
 
 def set_included(ctx, comp, machines, on):
-    '''v3 matrix A/D: mark `comp` Included (`on=True`) or not, on EACH machine in `machines` (plural =
-    fan-out). Each machine's picks write to its PORTABLE target — the primary plugin by default, else
+    '''Track (`on=True`) or untrack `comp` — add it to / drop it from the picks of EACH machine in
+    `machines` (plural = fan-out). Each machine's picks write to its PORTABLE target — the primary plugin by default, else
     this box's top config, and always the top config when it already overrides that machine (see
     _picks_target). Returns (changed_count, label naming where it landed). A `profile:<name>` token
     is refused (ValueError): a surface expands it to its members first, it is never a pick.'''
@@ -899,7 +902,7 @@ def move_picks_to_primary(ctx):
 def mark_all_seen(ctx, names):
     '''Mark every UNDISPOSITIONED (NEW) component in `names` as `seen`, in ONE write — leaving any
     existing seen/interesting flag alone (SEEN never clobbers a flag). Returns the count newly seen.
-    Used by the `E` mass-acknowledge and by Include (tracked implies seen).'''
+    Used by the `E` mass-acknowledge and by tracking (tracked implies seen).'''
     if _pretend(ctx):
         return 0
     tfile = str(ctx.paths.user_config_file)
@@ -1497,7 +1500,7 @@ def copy_page_theme(ctx, src, dst):
 def _primary_data_file(ctx):
     '''The primary plugin's highest-precedence synced data file (where a theme/pin can be written so
     it travels with the primary), plus the primary's name — or (None, None) if no primary is blessed
-    and synced. Mirrors the edit_target / _pin_promote idiom. Read-only; writers use
+    and synced. Mirrors the edit_target / cli.matrix._pin_promote idiom. Read-only; writers use
     _writable_primary_file.'''
     decls = plugins.declared(ctx.paths.user_config_file)
     prim = plugins.primary_name(decls)
@@ -1943,7 +1946,8 @@ def plugin_unbless(ctx):
 
 
 def plugin_trust(ctx, ident):
-    '''Approve a code plugin's CURRENT content to run during installs (trust-on-content-hash).
+    '''Approve a plugin's CURRENT content — its code and/or command-carrying recipes
+    (`plugins.ships_executable_data`) — to run during installs (trust-on-content-hash).
     Returns (ok, note). Mirrors `configsys plugin trust`.'''
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
     target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
@@ -2015,7 +2019,7 @@ def plugin_trust_all(ctx):
 
 
 def plugin_untrust(ctx, ident):
-    '''Revoke a code plugin's trust. Returns (ok, note). Mirrors `configsys plugin untrust`.'''
+    '''Revoke a plugin's trust (code or recipes). Returns (ok, note). Mirrors `configsys plugin untrust`.'''
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
     target = plugins.find_decl(eff, ctx.paths.plugins_dir, ident)
     key = plugins.dir_name(target['source']) if target else ident
@@ -2112,8 +2116,9 @@ def plugin_review(ctx, decl, row, remote):
 # -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------
 
 def dotfiles_units(ctx):
-    '''(driver, [ResolvedComponent]) — the via:dotfiles units in this machine's picks (and what
-    they pull in). Resolution only (no install-state query), cheap + side-effect-free. Shared by the CLI + the TUI screen.'''
+    '''(dotfiles driver, [ResolvedComponent]) — the via:dotfiles AND via:glue units in this machine's
+    picks (and what they pull in). Reuses the pipeline's resolution when one ran, else resolves
+    (no install-state query) — cheap + side-effect-free. Shared by the CLI + the TUI screens.'''
     from .drivers import get_driver
     held = getattr(ctx, 'pipeline_units', None)
     if held and held[0] == id(ctx.routes) and held[1] == id(ctx.config):

@@ -85,19 +85,25 @@ torbrowser-launcher).
 
 ### 1. Read a few existing components that match the shape
 Match the house style. Good exemplars in `routes.hu`:
-- native everywhere, EL via EPEL, Ubuntu universe → `htop`, `btop`, `mc`
-- native + cargo/tarball fallback for EL → `bottom`, `micro`, `nushell`
+- native everywhere, EL via EPEL, Ubuntu universe → `htop`, `btop` (+ a static musl tarball that runs
+  everywhere); a brew formula named differently from the component, in the native `name:` map's
+  `brew:` key and the brew binding → `mc` (`midnight-commander`)
+- native where packaged + cargo/tarball fallback for the rest (EL, older Debian/Ubuntu) → `bottom`
+  (cargo), `micro` (EPEL + a glibc tarball), `nushell` (glibc and musl tarballs + cargo)
 - vendor apt/dnf repo (key + source) + AUR + flatpak → `chrome`, `brave` (`vivaldi`: Arch's `extra`
   native instead of AUR); distro launcher package + AUR + flatpak → `tor-browser`
 - upstream `.deb`/`.rpm` release file → `yazi`, `fastfetch` (`via: native-pkg-file`); both formats in
   one binding (`asset: { deb: {…}  rpm: {…} }`) → `bruno`, `insomnia`
-- Void name map + Void-only native binding → `fish` (`name: { xbps: fish-shell }`), `doas`
-  (`{ via: native  when: "void or void_musl"  name: opendoas }`); nonfree repo → `nmap`; native only
-  on musl where the glibc binary declines → `neovim` (`when: "void_musl or alpine"`)
+- Void name map + Void-only native binding → `fish` (`name: { xbps: fish-shell }`), `helm`
+  (`{ via: native  when: "void or void_musl"  name: kubernetes-helm }`); a manager named directly for
+  a one-OS binding → `doas` (`{ via: apk  when: "alpine" }`); nonfree repo → `nmap`; native the
+  default only on musl, where the glibc AppImage declines → `neovim` (`when: "void_musl or alpine"`;
+  its other native bindings are `standing: never-auto`)
 - name differs per distro → `iproute2`, `cython`, `python3-pip` (`name:` maps)
-- AppImage fallback where the distros don't package it → `ghostty` (native on Arch/Void; the
-  AppImage carries no `when:` — the appImage driver's own requires keep it off musl and atomic)
-- install script → `zed`
+- AppImage fallback where the distros don't package it → `ghostty` (native on Arch/Void/Tumbleweed/
+  Ubuntu 26.04+, a `never-auto` snap; the AppImage carries no `when:` — the appImage driver's own
+  requires keep it off musl and atomic)
+- install script → `zed` (alongside Arch native, flatpak and a tarball)
 
 ### 2. Write the component in routes.hu
 A component is `name: { description: "…"  install: [ <bindings> ] }`. Each binding is
@@ -132,8 +138,9 @@ editors, browsers, file-managers, …). Rules:
 - Write a **one-line comment** explaining any non-obvious gating (why a `when:`, why EPEL, why a
   tarball) — every existing component does.
 - **`attrs:` is expected on every real component** (an end-user tool/app/lib — not the `-dotfiles`/
-  `-glue`/`-service`/`-group` companions, which self-tag). It's a free-form multi-tag list for
-  cross-cutting filtering, ORTHOGONAL to profiles. Assign tags across the axes (full vocabulary + case
+  `-glue`/`-service`/`-group` companions, which self-tag). It's a multi-tag list for cross-cutting
+  filtering, ORTHOGONAL to profiles, drawn from a fixed vocabulary (`attrs.ATTR_AXES`; an
+  off-vocabulary tag is a `check` `unknown-attr` warning). Assign tags across the axes (full vocabulary + case
   rules in `docs/component-attrs.md`): **interface** `CLI`/`TUI`/`GUI`/`daemon`/`web`/`headless`;
   **role** `lib`/`SDK`/`app`/`toolchain`/`runtime`/`driver`/`font`/`theme`/`plugin`/`game`; **license**
   (combine all that apply) `FOSS`/`FOSSish`/`proprietary`/`source-available`/`freeware`/`GNU`/
@@ -148,8 +155,9 @@ editors, browsers, file-managers, …). Rules:
 
 ### 3. Fill the fallbacks (pick the right driver — see catalog below)
 Order native-first, then fallbacks. Typical comprehensive rows:
-- **Rust tool** (ripgrep, bottom, btop): `native` where packaged + `cargo` (or a release `tarball`
-  with `requires: glibc`, plus a musl asset for alpine) for the rest.
+- **Rust tool** (ripgrep, bottom, btop): `native` where packaged + a release `tarball` for the rest —
+  a static musl asset runs everywhere (ripgrep, btop); a glibc-only asset carries `requires: glibc`
+  and needs a musl asset or native for musl — and/or `cargo` (bottom, ripgrep).
 - **Go tool** (micro, superfile, lazygit): `native` + release `tarball` (nested `bin/` is fine — the
   driver finds the binary).
 - **GUI app / browser** (tor-browser): vendor `native` where it exists + `{ via: aur }` +
@@ -172,7 +180,7 @@ Order native-first, then fallbacks. Typical comprehensive rows:
   with the `brew:` key of its `name:` map, so give that key too when the formula name differs; where
   there is no usable Linux formula (none, or keg-only), gate the broad native binding `not
   fedora_atomic` and route atomic another way — the jdks use a pinned SDKMAN Temurin binding,
-  `{ via: sdkman  name: java  version: "21.0.12+1.1-tem"  requires: glibc }` (routing-model §6a,
+  `{ via: sdkman  name: java  version: "21.0.13.0+9-tem"  requires: glibc }` (routing-model §6a,
   "`native: brew`").
 - **Raw binary download** (no archive — kubectl/bazelisk style): `via: tarball  archive: none  binary:
   <name>` (a single gzip-compressed binary is `archive: gz`).
@@ -202,7 +210,8 @@ app config, captured). Give the parent a soft `suggests:` for each one you add.
   ```
   and add `suggests: <name>-glue` to the parent. The glue driver emits one spec per INSTALLED shell
   that ships a variant (materialized into the machine glue store, linked into
-  `~/.config/<shell>/conf.d/50-<name>.<ext>` — the component band; `glue.component_link_stem`); a
+  `<config>/<shell>/conf.d/50-<name>.<ext>` — the component band; `glue.component_link_stem`; the
+  conf.d dir per shell is its `ShellSpec.confd` in configsys/shells.py); a
   shell with no variant is a clean no-op, so adding a variant file later lights that shell up with ZERO component edits. nushell and elvish inline every
   snippet into one rc block, so their variants must self-guard (`add-shell.md` Part B has the idioms).
   (Onboarding a WHOLE NEW shell — its `conf.d` loader + driver wiring, not just one variant file — is
@@ -224,8 +233,9 @@ app config, captured). Give the parent a soft `suggests:` for each one you add.
   `suggests: [ <name>-dotfiles  <name>-glue ]`.
 
 `suggests:` is SOFT: the parent installs fine whether or not the companion resolves, and the user can
-opt a whole mechanism out with `disabled-drivers: [ dotfiles ]` (or `glue`). Links back up any
-pre-existing real file to `<dst>.pre-configsys`. **Rule of thumb:** if installing the tool leaves a
+opt a whole mechanism out with `disabled-drivers: [ dotfiles ]` (or `glue`). A link never
+overwrites what it displaces: a pre-existing real file (or another tool's link) moves aside to the
+first free `<dst>.pre-configsys`, `.pre-configsys.1`, … and comes back on uninstall. **Rule of thumb:** if installing the tool leaves a
 PATH/alias/init it needs to be useful, add a `-glue` you write and ship; if it reads a config, add a
 `-dotfiles` spec the user can capture into.
 
@@ -270,9 +280,10 @@ and unbracketed, leave it out and mention it.
 
 ### 7. Validate (always, before committing)
 ```
-.venv/bin/python -m configsys --os pop check          # lint the merged config (0 errors)
+.venv/bin/python -m configsys --home <scratch-home> --os pop check   # lint the merged config (0 errors)
 ```
-Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl) — all must
+Use a fresh scratch `--home` (never your real home: it would merge your own config and plugins in).
+Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl/kde_linux) — all must
 be **0 errors**, and warning count must not rise. Then confirm each new component resolves to the
 *expected* method per OS with a resolve sweep (adapt this):
 ```python
@@ -300,7 +311,8 @@ layer + resolution; it notes any version condition a versionless block reads fal
 
 ### 8. Regenerate the golden gate + run the suite
 Adding components changes the frozen resolution snapshot (`test/routing_golden.json`, every
-component × 15 contexts, incl. void + void_musl). Regenerate and confirm it's **purely additive**:
+component × the 24 contexts in `CONTEXTS` in test/test_golden.py — releases of each versioned line
+plus void, void_musl, chimera, kde_linux; keys are `<block>@<version>`). Regenerate and confirm it's **purely additive**:
 ```
 CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q   # writes the golden
 ```
@@ -380,7 +392,7 @@ formula (`<name>@<ver>`). When to add one and when not: §3.
   asset runs everywhere and covers them.
 - `appImage` — `name:` (menu label), `scope:`, `version: {…}` or `url:`, `path: ~/apps/<x>.appimage`,
   optional `desktop-id:` (the app's Wayland app_id, so its menu entry and dock icon match; the menu
-  icon is extracted from the AppImage itself). The driver `requires: [ libfuse2, glibc ]`, so it is
+  icon is extracted from the AppImage itself). The driver `requires: [ libfuse2, glibc, curl ]`, so it is
   not offered on musl or fedora_atomic/kde_linux — no `when:` needed for that (a glibc-VERSION floor
   is still a `when:`, as on `neovim`).
 - `flatpak` — `hub: flathub  app: <exact.app.id>` (`hub-url:` for a non-built-in remote). The
@@ -390,15 +402,15 @@ formula (`<name>@<ver>`). When to add one and when not: §3.
   (openSUSE, Void, Alpine, atomic, …) — the derived gate.
 - `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `latest-cmd`,
   `uninstall-cmd`, `upgrade-cmd`, `set-version-cmd`, `location`.
-- `font` — a downloadable font archive into the fonts dir + `fc-cache` (`name:`, `url:`/`version:`;
-  requires fontconfig + unzip).
+- `font` — a downloadable font archive into the fonts dir + `fc-cache` (`url:`/`version:`, `scope:`;
+  the driver requires fontconfig, unzip and curl).
 - `source` — build from a git checkout/archive (`repo:`/`url:`, `build:`, `tag-prefix:`; recipes live
   in the configsys-source plugin, §5).
 
 **Language toolchains & their module installers** (take `name:` = crate/pkg/candidate; the
 `drivers:` block already requires each one's tool — `cargo → cargo`, `go-install → go`): `cargo` `pip`
 `pipx` `npm` `gem` `opam` `luarocks` `cabal` `go-install` `sdkman` (a pinned `version:` — an exact
-SDKMAN id like `21.0.12+1.1-tem` — installs and reads that version's own dir), and `pyenv` (compiles a
+SDKMAN id like `21.0.13.0+9-tem` — installs and reads that version's own dir), and `pyenv` (compiles a
 CPython: the `python3.X` components' version-scoped method). Toolchains themselves: `gcc`
 `gcc-toolset` `clang`.
 
@@ -434,8 +446,9 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
 - **Version-scoped providers** — a component providing a *specific version* of a capability:
   `provides: { <cap>: N }` on the provider + `requires: { <cap>: ">=N" }` on the consumer (the
   constraint selects a resident by version and can even ENABLE a `standing: never-auto` provider).
-  This is how `python3.11/12/13/14` and `jdk-17/21/25` coexist — each versioned provider is
-  `standing: never-auto` so it never shadows the unversioned default. Add this only when the new
+  This is how `python3.10`…`python3.15` and `jdk` (21) / `jdk-17` / `jdk-25` coexist — the default
+  line (`python3.13`, `jdk`) is an ordinary provider and every other versioned provider is
+  `standing: never-auto`, so it never shadows the default (`jdk-21` is a `parts: [ jdk ]` alias). Add this only when the new
   component is a *versioned alternative* of something, or genuinely needs a minimum version.
 - **Version floors** — a HARD minimum: `requires: { <toolchain>: ">=X" }`, plus the authored
   `version-floors:` section. A `via: source` recipe's build-toolchain floor auto-derives via
@@ -468,7 +481,7 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
   native binding — the manager READS state from it while `name` still installs the meta. Like
   `name:` it may be keyed by driver (`libreoffice`: `installed-name: { apt: libreoffice-core  dnf:
   libreoffice-core }`, so pacman/zypper/… still probe their own name); a scalar applies to every
-  manager (`_native.installed_name`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
+  manager (`Driver.installed_name`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
   (as is `packages: [...]`, a set installed/removed together, detected via `installed-name:` else its
   first member) — NOT by `brew`.
 - **CPU (aarch64).** A download that names a cpu (`amd64`, `x86_64`, `x64`, `linux64`, `64bit`)

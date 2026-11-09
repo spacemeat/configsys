@@ -14,6 +14,11 @@ Usage:
   python3 tools/namesweep.py                 # summary: package count per manager
   python3 tools/namesweep.py --manager apt   # one package name per line (feed to a container)
   python3 tools/namesweep.py --json          # full {manager: {pkg: [components]}} as JSON
+  python3 tools/namesweep.py --sweep [--only apt,dnf]   # verify in podman; exit 1 on drift, 2 if
+                                                        # a manager couldn't be checked
+  python3 tools/namesweep.py --sweep --plugin <routes.hu> --context <block> --manager <mgr>
+          --image <image> [--setup <file.sh>] [--allowlist <file.hu>]   # a plugin OS
+(test/run-name-sweep-in-podman.sh wraps --sweep.)
 '''
 
 import argparse
@@ -278,8 +283,10 @@ def sweep_plugin(plugin, context, manager, image, setup='', allowlist=None):
 
 
 def main():
-    ap = argparse.ArgumentParser(description='extract native package names per manager')
-    ap.add_argument('--manager', help='print just this manager\'s package names, one per line')
+    ap = argparse.ArgumentParser(description='extract the native package names configsys maps to, '
+                                             'per manager, or verify they exist (--sweep)')
+    ap.add_argument('--manager', help='print just this manager\'s package names, one per line '
+                                      '(with --plugin: the manager to sweep)')
     ap.add_argument('--json', action='store_true', help='emit the full map as JSON')
     ap.add_argument('--sweep', action='store_true',
                     help='verify every name exists in its repos (podman); exit 1 on drift')

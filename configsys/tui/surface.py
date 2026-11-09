@@ -1,12 +1,12 @@
 '''surface.py — the one drawing sink the TUI paints through.
 
-The painters (`_draw_*`, and the Screen `.draw()` methods that replace them) only ever touch a
-handful of window operations: `getmaxyx`, `erase`, `addstr`, `move`, `refresh`, and `derwin` (the
+The painters (each Screen's `.draw()`, the paint primitives in paint.py, the overlays) only ever
+touch a handful of window operations: `getmaxyx`, `erase`, `addstr`, `move`, `refresh`, and `derwin` (the
 Theme screen renders sub-pages into a sub-window). A Surface is exactly that contract, so a painter
 can render to a real curses window OR to an off-screen buffer without knowing which.
 
-- A curses `stdscr`/window satisfies the contract as-is: `menu.run` hands each screen's draw the
-  raw `stdscr` (no adapter).
+- A curses `stdscr`/window satisfies the contract as-is: `menu.run` hands each screen's `render`
+  the raw `stdscr` (no adapter).
 - `BufferSurface` records every drawn cell into a `{(y, x): Cell}` grid and does nothing else. It is
   what makes the TUI renderable headlessly: the render tests (test/_render_harness.py) paint a screen
   from a fixed state into a BufferSurface and assert on the grid, and it is the seam an eventual

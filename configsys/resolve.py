@@ -66,7 +66,7 @@ def pin_via_names():
     '''The set of `pins:` values that name an install METHOD (a via/driver) rather than a provider
     component — `native`, `parts`, and every registered driver. A flat-`pins:` value in this set is
     a BINDING-pin (component -> via); anything else that is a known component is a PROVIDER-pin. Used
-    identically by resolve, app._validate_pin and routecheck so all three classify a pin the same
+    identically by resolve, actions.validate_pin and routecheck so all three classify a pin the same
     way — critical when a name is BOTH a via and a component (pyenv, flatpak, clang, cabal, …).'''
     from .drivers import supported_names
     return SPECIAL_VIAS | supported_names()
@@ -100,8 +100,8 @@ def cap_constraints(raw):
 
 class Unit:
     '''A resolved leaf: which driver installs it, the component name, and the concrete
-    package identifier. Shaped to line up with the old resolver's (driver, comp, name).
-    `deps` are the unit keys it depends on; `requested_as` are the roots that pulled it.'''
+    package identifier; its `key` is `driver\\component` (the unit key). `deps` are the unit keys
+    it depends on; `requested_as` are the roots that pulled it.'''
 
     def __init__(self, driver, component, package):
         self.driver = driver
@@ -159,8 +159,11 @@ def disabled_driver(binding, context):
 
 
 def _matching(component, context, pins):
-    '''(bindings valid in this context, the binding-pin or None). A binding-pin filters to that
-    via first (still subject to `when:`); `when:` alone decides validity.'''
+    '''(the CANDIDATE bindings in this context, the binding-pin or None). A binding-pin filters to
+    that via first; then a binding is a candidate when its driver isn't disabled, it isn't `via:
+    native` on a native-less OS, no driver gate (explicit or derived) closes it, the trust gate lets
+    it through (trustgate.gated), it covers this cpu (arch_ok) and its `when:` holds — every one a
+    validity filter; not_candidate_reason words them in this order.'''
     bindings = component.bindings
     pin = binding_pin(pins, component.name)
     if pin is not None:                     # binding-pin: force this method, still context-valid
@@ -260,8 +263,8 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
     and repeat until nothing changes (gating a driver can only make more requirements fail, so it
     terminates). `pins` are honored, so a provider-pin enables a never-auto provider — e.g.
     `pins: { glibc: gcompat }` makes appImage valid on Alpine. Callers pass only the HARD pins (yours
-    + auto-tighten), never the detection tier's soft ones, so an opt-in stays explicit. The reasons
-    land in `ctx.derived_gates` ({driver: why}) for `where`. Cached on the cascade per (components,
+    + auto-tighten), never the detection tier's soft ones, so enabling a never-auto provider stays
+    explicit. The reasons land in `ctx.derived_gates` ({driver: why}) for `where`. Cached on the cascade per (components,
     drivers, context, pins, …); a context is never mutated after it's returned.'''
     if block not in cascade.blocks:            # an unknown forced block: say so, never an empty lineage
         from .osdetect import unknown_block_message
@@ -374,9 +377,10 @@ def arch_token(details, cpu):
 
 
 def candidate_bindings(component, cascade, context, pins=None):
-    '''Every `when:`-valid binding for this context — the honest candidate set (the install
-    methods available here), for the picker / `where` introspection. `when:` is validity only:
-    this never narrows the set to force one winner. Unordered.'''
+    '''Every candidate binding for this context (_matching's filters: `when:`, cpu, disabled
+    drivers, driver and trust gates; a binding-pin in `pins` narrows to its via) — the honest set of
+    install methods available here, for the picker / `where` introspection. `when:` is validity
+    only: this never narrows the set to force one winner. In binding order.'''
     return _matching(component, context, pins)[0]
 
 
@@ -497,15 +501,18 @@ def _by_preference(matching, component, cascade, context, preference):
 
 
 def _select(component, cascade, context, pins=None, preference=None, never_auto_drivers=None):
-    '''-> (winning Binding, [all candidates], reason). Candidates = `when:`-valid bindings
-    (validity only). The default among them: the single most-specific `when:`, else the
-    preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.
+    '''-> (winning Binding, [all candidates], rule). Candidates = _matching's (validity only). The
+    default among them: drop the never-auto methods (unless all are), then the single most-specific
+    `when:`, else the preference channel among the minimal ones (`standing:` rank, then
+    driver-preference). `rule` names the deciding step ('only method here', 'only ordinary method
+    here', 'most-specific when:', 'standing:', 'driver-preference'). Raises ResolveError if nothing
+    is valid or the choice is undecidable. Resolver.select wraps this as a Selection.
 
     `never_auto_drivers` (a set of via/driver names, e.g. {'snap'}, from `standing: never-auto` on a
     `drivers:` block) marks methods that are valid and LISTED but never win the AUTO-default while
-    any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap is gated
-    `when: ubuntu`, which would otherwise beat a broad native binding by specificity) can be offered
-    without hijacking the default. A binding may ALSO carry `standing: never-auto` itself (e.g. a
+    any ordinary method is valid here — so a low-preference method that may be narrowly gated (a
+    snap binding with a `when:` that would otherwise beat a broad native binding by specificity) can
+    be offered without hijacking the default. A binding may ALSO carry `standing: never-auto` itself (e.g. a
     debian-only vendor `.deb` that should stay a candidate under a universal flatpak). A binding-pin
     still forces such a method (it filters `matching` to that via upstream); and if EVERY valid
     method here is never-auto, they compete among themselves normally. The candidate list returned is
@@ -630,7 +637,8 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
 
 def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
             overrides=None, preference=None, never_auto_drivers=None, disabled=None):
-    '''Resolve a profile (component names) to the full unit closure for a context.
+    '''Resolve component names (picks, or an op's names) to the full unit closure for a context.
+    Strict: the first ResolveError raises (resolve_resilient collects them per pick instead).
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
     requirement is resolved — so an explicitly-requested provider always wins over an
@@ -675,8 +683,9 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
     instead of aborting the whole set — everything resolvable still resolves. Returns
-    (units, errors) with errors = {requested_name: message}. So one broken component in the
-    active set (e.g. from an auto-activated project profile) can't brick the tool.
+    (units, errors) with errors = {requested_name: message}. So one broken pick (e.g. a
+    component from a malformed plugin) is an error row and can't brick the tool; a unit whose hard
+    requirement failed is pruned with everything that hard-depends on it (_prune_failed).
 
     `soft` names the `pins` keys that are SOFT (the detection tier's adopt-installed pins): such a
     pin is honored when it can be, but one that can't (its provider fails a version constraint, or
@@ -1078,7 +1087,7 @@ class _State:
         # `pins:` is one flat namespace for BOTH binding-pins (comp -> via) and provider-pins
         # (cap -> provider component). Here we satisfy a CAPABILITY, so only a PROVIDER-pin applies.
         # A pin whose value names a via/driver is a BINDING-pin — even when that name is ALSO a
-        # component (pyenv, flatpak, clang, …); classifying it via-first (matching app._validate_pin
+        # component (pyenv, flatpak, clang, …); classifying it via-first (matching actions.validate_pin
         # and routecheck) is what stops `pins: {python3.13: pyenv}` from being misread as a provider-
         # pin and throwing a bogus "python3.13 pinned to pyenv, which cannot provide it here". The
         # binding-pin is honored later in _matching when the component `cap` itself resolves.

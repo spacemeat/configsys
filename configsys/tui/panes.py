@@ -27,8 +27,10 @@ def _routes_lock(ctx):
 
 
 class ProfileScreen:
-    '''Two-panel profile editor: profiles (left) + the full component catalog (right). A skin over
-    configsys.actions — space toggles membership, `a` toggles a profile active.'''
+    '''The Profiles screen's model: the browse profiles (left — read-only lenses, never an install
+    set) + the component × machine matrix over the catalog (right). A skin over configsys.actions —
+    tracking (picks), dispositions, method pins, the uninstall stage; `space` multi-selects, `a`
+    selects all in view.'''
     def __init__(self, ctx):
         self.ctx = ctx
         self.focus = 'left'          # 'left' = profiles, 'right' = catalog
@@ -40,16 +42,17 @@ class ProfileScreen:
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
         self.selected_comps = set()      # `space` multi-select: component names T/S/I act on as a batch
-        self.target_machines = None      # v3 matrix: the selected edit-target machines (set); None -> {current}
+        self.target_machines = None      # the matrix's selected edit-target machines (set); None -> {current}
         self._new_count_cache = {}       # profile -> (#NEW, #interesting) members; rebuilt lazily per reload
-        self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
+        self.attr_inc = set()            # the faceted attr filter (`attr-filter`): lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
                                                # by default (each has its own page)
         self._res = {}                   # component -> (available, via, pinned); survives reloads
         self._res_lock = threading.Lock()   # guards _res/_res_routes: _warm_cache fills it off-thread
-        self._parts_cache = {}           # component -> its context-valid `via: parts` list; same lifecycle
-                                         # as _res (a `when:`/pin thing, not a membership edit) — the
-                                         # hot per-frame call, ~28ms/frame uncached on a 760-component catalog
+        self._parts_cache = {}           # component -> its context-valid `via: parts` list; dropped when
+                                         # ctx.routes changes (_routes_caches — a `when:`/pin thing, not a
+                                         # membership edit) — the hot per-frame call, ~28ms/frame uncached
+                                         # on a 760-component catalog
         self._hard_dep_cache = {}        # component -> frozenset of its transitive hard component-requires
         self._avail_os_cache = {}        # component -> [platform labels where it routes] (lazy, for the infobox)
         self._caches_routes = None       # the Resolver those three were computed for (_routes_caches)
@@ -235,7 +238,7 @@ class ProfileScreen:
         '''Flattened visible tree: [(name, depth, key, expandable, expanded, kind)]. `kind` is
         'profile' (a top-level profile) or 'include' (a `+other` child — a live include). A root
         profile's children are its `+includes`. `key` is the ancestor path (root =
-        key.split('\\x00')[0] = the curated profile).'''
+        key.split('\\x00')[0] = the root profile).'''
         # cache: the tree changes only with config identity (an edit -> ctx.invalidate) + the browse
         # toggles (filter / expand / collapse). Called ~5x per frame, so memoize on that.
         sig = (id(self.ctx.config), self.pfilter, frozenset(self.expanded))
@@ -416,8 +419,8 @@ class ProfileScreen:
         '''Tri-state install status for the `inst'd` column: 'all' (fully on disk), 'some' (partial),
         or 'none'. Partial (◐) means either a `via: parts` aggregator with only SOME parts installed,
         OR an installed component whose hard component-requires aren't all present (e.g. an app
-        installed without its required service). `force` ignores the `O` display toggle (for the C
-        claim, which reads reality regardless).'''
+        installed without its required service). `force` ignores the `O` display toggle (for the
+        `claim` scan, which reads reality regardless).'''
         if (not self.show_install and not force) or name in _stack:
             return 'none'
         parts = self._parts(name)
@@ -480,7 +483,7 @@ class ProfileScreen:
             return (src[len(pdir):].lstrip('/').split('/') or ['plugin'])[0] or 'plugin'
         return 'repo'
 
-    # -- v3 matrix: machines (columns) + Included (picks) state --
+    # -- the matrix: machines (columns) + Included (picks) state --
     def machines_list(self):
         '''Every machine to show a column for (the `picks:` machines, else just the current machine —
         a one-machine user never has to name it): the current machine first, the rest sorted.'''
@@ -496,7 +499,7 @@ class ProfileScreen:
 
     def target_state(self, comp):
         '''Whether `comp` is picked across the TARGET machines: "all" · "some" · "none" — the
-        actionable Included summary (what A/D toggles).'''
+        actionable Included summary (what `track-all` / `track-one` toggle).'''
         picks = self.ctx.config.picks()
         tg = self.targets()
         if not tg:                                   # no targets selected -> nothing to be tracked on
@@ -526,7 +529,7 @@ class ProfileScreen:
         cat = [c for c in self.catalog if f in c.lower()] if f else self.catalog
         sm = self.scoped_members()                   # always the selected browse profile's members
         cat = [c for c in cat if c in sm]
-        if self.attr_inc or self.attr_exc:           # `A` attrs filter (faceted include/exclude)
+        if self.attr_inc or self.attr_exc:           # the attr filter (faceted include/exclude)
             comps = self.ctx.routes.components
             cat = [c for c in cat if _attr_pass(
                 {a.lower() for a in getattr(comps.get(c), 'attrs', [])}, self.attr_inc, self.attr_exc)]
@@ -592,7 +595,8 @@ class ProfileScreen:
         self.catalog = sorted(self.ctx.routes.components)
         # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
         # via), so re-resolving the whole visible set (~17ms each) on every toggle was the ~1.5s lag.
-        # The method picker (`m`) is the only edit that changes resolution; it drops its own entry.
+        # An edit that does change resolution (a pin from the `method` picker or any other screen, a
+        # plugin sync/trust) calls ctx.invalidate, and the fresh ctx.routes drops `_res` (_resolve).
         self.lcur = max(0, min(self.lcur, len(self.visible_pnodes()) - 1))
         self.rcur = max(0, min(self.rcur, len(self.vcatalog()) - 1))
         self._warm_cache()               # resolving each component is ~17ms; warm off-thread so
@@ -623,7 +627,7 @@ class ProfileScreen:
         return None if nd is None else nd[0]
 
     def cur_curate(self):
-        '''The profile the RIGHT catalog edits reflect: the current node's own profile.'''
+        '''The profile the RIGHT catalog shows: the current node's own profile.'''
         nd = self.cur_node()
         if nd is None:
             return None
@@ -785,7 +789,8 @@ class PluginScreen:
     would download) fetched into an inert review cache. Loaded on a background thread as the cursor
     settles, cached per (plugin, base, target); files as headers; hjkl scroll. Tab cycles focus
     table→diff→next file→table; Shift-Tab reverses. A skin over configsys.actions.plugin_* —
-    add/remove/sync/bless/update/trust/lock.'''
+    add/remove/sync/bless/update/trust/lock/set-ref/set-source — plus the primary's push / history /
+    undo (primarygit).'''
 
     def __init__(self, ctx, *, load=True):
         self.ctx = ctx
@@ -1141,7 +1146,7 @@ _DF_HEADERS = ['component', 'state', 'link', 'source']
 def _df_cells(row):
     '''The four column strings for a dotfiles (config) row — the STATE column shows the collapsed
     user-facing state (managed / unmanaged / no config). `!` flags a real on-system file configsys
-    does NOT manage (linking would refuse; capture it first).'''
+    does NOT manage (at risk — `manage` adopts it into the store, then links it).'''
     from ..drivers.dotfiles import config_display_state
     rc, _name, tgt, state, source, cap = row
     mark = '!' if state == 'unmanaged' else ' '

@@ -3,10 +3,12 @@
 For a component whose upstream ships an official OS package (a `.deb` / `.rpm` / Arch
 `.pkg.tar.zst`) on its GitHub releases, rather than — or newer than — the distro repos. It
 downloads the release asset for this arch and installs it with the machine's OWN package tool
-(apt/dpkg, dnf/rpm, pacman), so the file is registered in the OS package database (dependency
+(apt/dpkg, dnf or zypper/rpm, pacman), so the file is registered in the OS package database (dependency
 resolution, clean uninstall) — but it does NOT ride the repo's `apt upgrade` / security-update
-flow. That makes it a deliberate OPT-IN alternative to `via: native` (which stays the default,
-being the repo-managed good citizen), for "I want upstream's faster-moving build."
+flow. That makes it a lower-preference alternative to `via: native` (the repo-managed good
+citizen): driver-preference ranks it after native/aur/flatpak/snap, so it is the default only
+where none of those is valid (a tool the repos don't carry), else a pinnable choice for "I want
+upstream's faster-moving build."
 
 One via, dispatched by the machine's package format (like `via: native` dispatches to the OS's
 package MANAGER). Version discovery reuses the base Driver's github/url machinery: declare a

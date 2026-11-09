@@ -48,8 +48,8 @@ class Script(Driver):
     # -- read -------------------------------------------------------------
 
     def _probe(self, rc, cmd_field):
-        '''Run the named command field and extract a version via `version-re` (group 1), else the
-        first output line. None if the field / command output is empty or the command fails.'''
+        '''Run the named command field and extract a version via `version-re` (group 1, or the whole
+        match when it has no group), else the first output line. None if the field / command output is empty or the command fails.'''
         cmd = self._cmd(rc, cmd_field)
         if not cmd or not self.command_trusted(rc):    # untrusted plugin: don't run its probe
             return None

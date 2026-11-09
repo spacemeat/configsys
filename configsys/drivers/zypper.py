@@ -8,8 +8,8 @@ so set-version is exact, and `addlock`/`removelock` give a real native version h
 Alpine's rolling apk). Query ops need no root; mutations run `--non-interactive` under sudo
 and stream output so the user sees progress.
 
-Command construction is unit-tested (pretend mode); end-to-end validation on a live openSUSE
-box is deferred — there is no testbed yet (like macOS/brew).
+Command construction is unit-tested (pretend mode); the install/lock/remove cycle runs in an
+openSUSE container via test/run-zypper-in-podman.sh (no live openSUSE machine yet).
 '''
 
 import shlex
@@ -119,7 +119,7 @@ class Zypper(NativePkgManager):
         if hit:
             return held
         # `zypper locks` prints a table "# | Name | Type | Repository"; a hold on this package
-        # is a row whose Name column equals rc.name. LC_ALL=C keeps the columns stable and
+        # is a row whose Name column equals the probed package (_probe_name). LC_ALL=C keeps the columns stable and
         # locale-independent (the header/labels are localized otherwise).
         r = self.runner.run('LC_ALL=C zypper locks')
         if not r.ok:

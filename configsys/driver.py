@@ -148,7 +148,7 @@ class Driver:
     default_scope = 'user'  # this driver's scope when not overridden
     honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
     # Optional per-inspect BATCH context: InstallState.inspect pre-computes a driver's enumerable
-    # probe data ONCE (via the driver's `batch_index(names)`) and sets it here on each per-unit
+    # probe data ONCE (via the driver's `batch_index(rcs)`) and sets it here on each per-unit
     # instance, so read ops (get_version/get_latest/is_locked) can answer from it instead of a
     # subprocess per unit. None = no batch available -> the per-unit fallback path runs. Opaque:
     # only the driver that produced it reads it. Part of the frozen surface (a batching plugin
@@ -609,8 +609,8 @@ class Driver:
 
     def _installed_across_scopes(self, rc):
         '''Probe user then system by re-deriving this driver's scoped paths; return (version,
-        scope) from wherever the unit is found, else (None, None). For path-based honors_scope
-        drivers (tarball / appImage / font). Restores rc's `scope` field afterward.'''
+        scope) from wherever the unit is found, else (None, None). For honors_scope drivers whose
+        get_version reads a scope-derived path or prefix (tarball / appImage / font / source / npm). Restores rc's `scope` field afterward.'''
         had, saved = 'scope' in rc.fields, rc.fields.get('scope')
         try:
             for s in ('user', 'system'):
@@ -768,8 +768,8 @@ class Driver:
 
     def is_locked(self, rc):
         '''True if the component is version-locked. Default: False — most drivers have no NATIVE hold
-        (the ledger carries the intent, honored by the op loop). apt/dnf/zypper/brew/snap override
-        with a real check; a rolling manager that can't hold (pacman/apk) also returns False.'''
+        (the ledger carries the intent, honored by the op loop). apt/dnf/zypper/xbps/brew/snap/flatpak
+        (and native-pkg-file, through its package tool) override with a real check; a rolling manager that can't hold (pacman/apk) also returns False.'''
         return False
 
     def upstream_version(self, rc):

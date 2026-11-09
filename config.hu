@@ -1,14 +1,16 @@
 {
     // The repo's base config layer: the browse profiles and the default TUI keybindings. What a
-    // machine installs is its picks (`picks:` / `machine:`), kept in ~/.config/configsys/configsys.hu,
-    // which overlays this file section by section along with your plugins (see docs/routing-model.md).
+    // machine installs is its picks (`picks:` / `machine:`), kept in your config
+    // (~/.config/configsys/configsys.hu) or your primary plugin. Your plugins, your primary plugin and
+    // your config overlay this file section by section (see docs/config-format.md, configsys.hu(5)).
+    // Don't edit this file to change your machine; set things in your own config instead.
 
     // OPTIONAL machine-wide install scope for the drivers that can install either way (appImage,
     // flatpak, tarball, font, source, npm, gem, luarocks, and plugin build drivers like
     // blender-build/kicad-build). Left UNSET, each uses its user-space default (~/apps, --user).
     // Set it in ~/.config/configsys/configsys.hu (or `configsys config set scope system`) ONLY to
-    // deliberately push those installs system-wide (e.g. an admin provisioning for all users on
-    // one box):
+    // deliberately push those installs system-wide under /opt, with sudo (e.g. an admin
+    // provisioning for all users on one box):
     //     scope: system
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)
 
@@ -16,10 +18,11 @@
     // a false `when:`), so a component's `suggests:` for something that only installs that way is
     // silently skipped — e.g. if you manage your own dotfiles, `disabled-drivers: [ dotfiles ]`
     // installs every app WITHOUT pulling its `<app>-dotfiles` (likewise `glue` for shell setup).
-    // Generalizes ("no snaps here" -> add `snap`). Disabling a driver also turns off any driver
-    // whose own requirements can only be installed through it. A HARD requires / an explicit pick
-    // of a now-unroutable component still errors honestly (its row reads `unmet`). A machine
-    // setting — set per box in ~/.config/configsys/configsys.hu.
+    // The same works for any method: no snaps on this box -> `disabled-drivers: [ snap ]`.
+    // Disabling a driver also turns off any driver whose own requirements can only be installed
+    // through it. A HARD requires, or a pick with no other way to install here, still reports an
+    // error (its row reads `unmet`). A machine setting — set it per box in
+    // ~/.config/configsys/configsys.hu (`configsys config set disabled-drivers snap`).
 
     // OPTIONAL: the order that breaks the remaining tie when a component has several install
     // methods that work here (after a narrower `when:` and any `standing:` rank have had their say)
@@ -31,13 +34,14 @@
 
     // A profile is a named, read-only list of components for BROWSING (the TUI Profiles screen,
     // `configsys profile list|show`). It never installs anything: you pick from it into this
-    // machine's `picks:`. A `+other` term folds in another profile (union); `~name` removes a
-    // component or a whole subprofile. A name with no install method on this OS shows as
-    // unavailable (⊘), not an error. The design is two-tier: small composable LEAF bundles
-    // (terminal, net-tools, cloud, …) and ROLE profiles that compose them. See
-    // docs/done/profiles-plan.md for the rationale. Plugins, your primary plugin and your own
-    // config may add profiles (your own browse categories) or redefine these by name; a term naming
-    // the profile itself (`dev: [ +dev  valgrind ]`) amends it in place instead of replacing it.
+    // machine's `picks:`. Terms apply left to right: a bare name adds a component, `+other` folds
+    // in another profile (a subprofile), and `~name` removes a component or a whole subprofile
+    // added so far. A name with no install method on this OS shows as unavailable (⊘), not an
+    // error. The catalog is two-tier: small LEAF bundles (finders, net-tools, cloud-tools, …) and
+    // ROLE profiles that compose them (terminal, backend-tools, user). Plugins, your primary plugin
+    // and your own config may add profiles (your own browse categories) or redefine these by name;
+    // a term naming the profile itself (`dev-tools: [ +dev-tools  valgrind ]`) amends it in place
+    // instead of replacing it. See docs/config-format.md ("Profiles: read-only browse lenses").
 profiles: {
     finders: [ fd  fzf  ripgrep  television ]
     terminal-emulators: [ alacritty  foot  ghostty  kitty  wezterm  mosh ]
@@ -64,7 +68,7 @@ profiles: {
     web-browsers: [ chrome  chromium  firefox  librewolf  brave  opera  vivaldi  edge  tor-browser  lynx ]
     audio-infra: [ pipewire  jack  wiremix ]
     gaming: [ vulkan-icd-loader  vulkan-intel  vulkan-loader  vulkan-radeon  vulkan-runtime  steam  wine  winetricks  protonup-qt  protontricks ]
-    games: [ zork ]   // mostly a catalog plugins populate (configsys-source adds xpilot)
+    games: [ zork ]   // mostly filled in by plugins (configsys-source adds xpilot)
 
     virtual-machines: [ qemu  virt-manager  virtualbox  libvirt  libvirt-service  libvirt-clients ]
     containers: [ docker  docker-engine  docker-service  docker-group  lazydocker  podman  xephyr ]
@@ -80,7 +84,7 @@ profiles: {
 
     android-tools: [ jmtpfs  android-file-transfer ]
 
-    // Debug/analysis kit (was a parts-component): pick the tools you want; each installs where it routes.
+    // Debug/analysis kit: pick the tools you want; each installs wherever it routes.
     analysis: [ valgrind  cppcheck  clang-tidy  lldb  strace  ltrace ]
     c-cpp-lang: [ bazelisk  c-toolchain  cpp-toolchain  gcc-10 gcc-11 gcc-12 gcc-13  gcc-14  gcc-15  clang-18  clang-19
         clang-20  gdb  make  +analysis  libc++  libc++abi  cmake  ninja  meson  clang  cmake-gui  doxygen  ccmake  clangd  conan  gettext  heaptrack  vcpkg ]
@@ -113,7 +117,7 @@ profiles: {
 
     c-cpp-libs: [ abseil  boost  dbus-dev  swig  protobuf-dev ]
     c-cpp-dev-libs: [ pipewire-dev  ffmpeg-dev  libdrm-dev  fontconfig-dev  openal-dev  freealut-dev  libgit2  libsecret  nng  opencascade  unixodbc
-        // consolidated from the configsys-source plugin into base routes (build deps useful in their own right):
+        // common build dependencies, useful in their own right:
         ncurses  libevent  libssl  zlib  asio  tinyxml2  snappy  bzip2  libzstd  liblz4  libsodium  liburing
         libaio  libunwind  libdwarf  libiberty  libcurl  libpng  expat  sdl2-ttf  sdl2-image  libpcap  sqlite  libmtp
         fuse  libusb  libmagic  libidn2  libfuse2  libjpeg  libstdc++  libvirt ]
@@ -166,8 +170,8 @@ profiles: {
     artcraft: [ photocraft  vectorcraft  lightcraft  designcraft  filmcraft  effectcraft  pdfcraft
         wordcraft  gridcraft  deckcraft  cadcraft  soundcraft ]
 
-    // Codec bundles (were parts-components): pick the pieces you want. codecs = license-clean;
-    // codecs-restricted = patent-encumbered nonfree, opt-in. Members install wherever they route.
+    // Codec bundles: pick the pieces you want. codecs = license-clean; codecs-restricted =
+    // patent-encumbered or nonfree, so pick those only if you want them. Each installs wherever it routes.
     codecs: [ ffmpeg  gst-good  gst-bad ]
     codecs-restricted: [ gst-ugly  gst-libav  libavcodec-extra ]
 
@@ -185,7 +189,8 @@ profiles: {
     // TUI keybindings. Merged section-by-section up the layer stack (this repo base < plugins <
     // primary < your top config) — exactly like `theme:` — so a `keys:` block in any plugin's data
     // file (your primary plugin's, say) or in ~/.config/configsys/configsys.hu overlays these per
-    // action. A value is one key or a list of alternates. Key names: a literal character
+    // action; a plugin's bindings count only once you trust that plugin. A value is one key or a
+    // list of alternates. Key names: a literal character
     // (case-SENSITIVE, so `g` != `G`), a named key (enter kpenter tab esc space up down left right
     // pgup pgdn home end del ins backspace shift-tab f1…f12), or `ctrl-<x>`. Dispatch is by ACTION,
     // and the on-screen legends and `?` help read this same map, so a rebind updates the hints too
@@ -234,7 +239,7 @@ profiles: {
             expand-all: tab         // expand / collapse the whole tree
             select-all: a
             clear: c                // unstage the cursor/selected rows (and drop them from !uninstall); clear the selection + errors
-            method: v               // pick an install method / provider — writes a pin (matches Profiles)
+            method: v               // pick an install method / provider — writes a pin (matches Profiles); installed: also rebuild, set a version, fix scope
             op-install: i           // stage: make the cursor/set current (install if missing, else upgrade; swaps out a `switch` install)
             op-upgrade: u           // stage: upgrade the cursor/set (outdated only)
             op-install-all: I       // stage: make EVERY tracked component current (install missing / upgrade outdated)
@@ -246,7 +251,7 @@ profiles: {
         }
 
         // The `!` issues page (an overlay over any screen). down/up/top/bottom scroll and help (`?`)
-        // come from `global`; `issues` or quit closes it. Each opens the review-then-send flow.
+        // come from `global`; `issues`, quit or esc closes it. Each opens the review-then-send flow.
         issues: {
             report: r               // file a report: a component, or the last run's failures
             request: f              // request a component (where it installs today, where it doesn't)
@@ -295,7 +300,7 @@ profiles: {
             update: u               // update to the newest stable tag (else main/master) and re-sync
             update-all: U
             trust: t                // trust / untrust the current plugin's code or recipes
-            trust-all: T            // trust every untrusted or changed plugin
+            trust-all: T            // trust every untrusted or changed plugin (confirms first)
             set-ref: v              // pin a tag / branch / sha and re-sync
             lock: L                 // lock / unlock: no sync, update, bless or trust on this machine
             push: P                 // push your primary plugin to its remote (commit, combine, push)
@@ -310,19 +315,19 @@ profiles: {
         // switch-pane toggles panes; confirm drills/opens (left) or toggles tracking on the target
         // machines (right; drills a parts row open); select adds the row to the multi-select set (right).
         profiles: {
-            track-all: T            // toggle TRACKING of the multi-select set / all in the selected profile
-            track-one: t            // toggle TRACKING of just the highlighted component
-            disp-seen: s            // toggle NEW <-> seen on the highlighted component
-            disp-interesting: i     // toggle INTERESTING on the highlighted component
-            disp-seen-all: S        // mark SEEN across the multi-select set / whole selected profile
-            disp-interesting-all: I // mark INTERESTING across the set / whole selected profile
-            select-all: a           // select every component currently in view (multi-select set)
+            track-all: T            // toggle TRACKING of the multi-select set, else of the highlighted item (t)
+            track-one: t            // toggle TRACKING of the highlighted item: the cursor component, or (left pane) the cursor profile's members
+            disp-seen: s            // toggle NEW <-> seen on the highlighted item
+            disp-interesting: i     // toggle INTERESTING on the highlighted item
+            disp-seen-all: S        // mark SEEN across the multi-select set, else the highlighted item
+            disp-interesting-all: I // mark INTERESTING across the set, else the highlighted item
+            select-all: a           // select every component in view (left pane: the profile's members); again to deselect
             method: v               // pin the selected component's install method (via)
             comp-machines: m        // machines dialog for JUST the cursor component (toggle its tracking)
             machine-target: M       // choose the target machines to edit (plural; T/t fan out to them)
             attr-filter: f          // faceted kind filter over the catalog (F = live substring filter)
             toggle-install: O       // install overlay on/off (inst'd column + installed underline; default: install-overlay)
-            stage-uninstall: x      // stage the selected component for uninstall (-> !uninstall)
+            stage-uninstall: x      // stage the multi-select set (else the cursor component) for uninstall (-> !uninstall)
             mark-all-seen: E        // mark every NEW component SEEN at once (confirms first)
             claim: C                // track every INSTALLED component (adopt an existing system; confirms)
             orphan-ignore: "."      // add / remove the cursor component in orphans-ignore

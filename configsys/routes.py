@@ -2,8 +2,9 @@
 
 Turns humon nodes into small dataclasses the resolver walks (OsCascade / Component /
 Binding), validates the file (ambiguity check), and exposes `Resolver`: the object the app
-holds to turn a profile's component names into the `{key: ResolvedComponent}` closure for
-this machine's context. Resolution itself lives in resolve.py; the RC marshalling in adapt.py.
+holds to turn component names (this machine's picks, or the names an op is given) into the
+`{key: ResolvedComponent}` closure for this machine's context. Resolution itself lives in
+resolve.py; the RC marshalling in adapt.py.
 '''
 
 import os
@@ -406,7 +407,7 @@ def _pf(entry):
 Loaded = namedtuple('Loaded', 'cascade components drivers never_auto_drivers')
 
 
-# Validation memo (review-2026-11-2 tests-tools-05): routecheck over ~870 components is three
+# Validation memo (review-2026-11-2 tests-tools-05): routecheck over ~830 components is three
 # quarters of a load (≈0.3 s of 0.4). Its verdict depends only on the layer files and the trust split,
 # so a stack whose every file has the same CONTENT as one that already validated cleanly skips it —
 # every command, every TUI reload after an edit to another file, and most of the test suite.
@@ -439,14 +440,19 @@ def os_blocks(path, overrides_path=None, plugin_files=()):
 
 def load(path, overrides_path=None, plugin_files=(), validate=True,
          warnings_out=None, layers_out=None, command_trust=None, home=None):
-    '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
+    '''-> Loaded(cascade: OsCascade, components: {component_name: Component}, drivers: {driver:
+    [required caps]}, never_auto_drivers: frozenset of vias whose `drivers:` block is `standing:
+    never-auto`) — a named tuple, so positional unpacking still works.
 
-    Layer stack lowest-first: routes.hu (repo) < plugin data files < the user's config, each with
-    its `include:` graph expanded. Components merge PER NAME ADDITIVELY (union of install bindings
-    by (via, when) identity; higher layer overrides a matching binding, `drop:` retracts one, `{}`
-    removes the whole component — see _merge_component_chain); os/drivers come from repo + plugins
-    (a plugin may add a derivative-distro os block). A malformed plugin file is skipped (never
-    bricks the rest). validate=True rejects an ambiguous set. If a list is passed as `warnings_out`,
+    Layer stack lowest-first: routes.hu (repo) < plugin data files (the primary last) < the user's
+    config, each with its `include:` graph expanded. Components merge PER NAME ADDITIVELY (union of
+    install bindings by (via, when, cpus) identity; higher layer overrides a matching binding, `drop:`
+    retracts one, `{}` removes the whole component — see _merge_component_chain); os/drivers merge
+    from every layer, the top config last (a plugin may add a derivative-distro os block; an ordinary
+    plugin's preference knobs on a block it didn't define are dropped — _plugin_knobs_ignored). A
+    malformed plugin file is skipped (never bricks the rest). validate=True rejects an ambiguous set
+    (skipped for a layer stack already validated clean — _VALIDATED). If a list is passed as
+    `warnings_out`,
     skipped files/components are appended to it (for the diagnostics view) — the return value is
     unchanged so existing callers are unaffected. `home` is the configsys home a `~` include
     expands against (Paths.home).
@@ -478,9 +484,10 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     def _facet_ok(lyr):
         if lyr.role == 'repo':
             return True
-        # a plugin/primary file — or a file some layer INCLUDES (it carries its includer's trust:
-        # command_trust attributes a file under a synced plugin to that plugin, and treats the
-        # user's own / repo includes as the user) — merges its probes only when trusted. No
+        # a plugin/primary file — or a file some layer INCLUDES — merges its probes only when
+        # trusted. Trust follows the FILE'S LOCATION, not its includer: command_trust attributes a
+        # file inside a synced plugin's checkout to that plugin and any other file to the user (a
+        # plugin's own includes must stay inside its checkout — layers._visit). No
         # `command_trust` at all is NOT trust: a probe runs shell, so the default fails closed — a
         # caller that has vetted its plugins says so (`command_trust=lambda p: True`; routing-26).
         if lyr.role in ('plugin', 'primary', 'include'):
@@ -545,8 +552,8 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
         # Components merge ADDITIVELY across layers (union of bindings, see _merge_component_chain)
         # rather than replace-per-name: a plugin/user layer can ADD an install method or override
         # one binding without restating the rest. src = the top (amending) layer, for provenance.
-        # A malformed / ambiguous component from a DISCOVERED or PLUGIN file is skipped (the
-        # profile that referenced it then surfaces as a resilient error row) — never fatal.
+        # A malformed / ambiguous component from a PLUGIN file is skipped (a pick that names it
+        # then surfaces as a resilient error row) — never fatal.
         # From the repo or your own config it stays a loud, attributed error.
         typos = sorted({s for _i, v, s in chain if _not_a_map(v) and os.path.normpath(s) in forgiving})
         if typos:                                    # a plugin's `foo: bar`: that layer is left out, the
@@ -804,14 +811,16 @@ def detect_facets(specs, env=None, run=None, overrides=None):
 SelectionPolicy = namedtuple('SelectionPolicy', 'pins overrides preference never_auto_drivers disabled')
 
 # The outcome of one component's method selection: the winning binding, every candidate here, and the
-# rule that decided (most-specific `when:` / `standing:` / driver-preference / only method / pinned).
+# rule that decided (resolve._select's: 'only method here' — also a binding-pin's single match —
+# 'only ordinary method here', 'most-specific when:', 'standing:', 'driver-preference').
 Selection = namedtuple('Selection', 'binding candidates rule')
 
 
 class Resolver:
-    '''The app-facing resolver: load routes.hu once, then resolve a profile's component
-    names to `{key: ResolvedComponent}` for this machine's context (OS block + version +
-    cpu). `resolve_with_roots` also returns the directly-bound unit keys the app applies
+    '''The app-facing resolver: load the layer stack once, then resolve component names (the
+    picks, or an op's names) to `{key: ResolvedComponent}` for this machine's context (OS block +
+    version + cpu) under its selection policy (`policy`). `resolve_with_roots` also returns the
+    directly-bound unit keys the app applies
     an op to (dependency installs are folded in by planning.expand_plan).'''
 
     def __init__(self, routes_path, block, version=None, cpu=None, pins=None,
@@ -913,7 +922,7 @@ class Resolver:
     def resolve_resilient(self, names, extra_pins=None, soft_pins=None, *, record=False, out=None,
                           disabled=None):
         '''-> ({key: ResolvedComponent}, {name: error_message}). Tolerant: a requested name
-        that can't route here is reported, not fatal (for inspect/TUI over the active set).
+        that can't route here is reported, not fatal (for inspect/TUI over this machine's picks).
         Precedence (routing-model §10): YOUR config pins > `extra_pins` (auto-tighten floor pins) >
         `soft_pins` (the detection tier) > the default. A user pin always wins — when it keeps a
         method that fails a floor auto-tighten would have fixed, flooradvise.advise says so (the `!`
@@ -979,8 +988,9 @@ class Resolver:
         return to_resolved_components(units), roots
 
     def candidates(self, name):
-        '''The install methods for `name` -> [{via, when, default, pinned, available}] in binding
-        order: the methods VALID on this machine (`when:`-true) — the honest "what can I install
+        '''The install methods for `name` -> [{via, when, default, pinned, auto, available}] in binding
+        order: the CANDIDATES on this machine (`when:`-true, cpu-covered, not disabled or gated —
+        resolve.candidate_bindings) — the honest "what can I install
         here" set that feeds `where`, the pin CLI, and the method picker (`available` is always
         True; kept for the row shape). `default` is the one that resolves now (a pin, else the
         preference-picked binding); `pinned` flags the via a binding-pin names; `auto` the one that
@@ -991,7 +1001,7 @@ class Resolver:
         if comp is None or not comp.bindings:
             return []
         ctx = self.context()
-        valid = candidate_bindings(comp, self.cascade, ctx)      # `when:`-true here (ignore pin filter)
+        valid = candidate_bindings(comp, self.cascade, ctx)      # candidates here (ignore pin filter)
         valid_vias = {b.via for b in valid}
         if not valid:
             return []

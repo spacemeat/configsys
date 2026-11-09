@@ -1,7 +1,7 @@
 # One link, one unlink, one shell table (review-2026-11-2 D4)
 
 > **Status: DONE** — finished 2026-11-09 (commit fa2b781, review-2026-11-2 D4).
-> Lives on in: `configsys/drivers/_linked.py` and `configsys/shells.py` (module docstrings), docs/shell-glue.md.
+> Lives on in: `configsys/drivers/_linked.py` and `configsys/shells.py` (module docstrings), docs/shell-glue.md, docs/config-format.md (dotfiles: backup and restore).
 
 The config drivers (dotfiles, glue) place content by symlink and, before this, each built its own
 shell script for it: `ln -sfn` behind a `[ -e t ] && [ ! -L t ]` backup guard, a restore-on-uninstall

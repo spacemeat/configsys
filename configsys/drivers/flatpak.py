@@ -1,7 +1,8 @@
-'''flatpak.py — the flatpak driver (user scope).
+'''flatpak.py — the flatpak driver (user scope by default).
 
-Operates on flatpaks in the unprivileged `--user` installation (no sudo, and
-sandbox-friendly: XDG_DATA_HOME redirects it). We only install/list/update/remove
+Operates on flatpaks in the unprivileged `--user` installation by default (no sudo, and
+sandbox-friendly: XDG_DATA_HOME redirects it); `scope: system` uses the `--system`
+installation, with sudo. Reads find an app in either installation. We only install/list/update/remove
 and mask — never launch — so none of the bwrap/FUSE/dbus runtime machinery is
 needed. Route fields: `hub` (remote name, e.g. flathub) and `name` (the app id).
 

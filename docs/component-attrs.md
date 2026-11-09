@@ -23,9 +23,10 @@ axis — a component may carry several from one axis (a tool that's both `CLI` a
 that's `FOSS`, `copyleft`, and `GNU` all at once, so a user who likes copyleft but dislikes GNU can
 filter each independently). There is **no single mandatory value** anywhere.
 
-The vocabulary below is exactly `ATTR_AXES` in `configsys/tui/menu.py` — the tags the filter modal
-offers. A tag outside it still loads and shows in the infobox, but can't be selected in the filter,
-so author only these.
+The vocabulary below is exactly `ATTR_AXES` in `configsys/attrs.py` — the tags the filter modal
+offers, and the table `configsys check` lints against. A tag outside it still loads and shows in the
+detail box, but can't be selected in the filter, and `check` flags it as an `unknown-attr` warning
+(`attrs.unknown_attrs`, from `routecheck.validate`), so author only these.
 
 ### 1. Interface — how you interact with it
 `CLI` · `TUI` · `GUI` · `daemon` (background service/server) · `web` (browser-accessed / self-hosted
@@ -97,6 +98,14 @@ restating the rest; a `{}` tombstone clears it with everything else. `Component.
 derived, deduped case-insensitively, first spelling kept. The add-component skill assigns attrs to
 every new real component (companions get theirs by derivation).
 
+## Searching by attr (CLI)
+
+`configsys search [text …] [--attr ATTR …]` is the CLI's view of the same catalog
+(`cli/where.catalog_search`): every `text` word must appear in the name or description, and the
+component must carry **every** `--attr` given (repeatable; case-insensitive) — a plain AND, not the
+TUI's per-axis include/exclude. Each hit prints its description and its attrs; `+` marks this
+machine's picks; `--json` emits `name`/`description`/`attrs`/`picked`.
+
 ## Profiles-view behaviour
 
 - The highlighted component's tags render in the Profiles **detail box** (an `attrs:` line above
@@ -112,6 +121,7 @@ every new real component (companions get theirs by derivation).
   pages and are noise for most filtering) — the initial exclude set is `{dotfiles, glue}`; **`service`
   stays visible**. `c` in the modal clears both to reveal them, or toggle either tag on its own. The catalog title shows a `✓/✗` chip
   (`attr_summary`) once the filter deviates from that default.
-- Implementation: `ProfileScreen.attr_inc`/`attr_exc` (lowercased sets), `_attr_pass()`,
-  `_attr_filter_modal()`, `ATTR_AXES` in `configsys/tui/menu.py`; drawn by
-  `configsys/tui/screens/profiles.py`.
+- Implementation: `ProfileScreen.attr_inc`/`attr_exc` (lowercased sets) and `attr_summary()` in
+  `configsys/tui/panes.py` (the catalog filter is `ProfileScreen._base_catalog`); `_attr_pass()` and
+  `_attr_filter_modal()` in `configsys/tui/modals.py`; `ATTR_AXES` in `configsys/attrs.py`; drawn
+  and dispatched by `configsys/tui/screens/profiles.py`.

@@ -15,7 +15,8 @@ lands the file exactly as it was; the captured block is the inserted lines, rout
 shell by which rc file they came from.
 
 configsys's OWN marker blocks (`# >>> configsys … >>>` … `# <<< configsys … <<<` — the glue
-driver's zsh loader, written by `install shell-glue` inside the guard's window) are never an
+driver's bash/zsh/elvish/nushell loader blocks, which a glue install inside the guard's window
+writes) are never an
 installer write: they are excluded from the diff and carried through the revert as they stand.
 
 Staged blocks are MACHINE-LOCAL state, `<state>/staged-glue/<shell>/<component>.<ext>` (never in a
@@ -266,7 +267,7 @@ def _format_block(blocks):
     return '\n'.join(parts).rstrip('\n') + '\n'
 
 
-# -- op-loop orchestration (shared by the CLI _dispatch_op and the TUI execute_plan) --------
+# -- op-loop orchestration (actions.run_plan, which both the CLI and the TUI run) --------
 
 _GUARDED_OPS = ('install', 'upgrade', 'set-version', 'fix-scope')   # (a reinstall too)
 

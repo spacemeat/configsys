@@ -199,8 +199,9 @@ def where_profile_report(ctx, name):
 
 
 def active_snapshot(cfg):
-    '''The installable component set (`requested()` = this machine's picks) — taken before/after a
-    plugin sync to report what the sync moved (a picked component whose recipe grows shifts this set).'''
+    '''This machine's picks (`requested()`) as a set — taken before/after a plugin sync/update to
+    report what it moved (a synced primary plugin can carry new or dropped picks). The name is
+    historical: there is no "active set" beyond the picks.'''
     try:
         return set(cfg.requested())
     except Exception:                                  # noqa: BLE001 — a broken config snapshots empty
@@ -208,7 +209,7 @@ def active_snapshot(cfg):
 
 
 def sync_delta(before, cfg):
-    '''(added, removed) installable components vs the `before` snapshot, both sorted.'''
+    '''(added, removed) picks vs the `before` snapshot, both sorted.'''
     after = active_snapshot(cfg)
     return sorted(after - before), sorted(before - after)
 
@@ -223,11 +224,11 @@ def delta_summary(before, cfg):
 
 
 def print_sync_delta(before, cfg):
-    '''After a sync/update, print how the active set moved vs the `before` snapshot: added/removed
-    installable components (an included profile that grew upstream).'''
+    '''After a sync/update, print how this machine's picks moved vs the `before` snapshot (a synced
+    primary's `picks:` changed upstream).'''
     added, removed = sync_delta(before, cfg)
     if added or removed:
-        print('configsys: active set changed:')
+        print("configsys: this machine's picks changed:")
         for c in added:
             print(f'  + {c}')
         for c in removed:

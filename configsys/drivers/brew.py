@@ -2,10 +2,11 @@
 
 Entirely user-space (no sudo): modern Homebrew installs into a user-owned prefix
 (/opt/homebrew on Apple Silicon, /home/linuxbrew/.linuxbrew on Linux, /usr/local on
-Intel macOS) and every op runs as the invoking user. This is the blessed CLI path on
-atomic/immutable distros (Bazzite/Bluefin/Aurora ship brew pre-configured) — see
-docs/done/immutable-distros.md — and the same tool on macOS, so this driver is also the
-foundation for eventual macOS support.
+Intel macOS) and every op runs as the invoking user. It is fedora_atomic's `native:` — the
+blessed CLI path on atomic/immutable distros (Bazzite/Bluefin/Aurora ship brew pre-configured;
+docs/done/immutable-distros.md) — and elsewhere on glibc Linux an ordinary `via: brew` method,
+ranked just ahead of tarball (routes.hu `drivers: brew` gates it to glibc_linux). Only Linux is
+modeled; the same tool on macOS makes this the natural base for macOS support.
 
 Version state: `brew list --versions` (installed) and `brew info --json` (latest
 available from the tap). Native version lock is real: `brew pin`/`unpin`. Bootstrapping

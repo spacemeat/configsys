@@ -1,8 +1,9 @@
 '''opam.py — the opam driver: OCaml packages via `opam install`.
 
 User-space: opam keeps everything under ~/.opam (per-user switches), no sudo. Version
-state comes from `opam list --installed --short --columns=version <pkg>`; no native
-version lock, so lock intent lives in the ledger.
+state comes from ONE `opam list --installed --short --columns=name,version --safe` per
+batch (unbatched: `--columns=version <pkg>`); no native version lock, so lock intent
+lives in the ledger.
 
 The opam tool is the driver `requires: opam`, satisfied by the `opam` component.
 get_latest is deferred to a `version:` spec (no network per inspect). Command syntax
@@ -18,7 +19,7 @@ class Opam(ModuleDriver):
     name = 'opam'
     TOOL = 'opam'
     # opam refuses every package op until it's initialised; `opam init` is idempotent (a fast no-op
-    # once done, a one-time compiler-switch setup the first time). A version is pinned `pkg.version`.
+    # once done, a one-time compiler-switch setup the first time). A version is spelled `pkg.version`.
     CMDS = {'install': '{tool} init --no-setup --yes && {tool} install -y {pkg}',
             'uninstall': '{tool} remove -y {pkg}',
             'upgrade': '{tool} upgrade -y {pkg}',

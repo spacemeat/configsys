@@ -35,9 +35,10 @@ its installed key (`_is_ignored`). Ignored orphans are filtered from default out
 
 **Tier** — `Driver.origin_index()`'s OS-origin class for the key (only apt implements it: Debian
 Priority; an arch-qualified key falls back to its bare name). `explicit_keys` and `origin_index`
-are the orphan-scan hooks of the frozen driver ABI (driver.py docstring; docs/plugins.md §7): each
-defaults to `None`, so a plugin driver takes part by overriding `installed_index` and, optionally,
-these. `BASE_TIERS = ('required', 'important', 'standard')` marks "the distro ships this".
+are the orphan-scan hooks of the frozen driver ABI (driver.py docstring; docs/plugins.md §7a):
+each defaults to `None`, so a plugin driver takes part by overriding `installed_index` and,
+optionally, these. `BASE_TIERS = ('required', 'important', 'standard')` marks "the distro ships
+this".
 
 ## The reverse index (`build_reverse_index`)
 
@@ -49,13 +50,17 @@ native-pkg-file) contributes the same keys again under this OS's native manager,
 where enumeration finds them (dpkg lists `clang-18`, not the `clang` driver). Per-driver `name:`
 maps apply through unit construction, so `p7zip-full` and `7zip` both map back to one component.
 Fidelity matters: a missed name map turns a known package into a foreign (and usually invisible)
-one. The same index is the System Updates dedup set (docs/system-updates.md).
+one. The index is built once per loaded `Resolver` and kept on the context (`ctx._rindex_cache`):
+an orphan pass, both overlays and the System Updates exclusion all read it, and a reload builds a
+new `Resolver`, so an edit is never served stale. The same index is the System Updates dedup set
+(docs/system-updates.md).
 
 ## The scan (`scan_orphans`)
 
 Inputs: the active resolved set (`units`, from `routes.resolve_resilient(cfg.requested())`, so one
 bad pick is an error, not a brick), plus optional fill-through caches for `installed_index`,
-`explicit_keys` and `origin_index`. Cost: one batched enumeration per driver plus set math — no
+`explicit_keys` and `origin_index` (filled in place, so a caller such as the TUI overlay keeps the
+enumeration across calls) and an already-built reverse index (`rindex`). Cost: one batched enumeration per driver plus set math — no
 network, no per-item subprocess.
 
 1. **Active slots** — the `_index_pairs` of every active unit, including native-backed
@@ -99,7 +104,7 @@ land in the top config, not in shared config. `actions.ignore_orphan` appends (i
 `actions.unignore_orphan` removes only a literal entry (a glob must be edited by hand). See
 docs/config-format.md.
 
-## CLI: `configsys orphans` (`app.cmd_orphans`)
+## CLI: `configsys orphans` (`cli.matrix.cmd_orphans`)
 
 Report (default): resolves the picks, scans with `include_system=True`, then filters itself.
 
@@ -121,9 +126,13 @@ Action verbs (each returns before any scan):
   machines (default: this box's machine) through `actions.set_included`, so it lands wherever that
   machine's picks live (primary plugin by default), and marks it seen. Requires a component name; a
   foreign key has no recipe to adopt.
-- `--remove NAME [--yes]` — confirms, then the ordinary remove op (`_dispatch_op(…, 'remove')`)
+- `--remove NAME [--yes]` — confirms (a non-terminal without `--yes` refuses; `--pretend` goes
+  straight to the dry-run remove), then the ordinary remove op (`_dispatch_op(…, 'remove')`)
   through the component's driver. Foreign keys are declined: remove those with the package manager.
-- `--ignore PATTERN …` — appends the new patterns to `orphans-ignore`.
+- `--ignore PATTERN …` — appends the new patterns to `orphans-ignore` (`actions.ignore_orphan`).
+- `--unignore PATTERN …` — removes each exact entry from `orphans-ignore`
+  (`actions.unignore_orphan`); a glob is removed by naming the glob itself, and a pattern that
+  isn't literally listed is an error (exit 1).
 
 Adopting does not install or change anything on disk: the component is already installed, and
 picking it makes the next inspect see it as a managed install.
@@ -148,24 +157,33 @@ the dim `info_dim` role instead of `orphan_lurking`, so `.` visibly takes effect
 
 **Keys on the catalog** (configurable in `keys:`, see config.hu):
 
-- `t` / `T` track (`track-one` / `track-all`) — picks the cursor component / the selection on the
-  target machines and marks them seen: the TUI way to adopt an orphan. A toggle: when every target
-  is already tracked, it untracks.
+- `t` / `T` track (`track-one` / `track-all`) — picks the highlighted item (`cursor_targets`: the
+  catalog cursor, or every member of the highlighted profile when the left pane has focus) / the
+  multi-select set, else the highlighted item (`action_targets`), on the target machines and marks
+  them seen: the TUI way to adopt an orphan. A toggle: when every target is already tracked, it untracks.
 - `C` claim — `ProfilesState.installed_scan` (full catalog, including non-enumerable bindings and
   complete `parts` aggregates), confirm, then picks every installed component on the target
   machines and marks them seen. Adopts a whole existing system at once.
 - `x` stage-uninstall — `actions.stage_uninstall`: appends to the top config's `uninstall:` queue.
   Idempotent; it never uninstalls in place (Profiles edits config, not the system).
-- `.` orphan-ignore — toggles the cursor component's name in `orphans-ignore`.
+- `.` orphan-ignore — toggles the cursor component's name in `orphans-ignore` (the CLI's
+  `--ignore` / `--unignore`).
 
 **The `uninstall:` queue → Components.** Machine-local, always in the top config (never a plugin).
-`Config` exposes it as the reserved `!uninstall` lens (the `!` profile namespace is reserved;
-`check` warns on a hand-defined `!…` profile). On Components, `_with_uninstall_node` fresh-probes
-queued components (orphans live outside the active set) and adds a `!uninstall` node listing the
-present ones; `_seed_uninstall` pre-stages `remove` for them. `X` executes; a successful remove
-drains the entry; `c` unstages and drops it from the queue. A queued component that is still picked
+`Config` exposes it as the reserved `!uninstall` lens on Profiles (the `!` profile namespace is
+reserved; `check` warns on a hand-defined `!…` profile). The CLI edits the same queue with
+`configsys uninstall list|add|rm|clear` (`cli.ops.cmd_uninstall`). On Components, the `to-do`
+view (the default mode) inspects the queued components (`tui.models._components_model` — orphans
+live outside the active set) and shows the ones still present, grouped under their owning
+profile or `(other)`; `tui.flows._seed_uninstall` pre-stages `remove` for them. `X` executes; a
+successful remove drains the entry (`actions.after_run`, shared with `configsys remove`); `c`
+unstages and drops it from the queue. A queued component that is still picked
 is a contradiction `check` surfaces rather than auto-fixes (the next sync would reinstall it).
 Components' own `x` stages a session remove op only; it does not write the queue.
+
+**Components `installed+tracked` mode** (`M` cycles the view mode) folds the installed-but-untracked
+components `orphans.install_overlay` finds into the Components tree beside the picks, reusing the
+same enumeration caches across mode switches (`tui.models._components_model`).
 
 ## Related
 

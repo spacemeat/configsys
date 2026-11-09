@@ -1,6 +1,6 @@
 # Trust gate at resolution (review-2026-11-2 A1)
 
-> **Status: DONE** — finished 2026-11-08. Lives on in: docs/plugins.md §6, configsys/trustgate.py
+> **Status: DONE** — finished 2026-11-08 (commit 48507e9). Lives on in: docs/plugins.md §6, configsys/trustgate.py
 
 ## Why
 

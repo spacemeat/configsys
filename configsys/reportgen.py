@@ -1,13 +1,16 @@
 '''reportgen.py — assemble an install-failure report the user can file upstream.
 
 The whole point is *no hidden telemetry*: this only ever builds a payload and hands it to
-the caller to show + approve. It never sends anything itself. A failed op persists a small
-record (save_failure) so `configsys report <component>` can reassemble the context later,
-even in a fresh run.
+the caller to show + approve. It never sends anything itself. Each run folds its op failures
+into `<state>/last-failure.hu` (record_run: every unresolved failure across runs) so
+`configsys report [<component>]` can reassemble the context later, even in a fresh run.
+Also builds the `configsys request` (component coverage) and `configsys request-os` payloads.
 
 Before display the payload is scrubbed: the home directory collapses to `~`, and known
-secrets (token/key/secret/password-shaped values, and the literal values of any such env
-vars) are masked — so what the user reviews is what could be sent, already clean.
+secrets are masked — common token shapes (GitHub/GitLab/Slack/AWS/npm/API-key/JWT), credentials
+embedded in a URL (`https://user:TOKEN@host`), `token=`/`password:`-labelled values, and the
+literal values of any secret-named env var — so what the user reviews is what could be sent,
+already clean.
 '''
 
 import platform

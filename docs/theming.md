@@ -1,7 +1,7 @@
 # Theming the TUI
 
-> **Status: REFERENCE** — the `theme:` section, the Theme editor screen, color depth and motion;
-> maintained.
+> **Status: REFERENCE** — the `theme:` section, the Theme editor screen, color depth, motion and
+> the startup splash; maintained.
 
 The whole TUI palette is yours. A `theme:` section in your config
 (`~/.config/configsys/configsys.hu`) — or in a theme **plugin** — sets the colors and each page's
@@ -53,15 +53,18 @@ From the command line:
 
 | Command | What it does |
 | --- | --- |
-| `configsys theme show` | the theme overrides currently in effect |
-| `configsys theme set <key> <value> [--local]` | set one value: `colors.<name>`, `pages.<page>.<role>.<fg\|bg\|bold\|underline\|reverse>`, or `pages.<page>.gradient.<from\|to\|enabled>` |
+| `configsys theme show` | the theme overrides in effect, merged from every layer (the default) |
+| `configsys theme set <key> <value> [--local]` | set one value: `colors.<name>`, `colors-basic.<name>`, `pages.<page>.<role>.<fg\|bg\|bold\|underline\|reverse>`, or `pages.<page>.gradient.<from\|to\|enabled>` |
 | `configsys theme unset <key> [--local]` | remove one value |
 | `configsys theme save <name> [--force]` | snapshot your complete look into a shareable theme plugin |
-| `configsys theme list` | the saved theme plugins |
-| `configsys theme load <name> [--local]` | apply a saved theme plugin, replacing your theme overrides |
+| `configsys theme list` | the theme plugins on disk (every plugin that carries a `theme:` block) |
+| `configsys theme load <name> [--reset] [--local]` | apply a saved theme plugin under your own theme overrides; `--reset` replaces your overrides with it instead |
 
 Edits go to your primary plugin when you have one (so your look travels), else to this machine's
-config; `--local` always writes this machine's config.
+config. A key your top config already sets is edited there instead, since it would hide an edit to
+the primary. `--local` always writes this machine's config. `theme set` refuses a key or value the
+TUI would ignore (an unknown page, role or attribute, or a color that doesn't parse), and
+`configsys check` warns about any such entry already in a layer.
 
 ## Color values
 
@@ -120,7 +123,8 @@ roles:
 `status_line` · `footer` · `selection` · `installed` · `outdated` · `partial` · `missing` ·
 `locked` · `unsupported` · `untrusted` · `error` · `switch` · `unmet` · `dangling` ·
 `orphan_lurking` · `op_install` · `op_upgrade` · `op_remove` · `op_lock` · `op_unlock` ·
-`op_mixed` · `diff_add` · `diff_del` · `diff_hunk` · `diff_meta`
+`op_mixed` · `diff_add` · `diff_del` · `diff_hunk` · `diff_meta` · `accent` · `dim` · `title` ·
+`header`
 
 A few of them, by what they color:
 
@@ -136,7 +140,9 @@ A few of them, by what they color:
 - **`op_*`** — staged-operation badges (`op_mixed` for a row whose parts have different staged
   operations).
 - **`diff_*`** — the Plugins page's update diff: added and removed lines, hunk headers, file
-  metadata.
+  metadata; **`accent`** is its file header.
+- **`header`** — on the Config page, a setting whose store has moved from its default (or that an
+  environment variable overrides).
 
 ## `gradient:` — a page's background
 
@@ -148,9 +154,9 @@ gradient: { from: "#160a22"  to: "#050208" }
 ```
 
 - `from` / `to` — the diagonal endpoints: a map color name or a literal.
-- The step count is **adaptive** — one shade per distinct 8-bit level across your range — so a
-  wider range renders a smoother ramp. Keep both endpoints dark so the gradient never fights the
-  text.
+- The step count is **adaptive** — one shade per distinct 8-bit level across your range, at least
+  16 and at most 96 — so a wider range renders a smoother ramp. Keep both endpoints dark so the
+  gradient never fights the text.
 - `gradient: false` (or `gradient: { enabled: false }`) turns that page's background off.
 
 The gradient is painted only with **24-bit color** and **full motion** (see below). Otherwise the
@@ -164,8 +170,8 @@ configsys detects what your terminal can render; these let you override it.
 | Control | Effect |
 | --- | --- |
 | `--color auto\|24bit\|256\|16\|8\|none` (or `CONFIGSYS_COLOR`) | caps the color depth. It only lowers the detected depth — except `24bit`, which forces direct RGB even without `COLORTERM`. `16` uses the hand-tuned bright ANSI set (`colors-basic`); `8` forces the base 8. |
-| `--nocolor` / `--no-color`, or `NO_COLOR` set to anything | monochrome: no colors or gradient and no splash; reverse video and bold still mark the cursor and headers. |
-| `--effects full\|reduced\|none`, or the `effects:` setting | motion: `full` = gradient + splash, `reduced` = no gradient and a calmer splash, `none` = neither. Unset, it picks `reduced` over SSH and `full` otherwise. The flag overrides the setting. |
+| `--nocolor` / `--no-color`, or `NO_COLOR` set to anything | monochrome: no colors or gradient, and only the plain built-in progress bar at startup; reverse video and bold still mark the cursor and headers. |
+| `--effects full\|reduced\|none`, or the `effects:` setting | motion: `full` = gradient + your splash, `reduced` = no gradient and a calmer splash (at most 15 frames a second), `none` = no gradient and only the plain built-in progress bar. Unset, it picks `reduced` over SSH and `full` otherwise. The flag overrides the setting. |
 | `configsys --probe` | prints the resolved color mode and motion and why (including the TERM curses actually uses), then exits. Honors the flags above. |
 
 **Direct color is preferred.** Most truecolor terminals still say `TERM=xterm-256color` and
@@ -176,8 +182,10 @@ doesn't; `TERM_PROGRAM`/`LC_TERMINAL` such as iTerm2 or WezTerm; Windows Termina
 entry (`xterm-direct`, `foot-direct`, …), so colors go out as real 24-bit escape codes. Those
 entries ship in `ncurses-term`, which fresh Debian/Ubuntu/Pop!_OS installs lack; then configsys
 builds one itself (from `$TERM` plus the direct-color capabilities, honoring a terminal's private
-`TERMINFO` such as kitty's) into `~/.cache/configsys/terminfo`, in pure Python or with `tic` —
-so minimal containers without ncurses tools work too. Inside tmux direct color is used as well
+`TERMINFO` such as kitty's) into `~/.cache/configsys/terminfo` (`$XDG_CACHE_HOME/configsys/terminfo`
+when set), in pure Python or, failing that, with `tic` — so minimal containers without ncurses
+tools work too. It rebuilds the entry after your terminal's own entry is upgraded. With `--home`
+it goes under that home's `.cache`, and `--pretend` writes nothing there. Inside tmux direct color is used as well
 (tmux downconverts for an outer terminal that can't show it); GNU screen keeps `$TERM`.
 
 Without any truecolor sign (or with a Python curses limited to 256 colors, such as macOS's system
@@ -185,35 +193,61 @@ Python), configsys falls back to redefining palette slots. That is fragile: a te
 ignores palette redefinition (COSMIC's terminal, for one) shows its stock 256-color cube in those
 slots, so every color comes out wrong.
 
-The Theme screen's status line shows the **detected color mode** — `direct 24-bit`, `24-bit`,
+The Theme screen's status line shows the **color mode** in use — `direct 24-bit`, `24-bit`,
 `256-color (approx)`, `16-color`, `8-color`, or `none (monochrome)`. If it reads
 `256-color (approx)` rather than 24-bit, colors that collapse or collide are your terminal
-quantizing, not the theme.
+quantizing, not the theme. `24-bit (palette full: nearest colors reused)` or `direct 24-bit (some
+colors shared)` means the theme uses more distinct colors than the terminal can hold at once, so a
+few share the nearest one.
 
 ## The Theme screen (key 7)
 
-- **Top-left — the color map**: name → swatch + hex, in **two columns** when the panel is wide
-  enough. `Enter` sets a color, `n` adds one, `x`/`r` removes an override. `h`/`l` move between
-  columns.
-- **Bottom-left — the focused page's roles**: only the roles *that page actually uses*, each with
+- **Top left — the color map**: name → swatch + hex, in **two columns** when the panel is wide
+  enough; `*` marks a color you've overridden. `Enter` (or `Space`) sets a color, `n` adds one,
+  `x`/`r` removes your override (a color you added is removed). `h`/`l` move between columns.
+- **Top right — the focused page's roles**: only the roles *that page actually uses*, each with
   its fg/bg references and effects; the list swaps as you change pages. It also lists the two
   **gradient endpoints** (`gradient from` / `gradient to`) as single-color rows — edit them like
-  any role (a map name or `#hex`). `Enter` sets fg, `B` sets bg, `o`/`u`/`v` toggle
-  bold/underline/reverse, `r`/`x` reset the role on this page.
-- **`Tab`** switches between the two lists (`h`/`l` also cross between them); **`F1`–`F7`**
-  select which page you're editing (the `theme.page-1` … `page-7` keybindings, rebindable via
-  `keys:`); **`p`** toggles the page's gradient on or off; **`D`** copies this page's styles and
-  gradient onto another page.
-- **Right — the sample page**: a mock of that *actual* screen (its layout and its own roles) in the
-  page's colors and gradient, so changing pages shows a faithful preview. Edits repaint live.
+  any role (a map name or `#hex`). `Enter` sets fg, `B` sets bg (empty clears it), `o`/`u`/`v`
+  toggle bold/underline/reverse, `r`/`x` reset the role on this page.
+- **`Tab`** switches between the two lists (`l` off the map's last column enters the roles, `h`
+  goes back); **`F1`–`F7`** select which page you're editing (the `theme.page-1` … `page-7`
+  keybindings, rebindable via `keys:`); **`p`** toggles the page's gradient on or off; **`D`**
+  copies this page's styles and gradient onto another page.
+- **Below, full width — the sample page**: a live, compressed instance of that *actual* screen (its
+  real layout and its own roles) in the page's colors and gradient, so changing pages shows a
+  faithful preview. Edits repaint live.
 - **Edits save as you go** — every color, role, or gradient edit is written as a *difference from
-  the defaults* to your primary plugin (or, with no primary, this machine's config), shown in the
-  status line. So your theme already lives in the right place, and theme plugins still show
-  through the parts you haven't touched. `s` is only for deliberate **full-snapshot** saves:
+  the defaults* to your primary plugin (or, with no primary, this machine's config; a key your top
+  config already sets is edited there). The status line names where edits go. So your theme already
+  lives in the right place, and theme plugins still show through the parts you haven't touched.
+  `s` is only for deliberate **full-snapshot** saves:
   - **export theme pack…** — writes the *complete* look (every map color, every page role, the
     gradients) to a named theme plugin, loadable later with `L` and shareable. A full snapshot
     reproduces exactly even if the built-in defaults change later.
   - **promote full theme → primary** (only when a primary plugin is blessed and synced) — writes
     the complete look into your primary and removes the local copy. This is deliberately
     **absolute**: a full theme in the primary overrides any theme plugin, so it asks first.
-- **`L`** loads a saved theme plugin, replacing your theme overrides — retune on top afterwards.
+- **`L`** loads a saved theme plugin and asks how: **under my overrides** (the pack fills in what you
+  haven't retuned — the default) or **replace my overrides** (back to the pack exactly; your
+  changes are lost).
+
+## The startup splash
+
+While configsys inspects your machine at startup it shows a wait screen — but only when inspection
+takes longer than a quarter second, so a fast start goes straight to the TUI. The built-in
+`braille-bar` (a spinner and a progress bar) is the default. A key drops any animation to a plain
+progress line until inspection finishes.
+
+The `splash:` setting chooses another: the name of a splash (or of the plugin that ships it),
+`random` for a different one each run, or `off`. Splashes other than the built-in come from code
+plugins (for example configsys-splash-ocean), which load only after you `configsys plugin trust`
+them; a name that isn't available falls back to `braille-bar` with a note.
+
+- `--splash-linger` (or `CONFIGSYS_SPLASH=linger`) always shows the splash and keeps it animating
+  until you press a key; `CONFIGSYS_SPLASH=always` always shows it.
+- `CONFIGSYS_NO_SPLASH`, `--verbose` and `splash: off` turn it off.
+- `--effects none`, `--nocolor` and `NO_COLOR` keep only the plain built-in progress bar.
+
+See [config-format.md](config-format.md) for the `splash` and `effects` settings, and
+[plugins.md](plugins.md#7b-other-hooks) to write a splash.

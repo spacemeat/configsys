@@ -114,7 +114,7 @@ Effort: **`xhigh`** for README chunks, `docs/config-format.md`, CLAUDE.md and th
 | each markdown README links to | that file | edit |
 | CLI help → `configsys(1)` | argparse strings + `_EPILOG` in `configsys/cli/parser.py` (read each subcommand's handler in `configsys/cli/` to verify) | edit strings only |
 | config reference → `configsys.hu(5)` | `docs/config-format.md` | edit |
-| TUI help | `_HELP` (menu.py), `ACTION_LABELS` (keyspec.py), `config.hu` `keys:` comments | edit strings/comments only |
+| TUI help | `_HELP` (`configsys/tui/help.py`), `ACTION_LABELS` (`configsys/tui/keyspec.py`), `config.hu` `keys:` comments | edit strings/comments only |
 | config template | `config.hu` comments (outside `keys:`) | edit comments only |
 | CLAUDE.md | CLAUDE.md | edit |
 | reference specs, ~1–3 per agent by size | `docs/*.md` classified `reference` | edit |
@@ -225,7 +225,7 @@ Each writes `$RUN/report-<unit>.json` and replies with one line.
 .venv/bin/python tools/docaudit.py glossary --write
 .venv/bin/python tools/gen_manpages.py              # after any argparse or config-format.md change
 .venv/bin/python tools/docaudit.py check            # 0 errors; warnings triaged
-.venv/bin/python -m pytest test/ -q                 # test_docs + test_manpages + everything (app.py strings changed)
+.venv/bin/python -m pytest test/ -q                 # test_docs + test_manpages + everything (argparse / `?` strings changed)
 .venv/bin/python -m configsys --help | head -30     # read the result like a newcomer would
 ```
 Run every README `configsys` example you touched (sandbox `--home`, or `--pretend`). Read the

@@ -4,6 +4,7 @@
 # runtime from flathub, so it is intentionally NOT part of run-in-podman.sh.
 #
 # Usage: bash test/run-flatpak-in-podman.sh [APPID]
+#   APPID  flathub app to exercise (default: com.github.tchx84.Flatseal)
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

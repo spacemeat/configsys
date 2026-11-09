@@ -26,9 +26,10 @@ Route fields (on the binding):
   tag-prefix:   (optional) prepended to the version to form the tag (e.g. `v`)
   installDir:   (optional) where the source tree lands (cloned or extracted); bare-relative resolves
                 under the USER base at either scope — the tree is a build cache you own, never root's
-                (only $PREFIX follows scope); default `src/<comp>` ($SRC).
+                (only $PREFIX follows scope); default `$CONFIGSYS_SRC_DIR/<comp>` (the `dirs:`
+                src dir). The build sees it as $SRC.
   prefix:       (optional) install prefix ($PREFIX); default ~/.local (user) or /usr/local
-                (system). A bare-relative path resolves like installDir.
+                (system). A bare-relative path resolves under the SCOPE base (~ / /opt).
   uninstall-cmd:(optional) run in the tree before the source is removed (e.g. `make uninstall`);
                 absent => the tree is removed but files under the prefix may remain (warned).
   location:     (optional) display path override.
@@ -44,10 +45,11 @@ fetch the tree is reset to `origin/<branch>` (the remote's default branch for HE
 builds the new upstream commit; a tag/sha ref is checked out as-is. A changed `repo:` re-points a
 configsys-made tree's `origin`. An adopted checkout is fast-forwarded only (`merge --ff-only`).
 
-REBUILD SEMANTICS: install/upgrade REBUILD unconditionally from a PRISTINE tree — after fetch we
-force-checkout the ref (`git checkout -f`, resetting tracked files a build step may patch) and
+REBUILD SEMANTICS: install/upgrade REBUILD unconditionally. A configsys-made git tree is made
+PRISTINE first — after fetch we force-checkout the ref (`git checkout -f`, resetting tracked files a build step may patch) and
 `git clean -xfd` (removing git-ignored build artifacts, e.g. a cached CMakeCache.txt) so a recipe
-change or a failed partial build can't be masked by stale state. There is no "already built, skip":
+change or a failed partial build can't be masked by stale state (an adopted checkout is only
+fetched and checked out — never cleaned). There is no "already built, skip":
 `configsys install <comp>` re-runs the whole build (use `install --no-deps <comp>` to rebuild just
 this component without re-running its dependency installs). The version marker is the only thing
 preserved across the clean, so a failed rebuild still reads as installed (the artifacts live under
@@ -243,12 +245,12 @@ class Source(Driver):
         return self.runner.run(cmd, capture=False)
 
     # The managed toolchains' bin dirs (Driver.toolchain_bindirs: the Go tarball under
-    # $CONFIGSYS_SDK_DIR/go at either scope, as `dirs:`/env lay it out, `go install` tools in ~/go/bin,
-    # rustup's ~/.cargo/bin) are prepended to PATH for the build so a NON-native toolchain a recipe
+    # $CONFIGSYS_SDK_DIR/go at either scope, as `dirs:`/env lay it out, `go install` tools in GOBIN
+    # (else GOPATH/bin, else ~/go/bin), rustup's ~/.cargo/bin) are prepended to PATH for the build so a NON-native toolchain a recipe
     # `requires:` is found. A native toolchain on the system PATH still works (these just take
     # precedence when present; a missing dir is harmlessly ignored by PATH lookup). This is what lets
     # a floor-pinned toolchain (rust->rustup, go->tarball) actually build, since the build runs in a
-    # fresh non-interactive shell that hasn't sourced bash.d. A recipe adds more via `build-path:`.
+    # fresh non-interactive shell that hasn't sourced your shell glue. A recipe adds more via `build-path:`.
 
     def _build_path(self, rc, version, src, prefix):
         extra = rc.fields.get('build-path')

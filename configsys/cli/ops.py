@@ -279,9 +279,9 @@ def _offer_report(ctx, failures, fatal=None):
 
 def cmd_fix_scope(ctx, args):
     '''Reconcile installed units whose ACTUAL scope differs from their DECLARED scope — make the
-    install match the config (never edits the config). No args = every mismatched active unit.
-    Each step uninstalls at one scope and reinstalls at the other, so the moves are shown and
-    confirmed first (app-cli-26) — --yes skips the question, a non-terminal without it stops.'''
+    install match the config (never edits the config). No args = every mismatched unit among this
+    machine's picks. Each step reinstalls at the declared scope and then removes the old install
+    (`Driver.reconcile_scope`), so the moves are shown and confirmed first (app-cli-26) — --yes skips the question, a non-terminal without it stops.'''
     from .. import actions
     _cfg, _req, _units, ledger, states = ctx.load_pipeline()
     names = set(getattr(args, 'names', None) or [])
@@ -520,7 +520,7 @@ def cmd_tui(ctx, args):
 
 def cmd_uninstall(ctx, args):
     '''The machine-local `uninstall:` queue (TUI `x`): list / add / rm / clear. A staged removal runs
-    with the next execute (TUI `X`) or `configsys remove` (run_plan drains it).'''
+    with the next execute (TUI `X`) or `configsys remove` (`actions.after_run` drains it).'''
     from .. import actions
     sub = getattr(args, 'uninstall_command', None) or 'list'
     queue = sorted(ctx.config.uninstall_queue())

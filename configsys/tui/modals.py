@@ -421,7 +421,7 @@ def _find_next(labels, query, after):
 
 def _find_edit(stdscr, labels, restore, set_cursor, redraw):
     '''Live fuzzy-FIND (`/`): as you type, jump the cursor to the best fuzzy match among `labels`
-    (the visible items, index-aligned with the cursor). Unlike the old `/`, this does NOT filter —
+    (the visible items, index-aligned with the cursor). Find does NOT filter (that is `F`) —
     the list stays whole and only the cursor moves; type more to disambiguate. Enter keeps the
     cursor at the match; Esc — or backspace on an empty query — restores the `restore` index. A
     vim-style `/query` prompt shows on the bottom line.'''
@@ -504,7 +504,7 @@ def _find_edit_tree(stdscr, ms, redraw):
 # -- Profiles screen ------------------------------------------------------
 # ---- attrs filter (Profiles catalog) — faceted include/exclude over component attribute tags ----
 # The axes + vocabulary (ATTR_AXES / _ATTR_AXIS_OF) live in configsys/attrs.py, outside the TUI, so
-# `check`'s unknown-attr lint reads the same table. Used by the `A` filter modal + the catalog filter.
+# `check`'s unknown-attr lint reads the same table. Used by the attr-filter modal + the catalog filter.
 
 
 def _attr_pass(tags, inc, exc):
@@ -755,7 +755,7 @@ def _machines_modal(stdscr, pal, ctx, targets):
                 mode = 'confirm'
 
 
-# -- F2 primitive: a single-line text-input modal -------------------------
+# -- primitive: a single-line text-input modal -------------------------
 def _input_box(stdscr, pal, title, initial='', complete=None, toggle=None):
     '''Modal single-line text entry over the current screen. Returns the string on Enter, or None
     on Esc. Handles printable ASCII + backspace. `complete` is an optional list of candidate strings:

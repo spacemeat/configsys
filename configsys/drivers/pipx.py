@@ -2,12 +2,14 @@
 
 User-space (pipx puts app binaries on ~/.local/bin, each in its own venv). Version
 state comes from `pipx list --json`; no native version lock, so lock intent lives
-in the ledger. The `pipx` tool itself is the driver `!depends` — and it is the
-version-sensitive part: modern OSs route it to apt, older ones bootstrap it with
-`pip install --user pipx` (the pip driver). See routes.hu.
+in the ledger. The `pipx` tool itself is the driver `requires: pipx` — and it is the
+version-sensitive part: most OSs route it to their native package, older ones (old
+Ubuntu/Debian, Amazon Linux, EL 9) bootstrap it with `pip install --user pipx` (the pip
+driver). See routes.hu.
 
-get_latest resolves from pypi.org only when the route carries a
-`version: { pypi: <dist> }` spec (cached).
+get_latest uses the route's `version:` spec when it has one; otherwise the pipx `name` IS
+the PyPI distribution, so it asks pypi.org, scoped to the interpreter the venv runs (or a
+`python:` pin) so "latest" is what `pipx upgrade` can reach.
 '''
 
 import functools
@@ -216,7 +218,7 @@ class Pipx(ModuleDriver):
         return f'--python {shlex.quote(str(py))} ' if py else ''
 
     def _backend(self):
-        '''pipx's venv backend, chosen UP FRONT and cached per driver instance: `--backend pip ` (with
+        '''pipx's venv backend, chosen UP FRONT: `--backend pip ` (with
         a one-line note) when a uv is on PATH but older than `_UV_MIN`; otherwise `''` (pipx's default
         — uv when it's present and new enough, pip when uv is absent). Read-only; same pipx method +
         venv either way. Cached on the RUNNER (one per batch; each op builds a fresh driver), so a

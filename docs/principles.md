@@ -83,8 +83,11 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   manage X?", never by whether updates already cover it.
 - **"Data, not script" is not a security boundary.** Route/plugin *data* can still drive shell, so
   a plugin's data is gated exactly like its code — by trusting that plugin's exact content (hash),
-  never by file extension. Command-carrying data = `via: script`/`source` bindings, apt
-  `source-line`/`ppa`, any shipped shell glue (it is sourced by your shell; `#!cs-eval` generators most of all), and `facets:` `detect:` probes
+  never by file extension. Command-carrying data = every binding except a package by name from a
+  registry the system already trusts (`trustgate.binding_needs_trust`: script/source/download/
+  build bindings, a registry binding that sets one of its driver's `command_fields` such as apt
+  `source-line`/`ppa`, a `version: { url: }`), any shipped shell glue (it is sourced by your shell;
+  `#!cs-eval` generators most of all) and dotfiles, and `facets:` `detect:` probes
   (`plugins.command_source_trusted`, `plugins.ships_executable_data`). Never a live-central
   registry (docs/todo/community-routes-registry.md sketches per-driver risk tiers for one, unbuilt).
 

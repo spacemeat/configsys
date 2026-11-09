@@ -1,9 +1,10 @@
 '''componentObj.py — ResolvedComponent: one concrete installable unit.
 
-A profile names OS-level components (e.g. "neovim", "btop"); routes.hu resolves
-each to one or more concrete *units*, each bound to a driver (apt, flatpak, ...).
-The unit key `driver\\comp` is the dedup identity: two profile entries that resolve
-to the same unit collapse to one, so nothing is installed twice.
+This machine's picks (or an op's names) name components (e.g. "neovim", "btop"); the
+resolver turns each into one or more concrete *units*, each bound to a driver (apt, flatpak,
+...) — adapt.py builds one of these per unit. The unit key `driver\\comp` is the dedup
+identity: two picks or requirements that resolve to the same unit collapse to one, so nothing
+is installed twice.
 '''
 
 from dataclasses import dataclass, field
@@ -16,7 +17,7 @@ class ResolvedComponent:
     comp: str                                   # component name within the driver
     via: str = ''                               # the winning binding's `via:` (native/source/…) — maps binding-level floors back to the unit
     fields: dict = field(default_factory=dict)  # driver-node install fields
-    requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
+    requested_as: set = field(default_factory=set)  # the requested (root) component names that pulled it in
     deps: set = field(default_factory=set)      # unit keys this unit requires first
     source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)
     native: str = ''                            # THIS machine's native package manager (apt/dnf/…), stamped by

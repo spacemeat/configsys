@@ -5,16 +5,17 @@ backup guard, a restore fragment), four copies with four slightly different safe
 two functions are the only way either driver now puts a link in place or takes one away, so the rules
 hold everywhere:
 
-`link(runner, src, dst, owned=…, absorb=None)`
+`link(runner, src, dst, *, owned_roots=(), absorb=None, ours=None)`
   * dst already resolves to src → nothing to do (that includes a conf.d that is itself a dir link
     into the store, where the store file IS the deployed file — a relink would be a self-loop);
-  * a symlink WE own — one resolving inside an `owned` root — is re-pointed;
+  * a symlink WE own — one resolving inside an `owned_roots` root, or that `ours(dst)` accepts
+    when the driver judges ownership itself — is re-pointed;
   * anything else at dst — your real file or dir, or ANOTHER tool's link (stow, chezmoi) — is moved
     aside first: into `absorb` when given and free (made executable; a real file only), else to the
     first free `<dst>.pre-configsys`, `.1`, `.2`, … An earlier backup is never overwritten, and no
     link of someone else's is silently replaced.
-`unlink(runner, dst, owned=…, absorb=None)`
-  * removes dst only when it is a symlink we own; then puts back what we displaced — the absorbed
+`unlink(runner, dst, *, owned_roots=(), absorb=None, ours=None)` -> (outcome, detail)
+  * removes dst only when it is a symlink we own (same test); then puts back what we displaced — the absorbed
     file, else `<dst>.pre-configsys` — into the gap it leaves. A real file there (an app that saves by
     replacing our link) or someone else's link is yours and stays.
 

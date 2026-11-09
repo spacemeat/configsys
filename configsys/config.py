@@ -1,10 +1,13 @@
-'''config.py — the per-machine selection + profile definitions, over the layer stack.
+'''config.py — the per-machine settings (picks, pins, scope, …) + profile definitions, over the
+layer stack.
 
-Reads from the shared layer engine (layers.py): the repo config.hu is the base, an included
-file sits below the file that includes it, and the user ~/.config/configsys/configsys.hu wins. `configs` (which
-profiles apply) and `scope` are machine SETTINGS — from the repo/user files, not includes.
-`profiles:` are DEFINITIONS — merged per name across all layers (so an included project file
-can contribute a profile). `pins:` likewise (repo/user). Values flatten to leaf names.
+Reads from the shared layer engine (layers.py): the repo config.hu is the base, plugins (the
+primary last) sit above it, an included file sits below the file that includes it, and the top
+config ~/.config/configsys/configsys.hu wins. `picks:` (the component × machine matrix — what this
+machine installs, `requested()`), `pins:`, `scope:` and the other machine SETTINGS are read only from
+the machine-role layers (repo / primary / top config, _MACHINE_ROLES), never an include or an
+ordinary plugin. `profiles:` are DEFINITIONS — read-only browse lenses merged per name across every
+layer, never an install set. Values flatten to leaf names.
 '''
 
 import os
@@ -76,7 +79,7 @@ class Config:
             if isinstance(sec, dict):
                 for name, val in sec.items():
                     self._chain.setdefault(name, []).append((i, val, layer.path))
-        # `all` is a built-in synthetic profile = every defined component. The universe lives in
+        # `!all` is a built-in synthetic profile = every defined component. The universe lives in
         # routes (not config), so it's supplied lazily by the app; None until then.
         self._universe_provider = None
 
@@ -97,13 +100,13 @@ class Config:
         return cfg
 
     def ignored_section_warnings(self):
-        '''Sections a layer set that its role forbids (silently dropped) — e.g. `configs:` from a
-        non-primary plugin. Surfaced via diagnostics.'''
+        '''Sections a layer set that its role forbids (ignored) — e.g. `pins:` from an ordinary plugin
+        or an include. Surfaced via diagnostics + `check`.'''
         return layers.ignored_section_warnings(self._layers)
 
     def unknown_section_warnings(self):
-        '''Top-level keys configsys no longer understands (typos / retired constructs like `configs:`
-        or a user-level `profiles:`) — non-fatal, surfaced via diagnostics + `check`.'''
+        '''Top-level keys configsys doesn't understand (typos / retired constructs like `configs:` or
+        `machines:` — layers._RETIRED_TOP_KEYS) — non-fatal, surfaced via diagnostics + `check`.'''
         return layers.unknown_section_warnings(self._layers)
 
 
@@ -169,20 +172,21 @@ class Config:
     @_cached
     def dispositions(self):
         '''The effective `dispositions:` map (component -> 'seen'|'interesting'), merged PER KEY
-        across repo < primary < machine < user like pins(). A component's bookkeeping disposition;
-        include/exclude live in the profiles themselves, and NEW is the (unstored) default. Authored
-        to the local top config (per-machine triage) but layerable, so a plugin may ship defaults.'''
+        across repo < primary < user like pins(). A component's bookkeeping disposition; what a
+        machine installs lives in `picks:`, and NEW is the (unstored) default. Authored to the local
+        top config (per-machine triage); the primary may carry some too (an ordinary plugin's are
+        ignored, like any machine setting).'''
         return layers.merge_scalar_map(self._layers, 'dispositions', _MACHINE_ROLES)
 
     def disposition(self, comp):
-        '''`comp`'s raw side-store disposition ('seen' | 'interesting') or None. NEW/include/exclude
-        are NOT here (NEW = undispositioned; include/exclude are profile membership).'''
+        '''`comp`'s raw side-store disposition ('seen' | 'interesting') or None. NEW is NOT here
+        (NEW = undispositioned — see is_new).'''
         v = self.dispositions().get(comp)
         return v if v in ('seen', 'interesting') else None
 
     def user_layer_components(self):
         '''Every component that is a member of a profile YOU authored — one with a definition in a
-        user/primary layer (i.e. "included"). Purely-system (repo/plugin-only) profiles don't
+        user/primary layer. Purely-system (repo/plugin-only) profiles don't
         count; their members stay NEW-eligible. Memoized for the life of this Config.'''
         if getattr(self, '_user_comps', None) is None:
             editable = {'user', 'primary'}
@@ -215,7 +219,7 @@ class Config:
                 if layers._location_ok(v)}            # a relative path is ignored (check warns)
 
     def theme(self):
-        '''The merged TUI `theme:` overrides. Unlike the other machine settings, `theme` is purely
+        '''The merged TUI `theme:` overrides. Not a machine setting: `theme` is purely
         cosmetic, so it is contributed by EVERY layer (a theme-only plugin can ship a look; a
         primary plugin can link one) and merged per key across the full stack repo < plugins <
         primary < top-config — later wins, so your own config always has the last
@@ -424,7 +428,7 @@ class Config:
     @_cached
     def picks(self):
         '''Merged per-machine Included sets `{machine: [component, ...]}` across the machine-role
-        layers (repo < primary < user, config._MACHINE_ROLES; a later layer replaces a machine's list). The v3
+        layers (repo < primary < user, _MACHINE_ROLES; a later layer replaces a machine's list). The
         matrix model's install source — a machine installs exactly the components picked for it.'''
         out = {}
         for role in _MACHINE_ROLES:
@@ -478,8 +482,10 @@ class Config:
     def profile_components(self, profile):
         '''The ordered, deduped component list a profile expands to. A profile value is a list
         of terms, applied left-to-right: a bare `name` adds a component, `+name` splices in
-        another profile's members (recursively), `~name` removes a component added so far. Order
-        matters (a `~` after a `+` drops what the include brought in; a later add re-adds).
+        another profile's members (recursively), `~name` removes a component added so far — or,
+        naming a defined profile, every member of that subprofile. Order matters (a `~` after a `+`
+        drops what the include brought in; a later add re-adds). `!all` / `!uninstall` are the
+        built-in synthetic lenses.
 
         `+self` (a profile including its own name) means "the same profile from the next layer
         down" — so a higher layer amends a profile in place (super semantics) instead of
@@ -520,9 +526,9 @@ class Config:
     def uninstall_queue(self):
         '''Component names staged for uninstall — the top-level `uninstall:` list, a machine-local
         (top-config) pending-removal queue (`x` in the TUI adds here; TUI::Components executes or
-        clears them). It's a plain machine setting, not a profile, so it never resolves for install
-        and needs no `!` reservation. Read like other machine settings (repo < primary < top config,
-        highest wins). Empty/undefined -> empty set.'''
+        clears them). It's a plain machine setting, not a profile, so it never resolves for install;
+        the synthetic `!uninstall` lens (UNINSTALL_PROFILE) only browses it. Read like other machine
+        settings (repo < primary < top config, highest wins). Empty/undefined -> empty set.'''
         return set(_leaves(layers.merge_scalar(self._layers, 'uninstall', _MACHINE_ROLES)))
 
     def profiles_containing(self, name):
@@ -625,7 +631,7 @@ class Config:
         return out
 
     def _all_components(self):
-        '''Every defined component name (the built-in `all` profile), or [] before the app has
+        '''Every defined component name (the built-in `!all` profile), or [] before the app has
         supplied the universe. Sorted for a stable menu order.'''
         return sorted(self._universe_provider() if self._universe_provider else [])
 
@@ -743,7 +749,7 @@ class Config:
 
     def profile_names(self):
         '''Every DEFINED profile name across the layer stack, sorted (excludes the synthetic
-        `all`). For listing/editing profiles in the CLI and the TUI Profiles screen.'''
+        `!all` / `!uninstall`). For listing profiles in the CLI and the TUI Profiles screen.'''
         return sorted(self._chain)
 
     def profile_source(self, profile):
@@ -777,7 +783,7 @@ class Config:
     def requested(self):
         '''{component_name: [sources that requested it]} — the install set, in the picks list's own
         (file) order. In the matrix model this is exactly this machine's `picks:` (the Included set,
-        sourced as `picks`). `configs:`/active profiles are retired and no longer contribute.'''
+        sourced as `picks`); profiles never contribute (the retired `configs:` used to).'''
         out = {}
         # the picks LIST, not included()'s set — a set's order follows string hashing, which
         # changes per process, and so would every unit / plan / display order downstream

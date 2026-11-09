@@ -16,7 +16,7 @@ The `humon` package is installed **only** in `.venv` (not system Python). Run ev
 ```
 
 The authoritative API reference is the Cython source shipped with the package:
-`.venv/lib/python3.10/site-packages/humon/humon.pyx`. Read it when in doubt — the
+`.venv/lib/python3.*/site-packages/humon/humon.pyx` (python3.10 in this venv). Read it when in doubt — the
 GitHub README is partly stale (see "Stale README" below).
 
 **In configsys, go through `configsys/troveio.py`** rather than calling humon directly:
@@ -24,7 +24,14 @@ GitHub README is partly stale (see "Stale README" below).
 `ConfigError`; `load` decodes UTF-8 itself and uses `from_string`, because `h.from_file` sniffs the
 byte encoding and rejects very short files such as a `{}` ledger with `BADENCODING`), and
 `troveio.emit_hu(obj)` serializes plain Python dicts/lists/scalars back to Humon text (troves are
-read-only — see Serialization).
+read-only — see Serialization). `load_string` also refuses an empty document (`humon.from_string('')`
+itself returns an empty trove without error).
+
+**Editing a file the user may also edit** (a config section, a plugin data file, a merge) goes
+through **`configsys/hutext.py`**, not a parse + re-emit: it is the one humon TEXT scanner
+(`section_span`, `value_end`, `remove_span`, `root_close`, `skip_trivia`) and the one quoting rule
+(`scalar`, `key`, `emit`) shared by `plugins.set_section`, troveio and humerge, so a write replaces
+just that span and keeps every comment and line around it byte for byte.
 
 ## Loading a trove
 
@@ -114,8 +121,9 @@ For dict nodes, iterate by index too and read `.key` on each child.
 
 `Node` holds a raw pointer into the `Trove`'s memory and does **not** keep the trove
 referenced. If the `Trove` is garbage-collected while you still hold `Node`s, the pointers
-dangle and child lookups start silently returning `None` (no error). Always bind the trove
-to a variable for as long as you walk it:
+dangle: child lookups may silently return `None` or garbage, or **crash the interpreter with a
+segfault** (reproduced on 0.1.0 by walking `h.from_string(...).root` after a `gc.collect()`). Always
+bind the trove to a variable for as long as you walk it:
 
 ```python
 trove = h.from_file('data.hu')   # GOOD: trove stays alive
@@ -128,7 +136,8 @@ result = walk(h.from_file('data.hu').root)   # BUG: trove is freed mid-walk
 
 Whitespace separates list items and bare words don't include all characters, so unquoted
 `C#` parses as two values (`C`, `#`) and `Drupal 7` as two list items. Quote them:
-`'C#'`, `'Drupal 7'`.
+`'C#'`, `'Drupal 7'`. A comment opener ends a bare word too: unquoted `x//y` reads `x` (the rest is
+a `//` comment), so a path or URL with `//` or `/*` in it must be quoted (`hutext.scalar` does).
 
 ## String quoting: `'…'`, `"…"`, and backtick `` `…` `` — all multiline, none escaped
 

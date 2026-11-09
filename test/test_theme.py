@@ -322,7 +322,7 @@ def test_theme_profiles_sample_forces_overlay_without_a_scan(tmp_path):
     assert ps.show_install == 1                               # overlay on -> install-state colours show
     assert ps.overlay() == (frozenset(), {}, frozenset())     # injected empty -> no real orphan scan
     # install_state is ALSO called (name, force=True) / (name, stack, force=True) by the NEW-count path
-    # the draw triggers — the override must accept those, or _draw_profiles raises into an empty box.
+    # the draw triggers — the override must accept those, or the Profiles draw raises into an empty box.
     assert ps.install_state('x', force=True) in ('all', 'some', 'none')
     assert ps.install_state('x', (), force=True) in ('all', 'some', 'none')
     assert len(ps.visible_pnodes()) > 0                       # a real (never-empty) profile tree

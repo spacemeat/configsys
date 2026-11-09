@@ -5,7 +5,8 @@ module's KEY_* int constants, which are available without initscr).
 
 The base bindings live as humon in the repo's config.hu `keys:` section and merge up the layer stack
 (repo < plugins < primary < user) via Config.keys() — so a `keys:` block in any plugin's data file, or
-the top user config, overlays them per action. There is deliberately no Python default map; the humon file IS
+the top user config, overlays them per action (a plugin's, the primary's included, only once that plugin
+is trusted — Config.key_layers). There is deliberately no Python default map; the humon file IS
 the default. A tiny FALLBACK here only guards against a missing/broken repo section bricking the TUI.'''
 
 import curses
@@ -379,11 +380,12 @@ ACTION_LABELS = {
     'profiles.where': 'explain (where): cursor component, or the profile (left pane)',
     'lock': 'lock / unlock version', 'expand-all': 'expand / collapse all',
     'clear': 'unstage cursor/selection, clear selection', 'method': 'pick install method / provider',
+    'components.method': 'change: method / provider; rebuild, version, scope',
     'op-install': 'make current: install if missing, else upgrade',
     'op-install-all': 'make every tracked component current',
     'op-upgrade': 'stage upgrade (outdated only)', 'op-upgrade-all': 'upgrade every outdated component',
     'op-remove': 'stage remove',
-    'execute': 'run staged ops', 'refresh': 'refresh versions + package index',
+    'execute': 'run staged ops (confirms)', 'refresh': 'refresh versions + package index',
     'mode': 'cycle view: to-do / tracked / installed+tracked',
     'theme': 'open the theme editor', 'move': 'move setting: local ⇄ primary',
     'report': 'file a report (a component, or the last failures)', 'request': 'request a component',
@@ -398,20 +400,21 @@ ACTION_LABELS = {
     'add': 'add a plugin', 'remove': 'remove plugin', 'sync': 'sync plugin', 'sync-all': 'sync all',
     'bless': 'bless: make it your primary plugin', 'unbless': 'clear the primary plugin',
     'update': 'update plugin to its latest ref', 'update-all': 'update all to latest',
-    'trust': 'trust / untrust plugin', 'trust-all': 'trust every untrusted plugin',
+    'trust': 'trust / untrust plugin', 'trust-all': 'trust every untrusted or changed plugin (confirms)',
     'set-ref': 'set git ref + re-sync',
     'init-primary': 'new primary from local config', 'set-source': 'set plugin source / remote',
     'picks-to-primary': "move this box's picks into the primary",
-    'plugins.lock': 'lock / unlock plugin (no sync, update or trust)',
+    'plugins.lock': 'lock / unlock plugin (no sync, update, bless or trust)',
     'plugins.push': 'push your primary plugin (commit, combine, push)',
     'plugins.history': "your primary's recent changes; undo configsys's latest",
     'attr-filter': 'filter by attrs',
-    'track-all': 'toggle tracking: set / whole profile', 'track-one': 'toggle tracking: highlighted',
+    'track-all': 'toggle tracking: the set, else highlighted', 'track-one': 'toggle tracking: highlighted',
     'select-all': 'select all in view', 'machine-target': 'choose target machines',
     'comp-machines': 'machines for this component',
     'disp-interesting': 'toggle interesting', 'disp-seen': 'toggle new / seen',
-    'disp-interesting-all': 'mark set / profile interesting', 'disp-seen-all': 'mark set / profile seen',
-    'mark-all-seen': 'mark all NEW seen', 'claim': 'track all installed',
+    'disp-interesting-all': 'mark the set (else highlighted) interesting',
+    'disp-seen-all': 'mark the set (else highlighted) seen',
+    'mark-all-seen': 'mark all NEW seen (confirms)', 'claim': 'track all installed (confirms)',
     'toggle-install': 'install overlay on/off',
     'stage-uninstall': 'stage uninstall (→ !uninstall)',
     'orphan-ignore': 'ignore / un-ignore this orphan',

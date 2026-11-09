@@ -55,7 +55,7 @@ _ROWS = [
             desc=("Refresh the OS package index once before running staged ops: 'auto' (default, when the"
                  " batch has a native install/upgrade), 'always', or 'never'.")),
     Setting('install-overlay', 'bool', 'uniform', getter='install_overlay_default',
-            desc=('Open TUI::Profiles with the install-state overlay on (installed underlined, installed-'
+            desc=('Open the TUI Profiles screen with the install-state overlay on (installed underlined, installed-'
                  'but-unpicked ⊙ coloured). On by default; O toggles it.')),
     Setting('reboot-advice', 'bool', 'uniform', getter='reboot_advice',
             desc=('After an op (and as a TUI chip), advise when a reboot is needed / services want a '
@@ -80,7 +80,7 @@ _ROWS = [
                  'each run, off to disable, or unset for the built-in default.')),
     Setting('effects', 'scalar', 'machine', choices=('full', 'reduced', 'none'), getter='effects',
             desc=('TUI motion: full (gradient + splash), reduced (no gradient, calmer splash), or none '
-                 '(no gradient or splash). Unset auto-picks reduced over SSH, else full. --effects '
+                 '(no gradient; only the plain progress bar). Unset auto-picks reduced over SSH, else full. --effects '
                  'overrides.')),
     Setting('orphans-ignore', 'list', 'machine', getter='orphans_ignore',
             desc=('Name-or-glob patterns whose matching orphans stay quiet in `configsys orphans` '

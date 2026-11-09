@@ -24,7 +24,7 @@
             files: [ "configsys/routes.py"  "configsys/resolve.py"  "configsys/predicate.py"
                      "configsys/routecheck.py"  "configsys/adapt.py"  "configsys/componentObj.py"
                      "configsys/detection.py"  "configsys/errors.py"  "configsys/planning.py"
-                     "configsys/stranded.py"  "configsys/trustgate.py" ]
+                     "configsys/stranded.py"  "configsys/trustgate.py"  "configsys/attrs.py" ]
             context: [ "routes.hu"  "docs/routing-model.md"  "docs/stranded-installs.md"
                        "test/routing_golden.json" ]
             focus: [
@@ -55,7 +55,7 @@
                 "the trust model: content-hash identity, command_source_trusted, ships_executable_data — does every command-carrying data path go through it?"
                 "path containment of every plugin dir (dir_name) before clone / read / rmtree; git argument injection from source:/ref:"
                 "sync never forces a checkout (kept / diverged / ahead); transitive plugins: declarations"
-                "the hand-rolled humon text editing (_locate_section_span, _emit_block, _read_top/_write_top) on hostile text: backslashes, backticks, comments, empty files"
+                "the humon text editing (set_section, _emit_block, _read_top/_write_top over hutext.section_span — hutext itself is config-layers') on hostile text: backslashes, backticks, comments, empty files"
                 "the example plugin (examples/examplos) still matches the frozen ABI and the docs"
             ]
             was: [ "config-plugins" ]
@@ -97,14 +97,14 @@
                      "configsys/drivers/go_install.py"  "configsys/drivers/sdkman.py"
                      "configsys/drivers/pyenv.py"  "configsys/drivers/gcc.py"
                      "configsys/drivers/gcc_toolset.py"  "configsys/drivers/clang.py"
-                     "configsys/drivers/_alt.py"  "configsys/drivers/source.py"
+                     "configsys/drivers/_module.py"  "configsys/drivers/_alt.py"  "configsys/drivers/source.py"
                      "configsys/drivers/tarball.py"  "configsys/drivers/appImage.py"
                      "configsys/drivers/font.py"  "configsys/drivers/script.py"
                      "configsys/drivers/service.py"  "configsys/drivers/group.py" ]
             context: [ "configsys/driver.py"  "configsys/runner.py"  "configsys/versions.py"  "routes.hu" ]
             focus: [
                 "DESTRUCTIVE TARGETS: every rm -rf / rmtree / mv / ln -sf whose path comes from route data, scope or env — can it resolve to $HOME, a scope base, / or a shared dir? (the 2026-09 critical was exactly this, in tarball)"
-                "the ten ecosystem installers' shared shape (a ModuleDriver base was proposed as D4 in 2026-09) and their per-unit probes"
+                "the ten ecosystem installers on the shared ModuleDriver base (drivers/_module.py, review-2026-11-2 D5): what each subclass still overrides by hand, and their per-unit probes"
                 "$VERSION and other upstream-controlled text spliced into build/script commands"
                 "download integrity (sha256:), http URLs, predictable temp paths"
             ]
@@ -112,11 +112,11 @@
         }
         dotfiles-glue: {
             title: "Dotfiles, glue, the shell-writes guard, the bootstrap"
-            files: [ "configsys/drivers/glue.py"  "configsys/drivers/dotfiles.py"  "configsys/shellguard.py"
-                     "glue/**"  "configsys.sh" ]
+            files: [ "configsys/drivers/glue.py"  "configsys/drivers/dotfiles.py"  "configsys/drivers/_linked.py"
+                     "configsys/shellguard.py"  "configsys/shells.py"  "glue/**"  "configsys.sh" ]
             context: [ "docs/shell-glue.md"  "docs/done/dotfiles-redesign.md" ]
             focus: [
-                "never overwrite a user file: .pre-configsys, .pre-configsys.1, ... backups; links never point into the repo"
+                "never overwrite a user file: .pre-configsys, .pre-configsys.1, ... backups (drivers/_linked.py link / unlink is the one path for both drivers); links never point into the repo"
                 "--pretend on every link / rc rewrite / marker stamp"
                 "each shell's snippets: correct in all five shells, self-guarding where inlined (nu/elvish), and cheap at shell start (no configsys spawn per snippet)"
                 "configsys.sh: python floor, venv repair, behavior on a fresh box"
@@ -124,14 +124,15 @@
             was: [ "dotfiles-glue" ]
         }
         app-cli: {
-            title: "CLI: app.py (parser, handlers, Context)"
-            files: [ "configsys/app.py"  "configsys/__main__.py"  "configsys/__init__.py"  "configsys/parity.py" ]
+            title: "CLI: app.py (Context, main) + cli/ (parser, handlers)"
+            files: [ "configsys/app.py"  "configsys/cli/*.py"  "configsys/__main__.py"  "configsys/__init__.py"
+                     "configsys/parity.py" ]
             context: [ "configsys/actions.py"  "test/test_pretend_sweep.py" ]
             focus: [
                 "every write path honors ctx.runner.pretend, and every mutating verb is in test_pretend_sweep VERBS"
                 "verbs with no main([...]) test"
                 "the Context: what is computed per command, and how often (repeated resolves, re-reads)"
-                "size and shape (app.py was 3.7k lines in 2026-09; a split was proposed as D9)"
+                "size and shape: app.py (3.7k lines in 2026-09) was split into cli/ by review-2026-11-2 — what the app.py `__getattr__` facade still re-exports, and whether its callers should import from cli/ directly"
             ]
             was: [ "app-cli-actions" ]
         }
@@ -139,7 +140,7 @@
             title: "Shared actions: plans, execution, ledger, system updates"
             files: [ "configsys/actions.py"  "configsys/ledger.py"  "configsys/failures.py"
                      "configsys/sysupdates.py" ]
-            context: [ "configsys/app.py"  "configsys/tui/menu.py"  "docs/system-updates.md" ]
+            context: [ "configsys/app.py"  "configsys/cli/ops.py"  "configsys/tui/menu.py"  "docs/system-updates.md" ]
             focus: [
                 "run_plan is the one op-execution loop for CLI and TUI — anything that still bypasses it"
                 "TUI writers return (False, PRETEND_NOT_SAVED) under --pretend"
@@ -164,13 +165,15 @@
             was: [ "subsystems" ]
         }
         tui-core: {
-            title: "TUI core: menu, router, popups, surface"
+            title: "TUI core: router, popups, panes, models, surface"
             files: [ "configsys/tui/menu.py"  "configsys/tui/screen.py"  "configsys/tui/surface.py"
-                     "configsys/tui/__init__.py" ]
+                     "configsys/tui/__init__.py"  "configsys/tui/paint.py"  "configsys/tui/help.py"
+                     "configsys/tui/modals.py"  "configsys/tui/models.py"  "configsys/tui/panes.py"
+                     "configsys/tui/preview.py"  "configsys/tui/flows.py"  "configsys/tui/startup.py" ]
             context: [ "docs/tui-architecture.md"  "configsys/tui/screens/base.py" ]
             focus: [
                 "what is left of the pre-MVVM painters and ladders after the D2 rewrite (dead or duplicate code)"
-                "menu.py size, run() length, popup / modal / table copy-paste"
+                "the menu.py split (router + facade; paint / help / modals / models / panes / preview / flows / startup): what the facade still re-exports, run() length, popup / modal / table copy-paste"
                 "per-keystroke and per-frame cost on the real catalog — measure it, don't guess"
             ]
             was: [ "tui-menu" ]
@@ -206,7 +209,7 @@
                 "the suite AS A WHOLE: read the shared infrastructure (conftest, fixtures, helpers, sandbox homes) line by line; each area's reviewer reads its own modules' test files, so you sample individual tests rather than read all ~28k lines"
                 "suite runtime: run `pytest --durations=40` once and explain where the time goes (the full suite took ~10 minutes in 2026-10)"
                 "tests that assert nothing, duplicate fixtures across files, sleeps, network or real-home access"
-                "tools (docaudit, compaudit, namesweep, regsweep, gen_manpages): correctness, and whether their checks are still sharp"
+                "tools (docaudit, compaudit, osaudit, reviewaudit, namesweep, regsweep, versionsweep, gen_manpages): correctness, and whether their checks are still sharp"
                 "podman integration scripts and Containerfiles that no longer match the code"
             ]
         }
@@ -228,8 +231,8 @@
         parity: {
             title: "CLI / TUI parity + missing features (cross-cutting)"
             cross: true
-            context: [ "configsys/app.py"  "configsys/tui/menu.py"  "configsys/tui/screens/*.py"
-                       "configsys/tui/keyspec.py"  "README.md" ]
+            context: [ "configsys/cli/parser.py"  "configsys/tui/menu.py"  "configsys/tui/screens/*.py"
+                       "configsys/tui/keyspec.py"  "configsys/tui/help.py"  "README.md" ]
             focus: [
                 "a table of every CLI verb against its TUI counterpart (screen + key), with a verdict per row: present / missing-should-add / CLI-only-by-design"
                 "features a user would reasonably expect and not find (call them out; the user asked)"

@@ -11,7 +11,8 @@ name (later wins).
 THE UNIFORM LAYER RULE: every layer — repo, plugins, primary, the top config, and any file they
 include — may DEFINE things (components, profiles, os blocks, drivers; facet probe specs still need
 plugin trust). Only the top config and the primary plugin may SET machine settings
-(MACHINE_SETTING_SECTIONS); an include or an ordinary plugin that sets one is ignored with a warning.
+(MACHINE_SETTING_SECTIONS — besides the repo's config.hu, which ships their defaults); an include or an
+ordinary plugin that sets one is ignored with a warning.
 This is the shared substrate the plugin model reuses — a plugin is just another source in the stack.
 '''
 
@@ -24,7 +25,7 @@ from .errors import ConfigError
 
 # Every top-level MACHINE SETTING — a section Config reads only from the machine-role layers (repo /
 # primary / user, config._MACHINE_ROLES). An include or an ordinary (non-primary) plugin that sets one
-# is IGNORED, so these feed _FORBIDDEN_BY_ROLE (-> a `check` / `!` warning instead of a silent drop).
+# is IGNORED, so these feed _forbidden_by_role (-> a `check` / `!` warning instead of a silent drop).
 # Every one is a row of configsys/settings.py (the registry), so a newly registered setting is
 # covered automatically. Cosmetic `theme:` / `keys:` are NOT machine settings — every layer may
 # contribute them.
@@ -183,7 +184,8 @@ def materialize_string(text):
 
 def read_setting(path, key):
     '''Peek one top-level setting from a single file (no include expansion), or None. For
-    settings that must be known before the layer stack is built (e.g. `discover:`).'''
+    settings that must be known before the layer stack is built (e.g. `plugins:`, `primary-trust:`,
+    the top config's `facets:` values).'''
     if path is None or not os.path.exists(str(path)):
         return None
     try:
@@ -429,8 +431,8 @@ def merge_name_overrides(layers, roles=None):
 def merge_version_floors(layers, roles=None):
     '''Overlay the `version-floors` section across layers -> {component: {cap: constraint}}. The
     analog of component-names for VERSION constraints: a higher layer patches a (component,
-    capability) floor WITHOUT redefining the component, so a `main`-keyed data plugin can supply
-    auto-derived toolchain floors that fold into existing recipes. Later layers win per
+    capability) floor WITHOUT redefining the component, so a data plugin that follows its `main`
+    branch can supply auto-derived toolchain floors (floorderive) that fold into existing recipes. Later layers win per
     (component, cap).'''
     return merge_two_level(layers, 'version-floors', roles)
 

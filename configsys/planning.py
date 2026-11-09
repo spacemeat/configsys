@@ -2,12 +2,13 @@
 
 Units carry `deps` (keys of units that must be installed first). Given a staged
 plan, we:
-  * expand install/upgrade ops to also install a unit's transitive deps (skipping
+  * expand install/upgrade/set-version ops to also install a unit's transitive deps (skipping
     any the live state says are already present), so prerequisites like apt\\flatpak
     come along automatically and show up in the confirm summary;
-  * order the whole plan: installs/upgrades dependency-first, then locks/unlocks,
-    then removes in reverse dependency order (so you never remove a dep out from
-    under something still present).
+  * order the whole plan: swap-removes first (the old method of a component this plan
+    reinstalls another way, so it can't clobber the fresh install), then installs/upgrades/
+    set-versions dependency-first, then locks/unlocks, then the other removes in reverse
+    dependency order (so you never remove a dep out from under something still present).
 '''
 
 _INSTALLISH = ('install', 'upgrade', 'set-version')

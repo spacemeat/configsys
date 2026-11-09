@@ -5,11 +5,11 @@ breakage surfaces on the console where the user launched configsys — while the
 page still collects everything (this is additive, not a replacement). stderr keeps stdout
 pipe-clean.
 
-Verbosity ladder (Context.verbosity):
-  -1 SILENT   nothing to the console at all (only the TUI `!` page)
-   0 DEFAULT  lightweight transient progress + errors as they're found
-   1 VERBOSE  + layer stack, component overrides, per-unit install-state + timing
-   2 DEBUG    + full route/binding/why detail
+Verbosity ladder (Reporter.level; the Context builds its reporter from `-q` / `-v` / `-vv`):
+  -1 SILENT   (-q)  nothing to the console at all (only the TUI `!` page / `inspect`'s issues)
+   0 DEFAULT        lightweight transient progress + errors as they're found
+   1 VERBOSE  (-v)  + layer stack, component overrides, per-unit install-state + timing
+   2 DEBUG    (-vv) + full route/binding/why detail
 
 Paused while curses owns the screen (the in-TUI reload after an execute must not draw to
 stderr) — the pre-curses initial load and the post-endwin summary run live.

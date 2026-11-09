@@ -1,6 +1,9 @@
 # Community routes registry — design note
 
 > **Status: DEFERRED** — design note only, never scheduled; nothing built (no `plugin search`/`browse`, no catalog, no community repo).
+> Since written: the driver-risk tiering below now gates UNTRUSTED plugins (the trust gate, `configsys/trustgate.py`,
+> 48507e9, 2026-11-08 — only by-name packages from a trusted registry are candidates until trust; docs/plugins.md §6),
+> and signed-commit verification exists for the primary plugin only (`primary-verify: signed`, docs/plugins.md §8).
 
 Captures the analysis of "let anyone contribute routes so
 configsys covers far more than we could ever route by hand." The conclusion is a *curated + federated*

@@ -1,6 +1,6 @@
 # Publishing your primary plugin — commit, push, and conflicts without git expertise
 
-> **Status: DONE** — finished 2026-10-21 (phase 4, the `.hu`-aware merge, landed last). Tag-pinned
+> **Status: DONE** — finished 2026-10-21 (commit b96d54a — phase 4, the `.hu`-aware merge, landed last; phases 0–3 d36cb22, 5f921ce, 7eecc4f, cf28c8e). Tag-pinned
 > primaries stay supported (decided 2026-10-21). Lives on in: docs/plugins.md §8.
 
 ## Why

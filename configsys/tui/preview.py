@@ -10,7 +10,7 @@ from .paint import _hex
 from .panes import ConfigScreen, DotfilesScreen, GlueScreen, PluginScreen, ProfileScreen
 
 
-# -- Theme editor (its own screen, key 6) ---------------------------------
+# -- the Theme editor's sample states (one per previewed page) --------------
 def _sample_components_state():
     '''A STABLE, synthetic Components tree for the Theme editor's F1 sample — always populated and
     exercising every themeable element (a two-profile tree, components + a nested unit, each driver /
@@ -72,7 +72,8 @@ class _SampleCfg:
 
 class _SampleCtx:
     '''A ctx whose `.config` is the sample overlay; routes/os_info/paths/runner delegate to the real
-    ctx. Passed to both the ProfileScreen (ps.ctx) and _draw_profiles so their config reads agree.'''
+    ctx. Becomes the sample ProfileScreen's ps.ctx, which the Profiles screen's build_vm/draw read
+    too, so their config reads agree.'''
     def __init__(self, real, config):
         self._real = real
         self.config = config
@@ -155,7 +156,7 @@ def _sample_profiles_state(ctx):
     cfg.uninstall_queue = lambda: set(_uq)
     cfg.machine_names = lambda: ['thisbox', 'laptop']
     cfg.current_machine = lambda: 'thisbox'
-    ps.ctx = _SampleCtx(ctx, cfg)                    # ps + _draw_profiles now read the overlay
+    ps.ctx = _SampleCtx(ctx, cfg)                    # ps + the Profiles screen's draw now read the overlay
     # Hermetic sample: abort the __init__ warm-cache thread and resolve every visible row NOW, so the
     # draw only READS _res (no on-demand resolve during paint). Otherwise the background warm thread
     # (which resolves into shared ctx.routes caches) races the draw under a loaded test run, and a
@@ -166,8 +167,8 @@ def _sample_profiles_state(ctx):
         except Exception:                            # noqa: BLE001 — a preview never bricks
             pass
     # FREEZE the sample's answers: the draw reads this snapshot, so neither a straggling warm-thread
-    # write nor a ctx.routes rebuild (which clears _res by the Resolver's id — allocator-dependent
-    # under a loaded run) can change a row's via/pin between two renders.
+    # write nor a ctx.routes rebuild (a fresh Resolver clears _res) can change a row's via/pin
+    # between two renders.
     _frozen, _live = dict(ps._res), ps._resolve
     ps._resolve = lambda name: _frozen[name] if name in _frozen else _live(name)
     return ps
@@ -267,9 +268,9 @@ def _sample_dotfiles_state(ctx):
 
 class ThemeScreen:
     '''Two lists over one sample page: the shared color MAP (name -> #rrggbb) and the focused page's
-    ROLE styles (fg/bg/effects, fg/bg referencing a map name or a literal). Tab toggles focus; a-e
-    cycles the page. Edits write via actions.set_theme_value; the caller re-instantiates the Palette
-    so the sample repaints instantly.'''
+    ROLE styles (fg/bg/effects, fg/bg referencing a map name or a literal). Tab toggles focus;
+    page-1..page-7 (F1-F7) select the page. Edits write via actions.set_theme_value; the caller
+    re-instantiates the Palette so the sample repaints instantly.'''
     def __init__(self, ctx):
         self.ctx = ctx
         self.page = 0                              # focused page (index into ALL_PAGES, incl. 'theme')
@@ -393,7 +394,7 @@ def _sample_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
     if hh < 6 or ww < 24:
         return
     _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms)
-    pal.use_page('theme')                    # the real draw fn switched the active page; restore it
+    pal.use_page('theme')                    # the real screen's begin_page switched the active page; restore it
 
 
 def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
@@ -454,7 +455,7 @@ def _sample_real_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):
 
 
 def _ref_str(ref):
-    '''Show a role's fg/bg reference as-authored: a map name, a literal, or — for the gradient.'''
+    '''Show a role's fg/bg reference as-authored: a map name or a literal, or — when unset.'''
     if ref in (None, '', 'none', 'false', False):
         return '—'
     return str(ref)

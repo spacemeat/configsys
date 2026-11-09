@@ -26,14 +26,17 @@ Invariants:
 - **Held stays held.** A package the manager holds (apt-mark hold, flatpak mask, snap hold, dnf
   versionlock, zypper lock, brew pin, xbps hold) is marked `[held]` and left alone by the
   manager's own bulk command.
-- **Never bricks.** Any query failure drops that manager (or the dedup set) silently; the lane
-  degrades to "less listed", never to a wrong list.
+- **Never bricks.** A query failure drops that manager (or empties the dedup set); the lane
+  degrades to "less listed", never to a wrong list. It is not silent where it matters: the OS's
+  own native manager answering `None` is certainly installed, so its failure becomes a note
+  (`<manager>: could not list upgradable packages`) rather than a silent "no updates"; an app
+  manager answering `None` is simply absent.
 
 ## Driver hooks
 
 All live on `Driver` (configsys/driver.py) with no-op defaults, so path/build/language drivers
 take no part. They are part of the frozen plugin ABI (the "System Updates" and "orphan scan" hook
-groups in the driver.py docstring; docs/plugins.md §7), so a code-plugin manager can join the lane
+groups in the driver.py docstring; docs/plugins.md §7a), so a code-plugin manager can join the lane
 by overriding them. test/test_driver_inventory.py requires every OS block's `native:` manager to
 implement `installed_index`, `upgradable_index`, `upgrade_all` and `explicit_keys`.
 
@@ -46,6 +49,12 @@ implement `installed_index`, `upgradable_index`, `upgrade_all` and `explicit_key
 | `upgrade_all()` | runner `Result` of the bulk command | `None` |
 | `explicit_keys()` | the user-installed set (shared with docs/orphans.md) | `None` (all explicit) |
 
+Two optional extras the core looks up with `getattr` (not `Driver` methods):
+`upgradable_advisory()` — why the last `upgradable_index` may be incomplete, or `None` (pacman,
+see Coverage); and an `update_scopes` attribute `{key: 'user'|'system'}` that `upgradable_index`
+leaves behind (flatpak: which installation each ref came from — the frozen return shape has no
+room for it), carried onto each row's `scope`.
+
 `upgradable_index` reads the **already-synced** native index; it never refreshes on its own.
 `None` means "absent or failed"; `{}` means "up to date". Both drop the manager.
 
@@ -54,15 +63,17 @@ implement `installed_index`, `upgradable_index`, `upgrade_all` and `explicit_key
 Who refreshes depends on the manager's declared refresh style (every native manager is in exactly
 one map, test_driver_inventory):
 
-- `app._NATIVE_REFRESH` (apt, dnf, zypper, apk, xbps, brew) — an index-only refresh, safe before
-  any install. `app.refresh_native_index` runs it (sudo, except brew) before `upgrade --system`,
-  and before an ops batch per `refresh-before-execute`; `configsys refresh` runs it too. A TUI
-  batch refreshes ONCE, up front (`app.maybe_refresh_before_plan(…, system=True)`, then
-  `apply_bulk(refresh=False)` and `execute_plan(refresh=False)`): a second refresh between a long
-  bulk upgrade and the component ops picked up packages published meanwhile, which then read
-  "newly outdated" after a run that never offered them. The refresh's newly-upgradable names that
-  survive the batch are listed in the summary (`app.published_pending`).
-- `app._FULL_UPGRADE_REFRESH` (pacman) — an index-only `pacman -Sy` would leave a partial-sync
+- `_NATIVE_REFRESH` (apt, dnf, zypper, apk, xbps, brew; in `cli/refresh.py`, re-exported as
+  `app._NATIVE_REFRESH`) — an index-only refresh, safe before any install.
+  `cli.refresh.refresh_native_index` runs it (sudo, except brew; a transient stumble retried)
+  before `upgrade --system`, and before an ops batch per `refresh-before-execute`; `configsys
+  refresh` runs it too. A TUI batch refreshes ONCE, up front — with System Updates staged, before
+  the confirm (`maybe_refresh_before_plan(…, system=True)`, then `apply_bulk(refresh=False)` and
+  `execute_plan(refresh=False)`): a second refresh between a long bulk upgrade and the component
+  ops picked up packages published meanwhile, which then read "newly outdated" after a run that
+  never offered them. The refresh's newly-upgradable names that survive the batch are listed in
+  the summary (`cli.refresh.published_pending`).
+- `_FULL_UPGRADE_REFRESH` (pacman) — an index-only `pacman -Sy` would leave a partial-sync
   state that breaks the next `pacman -S`, so the only safe refresh is `pacman -Syu` itself.
   `refresh_native_index` returns `(False, True)` and does nothing; `configsys refresh` asks before
   running the full upgrade. So the pacman lister can't rely on the real sync DB being current —
@@ -154,30 +165,39 @@ still listed and still upgraded.
 
 `{manager: [UpdateRow]}`. Per manager: `upgradable_index` → `held_keys` → `classify_index` →
 `explicit_keys`; rows sorted by key, dedup-filtered; a manager with no remaining rows is omitted.
-`UpdateRow` carries `manager, key, installed, candidate, held, tier, explicit`.
+`UpdateRow` carries `manager, key, installed, candidate, held, tier, explicit, scope` (`scope` from
+the driver's `update_scopes`, default `system`). `gather(ctx, notes_out)` also collects each
+manager's `upgradable_advisory()` and the native-manager query-failure note as
+`<manager>: <why>`.
 
-## CLI (configsys/app.py)
+## CLI (configsys/cli/ops.py)
 
 - **`configsys updates`** (`cmd_updates`) — read-only. Per manager (sorted), sub-grouped by tier
   (`_TIER_LABEL`: kernel / core (base system) / standard / apps & tools), one
-  `key  installed -> candidate  [held]` line each (`_print_updates_groups`). With nothing pending it
-  suggests `configsys refresh`, since the list is only as fresh as the index.
-- **`configsys upgrade --system [--yes]`** (`cmd_upgrade_system`) — takes no names. Refreshes the
-  native index first via `refresh_native_index` (non-fatal: on failure it warns and proceeds on the
-  cached index; a no-op on pacman, see Refresh styles), gathers,
+  `key  installed -> candidate  [held]` line each (`_print_updates_groups`), then the gather's notes
+  as `⚠` lines. With nothing pending it suggests `configsys refresh`, since the list is only as
+  fresh as the index.
+- **`configsys upgrade --system [--yes]`** (`cmd_upgrade_system`) — takes no names (any given are
+  ignored). Refreshes the native index first via `refresh_native_index` (non-fatal: on failure it
+  warns and proceeds on the cached index; a no-op on pacman, see Refresh styles), gathers,
   previews the same grouped list, confirms (`--yes` skips; a non-TTY without `--yes` exits 1),
-  then runs `upgrade_all` for each manager **that has at least one listed row**, then prints the
-  reboot advisory (`reboot-advice`; the native manager's `rebootcheck._REBOOT_CHECKS` entry — brew is in
-  `_NO_REBOOT_CHECK`, user-space). Exit status is the
-  first failing manager's return code (1 when the confirm is declined).
+  then runs `upgrade_all` for each manager **that has at least one listed row** — through
+  `sysupdates.apply_bulk(refresh=False)`, the same apply step the TUI runs, inside one sudo
+  session — offers to file any failure (`_offer_report`; the failure is also recorded for the `!`
+  page and `configsys report`, except under `--pretend`), then prints the reboot advisory
+  (`reboot-advice`; the native manager's `rebootcheck._REBOOT_CHECKS` entry — brew is in
+  `_NO_REBOOT_CHECK`, user-space). Exit status is the first failing manager's return code (130
+  after ^C, which skips the remaining managers; 1 when the confirm is declined).
 
 ## TUI (Components screen)
 
 - **Background scan.** The TUI run loop calls `sysupdates.start_scan` at startup: `gather` on a
   daemon thread, cached on `ctx._sysupd_groups` (the manager queries take seconds, so startup never
   waits). The loop polls (`scan_busy` / `take_dirty`) and folds the result in with
-  `menu._fold_system_updates`, which rebuilds only the tree from the states already held — no
-  reload.
+  `tui.models._fold_system_updates`, which rebuilds only the tree from the states already held — no
+  reload. The scan's notes (`ctx._sysupd_notes` — advisories, a native query failure, or `scan
+  failed: …` when `gather` raised) go to the `!` page. Under `--pretend` nothing is scanned (the
+  runner would echo every query over the screen): the group is simply empty.
 - **Invalidate supersedes an in-flight scan.** `sysupdates.invalidate` bumps a scan generation
   (`ctx._sysupd_gen`) and clears the cache under `sysupdates._SCAN_LOCK`; a scan thread stores its
   result under the same lock only if its generation is still current, so a scan started before an
@@ -188,6 +208,9 @@ still listed and still upgraded.
   the rebuilt tree doesn't re-inject stale rows, and the header shows the spinner — and start a new
   background scan after it (`screens/components.py` `_rescan_system_updates`). Staged System Updates
   marks go with the dropped rows; after `R` the note says how many to re-stage once the rescan lands.
+  After a bulk upgrade (an outcome keyed `system-updates\<mgr>`) the reload requeries every
+  component unit of that manager, not just the synthetic rows, so none keeps its pre-upgrade
+  version.
 - **Header chip.** A spinner + `checking system updates…` while the scan runs (or after an apply
   invalidated it); `⟳ N system updates`
   (`cached_total`) once it lands, hidden at zero.
@@ -202,12 +225,16 @@ still listed and still upgraded.
   all-or-nothing too: `c` on any System Updates row unstages every one (`MenuState.unstage` →
   `unstage_system_updates`), because execute upgrades a whole manager whenever any of its rows is
   staged — a partial unstage would leave badges that misstate what `X` does.
-- **Apply.** `X` → `menu._confirm_and_execute` partitions the synthetic rows out of the per-unit plan
-  (they never reach `expand_plan`/`run_plan`), shows one `sys-update` preview line per manager set,
-  and after the single confirm runs `sysupdates.apply_bulk` **first** (`refresh_native_index`,
-  `upgrade_all` per staged manager, then `invalidate` + `start_scan`), then the per-component ops
-  against the fresh base. Base-first means cleaner dependency resolution everywhere and no Arch
-  partial-upgrade (`pacman -S <new>` on an un-`-Syu`'d system).
+- **Apply.** `X` → `tui.flows._confirm_and_execute` partitions the synthetic rows out of the
+  per-unit plan (they never reach `build_plan`/`run_plan`), refreshes the native index once BEFORE
+  the confirm, and shows one `sys-update` preview line naming the staged managers with the package
+  count re-gathered from the refreshed index (`_system_update_count`; "N of them published since
+  the scan" when it grew). After the single confirm it runs `sysupdates.apply_bulk(refresh=False)`
+  **first** (`upgrade_all` per staged manager, outcomes + failure records like `run_plan`'s, ^C
+  stops the batch and skips the component ops, then `invalidate`), then the per-component ops
+  against the fresh base; the Components screen starts the rescan afterwards (Rescans, above).
+  Base-first means cleaner dependency resolution everywhere and no Arch partial-upgrade
+  (`pacman -S <new>` on an un-`-Syu`'d system).
 
 ## Declined: a release-upgrade advisory
 

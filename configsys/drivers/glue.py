@@ -6,7 +6,7 @@ shell init — deployed as small snippets under the uniform `<config>/<shell>/co
 read their own config there — configsys/shells.py), plus
 the per-shell LOADERS that make each shell source that dir. It is the sibling of the dotfiles
 driver (`via: dotfiles`), which manages a component's own reposited CONFIG. The two were one driver
-historically; they are split so each is its own concern (and, later, its own TUI page).
+historically; they are split so each is its own concern (each with its own TUI screen).
 
 A `via: glue` binding is one of:
   * `glue: <name>`   — a snippet: link `shell/<shell>/<name>.<ext>` into
@@ -530,7 +530,7 @@ class Glue(Driver):
                         drift.append((shell, digest, cur))
         return drift
 
-    # -- conf.d load-order bands: legacy (unprefixed) link migration -----------------------------
+    # -- ownership: configsys's glue roots and conf.d links (+ legacy unprefixed links) ---------
 
     def _owned_glue_roots(self, rc=None):
         '''Every glue root configsys owns content in: the machine-local store, the primary plugin's
@@ -943,7 +943,7 @@ class Glue(Driver):
         self._record_launcher()                            # where the preludes' `configsys`/`cfs` run
         self._deploy_user_glue(shell)                      # scaffold + link the user.d namespace
         rc_rel = _SHELL_RC.get(shell)
-        if rc_rel is None:                                 # fish / nu: dir is the whole job
+        if rc_rel is None:                                 # fish (native conf.d): dir is the whole job
             return True
         rc_path = self._expand(rc_rel)
         if rc_path.is_symlink():                            # a captured/managed rc owns its source line
@@ -1011,8 +1011,9 @@ class Glue(Driver):
         prof.write_text(f'{_RC_BEGIN}\n{_BASH_PROFILE_BODY}\n{_RC_END}\n')
 
     def _remove_shell_loader(self, shell):
-        '''Remove our hookup for a shell: bash's ~/.bash_aliases link, or zsh's rc block. Leaves the
-        conf.d dir + any snippet content alone.'''
+        '''Remove our hookup for a shell: its rc marker block (bash/zsh/elvish/nushell; bash's old
+        ~/.bash_aliases link goes too). Fish has no rc block. Leaves the conf.d dir + any snippet
+        content alone.'''
         if getattr(self.runner, 'pretend', False):         # --pretend: write nothing
             return
         if shell == 'bash':

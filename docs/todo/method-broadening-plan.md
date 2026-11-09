@@ -1,6 +1,6 @@
 # Offer every working method — a `when:`-is-validity audit
 
-> **Status: IN PROGRESS** — Phase 1 done (8a15ff5, 2026-08-27); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d, 2026-08-27); Phase 2b flatpak backlog (foot/jmeter/racket/wine) and the pipx/npm ecosystem sweeps not started. Some routing reasoning below predates the 2026-10-10 routing changes (derived driver gates, aur after native, Homebrew as a ranked method) — see the dated notes.
+> **Status: IN PROGRESS** — Phase 1 done (8a15ff5, 2026-08-27); Phase 2 partly done (tools/regsweep.py + 4 identity-confirmed cargo adds, 9659a5d, 2026-08-27); Phase 2b flatpak backlog and the pipx/npm ecosystem sweeps not started. The 2026-11 catalog pass (cafbb91, 4ddf7f5, b147a36, 2026-11-08) added individually verified methods per component (pipx 28→34 bindings, cargo 29→30; flatpak and npm unchanged), not the ecosystem sweep. Of the 2b flatpak list, godot/olive/musescore already carried a Flathub binding (since 2026-07/08); foot, jmeter and racket still have none, and wine's Flathub build is an open call in docs/review-2026-11-2/catalog-decisions.md. Some routing reasoning below predates the 2026-10-10 routing changes (derived driver gates, aur after native, Homebrew as a ranked method) — see the dated notes.
 
 **Phase-1 result (8a15ff5):** the 18 gap-gated bindings below were
 broadened to universal validity — golden moved by exactly ONE new resolution (`qtile` now resolves on
@@ -169,7 +169,7 @@ GitHub upstream** (from a tarball/native-pkg-file/source `version: { github: …
 identity-confirmation kills name-collision risk: it correctly refused `btop`'s unrelated `btop`
 crate, `doppler`'s Go tool, `jq`/`godot`/`syncthing`/`prometheus`' same-named-but-different
 packages, and every window-manager/DE that can't be a flatpak. Run it with
-`PYTHONPATH=. CONFIGSYS_NO_DISCOVER=1 .venv/bin/python tools/regsweep.py --emit report.json`
+`PYTHONPATH=. .venv/bin/python tools/regsweep.py --emit report.json`
 (`--only cargo,pipx,flatpak` to scope). It buckets **confirmed / probable / rejected** with reasons.
 
 **Applied (commit):** 4 identity-confirmed cargo methods, each a canonical `cargo install` target:

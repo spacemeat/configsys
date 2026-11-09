@@ -1,8 +1,9 @@
 '''terminfo.py — read and write ncurses' compiled terminfo format, in pure Python.
 
 Just enough to derive a direct-color (`-direct`) entry from the terminal's own entry when the
-system has neither a `-direct` entry (those ship in `ncurses-term`) nor `tic` to compile one — the
-common case in minimal containers. screen.py tries `tic` first; this is the no-tic fallback.
+system has no `-direct` entry (those ship in `ncurses-term`) — without needing `tic`, which minimal
+containers lack. screen._build_direct_entry tries this first, and `tic` only for a database layout
+this reader doesn't handle (e.g. a hashed .db).
 
 The format (term(5)): a 12-byte header, the names, the standard booleans / numbers / string
 offsets / string table, then an optional EXTENDED section (user-defined caps like RGB, AX, kUP5)

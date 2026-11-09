@@ -1,4 +1,4 @@
-> **Status: REFERENCE** — the deferred-work list; reviewed 2026-10-09.
+> **Status: REFERENCE** — the deferred-work list; reviewed 2026-11-09.
 
 # Deferred work (method sweeps, 2026-08-08 onward)
 
@@ -6,7 +6,9 @@ Started as the 2026-08-08 batch: add C++ libs; sweep flatpak / snap / tarball / 
 appImage methods so users get "full options and control." That pass was offline, so this file
 collected what needed a networked check. Later passes verified most of it against the live
 flathub / snapcraft / GitHub / formulae.brew.sh APIs. The 2026-10-09 review checked every item
-against routes.hu, the drivers, the tests and git history. Each item is now in one of three places:
+against routes.hu, the drivers, the tests and git history, and the 2026-11-09 pass re-checked them
+after the 2026-11 review's catalog pass (cafbb91, b147a36, 4ddf7f5 — docs/review-2026-11-2/).
+Each item is now in one of three places:
 **Still deferred** (below, facts refreshed), **Done since deferral**, or **Dropped**. **Verify any
 upstream name before integrating** — names that haven't been verified came from training knowledge.
 
@@ -40,27 +42,28 @@ upstream name before integrating** — names that haven't been verified came fro
   non-GitHub `version: { url: }` source kind now exists (kubectl's tarball uses it), so an AppImage
   binding is unblocked. It just isn't worth much now that native exists.
 - **Vendor-URL-only methods the researcher set aside** (no GitHub release assets; each would need
-  a bespoke `url:` or is fine as-is): node (nodejs.org/dist tarball; has native + snap today), jdk
-  (Adoptium per-major repos + the generic capability; native today), maven/gradle (dlcdn.apache.org /
-  services.gradle.org; both have native + `sdkman` today), postman (rolling .deb; flatpak + snap
-  today), obs-studio AppImage (not upstream GitHub; flatpak + snap today), awscli/gcloud (vendor
-  installers; both are `script` today). See Done for the ones that got covered another way.
+  a bespoke `url:` or is fine as-is): node (nodejs.org/dist tarball; has native + snap + brew today),
+  jdk (Adoptium per-major repos; has native, SDKMAN's Temurin build (5d1ed09) and Corretto on Amazon
+  Linux today), maven/gradle (dlcdn.apache.org / services.gradle.org; both have native + `sdkman` +
+  brew today), postman (rolling .deb; flatpak + snap today), obs-studio AppImage (not upstream
+  GitHub; native + flatpak + snap today). See Done for the ones that got covered another way
+  (awscli and gcloud among them).
 - **Per-binding review of the `standing: 1` defaults** added when Flathub methods arrived (9a81e5b):
   android-studio (Google's tarball over the community flatpak), unityhub (Unity's vendor apt repo;
-  the public AppImage was retired, 5253afe), mitmproxy (pipx from PyPI over the flatpak; pinned to
-  python3.13 on debian, 1493dbc). Each `standing: 1` still holds. The open question is only whether
-  each is still the right default.
+  the public AppImage was retired, 5253afe), mitmproxy (pipx from PyPI over the flatpak; the
+  interpreter is pinned to python3.13 on Ubuntu < 24.04 (03c93a0) and python3.12 on EL < 10 and
+  Amazon Linux (cafbb91)). Each `standing: 1` still holds (rechecked 2026-11-09). The open question
+  is only whether each is still the right default.
 
 ### C++ lib coverage gaps
-- **boost / abseil / qt / gtk / gtkmm** are gated to debian/redhat/arch/alpine/void (qt and gtkmm
-  exclude amzn). Still missing:
-  - **openSUSE** names. Its dev packages are split/renamed (e.g. `libqt6-qtbase-devel`,
-    `libboost_headers-devel`), and none of the five carries a `zypper:` name yet.
-  - **brew** (`boost`, `abseil`, `qt`, `gtk4`, `gtkmm4`). All five still decline on fedora_atomic.
-    The names are verified: each is a homebrew/core formula with a Linux bottle, not keg-only
-    (formulae.brew.sh index, 2026-10-10). Add `{ via: native  when: "fedora_atomic" }` bindings
-    with those names — libraries get no `via: brew` binding elsewhere (the add-component rule).
-  - **gtkmm on alpine** (name unconfirmed, possibly `gtkmm4-dev`).
+- **brew for boost / abseil / qt on fedora_atomic.** All three still decline there (their native
+  bindings are gated to debian/redhat/arch/opensuse/alpine/void; qt also excludes amzn and EL < 9).
+  The names are verified: `boost`, `abseil` and `qt` are homebrew/core formulae with Linux bottles,
+  not keg-only (formulae.brew.sh index, 2026-10-10). Reach fedora_atomic the way gtk and gtkmm now do
+  — add `fedora_atomic` to the native binding's `when:` with a `brew:` name, or a
+  `{ via: native  when: "fedora_atomic" }` binding — since libraries get no `via: brew` binding
+  elsewhere (the add-component rule). (The openSUSE names, gtk/gtkmm on brew and gtkmm on Alpine
+  are done — see Done since deferral.)
 
 ### Desktop environments / window managers
 - **pantheon** — elementary OS's desktop is hard to install cleanly outside elementary. Debian and
@@ -68,9 +71,11 @@ upstream name before integrating** — names that haven't been verified came fro
   repos. The `elementary` OS block (`using: ubuntu`, 5c99ccd) now exists as its natural home. Still
   needs a per-distro decision (AUR on Arch? a `pantheon-session`/`pantheon-shell` metapackage that
   actually exists?) and verified names before adding.
-- **fvwm3** — `fvwm2` is now gated to `debian or void or void_musl` (name `fvwm`). Arch was dropped
-  in 03fa9b2 because it ships only the 3.x line. Fedora/openSUSE/Alpine/Arch carry 3.x as `fvwm3`
-  (or nothing). No `fvwm3` component exists. Add it as its own component if wanted.
+- **fvwm3** — `fvwm2` (the classic 2.x line) now routes natively on Debian/Ubuntu, Fedora, Alpine,
+  openSUSE and Void (`fvwm`; openSUSE `fvwm2`) and through the AUR `fvwm` on Arch, whose [extra]
+  ships only fvwm3 (b147a36). Upstream has put fvwm2 in maintenance mode and points users at fvwm3,
+  which Arch extra / Fedora / Debian package as `fvwm3`. No `fvwm3` component exists; whether to
+  add one is an open decision in docs/review-2026-11-2/catalog-decisions.md.
 
 ### Homebrew (brew) on fedora_atomic — names still to verify
 On fedora_atomic, brew is the `native:` manager. A component reaches it through a `brew: <formula>`
@@ -111,8 +116,21 @@ exists today).
 
 - **`ProfileScreen._warm_cache` thread-safety** (from docs/done/d2-mvvm-findings.md) — FIXED
   2026-10-10 (2a577c0): `_resolve`'s cache read/mutate runs under a per-instance `_res_lock`, and
-  `routes.candidates()` under the module-level `menu._ROUTES_LOCK`, so two profile views over one
-  ctx can't race.
+  `routes.candidates()` under the process-wide `_ROUTES_LOCK` (taken through `_routes_lock(ctx)`),
+  so two profile views over one ctx can't race. Both now live in `configsys/tui/panes.py` (the TUI
+  split; `menu._ROUTES_LOCK` still resolves through the facade).
+
+- **2026-11-08, the 2026-11 review's catalog pass (from Still deferred).**
+  - C++ libs on openSUSE: `boost-devel`, `abseil-cpp-devel`, `gtk4-devel`, `gtkmm4-devel`
+    (cafbb91) and `qt6-base-devel` (b147a36) — all five now route there.
+  - gtk and gtkmm on fedora_atomic, through brew's `gtk4` / `gtkmm4` as native names (cafbb91).
+  - gtkmm on Alpine: `gtkmm4-dev` (cafbb91).
+  - clang-tidy on brew: a `{ via: brew  name: llvm }` binding (4ddf7f5), since the `llvm` formula
+    ships clang-tidy.
+  - awscli: native on Fedora, EL 9+, Arch, Alpine, Debian 12+ and Ubuntu 26.04+ (cafbb91), plus
+    brew (ec59455); the vendor installer stays as a `script` method.
+  - gcloud: Google's own apt and dnf repos as native methods, plus AUR and snap (b147a36); the
+    vendor installer stays as a `script` method.
 
 - **2026-08-08, d98f306 — C++ libs + 3 flatpaks.** `boost`, `abseil`, `qt` (Qt6), `gtk` (GTK4),
   `gtkmm` natively; `folly` (Fedora native + Arch AUR); `eastl` (Arch AUR). Flatpak for `emacs`
@@ -210,9 +228,9 @@ exists today).
   1c1a5d5 / a77177d: xh and websocat flipped; tree-sitter-cli keeps cargo via `standing: 1`.
 - **Snap-vs-native for `code`** — moot, because snap's driver-wide `standing: never-auto` keeps it
   from ever being the automatic choice.
-- **brew for clang-tidy / texlive-full / opencv-python** — no standalone formula (they ship inside
-  `llvm` / `texlive` / `opencv`). All three decline on fedora_atomic by design, and `clang` already
-  maps `brew: llvm`.
+- **brew for texlive-full / opencv-python** — no standalone formula (they ship inside `texlive` /
+  `opencv`), so both decline on fedora_atomic by design. (clang-tidy, once on this list, now routes
+  through brew's `llvm` formula — see Done.)
 - **brew for julia / odin / bun / p7zip / strace / virt-manager / qjackctl / traceroute** — resolved
   in 5691a43 (verified, renamed to `sevenzip`, or declined). Nothing left to add.
 

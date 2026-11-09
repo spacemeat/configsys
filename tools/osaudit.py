@@ -34,7 +34,8 @@ Subcommands:
   compare F                      what changed since a snapshot, per release — the guard that an edit
                                  for a new release left the older releases resolving as before
 
-Every subcommand takes --json. Core routes.hu only (a plugin OS line: tools/namesweep.py --plugin).
+Every subcommand takes --json and --routes F (read F instead of the repo's routes.hu — e.g. a
+snapshot of HEAD). Core routes.hu only (a plugin OS line: tools/namesweep.py --plugin).
 '''
 
 import argparse
@@ -787,35 +788,40 @@ def _emit(data, as_json, render):
 def main(argv=None):
     parser = argparse.ArgumentParser(prog='osaudit', description=__doc__.split('\n\n')[0])
     sub = parser.add_subparsers(dest='cmd', required=True)
-    p = sub.add_parser('releases')
+    p = sub.add_parser('releases', help='the release registry per line + staleness')
     p.add_argument('lines', nargs='*')
-    p.add_argument('--today', default=datetime.date.today().isoformat())
-    p = sub.add_parser('delta')
+    p.add_argument('--today', default=datetime.date.today().isoformat(),
+                   help='judge EOL / release dates as of this ISO date (default: today)')
+    p = sub.add_parser('delta', help='offline: how resolution differs between two releases of a line')
     p.add_argument('line')
     p.add_argument('old')
     p.add_argument('new')
-    p = sub.add_parser('pinned')
+    p = sub.add_parser('pinned', help="bindings whose `when:` bounds the line's version, and the "
+                                     'releases each covers')
     p.add_argument('lines', nargs='*')
     p.add_argument('--all', action='store_true', help='also list plain lower bounds (`>= N`)')
-    p = sub.add_parser('repos')
+    p = sub.add_parser('repos', help="network: probe a release's release-dependent repos, keys and PPAs")
     p.add_argument('line')
     p.add_argument('release')
-    p = sub.add_parser('sweep')
+    p = sub.add_parser('sweep', help='podman: the native-name sweep per release, with retirements and '
+                                    'arrivals')
     p.add_argument('line')
     p.add_argument('releases', nargs='*')
-    sub.add_parser('fixtures')
-    p = sub.add_parser('facts')
+    sub.add_parser('fixtures', help="golden contexts, namesweep's releases and Containerfile defaults "
+                                    "vs the registry's newest live releases")
+    p = sub.add_parser('facts', help="podman: read a release's facts from its image and print a "
+                                    'registry entry')
     p.add_argument('line')
     p.add_argument('release')
     p.add_argument('--image', help='an image to read instead of the registry entry\'s')
-    p = sub.add_parser('snapshot')
+    p = sub.add_parser('snapshot', help="save every component's resolution per release (default: live)")
     p.add_argument('line')
     p.add_argument('releases', nargs='*')
-    p.add_argument('--out', required=True)
-    p = sub.add_parser('compare')
+    p.add_argument('--out', required=True, help='the snapshot file to write')
+    p = sub.add_parser('compare', help='what changed per release since a snapshot')
     p.add_argument('snapshot')
     for sp in sub.choices.values():
-        sp.add_argument('--json', action='store_true')
+        sp.add_argument('--json', action='store_true', help='print as JSON')
         sp.add_argument('--routes', help='a routes.hu to read instead of the repo\'s (e.g. a '
                         'snapshot of HEAD: `git show HEAD:routes.hu > F`)')
     args = parser.parse_args(argv)

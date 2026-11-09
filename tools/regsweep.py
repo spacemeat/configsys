@@ -2,8 +2,8 @@
 """regsweep — registry-existence sweep for the method-broadening plan (Phase 2).
 
 Parallel to tools/namesweep.py (which checks NATIVE package names). This tool checks the
-*language/app* registries — crates.io, PyPI, npm, Flathub — to find components that could
-ALSO offer a universal install method (cargo/pipx/npm/flatpak) they don't list yet, and
+*language/app* registries — crates.io, PyPI, Flathub — to find components that could ALSO
+offer a universal install method (cargo/pipx/flatpak) they don't list yet, and
 verifies each candidate against the registry so we ADD only real, correctly-named methods.
 
 The disambiguator is IDENTITY CONFIRMATION, not name-guessing: a candidate is only "confirmed"
@@ -11,10 +11,11 @@ when the registry entry's upstream repository matches the component's own declar
 upstream (from a tarball/native-pkg-file/source binding's `version: { github: … }`). That
 kills name-collision risk (npm/pypi/crates all have unrelated same-named packages). Candidates
 that plausibly match but can't be identity-confirmed land in a `probable` bucket for human review
-rather than being auto-applied.
+rather than being auto-applied. (An npm probe exists — npm_probe — but npm isn't swept yet.)
+Registry GETs go through compaudit's disk-cached, throttled Fetcher.
 
 Usage:
-    python tools/regsweep.py [--emit report.json] [--only cargo,flatpak,pipx,npm]
+    python tools/regsweep.py [--emit report.json] [--only cargo,pipx,flatpak]
 Networked; safe to run anytime. Prints a summary; --emit writes the full JSON report.
 """
 import argparse
@@ -252,9 +253,10 @@ def sweep(catalog, only):
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('--emit')
-    ap.add_argument('--only', help="comma list: cargo,pipx,flatpak")
+    ap = argparse.ArgumentParser(description='find universal install methods (cargo/pipx/flatpak) '
+                                             'components could add, identity-confirmed')
+    ap.add_argument('--emit', help='also write the full JSON report to this file')
+    ap.add_argument('--only', help='comma list of methods to sweep: cargo,pipx,flatpak (default: all)')
     a = ap.parse_args()
     only = set(a.only.split(',')) if a.only else None
     cat = load_catalog()

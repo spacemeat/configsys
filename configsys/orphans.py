@@ -6,9 +6,11 @@ account for at all?" — so the user can track it, remove it, or dismiss it.
 
 An orphan has two orthogonal fields (see docs/orphans.md):
   * kind   — WHAT it is, one of KINDS, chosen by a priority ladder (most-actionable first):
-               lurking   — installed, has a recipe, lives in some profile, but isn't tracked here.
-               forgotten — installed, has a recipe, but sits in no profile at all.
-               foreign   — installed, but NO cf recipe matches the key (user-facing drivers only).
+               lurking   — installed, maps to a component that sits in some profile, but isn't
+                           picked here.
+               forgotten — installed, maps to a component, but that component is in no profile.
+               foreign   — installed, but NO component maps the key (user-facing drivers only,
+                           unless include_foreign_native).
   * ignored — a STATUS overlay (the `orphans-ignore:` list), orthogonal to kind; an ignored orphan
               keeps its kind, it's just filtered out of the default surfaces.
 
@@ -23,9 +25,9 @@ from .adapt import to_resolved_component
 from .drivers import get_driver
 from .resolve import candidate_bindings, unit_for_binding
 
-# Drivers whose FOREIGN (no-recipe) installs we still list — deliberate user-app installs, few in
+# Drivers whose FOREIGN (no-component) installs we still list — deliberate user-app installs, few in
 # number. Native package managers and language module installers are NOT here: they carry hundreds of
-# dependency packages, so for them we only ever list the KNOWN intersection (a matched recipe).
+# dependency packages, so for them we only ever list the KNOWN intersection (a mapped component).
 USER_FACING = ('flatpak', 'snap')
 
 # priority ladder: index 0 is the most actionable, chosen first when a key maps to several kinds.

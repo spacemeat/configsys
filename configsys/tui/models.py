@@ -63,7 +63,7 @@ class Node:
         self.driver = driver
         self.expandable = expandable
         self.expanded = expanded
-        self.link_target = link_target   # id of a profile node this LINK jumps to (item 1)
+        self.link_target = link_target   # id of the profile node this LINK jumps to
         self.parent = None               # set by _build_tree (for collapse-to-parent)
         self.children = []
 
@@ -218,7 +218,7 @@ class MenuState:
     def _build_tree(self):
         roots = []
         # profiles reached via a `+include` (so `p:<ref>` is a link target) — used to drop an
-        # excluded subprofile's now-empty top-level node without hiding a user's own active profile.
+        # excluded subprofile's now-empty top-level node without hiding a top-level profile group.
         include_targets = {ref for _p, items in self.layouts
                            for kind, ref in items if kind == 'include'}
         for profile, items in self.layouts:
@@ -801,7 +801,8 @@ def _row_component(node):
     '''The component name at a row, or None for a profile row. A UNIT row's TRUE component comes from
     its member — a dependency unit is grouped under the component that requested it, so its id encodes
     the REQUESTER's name (`u:<profile>:<requester>:<unit-key>`), not its own. So an action on a
-    dep row (e.g. `m`/`P` on cuda-toolkit-12 nested under blender) targets the dep, not the requester.
+    dep row (e.g. the `method` picker or `where` on cuda-toolkit-12 nested under blender) targets the
+    dep, not the requester.
     Component-group / profile rows carry their own name in the id (`c:<profile>:<name>`).'''
     if node is None:
         return None
@@ -812,9 +813,9 @@ def _row_component(node):
 
 
 def _describe(ctx):
-    '''{component name -> one-line description}, built ONCE per menu build. `ctx.routes` rebuilds a
-    Resolver (re-parsing routes.hu) on EVERY access, so this must never be called per-row/per-frame
-    — cache it on the MenuState and look up from the dict in the draw loop.'''
+    '''{component name -> one-line description}, built ONCE per menu build. `ctx.routes` is memoized
+    (until `invalidate()`), but walking every component per row/per frame is still waste — cache it on
+    the MenuState and look it up from the dict while painting.'''
     try:
         return {name: c.description for name, c in ctx.routes.components.items()}
     except Exception:   # noqa: BLE001 — a resolve hiccup shouldn't blank the whole screen
@@ -833,8 +834,9 @@ def _is_companion_comp(routes, comp):
 
 def _group_by_owner(cfg, scope):
     '''(layouts, transitive) for a set of component names, grouped under each component's OWNING
-    system profile (profile_own_components — the DECLARING profile, not one that merely +includes it),
-    deterministic + deduped; anything in no system profile falls under a synthetic `(other)` group.'''
+    profile (profile_own_components — the DECLARING profile, not one that merely +includes it; the
+    synthetic `!` lenses skipped), deterministic + deduped; anything in no profile falls under a
+    synthetic `(other)` group.'''
     scope = set(scope)
     layouts, transitive, placed = [], {}, set()
     for p in sorted(cfg.profile_names()):
@@ -848,7 +850,7 @@ def _group_by_owner(cfg, scope):
             layouts.append((p, [('component', c) for c in mem]))
             transitive[p] = mem
             placed.update(mem)
-    orphan = sorted(scope - placed)                    # in no system profile
+    orphan = sorted(scope - placed)                    # in no profile
     if orphan:
         layouts.append(('(other)', [('component', c) for c in orphan]))
         transitive['(other)'] = orphan
@@ -867,7 +869,8 @@ _TODO_STATUSES = ('missing', 'outdated', 'switch', 'unmet', 'dangling', 'error',
 
 
 def _components_model(ctx, cfg, states, mode, caches=None):
-    '''Build (states, layouts, transitive) for the Components tree in `mode`:
+    '''Build (states, layouts, transitive) for the Components tree in `mode` (COMPONENT_MODES; the
+    session starts in 'to-do'):
       'tracked'            — this machine's picked set (requested()).
       'installed+tracked'  — the picked set PLUS installed-but-untracked components (mapped to
                              recipes); the extras are resolved + inspected and folded into `states`.
@@ -876,7 +879,7 @@ def _components_model(ctx, cfg, states, mode, caches=None):
                              installed via a method routes no longer offer, `i` swaps it; `unmet` /
                              `dangling` — no usable method here, untrack it or re-enable the driver;
                              docs/stranded-installs.md), or a staged-for-uninstall component still
-                             present. Fully-green components (and thus now-empty profiles) are omitted.
+                             present. Fully-green components (and thus now-empty profile groups) are omitted.
     Returns the (possibly extended) states plus the grouped layouts/transitive.'''
     tracked = set(cfg.requested())
     queue = set(cfg.uninstall_queue())
@@ -922,7 +925,7 @@ def _components_model(ctx, cfg, states, mode, caches=None):
             present[c] = present.get(c, False) or st.present
         scope = {c for c in tracked if actionable.get(c)}          # tracked but not green
         scope |= {c for c in queue if present.get(c)}              # staged-uninstall, still installed
-    else:                                              # 'tracked' (default)
+    else:                                              # 'tracked'
         scope = tracked
 
     scope = {c for c in scope if not _is_companion_comp(ctx.routes, c)}   # -dotfiles/-glue: their own pages

@@ -168,5 +168,5 @@ docker, AppImages → distrobox/podman/rpm-ostree). `--os`-forcing a non-atomic 
 5. ⏳ Container validation where possible (a Bazzite/Silverblue image in podman for read-only
    query paths; layering/reboot can only be smoke-tested).
 
-Related: [[routing-model.md]] (binding selection this leans on), the `native:`-per-OS mechanism,
+Related: [routing-model.md](../routing-model.md) (binding selection this leans on), the `native:`-per-OS mechanism,
 and the parked macOS/brew note.

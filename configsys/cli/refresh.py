@@ -170,8 +170,9 @@ def _offer_rekey(ctx, pm, output, owned, native_cmd, *, ask=None):
 
 def _orphaned_managed_sources(ctx, wanted, disk_files):
     '''[(source-file, component)] for configsys-managed sources on disk whose OWNING component is not
-    in `wanted` (the resolved/active set) — a source left behind by a component you removed from your
-    config (its stale .list/.repo still breaks the package manager). Pure. Foreign files (not in any
+    in `wanted` (the resolved picks + every component still installed — `_installed_owners`) — a
+    source left behind by a component you dropped and removed (its stale .list/.repo still breaks the
+    package manager). Pure. Foreign files (not in any
     route's source-path) are never included.'''
     owned = _owned_index_sources(ctx)                    # {path: component}, all routes
     return sorted((f, owned[f]) for f in disk_files if f in owned and owned[f] not in wanted)
@@ -203,7 +204,7 @@ def _installed_owners(ctx):
 
 def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
     '''Phase 3 reconciliation (advisory, component-scoped): offer (prompt, plan Q1) to remove
-    configsys-managed apt/dnf sources whose owning component is no longer in the active config — the
+    configsys-managed apt/dnf sources whose owning component is neither picked nor installed — the
     stale-source cleanup that closes the loop on "I removed the component but its broken source keeps
     breaking apt". Returns the number removed. Never touches a foreign source (plan Q4). `ask`/
     `lister` are injectable for tests.'''
@@ -440,8 +441,8 @@ def cmd_refresh(ctx, args=None):
                 # configsys-managed source and retry. Foreign sources are never touched.
                 if _offer_rekey(ctx, pm, res.output, owned, native):
                     ok = True
-        # P3 reconciliation: offer to remove stale managed sources whose owning component is no
-        # longer in your config. If an orphan like that was WHY the refresh failed, cleaning it up
+        # P3 reconciliation: offer to remove stale managed sources whose owning component is
+        # neither picked nor installed any more. If an orphan like that was WHY the refresh failed, cleaning it up
         # fixes it — so re-run the index once after a removal.
         wanted = {units[k].comp for k in units} | _installed_owners(ctx)
         if _reconcile_managed_sources(ctx, pm, wanted) and not ok:

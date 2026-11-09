@@ -2,8 +2,13 @@
 
 For each resolved unit, dispatch to its driver (if supported) to read installed
 version, latest/candidate version, and native lock state; union the native lock
-with the ledger's lock intent. Unsupported drivers (not yet implemented in M1)
-degrade to an 'unsupported' state rather than crashing. Inspection is read-only.
+with the ledger's lock intent. A `via` with no registered driver degrades to an
+'unsupported' state (unknown driver) or 'untrusted' (a declared code plugin that would provide it
+isn't loaded — untrusted or ABI-incompatible) rather than crashing. Inspection is read-only.
+
+Also here: detect_coexisting (the "also present" pass over a component's other candidate methods)
+and the method-switch swap planning — superseded_installs / plan_with_swaps (a `remove` of the old
+method's install, incl. stranded.find's) and plan_companion_cleanup (the glue companions it leaves).
 '''
 
 import re

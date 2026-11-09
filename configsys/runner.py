@@ -42,7 +42,7 @@ _SANE_TERM = ('\x1b[?1049l\x1b[?25h\x1b[0m\x1b[?7h\x1b[?1000l\x1b[?1002l\x1b[?10
 # change its modes); those are undone in `finally` on a normal/exception exit. But SIGTERM/SIGHUP
 # terminate the process WITHOUT running finally, leaving the terminal wedged (raw, no echo — you'd need
 # `reset`). These guards re-run the restoration on a fatal signal or at interpreter exit. (SIGKILL is
-# uncatchable — nothing to do there; both real fixes above just remove the reason to send one.)
+# uncatchable — nothing to do there.)
 _TERM_GUARDS = []            # stack of zero-arg restore callables, run on SIGTERM/SIGHUP/atexit
 _TERM_HOOKS = False
 
@@ -175,8 +175,8 @@ class Result:
         # overwrite un-adopted config), NOT a bug — the app explains it instead of offering `report`.
         self.advisory = advisory
         # failure taxonomy (failures.py): a driver may set these explicitly (it knows best); else
-        # they're inferred lazily from the output by `classified()`. Advisory only — see docs/
-        # driver-resilience-plan.md.
+        # they're inferred lazily from the output by `classified()`. Advisory only — see
+        # docs/done/driver-resilience-plan.md.
         self.category = category
         self.remediation = remediation
 
@@ -201,7 +201,7 @@ class Result:
     @classmethod
     def fail(cls, reason, returncode=1, category=None, remediation=None):
         '''A pre-flight failure with NO command run: the reason rides in stderr so it flows to
-        the TUI summary (_fail_detail) and the report's Driver output — instead of being stuffed
+        the TUI summary (actions.fail_detail) and the report's Driver output — instead of being stuffed
         into `cmd`, where neither looks. `cmd` stays empty so the report shows no spurious
         Command block. A driver that knows the failure kind can tag it (category/remediation).'''
         return cls('', returncode, stderr=reason, category=category, remediation=remediation)
@@ -546,7 +546,7 @@ class Runner:
                     # Top-level privileged op: warm the credential ONCE for the batch, then run on the
                     # REAL tty (capturing stdout via a pipe) so the pre-authed ticket applies. A pty'd
                     # op (the tee path) would be a DIFFERENT tty and, under tty_tickets, re-prompt on
-                    # every op — the cascade the user hits. Falls back to plain streaming if pre-auth
+                    # every op. Falls back to plain streaming if pre-auth
                     # fails (couldn't cache creds -> it may prompt per-op, but nothing wedges).
                     if self._ensure_sudo():
                         try:

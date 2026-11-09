@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Gated (slow, networked) Fedora toolchain integration: installs versioned gcc/clang
-# compat packages through configsys in throwaway fedora containers (each release the script loops
-# over) and asserts
-# the Fedora acquisition model (versioned binaries, no update-alternatives).
+# compat packages through configsys in throwaway fedora containers (one per release it loops
+# over) and asserts the Fedora acquisition model (versioned binaries, no update-alternatives).
 #
-# Usage: bash test/run-fedora-toolchain-in-podman.sh
+# Usage: bash test/run-fedora-toolchain-in-podman.sh [REL ...]   (releases to loop over; default 43 44 45)
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

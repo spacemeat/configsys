@@ -1,18 +1,15 @@
 '''config.py — the Config (machine settings) screen as a Screen (build_vm/draw/handle).
 
-Migrated off the monolithic menu.py painter (docs/done/d2-mvvm-plan.md), mirroring the Plugins
-pattern-setter. The model is the existing `menu.ConfigScreen` (the settings catalog + cursor/scroll),
-composed unchanged; this adds the three MVVM seams:
+The model is `panes.ConfigScreen` (the settings catalog + cursor/scroll), composed as `self.model`;
+this adds the three MVVM seams (docs/tui-architecture.md):
 
 - build_vm: computes the PURE per-setting content — name, value string, the (state text, role) of the
   `default` column, the (store name, suffix, role) of the `store` column, the word-wrapped description
   lines and the man ref — plus the status/nav strings and the has_primary flag. No curses, no panel
   geometry (the wrap width is the one size-derived input, and it follows from `size` alone).
 - draw: lays the content out (panel rect, the vx/dx/ex column math, the keep-cursor-in-view scroll
-  written back to the model, scrollbar) and paints it. It reproduces menu._draw_config cell for cell,
-  which test_screen_config pins against the legacy painter.
-- handle: the former `if screen == 'config'` dispatch, returning an Intent (note / dirty / goto)
-  instead of mutating loop-scope locals.
+  — recorded with vm.settle, applied by commit — and the scrollbar) and paints it.
+- handle: one key, returning an Intent (note / dirty / goto) for the router.
 '''
 
 import os
@@ -203,9 +200,8 @@ class ConfigScreen(Screen):
 
     def handle(self, ch, ctx, stdscr, pal):
         '''One key. Mutates the model, runs the edit modals, returns an Intent(note, dirty, goto).
-        Ported verbatim from the former config dispatch: `theme` -> goto='theme'; move / bool / scope /
-        driver-preference / dir / other-list edits mark the tree dirty; splash / effects / scalar
-        edits deliberately do not.'''
+        `theme` -> goto='theme'; move / bool / scope / driver-preference / dir / other-list edits mark
+        the tree dirty; splash / effects / fixed-choice / scalar edits deliberately do not.'''
         from ... import actions
         cs = self.model
         km = menu._keymap()
@@ -286,7 +282,7 @@ class ConfigScreen(Screen):
                         cs.reload()
                 elif key == 'effects':              # motion level: auto (unset) / full / reduced / none
                     opts = [('auto', '(SSH → reduced, else full)'), ('full', '(gradient + splash)'),
-                            ('reduced', '(no gradient; calmer splash)'), ('none', '(no gradient/splash)')]
+                            ('reduced', '(no gradient; calmer splash)'), ('none', '(no gradient; plain progress bar)')]
                     names = [o[0] for o in opts]
                     cur = info['value']             # 'full' | 'reduced' | 'none' | None (auto)
                     cur_idx = names.index(cur) if cur in names else 0

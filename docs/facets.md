@@ -9,8 +9,8 @@ is any other *detected* fact about the machine — GPU vendor, an installed tool
 feature — so a binding can be gated on hardware / environment, not just the OS. Like every `when:`,
 a facet atom states **validity only** (does this method work here), never preference.
 
-Facets generalize the `cpu:` atom: cpu is simply the categorical facet named `cpu`
-(`predicate.Cpu` = `Categorical('cpu', …)`; the Context folds the machine cpu into
+Facets generalize the `cpu:` atom: cpu is simply the categorical facet named `cpu` (a `cpu:` atom
+parses to `predicate.Categorical('cpu', …)`, and `predicate.Context` folds the machine cpu into
 `facets_cat['cpu']`). Nothing here is CUDA-specific; the shipped customers are the GPU-variant
 source builds in the configsys-opencv and configsys-blender plugins.
 
@@ -43,7 +43,8 @@ facets: {
 
 **Facets are command-carrying data.** A `detect:` probe runs on every resolve/startup with no user
 action, so `routes.load` merges a plugin's (or the primary's) `facets:` only when that plugin's content
-is trusted (`command_trust` → `plugins.command_source_trusted`); an untrusted plugin's facets are
+is trusted (`command_trust` → `plugins.command_source_trusted`; a load with no `command_trust` at
+all fails closed for plugin, primary and include layers); an untrusted plugin's facets are
 dropped with a warning naming `configsys plugin trust`, and `plugin trust` accepts a data-only plugin
 whose only executable data is a facet probe (`plugins.ships_executable_data`). The repo's always
 merge. An `include:`d file carries its includer's trust: a file inside a synced plugin needs that
@@ -78,7 +79,8 @@ A facet's value comes from, in precedence order (`routes.detect_facets`):
 3. **probe** — the declaration's `detect:`, classified per `kind`.
 
 Probes are read-only and cached per process (keyed on the specs + overrides), so repeated Resolver
-builds don't re-probe. `--pretend` still probes, so a dry run reflects reality. No `facets:`
+builds don't re-probe; `configsys refresh` clears the cache (`routes.clear_facet_cache`), so a new
+GPU or CUDA is probed afresh. `--pretend` still probes, so a dry run reflects reality. No `facets:`
 declared anywhere → no probing at all.
 
 ## Gating on facets in `when:`
@@ -89,7 +91,10 @@ declared anywhere → no probing at all.
   atom. Disambiguation is at EVAL time (`predicate.Os.eval`): if the name isn't in this machine's OS
   lineage and a version facet of that name was detected, compare the facet's version; otherwise it's
   an OS atom (in-lineage, scale-bound). An absent facet → false. `routecheck` exempts names in the
-  declared `facets:` from its unknown-OS-atom check. A bare facet name (no comparison) is never true.
+  declared `facets:` from its unknown-OS-atom check. A bare facet name (no comparison) is never true,
+  and `check` warns on one (`bare-facet`, naming the `gpu:<value>` / `cuda >= <version>` form). A
+  facet named like an OS block is a `check` warning too (`routecheck.facet_name_issues`): the same
+  atom would read as the OS on that lineage and as the facet elsewhere.
 
 Shipped use — configsys-opencv adds from-source `opencv` methods, each its own `via:`, beside base's
 native package (which stays the default; you reach a build by pinning it, so hardware never triggers

@@ -106,13 +106,31 @@ Commit, sync, and ask configsys about it:
 $ ./configsys.sh --os examplos where toychest
   ...
   bindings
-    - via toybox   when: examplos  <- default here
+    - via toybox   when: examplos  (not a candidate: it comes from an untrusted plugin layer and via: toybox is a driver configsys only runs from trusted layers — review the plugin, then `configsys plugin trust`)
+
   on examplos (x86_64):
-    toybox\toychest  pkg toychest
+    ERROR: no binding for toychest in this context; ...
 ```
 
-Everything so far is data. If `toybox` were a package manager configsys already shipped, **you'd
-be done** — no code at all. It isn't, so we teach configsys how to drive it.
+That's **trust** at work. A plugin you haven't approved may define anything, but configsys only
+acts on its bindings for drivers that install a package by name from a registry your system
+already trusts — the native package managers, flatpak, snap, brew. Any other driver could run,
+build or download code, so its bindings wait. `plugin list` says the same thing:
+
+```console
+$ ./configsys.sh --os examplos plugin list
+  configsys-examplos     /home/you/configsys-examplos
+                         ok  [ships recipes — untrusted; run: configsys plugin trust configsys-examplos]
+                         provides: components, os
+```
+
+(No manifest yet, so the plugin goes by its directory name.) Don't trust it yet: trust pins the
+plugin's exact content, so it would only re-arm the moment you add the driver. You'll approve the
+finished plugin in Stage 5.
+
+Everything so far is data. If `toybox` were a package manager configsys already shipped (apt,
+dnf, xbps, …), **you'd be done** — no code, and no trust needed for a binding that just names a
+package. It isn't, so we teach configsys how to drive it.
 
 ---
 
@@ -152,8 +170,8 @@ The rules, and there are only a few:
 
 The commands themselves are the *only* part that's fictional. Swap `toybox add` for `apt-get
 install`, `dnf install`, `pacman -S`, `nix-env -i`, whatever your real manager wants. The shape
-doesn't change. (In fact, configsys's own Alpine, openSUSE and Void drivers began life as plugins
-shaped exactly like this one, then graduated into the base tool.)
+doesn't change. (In fact, configsys's own Alpine and Void drivers began life as plugins shaped
+exactly like this one, then graduated into the base tool.)
 
 The full `driver.py` in this directory has a couple of nice touches worth a look — a parser that
 refuses to let `widget-extras` answer a query for `widget`, and a real `lock`/`unlock` — but the
@@ -196,23 +214,34 @@ $ ./configsys.sh --os examplos plugin sync
 $ ./configsys.sh --os examplos plugin list
   examplos               /home/you/configsys-examplos
                          ok  [ships code — untrusted; run: configsys plugin trust examplos]
+                         provides: components, os, drivers
 ```
 
-The *data* still loads — the `examplos` OS block and `toychest` resolve exactly as before. But the
-`toybox` driver isn't registered yet, so anything installed through it shows the `untrusted` status
-(never a crash), and `check` nudges you to trust the plugin. Trust it and the code registers:
+(The manifest's `name: examplos` names the plugin now.) The *data* still loads — `btop` still
+routes to `toybox\btop`, and `toychest` still waits for trust as in Stage 2. But the `toybox`
+driver isn't registered yet, so a unit that needs it, like `toybox\btop`, shows the `untrusted`
+status in `inspect` (never a crash), and `check` nudges you to trust the plugin. Trust it and the
+code registers:
 
 ```console
 $ ./configsys.sh --os examplos plugin trust examplos
-configsys: trusted examplos @ bd14ddac0922 — its code will run
+configsys: trusted examplos @ 55c32248379a — its code + recipes will run
 $ ./configsys.sh --os examplos plugin list
   examplos               /home/you/configsys-examplos
                          ok  [code trusted]
+                         provides: components, os, drivers
+$ ./configsys.sh --os examplos where toychest
+  ...
+  bindings
+    - via toybox   when: examplos  <- default here
+
+  on examplos (x86_64):
+    toybox\toychest  pkg toychest
 ```
 
-Trust binds to a **content hash**, not a version tag. Change one byte of `driver.py` and the trust
-re-arms — you'll be asked to approve it again. That's the point: you're trusting *this exact code*,
-not a name.
+Trust binds to a **content hash**, not a version tag. Change one byte of any file in the plugin —
+`driver.py`, `routes.hu`, the manifest — and the trust re-arms; you'll be asked to approve it
+again. That's the point: you're trusting *this exact content*, not a name.
 
 ---
 
@@ -252,6 +281,10 @@ $ ./configsys.sh --os examplos where nmap
     nothing                          # {} -> dropped, not an error
 ```
 
+That edit changed the plugin's content, so after the sync `plugin list` asks you to re-approve
+it (`code changed since trust`). Run `./configsys.sh plugin trust examplos` again before you
+install anything through toybox.
+
 How do you *know* which names are wrong? You don't guess — you run the name sweep against a real
 container image and let it tell you. That's exactly how the real Void plugin's map was built
 (`tools/namesweep.py --plugin`). ExamplOS has no image to check against, being imaginary, so its
@@ -276,7 +309,7 @@ To share it, push the repository somewhere and swap your own declaration over to
 copy with `./configsys.sh plugin add github:you/configsys-examplos --replace`; others run
 `./configsys.sh plugin add github:you/configsys-examplos`. (Trust re-arms if the content differs.)
 If your driver turns out to be broadly useful, it can graduate into base configsys — which is
-precisely the path Alpine, openSUSE and Void took.
+precisely the path Alpine and Void took.
 
 Now go teach configsys about *your* OS. Swap the toybox commands for your real package manager,
 point `using:` at the closest base family, and let the sweep keep your names honest.

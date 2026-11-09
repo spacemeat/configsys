@@ -58,8 +58,8 @@ _RULES = [
      "a download failed (network, or the upstream URL is unavailable) — retry, or the route may "
      "need updating if the URL moved."),
     # a shell's "brew: command not found" (bash) / "sh: 1: brew: not found" (dash): the step's own tool
-    # isn't on PATH — before the 404 rule, whose HTTP "Not Found" is matched case-sensitively so this
-    # and pacman's "target not found" aren't read as a vanished URL
+    # isn't on PATH — before the generic "Not Found" rule below, which matches case-sensitively so
+    # this and pacman's "target not found" aren't read as a vanished URL
     (re.compile(r'command not found|^\S*sh: (?:line )?\d+: \S+: not found', re.M), DEPENDENCY,
      "a command this step runs isn't installed, or isn't on PATH — install it (or open a new shell "
      "so its PATH setup applies) and retry."),

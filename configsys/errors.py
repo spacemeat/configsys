@@ -10,5 +10,6 @@ class ConfigsysError(Exception):
 
 
 class ConfigError(ConfigsysError):
-    '''A problem in the user's config/routes data (bad file, unresolvable name).'''
+    '''A problem in the user's config/routes data (a bad file, a malformed definition). An
+    unroutable component name is a resolve.ResolveError.'''
 

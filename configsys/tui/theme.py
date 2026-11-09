@@ -1,6 +1,6 @@
 '''theme.py — color for the TUI, 24-bit when the terminal allows it.
 
-The model is two tiers (see docs/done/theme-redesign.md):
+The model is two tiers (spec: docs/theming.md):
 
 - a shared **color map** — a name -> #rrggbb dict (`theme.colors`); and
 - **pages** — each screen's ROLES carry a style `{ fg, bg, bold, underline, reverse }` where fg/bg
@@ -12,7 +12,8 @@ re-tints every role that references it. Every page gets a distinct default gradi
 
 Rendering: true 24-bit via `curses.init_color` when the terminal can change colors (or a
 direct-color terminal where the color number IS the packed RGB); otherwise the xterm-256 cube, or
-the basic 8. The diagonal background GRADIENT is only painted under true 24-bit. `Palette.color_mode`
+the basic 8. The diagonal background GRADIENT is only painted under true 24-bit with `effects: full`
+(or unset), and a page whose `gradient:` isn't off. `Palette.color_mode`
 names what the terminal actually gave us (shown on the Theme screen).
 '''
 
@@ -29,9 +30,8 @@ COLOR_MAP = {
     # routing statuses (stranded.py): installed via a method routes no longer offer (switch), only a
     # disabled driver could install it (unmet), no method on this OS at all (dangling)
     'switch': (240, 150, 210), 'unmet': (175, 155, 110), 'dangling': (205, 110, 140),
-    # orphan install-axis overlay (TUI::Profiles): the colour for an installed-but-untracked component
-    # (⊙) and a staged-for-uninstall one (⮾). (The old per-kind excluded/forgotten/foreign hues went
-    # with user-profile authoring — the matrix model only distinguishes tracked from untracked here.)
+    # the Profiles screen's install overlay: the colour for an installed-but-untracked component (⊙)
+    # and a staged-for-uninstall one (⮾)
     'orphan_lurking': (150, 180, 220),
     'op_install': (90, 200, 120), 'op_upgrade': (230, 190, 70), 'op_remove': (235, 95, 95),
     'op_lock': (110, 165, 255), 'op_unlock': (120, 210, 210),
@@ -39,7 +39,7 @@ COLOR_MAP = {
     'row_desc': (108, 112, 128),                         # faded inline component descriptions
     'method_dim': (124, 150, 176),                       # muted slate-blue for the method label
     'dep_dim': (192, 158, 108),                          # muted amber for the "required by" line
-    'menu_new': (150, 205, 165),                          # a derived profile's OFFERED (NEW, `?`) items
+    'menu_new': (150, 205, 165),                          # NEW (undispositioned) components (◆, ⁺N)
 }
 
 # --- low-color (8/16) hand-tuning ---------------------------------------------------------------
@@ -61,7 +61,7 @@ BASIC_MAP = {
     'op_lock': 'blue', 'op_unlock': 'cyan',
     'sel_bg': 'magenta',                                 # the selection-bar background in 8/16-color
     'row_desc': 'bright-black', 'method_dim': 'bright-black', 'dep_dim': 'yellow',
-    'menu_new': 'green',                                  # non-bright green: offered, not the installed set
+    'menu_new': 'green',                                  # non-bright green: NEW, not the installed set
 }
 
 
@@ -162,7 +162,7 @@ ROLE_DEFAULTS = {
     'methods': _role_style('header'),
     'method_dim': _role_style('method_dim'),          # muted method label (Profiles detail pane)
     'dependents': _role_style('dep_dim'),             # "required by" reverse-deps (Profiles detail)
-    'menu_new': _role_style('menu_new', bold=True),   # a derived profile's OFFERED (NEW) ballot rows
+    'menu_new': _role_style('menu_new', bold=True),   # Profiles: NEW (undispositioned) components + ⁺N badges
     'row_desc': _role_style('row_desc'),              # faded description trailing the row name
     'info': _role_style('accent'),
     'info_dim': _role_style('dim'),
@@ -400,7 +400,7 @@ def resolve_theme(theme):
 
 def full_snapshot(theme):
     '''The COMPLETE current theme as a self-contained two-tier dict — every color-map entry
-    (name -> #rrggbb) and, per content page, EVERY role that page uses (fg/bg refs + effects) plus
+    (name -> #rrggbb) and, per page (the Theme page too), EVERY role that page uses (fg/bg refs + effects) plus
     the gradient endpoints — resolved from the built-in defaults overlaid by `theme`. Unlike the
     diff overrides (theme_overrides), this pins the whole look so a saved pack reproduces exactly
     even if built-in defaults later change. fg/bg stay as refs (map names or literals) so the map is
@@ -806,7 +806,7 @@ class Palette:
         return curses.A_NORMAL if self.mono else self._pair(self._color(rgb), self.bg, guard=False)
 
     def rgb_pair(self, fg_rgb, bg_rgb):
-        '''Like rgb_attr but over an explicit bg colour (a splash glyph over the liquid colour).'''
+        '''Like rgb_attr but over an explicit bg colour (e.g. a splash glyph over a coloured background).'''
         return (curses.A_NORMAL if self.mono
                 else self._pair(self._color(fg_rgb), self._color(bg_rgb), guard=False))
 

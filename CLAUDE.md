@@ -13,52 +13,90 @@ Every system we care about either comes with a version of python3, or that must 
 
 The application should be python3, and so python3 and humon must be the first to synchronize; this can be done via bash, since we need these components for the rest of the app. The app should be an interactive TUI, and slick looking on a 24-bit RGB terminal. It should be menu-driven, with single-key actions and menu navigation via VIM-like controls.
 
-On start, the user config file (`~/.config/configsys/configsys.hu`, i.e. `$XDG_CONFIG_HOME/configsys/` — the state dir that also holds the ledger `state.hu` and the synced `plugins/`; `CONFIGSYS_CONFIG` / `CONFIGSYS_STATE_DIR` / `CONFIGSYS_HOME` override) must be present: `Context._migrate_user_config` moves a legacy `~/configsys.hu` there, and if it is still absent `Context.ensure_user_config` writes one from `app.USER_CONFIG_TEMPLATE` (an interactive first run also offers to bless a primary plugin). What a machine installs is its **picks**: `picks:` is a component × machine matrix (`{ <machine>: [ components ] }`, merged repo < primary < user, a higher layer replacing a machine's whole list) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (definable in ANY layer, the top config included — a user's `profiles:` are their own browse categories, never an install set; `+include` / `~remove` / `+self` term algebra; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on CLI ops, where members with no route here are skipped with a one-line notice while an explicitly named component still errors). The old `configs:`, `machines:` and `orphans-adopt-target:` are RETIRED (each emits a `check` warning — `layers._RETIRED_TOP_KEYS` via `layers.unknown_section_warnings`). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ the global `--machine` working-target flag) edit the matrix; `picks` is uniform-nature, so edits land in the primary plugin when one is blessed, else the top config. `dispositions:` (seen/interesting triage) and `uninstall:` (staged removals) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
+On start, the user config file (`~/.config/configsys/configsys.hu`, i.e. `$XDG_CONFIG_HOME/configsys/` — the state dir that also holds the ledger `state.hu` and the synced `plugins/`; `CONFIGSYS_CONFIG` / `CONFIGSYS_STATE_DIR` / `CONFIGSYS_HOME` override) must be present: `Context._migrate_user_config` moves a legacy `~/configsys.hu` there, and if it is still absent `Context.ensure_user_config` writes one from `app.USER_CONFIG_TEMPLATE` (an interactive first run also offers to bless a primary plugin). What a machine installs is its **picks**: `picks:` is a component × machine matrix (`{ <machine>: [ components ] }`, merged repo < primary < user, a higher layer replacing a machine's whole list) and `machine:` names which column this box is (default `this-machine`). The install set (`Config.requested()`) is exactly this machine's picks — **profiles are read-only browse lenses** (definable in ANY layer, the top config included — a user's `profiles:` are their own browse categories, never an install set; `+include` / `~remove` / `+self` term algebra; `configsys profile list|show`, the TUI Profiles screen, `profile:<name>` expansion on CLI ops, where members with no route here are skipped with a one-line notice while an explicitly named component still errors). The old `configs:`, `machines:` and `orphans-adopt-target:` are RETIRED (each emits a `check` warning — `layers._RETIRED_TOP_KEYS` via `layers.unknown_section_warnings`). `configsys picks add|rm|list|to-primary` and `configsys machine list|show|add|rm|use` (+ the global `--machine` working-target flag) edit the matrix; `picks` is uniform-nature, so edits land in the primary plugin when one is blessed, else the top config. `dispositions:` (seen/interesting triage, `configsys disp`) and `uninstall:` (staged removals, `configsys uninstall list|add|rm|clear` / TUI `x`) are machine-local side-stores. For each picked component the app searches the system to find what is already installed and evaluates versions. From that known state, an interactive menu lets the user:
 
 - view the install state of each component
 - interactively mark installed components for an operation (upgrade, remove, etc)
 - quickly mark all components for an operation (select all)
 
-**TUI (configsys/tui/).** Seven screens on keys 1–7: Components (this machine's picks as a tree
-with state/versions, plus the System Updates group), Profiles (the component × machine matrix:
-track `t`/`T`, claim `C`, dispositions, stage uninstall `x`), Plugins, Glue, Dotfiles, Config
+**TUI (configsys/tui/; docs/tui-architecture.md).** Seven screens on keys 1–7: Components (this
+machine's picks as a tree with state/versions, plus the System Updates group; `M` view mode),
+Profiles (the component × machine matrix: track `t`/`T`, claim `C`, dispositions, stage uninstall
+`x`), Plugins (push `P`, history/undo `H`, lock `L`, init primary `n`, set-source `O`, picks
+to-primary `M`), Glue (new snippet `n`, override `o`, staged shell writes `S`), Dotfiles, Config
 (settings; `m` moves one local ⇄ primary), Theme. vim navigation (`j/k/h/l`, `g/G`), `/` find,
-`F` filter, `!` issues, `?` help; on Components stage `i`/`u`/`x` (`I`/`U` for all, `a` select-all,
-`v` pick method, `L` lock, `w` where — also on Profiles), then `X` runs everything staged after a
-confirmation. Each screen is a `Screen` (build_vm / draw / handle in configsys/tui/screens/)
-painting through a `Surface` (`BufferSurface` = headless render tests). Keys are rebindable via
-`keys:` (tui/keyspec.py): a screen's own scope is consulted FIRST, even over `q`/`!`/`?`/screen
-numbers (router actions `keyspec.ROUTER_ACTIONS` — quit/quit-force/issues/help — bound in a screen
-scope work there); a higher layer's rebind takes the key from the lower layer's other action in the
-same scope, and `check` reports each cross-layer steal and any page left with no quit key
-(`keyspec.lint_keys` — steals via `merge_layer_keys`, the lockout via `lint_merged`). Color
-depth (direct 24-bit via a `-direct` terminfo; `--color`, `NO_COLOR`) and motion (`effects:`,
-auto-reduced over SSH) degrade gracefully; the startup splash is a pluggable provider (`splash:`).
+`F` filter, `!` issues (`check`'s lints join it: `cli.check.check_report` on a background thread,
+`Context.start_check_lints`), `?` help; on Components stage `i`/`u`/`x` (`I`/`U` for all — they
+skip locked units, `a` select-all, `v` pick method — its picker also offers rebuild / pin to a
+version… / fix scope / auto — unpin, `L` lock, `w` where — `v`/`w` also on Profiles), then `X` runs
+everything staged after a confirmation; a row's `x`/`L` act on its own units, never on dependencies
+it shares; under `--machine <other>` Components is read-only with a banner. `tui/menu.py` is only
+the router (`run`, `_route_key`); the rest lives in siblings — paint (primitives), modals
+(`_modal_frame` + the keymap-aware `ListNav`, popups, overlays), help (the `?` pages, `_HELP`, keys
+rendered from the live keymap), models (the Components `MenuState`), panes (the other screens'
+models), preview (Theme editor + samples), flows (execute, pickers, push questions), startup
+(inspection worker, splash, effects) — and `menu.<name>` still resolves each moved name (PEP 562
+`__getattr__` over `menu._MOVED`; in-package code imports the defining module). Each screen is a
+`Screen` (configsys/tui/screens/, contract in `screens/base.py`): `build_vm(ctx, size)` (pure) →
+`draw(surface, pal, vm)` (paints only — writes nothing on the model; what the geometry settles it
+records with `vm.settle(...)`) → `commit(vm)` applies that, the three run by `Screen.render`;
+`handle` returns an `Intent` for the router; Plugins/Glue/Dotfiles share `screens/table.py` and
+every page opens/closes with `begin_page`/`end_page`; all paint through a `Surface`
+(`BufferSurface` = headless render tests). Keys are rebindable via `keys:` (tui/keyspec.py): a
+screen's own scope is consulted FIRST, even over `q`/`!`/`?`/screen numbers (router actions
+`keyspec.ROUTER_ACTIONS` — quit/quit-force/issues/help — bound in a screen scope work there);
+`merge_layer_keys` merges in passes over the FINAL bindings — within a scope a higher layer's
+rebind takes the key from the lower layer's other action, and across scopes a higher layer's
+`global` router / `screens` binding takes it from a lower layer's page binding (within one layer
+the page keeps it) — and `check` reports each steal and any page left with no quit key
+(`keyspec.lint_keys`; the lockout via `lint_merged`). Color depth (direct 24-bit via a `-direct`
+terminfo; `--color`, `NO_COLOR`) and motion (`effects:`, auto-reduced over SSH) degrade
+gracefully; the startup splash is a pluggable provider (`splash:`); a theme is linted by
+`tui.theme.theme_problems` (sections `THEME_SECTIONS`, pages, roles, attrs, colors — a `check`
+warning, refused by `theme set`).
 
-**CLI (`app.build_parser`).** No command (or `tui`) = the TUI (`inspect` output when not on a
-terminal). Ops `inspect` / `install` / `remove` / `upgrade`
-(`--system` = System Updates) / `lock` / `unlock` / `set-version` / `fix-scope`; the matrix `picks` /
-`machine` / `profile` / `disp`; `pin`, `where`, `check`, `versions`, `location`, `show`; `config` /
-`theme` / `keys`; `plugin …` (incl. `set-source`, which also retargets the synced clone's origin);
-`dotfiles …` (`activate [--local]` turns a staged block into user glue), `glue add|override`;
-`orphans`; `updates`, `refresh`; `report` / `request` / `request-os`; `manpages`. Global
-`--pretend`, `--os BLOCK[:VERSION]` (an unknown block errors — `osdetect.settle`; with no version
-every versioned OS atom reads false), `--home` (sandbox), `--machine`, `--config`. `install --picks` (missing picks) /
-`upgrade --picks` (outdated picks) = `app._picks_selection`: this box only (refused when
-`--machine` names another), unioned with any names, plan shown + confirmed unless `--yes`; bare
-`install` with neither names nor `--picks` errors. `set-version` refuses up front on a driver whose
+**CLI (configsys/cli/; the argparse tree is `cli.parser.build_parser`).** `app.py` keeps the
+`Context` (the pipeline every command and the TUI share: detect the OS → load layers + routes →
+resolve this machine's picks → inspect) and `main` (dispatch through `app._COMMANDS`); each verb
+family is a cli/ module — ops (inspect, install/remove/upgrade/lock/unlock/set-version/fix-scope,
+updates, uninstall, tui), matrix (picks/machine/profile/disp/pin/orphans), where
+(where/location/versions/search), check, plugin, refresh, settings (config/theme/keys/show/
+manpages), dotfiles (dotfiles/glue), issues (report/request/request-os), common, parser — and
+`app.<name>` still resolves every moved name (PEP 562 `__getattr__` over `app._MOVED`; in-package
+code imports the defining module). No command (or `tui`) = the TUI (`inspect` output when not on a
+terminal). Ops `inspect` / `install` / `remove` / `upgrade` (`--system` = System Updates) / `lock`
+/ `unlock` / `set-version` / `fix-scope` — the CLI and the TUI share one plan path:
+`actions.resolve_targets` resolves through auto-tighten + the detection tier (an op acts on the
+install you have, not the default method beside it), `actions.build_plan` folds in only MISSING
+dependencies (`--with-deps` re-runs the tree, `--no-deps` none) plus the method-switch swap, and
+`actions.run_plan` executes (an explicit op on a locked unit is refused, bulk ones skip it, remove
+clears the lock); the matrix `picks` / `machine` / `profile` / `disp` / `uninstall
+list|add|rm|clear`; `pin`, `where`, `search` (catalog names/descriptions, `--attr`, `--json`),
+`check`, `versions`, `location`, `show`; `config` / `theme` / `keys`; `plugin …` (incl.
+`set-source`, which also retargets the synced clone's origin); `dotfiles …` and `glue
+staged|activate [--local]|discard` (activate turns a staged block into user glue), `glue
+add|override`; `orphans`; `updates`, `refresh`; `report` / `request` / `request-os`; `manpages`;
+`--version` (with the git commit). Global `--pretend`, `--os BLOCK[:VERSION]` (an unknown block
+errors — `osdetect.settle`; with no version every versioned OS atom reads false), `--home` (a full
+sandbox: children run with `HOME=<sandbox>` and no `XDG_*_HOME` — `runner.sandboxed_env` — and an
+inherited `CONFIGSYS_STATE_DIR`/`CONFIGSYS_CONFIG` is dropped), `--machine`, `--config` (plus the
+TUI's `--color`/`--nocolor`/`--effects`/`--probe`/`--splash-linger`, and `-v`/`-q`). `install
+--picks` (missing picks) / `upgrade --picks` (outdated picks) = `cli.ops._picks_selection`: this
+box only (refused when `--machine` names another), unioned with any names, plan shown + confirmed
+unless `--yes`; bare `install` with neither names nor `--picks` errors. `set-version` refuses up front on a driver whose
 class attribute `targets_version = False` (tarball, appImage, font, native-pkg-file, aur,
 rpm-ostree, gcc/clang alternatives, gcc-toolset, glue, dotfiles, service, group —
 `actions.targets_version`). **`--pretend` is a full dry run**: the runner echoes instead of
 executing (so probes read empty → everything reads missing), and no ledger/receipt/lock, `.cfs`
 marker, `last-failure.hu`, plugin trust/lock, plugin dir or review cache, primary commit or push, refresh stamp / `stale-pins.json`,
-method-version / flatpak / glue-locations / startup-timing cache, dotfiles capture or move, glue snippet,
-filed `report`/`request` (`_file_issue`), config edit (CLI `app._pretend_edit`; TUI writers in actions.py return
+method-version / flatpak / glue-locations / startup-timing / `grid-memo.json` cache, dotfiles capture or move, glue snippet,
+filed `report`/`request` (`cli.issues._file_issue`), config edit (CLI `cli.common._pretend_edit`; TUI writers in actions.py return
 `(False, actions.PRETEND_NOT_SAVED)`), user-config generation or legacy-config move happens, and no
 false "NOT DETECTED"; an uncached download prints a `<latest release>` placeholder
 (`actions.pretend_unresolved_download`). Any new write path must honor `ctx.runner.pretend` —
 `test/test_pretend_sweep.py` runs every mutating verb under --pretend against a populated sandbox
-home and fails on any file change (add a new verb to its `VERBS`).
+home and fails on any file change (add a new verb to its `VERBS`), and
+`test/test_tui_pretend_sweep.py` drives every screen action key through `Screen.handle` the same way.
 
 In the repo, routes.hu is a **capability/component model** (see `docs/routing-model.md` for
 the full spec). Its sections:
@@ -71,14 +109,21 @@ the full spec). Its sections:
   aren't candidates there and components fall through to flatpak/tarball/cargo/…), version
   `scale-root:` markers, `provides:` (capabilities baseline in that environment: `linux` provides
   python3, `glibc_linux` provides glibc), optional `detect:` (id + on-disk marker refinement,
-  osdetect.py), an optional per-OS `driver-preference:`, and — on the block that owns a version
-  line (`OsCascade.version_line`) — `releases:`, the release registry (`{ <VERSION_ID>: { status:
-  prerelease|released|eol  image  codename  glibc  python3  gcc  manager … } }`; maintenance-only,
-  the resolver doesn't read it; swept by `tools/osaudit.py`, linted by `check` as `os-release`).
+  osdetect.py), an optional per-OS `driver-preference:`, an optional `advisory:` (an OS caveat the
+  `!` page / inspect show on that block and every descendant; `advisory: ""` silences an inherited
+  one — `OsCascade.advisory`), and — on the block that owns a version line
+  (`OsCascade.version_line`) — `releases:`, the release registry (`{ <VERSION_ID>: { status:
+  prerelease|released|eol  image  codename  glibc  python3  gcc  manager  note  base } }`; swept by
+  `tools/osaudit.py`, linted by `check` as `os-release`; any other block field is an `os-block`
+  warning — `routes.OS_BLOCK_FIELDS`). The resolver reads ONE registry field: a derivative release's
+  `base: "<block> <version>"` (`OsCascade.bases_of`), so a versioned atom on the base's scale
+  (`ubuntu >= 24.04`) reaches Zorin 18 / Mint 22 with no hand-kept derivative list (in the
+  specificity grid too); a derivative release the registry lacks gets no base (those atoms read
+  false there) and a `check` warning (routing-model §6).
 - `drivers:` — per-driver config: each driver's inherent `requires:`, closed for every binding of
-  that via (e.g. appImage->[libfuse2, glibc], flatpak->flatpak, cargo->cargo, tarball->curl,
-  source->git, aur->[base-devel, git], font->[fontconfig, unzip], pyenv->[pyenv,
-  python-build-deps], brew->homebrew), an optional driver-wide `standing:` (snap ships `standing:
+  that via (e.g. appImage->[libfuse2, glibc, curl], flatpak->flatpak, cargo->cargo, tarball->curl,
+  native-pkg-file->curl, source->git, aur->[base-devel, git], font->[fontconfig, unzip, curl],
+  pyenv->[pyenv, python-build-deps], brew->homebrew), an optional driver-wide `standing:` (snap ships `standing:
   never-auto`), and two kinds of **driver gate** (validity-only — a gated driver's bindings are not
   candidates). The DERIVED gate: **a driver is valid only where its own `requires:` can be met**
   (`resolve.gated_context` — a greatest fixpoint that tries each driver's requires with the real
@@ -96,7 +141,10 @@ the full spec). Its sections:
   each gated method's reason (`_gate_note`), and neither kind adds specificity — `routecheck.gated`
   intersects the explicit gate with `when:` to judge OVERLAP only (specificity stays on the raw
   `when:`); `where` names the reason (`resolve.driver_gate_reason`). Merged across every layer (`layers.merge_dict_section` over
-  `ALL_ROLES`), the top config last.
+  `ALL_ROLES`), the top config last — except an ordinary plugin's PREFERENCE knobs (`drivers:`
+  `standing:`/`when:`, an os block's `driver-preference:`) on an entry a lower layer outside it
+  defined, which are ignored with a `plugin-preference` check warning (`routes._plugin_knobs_ignored`;
+  the primary and the top config keep theirs).
 - `facets:` — detected machine traits beyond OS/cpu, usable as `when:` atoms (`gpu:nvidia`;
   `docs/facets.md`). A `detect:` probe is command-carrying data, so a plugin's facets merge only
   when that plugin is trusted.
@@ -105,18 +153,22 @@ the full spec). Its sections:
   `via: native` resolves to the OS's declared package manager (name defaults to the component
   name, override with a `name:` map keyed by driver, plus `default:`; `installed-name:` — the
   package probed for state — takes the same driver-keyed map shape, a scalar applying to every
-  manager, `drivers/_native.py`). `when:` is a boolean DSL
+  manager, read through the frozen helper `Driver.installed_name(rc, driver)`). `when:` is a boolean DSL
   (predicate.py) over OS atoms (bare = subtree membership; versioned e.g. `ubuntu < 23.04`,
   scale-bound), `cpu:` and facets, with `and`/`or`/`not` (negation is general, over any atom).
   `when:` states VALIDITY ONLY (does this method work here), never preference. A binding is a
   **candidate** (`resolve._matching`) when its `when:` holds, its driver isn't in
-  `disabled-drivers:` or gated out (explicit `drivers:` `when:`, or derived: its requires can't be
-  met here), it covers this cpu, and it isn't
-  `via: native` on a native-less OS. CPU
+  `disabled-drivers:` (for `via: native`, nor the manager it reaches — `resolve.disabled_driver`)
+  or gated out (explicit `drivers:` `when:`, or derived: its requires can't be met here), it passes
+  the trust gate (below), it covers this cpu, and it isn't `via: native` on a native-less OS. CPU
   coverage of a download is stated with `cpu-names: { <cpu>: <upstream token> }` (or a cpu-keyed
   `asset:` map): its keys are the cpus upstream ships and `$ARCH` expands through it — this gates
   validity WITHOUT adding specificity, unlike a `when: cpu:` clause (routing-model §7). Among the
-  candidates, the default (`resolve._select`) is: drop `standing: never-auto` methods unless every
+  candidates, the default (`resolve._select`; callers ask `Resolver.select(name, pins=, context=)` →
+  `Selection(binding, candidates, rule)` under this machine's whole `SelectionPolicy` —
+  `Resolver.policy`: pins, component-names overrides, driver-preference, never-auto drivers,
+  disabled drivers — and `Resolver.resolve_at(names, block, version)` resolves on another OS under
+  it, for the request/report coverage matrix) is: drop `standing: never-auto` methods unless every
   candidate is one -> most-specific comparable `when:` -> per-binding `standing:` rank (a NARROW
   author signal, so it outranks the broad machine order below) -> `driver-preference` (a machine
   setting, default `resolve.DEFAULT_DRIVER_PREFERENCE` = native, aur, flatpak, snap, native-pkg-file,
@@ -153,7 +205,8 @@ the full spec). Its sections:
   `provides:`/`requires:`/`suggests:` (capabilities), `parts:` (a `via: parts` binding is a pure
   aggregator = the union of its parts, no unit of its own; a component-level `parts:` with no
   `install:` is shorthand for that implicit binding, and alongside an `install:` it is ignored
-  with a `parts-ignored` check warning), `standing:`, `description:` and
+  with a `parts-ignored` check warning; a part with no route here is skipped with a notice, all
+  parts unroutable or a `parts:` cycle is an error row + a `check` error), `standing:`, `description:` and
   `attrs:` (kind tags, unioned across layers; docs/component-attrs.md) — any other key is a load
   error. `requires:` is HARD (unmet = error); `suggests:` is SOFT — pulled in if resolvable in the
   loaded layers, skipped silently if not (both work at component and binding level). Dotfiles are
@@ -163,8 +216,9 @@ the full spec). Its sections:
   is likewise a `<name>-glue` companion) — there is no special dotfiles field.
 
 Any layer may also patch without redefining a component: `component-names: { <driver>: { <comp>:
-<pkg> | {} } }` (per-driver package-name patch, `{}` = no package there; routing-model §10a) and
-`version-floors:` (tightens an existing `requires:`, never adds one).
+<pkg> | {} } }` (per-driver package-name patch, `{}` = no package there, so that method can't
+satisfy a hard require; routing-model §10a) and `version-floors:` (tightens an existing
+`requires:`, never adds one; it selects at binding level too).
 
 Resolution (resolve.py; the app runs `resolve_resilient`) is a worklist to a fixpoint over one
 fixed machine context: seed the explicitly-wanted components + what they provide, then close
@@ -175,12 +229,19 @@ satisfies its own requirement (enforced on the reuse path too — `_self_held`).
 required by its own name, version-constrained, or provider-pinned. A suggested component's own
 `requires` stay hard once it is pulled. `resolve_resilient` collects per-pick errors (surfaced as
 `Context.resolve_errors`) and prunes units whose hard requirement failed, so one bad pick is an
-error row, not a brick.
+error row, not a brick (a pick whose unit went with a shared failed dependency still gets its own
+row naming the cause). Only the load pipeline's resolve (`record=True`) writes the shared
+Resolver's per-resolve state (`tighten_pins`, `dropped_soft_pins`, `provider_rules`,
+`skipped_parts`); every other resolve passes `out=`. Loading is memoized: `routes.load` skips
+routecheck for a layer stack whose files (by content) already validated cleanly
+(`routes._VALIDATED`), and the `when:` specificity grid's subset/witness answers persist in
+`<state>/grid-memo.json` (`predicate.load_memo`/`save_memo`).
 Per-machine `pins` (binding-pin component->via, provider-pin capability->provider; one flat
 namespace — a value naming a via is a binding-pin, `resolve.pin_via_names`) are a filter, not a
 suggestion (an unrealizable pin is an error, never silently ignored) — merged
 per key repo < primary < user, edited with `configsys pin set|unset|list|promote` (the light
-reroute that doesn't require redefining a component). The app's second resolve pass
+reroute that doesn't require redefining a component; `actions.set_pin`/`unset_pin`/`promote_pin`/
+`validate_pin`, which the TUI picker shares). The app's second resolve pass
 (`routes.Resolver.resolve_resilient`) adds two machine-derived pin sets: effective order user pins >
 opt-in `auto-tighten:` floor pins > detected-installed soft pins > reuse > auto default
 (routing-model §10). A user pin always wins; when it keeps a method that misses a floor
@@ -193,13 +254,16 @@ unchanged.
 
 The user file `~/.config/configsys/configsys.hu` overlays the repo section by section: machine
 settings (`picks:`/`machine:`/`scope:`/`pins:`/`driver-preference:`/`disabled-drivers:`/`dirs:`/
-`locations:`/… — the registry is `layers.MACHINE_SETTING_SECTIONS` ∪ the keys of
-`actions.CONFIG_SETTINGS` (`layers.machine_setting_sections`; `config set|unset|show|move` cover
-`locations` [machine nature, `component=path` tokens], `detect-coexisting`,
-`installer-shell-writes` and `installer-shell-writes-allow` [uniform]); read only from the
-repo/primary/user layers, `config._MACHINE_ROLES`; `actions.SETTING_NATURE` routes an edit:
-uniform → the primary plugin when blessed, machine → the local top config, and `configsys config
-move` / TUI Config `m` carries one across), `components:` (route overrides — bindings
+`locations:`/… — THE registry is `configsys/settings.py`: one `Setting` row per setting (kind,
+nature, choices, top_only, routing, layout, getter, editable), from which `layers.
+MACHINE_SETTING_SECTIONS` / `SETTING_CHOICES` / `TOP_CONFIG_ONLY` / `BOOL_SETTINGS` and
+`actions.CONFIG_SETTINGS` / `SETTING_NATURE` are derived, so a new setting is one row;
+`config show|get|set|unset|move` edit every `editable` row, one bool dialect (`layers.parse_bool`:
+a typo reads as the default + a `check` warning, refused by `config set`), every file parsed
+through `layers.read_tree`; read only from the repo/primary/user layers, `config._MACHINE_ROLES`;
+`actions.SETTING_NATURE` routes an edit: uniform → the primary plugin when blessed, machine → the
+local top config, and `configsys config move` / TUI Config `m` carries one across),
+`components:` (route overrides — bindings
 merge ADDITIVELY across layers by `(via, when)` identity, `routes._merge_component_chain`: a higher
 layer adds an install method, overrides a matching binding, `drop:`s one, or `{}` removes the whole
 component; the other fields override with inheritance; to merely pick an existing method, use a
@@ -219,9 +283,14 @@ includes them — merging by section and, for components/profiles, by name. **Th
 rule:** every layer may DEFINE (components, profiles, os blocks, drivers; facet probe specs still
 need plugin trust); only the top config and the primary plugin may SET machine settings — an
 include or a non-primary plugin that sets one is ignored with a `check` / `!` warning
-(`layers._forbidden_by_role` → `ignored_section_warnings`). Cycles/missing
+(`layers._forbidden_by_role` → `ignored_section_warnings`). An `include:` of a root layer (the
+top config, the primary's file, the repo's) is ignored with a warning — it would demote that
+layer below the includer — and a plugin's includes must stay inside its own checkout
+(`layers._visit`). Cycles/missing
 files error clearly (a bad plugin/primary file is skipped with a warning; a bad repo/user file is
-loud — `layers.expand_tolerant`); provenance (`Component.source`, `Config.profile_source`) flows
+loud — `layers.expand_tolerant`); every section edit configsys makes to a `.hu` file
+(`plugins.set_section` / `remove_sections`) is re-parsed before it is written and refused, file
+untouched, if anything besides that section would change (`plugins._checked_write`); provenance (`Component.source`, `Config.profile_source`) flows
 through so `where`/`check` attribute to the right file. The plugin model reuses this substrate — a
 plugin is just another source in the stack.
 
@@ -234,11 +303,15 @@ may add components, profiles, drivers AND os blocks (derivative distros). Loadin
 `requires-abi` vs `ABI_VERSION`/`ABI_SUPPORTED`) / sha256-mismatched (quarantined) / malformed
 plugins are skipped, never fatal. Only the top config may grant `primary: true` (`configsys plugin
 bless`): the **primary plugin** is the user's portable personal layer — it sorts last among plugins
-and may set machine settings; `plugin add` writes to it by default. A primary FOLLOWS A BRANCH (normally `main`, never version-tagged by default; `bless`/`init` record it, a no-ref primary stays attached to its default branch, `update --latest` won't re-pin it to a tag; tag-pinned primaries stay supported; docs/done/primary-push-plan.md). configsys COMMITS its own edits to the primary from a WRITE JOURNAL (`primarygit`; docs/done/primary-journal-plan.md): `snapshot()` opens a bracket around each CLI command / each TUI action (no git), every configsys writer into the primary calls `primarygit.will_write(path)` BEFORE writing (`plugins.set_section`/`remove_sections`/`scaffold_primary`, `actions._writable_primary_file`/`save_theme_plugin`, the dotfiles capture/manifest/relocate writes, the glue user-snippet/override/99-user writes, `app._sweep_glue_to_primary` and `plugin init`'s merge — a new writer must too; `test/test_primary_journal.py` `WRITES` fails until it is), and `commit()` commits exactly the recorded paths that changed; a recorded file you'd already hand-edited is left uncommitted with a note, a change nobody recorded (yours, mid-command) is left and named; an action that writes nothing runs no git; nothing on a detached primary or under --pretend). **Publishing** = `configsys plugin push` / Plugins `P` (`primarygit.push(ctx, ui)`; every question is a `primarygit.Question` (built by `question(kind, …)` from the `QUESTIONS` table: choices with keys, the Enter/Esc answer, the unattended answer) passed to `PushUI.ask` — `app._CliPushUI` renders it on the terminal, `menu._TuiPushUI` as a popup, the base class gives the unattended answers): every git call through `PrimaryRepo` (argv, bytes/fsdecode, literal pathspecs on stdin, git's repo-locating env vars scrubbed, a non-interactive env that keeps your ssh command + BatchMode; docs/done/primary-safety-plan.md); your hand edits only if you say so — left-out edits that overlap what came in are asked about first (an `overlap` question: include or stop); a primary mid-merge/rebase is refused; fetch via the push url; then ONE undoable combine (`_combine`: stash your edits, `_replay`, and on any non-success exit incl. exceptions/Ctrl-C `_restore` HEAD + abort + unstash): a `rebase` onto the remote with `*.hu` merged by `humerge` (a structural three-way merge registered as git's merge driver only for that command — `primarygit._merge_driver`, which runs `humerge.main(argv)` isolated (`python -I -c`, configsys's own path); per key through maps, order-free name lists `SET_LISTS` union adds/removes, profile terms (`ORDERED_LISTS`) a diff3 sequence merge (both reordering shared terms differently = asked), `plugins:` per source with the newer version tag kept and order = layer precedence; the merged text is mine's with only changed keys rewritten and combined lists edited in place (`_relist`, comments kept), verified by re-reading; theirs' text taken whole only when mine changed nothing; a clean git line merge wins unless it differs only in set-list order/duplicates) (humon TEXT surgery — the comment/string-aware scanner with humon's three quote styles and no escapes, scalar quoting, the one-line emitter — is ONE module, `configsys/hutext.py`, shared by plugins' `set_section`, troveio and humerge) — on a remaining conflict the rebase is aborted, then a merge where each `.hu` conflict is asked per key (`_settle_hu` → a `value` question: "This machine set `splash: plain`; your other machine set …") and other files per file mine/theirs/edit/stop (`git merge-file --ours/--theirs` on the stages, so only overlaps take a side); stop = nothing pushed, work intact; refusals worded by `explain_git_failure`; a tag-pinned primary is offered its branch. When: the uniform `primary-push` setting — ask (default; TUI quit prompt `menu._quit_push`, a CLI "not pushed yet" line), auto (after each committing CLI command and on TUI quit, no questions; chip hides ↑), auto-on-quit (only on TUI quit, `Q` included; CLI prints the ask line), manual — what each mode does is the `primarygit.PUSH_POLICY` table (values: `layers.SETTING_CHOICES`, refused by `config set` / warned by `check` otherwise). Where it stands (`primarygit.state` → a `PrimaryState` {name, branch, ahead, behind, dirty, first_push}; `fetch` / `glyphs` / `chip` / `describe`): ↑N ↓N ● on the Plugins primary row (fetched on the remote-ref thread), a Components header chip (`ctx._primary_state`, refreshed after each TUI action that wrote into the primary), words in `plugin list` (`--fetch` fetches first). **Signed only:** the machine setting `primary-verify: signed` (read ONLY from the top config — `layers.TOP_CONFIG_ONLY`; elsewhere a `check` warning) makes `plugins.sync(verify_primary=)` refuse to move the primary onto commits whose `%G?` isn't G (`plugins.unsigned_commits`; outcome `unsigned`, a fresh clone with an unsigned tip removed again) and `push` refuse to combine with them. **Undo:** `plugin log` / `plugin undo` / Plugins `H` (`primarygit.history` → `Change`s; `undo` takes back the newest commit whose body says `Made by configsys` and isn't a merge — dropped by `reset --keep` when it is unpushed HEAD, else reverted as a new `Undo: …` configsys commit, so undo twice = redo; refused over your uncommitted edits to its files). Sync never forces a checkout: blocked by local edits → `kept`, a branch with local+remote commits → `diverged`, unpushed → `ahead` (`plugins.sync_note`; `primary=True` points at `plugin push`). **Code plugins** (a manifest
+and may set machine settings; `plugin add` writes to it by default (`--local`: the top config; the
+TUI's `a` keeps a local path on this machine). `plugin remove` / Plugins `x` refuse a clone holding
+unpushed or uncommitted work, stashes, no remote, or one authored in place, naming it
+(`primarygit.local_work`; `--force`), and `plugin add --replace` keeps such a copy as
+`<name>.replaced-<stamp>` and keeps `primary`. A primary FOLLOWS A BRANCH (normally `main`, never version-tagged by default; `bless`/`init` record it, a no-ref primary stays attached to its default branch, `update --latest` won't re-pin it to a tag; tag-pinned primaries stay supported; docs/done/primary-push-plan.md). configsys COMMITS its own edits to the primary from a WRITE JOURNAL (`primarygit`; docs/done/primary-journal-plan.md): `snapshot()` opens a bracket around each CLI command / each TUI action (no git), every configsys writer into the primary calls `primarygit.will_write(path)` BEFORE writing (`plugins.set_section`/`remove_sections`/`scaffold_primary`, `actions._writable_primary_file`/`save_theme_plugin`, the dotfiles capture/manifest/relocate writes, the glue user-snippet/override/99-user writes, `cli.plugin._sweep_glue_to_primary` and `plugin init`'s merge; a code plugin's driver calls the frozen `Driver.will_write(path)` — a new writer must too; `test/test_primary_journal.py` `WRITES` fails until it is), and `commit()` commits exactly the recorded paths that changed; a recorded file you'd already hand-edited is left uncommitted with a note, a change nobody recorded (yours, mid-command) is left and named; an action that writes nothing runs no git; an interrupted command commits as "(interrupted)" and is never pushed; nothing on a detached primary or under --pretend). **Publishing** = `configsys plugin push` / Plugins `P` (`primarygit.push(ctx, ui)`; every question is a `primarygit.Question` (built by `question(kind, …)` from the `QUESTIONS` table: choices with keys, the Enter/Esc answer, the unattended answer) passed to `primarygit.PushUI.ask` — `cli.plugin._CliPushUI` renders it on the terminal, `tui.flows._TuiPushUI` as a popup whose body is `Question.listing()` (the commits + files about to leave), the base class gives the unattended answers; a LOCKED primary whose remote is ahead is never combined into): every git call through `PrimaryRepo` (argv, bytes/fsdecode, literal pathspecs on stdin, git's repo-locating env vars scrubbed, a non-interactive env that keeps your ssh command + BatchMode; docs/done/primary-safety-plan.md); your hand edits only if you say so — left-out edits that overlap what came in are asked about first (an `overlap` question: include or stop); a primary mid-merge/rebase is refused; fetch via the push url; then ONE undoable combine (`_combine`: stash your edits, `_replay`, and on any non-success exit incl. exceptions/Ctrl-C `_restore` HEAD + abort + unstash): a `rebase` onto the remote with `*.hu` merged by `humerge` (a structural three-way merge registered as git's merge driver only for that command — `primarygit._merge_driver`, which runs `humerge.main(argv)` isolated (`python -I -c`, configsys's own path); per key through maps, order-free name lists `SET_LISTS` union adds/removes, profile terms (`ORDERED_LISTS`) a diff3 sequence merge (both reordering shared terms differently = asked), `plugins:` per source with the newer version tag kept and order = layer precedence; the merged text is mine's with only changed keys rewritten and combined lists edited in place (`_relist`, comments kept), verified by re-reading; theirs' text taken whole only when mine changed nothing; a clean git line merge wins unless it differs only in set-list order/duplicates or holds a key twice; a list holding a metatag is refused as unmergeable, i.e. asked) (humon TEXT surgery — the comment/string-aware scanner with humon's three quote styles and no escapes, scalar quoting, the one-line emitter — is ONE module, `configsys/hutext.py`, shared by plugins' `set_section`, troveio and humerge) — on a remaining conflict the rebase is aborted, then a merge where each `.hu` conflict is asked per key (`_settle_hu` → a `value` question: "This machine set `splash: plain`; your other machine set …") and other files per file mine/theirs/edit/stop (`git merge-file --ours/--theirs` on the stages, so only overlaps take a side; a `.hu` settled by edit or by side must parse); stop = nothing pushed, work intact (an ignored file of yours the remote now tracks is moved aside for the combine and put back); refusals worded by `explain_git_failure`; a tag-pinned primary is offered its branch (switched through `PrimaryRepo` alone). When: the uniform `primary-push` setting — ask (default; TUI quit prompt `tui.flows._quit_push`, a CLI "not pushed yet" line), auto (after each committing CLI command and on TUI quit, no questions; chip hides ↑), auto-on-quit (only on TUI quit, `Q` included; CLI prints the ask line), manual — what each mode does is the `primarygit.PUSH_POLICY` table (values: `layers.SETTING_CHOICES`, refused by `config set` / warned by `check` otherwise). Where it stands (`primarygit.state` → a `PrimaryState` {name, branch, ahead, behind, dirty, first_push}; `fetch` / `glyphs` / `chip` / `describe`): ↑N ↓N ● on the Plugins primary row (fetched on the remote-ref thread), a Components header chip (`ctx._primary_state`, refreshed after each TUI action that wrote into the primary), words in `plugin list` (`--fetch` fetches first). **Signed only:** the machine setting `primary-verify: signed` (read ONLY from the top config — `layers.TOP_CONFIG_ONLY`; elsewhere a `check` warning) makes `plugins.sync(verify_primary=)` refuse to move the primary onto commits whose `%G?` isn't G (`plugins.unsigned_commits`; outcome `unsigned`, a fresh clone with an unsigned tip removed again) and `push` refuse to combine with them (and warn when your own outgoing commits are unsigned). **Undo:** `plugin log` / `plugin undo` / Plugins `H` (`primarygit.history` → `Change`s; `undo` takes back the newest commit whose body says `Made by configsys` and isn't a merge — dropped by `reset --keep` when it is unpushed HEAD, else reverted as a new `Undo: …` configsys commit, so undo twice = redo; refused over your uncommitted edits to its files; the confirm names a change another machine made — `Change.machine`; files the commit added are saved to `<state>/undo/<short sha>/` first). Sync never forces a checkout: blocked by local edits → `kept`, a branch with local+remote commits → `diverged`, unpushed → `ahead` (`plugins.sync_note`; `primary=True` points at `plugin push`). **Code plugins** (a manifest
 `code:` module exporting `DRIVERS = [Driver subclasses]` / `SPLASHES`, plus
 `register_version_source` / `register_transport`) load only when trusted at their exact content
-hash (`configsys plugin trust`; `plugin_identity` — length-prefixed, symlinks hashed as links;
-`plugin-trust.hu`; a `code:`/`data:` entry resolving outside the checkout never loads). **The trust
+hash (`configsys plugin trust`; `plugin_identity` v2 — length-prefixed, symlinks hashed as links;
+an old-format approval still matches unchanged content; `plugin-trust.hu`; a `code:`/`data:` entry resolving outside the checkout never loads). **The trust
 gate** (`trustgate.py`, docs/done/trust-gate-plan.md): an UNTRUSTED plugin layer may define anything,
 but `resolve._matching` makes its binding a candidate only when the driver is a `trusted_registry`
 (native managers, flatpak, snap, brew — a package by name) and the binding sets none of the driver's
@@ -271,7 +344,9 @@ disabled driver back on — its own method, that driver's prerequisite (aur → 
 dependency — = `unmet` (`stranded.classify_unroutable`). Installs stay findable via an install
 RECEIPT the ledger (`state.hu`) records on every successful install/upgrade/set-version (cleared on remove; none for dotfiles/glue) + a
 `pacman -Qm` `<comp>-<variant>` heuristic for pre-receipt AUR installs. See
-`docs/stranded-installs.md`.
+`docs/stranded-installs.md`. The ledger (ledger.py) saves atomically under a lock, writing back only
+the keys this process changed; an unreadable `state.hu` reads empty (an `!` error) and is moved
+aside to `state.hu.corrupt-<time>` on the next save.
 
 **System Updates (configsys/sysupdates.py).** Everything the OS reports upgradable OUTSIDE the
 picks, from each manager's own `upgradable_index` (apt/dnf/pacman/zypper/apk/xbps/brew +
@@ -284,38 +359,56 @@ as components (docs/principles.md).
 Drivers are defined in code (configsys/drivers/, base class configsys/driver.py — the frozen
 plugin ABI) behind a uniform op set: get_version, get_latest, is_locked, install, uninstall,
 upgrade, set_version, lock, unlock, location (plus the optional hooks — batched `installed_index`/
-`batch_index` with the public `batch` attribute + `batched_version(rc)`, the orphan-scan and System
-Updates hooks, `outdated_signal` — all in the FROZEN list of the `driver.py` docstring since
-2026-10-10, pinned by test/test_abi_surface.py; underscore members stay internal. An
-`installed_index` of None means "can't tell" (the query failed → per-unit probes); a manager that
-isn't installed at all answers a true `{}`, nothing installed via it — docs/plugins.md §7a). apt
-has various commands for these; as does flatpak, etc. Each `via:` value
+`batch_index` with the public `batch` attribute + `batched_version(rc)`, `latest_index(names)` (every
+candidate in one query; the default `batch_index` carries candidate + `held_keys()`), the
+orphan-scan and System Updates hooks, `outdated_signal` — and the helpers a subclass may call, incl.
+`will_write(path)` and `installed_name(rc, driver)` — all in the FROZEN list of the `driver.py`
+docstring (hooks since 2026-10-10), pinned by test/test_abi_surface.py with the splash ABI;
+underscore members stay internal. An `installed_index` of None means "can't tell" (the query
+failed → per-unit probes); a manager that isn't installed at all answers a true `{}`, nothing
+installed via it — docs/plugins.md §7a). Shared bases: `drivers/_native.NativePkgManager`
+(apt/dnf/pacman/zypper/apk/xbps), `drivers/_module.ModuleDriver` (the ten module installers
+cargo/pip/pipx/npm/gem/opam/luarocks/cabal/go-install/sdkman: TOOL / CMDS templates / VERSION_SPEC
+/ SCOPE_FLAGS / LIST_CMD as data, overriding only what is bespoke), `drivers/_alt.AltDriver`
+(gcc/clang alternatives, gcc-toolset). Every `rm -rf` / move-over of a component's own directory
+goes through `Driver.unsafe_dir_reason` / `replace_dir_refusal` (never a system tree, a shared dir
+or the home; a dir configsys didn't install needs `--force`). Each `via:` value
 names a Driver 1:1 (the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew,
 rpm-ostree; tarball, native-pkg-file [install an upstream release's .deb/.rpm/pkg file with the OS
 package tool — its own via, distinct from repo `native`, because it doesn't ride `apt upgrade`;
 ranked after native/aur/flatpak/snap in driver-preference], flatpak, snap, appImage [`desktop-id:` names its menu
 entry after the app's own desktop id, so the compositor matches the window], font, script
 [declared install/version/uninstall commands], `source` [declarative build from a git checkout or
-archive]; the config drivers dotfiles [an app's own config: `.cfs` marker dir + manifest in the
-user's content store, linked into place; a displaced real file goes to `.pre-configsys`, then
-`.pre-configsys.1`, `.2`, … — never overwritten] and glue [per-shell `conf.d` enablement snippets,
+archive; it builds only in a tree it cloned (`.cloned` marker) or one you `install --adopt`ed, and
+`remove` deletes only a clean tree it created]; the config drivers dotfiles [an app's own config:
+`.cfs` marker dir + manifest in the user's content store, linked into place; `src:` relative with
+no `..`, `dst:`/`absorb-into:` under the home; like glue it places and takes away links only
+through `drivers/_linked.link`/`unlink` (Python, pretend-aware): a link we own is re-pointed,
+anything else (your file, another tool's link) is moved to the first free `.pre-configsys`,
+`.pre-configsys.1`, `.2`, … — never overwritten — and unlink removes only our own link, restoring
+what it displaced into the gap; both drivers' install/uninstall stdout is human notes
+(`notes_in_stdout`)] and glue [per-shell `conf.d` enablement snippets,
 shipped not captured, its own `glue/` roots, linked in load-order BANDS `00-configsys` / `50-<component
 glue>` (`component_link_stem`) / `90-<user glue>` (`user_link_name`) / `99-user` (an existing `NN-`
-prefix is kept; legacy links migrated); plus the user-glue namespace — `configsys glue add`
+prefix is kept; pre-band links are no longer migrated — `check` names any left,
+`Glue.legacy_links`); every shell is one `shells.ShellSpec` row (`shells.SHELLS`: ext, conf.d, rc,
+mode — `rc-block` bash/zsh, `native` fish, `inline` nu/elvish — and the rc files the shell-writes
+guard watches, `shellguard.GUARDED`/`GUARDED_DIRS`); plus the user-glue namespace — `configsys glue add`
 (`user.d/`, a scaffolded `99-user`) and `glue override` (fork a component's shipped glue; `check`
 flags drift). The `configsys-glue` preludes (all five shells) define `configsys`, unless one is
 already on PATH, → the real launcher ($CONFIGSYS_LAUNCHER, else `<state>/launcher` written on
 shell hookup by `Glue._record_launcher`, else `$HOME/${CONFIGSYS_SRC_DIR:-src}/configsys/configsys.sh`) and the
 `cfs` alias; the shared loaders carry nothing personal. The shell-writes guard (shellguard.py)
-exempts configsys's own marker blocks and stages an installer's rc edits machine-locally in
-`<state>/staged-glue/`; `dotfiles activate` turns one into user glue — see docs/shell-glue.md]; the language toolchains and their module/version installers
+exempts configsys's own marker blocks, skips the dotfiles/glue drivers, never writes through a
+link, and stages an installer's rc edits machine-locally in `<state>/staged-glue/`; `glue
+activate` (alias `dotfiles activate`) turns one into user glue, `glue discard` drops it — see docs/shell-glue.md]; the language toolchains and their module/version installers
 cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman, gcc, gcc-toolset,
 clang; and the post-install primitives service [systemd or runit] and group [usermod]) — except
 `via: native` (resolves to the OS's package-manager driver) and `via: parts` (a pure aggregator, no
 driver of its own). Each native manager (an `os:` block's `native:`) is also declared in exactly
-one map of each pair, never exempted by name: its refresh style — `app._NATIVE_REFRESH`
+one map of each pair, never exempted by name: its refresh style — `cli.refresh._NATIVE_REFRESH`
 (index-only, safe before one install, so also run before a batch per `refresh-before-execute`) or
-`app._FULL_UPGRADE_REFRESH` (pacman: only a full `-Syu` is safe, which `configsys refresh` asks
+`cli.refresh._FULL_UPGRADE_REFRESH` (pacman: only a full `-Syu` is safe, which `configsys refresh` asks
 before running and nothing runs automatically); its reboot check — `rebootcheck._REBOOT_CHECKS` or
 `_NO_REBOOT_CHECK` {manager: why none}; its name sweep — `namesweep.MANAGERS` or `UNSWEPT` {manager:
 what checks the names instead}. More drivers can be added in core or by a trusted code plugin
@@ -323,7 +416,8 @@ what checks the names instead}. More drivers can be added in core or by a truste
 
 Every command runs through `runner.Runner.run` with an activated Python virtualenv dropped from its
 env (`runner.child_env` — else `python3` is the venv's, pip `--user` refuses and pipx's apps read
-uninstalled); the brew driver finds `brew` off PATH in Homebrew's standard prefixes
+uninstalled); a streamed child that already started is never re-run when the relay fails
+(`runner.ChildStarted`); the brew driver finds `brew` off PATH in Homebrew's standard prefixes
 (`drivers/brew.brew_env`, appended — a same-batch `homebrew` install isn't on the process's PATH),
 and `homebrew-glue` puts that prefix on your shells' PATH after the system's.
 
@@ -332,10 +426,14 @@ resolved by a `RouteResolver`. That was replaced in-place by the capability mode
 in parallel and proven byte-equivalent before the flip; the old resolver/data are deleted.
 `test/routing_golden.json` freezes the proven resolution as a regression gate.)
 
-The bash bootstrap (configsys.sh) is minimal: require python3 >= 3.10 (it stops with a message
-rather than installing one — the one exception is apt's `pythonX.Y-venv` when venv/ensurepip is
-missing), create/repair the repo `.venv`, install `humon` + `packaging` into it, then `exec
-.venv/bin/python -m configsys`. Everything else is python. (pyproject.toml can build a
+The bash bootstrap (configsys.sh) is minimal: resolve its own symlink to find the repo, export
+`CONFIGSYS_INVOKED_CWD` (the app changes back to it, so relative CLI paths mean your directory),
+take a fast path when the `.venv` is healthy, else find python >= 3.10 (`$PYTHON`, else the first
+of python3, python3.14 … python3.10 — EL 9 / AL2023 ship a 3.9 python3) — it stops with a message
+rather than installing one, the one exception being apt's `pythonX.Y-venv` when venv/ensurepip is
+missing — then create/repair the repo `.venv` under a flock, install the `dependencies` line of
+pyproject.toml (`humon` + `packaging`), and `exec .venv/bin/python -m configsys`; under
+`CONFIGSYS_NO_BOOTSTRAP` (a shell start) it never repairs, exiting 75. Everything else is python. (pyproject.toml can build a
 `configsys-cli` wheel — PyPI's `configsys` is taken — but it is unpublished; the project runs
 clone-first.)
 
@@ -369,7 +467,19 @@ clone-first.)
   security and CLI/TUI parity) under the user's lens brief, an adversarial checker for every serious
   finding, `/update-os` then `/update-component` (report only), a dated `docs/review-YYYY-MM/` with ranked tiers
   whose `[open]`/`[done <commit>]` tags are its ledger, the user's chosen fixes applied test-first,
-  then `/update-docs` last. `tools/reviewaudit.py coverage` lists files no area owns.
+  then `/update-docs` last. `tools/reviewaudit.py coverage` lists files no area owns. The latest
+  full run is `docs/review-2026-11-2/` (its README's tier items carry the `[done]` ledger).
+- Tests (`.venv/bin/python -m pytest test/…`) are HERMETIC by default (`test/conftest.py`
+  `_hermetic`): a temp `HOME`, `CONFIGSYS_*`/`XDG_*` scrubbed, git config isolated, a failing fake
+  `sudo` first on PATH, `Runner.run` refusing to execute unless the runner is `--pretend` or the
+  test is `@pytest.mark.real_runner`, and no network unless `@pytest.mark.network`. Shared doubles
+  (`FakeRunner`, `git`, `primary_remote`) live in `test/fakes.py`. Inventory tests fail until a new
+  thing is wired in: `test_driver_inventory.py` (a driver), `test_pretend_sweep.py` `VERBS` /
+  `test_tui_pretend_sweep.py` (a write path), `test_primary_journal.py` `WRITES` (a primary
+  writer), `test_abi_surface.py` (the frozen ABI), and `test_parity.py` — `configsys/parity.py`
+  classifies every CLI verb and TUI screen action (its counterpart, `cli-only:`/`tui-only:` with
+  why, or a named `tui-gap:`), so a new verb or key needs a row; `test_cli_verbs_main.py` drives the
+  verbs through `main`, `test_golden.py` holds resolution to `test/routing_golden.json`.
 
 ## Some considerations
 

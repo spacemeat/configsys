@@ -7,7 +7,7 @@ import threading
 import time
 
 
-SPLASH_THRESHOLD = 0.25    # only show the liquid fill if inspection is still going after this
+SPLASH_THRESHOLD = 0.25    # only show the splash if inspection is still going after this (seconds)
 
 
 def _is_ssh(env):
@@ -16,7 +16,7 @@ def _is_ssh(env):
     return any(env.get(k) for k in ('SSH_CONNECTION', 'SSH_TTY', 'SSH_CLIENT'))
 
 
-is_ssh = _is_ssh                         # the public spelling (`configsys --probe` reads it — F4)
+is_ssh = _is_ssh                         # the public spelling (`configsys --probe` reads it)
 
 
 def resolve_effects(ctx):
@@ -36,7 +36,7 @@ def _chosen_splash(ctx):
     timing gate) and which provider was chosen — the `splash:` machine setting's value, or None for
     the built-in default. Off when: disabled via env, verbose logging (they want the text log), a
     `splash: off` setting, or the legacy `theme: { splash: false }` opt-out. TTY is guaranteed by
-    cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
+    cli.ops.cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
     import os
     from .. import report
     from .theme import env_color_cap, env_effects, is_off
@@ -65,7 +65,7 @@ def _chosen_splash(ctx):
 
 def _splash_forced(ctx):
     '''`CONFIGSYS_SPLASH=always` (or `--splash-linger`) bypasses the "only when there's work" timing
-    gate — the fill shows even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH
+    gate — the splash shows even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH
     still wins.'''
     return ctx.env.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1', 'linger', 'hold')
 
@@ -83,6 +83,7 @@ def _splash_linger(ctx):
 # lurching with the front-loaded per-driver counts. Real ticks mark where a phase actually STARTS (so
 # the next band begins) and, on completion, feed next run's estimate. See startuptiming.py.
 _PACE_CAP = 0.985       # a time-paced band creeps to at most this of its width, then waits for the real
+                        # phase end (the next phase's first tick) to snap it forward — no false 100%.
 
 
 class _InspectWorker:
