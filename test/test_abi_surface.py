@@ -45,7 +45,8 @@ FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_ke
                 'upgradable_index', 'update_dedup_key', 'held_keys', 'classify_index', 'upgrade_all',
                 'outdated_signal', 'upstream_version', 'download_target', 'arch_token',
                 'location_override', 'command_trusted', 'untrusted_command_result',
-                'expected_sha256', 'verify_download')       # (review-2026-11-2 A1: asset checksums)
+                'expected_sha256', 'verify_download',       # (review-2026-11-2 A1: asset checksums)
+                'latest_index', 'batched_latest', 'batched_held')   # (C1: batched candidates)
 
 
 def test_frozen_optional_hooks_present():

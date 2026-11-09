@@ -29,6 +29,22 @@ _NO_CHECKUPDATES = ('listed from your last full sync (pacman -Syu), so newer upd
                     'missing — install pacman-contrib for a live list: configsys install pacman-contrib')
 
 
+def _info_blocks(stdout):
+    """{Name: Version} from a stream of `Name : x` / `Version : y` blocks (pacman -Si, zypper info)."""
+    out, name = {}, None
+    for line in stdout.splitlines():
+        label, sep, val = line.partition(':')
+        if not sep:
+            continue
+        key = label.strip().lower()
+        if key == 'name':
+            name = val.strip()
+        elif key == 'version' and name:
+            out.setdefault(name, val.strip())
+            name = None
+    return out
+
+
 def _parse_upgradable(stdout):
     '''{name: (installed, candidate)} from `pacman -Qu` / `checkupdates` lines ("name old -> new").'''
     idx = {}
@@ -91,7 +107,18 @@ class Pacman(NativePkgManager):
         g = self.runner.run(f'pacman -Qg {shlex.quote(self._probe_name(rc))}')
         return _GROUP if g.ok and g.stdout.strip() else None
 
+    def latest_index(self, names):
+        '''Every package's candidate from ONE `pacman -Si <names…>` (C1). It exits 1 when any name
+        isn't a package (a group, a typo) yet still prints the rest; those absent names probe on
+        their own (the group fallback).'''
+        q = ' '.join(shlex.quote(n) for n in names)
+        r = self.runner.run(f'LC_ALL=C pacman -Si {q}')
+        return _info_blocks(r.stdout) if (r.ok or r.stdout) else None
+
     def get_latest(self, rc):
+        ver, hit = self.batched_latest(rc)
+        if hit:
+            return ver
         r = self.runner.run(f'pacman -Si {shlex.quote(self._probe_name(rc))}')
         if r.ok:
             m = _VER_RE.search(r.stdout)

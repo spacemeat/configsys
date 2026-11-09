@@ -28,9 +28,11 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
                             reconcile_scope(rc, detected, target)
   Optional hooks (each has a working default; override what your manager can answer):
     batched installed state : installed_index(), index_key(rc), batch_index(rcs),
-                              batch_installed_index(batch) — plus the `batch` attribute the core
-                              sets to batch_index's result before the per-unit reads, and the
-                              batched_version(rc) helper that reads the default shape
+                              batch_installed_index(batch), latest_index(names) (every candidate in
+                              one query — the default batch_index carries it, with held_keys()) —
+                              plus the `batch` attribute the core sets to batch_index's result
+                              before the per-unit reads, and the batched_version(rc) /
+                              batched_latest(rc) / batched_held(rc) helpers that read it
     orphan scan             : explicit_keys(), origin_index()
     System Updates          : upgradable_index(), update_dedup_key(key), held_keys(),
                               classify_index(keys) (tiers from UPDATE_TIERS), upgrade_all(), and
@@ -510,7 +512,48 @@ class Driver:
         back to per-unit probes). Drivers needing MORE in the batch (apt's held+candidate sets,
         flatpak's remotes) override with a richer context.'''
         idx = self.installed_index()
-        return {'installed': idx} if idx is not None else None
+        if idx is None:
+            return None
+        ctx = {'installed': idx}
+        names = sorted({self.index_key(rc) for rc in rcs if self.index_key(rc)})
+        if names:
+            # the CANDIDATE side too (C1): one `latest_index` query for every unit, instead of a
+            # repo-metadata-loading probe per unit — 100 Fedora picks: 201 spawns / ~30 s -> 3 / ~3 s
+            try:
+                cand = self.latest_index(names)
+            except Exception:                          # noqa: BLE001 — per-unit probes still work
+                cand = None
+            if cand is not None:
+                ctx['candidate'] = cand
+            try:
+                held = self.held_keys()                # the manager's own holds, for is_locked
+            except Exception:                          # noqa: BLE001
+                held = None
+            if held is not None:
+                ctx['held'] = set(held)
+        return ctx
+
+    def latest_index(self, names):
+        '''{name: candidate version} for the given index keys in ONE query, or None when this driver
+        can't batch it (then `get_latest` probes per unit). A name the query didn't answer is simply
+        absent (its unit falls back to its own probe). Native managers override (dnf repoquery,
+        zypper info, pacman -Si, apk list, brew info --json). Frozen hook.'''
+        return None
+
+    def batched_latest(self, rc):
+        '''(candidate, hit) from the batch context — hit False when this inspect isn't batched or
+        the batch didn't answer this unit (the caller probes per unit then).'''
+        cand = self.batch.get('candidate') if isinstance(self.batch, dict) else None
+        if isinstance(cand, dict) and self.index_key(rc) in cand:
+            return cand[self.index_key(rc)], True
+        return None, False
+
+    def batched_held(self, rc):
+        '''(locked, hit) from the batch context's held set (hit False when not batched).'''
+        held = self.batch.get('held') if isinstance(self.batch, dict) else None
+        if isinstance(held, set):
+            return self.index_key(rc) in held, True
+        return False, False
 
     def batch_installed_index(self, batch):
         '''Extract a plain `{index_key: version}` installed map from THIS driver's batch context (the

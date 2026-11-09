@@ -11,7 +11,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 . /etc/os-release
 say "target: $PRETTY_NAME"
 
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
 # --- rust: explicit toolchain that provides cargo -----------------------------------

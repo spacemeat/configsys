@@ -138,7 +138,7 @@ class Source(Driver):
         claim = (f'if [ -e {srcq} ] && [ ! -e {vmq} ] && [ ! -e {clq} ] && [ ! -e {adq} ]; then '
                  + (f'touch {adq}; ' if adopt else
                     f'echo "configsys: {src} exists and configsys didn\'t create it — '
-                    f'\`configsys install {rc.comp} --adopt\` builds there (fetch + checkout only; '
+                    f'\\`configsys install {rc.comp} --adopt\\` builds there (fetch + checkout only; '
                     f'your files are never cleaned or deleted), or move it aside" >&2; exit 3; ')
                  + 'fi && ')
 
@@ -162,7 +162,7 @@ class Source(Driver):
                         f'git -C {srcq} clean -xfd -e {mine}')
             guard = ('' if force else
                      f'{{ {dirty} || {{ echo "configsys: {src} has local changes — commit or stash '
-                     f'them, or \`install --force\` to discard them" >&2; exit 4; }}; }} && ')
+                     f'them, or \\`install --force\\` to discard them" >&2; exit 4; }}; }} && ')
             acquire = (f'{claim}{{ [ -d {srcq}/.git ] || {{ git clone {shlex.quote(repo)} {srcq} && '
                        f'touch {clq}; }}; }} && '
                        f'git -C {srcq} fetch --tags --force && '

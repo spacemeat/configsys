@@ -10,7 +10,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID)"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "install build-essential via configsys (Arch: gcc + make; gcc bundles g++)"
 bash configsys.sh install build-essential

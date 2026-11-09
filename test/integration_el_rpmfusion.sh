@@ -14,7 +14,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID) -> rhel block"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "precondition: ffmpeg absent, RPM Fusion not set up"
 rpm -q ffmpeg >/dev/null 2>&1 && fail "ffmpeg already installed"

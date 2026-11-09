@@ -10,7 +10,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID) — rolling"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "bootstrap + inspect (also builds .venv and installs humon)"
 bash configsys.sh inspect

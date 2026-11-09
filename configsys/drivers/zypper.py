@@ -28,6 +28,22 @@ def _version_from_info(stdout):
     return None
 
 
+def _info_blocks(stdout):
+    """{Name: Version} from a stream of `Name : x` / `Version : y` blocks (pacman -Si, zypper info)."""
+    out, name = {}, None
+    for line in stdout.splitlines():
+        label, sep, val = line.partition(':')
+        if not sep:
+            continue
+        key = label.strip().lower()
+        if key == 'name':
+            name = val.strip()
+        elif key == 'version' and name:
+            out.setdefault(name, val.strip())
+            name = None
+    return out
+
+
 class Zypper(NativePkgManager):
     name = 'zypper'
     # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
@@ -81,7 +97,16 @@ class Zypper(NativePkgManager):
             return r.stdout.strip().splitlines()[0]
         return None
 
+    def latest_index(self, names):
+        '''Every name's candidate from ONE `zypper info <names…>` (a block per package; C1).'''
+        q = ' '.join(shlex.quote(n) for n in names)
+        r = self.runner.run(f'LC_ALL=C zypper --no-refresh info {q}')
+        return _info_blocks(r.stdout) if (r.ok or r.stdout) else None
+
     def get_latest(self, rc):
+        ver, hit = self.batched_latest(rc)
+        if hit:
+            return ver
         # `zypper info` prints "Version : <candidate>". zypper LOCALIZES its field labels, so
         # force LC_ALL=C — otherwise the "Version" label changes under a non-English locale and
         # the parse silently returns None. (--terse doesn't affect `info`, so it's dropped.)
@@ -90,6 +115,9 @@ class Zypper(NativePkgManager):
         return _version_from_info(r.stdout) if r.ok else None
 
     def is_locked(self, rc):
+        held, hit = self.batched_held(rc)            # the batch's one `zypper locks`
+        if hit:
+            return held
         # `zypper locks` prints a table "# | Name | Type | Repository"; a hold on this package
         # is a row whose Name column equals rc.name. LC_ALL=C keeps the columns stable and
         # locale-independent (the header/labels are localized otherwise).

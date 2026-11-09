@@ -14,7 +14,6 @@ say "target: $PRETTY_NAME (ID=$ID VERSION_ID=${VERSION_ID:-rolling})"
 
 # `user` is the base profile that routes cleanly through native -> zypper here;
 # inspect exercises the real openSUSE cascade end to end (resilient, never installs).
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "bootstrap + inspect (also builds .venv and installs humon)"
 bash configsys.sh inspect

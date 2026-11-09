@@ -86,7 +86,32 @@ class Brew(Driver):
         # instead of spawning a `brew` that doesn't exist (3 per unit — 100+ failed spawns at
         # startup for a machine whose picks default to brew before Homebrew is installed)
         idx, missing = self._listing()
-        return None if idx is None else {'installed': idx, 'missing': missing}
+        if idx is None:
+            return None
+        ctx = {'installed': idx, 'missing': missing}
+        if not missing:
+            names = sorted({self._formula(rc) for rc in rcs})
+            cand = self.latest_index(names) if names else None
+            if cand is not None:
+                ctx['candidate'] = cand                # one `brew info` for every formula (C1)
+            held = self.held_keys()
+            if held is not None:
+                ctx['held'] = set(held)
+        return ctx
+
+    def latest_index(self, names):
+        '''{formula: stable version} from ONE `brew info --json=v2` (C1); None when brew refuses the
+        batch (an unknown formula fails it) — each unit then asks on its own.'''
+        r = self.runner.run('brew info --json=v2 --formula ' + ' '.join(shlex.quote(n) for n in names),
+                            env=brew_env())
+        if not r.ok or not r.stdout.strip():
+            return None
+        try:
+            data = json.loads(r.stdout)
+            return {f['name']: (f.get('versions') or {}).get('stable')
+                    for f in data.get('formulae', []) if f.get('name')}
+        except (ValueError, TypeError, AttributeError):
+            return None
 
     def _missing(self):
         '''True when this inspection's batch found no Homebrew at all.'''
@@ -122,6 +147,9 @@ class Brew(Driver):
         # until Homebrew itself is installed.
         if self._missing():
             return None
+        ver, hit = self.batched_latest(rc)
+        if hit:
+            return ver
         r = self.runner.run(
             f'brew info --json=v2 --formula {shlex.quote(self._formula(rc))}', env=brew_env())
         if not r.ok or not r.stdout.strip():
@@ -135,6 +163,9 @@ class Brew(Driver):
     def is_locked(self, rc):
         if self._missing():
             return False
+        held, hit = self.batched_held(rc)
+        if hit:
+            return held
         r = self.runner.run('brew list --pinned', env=brew_env())
         if not r.ok:
             return False

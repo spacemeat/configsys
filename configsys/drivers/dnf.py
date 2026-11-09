@@ -6,6 +6,7 @@ built in). Verified against dnf5 on Fedora 41. Mutating ops run under sudo and
 stream their output (capture=False) so the user sees progress and sudo can prompt.
 '''
 
+import re
 import shlex
 
 from ..failures import classify
@@ -21,6 +22,10 @@ def _as_list(v):
     if v is None:
         return []
     return v if isinstance(v, list) else [v]
+
+
+# a dnf4 `versionlock list` entry: `btop-0:1.2.13-1.fc38.*` -> btop (dnf5 prints `Package name: btop`)
+_DNF4_LOCK = re.compile(r'^(.+?)-(?:\d+:)?[^-\s]+-[^-\s]+$')
 
 
 class Dnf(NativePkgManager):
@@ -65,7 +70,25 @@ class Dnf(NativePkgManager):
             return r.stdout.strip().splitlines()[0]
         return None
 
+    def latest_index(self, names):
+        '''Every name's candidate in ONE repoquery (C1) — `name version` rows; a name with no
+        candidate is absent (its unit then probes on its own).'''
+        q = ' '.join(shlex.quote(n) for n in names)
+        r = self.runner.run(f"dnf -q repoquery --queryformat '%{{name}} %{{version}}\\n' "
+                            f"--latest-limit=1 {q}")
+        if not r.ok:
+            return None
+        out = {}
+        for line in r.stdout.splitlines():
+            cols = line.split()
+            if len(cols) >= 2:
+                out.setdefault(cols[0], cols[1])
+        return out
+
     def get_latest(self, rc):
+        ver, hit = self.batched_latest(rc)           # answered by the one batched repoquery
+        if hit:
+            return ver
         pkg = shlex.quote(self._probe_name(rc))
         r = self.runner.run(
             f"dnf -q repoquery --queryformat '%{{version}}' --latest-limit=1 {pkg}")
@@ -75,6 +98,9 @@ class Dnf(NativePkgManager):
         return lines[0] if lines else None
 
     def is_locked(self, rc):
+        held, hit = self.batched_held(rc)            # the batch's one `versionlock list`
+        if hit:
+            return held
         # degrades to False when the plugin isn't installed (list -> nonzero)
         r = self.runner.run('dnf versionlock list')
         if not r.ok:
@@ -114,6 +140,10 @@ class Dnf(NativePkgManager):
             s = line.strip()
             if s.startswith('Package name:'):
                 held.add(s.split(':', 1)[1].strip())
+            else:                                      # dnf4: a NEVRA glob `name-E:V-R.*`
+                m = _DNF4_LOCK.match(s)
+                if m:
+                    held.add(m.group(1))
         return held
 
     def upgrade_all(self):

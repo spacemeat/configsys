@@ -13,7 +13,6 @@ say "target: $PRETTY_NAME"
 
 sudo apt-get update -qq >/dev/null 2>&1
 sudo apt-get install -y -qq zip unzip >/dev/null 2>&1     # the sdkman installer needs zip/unzip
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "configsys install sdkman (script driver: curl | bash)"
 bash configsys.sh install sdkman

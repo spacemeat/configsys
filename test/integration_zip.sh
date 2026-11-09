@@ -13,7 +13,6 @@ say "target: $PRETTY_NAME"
 
 # a populated apt cache is a normal-system precondition; the minimal image wipes it
 sudo apt-get update -qq >/dev/null 2>&1
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "configsys install deno (github .zip -> unzip into ~/apps/deno)"
 bash configsys.sh install deno

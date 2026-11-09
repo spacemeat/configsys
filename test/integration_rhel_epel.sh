@@ -10,7 +10,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID) -> rhel block"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "precondition: EPEL not yet enabled, btop absent"
 if rpm -q epel-release >/dev/null 2>&1; then echo "  (epel-release already present)"; fi

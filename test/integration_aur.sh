@@ -9,7 +9,6 @@ fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID)"
-printf '{ configs: user }\n' > "$HOME/configsys.hu"
 
 say "precondition: yay not installed"
 if pacman -Q yay-bin >/dev/null 2>&1; then fail "yay-bin already installed"; fi

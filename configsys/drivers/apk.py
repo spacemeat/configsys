@@ -111,9 +111,25 @@ class Apk(NativePkgManager):
         r = self.runner.run(f'apk list --installed {shlex.quote(name)}')
         return _version_from_apk_list(r.stdout.splitlines(), name) if r.ok else None
 
+    def latest_index(self, names):
+        '''Every name's candidate from ONE `apk list <names…>` (C1).'''
+        r = self.runner.run('apk list ' + ' '.join(shlex.quote(n) for n in names))
+        if not r.ok:
+            return None
+        lines = r.stdout.splitlines()
+        out = {}
+        for n in names:
+            v = _version_from_apk_list(lines, n)
+            if v is not None:
+                out[n] = v
+        return out
+
     def get_latest(self, rc):
         '''Version available in the configured repos (Alpine carries one current version per
         branch, so the first match is the candidate).'''
+        ver, hit = self.batched_latest(rc)
+        if hit:
+            return ver
         name = self._probe_name(rc)
         r = self.runner.run(f'apk list {shlex.quote(name)}')
         return _version_from_apk_list(r.stdout.splitlines(), name) if r.ok else None

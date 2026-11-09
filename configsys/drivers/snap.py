@@ -88,6 +88,9 @@ class Snap(Driver):
         return None
 
     def is_locked(self, rc):
+        held, hit = self.batched_held(rc)            # the batch's one held-set query
+        if hit:
+            return held
         # a held snap shows `held` in `snap list`'s Notes column. Best-effort.
         r = self.runner.run(f'snap list {shlex.quote(self._snap(rc))}')
         if not r.ok:

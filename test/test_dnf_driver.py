@@ -174,7 +174,7 @@ def test_batch_index_batches_get_version_across_units():
     d = Dnf(fr)
     rcs = [pkg('btop'), pkg('htop'), pkg('mc')]
     batch = d.batch_index(rcs)
-    assert batch == {'installed': {'btop': '1.4.0', 'htop': '3.3.0'}}
+    assert batch['installed'] == {'btop': '1.4.0', 'htop': '3.3.0'}   # (+ candidate/held, C1)
     fr.calls.clear()
     d.batch = batch
     assert d.get_version(pkg('btop')) == '1.4.0'
