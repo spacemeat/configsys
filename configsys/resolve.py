@@ -744,9 +744,16 @@ class _State:
         # a `via: parts` binding is a pure aggregator: no unit of its own, just the
         # union of its (recursively resolved) parts, each attributed to this root.
         if binding.via == 'parts':
-            keys = set()
-            for part in _as_list(binding.details.get('parts')):
-                keys |= self.add_component(part, root)
+            stack = self.__dict__.setdefault('_parts_stack', [])
+            if name in stack:                          # a parts cycle: an error row, never a crash (B4)
+                raise ResolveError('parts cycle: ' + ' -> '.join(stack[stack.index(name):] + [name]))
+            stack.append(name)
+            try:
+                keys = set()
+                for part in _as_list(binding.details.get('parts')):
+                    keys |= self.add_component(part, root)
+            finally:
+                stack.pop()
             return frozenset(keys)
 
         drv = _driver(binding, self.cascade, self.block)

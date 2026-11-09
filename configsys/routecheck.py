@@ -338,6 +338,37 @@ def release_registry_issues(cascade):
     return out
 
 
+def _parts_cycles(components):
+    '''Each distinct cycle through `via: parts` bindings (as a name list ending where it started).'''
+    edges = {n: [p for b in c.bindings if b.via == 'parts' for p in _as_parts(b.details.get('parts'))]
+             for n, c in components.items()}
+    seen, out, done = set(), [], set()
+
+    def walk(n, stack):
+        if n in stack:
+            cyc = stack[stack.index(n):] + [n]
+            key = frozenset(cyc)
+            if key not in seen:
+                seen.add(key)
+                out.append(cyc)
+            return
+        if n in done or n not in edges:
+            return
+        stack.append(n)
+        for m in edges[n]:
+            walk(m, stack)
+        stack.pop()
+        done.add(n)
+
+    for n in sorted(edges):
+        walk(n, [])
+    return out
+
+
+def _as_parts(v):
+    return [v] if isinstance(v, str) else [x for x in (v or []) if isinstance(x, str)]
+
+
 def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_only=None):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
@@ -356,6 +387,8 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_o
     def add(kind, msg, comp, sev='error'):
         issues.append(Issue(kind, msg, comp.name, comp.source, sev))
 
+    for cycle in _parts_cycles(components):            # a parts loop would error every resolve (B4)
+        add('parts-cycle', 'parts cycle: ' + ' -> '.join(cycle), components[cycle[0]])
     for name, comp in components.items():
         try:
             check_component(name, comp, cascade)
@@ -369,6 +402,16 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_o
             add('parts-ignored', 'component-level `parts:` is ignored because the component also has '
                 '`install:` methods — put the bundle on a `{ via: parts  parts: [...] }` binding (or '
                 'drop `install:` to make it a pure bundle)', comp, 'warning')
+        # a version constraint whose operand doesn't parse (`>=3.1x`) abstains at resolve time (never
+        # met) — say so here, where it can be fixed (B4)
+        from .osversion import parse_constraint
+        for where, cons in [('requires', getattr(comp, 'req_versions', {}) or {})] + [
+                (f'binding via:{b.via} requires', getattr(b, 'req_versions', {}) or {}) for b in comp.bindings]:
+            for cap, c in cons.items():
+                clauses = parse_constraint(str(c)) if c else None
+                if c and (not clauses or any(tgt is None for _op, tgt in clauses)):
+                    add('bad-constraint', f'{where} {cap}: {c!r} is not a version constraint '
+                        '(e.g. ">=3.11", ">=1.2,<2") — it is never met', comp)
         for b in comp.bindings:
             if b.via not in valid_via:
                 add('unknown-via', f'via:{b.via!r} is not a known driver', comp)

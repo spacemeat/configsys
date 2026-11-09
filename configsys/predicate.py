@@ -292,7 +292,10 @@ ALWAYS._text = ''  # (a memo key, like every parsed predicate's normalized text)
 def parse(text):
     if text is None or not text.strip():
         return ALWAYS
-    node = _Parser(_tokenize(text), text).parse()
+    try:
+        node = _Parser(_tokenize(text), text).parse()
+    except RecursionError:                            # a pathologically nested when: is a load error
+        raise PredicateError(f'when: nested too deeply: {text[:80]!r}…') from None
     try:
         node._text = ' '.join(text.split())          # the memo key for subset/witness (C3)
     except AttributeError:

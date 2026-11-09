@@ -40,6 +40,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — C4 — version caches consolidated; suite 9 min -> 4 min.
 - 2026-11-08 — C5 — shell startup: cs_loc O(1), no per-start pyenv rehash.
 - 2026-11-08 — C6 — TUI per-keystroke + preview costs, dnf versionlock.
+- 2026-11-08 — B4 — bad data no longer bricks load.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -172,7 +173,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   Fedora/RHEL/Arch/Void/Alpine no bash glue runs. (dotfiles-glue-02) · effort S · [done — bash glue is a ~/.bashrc block like zsh (created where absent, + a .bash_profile where no login profile exists); the Debian-only ~/.bash_aliases link retires; a linked bashrc is never edited]
 - **B4 [HIGH] Bad data still bricks load:** a `parts:` cycle (RecursionError in inspect/check/where/TUI);
   a plugin include/ambiguity/no-`via:` binding/deep `when:`; a malformed version constraint anywhere.
-  (routing-03/04, subsystems-05) · effort M · [open]
+  (routing-03/04, subsystems-05) · effort M · [done — parts cycle = an error row + a check parts-cycle error; via-less binding / pathological when: are load errors (forgiven for plugins); every file in a plugin checkout is forgiving; a plugin that makes your amended component ambiguous is dropped with a warning; constraint operands strip v and an unreadable one abstains (+ check bad-constraint)]
 - **B5 [HIGH] A pick that shares a failing dependency with an earlier pick vanishes** — no unit, no error
   row; `install --picks` then says everything is installed. (routing-02) · effort S · [open]
 - **B6 [HIGH] A metatag inside a list makes humerge loop forever** (push hangs, memory grows). (primary-01)

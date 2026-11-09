@@ -21,8 +21,8 @@ class Binding:
         self.when = spec.pop('when', None)
         self.pred = predicate.parse(self.when)
         self.via = spec.pop('via', None)
-        if self.via is None:
-            raise ValueError(f'binding without `via`: {spec}')
+        if self.via is None:                          # a load error (forgiven for a plugin), never a crash
+            raise ConfigError(f'binding without `via`: {spec}')
         self.details = spec               # everything else (name, app, foreign-arch, ...)
         # versioned deps declared on THIS binding (stage 2): {cap: constraint} for a binding-level
         # `requires: [ { cargo: ">=1.96" } ]`, and {cap: floor} for a `provides: { cargo: 1.97 }`
@@ -468,7 +468,10 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     drvs = layers.merge_dict_section(layer_list, 'drivers', layers.ALL_ROLES)
     cascade.driver_specs = drvs                      # raw `drivers:` blocks (routecheck lints them)
     cascade.driver_sources = layers.dict_section_sources(layer_list, 'drivers')
-    forgiving = {os.path.normpath(_pf(p)[0]) for p in plugin_files}
+    # FORGIVING = any file of a plugin's checkout (its data files AND what they include), so a bad
+    # definition anywhere in a plugin is skipped with a warning, never a brick (B4 / routing-04)
+    _trees = {layers._plugin_tree(_pf(p)[0]) for p in plugin_files}
+    forgiving = _ForgivingPaths(_trees)
     cascade.driver_gates = _driver_gates(drvs, cascade.driver_sources, forgiving, warnings_out)
     from . import routecheck
     components = {}
@@ -489,7 +492,23 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
                 if warnings_out is not None:
                     warnings_out.append(f'skipped component "{name}" ({src}): {e}')
                 continue
-            raise ConfigError(f'{src}: {e}')
+            # the top layer is yours/the repo's — but if a PLUGIN contributed to the component, the
+            # fault may be the plugin's: rebuild it without the plugins' parts and keep that, with a
+            # warning naming them (a plugin can't brick your config through a shared component)
+            mine = [(v, s) for _i, v, s in chain if os.path.normpath(s) not in forgiving]
+            if len(mine) != len(chain):
+                try:
+                    comp = Component(name, _merge_component_chain(name, mine))
+                    if validate:
+                        routecheck.check_component(name, comp, cascade)
+                except ConfigsysError:
+                    raise ConfigError(f'{src}: {e}')
+                if warnings_out is not None:
+                    dropped = sorted({s for _i, _v, s in chain if os.path.normpath(s) in forgiving})
+                    warnings_out.append(f'component "{name}": ignored the plugin layer(s) '
+                                        f'{", ".join(dropped)} for it — {e}')
+            else:
+                raise ConfigError(f'{src}: {e}')
         comp.source = src
         comp.shadows = len(chain) > 1
         components[name] = comp
@@ -505,6 +524,17 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     cascade.candidate_only = candidate_only          # so routecheck.validate mirrors resolve._select
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
     return cascade, components, drivers, candidate_only
+
+
+class _ForgivingPaths:
+    '''`path in forgiving` — True for any file inside one of the plugin checkouts.'''
+
+    def __init__(self, trees):
+        self.trees = [os.path.realpath(t) for t in trees if t]
+
+    def __contains__(self, path):
+        rp = os.path.realpath(str(path))
+        return any(rp == t or rp.startswith(t.rstrip(os.sep) + os.sep) for t in self.trees)
 
 
 def _driver_gates(drvs, sources, forgiving, warnings_out=None):

@@ -102,7 +102,10 @@ def parse_constraint(text):
         m = _OP_RE.match(part)
         if not m:
             continue
-        clauses.append((m.group(1) or '=', parse_version(m.group(2))))
+        operand = m.group(2).strip()
+        if operand[:1] in ('v', 'V') and operand[1:2].isdigit():
+            operand = operand[1:]                      # `>=v3.11` means 3.11
+        clauses.append((m.group(1) or '=', parse_version(operand)))
     return clauses or None
 
 

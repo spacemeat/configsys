@@ -22,8 +22,8 @@ def meets(version, constraint):
     either is unparseable — an unverifiable floor is treated as NOT met (surfaced, not assumed ok).'''
     pv = _pv(version)
     clauses = osversion.parse_constraint(constraint)
-    if pv is None or not clauses:
-        return False
+    if pv is None or not clauses or any(target is None for _op, target in clauses):
+        return False                                   # an unreadable operand abstains, never crashes (B4)
     return all(osversion._CMP[op or '='](pv, target) for op, target in clauses)
 
 
