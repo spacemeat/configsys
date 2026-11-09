@@ -227,6 +227,10 @@ class Dnf(NativePkgManager):
                                sudo=True, capture=False)
 
     def _ensure_versionlock(self):
+        # install the plugin only when it's missing — every lock/unlock used to run a full,
+        # metadata-loading `dnf install` transaction first (C6 / drivers-os-08)
+        if self.runner.run(f'rpm -q {_VERSIONLOCK_PLUGIN}').ok:
+            return
         self.runner.run(f'dnf install -y {_VERSIONLOCK_PLUGIN}',
                         sudo=True, capture=False)
 

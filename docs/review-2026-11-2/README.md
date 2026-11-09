@@ -39,6 +39,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — C3 — startup re-resolution trimmed (seeded start 2.45 s -> 1.42 s; rebuild 1.7 s -> 0.7 s).
 - 2026-11-08 — C4 — version caches consolidated; suite 9 min -> 4 min.
 - 2026-11-08 — C5 — shell startup: cs_loc O(1), no per-start pyenv rehash.
+- 2026-11-08 — C6 — TUI per-keystroke + preview costs, dnf versionlock.
 
 ## 0. Fixed during the review
 None — report-only.
@@ -233,7 +234,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   rehashes (~70–110 ms). (dotfiles-glue-15/16) · effort S · [done — cs_loc is a hash lookup in bash/zsh (associative array) and fish (parallel lists, contains -i); pyenv init cached with --no-rehash (and nu)]
 - **C6 [MED] TUI per-keystroke/preview:** Profiles untracked count re-merges per row; Theme previews build real
   models (`git ls-remote` per plugin); dnf reinstalls versionlock per lock. (tui-core-07/09, drivers-os-08) ·
-  effort S · [open]
+  effort S · [done — Profiles ⊙N counts memoized per (config, profile, ceiling, overlay, probes); Theme samples build screens with load=False (no real plugin read, primary fetch or ls-remote); dnf installs versionlock only when missing]
 
 ### Tier D — refactors (each collapses a bug class)
 

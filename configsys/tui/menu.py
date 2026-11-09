@@ -3270,7 +3270,19 @@ class ProfileScreen:
 
     def profile_untracked_count(self, name, ceiling=None):
         '''#members of `name` that are INSTALLED on this box but NOT tracked on the current machine
-        (the `⊙N` badge — claimable). Live (reads the install overlay/probe), not cached.'''
+        (the `⊙N` badge — claimable). Memoized per (config, profile, ceiling, probe results seen): a
+        frame asked it for every visible row (~half the screen's per-keystroke cost — C6).'''
+        key = (id(self.ctx.config), name, ceiling, id(getattr(self, '_overlay', None)),
+               len(getattr(self, '_probe_installed', None) or {}), getattr(self, 'show_install', None))
+        memo = self.__dict__.setdefault('_untracked_memo', {})
+        if key in memo:
+            return memo[key]
+        if len(memo) > 512:
+            memo.clear()
+        memo[key] = n = self._profile_untracked_count(name, ceiling)
+        return n
+
+    def _profile_untracked_count(self, name, ceiling=None):
         tracked = self.ctx.config.included()
         try:
             mem = self.members(name, ceiling)
@@ -4023,7 +4035,7 @@ def _sample_plugins_state(ctx):
     regardless of the machine's real (usually empty) plugin set. No network: the draw reads rows/
     remote/diff directly and never resolves remote-refs itself.'''
     from .. import plugins
-    pl = PluginScreen(ctx)
+    pl = PluginScreen(ctx, load=False)   # no real plugin read, primary fetch or ls-remote (C6)
 
     def _row(primary, name, source, ref, abi_ok, requires_abi, code_state, has_code, provides,
              synced, checksum='ok'):
@@ -4072,7 +4084,7 @@ def _sample_glue_state(ctx):
     + loader on/off, so every glue role is colourable regardless of the user's real glue. The draw
     reads only the row tuple's comp/state/target/source/shell, so a placeholder rc (None) is fine. One
     USER glue row (7-tuple flagged True) shows the user.d namespace next to component glue.'''
-    gs = GlueScreen(ctx)
+    gs = GlueScreen(ctx, load=False)
     gs.rows = [   # component glue links as conf.d/50-<name>.<ext>; user glue (user.d) as 90-<name>
         (None, 'fd-glue',     '~/.config/bash/conf.d/50-fd.sh',     'linked',   '<repo>/shell/bash/fd.sh',     'bash'),
         (None, 'zoxide-glue', '~/.config/bash/conf.d/50-zoxide.sh', 'drifted',  '<repo>/shell/bash/zoxide.sh', 'bash'),
@@ -4092,7 +4104,7 @@ def _sample_dotfiles_state(ctx):
     '''A stable synthetic Dotfiles sample covering managed / unmanaged(!) / no-config, so every role is
     colourable regardless of the user's real captures.'''
     import types
-    ds = DotfilesScreen(ctx)
+    ds = DotfilesScreen(ctx, load=False)
     # The cursor row is painted with the SELECTION colour (it overlays that row's status colour), so
     # every status needs at least one row OFF the cursor. Managed appears twice — one at the cursor
     # (shows the selection colour) and one below (shows its own green).
@@ -4338,7 +4350,7 @@ class PluginScreen:
     table→diff→next file→table; Shift-Tab reverses. A skin over configsys.actions.plugin_* —
     add/remove/sync/bless/update/trust/lock.'''
 
-    def __init__(self, ctx):
+    def __init__(self, ctx, *, load=True):
         self.ctx = ctx
         self.cur = 0
         self.top = 0
@@ -4358,7 +4370,8 @@ class PluginScreen:
         self._diff_busy = False
         self._diff_awaiting = None       # the diff_key queued but not yet shown
         self._diff_lock = threading.Lock()
-        self.reload()
+        if load:                         # (a Theme preview sample fills its own rows: no real load)
+            self.reload()
 
     def reload(self):
         from .. import plugins
@@ -4582,13 +4595,14 @@ class _ContentRootLabelMixin:
 class DotfilesScreen(_ContentRootLabelMixin):
     '''Link-state table over the via:dotfiles (CONFIG) units — a skin over the dotfiles driver
     (spec_states / install / uninstall / capture). Glue lives on its own page (GlueScreen).'''
-    def __init__(self, ctx):
+    def __init__(self, ctx, *, load=True):
         self.ctx = ctx
         self.cur = 0
         self.top = 0
         self.hscroll = 0                 # horizontal scroll across the columns (h/l)
         self.dirty = set()               # unit keys mutated here -> requeried on return to Components
-        self.reload()
+        if load:                         # (a Theme preview sample fills its own rows: no real load)
+            self.reload()
 
     def reload(self):
         from .. import actions
@@ -4621,13 +4635,14 @@ class GlueScreen(_ContentRootLabelMixin):
     snippet (e.g. fzf-glue) appears under every shell it ships a variant for, and each per-shell row
     is INDEPENDENTLY activatable — acting on a row activates/deactivates that snippet for ITS shell
     only (so activating fzf under bash doesn't light up fzf under fish).'''
-    def __init__(self, ctx):
+    def __init__(self, ctx, *, load=True):
         self.ctx = ctx
         self.cur = 0
         self.top = 0
         self.hscroll = 0
         self.dirty = set()
-        self.reload()
+        if load:                         # (a Theme preview sample fills its own rows: no real load)
+            self.reload()
 
     def reload(self):
         from .. import actions

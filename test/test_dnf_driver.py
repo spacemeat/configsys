@@ -123,13 +123,15 @@ def test_get_latest_from_repoquery():
     assert Dnf(fr).get_latest(pkg()) == '1.4.4'
 
 
-def test_lock_installs_plugin_then_adds_versionlock():
-    r = Runner(pretend=True)
+def test_lock_installs_the_plugin_only_when_missing_then_adds_versionlock():
+    r = FakeRunner([('rpm -q python3-dnf-plugin-versionlock', 1, '')])     # not installed yet
     Dnf(r).lock(pkg())
-    assert r.calls == [
-        'sudo dnf install -y python3-dnf-plugin-versionlock',
-        'sudo dnf versionlock add btop',
-    ]
+    assert r.calls == ['rpm -q python3-dnf-plugin-versionlock',
+                       'sudo dnf install -y python3-dnf-plugin-versionlock',
+                       'sudo dnf versionlock add btop']
+    r = FakeRunner()                                                       # already there (C6)
+    Dnf(r).lock(pkg())
+    assert r.calls == ['rpm -q python3-dnf-plugin-versionlock', 'sudo dnf versionlock add btop']
 
 
 def test_unlock_deletes_versionlock():
