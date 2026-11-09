@@ -13,6 +13,7 @@ Numbers are 16-bit in the legacy format (magic 0o432) and 32-bit in ncurses 6.1+
 
 import os
 import struct
+import tempfile
 
 MAGIC_16, MAGIC_32 = 0o432, 0o1036
 ABSENT, CANCELLED = -1, -2
@@ -178,6 +179,13 @@ def make_direct(e, name, term):
     return d
 
 
+def safe_name(name):
+    '''Is `name` (from $TERM) usable as ONE terminfo path segment — no `/`, NUL, `.` or `..`? ncurses
+    refuses the rest; so does this builder, which would otherwise write wherever it points.'''
+    return (isinstance(name, str) and bool(name) and name not in ('.', '..')
+            and '/' not in name and '\0' not in name)
+
+
 def entry_path(root, name):
     return os.path.join(root, name[0], name)
 
@@ -194,20 +202,33 @@ def find_compiled(name, dirs):
 
 def build_direct(name, term, dirs, out):
     '''Write `name` (the direct-color variant of `term`, found in `dirs`) under terminfo dir `out`.
-    True on success; False if `term`'s entry can't be found or read.'''
+    True on success; False if `term`'s entry can't be found or read, or either name isn't a single
+    safe path segment. Written to a private temp file and renamed into place, so two TUIs building
+    the same entry never install each other's half-written file.'''
+    if not (safe_name(name) and safe_name(term)):
+        return False
     src = find_compiled(term, dirs)
     if not src:
         return False
+    tmp = None
     try:
         with open(src, 'rb') as f:
             base = parse(f.read())
         data = serialize(make_direct(base, name, term), wide=True)
         dest = entry_path(out, name)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
-        tmp = dest + '.tmp'
-        with open(tmp, 'wb') as f:
+        fd, tmp = tempfile.mkstemp(dir=os.path.dirname(dest), prefix=f'.{name}.', suffix='.tmp')
+        with os.fdopen(fd, 'wb') as f:
             f.write(data)
+        os.chmod(tmp, 0o644)                          # mkstemp's 0600 -> a normal terminfo file
         os.replace(tmp, dest)
+        tmp = None
     except (OSError, ValueError, struct.error):
         return False
+    finally:
+        if tmp is not None:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
     return True

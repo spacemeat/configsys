@@ -74,3 +74,43 @@ def test_unreadable_base_fails_cleanly(tmp_path):
     (bad / 'broken').write_bytes(b'\x00\x01garbage')
     assert not terminfo.build_direct('broken-direct', 'broken', [str(tmp_path / 'db')], str(tmp_path / 'out'))
     assert not terminfo.build_direct('nope-direct', 'nope', [str(tmp_path / 'db')], str(tmp_path / 'out'))
+
+
+def _base_dirs():
+    for d in SYSTEM_DIRS:
+        if terminfo.find_compiled('xterm-256color', [d]):
+            return [d]
+    pytest.skip('needs an xterm-256color entry')
+
+
+def test_build_refuses_a_name_that_is_not_one_segment(tmp_path):
+    # tui-theme-18: a TERM-derived name never escapes the cache dir
+    dirs = _base_dirs()
+    out = tmp_path / 'a' / 'b' / 'c' / 'out'
+    for bad in ('../../../escaped-direct', 'x/y-direct', '..', '.', 'nul\0-direct', ''):
+        assert not terminfo.build_direct(bad, 'xterm-256color', dirs, str(out))
+    assert not terminfo.build_direct('ok-direct', '../xterm-256color', dirs, str(out))
+    assert [p for p in tmp_path.rglob('*') if p.is_file()] == []          # nothing written anywhere
+    assert screen._build_direct_entry('../../escaped-direct', 'xterm-256color',
+                                      {'XDG_CACHE_HOME': str(tmp_path)}) is None
+
+
+def test_build_leaves_no_temp_file_and_rebuilds_a_stale_cache(monkeypatch, tmp_path):
+    dirs = _base_dirs()
+    out = tmp_path / 'out'
+    assert terminfo.build_direct('xterm-direct', 'xterm-256color', dirs, str(out))
+    assert terminfo.build_direct('xterm-direct', 'xterm-256color', dirs, str(out))
+    assert sorted(p.name for p in out.rglob('*') if p.is_file()) == ['xterm-direct']
+    # a cached entry older than its base is rebuilt; a newer one is reused
+    monkeypatch.setattr(screen, '_TERMINFO_DIRS', tuple(dirs))
+    env = {'XDG_CACHE_HOME': str(tmp_path / 'cache')}
+    tdir = screen._build_direct_entry('xterm-direct', 'xterm-256color', env)
+    cached = terminfo.find_compiled('xterm-direct', [tdir])
+    os.utime(cached, (1, 1))                                             # older than any base
+    calls = []
+    real = terminfo.build_direct
+    monkeypatch.setattr(terminfo, 'build_direct', lambda *a: calls.append(a) or real(*a))
+    assert screen._build_direct_entry('xterm-direct', 'xterm-256color', env) == tdir
+    assert len(calls) == 1                                               # stale -> rebuilt
+    assert screen._build_direct_entry('xterm-direct', 'xterm-256color', env) == tdir
+    assert len(calls) == 1                                               # fresh -> reused

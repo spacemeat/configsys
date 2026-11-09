@@ -7,6 +7,7 @@ Split out of menu.py (review-2026-11-2 D2).
 
 import curses
 from . import keyspec
+from .theme import SCREEN_REGISTRY
 
 
 def _page_rows(stdscr):
@@ -159,12 +160,10 @@ def _fill_bg(stdscr, pal, h, w):
 
 
 # -- screen router / nav bar ----------------------------------------------
-SCREENS = [('1', 'components', 'Components'), ('2', 'profiles', 'Profiles'),
-           ('3', 'plugins', 'Plugins'), ('4', 'glue', 'Glue'), ('5', 'dotfiles', 'Dotfiles'),
-           ('6', 'config', 'Config'), ('7', 'theme', 'Theme')]
+SCREENS = [(key, sid, title) for sid, title, key in SCREEN_REGISTRY]   # (default key, id, title)
 
 
-IMPLEMENTED = {'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'}
+IMPLEMENTED = {sid for _key, sid, _title in SCREENS}
 
 
 KEY_TO_SCREEN = {ord(k): sid for k, sid, _name in SCREENS}
@@ -180,7 +179,7 @@ def _draw_nav(stdscr, pal, screen, h, w):
         elem = 'label' if sid == screen else ('menu_header' if sid in IMPLEMENTED else 'info_dim')
         _put(stdscr, 0, x, chip, pal.style(elem, 0, x, h, w))
         x += len(chip) + 1
-    hint = f' {km.glyph("global", "issues")} issues · {km.glyph("global", "quit")} quit '
+    hint = f' {km.glyph(screen, "issues")} issues · {km.glyph(screen, "quit")} quit '   # as this page resolves them
     _put(stdscr, 0, max(x + 1, w - len(hint) - 1), _fit(hint, w - x), pal.style('footer', 0, x, h, w))
 
 

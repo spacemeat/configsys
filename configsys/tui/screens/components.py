@@ -23,7 +23,7 @@ from ..models import (
     UNIT)
 from ..paint import _columns, _fit, _page_rows, _put, _reveal_subtree, _scroll_top, _scrollbar_v
 from ..screen import suspended
-from ..theme import STATUS_COLOR
+from ..theme import STATUSES
 from .base import Intent, Screen, ViewModel
 
 _KIND_ELEM = {PROFILE: 'profile', LINK: 'link', COMPONENT: 'component', UNIT: 'unit'}
@@ -253,7 +253,7 @@ class ComponentsScreen(Screen):
         cells += [col('driver', n.driver, 'driver'),
                   col('scope', n.scope_str(), 'scope_choice' if _scope_is_choice(n) else 'scope'),
                   col('status', n.status, 'info_dim' if dim else
-                      (n.status if n.status in STATUS_COLOR else 'unit'))]
+                      (n.status if n.status in STATUSES else 'unit'))]
         if err:
             ix = cols['inst'][0]
             cells.append((ix, _fit(err, max(1, w - ix - 1)), 'row_error'))

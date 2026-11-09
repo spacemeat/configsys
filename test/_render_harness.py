@@ -52,7 +52,7 @@ SIZES = [(40, 120), (24, 80)]
 
 
 class RecordingPalette:
-    '''Mimics the Palette PUBLIC API used by the painters (style/at/fill/get/rgb_*/band/new_frame/
+    '''Mimics the Palette PUBLIC API used by the painters (style/fill/get/rgb_*/band/new_frame/
     use_page + the gradient/have256/sel_bg_rgb/color_mode reads), returning a DETERMINISTIC hashable
     token per call instead of a curses attr. Faithful to the distinctions a painter controls — role,
     selection, an explicit bg, the active page, and (when the gradient is on) the diagonal band index,
@@ -96,16 +96,11 @@ class RecordingPalette:
     def _band_if(self, cond, y, x, h, w):
         return self.band(y, x, h, w) if (cond and self.gradient) else None
 
-    def style(self, element, y, x, h, w, *, selected=False, row=0, bg=None):
+    def style(self, element, y, x, h, w, *, selected=False, bg=None):
         if self.mono:
             return Attr(('m-style', element, bool(selected)))
         b = self._band_if(bg is None and not selected, y, x, h, w)
         return Attr(('style', self._page, element, bool(selected), self._bgk(bg), b))
-
-    def at(self, name, y, x, h, w, *, selected=False, row=0):
-        if self.mono:
-            return Attr(('m-at', bool(selected)))
-        return Attr(('at', self._page, name, bool(selected), self._band_if(not selected, y, x, h, w)))
 
     def fill(self, y, x, h, w, *, selected=False, bg=None):
         if self.mono:
@@ -128,13 +123,13 @@ def build_ctx(home):
     profiles/config/theme samples read a genuine catalog. Primes the per-frame ctx fields the
     painters expect (reboot chip) and the module-global keymap the legends read.'''
     from configsys.tui import menu
-    from configsys.tui.keyspec import Keymap, config_keys
+    from configsys.tui.keyspec import Keymap
     args = build_parser().parse_args(['--home', str(home), '--os', 'pop', '--pretend', 'inspect'])
     ctx = Context(args)
     ctx.ensure_user_config()
     ctx.runner._echo = None            # silence the pretend-runner echo the sample probes trigger
     ctx._reboot_pending = (False, '')
-    menu._KEYMAP = Keymap(config_keys(ctx.config))   # the same rebind-wins merge menu.run uses
+    menu._KEYMAP = Keymap(ctx.config.keys())   # the same rebind-wins merge menu.run uses
     return ctx
 
 

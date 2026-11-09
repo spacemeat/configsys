@@ -389,11 +389,11 @@ def test_quit_under_auto_on_quit_pushes_even_on_quit_force(monkeypatch):
 
 
 def test_the_plugins_screen_P_pushes(monkeypatch, tmp_path):
-    from configsys.tui.keyspec import Keymap, config_keys
+    from configsys.tui.keyspec import Keymap
     from configsys.tui.screens.plugins import PluginsScreen
     from _render_harness import build_ctx
     ctx = build_ctx(tmp_path)
-    monkeypatch.setattr(menu, '_KEYMAP', Keymap(config_keys(ctx.config)))
+    monkeypatch.setattr(menu, '_KEYMAP', Keymap(ctx.config.keys()))
     monkeypatch.setattr(flows_mod, '_push_primary', lambda s, p, c: (True, ['left out x', 'pushed 1 change']))
     scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
     scr.model.load_diff = lambda: None

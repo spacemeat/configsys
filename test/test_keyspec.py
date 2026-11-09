@@ -5,7 +5,7 @@ import curses
 
 from configsys import layers
 from configsys.config import Config
-from configsys.tui.keyspec import Keymap, key_name, parse_key
+from configsys.tui.keyspec import Keymap, key_name, lint_keys, parse_key
 
 
 def test_parse_key_forms():
@@ -152,3 +152,103 @@ def test_lint_keys_catches_typos_conflicts_and_bad_keys():
     # a page rebinding a GLOBAL action is allowed (not flagged)
     ok = layer('u2.hu', '{ keys: { components: { down: n  op-install: I } } }')
     assert keyspec.lint_keys([ok]) == []
+
+
+# -- review-2026-11-2 tui-theme-11/12/17/25/27 ---------------------------------------------------
+
+def _repo_keys_text():
+    import os
+    return open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.hu'),
+                encoding='utf-8').read()
+
+
+def _repo_plus(extra):
+    return _cfg(_repo_keys_text(), extra).keys()
+
+
+def test_help_rows_and_glyph_follow_page_shadows():
+    # tui-theme-11: a page-scope page-down isn't the theme's "preview sample page"; a page key that
+    # shadows a global one never shows as that global action
+    km = Keymap(_repo_plus('{ keys: { components: { page-down: n  where: q } } }'))
+    rows = km.help_rows('components')
+    assert not any(label == 'preview sample page' for _k, label in rows)
+    assert ('n', 'page down') in rows
+    assert km.glyph('components', 'quit') != 'q'
+    assert not any(label.startswith('quit (') and 'q' in keys.split('/') for keys, label in rows)
+    assert ('q', 'explain component (where)') in rows
+
+
+def test_help_rows_shipped_have_no_duplicate_glyphs_or_shadowed_tab():
+    from configsys.tui.keyspec import shipped_keymap
+    rows = shipped_keymap().help_rows('components')
+    assert not any(k == '⏎/⏎' for k, _l in rows)
+    assert ['tab' in k.split('/') for k, _l in rows].count(True) == 1
+
+
+def test_help_rows_theme_page_range_follows_all_pages():
+    from configsys.tui.keyspec import shipped_keymap
+    from configsys.tui.theme import ALL_PAGES
+    rows = shipped_keymap().help_rows('theme')
+    page = [k for k, label in rows if label == 'preview sample page']
+    assert page and page[0].endswith(str(len(ALL_PAGES)))
+
+
+def test_nav_bar_quit_hint_follows_a_page_shadow():
+    km = Keymap(_repo_plus('{ keys: { components: { where: q } } }'))
+    assert km.glyph('components', 'quit') != 'q' and km.glyph('global', 'quit') == 'q'
+    assert km.glyph('plugins', 'quit') == 'q'
+
+
+def test_lint_flags_keys_the_tui_never_receives():
+    # tui-theme-12
+    from configsys import layers
+    lyr = layers.Layer('l.hu', 'user', {'keys': {'global': {'quit': ['q', 'ctrl-c']},
+                                                 'components': {'where': 'é'}}})
+    warns = [w for w in lint_keys([lyr]) if 'never reaches the TUI' in w]
+    assert len(warns) == 2, warns
+    assert any("'ctrl-c'" in w and 'SIGINT' in w for w in warns)
+
+
+def test_config_hu_comments_bind_no_unreceivable_key():
+    import re
+
+    from configsys.tui.keyspec import unreceivable
+    for line in _repo_keys_text().splitlines():
+        if '//' not in line:
+            continue
+        for tok in re.findall(r'\b(?:ctrl|c)-[a-z]\b', line.split('//', 1)[1]):
+            assert unreceivable(parse_key(tok)) is None, line
+
+
+def test_lint_output_escapes_control_characters():
+    # tui-theme-17
+    from configsys import layers
+    lyr = layers.Layer('evil.hu', 'plugin', {'keys': {'components': {'where': '\x1b]0;pwned\x07',
+                                                                    '\x1b[2Jx': 'q'}}})
+    warns = lint_keys([lyr])
+    assert warns and not any('\x1b' in w or '\x07' in w for w in warns), warns
+    assert any('\\x1b' in w for w in warns)
+
+
+def test_no_module_reimplements_config_keys_or_label():
+    # tui-theme-25: Config.keys() is the one merge entry point; Keymap.label the one label lookup
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parent.parent / 'configsys'
+    for f in root.rglob('*.py'):
+        text = f.read_text(encoding='utf-8')
+        assert 'config_keys' not in text, f
+        if f.name != 'keyspec.py':
+            assert 'ACTION_LABELS.get(' not in text, f
+
+
+def test_config_keys_owners_out():
+    c = _cfg('{ keys: { global: { quit: q } } }', '{ keys: { components: { where: w } } }')
+    owners = {}
+    c.keys(owners_out=owners)
+    assert owners['global']['quit'] == 'l0.hu' and owners['components']['where'] == 'l1.hu'
+
+
+def test_control_glyphs_share_one_notation_and_bool_is_no_key():
+    # tui-theme-27
+    assert key_name(10) == '^j' and key_name(11) == '^k' and key_name(1) == '^a'
+    assert parse_key(True) is None and parse_key(False) is None

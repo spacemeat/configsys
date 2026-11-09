@@ -4,7 +4,7 @@ config `theme:` deep-merge. Pure functions — no curses.'''
 from configsys import layers
 from configsys.config import Config
 from configsys.tui.theme import (
-    ALL_PAGES, BASIC_MAP, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _flag, ansi_name,
+    ALL_PAGES, BASIC_MAP, BUILTIN_GRADIENTS, COLOR_MAP, DEMO_PAGES, PAGE_ROLES, _truthy, ansi_name,
     env_color_cap, full_snapshot, parse_ansi, parse_color, resolve_basic, resolve_theme,
 )
 
@@ -60,17 +60,17 @@ def test_ansi_name_is_parse_ansi_inverse():
         assert parse_ansi(ansi_name(idx)) == idx
 
 
-def test_resolve_basic_keys_by_rgb_and_user_wins():
+def test_resolve_basic_keys_by_name_and_user_wins():
     colors = dict(COLOR_MAP)
-    # the built-in hand-tuning: 'error' -> bright-red (9), keyed by error's rgb
+    # the built-in hand-tuning: 'error' -> bright-red (9), keyed by the map NAME (tui-theme-13)
     m = resolve_basic({}, colors)
-    assert m[COLOR_MAP['error']] == 9 and m[COLOR_MAP['accent']] == 13   # bright-magenta
-    # a user override wins, even though 'error' shares its rgb with 'op_remove' (both bright-red)
+    assert m['error'] == 9 and m['accent'] == 13                       # bright-magenta
+    # a user override changes only that name — 'op_remove' shares error's rgb and keeps its slot
     m2 = resolve_basic({'colors-basic': {'error': 'yellow'}}, colors)
-    assert m2[COLOR_MAP['error']] == 3
+    assert m2['error'] == 3 and m2['op_remove'] == 9
     # an unparseable slot or an unknown name is skipped, not an error
     m3 = resolve_basic({'colors-basic': {'error': 'chartreuse', 'bogus': 'red'}}, colors)
-    assert m3[COLOR_MAP['error']] == 9 and COLOR_MAP['error'] in m3
+    assert m3['error'] == 9 and 'bogus' not in m3
 
 
 def test_full_snapshot_includes_colors_basic():
@@ -147,7 +147,7 @@ def test_resolve_defaults_reproduce_builtin_look():
     # a role resolves its fg reference against the map
     comp = pages['components']['roles']['component']
     assert comp == {'fg': (235, 235, 235), 'bg': None, 'bold': True, 'underline': False,
-                    'reverse': False}
+                    'reverse': False, 'fg_name': 'title', 'bg_name': None}   # names: the 8/16 slots
     label = pages['components']['roles']['label']
     assert label['fg'] == COLOR_MAP['title'] and label['bg'] == COLOR_MAP['accent']   # fg+bg refs
     assert set(pages) == set(ALL_PAGES)
@@ -202,9 +202,9 @@ def test_page_gradient_override_and_disable():
     assert pages['plugins']['grad'][2] is False
 
 
-def test_flag_treats_humon_string_bools_correctly():
-    assert _flag('true') and _flag(True) and _flag('yes') and _flag('1')
-    assert not _flag('false') and not _flag(False) and not _flag(None) and not _flag('no')
+def test_truthy_treats_humon_string_bools_correctly():
+    assert _truthy('true') and _truthy(True) and _truthy('yes') and _truthy('1')
+    assert not _truthy('false') and not _truthy(False) and not _truthy(None) and not _truthy('no')
 
 
 def _cfg(*texts):
@@ -386,3 +386,47 @@ def test_every_role_a_screen_paints_is_themeable_on_its_page(tmp_path):
         for page, painted in pal.seen.items():
             missing = painted - set(PAGE_ROLES.get(page, []))
             assert not missing, f'{name} paints {sorted(missing)} on page {page}, not in PAGE_ROLES'
+
+
+# -- review-2026-11-2 tui-theme-14 / 16 -----------------------------------------------------------
+
+def test_gradient_off_tokens_are_one_parser():
+    import types
+
+    from configsys import actions
+    from configsys.tui.theme import is_off
+    for v in ['0', 'False', 'OFF', 'no ', False]:
+        t = {'pages': {'components': {'gradient': {'enabled': v}}}}
+        assert resolve_theme(t)[1]['components']['grad'][2] is False, v
+        ctx = types.SimpleNamespace(config=types.SimpleNamespace(theme=lambda t=t: t))
+        assert actions.theme_overrides(ctx)['pages']['components']['gradient'] is False, v
+        assert resolve_theme({'pages': {'components': {'gradient': v}}})[1]['components']['grad'][2] is False
+    for v in [None, True, 'true', 'on', '1', {}]:
+        assert not is_off(v)
+    assert resolve_theme({'pages': {'components': {'gradient': {'enabled': 'yes'}}}})[1]['components']['grad'][2]
+    assert 'enabled' in actions._THEME_BOOL_ATTRS                    # `theme set …enabled 0` stores false
+
+
+def test_rgb_to_256_is_the_nearest_xterm_entry():
+    from configsys.tui.theme import _dist2, rgb_to_256, xterm_rgb
+    probes = list(COLOR_MAP.values()) + [(0, 0, 0), (255, 255, 255), (128, 128, 128), (3, 0, 4),
+                                         (58, 34, 88), (240, 240, 240), (100, 101, 99)]
+    for rgb in probes:
+        best = min(_dist2(xterm_rgb(i), rgb) for i in range(16, 256))
+        assert _dist2(xterm_rgb(rgb_to_256(*rgb)), rgb) == best, rgb
+
+
+def test_the_screen_list_has_one_source():
+    # tui-theme-21: every per-page table agrees with theme.SCREEN_REGISTRY
+    from configsys.tui import paint
+    from configsys.tui.keyspec import KNOWN_ACTIONS, SCREEN_IDS, _FALLBACK, _PAGE_N, shipped_keymap
+    from configsys.tui.theme import SCREEN_REGISTRY
+    ids = [sid for sid, _t, _k in SCREEN_REGISTRY]
+    assert ALL_PAGES == ids and DEMO_PAGES == [p for p in ids if p != 'theme']
+    assert set(ids) == SCREEN_IDS == {sid for _k, sid, _n in paint.SCREENS} == set(paint.IMPLEMENTED)
+    assert set(ids) == set(PAGE_ROLES) == set(BUILTIN_GRADIENTS) == set(_FALLBACK['screens'])
+    assert {a for a in KNOWN_ACTIONS['theme'] if _PAGE_N.match(a)} == {
+        f'page-{i}' for i in range(1, len(ids) + 1)}
+    km = shipped_keymap()                                   # config.hu's switcher covers each screen
+    assert {sid for sid in ids if km.keys_for('screens', sid)} == set(ids)
+    assert {sid for sid in ids if km.keys_for('theme', f'page-{ids.index(sid) + 1}')} == set(ids)

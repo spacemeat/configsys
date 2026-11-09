@@ -166,7 +166,7 @@ def tui_facts():
         'keys': keys,
         'action_labels': dict(keyspec.ACTION_LABELS),
         'help': helps,
-        'statuses': sorted(theme.STATUS_COLOR),
+        'statuses': sorted(theme.STATUSES),
     }
 
 

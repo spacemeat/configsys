@@ -133,14 +133,13 @@ def test_an_install_receipt_remembers_its_layer(tmp_path):
 
 
 def test_an_untrusted_plugins_keys_are_ignored_until_trusted(tmp_path):
-    from configsys.tui.keyspec import config_keys
     home, pdir = _home(tmp_path, '{ keys: { plugins: { trust-all: j } } }\n')
     ctx = _ctx(home)
-    assert config_keys(ctx.config).get('plugins', {}).get('trust-all') != 'j'
+    assert ctx.config.keys().get('plugins', {}).get('trust-all') != 'j'
     plugins.set_trust(home / '.config' / 'configsys' / 'plugin-trust.hu', 'evil',
                       plugins.plugin_identity(pdir))
     ctx = _ctx(home)
-    assert config_keys(ctx.config)['plugins']['trust-all'] == 'j'
+    assert ctx.config.keys()['plugins']['trust-all'] == 'j'
 
 
 def test_a_bad_forced_os_still_errors_cleanly(tmp_path):

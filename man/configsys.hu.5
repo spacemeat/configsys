@@ -810,7 +810,7 @@ A single character is that key, case-sensitive: \fBg\fR and \fBG\fR are differen
 .IP \(bu 2
 Named keys, in any case: \fBenter\fR (also \fBreturn\fR, \fBret\fR, \fBcr\fR: the Return key), \fBkpenter\fR (also \fBkp-enter\fR: keypad Enter), \fBtab\fR, \fBshift-tab\fR (also \fBbtab\fR), \fBesc\fR (also \fBescape\fR), \fBspace\fR (also \fBspc\fR), \fBup\fR, \fBdown\fR, \fBleft\fR, \fBright\fR, \fBpgup\fR (also \fBpageup\fR), \fBpgdn\fR (also \fBpagedown\fR), \fBhome\fR, \fBend\fR, \fBbackspace\fR (also \fBbs\fR), \fBdel\fR (also \fBdelete\fR), \fBins\fR (also \fBinsert\fR), and \fBf1\fR to \fBf12\fR.
 .IP \(bu 2
-\fBctrl-<letter>\fR (also \fBc-<letter>\fR or \fB^<letter>\fR): a control key. Only letters are accepted. Return and Ctrl-J are different keys, but \fBctrl-i\fR is the same key as \fBtab\fR and \fBctrl-m\fR the same as \fBenter\fR.
+\fBctrl-<letter>\fR (also \fBc-<letter>\fR or \fB^<letter>\fR): a control key. Only letters are accepted. Return and Ctrl-J are different keys, but \fBctrl-i\fR is the same key as \fBtab\fR and \fBctrl-m\fR the same as \fBenter\fR. \fBctrl-c\fR, \fBctrl-q\fR, \fBctrl-s\fR and \fBctrl-z\fR never reach the TUI (the terminal turns them into SIGINT, flow control and SIGTSTP), and neither does a literal non-ASCII character (it arrives as several bytes); \fBconfigsys check\fR warns on a binding of any of them.
 .IP \(bu 2
 A list binds alternates: \fBdown: [ j  down ]\fR. The first key is the one the hints show.
 .SS Conflicts and validation

@@ -39,17 +39,17 @@ def _chosen_splash(ctx):
     cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
     import os
     from .. import report
-    from .theme import env_color_cap, env_effects
+    from .theme import env_color_cap, env_effects, is_off
     if os.environ.get('CONFIGSYS_NO_SPLASH'):
         return False, None
     if ctx.reporter.level >= report.VERBOSE:
         return False, None
     v = ctx.config.splash()
-    if isinstance(v, str) and v.lower() in ('false', 'no', 'off', '0'):
+    if isinstance(v, str) and is_off(v):
         return False, None
     if v is None:                                    # legacy: theme.splash false still disables
         s = (ctx.config.theme() or {}).get('splash')
-        if s is False or s in ('false', 'no', 'off') or (isinstance(s, dict) and s.get('enabled') in (False, 'false', 'no')):
+        if is_off(s):
             return False, None
     if env_effects() == 'none' or env_color_cap() == 'none':   # minimal/mono: a progress bar is
         return True, None                                      # feedback, not eye-candy — keep it,

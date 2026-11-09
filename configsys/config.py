@@ -260,15 +260,16 @@ class Config:
                 splash = t['splash']
         return {'colors': colors, 'colors-basic': colors_basic, 'pages': pages, 'splash': splash}
 
-    def keys(self):
+    def keys(self, owners_out=None):
         '''The merged TUI `keys:` bindings — like `theme`, contributed by EVERY layer and merged
         per scope, per action across the full stack repo < plugins < primary < top-config (later
         wins per action). Returns {scope: {action: key-or-[keys]}}, consumed by tui.keyspec.Keymap.
         REBIND-WINS: a higher layer that binds a key a lower layer gave to ANOTHER action takes it
         from that action (tui.keyspec.merge_layer_keys) — identical to a plain per-action overlay when
-        nothing conflicts.'''
+        nothing conflicts. `owners_out` (a dict) gets {scope: {action: layer file}} — where each
+        binding came from (`configsys keys`).'''
         from .tui.keyspec import merge_layer_keys
-        return merge_layer_keys(self.key_layers())
+        return merge_layer_keys(self.key_layers(), owners_out=owners_out)
 
     def key_layers(self):
         '''The layers whose `keys:` count: repo, includes of yours, your top config — and a plugin

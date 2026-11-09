@@ -2,7 +2,7 @@
 
 A "splash" is a startup wait-screen animation. The HOST (configsys.tui.splash.run_splash) owns the
 frame loop: it constructs the provider once, then calls render(frame) at ~fps, feeding it live
-progress, and takes care of the skip key, the deadline, and the safe plain-text fallback. A
+progress, and takes care of the skip key and the safe plain-text fallback. A
 provider just draws ONE frame from the minimal data in a SplashFrame — the least a plugin needs to
 paint an animated wait screen.
 
@@ -33,8 +33,10 @@ class Splash:
 
     The host constructs you once as `Splash(scr, pal, size, seed)`:
       - `scr`  a curses window to draw on (use scr.addstr(y, x, ch, attr));
-      - `pal`  a configsys Palette — pal.rgb_attr(rgb) / pal.rgb_pair(fg, bg) / pal.get(role)
-               yield curses attrs, so you never allocate colours yourself;
+      - `pal`  a configsys Palette — pal.rgb_attr(rgb) / pal.rgb_pair(fg, bg) / pal.get(name)
+               yield curses attrs, so you never allocate colours yourself (get takes a color-MAP
+               name such as 'accent' or 'title' — the shared map, not a page's role override);
+               `pal.depth` is the color depth it paints at;
       - `size` (h, w) of the screen;
       - `seed` seeds self.rng for a deterministic (unit-testable) look.
     Then it calls render(frame) each frame. Draw onto self.scr and DO NOT refresh — the host does
@@ -50,7 +52,7 @@ class Splash:
     `\\033[<row>;1H…` with `\\033[38;2;r;g;bm`/`\\033[48;2;r;g;bm` SGR); the host writes it straight
     to the terminal and skips its own curses repaint for that frame (so don't touch self.scr). `pal`
     is unused. Set `self.at_rest = True` when the animation has settled (default: at rest once
-    inspection is done). The host still owns the clock, skip key, deadline, and the text fallback.'''
+    inspection is done). The host still owns the clock, skip key, and the text fallback.'''
     name = None
     fps = 30.0
     min_duration = 0.6

@@ -1226,7 +1226,7 @@ def move_config_setting(ctx, key):
 # The theme lives in the `theme:` section (colors / elements.<el>.<attr> / gradient); saving a theme
 # writes a theme-only PLUGIN (portable/shareable), per docs/done/tui-screens-plan.md (T1).
 
-_THEME_BOOL_ATTRS = ('bold', 'underline', 'reverse')
+_THEME_BOOL_ATTRS = ('bold', 'underline', 'reverse', 'enabled')
 
 
 def theme_target(ctx, dotted_key=None, *, create=False):
@@ -1248,7 +1248,8 @@ def theme_target(ctx, dotted_key=None, *, create=False):
 def set_theme_value(ctx, dotted_key, value, *, target=None):
     '''Set one theme value by dotted path (`colors.accent`, `pages.profiles.profile.fg`,
     `pages.components.gradient.from`);
-    `value=None` removes it. bold/underline/reverse coerce to a bool. Returns (changed, label).'''
+    `value=None` removes it. bold/underline/reverse and a gradient's `enabled` coerce to a bool.
+    Returns (changed, label).'''
     if value is not None:                              # refuse what the TUI would ignore (G6)
         from .tui.theme import theme_problems
         probe = {}
@@ -1287,6 +1288,7 @@ def theme_overrides(ctx):
     empties dropped) — for display and for snapshotting into a theme plugin. A per-page
     `gradient: {enabled: false}` round-trips as `gradient: false`, and the splash choice is
     preserved, so save/load is faithful.'''
+    from .tui.theme import is_off
     t = ctx.config.theme()
     out = {}
     if t.get('colors'):
@@ -1297,7 +1299,7 @@ def theme_overrides(ctx):
         for k, v in spec.items():                     # roles (dict) + the reserved `gradient`
             if k == 'gradient':
                 grad = dict(v) if isinstance(v, dict) else {}
-                if v in (False, 'false', 'no', 'off') or grad.get('enabled') in (False, 'false', 'no', 'off'):
+                if is_off(v):
                     p['gradient'] = False             # explicit disable survives the round-trip
                 else:
                     g = {gk: gv for gk, gv in grad.items() if gk != 'enabled'}

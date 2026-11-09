@@ -1070,6 +1070,9 @@ one works.
 - `ctrl-<letter>` (also `c-<letter>` or `^<letter>`): a control key. Only letters are accepted.
   Return and Ctrl-J are different keys, but `ctrl-i` is the same key as `tab` and `ctrl-m` the same
   as `enter`.
+  `ctrl-c`, `ctrl-q`, `ctrl-s` and `ctrl-z` never reach the TUI (the terminal turns them into
+  SIGINT, flow control and SIGTSTP), and neither does a literal non-ASCII character (it arrives as
+  several bytes); `configsys check` warns on a binding of any of them.
 - A list binds alternates: `down: [ j  down ]`. The first key is the one the hints show.
 
 ### Conflicts and validation

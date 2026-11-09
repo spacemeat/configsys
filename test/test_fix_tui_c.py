@@ -18,7 +18,7 @@ from configsys.installState import ComponentState
 from configsys.sysupdates import UpdateRow
 from configsys.tui import menu
 from configsys.tui import models as models_mod
-from configsys.tui.keyspec import (ROUTER_ACTIONS, KNOWN_ACTIONS, Keymap, config_keys, lint_keys,
+from configsys.tui.keyspec import (ROUTER_ACTIONS, KNOWN_ACTIONS, Keymap, lint_keys,
                                    lint_merged, merge_layer_keys)
 from configsys.tui.surface import BufferSurface
 
@@ -175,7 +175,7 @@ def test_glue_is_a_role_attr_and_every_via_attr_has_an_axis():
 def test_profiles_where_is_a_known_bound_action():
     assert 'where' in KNOWN_ACTIONS['profiles']
     c = _cfg(_repo_text())
-    km = Keymap(config_keys(c))
+    km = Keymap(c.keys())
     assert km.action_for('profiles', ord('w')) == 'where'
     assert lint_keys(c._layers) == []                       # no clash in the shipped keymap
     assert 'profile' in Keymap.label('profiles', 'where')   # a page-specific help label
@@ -369,7 +369,7 @@ def _old_route(km, screen, ch):
 
 
 def test_default_keymap_routes_exactly_as_before():
-    km = Keymap(config_keys(_cfg(_repo_text())))
+    km = Keymap(_cfg(_repo_text()).keys())
     for screen in ('components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'):
         for ch in list(range(0, 600)):
             assert menu._route_key(km, screen, ch) == _old_route(km, screen, ch), (screen, ch)
@@ -398,7 +398,7 @@ _REPO_KEYS = ('{ keys: { global: { quit: q  issues: "!" }  screens: { components
 
 def test_higher_layer_rebind_takes_the_key_from_the_lower_action():
     c = _cfg(_REPO_KEYS, '{ keys: { components: { where: i  lock: l } } }')
-    merged = config_keys(c)
+    merged = c.keys()
     assert merged['components']['where'] == 'i'
     assert 'op-install' not in merged['components']          # its only key was taken -> unbound
     km = Keymap(merged)
@@ -413,7 +413,7 @@ def test_higher_layer_rebind_takes_the_key_from_the_lower_action():
 def test_partial_steal_keeps_the_lower_actions_other_keys():
     c = _cfg('{ keys: { global: { quit: q }  components: { lock: [ L  l ]  where: w } } }',
              '{ keys: { components: { where: l } } }')
-    merged = config_keys(c)
+    merged = c.keys()
     assert merged['components']['lock'] == ['L']
     assert any("takes the key from 'lock'" in w and 'unbound' not in w for w in lint_keys(c._layers))
 
@@ -431,8 +431,8 @@ def test_lint_merged_flags_a_plain_merge_duplicate_and_a_quit_lockout():
                             'profiles': {'claim': 'q', 'quit': 'x'}})   # its own quit key: fine
 
 
-def test_merge_without_conflicts_matches_config_keys():
-    c = _cfg(_repo_text(), '{ keys: { global: { quit: [ q  "ctrl-c" ] } screens: { theme: z } } }')
+def test_merge_without_conflicts_matches_config_dot_keys():
+    c = _cfg(_repo_text(), '{ keys: { global: { quit: [ q  "ctrl-x" ] } screens: { theme: z } } }')
     assert merge_layer_keys(c._layers) == c.keys()
     assert lint_keys(c._layers) == []
 
@@ -478,7 +478,7 @@ def test_issues_label_has_no_hardcoded_key_and_follows_a_rebind():
 
 
 def test_help_rows_include_page_down_and_page_up():
-    km = Keymap(config_keys(_cfg(_repo_text())))
+    km = Keymap(_cfg(_repo_text()).keys())
     labels = [label for _k, label in km.help_rows('components')]
     assert 'page down' in labels and 'page up' in labels
     assert labels.index('page down') < labels.index('page up')

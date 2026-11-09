@@ -100,15 +100,30 @@ def _build_direct_entry(name, term, env):
     '''Build `name` = $TERM + the direct-color overlay into configsys' cache. Returns the terminfo dir
     holding it, or None if it can't be built. Reused once built. First in pure Python (terminfo.py —
     byte-identical to tic's output, and needs no ncurses-bin, which minimal containers lack), then
-    with `tic` for a database layout that reader doesn't handle (e.g. a hashed .db).'''
+    with `tic` for a database layout that reader doesn't handle (e.g. a hashed .db). A cached entry
+    older than the terminal's own base entry (a terminal upgrade) is rebuilt. A name that isn't one
+    safe path segment is never built.'''
     from . import terminfo
+    if not (terminfo.safe_name(name) and terminfo.safe_name(term)):
+        return None
     out = _cache_terminfo_dir(env)
-    if _terminfo_exists(name, {'TERMINFO': out}, system=False):
+    if _terminfo_exists(name, {'TERMINFO': out}, system=False) and not _cache_stale(name, term, env, out):
         return out
     # the base is searched like ncurses would — including a terminal's private TERMINFO (kitty)
     if terminfo.build_direct(name, term, _terminfo_dirs(env), out):
         return out
     return _tic_direct_entry(name, term, env, out)
+
+
+def _cache_stale(name, term, env, out):
+    '''Is the cached `name` older than `term`'s base entry (so it predates a terminal upgrade)?'''
+    from .terminfo import find_compiled
+    cached = find_compiled(name, [out])
+    base = find_compiled(term, _terminfo_dirs(env))
+    try:
+        return bool(cached and base) and os.path.getmtime(base) > os.path.getmtime(cached)
+    except OSError:
+        return False
 
 
 def _tic_direct_entry(name, term, env, out):

@@ -170,7 +170,7 @@ def run(ctx):
         curses.noecho()
         curses.cbreak()
         stdscr.keypad(True)
-        from .keyspec import Keymap, config_keys
+        from .keyspec import Keymap
         # migrated screens (lazy import: avoids an import cycle; the new *Screen classes intentionally
         # shadow the like-named legacy MODEL classes within run(), which now only builds the new screens)
         from .screens.plugins import PluginsScreen
@@ -182,7 +182,7 @@ def run(ctx):
         from .screens.components import ComponentsScreen
         global _KEYMAP
         # merged bindings (rebind-wins across layers); legends read the same map
-        _KEYMAP = keymap = Keymap(config_keys(ctx.config))
+        _KEYMAP = keymap = Keymap(ctx.config.keys())
         comp_mode = 'to-do'                       # Components view MODE: to-do | tracked | installed+tracked
         _mode_caches = {}                         # overlay-enumeration bundle, reused across mode switches
         states, layouts, transitive = _components_model(ctx, cfg, states, comp_mode, caches=_mode_caches)

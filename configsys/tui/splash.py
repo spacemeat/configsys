@@ -2,7 +2,7 @@
 
 configsys splashes are provider plugins (see configsys/splashes.py for the ABI). This module owns
 the FRAME LOOP shared by every provider (`run_splash`): it constructs the chosen `Splash`, drives
-it at its frame rate while feeding live progress, and owns the skip key, the deadline, and the safe
+it at its frame rate while feeding live progress, and owns the skip key and the safe
 plain-text fallback. The only provider shipped in core is `braille-bar` — a light braille spinner +
 determinate progress bar (no trust, adds no time) that is both the default when `splash:` is unset
 and the universal fallback. Fancier splashes (e.g. the ASCII-water `ocean` fill) live in code
@@ -15,7 +15,7 @@ import sys
 import time
 
 from ..splashes import Splash, SplashFrame, register_splash
-from .theme import rgb_to_256, rgb_to_basic8
+from .theme import palette_depth, rgb_to_256, rgb_to_basic8
 
 
 def _tty_write(s):
@@ -47,10 +47,11 @@ def _sgr_downconvert(s, pal):
     depth, so a `raw` (truecolor) splash honors --color/--nocolor like everything else. A no-op under
     real truecolor (the common case — early return, no scanning). Non-color SGR, cursor moves, and
     resets pass through untouched. `mono` strips color entirely (structural attrs survive).'''
-    if pal is None or getattr(pal, 'truecolor', False) or getattr(pal, 'direct', False):
+    if pal is None:
+        return s
+    depth = palette_depth(pal)
+    if depth in ('truecolor', 'direct'):
         return s                                        # keep the 24-bit output as-is
-    depth = ('mono' if getattr(pal, 'mono', False) else
-             '256' if getattr(pal, 'have256', False) else '16' if getattr(pal, 'have16', False) else '8')
 
     def conv(m):
         toks = (m.group(1) or '0').split(';')
@@ -63,7 +64,7 @@ def _sgr_downconvert(s, pal):
                 except ValueError:
                     out.append(t); i += 1; continue
                 i += 5
-                if depth != 'mono':                     # mono: drop the color run entirely
+                if depth != 'none':                     # mono: drop the color run entirely
                     out.append(_sgr_encode(*rgb, t == '48', depth))
             else:
                 out.append(t); i += 1
@@ -71,7 +72,6 @@ def _sgr_downconvert(s, pal):
 
     return _SGR_RE.sub(conv, s)
 
-MIN_DURATION = 0.6              # a plugin splash floor (no one-frame flash); the default overrides it to 0
 DEFAULT_SPLASH = 'braille-bar'  # the built-in, trust-free default when `splash:` is unset
 _SPINNER = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'   # a braille spinner, 12 steps/sec
 
@@ -128,11 +128,36 @@ class BrailleBarSplash(Splash):
 register_splash(BrailleBarSplash, builtin=True)
 
 
-def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline=None, seed=None,
+def _keypress(scr):
+    '''True when a real key is waiting. KEY_RESIZE (SIGWINCH) is consumed but is not a key — a
+    resize never skips the animation or ends a linger show.'''
+    ch = scr.getch()
+    return ch not in (-1, curses.KEY_RESIZE)
+
+
+_DRAIN_MAX = 4096       # a bound on the type-ahead drain (a real nodelay window runs dry long before)
+
+
+def _discard_typeahead(scr):
+    '''Drop every key queued after the dismiss key (the window is still nodelay), plus the terminal's
+    own input buffer, so they don't land on the first screen as actions.'''
+    for _ in range(_DRAIN_MAX):
+        try:
+            if scr.getch() == -1:
+                break
+        except curses.error:
+            break
+    try:
+        curses.flushinp()
+    except curses.error:                              # no initscr (headless tests): nothing buffered
+        pass
+
+
+def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, seed=None,
                linger=False, fps_cap=None):
     '''Drive a Splash provider's frame loop until inspection is done AND the animation is at rest
-    (or a hard `deadline`). The provider only draws one frame from a SplashFrame; the HOST owns the
-    clock, the skip key, and the plain-text fallback: a keypress CANCELS the animation but a plain
+    The provider only draws one frame from a SplashFrame; the HOST owns the clock, the skip key, and
+    the plain-text fallback: a keypress CANCELS the animation but a plain
     progress line keeps updating on a clean screen until inspection actually finishes, so dropping
     the eye-candy never hides the real state. `frac()`/`counts()`/`is_done()` are polled each frame;
     dt-based timing means a slow frame just eases further, never desyncs. Never raises for a
@@ -141,7 +166,11 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
 
     `linger`: don't auto-exit when inspection is done — keep the animation running (progress pinned
     at 1.0) until the user presses a key, which then ends it. For enjoying a splash when a fast load
-    would otherwise whisk it away.'''
+    would otherwise whisk it away.
+
+    A terminal resize (KEY_RESIZE) is not a keypress: it never skips or ends the show. Whatever was
+    typed after the dismiss key is discarded on the way out, so keys mashed to skip the splash never
+    reach the first screen as actions.'''
     h, w = scr.getmaxyx()
     try:                                              # a provider whose constructor fails falls back to
         provider = provider_cls(scr, pal, (h, w), seed)   # the plain progress line (B16 / tui-theme-09)
@@ -157,9 +186,9 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
         fps = min(fps, fps_cap)
     frame_dt = 1.0 / fps
     try:
-        min_dur = max(0.0, float(getattr(provider_cls, 'min_duration', MIN_DURATION)))
+        min_dur = max(0.0, float(getattr(provider_cls, 'min_duration', Splash.min_duration)))
     except (TypeError, ValueError):
-        min_dur = MIN_DURATION
+        min_dur = Splash.min_duration
     raw = animate_ok and bool(getattr(provider_cls, 'raw', False))   # provider paints truecolor itself
     scr.nodelay(True)
     used_raw = False
@@ -191,7 +220,7 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                         _tty_write('\033[0m')
                         scr.clearok(True)
                     _draw_progress_text(scr, pal, lbl, frame.counts, h, w)
-                if animate and scr.getch() != -1:     # a key: end the show (linger) or drop to text
+                if animate and _keypress(scr):        # a key: end the show (linger) or drop to text
                     if linger:
                         return                        # linger: watch as long as you like, any key exits
                     animate = False
@@ -199,12 +228,11 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
                         _tty_write('\033[0m')
                         scr.clearok(True)
             else:
+                h, w = scr.getmaxyx()                 # the text line re-centres after a resize
                 _draw_progress_text(scr, pal, lbl, frame.counts, h, w)
             if not (raw and animate):                 # raw frames own the tty; skip curses' repaint
                 scr.noutrefresh()
                 curses.doupdate()
-            if deadline is not None and now >= deadline:
-                return
             if animate:
                 if not linger and done and at_rest and (now - start) >= min_dur:
                     return                            # (linger: keep animating until a keypress above)
@@ -214,6 +242,7 @@ def run_splash(scr, pal, provider_cls, *, is_done, frac, counts, label, deadline
             if slack > 0:
                 time.sleep(slack)
     finally:
+        _discard_typeahead(scr)
         scr.nodelay(False)
         if used_raw:
             _tty_write('\033[0m\033[?25h')            # reset colours, restore the cursor

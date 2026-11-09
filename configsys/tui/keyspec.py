@@ -9,6 +9,9 @@ the top user config, overlays them per action. There is deliberately no Python d
 the default. A tiny FALLBACK here only guards against a missing/broken repo section bricking the TUI.'''
 
 import curses
+import re
+
+from .theme import ALL_PAGES, SCREEN_REGISTRY
 
 # name -> code, for keys that aren't a single literal character. Case-insensitive.
 _NAMED = {
@@ -28,7 +31,6 @@ _NAMED = {
 # code -> a compact glyph for legends (prefer a symbol where it reads well).
 _GLYPH = {
     ord('\r'): '⏎', curses.KEY_ENTER: '⏎', ord('\t'): 'tab', 27: 'esc', ord(' '): 'space',
-    10: 'ctrl-j', 11: 'ctrl-k',
     curses.KEY_UP: '↑', curses.KEY_DOWN: '↓', curses.KEY_LEFT: '←', curses.KEY_RIGHT: '→',
     curses.KEY_PPAGE: 'pgup', curses.KEY_NPAGE: 'pgdn', curses.KEY_HOME: 'home', curses.KEY_END: 'end',
     curses.KEY_BACKSPACE: '⌫', curses.KEY_DC: 'del', curses.KEY_IC: 'ins', curses.KEY_BTAB: 'shift-tab',
@@ -38,7 +40,10 @@ _GLYPH = {
 def parse_key(name):
     '''A key NAME -> its curses code, or None if unrecognized. Accepts a single literal character
     (case-SENSITIVE, so `g` != `G`), a named key (`enter`/`tab`/`up`/`pgdn`/…, case-insensitive), or
-    `ctrl-<x>` (a control char). Numbers-as-strings ("1") are just their single character.'''
+    `ctrl-<x>` (a control char). Numbers-as-strings ("1") are just their single character. An int is
+    taken as a code already (a bool is not a key).'''
+    if isinstance(name, bool):
+        return None
     if isinstance(name, int):
         return name
     if not isinstance(name, str) or not name:
@@ -60,6 +65,28 @@ def parse_key(name):
     return None
 
 
+# Codes a parsed name can yield that the TUI never receives: under cbreak the terminal keeps ISIG
+# and IXON, so these become signals / flow control before getch() sees them (tui-theme-12).
+_UNRECEIVABLE = {3: 'SIGINT', 17: 'XON flow control', 19: 'XOFF flow control', 26: 'SIGTSTP',
+                 28: 'SIGQUIT'}
+
+
+def unreceivable(code):
+    '''Why a bound `code` can never reach the TUI (a short phrase), or None when it can. A single
+    character beyond ASCII arrives from getch() as its UTF-8 bytes, never as one code.'''
+    if code in _UNRECEIVABLE:
+        return f'the terminal uses it for {_UNRECEIVABLE[code]}'
+    if 128 <= code < curses.KEY_MIN:
+        return 'a non-ASCII character arrives as several bytes'
+    return None
+
+
+def _shown(s):
+    '''A layer-supplied string made safe to print in a `check` warning: every control character
+    (C0, DEL, C1, …) is written as its escape, so a plugin's `keys:` can't drive the terminal.'''
+    return ''.join(c if c.isprintable() else repr(c)[1:-1] for c in str(s))
+
+
 def key_name(code):
     '''A curses code -> a short display glyph for legends (inverse-ish of parse_key).'''
     if code in _GLYPH:
@@ -77,8 +104,7 @@ def key_name(code):
 # are the humon file). Just enough that quit and screen-switch always work.
 _FALLBACK = {
     'global': {'quit': 'q', 'quit-force': 'Q', 'issues': '!'},
-    'screens': {'components': '1', 'profiles': '2', 'plugins': '3', 'glue': '4',
-                'dotfiles': '5', 'config': '6', 'theme': '7'},
+    'screens': {sid: key for sid, _title, key in SCREEN_REGISTRY},
 }
 
 
@@ -130,10 +156,12 @@ def merge_layer_keys(layers, warnings=None, owners_out=None):
             return
         lost = [k for k in ospecs if parse_key(k) in codes]
         if warnings is not None:
-            gone = f" — '{action}' is now unbound in keys.{scope}" if not keep else ''
-            warnings.append(f"{by_where}: keys.{label}: {', '.join(repr(str(k)) for k in lost)} "
-                            f"takes the key from '{action}' in keys.{scope} "
-                            f"({owner[scope][action][1]}){gone}")
+            act, sc = _shown(action), _shown(scope)
+            gone = f" — '{act}' is now unbound in keys.{sc}" if not keep else ''
+            warnings.append(f"{_shown(by_where)}: keys.{_shown(label)}: "
+                            f"{', '.join(_shown(repr(str(k))) for k in lost)} "
+                            f"takes the key from '{act}' in keys.{sc} "
+                            f"({_shown(owner[scope][action][1])}){gone}")
         if keep:
             out[scope][action] = keep
         else:
@@ -172,19 +200,9 @@ def merge_layer_keys(layers, warnings=None, owners_out=None):
     return out
 
 
-def config_keys(config, owners_out=None):
-    '''The merged `keys:` for a Config with rebind-wins (merge_layer_keys) applied over its layer
-    stack; falls back to `config.keys()` for an object without layers. `owners_out` (a dict) gets
-    {scope: {action: layer file}} — where each binding came from (`configsys keys`).'''
-    if getattr(config, '_layers', None) is None:
-        return config.keys()
-    kl = getattr(config, 'key_layers', None)          # only trusted plugins' keys (A11)
-    return merge_layer_keys(kl() if kl is not None else config.layers, owners_out=owners_out)
-
-
 class Keymap:
     '''Resolved bindings: `{scope: {action: [codes]}}`. Built from the merged `keys:` dict (already
-    layer-merged — config_keys / Config.keys()). Page scopes override the `global` scope for the
+    layer-merged — Config.keys()). Page scopes override the `global` scope for the
     same key; within one scope, if a key is (mis)bound to two actions the first listed wins
     (lint_merged / `configsys check` reports that).'''
 
@@ -244,35 +262,60 @@ class Keymap:
         ACTION_LABELS first (one action id can mean different things per page), else the shared one.'''
         return ACTION_LABELS.get(f'{scope}.{action}') or ACTION_LABELS.get(action, action)
 
+    def effective_codes(self, scope, action):
+        '''The codes that really trigger `action` on `scope`, in the router's precedence: the page's
+        own binding of it, else the `global` codes minus every code the page binds to another action
+        (and, for a nav action the screen handles, minus the `screens` switch keys, which the router
+        consults first). So a legend never shows a key the page shadows (tui-theme-11).'''
+        own = self.keys_for(scope, action)
+        if own or scope in ('global', 'screens'):
+            return list(own)
+        taken = {c for a, cs in self._m.get(scope, {}).items() if a != action for c in cs}
+        if action not in ROUTER_ACTIONS:
+            taken |= {c for cs in self._m.get('screens', {}).values() for c in cs}
+        return [c for c in self.keys_for('global', action) if c not in taken]
+
     def glyph(self, scope, action):
-        '''The primary key for `action` as a legend glyph (scope, then global). '?' if unbound.'''
-        codes = self.keys_for(scope, action) or self.keys_for('global', action)
+        '''The primary key for `action` as a legend glyph (effective_codes: the page's own binding,
+        else an unshadowed global one). '?' if unbound.'''
+        codes = self.effective_codes(scope, action)
         return key_name(codes[0]) if codes else '?'
 
     def help_rows(self, scope):
-        '''[(keys, label)] for the `?` overlay: the shared global keys first, then this page's own
-        actions. page-1..page-7 collapse to one row; up to two alternate keys are shown per action.'''
+        '''[(keys, label)] for the `?` overlay: the shared global keys first (each by the keys that
+        really reach it on this page — effective_codes; a global action the page shadows entirely is
+        left out), then this page's own actions. The theme screen's page-1..page-N collapse to one
+        row; up to two distinct alternate glyphs are shown per action.'''
         order = ['down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up', 'select',
                  'confirm', 'switch-pane', 'switch-pane-back', 'find', 'filter', 'issues', 'help', 'quit', 'quit-force']
-        rows, seen_page = [], False
+        rows, seen_page, shown = [], False, set()
 
-        def keyglyph(sc, action):
-            codes = self.keys_for(sc, action)
-            return '/'.join(key_name(c) for c in codes[:2]) if codes else ''
+        def keyglyph(codes):
+            glyphs = list(dict.fromkeys(key_name(c) for c in codes))   # ⏎ (enter) = ⏎ (kpenter)
+            return '/'.join(glyphs[:2])
 
         for a in order:                                    # global (shared) keys, in a readable order
-            if a in self._m.get('global', {}):
-                rows.append((keyglyph('global', a), self.label('global', a)))
+            if a in self._m.get('global', {}) or a in self._m.get(scope, {}):
+                codes = self.effective_codes(scope, a)
+                if codes:
+                    rows.append((keyglyph(codes), self.label('global', a)))
+                shown.add(a)
         for a in sorted(self._m.get(scope, {})):           # then the page's own actions
-            if a.startswith('page-'):
+            if a in shown:
+                continue
+            if _PAGE_N.match(a):
                 if not seen_page:
                     seen_page = True
-                    lo, hi = self.keys_for(scope, 'page-1'), self.keys_for(scope, 'page-7')
-                    g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else 'F1-F7'
+                    n = len(ALL_PAGES)
+                    lo, hi = self.keys_for(scope, 'page-1'), self.keys_for(scope, f'page-{n}')
+                    g = f'{key_name(lo[0])}-{key_name(hi[0])}' if lo and hi else f'F1-F{n}'
                     rows.append((g, 'preview sample page'))
                 continue
-            rows.append((keyglyph(scope, a), self.label(scope, a)))
+            rows.append((keyglyph(self.keys_for(scope, a)), self.label(scope, a)))
         return rows
+
+
+_PAGE_N = re.compile(r'page-\d+$')        # the theme screen's sample-page actions (not page-down/-up)
 
 
 
@@ -300,7 +343,7 @@ def shipped_keymap():
 _GLOBAL_ACTIONS = {'down', 'up', 'left', 'right', 'top', 'bottom', 'page-down', 'page-up', 'select',
                    'confirm', 'switch-pane', 'switch-pane-back', 'find', 'filter', 'issues', 'help',
                    'quit', 'quit-force'}
-SCREEN_IDS = {'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config', 'theme'}
+SCREEN_IDS = set(ALL_PAGES)
 KNOWN_ACTIONS = {
     'global': _GLOBAL_ACTIONS,
     'components': {'where', 'lock', 'expand-all', 'select-all', 'clear', 'method', 'op-install',
@@ -318,7 +361,7 @@ KNOWN_ACTIONS = {
                  'where'},
     'theme': {'new', 'reset', 'edit-bg', 'effect-bold', 'effect-underline', 'effect-reverse',
               'gradient-toggle', 'copy-page', 'save', 'load',
-              'page-1', 'page-2', 'page-3', 'page-4', 'page-5', 'page-6', 'page-7'},
+              *(f'page-{i}' for i in range(1, len(ALL_PAGES) + 1))},   # F1.. select a sample page
 }
 
 
@@ -400,30 +443,36 @@ def lint_keys(layers):
         keys = getattr(lyr, 'data', {}).get('keys')
         if not isinstance(keys, dict):
             continue
-        where = os.path.basename(getattr(lyr, 'path', '') or '?')
+        where = _shown(os.path.basename(getattr(lyr, 'path', '') or '?'))
         for scope, actions in keys.items():
+            sc = _shown(scope)
             if not isinstance(actions, dict):
-                out.append(f"{where}: keys.{scope} is not a map — ignored")
+                out.append(f"{where}: keys.{sc} is not a map — ignored")
                 continue
             if scope not in KNOWN_ACTIONS and scope != 'screens':
-                out.append(f"{where}: unknown key scope '{scope}' "
+                out.append(f"{where}: unknown key scope '{sc}' "
                            f"(scopes: screens, {', '.join(sorted(KNOWN_ACTIONS))})")
                 continue
             valid = _valid_actions(scope)
             seen = {}                                  # code -> action, for self-conflict within a scope
             for action, spec in actions.items():
+                act = _shown(action)
                 if action not in valid:
-                    out.append(f"{where}: unknown action 'keys.{scope}.{action}' "
-                               f"(not a {scope} action)")
+                    out.append(f"{where}: unknown action 'keys.{sc}.{act}' "
+                               f"(not a {sc} action)")
                 specs = spec if isinstance(spec, list) else [spec]
                 for k in specs:
                     code = parse_key(k)
                     if code is None:
-                        out.append(f"{where}: keys.{scope}.{action}: unparseable key '{k}'")
+                        out.append(f"{where}: keys.{sc}.{act}: unparseable key '{_shown(k)}'")
                         continue
+                    why = unreceivable(code)
+                    if why:
+                        out.append(f"{where}: keys.{sc}.{act}: '{_shown(k)}' never reaches the "
+                                   f"TUI: {why}")
                     if code in seen and seen[code] != action:
-                        out.append(f"{where}: keys.{scope}: '{k}' bound to both "
-                                   f"'{seen[code]}' and '{action}'")
+                        out.append(f"{where}: keys.{sc}: '{_shown(k)}' bound to both "
+                                   f"'{_shown(seen[code])}' and '{act}'")
                     else:
                         seen[code] = action
     # ACROSS layers: a higher layer rebinding a key a lower layer gave another action in the same
@@ -434,7 +483,7 @@ def lint_keys(layers):
 
 
 def lint_merged(keys, only_lockout=False):
-    '''Lint a MERGED `keys:` map (`{scope: {action: spec}}`, e.g. Config.keys() / config_keys()):
+    '''Lint a MERGED `keys:` map (`{scope: {action: spec}}`, e.g. Config.keys()):
     a key bound to two actions within one scope (at runtime the first listed silently wins), and a
     page scope that shadows EVERY quit and quit-force key (no way out of the TUI from that page).
     Returns warning strings. `only_lockout` skips the duplicate check (lint_keys already reports
@@ -454,8 +503,9 @@ def lint_merged(keys, only_lockout=False):
             am[action] = codes
             for k, c in zip([k for k in specs if parse_key(k) is not None], codes):
                 if not only_lockout and c in seen and seen[c] != action:
-                    out.append(f"keys.{scope}: '{k}' bound to both '{seen[c]}' and '{action}' "
-                               f"(the TUI uses '{seen[c]}')")
+                    first = _shown(seen[c])
+                    out.append(f"keys.{_shown(scope)}: '{_shown(k)}' bound to both '{first}' and "
+                               f"'{_shown(action)}' (the TUI uses '{first}')")
                 else:
                     seen.setdefault(c, action)
     gl = parsed.get('global', {})
@@ -466,6 +516,6 @@ def lint_merged(keys, only_lockout=False):
         own_exit = set(am.get('quit', [])) | set(am.get('quit-force', []))
         taken = {c for a, cs in am.items() if a not in ('quit', 'quit-force') for c in cs}
         if exits and not own_exit and exits <= taken:
-            out.append(f"keys.{scope}: every quit / quit-force key is bound to another action "
+            out.append(f"keys.{_shown(scope)}: every quit / quit-force key is bound to another action "
                        f"on this page — there is no way to quit from it")
     return out

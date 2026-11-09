@@ -194,7 +194,7 @@ profiles: {
     // or `screens` key you bind is taken from every lower layer's page section too, so it works on
     // every screen (your rebind wins; check names each action that lost a key). Override just what
     // you want (`z` is free on every screen):
-    //     keys: { global: { quit: [ q  ctrl-c ] }  screens: { theme: z } }
+    //     keys: { global: { quit: [ q  ctrl-x ] }  screens: { theme: z } }
     keys: {
         // The number-key screen switcher (the chip bar). One key each.
         screens: { components: "1"  profiles: "2"  plugins: "3"  glue: "4"  dotfiles: "5"  config: "6"  theme: "7" }

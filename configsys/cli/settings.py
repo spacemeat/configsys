@@ -80,13 +80,13 @@ def _show_file(ctx, what):
 def cmd_keys(ctx, args):
     '''Print the effective TUI keybindings — the `keys:` section merged across every layer (repo <
     plugins < primary < your config). For a humon-only user (no TUI editor) to see what's active.'''
-    from ..tui.keyspec import Keymap, config_keys, key_name, lint_keys
+    from ..tui.keyspec import Keymap, key_name, lint_keys
     owners = {}
-    km = Keymap(config_keys(ctx.config, owners_out=owners))   # rebind-wins, as the TUI resolves it
+    km = Keymap(ctx.config.keys(owners_out=owners))   # rebind-wins, as the TUI resolves it
     print('TUI keybindings — merged repo < plugins < primary < your config '
           '(edit the `keys:` section in ~/.config/configsys/configsys.hu or your primary plugin):')
-    order = ['screens', 'global', 'components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config',
-             'theme']                                         # screen order (keys 1-7)
+    from ..tui.theme import ALL_PAGES
+    order = ['screens', 'global'] + ALL_PAGES                 # screen order (the nav bar's)
     by_scope = {}
     for scope, action, codes in km.bindings():
         by_scope.setdefault(scope, {})[action] = codes

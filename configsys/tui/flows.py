@@ -97,8 +97,7 @@ def _seed_uninstall(ms, ctx):
 def _commit_primary_action(ctx, snap, screen, act, note):
     '''Commit what one TUI action changed in the primary (primarygit), as `<screen>: <action> — <note>`.
     Returns the notes to show (empty when it went through quietly or nothing changed).'''
-    label = (keyspec.ACTION_LABELS.get(f'{screen}.{act}') or keyspec.ACTION_LABELS.get(act, act)
-             if act else 'edit')
+    label = keyspec.Keymap.label(screen, act) if act else 'edit'
     return primarygit.commit(ctx, snap, f'{screen}: {label}' + (f' — {note}' if note else ''))
 
 

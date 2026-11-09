@@ -441,3 +441,64 @@ def test_a_provider_whose_constructor_raises_falls_back_to_text(monkeypatch):
                        frac=lambda: 1.0, counts=lambda: (1, 1), label='x')
     assert texts                                  # the plain progress line took over
     assert all(s <= 1.0 for s in sleeps)          # fps clamped to >= 1: no day-long sleep
+
+
+class _QueueWin(_FakeWin):
+    '''A fake window with a real key queue (getch pops it, -1 when empty).'''
+    def __init__(self, keys):
+        super().__init__()
+        self.keys = list(keys)
+    def getch(self):
+        return self.keys.pop(0) if self.keys else -1
+
+
+def test_run_splash_discards_typeahead_after_the_skip(monkeypatch):
+    # tui-theme-10: keys mashed after the dismiss key must not reach Components as actions
+    import curses
+
+    from configsys.tui import splash as hostmod
+    monkeypatch.setattr(curses, 'doupdate', lambda: None)
+    monkeypatch.setattr(hostmod.time, 'sleep', lambda s: None)
+    n = {'polls': 0}
+
+    def is_done():
+        n['polls'] += 1
+        return n['polls'] > 6                        # inspection still running for six frames
+
+    class Spin(splashes.Splash):
+        name = 'spin'
+        min_duration = 0.0
+        def render(self, frame):
+            return frame.done
+
+    win = _QueueWin([ord(' '), ord('x'), ord('L'), ord('X')])
+    hostmod.run_splash(win, pal=_StubPal(), provider_cls=Spin, is_done=is_done,
+                       frac=lambda: 0.5, counts=lambda: (1, 2), label='x')
+    assert win.keys == []                            # nothing left queued for the menu
+
+
+def test_run_splash_resize_is_not_a_skip(monkeypatch):
+    # tui-theme-10: KEY_RESIZE neither skips the animation nor ends a linger show
+    import curses
+
+    from configsys.tui import splash as hostmod
+    monkeypatch.setattr(curses, 'doupdate', lambda: None)
+    monkeypatch.setattr(hostmod.time, 'sleep', lambda s: None)
+    n = {'frames': 0}
+
+    class AtRest(splashes.Splash):
+        name = 'atrest2'
+        min_duration = 0.0
+        def render(self, frame):
+            n['frames'] += 1
+            return True
+
+    class ResizeWin(_FakeWin):
+        def getch(self):
+            if n['frames'] == 1:
+                return curses.KEY_RESIZE
+            return ord('q') if n['frames'] >= 4 else -1
+
+    hostmod.run_splash(ResizeWin(), pal=_StubPal(), provider_cls=AtRest, is_done=lambda: True,
+                       frac=lambda: 1.0, counts=lambda: (1, 1), label='x', linger=True)
+    assert n['frames'] >= 4                          # the resize on frame 1 did not end it

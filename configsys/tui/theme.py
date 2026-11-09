@@ -103,19 +103,19 @@ def ansi_name(idx):
 
 
 def resolve_basic(theme, colors):
-    '''The low-color (8/16) override as {rgb: ansi_index}: the built-in BASIC_MAP overlaid by
-    `theme.colors-basic` (both name -> ANSI slot), keyed by each name's RESOLVED rgb (from `colors`)
-    so the Palette can consult it before quantizing — one entry then covers every role that
-    references that map color. Names absent from the map or with an unparseable slot are skipped.
-    User entries are applied last, so they win even where two names share an rgb.'''
+    '''The low-color (8/16) override as {map name: ansi_index}: the built-in BASIC_MAP overlaid by
+    `theme.colors-basic` (both name -> ANSI slot). Keyed by color-map NAME, so the Palette gives each
+    role that references that name its slot before quantizing — and overriding one name never
+    recolors another that happens to share its rgb (`installed` / `op_install`; tui-theme-13). Names
+    absent from the map (`colors`) or with an unparseable slot are skipped.'''
     theme = theme if isinstance(theme, dict) else {}
     out = {}
 
     def apply(items):
         for name, val in items:
-            rgb, idx = colors.get(name), parse_ansi(val)
-            if rgb is not None and idx is not None:
-                out[tuple(rgb)] = idx
+            idx = parse_ansi(val)
+            if name in colors and idx is not None:
+                out[name] = idx
 
     apply(BASIC_MAP.items())
     ub = theme.get('colors-basic')
@@ -127,7 +127,7 @@ def resolve_basic(theme, colors):
 GRAD_MAX_BANDS = 96         # cap on the (range-adaptive) number of diagonal gradient steps
 
 
-def _r(fg, bg=None, bold=False, underline=False, reverse=False):
+def _role_style(fg, bg=None, bold=False, underline=False, reverse=False):
     '''A built-in role style; fg/bg are color-map NAMES (resolved against COLOR_MAP at use).'''
     st = {'fg': fg}
     if bg:
@@ -144,52 +144,60 @@ def _r(fg, bg=None, bold=False, underline=False, reverse=False):
 # Built-in role styles — the default look, uniform across pages. Each page overrides only what it
 # wants to differ. fg/bg are map names; `selection` is the cursor row (its bg is the selected bar).
 ROLE_DEFAULTS = {
-    'label': _r('title', bg='accent', bold=True),        # the `configsys` chip
-    'os': _r('header', bold=True),
-    'issue_error': _r('error', bold=True, reverse=True),
-    'issue_warning': _r('outdated', bold=True, reverse=True),
-    'menu_header': _r('dim', bold=True),
-    'select_marker': _r('accent', bold=True),
-    'profile': _r('accent', bold=True),
-    'link': _r('accent', bold=True),
-    'component': _r('title', bold=True),
-    'unit': _r('title'),
-    'driver': _r('dim'),
-    'scope': _r('dim'),
-    'scope_choice': _r('accent'),
-    'version': _r('dim'),
-    'row_error': _r('error'),
-    'methods': _r('header'),
-    'method_dim': _r('method_dim'),                      # muted method label (Profiles detail pane)
-    'dependents': _r('dep_dim'),                         # "required by" reverse-deps (Profiles detail)
-    'menu_new': _r('menu_new', bold=True),               # a derived profile's OFFERED (NEW) ballot rows
-    'row_desc': _r('row_desc'),                          # faded description trailing the row name
-    'info': _r('accent'),
-    'info_dim': _r('dim'),
-    'status_line': _r('accent'),
-    'footer': _r('dim', reverse=True),
-    'selection': _r('title', bg='sel_bg', bold=True),
-    'installed': _r('installed'), 'outdated': _r('outdated'), 'partial': _r('partial'),
-    'missing': _r('missing'), 'locked': _r('locked'), 'unsupported': _r('unsupported'),
-    'untrusted': _r('untrusted'), 'error': _r('error'),
-    'switch': _r('switch', bold=True), 'unmet': _r('unmet'), 'dangling': _r('dangling'),
-    'orphan_lurking': _r('orphan_lurking'),
-    'op_install': _r('op_install', bold=True), 'op_upgrade': _r('op_upgrade', bold=True),
-    'op_remove': _r('op_remove', bold=True), 'op_lock': _r('op_lock', bold=True),
-    'op_unlock': _r('op_unlock', bold=True), 'op_mixed': _r('accent', bold=True),
+    'label': _role_style('title', bg='accent', bold=True),       # the `configsys` chip
+    'os': _role_style('header', bold=True),
+    'issue_error': _role_style('error', bold=True, reverse=True),
+    'issue_warning': _role_style('outdated', bold=True, reverse=True),
+    'menu_header': _role_style('dim', bold=True),
+    'select_marker': _role_style('accent', bold=True),
+    'profile': _role_style('accent', bold=True),
+    'link': _role_style('accent', bold=True),
+    'component': _role_style('title', bold=True),
+    'unit': _role_style('title'),
+    'driver': _role_style('dim'),
+    'scope': _role_style('dim'),
+    'scope_choice': _role_style('accent'),
+    'version': _role_style('dim'),
+    'row_error': _role_style('error'),
+    'methods': _role_style('header'),
+    'method_dim': _role_style('method_dim'),          # muted method label (Profiles detail pane)
+    'dependents': _role_style('dep_dim'),             # "required by" reverse-deps (Profiles detail)
+    'menu_new': _role_style('menu_new', bold=True),   # a derived profile's OFFERED (NEW) ballot rows
+    'row_desc': _role_style('row_desc'),              # faded description trailing the row name
+    'info': _role_style('accent'),
+    'info_dim': _role_style('dim'),
+    'status_line': _role_style('accent'),
+    'footer': _role_style('dim', reverse=True),
+    'selection': _role_style('title', bg='sel_bg', bold=True),
+    'installed': _role_style('installed'), 'outdated': _role_style('outdated'),
+    'partial': _role_style('partial'), 'missing': _role_style('missing'),
+    'locked': _role_style('locked'), 'unsupported': _role_style('unsupported'),
+    'untrusted': _role_style('untrusted'), 'error': _role_style('error'),
+    'switch': _role_style('switch', bold=True), 'unmet': _role_style('unmet'),
+    'dangling': _role_style('dangling'),
+    'orphan_lurking': _role_style('orphan_lurking'),
+    'op_install': _role_style('op_install', bold=True), 'op_upgrade': _role_style('op_upgrade', bold=True),
+    'op_remove': _role_style('op_remove', bold=True), 'op_lock': _role_style('op_lock', bold=True),
+    'op_unlock': _role_style('op_unlock', bold=True), 'op_mixed': _role_style('accent', bold=True),
     # Plugins diff pane: added/removed lines and the hunk/meta gutter (git-diff green/red).
-    'diff_add': _r('installed'), 'diff_del': _r('error'),
-    'diff_hunk': _r('partial', bold=True), 'diff_meta': _r('dim'),
-    # raw passthrough roles for direct at()/get() references (identity -> the same-named map color)
-    'accent': _r('accent'), 'dim': _r('dim'), 'title': _r('title'), 'header': _r('header'),
+    'diff_add': _role_style('installed'), 'diff_del': _role_style('error'),
+    'diff_hunk': _role_style('partial', bold=True), 'diff_meta': _role_style('dim'),
+    # raw passthrough roles for direct get() references (identity -> the same-named map color)
+    'accent': _role_style('accent'), 'dim': _role_style('dim'), 'title': _role_style('title'),
+    'header': _role_style('header'),
 }
 
-# Roles surfaced in the editor's per-page list (the passthrough ones above are internal).
-EDITABLE_ROLES = [r for r in ROLE_DEFAULTS if r not in ('accent', 'dim', 'title', 'header')]
+# The TUI's screens in nav order: (id, title, default switch key). The ONE list (tui-theme-21) —
+# ALL_PAGES, keyspec's screen ids / fallback switcher / the theme's page-N actions, the nav bar's
+# chips and `configsys keys`' order derive from it; config.hu's `screens:` keys and PAGE_ROLES /
+# BUILTIN_GRADIENTS below are per-page data, pinned to it by test_theme.
+SCREEN_REGISTRY = (('components', 'Components', '1'), ('profiles', 'Profiles', '2'),
+                   ('plugins', 'Plugins', '3'), ('glue', 'Glue', '4'), ('dotfiles', 'Dotfiles', '5'),
+                   ('config', 'Config', '6'), ('theme', 'Theme', '7'))
 
-# The five content screens (the Theme editor previews all of them); 'theme' is the editor's own.
-DEMO_PAGES = ['components', 'profiles', 'plugins', 'glue', 'dotfiles', 'config']
-ALL_PAGES = DEMO_PAGES + ['theme']
+# Every page, in nav order; the content screens the Theme editor previews are all but its own.
+ALL_PAGES = [sid for sid, _title, _key in SCREEN_REGISTRY]
+DEMO_PAGES = [p for p in ALL_PAGES if p != 'theme']
 
 # The roles each SCREEN actually uses — drives both the editor's per-page list (list 2) and its
 # sample mock, so they swap as you cycle pages and show only what that page needs.
@@ -234,13 +242,25 @@ def _lerp(a, b, t):
     return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
-def _flag(v):
+def _truthy(v):
     '''A style boolean. humon materializes `true`/`false` as strings, so treat 'false'/'no'/'0'
     as off (a bare `if v` would count the string 'false' as true).'''
     if isinstance(v, str):
         from ..layers import parse_bool               # the one bool spelling (D1)
         return parse_bool(v, False)
     return bool(v)
+
+
+def is_off(v):
+    '''An explicit OFF switch: False or an off token (false/no/off/0, any case — layers.parse_bool),
+    or a dict whose `enabled` is one (`gradient: { enabled: 0 }`). None / anything else is not off.
+    The one test every gradient / splash opt-out reads (tui-theme-14).'''
+    if isinstance(v, dict):
+        return is_off(v.get('enabled'))
+    if v is None:
+        return False
+    from ..layers import parse_bool
+    return parse_bool(v, True) is False
 
 
 def parse_color(v):
@@ -331,8 +351,9 @@ def resolve_theme(theme):
     splash}) onto the built-ins. Pure — no curses. Returns (colors, pages):
 
     - colors: {name: (r,g,b)} — the resolved shared map;
-    - pages:  {page: {'roles': {role: {fg:(r,g,b), bg:(r,g,b)|None, bold, underline, reverse}},
-               'grad': (from, to, enabled), 'sel_bg': (r,g,b)|None}}.
+    - pages:  {page: {'roles': {role: {fg:(r,g,b), bg:(r,g,b)|None, bold, underline, reverse,
+                                        fg_name, bg_name}},
+               'grad': (from, to, enabled), 'sel_bg': (r,g,b)|None, 'sel_bg_name': str|None}}.
     '''
     theme = theme if isinstance(theme, dict) else {}
     colors = dict(COLOR_MAP)
@@ -356,19 +377,24 @@ def resolve_theme(theme):
             bg = _ref_rgb(bgref, colors) if bgref not in (None, '', 'none', 'false', False) else None
             if bg == fg:                              # never paint text invisibly on its own color
                 bg = None
-            roles[role] = {'fg': fg, 'bg': bg, 'bold': _flag(st.get('bold')),
-                           'underline': _flag(st.get('underline')), 'reverse': _flag(st.get('reverse'))}
+            fgref = st.get('fg')
+            roles[role] = {'fg': fg, 'bg': bg, 'bold': _truthy(st.get('bold')),
+                           'underline': _truthy(st.get('underline')), 'reverse': _truthy(st.get('reverse')),
+                           # the color-map NAMES behind fg/bg (None for a literal) — the 8/16-color
+                           # path picks a name's colors-basic slot by name, not by rgb
+                           'fg_name': fgref if isinstance(fgref, str) and fgref in colors else None,
+                           'bg_name': (bgref if bg is not None and isinstance(bgref, str)
+                                       and bgref in colors else None)}
         ga, gb = BUILTIN_GRADIENTS.get(page, BUILTIN_GRADIENTS['components'])
         enabled = True
         g = spec.get('gradient')
+        if is_off(g):
+            enabled = False
         if isinstance(g, dict):
-            if g.get('enabled') in (False, 'false', 'no', 'off'):
-                enabled = False
             ga = _ref_rgb(g.get('from'), colors) or ga   # endpoints may name a map color or literal
             gb = _ref_rgb(g.get('to'), colors) or gb
-        elif g in (False, 'false', 'no', 'off'):
-            enabled = False
-        pages[page] = {'roles': roles, 'grad': (ga, gb, enabled), 'sel_bg': roles['selection']['bg']}
+        pages[page] = {'roles': roles, 'grad': (ga, gb, enabled), 'sel_bg': roles['selection']['bg'],
+                       'sel_bg_name': roles['selection']['bg_name']}
     return colors, pages
 
 
@@ -397,7 +423,7 @@ def full_snapshot(theme):
             if st.get('bg') not in (None, '', 'none', 'false', False):
                 entry['bg'] = st['bg']
             for fl in ('bold', 'underline', 'reverse'):
-                if _flag(st.get(fl)):
+                if _truthy(st.get(fl)):
                     entry[fl] = True
             pg[role] = entry
         g = spec.get('gradient') if isinstance(spec.get('gradient'), dict) else {}
@@ -419,14 +445,19 @@ def full_snapshot(theme):
             'colors-basic': basic, 'pages': out_pages}
 
 
+_CUBE_LEVELS = (0, 95, 135, 175, 215, 255)      # the xterm-256 cube's real (non-linear) channel levels
+
+
 def rgb_to_256(r, g, b):
-    if r == g == b:
-        if r < 8:
-            return 16
-        if r > 248:
-            return 231
-        return 232 + round((r - 8) / 247 * 24)
-    return (16 + 36 * round(r / 255 * 5) + 6 * round(g / 255 * 5) + round(b / 255 * 5))
+    '''The NEAREST xterm-256 entry (16..255) to an rgb: each channel snapped to the nearest real cube
+    level (0, 95, 135, 175, 215, 255 — not a linear 0..5), compared against the nearest grey-ramp
+    entry (8 + 10k), whichever is closer (tui-theme-16).'''
+    def level(c):
+        return min(range(6), key=lambda i: abs(_CUBE_LEVELS[i] - c))
+    cube = 16 + 36 * level(r) + 6 * level(g) + level(b)
+    grey = 232 + max(0, min(23, round(((r + g + b) / 3 - 8) / 10)))
+    rgb = (r, g, b)
+    return grey if _dist2(xterm_rgb(grey), rgb) < _dist2(xterm_rgb(cube), rgb) else cube
 
 
 # xterm's standard rgb for the 16 ANSI slots (what a -direct terminfo needs packed for 8..15)
@@ -497,6 +528,28 @@ def env_effects(env=None):
     return v if v in ('full', 'reduced', 'none') else None
 
 
+# Color depths, lowest first: what a Palette paints at (`Palette.depth`), after any --color cap.
+DEPTHS = ('none', '8', '16', '256', 'truecolor', 'direct')
+_CAP_DEPTH = {'none': 'none', 'basic8': '8', 'basic16': '16', '256': '256', 'truecolor': 'direct'}
+
+
+def palette_depth(pal):
+    '''A palette's color depth (one of DEPTHS): its `depth`, else derived from the old flags for a
+    duck-typed palette that only carries those (truecolor/direct/have256/have16/mono).'''
+    d = getattr(pal, 'depth', None)
+    if d in DEPTHS:
+        return d
+    if getattr(pal, 'mono', False):
+        return 'none'
+    if getattr(pal, 'direct', False):
+        return 'direct'
+    if getattr(pal, 'truecolor', False):
+        return 'truecolor'
+    if getattr(pal, 'have256', False):
+        return '256'
+    return '16' if getattr(pal, 'have16', False) else '8'
+
+
 class Palette:
     '''Resolves the theme to curses attrs. Holds every page's resolved role styles + gradient; the
     active page is selected with `use_page` (call sites stay `pal.style('component', ...)`). Color
@@ -508,43 +561,36 @@ class Palette:
             curses.use_default_colors()
         except curses.error:
             self.bg = curses.COLOR_BLACK
-        self.have256 = curses.COLORS >= 256
-        self.direct = curses.COLORS >= (1 << 24)
-        # how the TERMINFO numbers colors — fixed at initscr, unlike `direct` (the depth we paint at,
-        # which a --color cap lowers). A -direct entry reads an index as packed rgb, so a capped
-        # palette index must be sent as the rgb it stands for (B16 / tui-theme-06).
-        self.direct_numbering = self.direct
+        direct = curses.COLORS >= (1 << 24)
+        # how the TERMINFO numbers colors — fixed at initscr, unlike the depth we paint at (which a
+        # --color cap lowers). A -direct entry reads an index as packed rgb, so a capped palette
+        # index must be sent as the rgb it stands for (B16 / tui-theme-06).
+        self.direct_numbering = direct
         try:
-            self.truecolor = self.direct or (self.have256 and curses.can_change_color())
+            truecolor = direct or (curses.COLORS >= 256 and curses.can_change_color())
         except curses.error:
-            self.truecolor = self.direct
-
-        # CLAMP the detected mode down per --color/--nocolor/NO_COLOR (never up). `none` = monochrome:
-        # no color pairs at all, only structural A_REVERSE/A_BOLD survive (see the render methods).
-        cap = env_color_cap()
-        self.mono = cap == 'none'
-        if cap in ('256', 'basic8', 'basic16', 'none'):
-            self.truecolor = self.direct = False
-        if cap in ('basic8', 'basic16', 'none'):
-            self.have256 = False
-        # The bright ANSI slots (8..15) — where the legible low-color look lives — exist only at
-        # COLORS>=16; `--color 8` forces the base 8 to preview the true fallback.
-        self.have16 = curses.COLORS >= 16 and cap != 'basic8'
-        # the 8/16-color path (where quantization can collide fg with bg) -> the contrast guard runs.
-        self.lowcolor = not (self.have256 or self.truecolor or self.direct or self.mono)
+            truecolor = direct
+        # The depth the terminal gives us, CLAMPED down per --color/--nocolor/NO_COLOR (never up).
+        # `none` = monochrome: no color pairs at all, only structural A_REVERSE/A_BOLD survive (see
+        # the render methods). The bright ANSI slots (8..15) — where the legible low-color look
+        # lives — exist only at COLORS>=16; `--color 8` forces the base 8 to preview the fallback.
+        natural = ('direct' if direct else 'truecolor' if truecolor else
+                   '256' if curses.COLORS >= 256 else '16' if curses.COLORS >= 16 else '8')
+        cap = _CAP_DEPTH.get(env_color_cap(), 'direct')
+        self.depth = min(natural, cap, key=DEPTHS.index)
         # motion: reduced/none disable the diagonal gradient (the per-cell repaint that's costly over
         # a thin SSH link); `full` (or unset) keeps it. The splash is gated separately, at the TUI.
         self.grad_ok = env_effects() in (None, 'full')
 
         colors, pages = resolve_theme(theme)
-        self._basic = resolve_basic(theme, colors)   # {rgb: ansi_slot} hand-tuning for the 8/16 path
+        self._basic = resolve_basic(theme, colors)   # {map name: ansi_slot} hand-tuning for the 8/16 path
         self._next_color = 16          # private palette-slot allocator (truecolor mode)
         self._next_pair = 1
         self._color_cache = {}         # rgb -> palette index
         self._slot_rgb = {}            # redefined palette slot -> the rgb it holds
         self.reduced = 0               # colours / pairs that had to borrow the nearest one (color_mode)
         self._pair_cache = {}          # (fg_idx, bg_idx) -> attr
-        self._map = {name: self._color(rgb) for name, rgb in colors.items()}   # for at()/get()
+        self._map = {name: self._color(rgb, name) for name, rgb in colors.items()}   # for get()
 
         self._pages = {}
         for page, pg in pages.items():
@@ -553,8 +599,8 @@ class Palette:
                 flags = ((curses.A_BOLD if st['bold'] else 0)
                          | (curses.A_UNDERLINE if st['underline'] else 0)
                          | (curses.A_REVERSE if st['reverse'] else 0))
-                bg = self._color(st['bg']) if st['bg'] is not None else None
-                roles[role] = (self._color(st['fg']), bg, flags)
+                bg = self._color(st['bg'], st.get('bg_name')) if st['bg'] is not None else None
+                roles[role] = (self._color(st['fg'], st.get('fg_name')), bg, flags)
             ga, gb, enabled = pg['grad']
             on = self.truecolor and enabled and self.grad_ok
             grad_bg = []
@@ -563,24 +609,51 @@ class Palette:
                 n = max(16, min(GRAD_MAX_BANDS, span + 1))
                 grad_bg = [self._color(_lerp(ga, gb, k / (n - 1))) for k in range(n)]
             sel_bg_rgb = pg['sel_bg']
-            sel_bg = self._color(sel_bg_rgb) if sel_bg_rgb is not None else self.bg
+            sel_bg = (self._color(sel_bg_rgb, pg.get('sel_bg_name')) if sel_bg_rgb is not None
+                      else self.bg)
             self._pages[page] = {'roles': roles, 'grad_bg': grad_bg, 'sel_bg': sel_bg,
                                  'sel_bg_rgb': tuple(sel_bg_rgb) if sel_bg_rgb is not None else (0, 0, 0),
                                  'on': on}
         self.page_name = None
         self.use_page('components')
 
+    # The depth flags, derived from `depth` (kept for the painters and splash plugins that read them).
+    @property
+    def mono(self):
+        return self.depth == 'none'
+
+    @property
+    def direct(self):
+        '''Painting at direct 24-bit (the color number IS the packed rgb).'''
+        return self.depth == 'direct'
+
+    @property
+    def truecolor(self):
+        return self.depth in ('truecolor', 'direct')
+
+    @property
+    def have256(self):
+        return self.depth in ('256', 'truecolor', 'direct')
+
+    @property
+    def have16(self):
+        return self.depth != '8'
+
+    @property
+    def lowcolor(self):
+        '''The 8/16-color path (where quantization can collide fg with bg) -> the contrast guard runs.'''
+        return self.depth in ('8', '16')
+
     @property
     def color_mode(self):
-        if self.mono:
+        d = self.depth
+        if d == 'none':
             return 'none (monochrome)'
-        if self.direct:
+        if d == 'direct':
             return 'direct 24-bit' + (' (some colors shared)' if self.reduced else '')
-        if self.truecolor:
+        if d == 'truecolor':
             return '24-bit' + (' (palette full: nearest colors reused)' if self.reduced else '')
-        if self.have256:
-            return '256-color (approx)'
-        return '16-color' if self.have16 else '8-color'
+        return {'256': '256-color (approx)', '16': '16-color', '8': '8-color'}[d]
 
     def new_frame(self):
         '''Reset the color-PAIR allocator at the start of each full redraw. `curses.color_pair()`
@@ -616,10 +689,14 @@ class Palette:
         idx = self._map.get(role, self._map.get('dim', 0))   # a color-map name used as a role
         return (idx, None, 0)
 
-    def _color(self, rgb):
+    def _color(self, rgb, name=None):
+        '''The color index painting `rgb`. `name` (the color-map name it came from, if any) picks its
+        hand-tuned colors-basic slot on the 8/16-color path; a literal color is quantized.'''
         key = tuple(rgb)
-        if key in self._color_cache:
-            return self._color_cache[key]
+        slot = self._basic.get(name) if (name is not None and not self.have256) else None
+        ckey = key if slot is None else (key, name)       # two names sharing an rgb keep their slots
+        if ckey in self._color_cache:
+            return self._color_cache[ckey]
         r, g, b = rgb
         idx = None
         if self.direct:                                    # color number IS the packed 24-bit RGB
@@ -645,7 +722,7 @@ class Palette:
             if self.have256:
                 idx = rgb_to_256(*rgb)
             else:                                          # 8/16-color: an explicit hand-tuned slot
-                idx = self._basic.get(key)                 # wins over the automatic quantizer
+                idx = slot                                 # wins over the automatic quantizer
                 if idx is None:
                     idx = rgb_to_basic8(*rgb)
                 elif idx >= 8 and not self.have16:
@@ -653,7 +730,7 @@ class Palette:
             if self.direct_numbering and idx >= 8:          # capped depth on a -direct terminfo: send
                 qr, qg, qb = xterm_rgb(idx)                 # the QUANTIZED colour as packed rgb (0..7
                 idx = max(8, (qr << 16) | (qg << 8) | qb)   # stay the ANSI slots there)
-        self._color_cache[key] = idx
+        self._color_cache[ckey] = idx
         return idx
 
     def _index_rgb(self, idx):
@@ -714,6 +791,8 @@ class Palette:
         return attr
 
     def get(self, name):
+        '''A color-MAP name's attr over the default background (a role name works as a fallback) —
+        the shared map, so a page's role override never changes it. For the splash ABI.'''
         if self.mono:
             return curses.A_NORMAL
         idx = self._map.get(name)
@@ -737,11 +816,10 @@ class Palette:
         t = (y / max(1, h - 1) + x / max(1, w - 1)) / 2
         return min(n - 1, int(t * n))
 
-    def style(self, element, y, x, h, w, *, selected=False, row=0, bg=None):
+    def style(self, element, y, x, h, w, *, selected=False, bg=None):
         '''The attr for a role at cell (y, x): its fg + flags, over its own bg if it declares one,
         else the active page's diagonal gradient (or the selected-row bar). `bg` (an rgb) forces the
-        background for this cell — for a row tint (residual selection / profile member). `row` is
-        accepted for call-site compatibility and ignored (roles are single styles now).'''
+        background for this cell — for a row tint (residual selection / profile member).'''
         fg, elem_bg, flags = self._entry(element)
         if self.mono:                                  # no color — keep the role's flags + reverse the bar
             return flags | (curses.A_REVERSE if selected else 0)
@@ -755,17 +833,6 @@ class Palette:
         b = self._sel_bg if selected else (elem_bg if elem_bg is not None
                                            else self._grad_bg[self.band(y, x, h, w)])
         return self._pair(fg, b, guard=g) | flags
-
-    def at(self, name, y, x, h, w, *, selected=False, row=0):
-        '''`name`'s fg over the gradient background (or the selected bar) — flags/bg ignored, for
-        by-name row colorings (status column, etc).'''
-        fg = self._entry(name)[0]
-        if self.mono:
-            return curses.A_REVERSE if selected else curses.A_NORMAL
-        if not self.gradient:
-            return self._pair(fg, self._sel_bg if selected else self.bg)
-        bg = self._sel_bg if selected else self._grad_bg[self.band(y, x, h, w)]
-        return self._pair(fg, bg)
 
     def fill(self, y, x, h, w, *, selected=False, bg=None):
         '''A blank-cell background attr (fg == bg) for painting the empty canvas behind text. `bg`
@@ -781,9 +848,6 @@ class Palette:
         return self._pair(b, b, guard=False)
 
 
-# Which role to paint each component status.
-STATUS_COLOR = {
-    'installed': 'installed', 'outdated': 'outdated', 'partial': 'partial', 'missing': 'missing',
-    'locked': 'locked', 'unsupported': 'unsupported', 'untrusted': 'untrusted', 'error': 'error',
-    'switch': 'switch', 'unmet': 'unmet', 'dangling': 'dangling',
-}
+# The component statuses that have a same-named role to paint them in.
+STATUSES = frozenset({'installed', 'outdated', 'partial', 'missing', 'locked', 'unsupported',
+                      'untrusted', 'error', 'switch', 'unmet', 'dangling'})

@@ -381,8 +381,8 @@ class ThemeScreen:
         return self.pages[self.page_name()]['roles'].get(role, {'fg': (235, 235, 235), 'bg': None})
 
     def page_gradient_enabled(self, page):
-        g = (((self.theme.get('pages') or {}).get(page) or {}).get('gradient') or {})
-        return g.get('enabled') not in (False, 'false', 'no', 'off')
+        from .theme import is_off
+        return not is_off(((self.theme.get('pages') or {}).get(page) or {}).get('gradient'))
 
 
 def _sample_page(stdscr, pal, ctx, ts, page, y0, x0, hh, ww, ms):

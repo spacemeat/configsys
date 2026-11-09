@@ -69,6 +69,51 @@ def test_a_capped_depth_on_a_direct_terminfo_sends_packed_rgb(fake_curses, monke
     monkeypatch.delenv('NO_COLOR', raising=False)
     fake_curses(1 << 24, False)
     pal = th.Palette()
-    idx = pal._color((235, 95, 95))                     # the `error` red
+    idx = pal._color((235, 95, 95), 'error')            # the `error` red (its bright-red slot)
     r, g, b = (idx >> 16) & 255, (idx >> 8) & 255, idx & 255
     assert r > 150 and g < 150 and b < 150              # still red — not (0, 0, 210) near-black blue
+
+
+# -- review-2026-11-2 tui-theme-13 / 20 ------------------------------------------------------------
+
+def test_colors_basic_overrides_one_name_not_its_rgb_twins(fake_curses, monkeypatch):
+    monkeypatch.delenv('CONFIGSYS_COLOR', raising=False)
+    monkeypatch.delenv('NO_COLOR', raising=False)
+    fake_curses(16, False)
+    pal = th.Palette({})
+    fg = lambda role: pal._roles[role][0]
+    assert fg('installed') == fg('op_install') == fg('diff_add') == 10    # bright-green
+    pal = th.Palette({'colors-basic': {'op_install': 'cyan'}})
+    assert fg('op_install') == 6                                            # the one you named
+    assert fg('installed') == 10 and fg('diff_add') == 10                   # its rgb twins keep theirs
+
+
+_EXPECT_DEPTH = {   # (cap, COLORS, can_change) -> depth
+    (None, 8, False): '8', (None, 16, False): '16', (None, 256, False): '256',
+    (None, 256, True): 'truecolor', (None, 1 << 24, False): 'direct',
+    ('none', 256, True): 'none', ('8', 256, True): '8', ('8', 16, False): '8',
+    ('16', 1 << 24, False): '16', ('16', 8, False): '8', ('256', 1 << 24, False): '256',
+    ('256', 256, True): '256', ('256', 16, False): '16', ('24bit', 256, False): '256',
+    ('24bit', 1 << 24, False): 'direct',
+}
+
+
+@pytest.mark.parametrize('cap,colors,can_change', list(_EXPECT_DEPTH))
+def test_palette_depth_is_the_one_derivation(fake_curses, monkeypatch, cap, colors, can_change):
+    if cap is None:
+        monkeypatch.delenv('CONFIGSYS_COLOR', raising=False)
+    else:
+        monkeypatch.setenv('CONFIGSYS_COLOR', cap)
+    monkeypatch.delenv('NO_COLOR', raising=False)
+    fake_curses(colors, can_change)
+    pal = th.Palette()
+    d = _EXPECT_DEPTH[(cap, colors, can_change)]
+    assert pal.depth == d and th.palette_depth(pal) == d
+    assert pal.mono == (d == 'none') and pal.direct == (d == 'direct')
+    assert pal.truecolor == (d in ('truecolor', 'direct'))
+    assert pal.have256 == (d in ('256', 'truecolor', 'direct'))
+    assert pal.lowcolor == (d in ('8', '16'))
+    assert pal.direct_numbering == (colors >= 1 << 24)
+    mode = {'none': 'none', '8': '8-color', '16': '16-color', '256': '256-color',
+            'truecolor': '24-bit', 'direct': 'direct 24-bit'}[d]
+    assert pal.color_mode.startswith(mode)

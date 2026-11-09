@@ -18,8 +18,8 @@ are in [principles.md](principles.md).
 | `tui/screens/base.py` | the protocol: `Screen`, `ViewModel`, `Intent` |
 | `tui/screens/<id>.py` | one `<Id>Screen` + `<Id>VM` per screen: `components`, `profiles`, `plugins`, `glue`, `dotfiles`, `config`, `theme` |
 | `tui/surface.py` | `CursesSurface`, `BufferSurface`, `Cell` |
-| `tui/keyspec.py` | key-name parsing, `Keymap`, `merge_layer_keys` / `config_keys`, `ROUTER_ACTIONS`, `KNOWN_ACTIONS`, `ACTION_LABELS`, `lint_keys` / `lint_merged` |
-| `tui/theme.py` | `COLOR_MAP`, `BASIC_MAP`, `ROLE_DEFAULTS`, `PAGE_ROLES`, `BUILTIN_GRADIENTS`, `resolve_theme`, `Palette`, `STATUS_COLOR`, `env_color_cap`/`env_effects` |
+| `tui/keyspec.py` | key-name parsing, `Keymap`, `merge_layer_keys`, `ROUTER_ACTIONS`, `KNOWN_ACTIONS`, `ACTION_LABELS`, `lint_keys` / `lint_merged` |
+| `tui/theme.py` | `COLOR_MAP`, `BASIC_MAP`, `ROLE_DEFAULTS`, `PAGE_ROLES`, `BUILTIN_GRADIENTS`, `resolve_theme`, `Palette`, `STATUSES`, `SCREEN_REGISTRY`, `env_color_cap`/`env_effects` |
 | `tui/screen.py` | curses lifecycle: `curses_screen`, `suspended`, Return/Ctrl-J separation, direct-color terminfo selection |
 | `tui/terminfo.py` | pure-Python compiled-terminfo reader/writer (builds a `-direct` entry without `tic`) |
 | `tui/splash.py` | the splash host loop `run_splash` + the built-in `braille-bar` (`BrailleBarSplash`) |
@@ -235,7 +235,7 @@ delegates to `keyspec.merge_layer_keys`, which merges `keys:` from **every** lay
 primary < top config), replacing per action, with **rebind-wins**: when a higher layer binds a key a
 lower layer gave to another action in the same scope, the key is taken from that lower action (an
 action left with no key is dropped), so your rebind wins deterministically. `run` builds the keymap
-from `keyspec.config_keys(ctx.config)` (the same merge over the config's layer stack).
+from `ctx.config.keys()` (the same merge over the config's layer stack).
 `Keymap(merged)` parses each spec (`parse_key`: a literal char, case-sensitive; named keys such as
 `enter`/`pgdn`/`shift-tab`; `ctrl-x`; `f1`–`f12`) into `{scope: {action: [codes]}}`. Scopes:
 `screens`, `global`, and one per screen id. `action_for(scope, code)` tries the page scope first, then
@@ -262,9 +262,11 @@ and the screen's `handle`.
 `Config.theme()` deep-merges `theme:` from every layer. `resolve_theme` turns it into the colour map
 plus per-page role styles and gradient. `Palette` (one per session, rebuilt by Theme edits via
 `Intent.new_pal`, and once after the splash to discard its colour allocations) exposes
-`style/at/fill/get` (roles, over the active page's gradient or the selection bar),
-`rgb_attr/rgb_pair` (ad-hoc colours for splashes), `use_page(id)` (each draw calls it), and
-`gradient`. `STATUS_COLOR` maps each status and routing status to its role.
+`style/fill` (roles, over the active page's gradient or the selection bar), `get` (a colour-map
+name over the default background), `rgb_attr/rgb_pair` (ad-hoc colours for splashes),
+`use_page(id)` (each draw calls it), `gradient`, and `depth` (the colour depth it paints at, after
+any `--color` cap; the `mono`/`have256`/`truecolor`/… flags derive from it). `STATUSES` names each
+status and routing status that has a same-named role.
 
 - **Colour depth:** detected from `curses.COLORS`/`can_change_color`. It can be clamped *down* only, by
   `env_color_cap` (`NO_COLOR`, `CONFIGSYS_COLOR` from `--color`/`--nocolor`): `direct` → `truecolor`
