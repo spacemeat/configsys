@@ -3,18 +3,36 @@
 # .venv, and humon, then hands off to the python app. Idempotent: safe to re-run.
 set -euo pipefail
 
-here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# the repo is where this script REALLY lives — through a symlink too (`ln -s …/configsys.sh
+# ~/.local/bin/configsys`), else the venv would be built next to the link and the package not found
+src="${BASH_SOURCE[0]}"
+src="$(readlink -f -- "$src" 2>/dev/null || printf '%s' "$src")"
+here="$(cd "$(dirname "$src")" && pwd)"
+# relative paths on the command line (`plugin add .`, `--home ./sandbox`) mean YOUR directory: the
+# app changes back to it first thing (configsys/__main__.py), after the import found the package here
+export CONFIGSYS_INVOKED_CWD="$PWD"
 cd "$here"
 
-PY="${PYTHON:-python3}"
-
-# 1. python3 >= 3.10
-if ! command -v "$PY" >/dev/null 2>&1; then
-    echo "configsys: python3 not found — install python >= 3.10 and retry." >&2
-    exit 1
+# 1. python3 >= 3.10. $PYTHON if you set it; else the first of python3, python3.14 … python3.10 that
+# is new enough (EL 9 and Amazon Linux 2023 ship python3 = 3.9 beside a newer python3.1x).
+_py_ok() { "$1" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; }
+if [ -n "${PYTHON:-}" ]; then
+    PY="$PYTHON"
+else
+    PY=""
+    for cand in python3 python3.14 python3.13 python3.12 python3.11 python3.10; do
+        if command -v "$cand" >/dev/null 2>&1 && _py_ok "$cand"; then PY="$cand"; break; fi
+    done
 fi
-if ! "$PY" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)'; then
-    echo "configsys: python >= 3.10 required (found: $("$PY" -V 2>&1))." >&2
+if [ -z "$PY" ] || ! command -v "$PY" >/dev/null 2>&1 || ! _py_ok "$PY"; then
+    found="$( { command -v python3 >/dev/null 2>&1 && python3 -V 2>&1; } || echo 'no python3')"
+    hint="install python >= 3.10"
+    if command -v dnf >/dev/null 2>&1; then hint="sudo dnf install python3.12   (EL 9: also python3.12-devel to build humon)"
+    elif command -v apt-get >/dev/null 2>&1; then hint="sudo apt-get install python3"
+    elif command -v zypper >/dev/null 2>&1; then hint="sudo zypper install python311"
+    fi
+    echo "configsys: python >= 3.10 required (found: $found)." >&2
+    echo "  install one — $hint — or point configsys at one: PYTHON=/path/to/python3.1x configsys …" >&2
     exit 1
 fi
 

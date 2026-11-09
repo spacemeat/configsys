@@ -21,7 +21,7 @@ Per-shell loaders (`drivers/glue.py` `_ensure_shell_loader`):
 
 | shell | how conf.d loads | what configsys writes |
 |---|---|---|
-| bash | the distro `~/.bash_aliases` convention | `~/.bash_aliases` → a link to the shipped `glue/bash_aliases` loader (via the store), which sources every readable `conf.d/*.sh` in lexical order and does nothing else (it carries no personal settings). A pre-existing real `~/.bash_aliases` is absorbed into `conf.d/pre-configsys-aliases.sh`, so it keeps running (unprefixed, it sorts after every band below). |
+| bash | a `~/.bashrc` marker block | One configsys-owned block in `~/.bashrc` (created if absent) that sources every readable `conf.d/*.sh` in lexical order; where no login profile exists at all (`~/.bash_profile`, `~/.bash_login`, `~/.profile`), a `~/.bash_profile` that sources `~/.bashrc` is written too, so login shells load it. A `~/.bashrc` that is a link to a captured config is never edited — the install says what to add (a captured Debian-skel bashrc that sources `~/.bash_aliases` keeps the older `~/.bash_aliases` hookup). (Before 2026-11-08 bash rode the Debian-only `~/.bash_aliases` convention; reinstalling `shell-glue` retires that link.) |
 | zsh | an rc block that sources the dir | one marker block in `~/.zshrc` |
 | fish | native `conf.d` auto-source | nothing but the dir |
 | elvish, nushell | **inline** ("gestalt") — the rc block *contains* the concatenated conf.d snippets | one marker block in `~/.config/elvish/rc.elv` / `~/.config/nushell/config.nu`, regenerated on every glue (de)activation |

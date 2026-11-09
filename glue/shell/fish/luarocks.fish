@@ -1,6 +1,6 @@
 # LuaRocks: --local rocks under ~/.luarocks; bin on PATH + LUA_PATH/LUA_CPATH. (`luarocks path`
 # emits POSIX `export` lines fish can't eval, so query the individual paths instead.)
-test -d "$HOME/.luarocks/bin"; and fish_add_path -ga "$HOME/.luarocks/bin"
+test -d "$HOME/.luarocks/bin"; and fish_add_path -gaP "$HOME/.luarocks/bin"
 if command -v luarocks >/dev/null 2>&1
     set -l lp (cs_cached luarocks-lr-path luarocks luarocks path --lr-path)   # cached: re-runs only after a luarocks upgrade
     set -l lc (cs_cached luarocks-lr-cpath luarocks luarocks path --lr-cpath)

@@ -178,3 +178,21 @@ def test_execute_plan_allowlisted_component_writes_through(tmp_path):
     execute_plan(ctx, [('install', 'apt\\nvm', rc)], Ledger())
     assert (home / '.bashrc').read_text() == 'export EXISTING=1\nWROTE=1\n'   # left in place
     assert shellguard.staged_for(paths, 'nvm') == []
+
+
+def test_a_non_utf8_or_crlf_rc_round_trips_byte_for_byte(tmp_path):
+    # dotfiles-glue-13 (B13): never crash on a Latin-1 comment, never rewrite CRLF as LF
+    rc = tmp_path / '.bashrc'
+    rc.write_bytes(b'# caf\xe9\r\nalias a=b\r\n')
+    snap = shellguard.snapshot(tmp_path)
+    rc.write_bytes(b'# caf\xe9\r\nalias a=b\r\nexport NVM_DIR=x\r\n')    # an installer appends
+    captured = shellguard.revert_and_capture(tmp_path, snap)
+    assert rc.read_bytes() == b'# caf\xe9\r\nalias a=b\r\n' and 'NVM_DIR' in captured['bash']
+
+
+def test_every_fish_append_really_appends():
+    # dotfiles-glue-07 (B13): `fish_add_path -ga` lands in fish_user_paths, AHEAD of /usr/bin
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parent.parent / 'glue' / 'shell' / 'fish'
+    bad = [f.name for f in root.glob('*.fish') if 'fish_add_path -ga ' in f.read_text()]
+    assert bad == []

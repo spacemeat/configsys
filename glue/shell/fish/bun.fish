@@ -8,4 +8,4 @@ if test -n "$loc"
     test -n "$dir"; and fish_add_path -g "$dir"
 end
 set -gx BUN_INSTALL "$HOME/.bun"
-test -d "$BUN_INSTALL/bin"; and fish_add_path -ga "$BUN_INSTALL/bin"
+test -d "$BUN_INSTALL/bin"; and fish_add_path -gaP "$BUN_INSTALL/bin"

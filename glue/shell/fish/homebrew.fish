@@ -5,7 +5,7 @@ for hb in /home/linuxbrew/.linuxbrew $HOME/.linuxbrew
         set -gx HOMEBREW_PREFIX $hb
         set -gx HOMEBREW_CELLAR $hb/Cellar
         set -gx HOMEBREW_REPOSITORY $hb/Homebrew
-        fish_add_path -ga $hb/bin $hb/sbin
+        fish_add_path -gaP $hb/bin $hb/sbin
         break
     end
 end

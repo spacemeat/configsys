@@ -92,8 +92,12 @@ _SHELL_COMPONENT = {'nu': 'nushell'}
 # are INLINE (see below). The markers make the block idempotent + cleanly removable.
 _RC_BEGIN = '# >>> configsys glue >>>'
 _RC_END = '# <<< configsys glue <<<'
-_SHELL_RC = {'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv',
+_SHELL_RC = {'bash': '~/.bashrc', 'zsh': '~/.zshrc', 'elvish': '~/.config/elvish/rc.elv',
              'nu': '~/.config/nushell/config.nu'}
+# a login bash reads the first of these; where none exists, one that sources ~/.bashrc is written
+# (Void/Alpine ship no skel profile), so a login shell gets the glue too
+_BASH_PROFILES = ('~/.bash_profile', '~/.bash_login', '~/.profile')
+_BASH_PROFILE_BODY = '[ -f ~/.bashrc ] && . ~/.bashrc'
 
 # GESTALT (inline) shells: neither elvish nor nushell can dynamically source a dir of snippets into
 # the interactive scope. Elvish's per-file `eval` ISOLATES namespaces (a sourced file's `fn`/`var`
@@ -118,12 +122,26 @@ GLUE_STATE_LABEL = {'linked': 'active', 'loader-on': 'active', 'drifted': 'chang
                     'template': 'available', 'loader-off': 'inactive'}
 # how each rc-driven shell sources its conf.d dir (empty-glob-safe).
 _RC_SOURCE = {
-    'zsh': ('setopt local_options null_glob\n'
-            'for _f in {confd}/*.zsh; do source "$_f"; done\n'
+    # bash: -r, not -x (a snippet loads whether or not it carries the exec bit); an empty dir leaves
+    # the literal glob, which -r rejects
+    'bash': ('for _f in {confd}/*.sh; do [ -r "$_f" ] && . "$_f"; done\n'
+             'unset _f'),
+    # zsh: the (N) glob qualifier = null_glob for THIS glob only (a `setopt local_options null_glob` at
+    # rc top level isn't local to anything — it leaked null_glob into your session; B13)
+    'zsh': ('for _f in {confd}/*.zsh(N); do source "$_f"; done\n'
             'unset _f'),
     # Elvish: [nomatch-ok] (attached to the * wildcard) so an empty conf.d doesn't error; the list
     # brackets make the glob a single iterable; `eval (slurp < $f)` sources each file.
 }
+
+
+def _read_rc(path):
+    '''An rc file's text with every byte preserved (a Latin-1 comment, CRLF) — `_write_rc` puts it back.'''
+    return Path(path).read_bytes().decode('utf-8', 'surrogateescape')
+
+
+def _write_rc(path, text):
+    Path(path).write_bytes(text.encode('utf-8', 'surrogateescape'))
 
 
 class Glue(Driver):
@@ -760,7 +778,7 @@ class Glue(Driver):
                 if not f.name.endswith(f'.{ext}'):
                     continue
                 try:
-                    content = f.read_text()
+                    content = f.read_text(errors='replace')
                 except OSError:
                     continue
                 cmd = self._eval_directive(content)
@@ -795,7 +813,7 @@ class Glue(Driver):
 
     def _rc_has_block(self, rc_path):
         try:
-            return _RC_BEGIN in Path(rc_path).read_text()
+            return _RC_BEGIN in Path(rc_path).read_text(errors='replace')
         except (FileNotFoundError, OSError):
             return False
 
@@ -810,17 +828,23 @@ class Glue(Driver):
         self._ensure_confd(shell)
         self._record_launcher()                            # where the preludes' `configsys`/`cfs` run
         self._deploy_user_glue(shell)                      # scaffold + link the user.d namespace
-        if shell == 'bash':                                # bash rides ~/.bash_aliases
-            self._link_bash_aliases(rc)
-            return True
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is None:                                 # fish / nu: dir is the whole job
             return True
         rc_path = self._expand(rc_rel)
         if rc_path.is_symlink():                            # a captured/managed rc owns its source line
-            return False
+            if shell == 'bash' and self._sources_bash_aliases(rc_path):
+                self._link_bash_aliases(rc)                 # (legacy: a captured Debian-skel bashrc)
+                return True
+            return self._rc_has_block(rc_path)
+        if shell == 'bash':
+            # bash used to ride the Debian-only `~/.bash_aliases` convention (nothing else sources it —
+            # Fedora/EL/Arch/Void/Alpine never loaded bash glue: B3). Now it's a ~/.bashrc block like
+            # zsh's; our old link goes (anything it absorbed stays in conf.d, which the block sources)
+            self._retire_bash_aliases_link()
+            self._ensure_bash_profile()
         block = self._rc_block(shell)
-        existing = rc_path.read_text() if rc_path.exists() else ''
+        existing = _read_rc(rc_path) if rc_path.exists() else ''
         if _RC_BEGIN in existing:                           # replace our block in place (idempotent)
             # `block` is generated shell content (inlined snippets) — as a re.sub REPLACEMENT string a
             # `\1`/`\g<>`/backslash in it would be reinterpreted (mangling \t, raising on \1). Pass a
@@ -831,7 +855,7 @@ class Glue(Driver):
             sep = '' if (not existing or existing.endswith('\n')) else '\n'
             new = f'{existing}{sep}{block}'
         rc_path.parent.mkdir(parents=True, exist_ok=True)
-        rc_path.write_text(new)
+        _write_rc(rc_path, new)
         return True
 
     def _record_launcher(self):
@@ -855,6 +879,31 @@ class Glue(Driver):
                 rec.write_text(text)
         except OSError:
             pass
+
+    def _sources_bash_aliases(self, rc_path):
+        try:
+            return 'bash_aliases' in Path(rc_path).read_text(errors='replace')
+        except OSError:
+            return False
+
+    def _retire_bash_aliases_link(self):
+        '''Drop OUR ~/.bash_aliases link (one into the glue store); a real file or another link stays.'''
+        dst = self._home() / '.bash_aliases'
+        store = self._store_path(_BASH_ALIASES_SRC)
+        try:
+            if dst.is_symlink() and (store is None
+                                     or os.path.realpath(dst) == os.path.realpath(store)
+                                     or _BASH_ALIASES_SRC in os.readlink(dst)):
+                dst.unlink()
+        except OSError:
+            pass
+
+    def _ensure_bash_profile(self):
+        '''Where no login profile exists at all, write ~/.bash_profile sourcing ~/.bashrc.'''
+        if any(self._expand(p).exists() or self._expand(p).is_symlink() for p in _BASH_PROFILES):
+            return
+        prof = self._expand(_BASH_PROFILES[0])
+        prof.write_text(f'{_RC_BEGIN}\n{_BASH_PROFILE_BODY}\n{_RC_END}\n')
 
     def _link_bash_aliases(self, rc):
         '''Link ~/.bash_aliases to the shipped `bash_aliases` loader (materialized into the store, so
@@ -902,8 +951,7 @@ class Glue(Driver):
         if getattr(self.runner, 'pretend', False):         # --pretend: write nothing
             return
         if shell == 'bash':
-            self._remove_bash_aliases()
-            return
+            self._remove_bash_aliases()                    # (a legacy hookup, if one is left)
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is None:
             return
@@ -915,12 +963,12 @@ class Glue(Driver):
             # loader block is part of YOUR portable config, shared with your other machines — never
             # edited through the link (install doesn't add it there either; dotfiles-glue-17)
             return
-        text = rc_path.read_text()
+        text = _read_rc(rc_path)
         if _RC_BEGIN not in text:
             return
         new = re.sub(r'\n?' + re.escape(_RC_BEGIN) + r'.*?' + re.escape(_RC_END) + r'\n?',
                      '\n', text, flags=re.DOTALL)
-        rc_path.write_text(new)
+        _write_rc(rc_path, new)
 
     def _loader_ok(self, shell):
         '''True if `shell`'s loader is fully hooked: dir present, plus bash's ~/.bash_aliases link /
@@ -928,8 +976,12 @@ class Glue(Driver):
         the dir).'''
         if not self._confd(shell).is_dir():
             return False
-        if shell == 'bash':
-            return (self._home() / '.bash_aliases').is_symlink()
+        if shell == 'bash':                                # the block — or a legacy link something sources
+            rc_path = self._expand(_SHELL_RC['bash'])
+            if self._rc_has_block(rc_path):
+                return True
+            return ((self._home() / '.bash_aliases').is_symlink()
+                    and self._sources_bash_aliases(rc_path))
         rc_rel = _SHELL_RC.get(shell)
         if rc_rel is not None and not self._rc_has_block(self._expand(rc_rel)):
             return False
@@ -1039,9 +1091,18 @@ class Glue(Driver):
         if only_shells is not None:
             loaders = [l for l in loaders if l in only_shells]
         if loaders:                                        # a loader component (loader: zsh | all)
+            hooked, not_hooked = [], []
             for shell in loaders:
-                self._ensure_shell_loader(shell, rc)
-            return Result(f'glue: conf.d loader hooked up ({", ".join(loaders)})', 0)
+                (hooked if self._ensure_shell_loader(shell, rc) else not_hooked).append(shell)
+            if not_hooked:
+                # your rc is a captured/managed link: its loader line is part of YOUR config, so say
+                # exactly what to add instead of claiming success (dotfiles-glue-18)
+                lines = [f'{_SHELL_RC.get(s, s)}: it is a link to your captured config — add the '
+                         f'conf.d loader to it yourself:\n{self._rc_block(s)}' for s in not_hooked]
+                head = (f'glue: conf.d loader hooked up ({", ".join(hooked)}); ' if hooked else 'glue: ')
+                return Result(head + 'not hooked: ' + ', '.join(not_hooked), 1,
+                              stderr='\n'.join(lines), advisory=True)
+            return Result(f'glue: conf.d loader hooked up ({", ".join(hooked)})', 0)
         self._migrate_legacy_component(rc, only_shells)    # pre-band links -> the 50- band
         specs = self._specs(rc)
         if only_shells is not None:

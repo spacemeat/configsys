@@ -380,9 +380,13 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             rc_code = rc_code or 1                   # an explicit upgrade of a locked unit is refused
             continue
         on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
-        rc_snap = (None if pretend else      # nothing runs in a dry run, so nothing to guard or revert
-                   shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
-                                  rc.driver))
+        try:
+            rc_snap = (None if pretend else  # nothing runs in a dry run, so nothing to guard or revert
+                       shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
+                                      rc.driver))
+        except Exception as e:               # noqa: BLE001 — the guard must never abort the batch
+            on_line(f'  (shell-writes guard skipped for {key}: {e})')
+            rc_snap = None
         res = None
         try:
             try:

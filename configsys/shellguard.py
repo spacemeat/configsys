@@ -48,12 +48,19 @@ _CAPTURE_MARK = '(captured by configsys'
 
 
 def _read(path):
+    '''The file's text, decoded so EVERY byte round-trips (`surrogateescape`, no newline translation)
+    — a Latin-1 comment or CRLF line endings in your rc must neither crash the guard nor come back
+    altered (dotfiles-glue-13). None when absent/unreadable.'''
     try:
-        return path.read_text()
+        return path.read_bytes().decode('utf-8', 'surrogateescape')
     except (FileNotFoundError, IsADirectoryError):
         return None
     except OSError:
         return None
+
+
+def _write(path, text):
+    path.write_bytes(text.encode('utf-8', 'surrogateescape'))
 
 
 class Snapshot(dict):
@@ -190,7 +197,7 @@ def revert_and_capture(home, snap):
             except OSError:
                 pass
         else:
-            path.write_text(target)
+            _write(path, target)
     return {shell: _format_block(blocks) for shell, blocks in per_shell.items()}
 
 

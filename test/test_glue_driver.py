@@ -268,34 +268,59 @@ def test_shell_glue_loader_all_hooks_every_installed_shell(tmp_path):
     assert g.get_version(rc) is None
     assert g.install(rc).ok
     assert (p.home / '.config' / 'bash' / 'conf.d').is_dir()
-    assert (p.home / '.bash_aliases').is_symlink()                    # bash rides ~/.bash_aliases
+    assert '# >>> configsys glue >>>' in (p.home / '.bashrc').read_text()   # bash: an rc block (B3)
+    assert not (p.home / '.bash_aliases').exists()                   # (no longer the Debian-only hook)
     assert (p.home / '.config' / 'fish' / 'conf.d').is_dir()          # fish auto-sources natively
     assert '# >>> configsys glue >>>' in (p.home / '.zshrc').read_text()   # zsh needs the rc block
+    assert '(N)' in (p.home / '.zshrc').read_text() and 'null_glob' not in (p.home / '.zshrc').read_text()
     assert g.get_version(rc) == 'linked'
     g.uninstall(rc)
     assert '# >>> configsys glue >>>' not in (p.home / '.zshrc').read_text()
-    assert not (p.home / '.bash_aliases').is_symlink()               # bash link removed
+    assert '# >>> configsys glue >>>' not in (p.home / '.bashrc').read_text()
     assert g.get_version(rc) is None                                 # loaders gone
 
 
-def test_shell_glue_bash_absorbs_preexisting_bash_aliases(tmp_path):
-    # a pre-existing real ~/.bash_aliases is MOVED into conf.d (kept running), then ~/.bash_aliases
-    # becomes our link; uninstall restores the user's original file.
+def test_shell_glue_bash_leaves_your_own_bash_aliases_alone(tmp_path):
+    # B3: bash glue is a ~/.bashrc block now; a real ~/.bash_aliases is yours and stays put
     p = paths_for(tmp_path, shells='bash')
-    p.glue_dir.mkdir(parents=True)
-    (p.glue_dir / 'bash_aliases').write_text('# source conf.d\n')
     p.home.mkdir(parents=True)
-    (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')   # the user's own aliases
+    (p.home / '.bash_aliases').write_text('alias mine="echo hi"\n')
+    (p.home / '.bashrc').write_text('# fedora skel\n. ~/.bashrc.d/x 2>/dev/null\n')
     g = Glue(Runner(pretend=False), paths=p)
     rc = _loader_unit('all')
     assert g.install(rc).ok
-    link = p.home / '.bash_aliases'
-    absorbed = p.home / '.config' / 'bash' / 'conf.d' / 'pre-configsys-aliases.sh'
-    assert link.is_symlink()
-    assert absorbed.read_text() == 'alias mine="echo hi"\n'          # user aliases preserved in conf.d
-    assert os.access(absorbed, os.X_OK)
+    assert (p.home / '.bash_aliases').read_text() == 'alias mine="echo hi"\n'
+    text = (p.home / '.bashrc').read_text()
+    assert text.startswith('# fedora skel') and 'conf.d/*.sh' in text
     g.uninstall(rc)
-    assert not link.is_symlink() and link.read_text() == 'alias mine="echo hi"\n'   # restored
+    assert (p.home / '.bashrc').read_text().rstrip() == '# fedora skel\n. ~/.bashrc.d/x 2>/dev/null'
+
+
+def test_bash_hookup_migrates_the_legacy_link_and_writes_a_login_profile(tmp_path):
+    p = paths_for(tmp_path, shells='bash')
+    p.glue_dir.mkdir(parents=True)
+    (p.glue_dir / 'bash_aliases').write_text('# legacy loader\n')
+    p.home.mkdir(parents=True)
+    g = Glue(Runner(pretend=False), paths=p)
+    g._link_bash_aliases(_loader_unit('all'))               # what an older configsys left behind
+    assert (p.home / '.bash_aliases').is_symlink()
+    assert g.install(_loader_unit('all')).ok
+    assert not (p.home / '.bash_aliases').exists()           # our old link retired
+    assert '. ~/.bashrc' in (p.home / '.bash_profile').read_text()   # Void/Alpine: no profile at all
+    assert '# >>> configsys glue >>>' in (p.home / '.bashrc').read_text()
+
+
+def test_a_captured_bashrc_is_never_edited_through_its_link(tmp_path):
+    p = paths_for(tmp_path, shells='bash')
+    p.home.mkdir(parents=True)
+    captured = tmp_path / 'store' / 'bashrc'
+    captured.parent.mkdir()
+    captured.write_text('# my bashrc\n')
+    (p.home / '.bashrc').symlink_to(captured)
+    g = Glue(Runner(pretend=False), paths=p)
+    g.install(_loader_unit('all'))
+    assert captured.read_text() == '# my bashrc\n'          # untouched; the loader reads "off"
+    assert not g._loader_ok('bash')
 
 
 @pytest.mark.real_runner
