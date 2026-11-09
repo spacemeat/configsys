@@ -336,7 +336,9 @@ class Context:
         code_conflicts = []
         _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
                                              decls, register_driver, conflicts=code_conflicts)
-        self.plugin_code_warnings = [f'plugin {key}: {reason}' for key, reason in skipped]
+        self.plugin_code_warnings = [   # by the plugin's own name, as `plugin list` shows it
+            f'plugin {plugins.read_manifest(self.paths.plugins_dir / key).get("name", key)}: {reason}'
+            for key, reason in skipped]
         self.plugin_code_conflicts = code_conflicts
         # a gated-out code plugin's drivers are "known but unavailable": collect the via names
         # it declares (manifest provides.drivers) so `check` treats them as pending-trust, not

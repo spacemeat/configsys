@@ -1451,8 +1451,12 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
         if not _abi_ok(manifest):
             skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
             continue
-        if not approval_matches(read_trust(trust_file).get(key), pdir):
-            skipped.append((key, 'untrusted code (run: configsys plugin trust <name>)'))
+        approved = read_trust(trust_file).get(key)
+        if not approval_matches(approved, pdir):
+            name = manifest.get('name', key)             # what `plugin trust` / `plugin list` call it
+            skipped.append((key, f'untrusted code (run: configsys plugin trust {name})'
+                                 if approved is None else
+                                 f'code changed since trust (re-approve: configsys plugin trust {name})'))
             continue
         try:
             before_src, before_tr = dict(versions._SOURCES), dict(_TRANSPORTS)

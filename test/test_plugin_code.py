@@ -74,7 +74,7 @@ def test_load_code_gates_on_content_trust(tmp_path):
     reg.clear()
     loaded, skipped = plugins.load_code(tmp_path / 'plugins', tf, decls, reg.append)
     assert loaded == [] and reg == []
-    assert 'untrusted' in dict(skipped)['apk-plug']
+    assert 'changed since trust' in dict(skipped)['apk-plug']
 
 
 def test_non_git_plugin_can_be_trusted(tmp_path):
@@ -180,13 +180,25 @@ def test_trusted_driver_makes_via_resolve_end_to_end(tmp_path, capsys):
 
     # untrusted: the code warning appears (its via: demopm is not registered)
     main(home + ['check'])
-    assert 'untrusted code' in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert 'untrusted code' in out
+    # named by the plugin's own name (not its dir `src`), with the real command — no placeholder
+    assert 'plugin apkp: untrusted code (run: configsys plugin trust apkp)' in out
+    assert '<name>' not in out and 'plugin src:' not in out
 
     # trust it -> next run registers demopm, the warning is gone
     main(home + ['plugin', 'trust', 'apkp'])
     capsys.readouterr()
     main(home + ['check'])
     assert 'untrusted code' not in capsys.readouterr().out
+
+    # a change since the trust reads as that, not as never trusted
+    synced = tmp_path / '.config' / 'configsys' / 'plugins' / 'src'
+    (synced / 'driver.py').write_text(DRIVER_PY + '# edited\n')
+    main(home + ['check'])
+    out = capsys.readouterr().out
+    assert 'plugin apkp: code changed since trust (re-approve: configsys plugin trust apkp)' in out
+    assert 'untrusted code' not in out
 
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
