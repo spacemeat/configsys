@@ -45,7 +45,7 @@ def _unit():
 
 def _driver(runner, monkeypatch, fmt='deb'):
     d = NativePkgFile(runner)
-    monkeypatch.setattr(d, '_format', lambda: fmt)
+    monkeypatch.setattr(d, '_format', lambda rc=None: fmt)
     return d
 
 
@@ -85,7 +85,7 @@ def test_get_version_queries_the_os_db(monkeypatch):
     # once installed the .deb registers as `fastfetch`; version comes from dpkg-query
     class FR:
         def run(self, cmd, **k):
-            return Result(cmd, 0, stdout='2.66.0\n') if 'dpkg-query' in cmd else Result(cmd, 0)
+            return Result(cmd, 0, stdout='installed 2.66.0\n') if 'dpkg-query' in cmd else Result(cmd, 0)
     d = NativePkgFile(FR())
-    monkeypatch.setattr(d, '_format', lambda: 'deb')
+    monkeypatch.setattr(d, '_format', lambda rc=None: 'deb')
     assert d.get_version(_unit()) == '2.66.0'

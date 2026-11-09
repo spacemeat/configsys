@@ -13,8 +13,9 @@ archive) and build it. The download/extract step is the same code both drivers s
 
 Route fields (on the binding):
   build:        (required) shell command(s) — a string or a list run in sequence — executed IN
-                the tree, with $PREFIX / $SRC / $VERSION / $ARCH substituted
-                (e.g. `./configure --prefix=$PREFIX && make -j && make install`)
+                the tree, with $PREFIX / $SRC / $VERSION / $ARCH / $SUDO substituted
+                (e.g. `./configure --prefix=$PREFIX && make -j && $SUDO make install`). $SUDO is
+                `sudo` at system scope and empty at user scope — a system-prefix recipe must use it
   repo:         git URL to clone  (git acquisition; `requires: git`), OR
   url: / version:+asset:          a source archive to download  (`requires: curl`) — reuses the
                 same url template / github discovery as the tarball driver
@@ -23,17 +24,25 @@ Route fields (on the binding):
   version:      (optional) a discovery spec (github/…) or literal; "latest" = that version
   ref:          (optional) explicit git ref (tag/branch/commit); overrides version→tag
   tag-prefix:   (optional) prepended to the version to form the tag (e.g. `v`)
-  installDir:   (optional) where the source tree lands (cloned or extracted) — scope-honoring,
-                bare-relative resolves under HOME (user) / /opt (system); default `src/<comp>` ($SRC).
+  installDir:   (optional) where the source tree lands (cloned or extracted); bare-relative resolves
+                under the USER base at either scope — the tree is a build cache you own, never root's
+                (only $PREFIX follows scope); default `src/<comp>` ($SRC).
   prefix:       (optional) install prefix ($PREFIX); default ~/.local (user) or /usr/local
                 (system). A bare-relative path resolves like installDir.
   uninstall-cmd:(optional) run in the tree before the source is removed (e.g. `make uninstall`);
                 absent => the tree is removed but files under the prefix may remain (warned).
   location:     (optional) display path override.
 
-Userland by default (no auto-sudo — building as root is wrong; put `sudo` in the build/install
-step for a system prefix). The built version is recorded in a marker file in the source tree, so
-inspection is stateless (the tarball driver's model). No native lock — intent lives in the ledger.
+Userland always: the build runs as you (building as root is wrong). At `scope: system` only the
+install step gets root, through the recipe's `$SUDO`; a recipe without it is refused at system scope
+up front rather than failing at `make install`. The built version is recorded in a marker file in the
+source tree, so inspection is stateless (the tarball driver's model). No native lock — intent lives
+in the ledger.
+
+UPGRADE: a branch recipe (no `version:`, or `ref: <branch>`) follows the REMOTE branch — after the
+fetch the tree is reset to `origin/<branch>` (the remote's default branch for HEAD), so an upgrade
+builds the new upstream commit; a tag/sha ref is checked out as-is. A changed `repo:` re-points a
+configsys-made tree's `origin`. An adopted checkout is fast-forwarded only (`merge --ff-only`).
 
 REBUILD SEMANTICS: install/upgrade REBUILD unconditionally from a PRISTINE tree — after fetch we
 force-checkout the ref (`git checkout -f`, resetting tracked files a build step may patch) and
@@ -42,7 +51,9 @@ change or a failed partial build can't be masked by stale state. There is no "al
 `configsys install <comp>` re-runs the whole build (use `install --no-deps <comp>` to rebuild just
 this component without re-running its dependency installs). The version marker is the only thing
 preserved across the clean, so a failed rebuild still reads as installed (the artifacts live under
-$PREFIX, which the clean never touches).
+$PREFIX, which the clean never touches). An ARCHIVE rebuild extracts into a fresh sibling stage and
+swaps it in (carrying only configsys's markers), so files deleted upstream or a stale CMakeCache.txt
+never survive; an adopted tree is extracted over in place (it is yours).
 '''
 
 import shlex
@@ -62,8 +73,12 @@ class Source(Driver):
     # -- locations --------------------------------------------------------
 
     def _src_dir(self, rc):
-        return (self.location_override(rc)
-                or self.scoped_dir(rc.fields.get('installDir') or f'$CONFIGSYS_SRC_DIR/{rc.comp}', rc))
+        raw = rc.fields.get('installDir') or f'$CONFIGSYS_SRC_DIR/{rc.comp}'
+        if self.location_override(rc):
+            return self.location_override(rc)
+        if self.paths is not None:                 # the tree is user space at EITHER scope (B14)
+            return self.paths.install_dir(raw, 'user')
+        return self.scoped_dir(raw, rc)
 
     def _prefix(self, rc):
         p = rc.fields.get('prefix')
@@ -87,9 +102,11 @@ class Source(Driver):
             return f"{rc.fields.get('tag-prefix', '')}{version}"
         return 'HEAD'
 
-    def _sub(self, text, version, src, prefix):
+    def _sub(self, text, version, src, prefix, rc=None):
+        sudo = 'sudo' if rc is not None and self._scope(rc) == 'system' else ''
         return (str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
-                .replace('$VERSION', version or '').replace('$ARCH', self.arch()))
+                .replace('$VERSION', version or '').replace('$ARCH', self.arch())
+                .replace('$SUDO', sudo))
 
     @staticmethod
     def _build_steps(rc):
@@ -116,6 +133,11 @@ class Source(Driver):
         steps = self._build_steps(rc)
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
+        if self._scope(rc) == 'system' and not any('$SUDO' in str(s) or 'sudo ' in str(s) for s in steps):
+            return Result('', 1, advisory=True, stderr=(
+                f'{rc.comp}: a `scope: system` build installs into {self._prefix(rc)}, which needs root, '
+                f'but its recipe has no `$SUDO` on the install step (e.g. `$SUDO make install`) — add '
+                f'it in your layer, or install {rc.comp} at user scope'))
         explicit = version is not None
         version = version if explicit else (self.resolve_version(rc) or '')
         src = self._src_dir(rc)
@@ -142,6 +164,7 @@ class Source(Driver):
                     f'your files are never cleaned or deleted), or move it aside" >&2; exit 3; ')
                  + 'fi && ')
 
+        mine_q = shlex.quote(f'{MARKER_PREFIX}*')
         repo = rc.fields.get('repo')
         if repo:                                    # git acquisition: clone-or-fetch, checkout ref
             ref = self._ref(rc, version)
@@ -155,18 +178,36 @@ class Source(Driver):
             # edits), no clean. A configsys-made tree with local changes (you edited config.h, a
             # failed build patched a file) is refused unless --force, which discards them.
             refq = shlex.quote(ref)
+            repoq = shlex.quote(repo)
             mine = shlex.quote(f'{MARKER_PREFIX}*')
             dirty = (f'[ -z "$(git -C {srcq} status --porcelain --untracked-files=normal -- . '
                      f'\":(exclude){MARKER_PREFIX}*\")" ]')
-            pristine = (f'git -C {srcq} checkout -f {refq} && '      # -f resets tracked files (a build may patch one)
+            # B14: a branch follows the REMOTE. B = the branch to track: the remote's default branch
+            # for HEAD (configsys-made) or your current branch (adopted), else the `ref:` itself when
+            # origin has such a branch; empty = a tag/sha, checked out as-is.
+            if ref == 'HEAD':
+                pick_mine = (f'B="$(git -C {srcq} symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null '
+                             f'|| {{ git -C {srcq} remote set-head origin -a >/dev/null 2>&1 && '
+                             f'git -C {srcq} symbolic-ref --short refs/remotes/origin/HEAD; }})"; B="${{B#origin/}}"; ')
+                pick_adopted = f'B="$(git -C {srcq} symbolic-ref --short HEAD 2>/dev/null)"; '
+            else:
+                pick_mine = pick_adopted = f'B={refq}; '
+            on_remote = f'[ -n "$B" ] && git -C {srcq} show-ref --verify --quiet "refs/remotes/origin/$B"'
+            pristine = (f'{pick_mine}if {on_remote}; then git -C {srcq} checkout -f -B "$B" "origin/$B"; '
+                        f'else git -C {srcq} checkout -f {refq}; fi && '   # -f resets tracked files (a build may patch one)
                         f'git -C {srcq} clean -xfd -e {mine}')
+            adopted_co = (f'{pick_adopted}if {on_remote}; then git -C {srcq} checkout "$B" && '
+                          f'git -C {srcq} merge --ff-only "origin/$B"; '
+                          f'elif [ {refq} != HEAD ]; then git -C {srcq} checkout {refq}; fi')
             guard = ('' if force else
                      f'{{ {dirty} || {{ echo "configsys: {src} has local changes — commit or stash '
                      f'them, or \\`install --force\\` to discard them" >&2; exit 4; }}; }} && ')
-            acquire = (f'{claim}{{ [ -d {srcq}/.git ] || {{ git clone {shlex.quote(repo)} {srcq} && '
+            acquire = (f'{claim}{{ [ -d {srcq}/.git ] || {{ git clone {repoq} {srcq} && '
                        f'touch {clq}; }}; }} && '
+                       # a changed `repo:` re-points a tree configsys made (never your adopted one)
+                       f'{{ [ -e {adq} ] || git -C {srcq} remote set-url origin {repoq}; }} && '
                        f'git -C {srcq} fetch --tags --force && '
-                       f'if [ -e {adq} ]; then git -C {srcq} checkout {refq}; '
+                       f'if [ -e {adq} ]; then {adopted_co}; '
                        f'else {guard}{pristine}; fi')
             stamp = version or ref
         else:                                       # archive acquisition: download + extract
@@ -176,16 +217,25 @@ class Source(Driver):
             if not url:
                 return Result.fail(f'{rc.comp}: source binding has neither a `repo:` to clone nor '
                                    f'a `url:`/`version:` archive to download')
-            fresh = f'[ -e {srcq} ] || created=1; '
-            acquire = (f'{claim}{fresh}'
-                       + self._fetch_and_extract(url, src, rc.fields.get('archive'),
-                                                 rc.fields.get('strip', 1), rc=rc)
-                       + f' && {{ [ -z "${{created:-}}" ] || touch {clq}; }}')
+            # B14: a configsys-made tree is rebuilt from a FRESH extract — into a sibling stage, our
+            # markers carried over, then swapped in — so files deleted upstream and a stale
+            # CMakeCache.txt don't survive. An adopted tree is yours: extracted over in place.
+            stage = shlex.quote(str(src) + MARKER_PREFIX + 'stage')
+            fetch = lambda dest: self._fetch_and_extract(url, dest, rc.fields.get('archive'),  # noqa: E731
+                                                         rc.fields.get('strip', 1), rc=rc)
+            acquire = (f'{claim}'
+                       f'if [ -e {adq} ]; then {fetch(src)}; else '
+                       f'rm -rf {stage} && {fetch(str(src) + MARKER_PREFIX + "stage")} && '
+                       f'{{ [ ! -d {srcq} ] || find {srcq} -maxdepth 1 -name {mine_q} '
+                       f'-exec mv -f {{}} {stage}/ \\; ; }} && touch {stage}/{shlex.quote(cloned.name)} && '
+                       f'rm -rf {srcq} && mv {stage} {srcq}; fi')
             stamp = version or 'source'
 
-        build = ' && '.join(self._sub(s, version, src, prefix) for s in steps)
+        build = ' && '.join(self._sub(s, version, src, prefix, rc) for s in steps)
         path = self._build_path(rc, version, src, prefix)
-        cmd = (f'mkdir -p {shlex.quote(str(src.parent))} {shlex.quote(str(prefix))} && '
+        mk_prefix = (f'{{ [ -d {shlex.quote(str(prefix))} ] || sudo mkdir -p {shlex.quote(str(prefix))}; }}'
+                     if self._scope(rc) == 'system' else f'mkdir -p {shlex.quote(str(prefix))}')
+        cmd = (f'mkdir -p {shlex.quote(str(src.parent))} && {mk_prefix} && '
                f'{acquire} && '
                f'( cd {srcq} && export PATH="{path}:$PATH" && {build} ) && '
                f'printf %s {shlex.quote(stamp)} > {shlex.quote(str(self._marker(rc)))}')
@@ -221,7 +271,7 @@ class Source(Driver):
         src = self._src_dir(rc)
         srcq = shlex.quote(str(src))
         unc = rc.fields.get('uninstall-cmd')
-        pre = (f'( cd {srcq} && {self._sub(unc, "", src, self._prefix(rc))} ) && ' if unc else '')
+        pre = (f'( cd {srcq} && {self._sub(unc, "", src, self._prefix(rc), rc)} ) && ' if unc else '')
         cloned = shlex.quote(str(self._own_marker(rc, 'cloned')))
         # only touch a tree we manage (our marker present); DELETE it only when configsys created it,
         # it is a safe path, and it holds no local changes — else it stays, and we say so (A9)

@@ -44,7 +44,7 @@ def test_install_command_construction(tmp_path):
     assert f"git -C {src} clean -xfd -e '.configsys-*'" in cmd   # every own marker survives the clean
     assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make && make install )') in cmd
-    assert f'mkdir -p {src.parent} {prefix}' in cmd
+    assert f'mkdir -p {src.parent} && mkdir -p {prefix}' in cmd
     assert 'printf %s v1.2.3' in cmd                       # marker records the version/ref
     assert 'sudo' not in cmd                               # userland by default
 
@@ -268,3 +268,89 @@ def test_a_configsys_clone_with_local_changes_needs_force_and_clean_ones_are_rem
     assert drv.install(rc).ok and not (src / 'config.h').exists()   # --force discards them
     drv.uninstall(rc)
     assert not src.exists()                                       # ours and clean: removed
+
+
+def _head_setup(tmp_path, **fields):
+    from configsys.drivers.source import Source
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})
+    paths.source_adopt = paths.install_force = False
+    up = tmp_path / 'upstream'
+    if not up.exists():
+        _upstream(tmp_path)
+    f = {'repo': str(up), 'build': 'true'}
+    f.update(fields)
+    rc = ResolvedComponent(key='source\\dwm', driver='source', comp='dwm', fields=f)
+    return Source(Runner(), paths=paths), rc, tmp_path / 'home' / 'src' / 'dwm'
+
+
+def _tip(d):
+    return subprocess.run(['git', '-C', str(d), 'rev-parse', 'HEAD'], capture_output=True,
+                          text=True, check=True).stdout.strip()
+
+
+@pytest.mark.real_runner
+@pytest.mark.parametrize('fields', [{}, {'ref': 'main'}])
+def test_a_branch_recipe_upgrade_builds_the_new_upstream_commit(tmp_path, fields):
+    # B14 / drivers-lang-07: HEAD / a branch follows origin, not the stale local branch
+    drv, rc, src = _head_setup(tmp_path, **fields)
+    assert drv.install(rc).ok
+    up = tmp_path / 'upstream'
+    (up / 'config.def.h').write_text('newer\n')
+    _git(up, 'commit', '-qam', 'upstream moves')
+    assert drv.upgrade(rc).ok, 'upgrade failed'
+    assert _tip(src) == _tip(up)
+    assert (src / 'config.def.h').read_text() == 'newer\n'
+
+
+@pytest.mark.real_runner
+def test_a_changed_repo_repoints_a_configsys_made_tree(tmp_path):
+    drv, rc, src = _head_setup(tmp_path)
+    assert drv.install(rc).ok
+    fork = tmp_path / 'fork'
+    subprocess.run(['git', 'clone', '-q', str(tmp_path / 'upstream'), str(fork)], check=True)
+    (fork / 'config.def.h').write_text('forked\n')
+    _git(fork, 'commit', '-qam', 'fork')
+    rc.fields['repo'] = str(fork)
+    assert drv.upgrade(rc).ok
+    assert (src / 'config.def.h').read_text() == 'forked\n'
+
+
+@pytest.mark.real_runner
+def test_an_archive_rebuild_starts_from_a_fresh_tree(tmp_path):
+    # B14 / drivers-lang-09: a stale file from the previous extract (or a CMakeCache) doesn't survive
+    import tarfile
+    from configsys.drivers.source import Source
+    work = tmp_path / 'pkg' / 'tool-1'
+    work.mkdir(parents=True)
+    (work / 'Makefile').write_text('all:\n\ttrue\n')
+    arc = tmp_path / 'tool-1.tar.gz'
+    with tarfile.open(arc, 'w:gz') as tf:
+        tf.add(work, arcname='tool-1')
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})
+    paths.source_adopt = paths.install_force = False
+    rc = ResolvedComponent(key='source\\tool', driver='source', comp='tool',
+                           fields={'url': f'file://{arc}', 'version': {'static': '1'}, 'build': 'true'})
+    drv = Source(Runner(), paths=paths)
+    assert drv.install(rc).ok, 'first build failed'
+    src = tmp_path / 'home' / 'src' / 'tool'
+    (src / 'CMakeCache.txt').write_text('stale\n')
+    assert drv.install(rc).ok, 'rebuild failed'
+    assert not (src / 'CMakeCache.txt').exists() and (src / 'Makefile').exists()
+    assert (src / '.configsys-tool.cloned').exists() and drv.get_version(rc) == '1'
+
+
+def test_system_scope_keeps_the_tree_in_user_space_and_needs_sudo_in_the_recipe(tmp_path):
+    # B14 / drivers-lang-08
+    from configsys.drivers.source import Source
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})
+    r = Runner(pretend=True)
+    drv = Source(r, paths=paths)
+    rc = ResolvedComponent(key='source\\dwm', driver='source', comp='dwm',
+                           fields={'repo': 'https://x/dwm', 'build': 'make install', 'scope': 'system'})
+    res = drv.install(rc)
+    assert not res.ok and '$SUDO' in res.output and r.calls == []
+    assert str(drv._src_dir(rc)).startswith(str(tmp_path / 'home'))
+    rc.fields['build'] = 'make && $SUDO make PREFIX=$PREFIX install'
+    drv.install(rc)
+    assert 'sudo make PREFIX=/usr/local install' in r.calls[-1]
+    assert 'sudo mkdir -p /usr/local' in r.calls[-1]

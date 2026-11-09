@@ -19,6 +19,8 @@ class ResolvedComponent:
     requested_as: set = field(default_factory=set)  # OS-level names that pulled it in
     deps: set = field(default_factory=set)      # unit keys this unit requires first
     source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)
+    native: str = ''                            # THIS machine's native package manager (apt/dnf/…), stamped by
+                                                # Context.prepare_units — what the resolver settled, not a host guess
 
     @property
     def name(self):

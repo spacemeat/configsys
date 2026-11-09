@@ -114,6 +114,17 @@ _HOME_SHARED = ('.local', '.local/bin', '.local/share', '.local/lib', '.local/st
                 'Templates', 'Videos')
 
 
+
+def strip_count(v):
+    """A binding's `strip:` as a non-negative int, or None when it isn't one (`strip: one`)."""
+    if isinstance(v, bool):
+        return None
+    try:
+        n = int(str(v).strip())
+    except ValueError:
+        return None
+    return n if n >= 0 else None
+
 class Driver:
     name = None             # subclasses set, e.g. 'apt'
     # TRUST (docs/plugins.md §6, trustgate.py): `trusted_registry = True` marks a driver that installs a
@@ -317,7 +328,14 @@ class Driver:
         fmt = str(archive_fmt or '').lower()
         if fmt == 'zip' or (not fmt and url.lower().split('?', 1)[0].endswith('.zip')):
             return f'unzip -o -q {tmp_q} -d {dest_q}'
-        s = f'--strip-components={int(strip)} ' if strip else ''
+        if strip:
+            n = strip_count(strip)
+            if n is None:          # a bad `strip:` fails THIS step with a reason, never a traceback (B14)
+                return (f'{{ echo {shlex.quote(f"configsys: `strip: {strip}` is not a whole number")} >&2; '
+                        'false; }')
+            s = f'--strip-components={n} '
+        else:
+            s = ''
         return f'tar -xf {tmp_q} {s}-C {dest_q}'
 
     def _fetch_and_extract(self, url, dest, archive_fmt=None, strip=None, rc=None):

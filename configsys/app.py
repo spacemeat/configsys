@@ -444,6 +444,20 @@ class Context:
         did) makes a relocated component install/report at the wrong dir. No surprises.'''
         self.apply_scope_default(units)
         self.apply_locations(units)
+        self.apply_native(units)
+        return units
+
+    def apply_native(self, units):
+        '''Stamp this machine's native package manager (the OS block's `native:`) onto every unit, so
+        a driver that installs through it (native-pkg-file, the gcc/clang alternatives) follows the
+        resolved OS — `--os` included — instead of sniffing the host's binaries (B14).'''
+        try:
+            mgr = self.routes.cascade.native(self.os_info.block) or ''
+        except Exception:                                # noqa: BLE001 — no routes yet: drivers fall back
+            mgr = ''
+        for rc in units.values():
+            if not rc.native:
+                rc.native = mgr
         return units
 
     def ensure_user_config(self, *, offer_primary=False):

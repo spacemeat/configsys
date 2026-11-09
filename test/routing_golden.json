@@ -5014,6 +5014,13 @@
      }
     },
     "name": "gridcraft"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    }
   },
   "grim": {
@@ -7039,6 +7046,13 @@
      }
     },
     "name": "Lap"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -9246,6 +9260,13 @@
      "glue": "tree-sitter-cli"
     },
     "name": "tree-sitter-cli-glue"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "pacman\\libfuse2": {
     "driver": "pacman",
@@ -15727,6 +15748,13 @@
     },
     "name": "Allusion"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -16476,6 +16504,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -16682,6 +16717,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -16907,6 +16949,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -18067,6 +18116,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -18421,6 +18477,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -18893,6 +18956,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -19300,6 +19370,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -19318,6 +19395,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -19436,6 +19520,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -19795,6 +19886,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -19921,6 +20019,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -20617,6 +20722,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -21783,6 +21895,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -21830,6 +21949,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -21878,6 +22004,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -22553,6 +22686,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -24272,6 +24412,13 @@
     },
     "name": "Lap"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -25897,6 +26044,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -26354,6 +26508,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -26683,6 +26844,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -27196,6 +27364,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -27894,6 +28069,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -30248,6 +30430,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -31992,6 +32181,13 @@
     },
     "name": "VideoHubApp"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -33055,6 +33251,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -33681,6 +33884,13 @@
      }
     },
     "name": "Allusion"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -34327,6 +34537,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -34533,6 +34750,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -34758,6 +34982,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -35045,6 +35276,13 @@
    }
   },
   "cadcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -35935,6 +36173,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -36289,6 +36534,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -36320,6 +36572,13 @@
    }
   },
   "dbx": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -36346,6 +36605,13 @@
    }
   },
   "deckcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -36449,6 +36715,13 @@
    }
   },
   "designcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -36822,6 +37095,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37082,6 +37362,13 @@
    }
   },
   "effectcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37246,6 +37533,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37264,6 +37558,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37382,6 +37683,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -37592,6 +37900,13 @@
    }
   },
   "filmcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37758,6 +38073,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -37884,6 +38206,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -38484,6 +38813,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -39330,6 +39666,13 @@
    }
   },
   "gridcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -39667,6 +40010,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -39714,6 +40064,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -39762,6 +40119,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -40420,6 +40784,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -42121,6 +42492,13 @@
    }
   },
   "lap": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lap": {
     "driver": "native-pkg-file",
     "fields": {
@@ -43240,6 +43618,13 @@
    }
   },
   "lightcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -43770,6 +44155,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -44240,6 +44632,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -44569,6 +44968,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -44650,6 +45056,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -45110,6 +45523,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -45758,6 +46178,13 @@
    }
   },
   "pdfcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -45825,6 +46252,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -45847,6 +46281,13 @@
    }
   },
   "photocraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -48079,6 +48520,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -48373,6 +48821,13 @@
    }
   },
   "soundcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -49001,6 +49456,13 @@
    }
   },
   "tmog": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\tmog": {
     "driver": "native-pkg-file",
     "fields": {
@@ -49816,6 +50278,13 @@
    }
   },
   "vectorcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -49874,6 +50343,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -50569,6 +51045,13 @@
    }
   },
   "wordcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -50955,6 +51438,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -51581,6 +52071,13 @@
      }
     },
     "name": "Allusion"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -52249,6 +52746,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -52455,6 +52959,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -52627,6 +53138,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -52914,6 +53432,13 @@
    }
   },
   "cadcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -53723,6 +54248,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54067,6 +54599,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54098,6 +54637,13 @@
    }
   },
   "dbx": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54124,6 +54670,13 @@
    }
   },
   "deckcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54227,6 +54780,13 @@
    }
   },
   "designcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54566,6 +55126,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54789,6 +55356,13 @@
    }
   },
   "effectcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54953,6 +55527,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -54971,6 +55552,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -55077,6 +55665,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -55287,6 +55882,13 @@
    }
   },
   "filmcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -55461,6 +56063,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -55587,6 +56196,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -56126,6 +56742,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -56917,6 +57540,13 @@
    }
   },
   "gridcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -57220,6 +57850,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -57267,6 +57904,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -57315,6 +57959,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -57939,6 +58590,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -59231,6 +59889,13 @@
    }
   },
   "lap": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lap": {
     "driver": "native-pkg-file",
     "fields": {
@@ -60302,6 +60967,13 @@
    }
   },
   "lightcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -60750,6 +61422,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -61152,6 +61831,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -61480,6 +62166,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -61561,6 +62254,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -62084,6 +62784,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -62684,6 +63391,13 @@
    }
   },
   "pdfcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -62764,6 +63478,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -62786,6 +63507,13 @@
    }
   },
   "photocraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -64619,6 +65347,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -64913,6 +65648,13 @@
    }
   },
   "soundcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -65548,6 +66290,13 @@
    }
   },
   "tmog": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\tmog": {
     "driver": "native-pkg-file",
     "fields": {
@@ -66276,6 +67025,13 @@
    }
   },
   "vectorcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -66334,6 +67090,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -67128,6 +67891,13 @@
    }
   },
   "wordcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -67514,6 +68284,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -68141,6 +68918,13 @@
     },
     "name": "Allusion"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -68584,6 +69368,13 @@
    }
   },
   "balena-etcher": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -68789,6 +69580,13 @@
    }
   },
   "bitwarden": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -69014,6 +69812,13 @@
    }
   },
   "bruno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -69301,6 +70106,13 @@
    }
   },
   "cadcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -69956,6 +70768,13 @@
    }
   },
   "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70203,6 +71022,13 @@
    }
   },
   "dbeaver": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70234,6 +71060,13 @@
    }
   },
   "dbx": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70251,6 +71084,13 @@
    }
   },
   "deckcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70354,6 +71194,13 @@
    }
   },
   "designcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70698,6 +71545,13 @@
    }
   },
   "doppler": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -70974,6 +71828,13 @@
    }
   },
   "effectcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -71138,6 +71999,13 @@
    }
   },
   "emby": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -71156,6 +72024,13 @@
    }
   },
   "emby-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -71474,6 +72349,13 @@
    }
   },
   "filmcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -71761,6 +72643,13 @@
    }
   },
   "fresh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -72364,6 +73253,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -73209,6 +74105,13 @@
    }
   },
   "gridcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -74264,6 +75167,13 @@
    }
   },
   "insomnia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -75535,6 +76445,13 @@
     },
     "name": "Lap"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -76623,6 +77540,13 @@
    }
   },
   "lightcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -77124,6 +78048,13 @@
     },
     "name": "MediaChips"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -77471,6 +78402,13 @@
    }
   },
   "mononoki-nerd": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -77791,6 +78729,13 @@
    }
   },
   "navidrome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\ffmpeg": {
     "driver": "dnf",
     "fields": {
@@ -77882,6 +78827,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -78841,6 +79793,13 @@
    }
   },
   "pdfcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -78938,6 +79897,13 @@
    }
   },
   "photocraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -80672,6 +81638,13 @@
    }
   },
   "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\tmux": {
     "driver": "dnf",
     "fields": {
@@ -80968,6 +81941,13 @@
    }
   },
   "soundcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -81578,6 +82558,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -82195,6 +83182,13 @@
    }
   },
   "vectorcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -82253,6 +83247,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -83055,6 +84056,13 @@
    }
   },
   "wordcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -84166,6 +85174,13 @@
     },
     "name": "Allusion"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -84609,6 +85624,13 @@
    }
   },
   "balena-etcher": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -84814,6 +85836,13 @@
    }
   },
   "bitwarden": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -85039,6 +86068,13 @@
    }
   },
   "bruno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -85326,6 +86362,13 @@
    }
   },
   "cadcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86007,6 +87050,13 @@
    }
   },
   "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86227,6 +87277,13 @@
    }
   },
   "dbeaver": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86258,6 +87315,13 @@
    }
   },
   "dbx": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86275,6 +87339,13 @@
    }
   },
   "deckcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86378,6 +87449,13 @@
    }
   },
   "designcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86722,6 +87800,13 @@
    }
   },
   "doppler": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -86998,6 +88083,13 @@
    }
   },
   "effectcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -87162,6 +88254,13 @@
    }
   },
   "emby": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -87180,6 +88279,13 @@
    }
   },
   "emby-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -87498,6 +88604,13 @@
    }
   },
   "filmcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -87785,6 +88898,13 @@
    }
   },
   "fresh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -88388,6 +89508,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -89233,6 +90360,13 @@
    }
   },
   "gridcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -90288,6 +91422,13 @@
    }
   },
   "insomnia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -91607,6 +92748,13 @@
     },
     "name": "Lap"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -92695,6 +93843,13 @@
    }
   },
   "lightcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -93196,6 +94351,13 @@
     },
     "name": "MediaChips"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -93543,6 +94705,13 @@
    }
   },
   "mononoki-nerd": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -93863,6 +95032,13 @@
    }
   },
   "navidrome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\ffmpeg": {
     "driver": "dnf",
     "fields": {
@@ -93954,6 +95130,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -94913,6 +96096,13 @@
    }
   },
   "pdfcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -95010,6 +96200,13 @@
    }
   },
   "photocraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -96744,6 +97941,13 @@
    }
   },
   "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\tmux": {
     "driver": "dnf",
     "fields": {
@@ -97040,6 +98244,13 @@
    }
   },
   "soundcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -97650,6 +98861,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -98267,6 +99485,13 @@
    }
   },
   "vectorcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -98325,6 +99550,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -99127,6 +100359,13 @@
    }
   },
   "wordcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -100238,6 +101477,13 @@
     },
     "name": "Allusion"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -100729,6 +101975,13 @@
    }
   },
   "balena-etcher": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -100887,6 +102140,13 @@
    }
   },
   "bitwarden": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -101112,6 +102372,13 @@
    }
   },
   "bruno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -101399,6 +102666,13 @@
    }
   },
   "cadcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102162,6 +103436,13 @@
    }
   },
   "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102431,6 +103712,13 @@
    }
   },
   "dbeaver": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102462,6 +103750,13 @@
    }
   },
   "dbx": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102479,6 +103774,13 @@
    }
   },
   "deckcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102582,6 +103884,13 @@
    }
   },
   "designcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -102960,6 +104269,13 @@
    }
   },
   "doppler": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -103236,6 +104552,13 @@
    }
   },
   "effectcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -103400,6 +104723,13 @@
    }
   },
   "emby": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -103418,6 +104748,13 @@
    }
   },
   "emby-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -103736,6 +105073,13 @@
    }
   },
   "filmcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -104014,6 +105358,13 @@
    }
   },
   "fresh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -104617,6 +105968,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -105455,6 +106813,13 @@
    }
   },
   "gridcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -106459,6 +107824,13 @@
    }
   },
   "insomnia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -108038,6 +109410,13 @@
      }
     },
     "name": "Lap"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -109160,6 +110539,13 @@
    }
   },
   "lightcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -109743,6 +111129,13 @@
     },
     "name": "MediaChips"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -110124,6 +111517,13 @@
    }
   },
   "mononoki-nerd": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -110445,6 +111845,13 @@
    }
   },
   "navidrome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\ffmpeg": {
     "driver": "dnf",
     "fields": {
@@ -110536,6 +111943,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -111535,6 +112949,13 @@
    }
   },
   "pdfcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -111632,6 +113053,13 @@
    }
   },
   "photocraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -113469,6 +114897,13 @@
    }
   },
   "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\tmux": {
     "driver": "dnf",
     "fields": {
@@ -113765,6 +115200,13 @@
    }
   },
   "soundcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -114366,6 +115808,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -114983,6 +116432,13 @@
    }
   },
   "vectorcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -115041,6 +116497,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -115844,6 +117307,13 @@
    }
   },
   "wordcraft": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -130608,6 +132078,13 @@
    }
   },
   "mononoki-nerd": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "brew\\fontconfig": {
     "driver": "brew",
     "fields": {
@@ -153777,6 +155254,13 @@
    }
   },
   "mononoki-nerd": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "brew\\fontconfig": {
     "driver": "brew",
     "fields": {
@@ -163320,6 +164804,13 @@
     },
     "name": "Allusion"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -164021,6 +165512,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -164227,6 +165725,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -164452,6 +165957,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -164739,6 +166251,13 @@
    }
   },
   "cadcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -165557,6 +167076,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -165947,6 +167473,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -165978,6 +167511,13 @@
    }
   },
   "dbx": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166004,6 +167544,13 @@
    }
   },
   "deckcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166107,6 +167654,13 @@
    }
   },
   "designcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166446,6 +168000,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166701,6 +168262,13 @@
    }
   },
   "effectcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166865,6 +168433,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -166883,6 +168458,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -167001,6 +168583,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -167211,6 +168800,13 @@
    }
   },
   "filmcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -167377,6 +168973,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -167503,6 +169106,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -168058,6 +169668,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -168903,6 +170520,13 @@
    }
   },
   "gridcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -169206,6 +170830,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -169253,6 +170884,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -169301,6 +170939,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -169942,6 +171587,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -171334,6 +172986,13 @@
    }
   },
   "lap": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lap": {
     "driver": "native-pkg-file",
     "fields": {
@@ -172405,6 +174064,13 @@
    }
   },
   "lightcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -172853,6 +174519,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -173272,6 +174945,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -173600,6 +175280,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -173671,6 +175358,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -174141,6 +175835,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -174741,6 +176442,13 @@
    }
   },
   "pdfcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -174821,6 +176529,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -174843,6 +176558,13 @@
    }
   },
   "photocraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -176839,6 +178561,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -177133,6 +178862,13 @@
    }
   },
   "soundcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -177784,6 +179520,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -178539,6 +180282,13 @@
    }
   },
   "vectorcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -178597,6 +180347,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -179303,6 +181060,13 @@
    }
   },
   "wordcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -179689,6 +181453,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -180395,6 +182166,13 @@
     },
     "name": "Allusion"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -180999,6 +182777,13 @@
    }
   },
   "balena-etcher": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -181271,6 +183056,13 @@
    }
   },
   "bitwarden": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -181523,6 +183315,13 @@
    }
   },
   "bruno": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -182655,6 +184454,13 @@
    }
   },
   "croc": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -183172,6 +184978,13 @@
    }
   },
   "dbeaver": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -183564,6 +185377,13 @@
    }
   },
   "doppler": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -184110,6 +185930,13 @@
    }
   },
   "emby": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -184128,6 +185955,13 @@
    }
   },
   "emby-service": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -184837,6 +186671,13 @@
    }
   },
   "fresh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -185263,6 +187104,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -187336,6 +189184,13 @@
    }
   },
   "insomnia": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -188722,6 +190577,13 @@
      }
     },
     "name": "Lap"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -190401,6 +192263,13 @@
     },
     "name": "MediaChips"
    },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\libfuse2": {
     "driver": "dnf",
     "fields": {
@@ -190823,6 +192692,13 @@
    }
   },
   "mononoki-nerd": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\fontconfig": {
     "driver": "dnf",
     "fields": {
@@ -191277,6 +193153,13 @@
    }
   },
   "navidrome": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
@@ -195035,6 +196918,13 @@
    }
   },
   "sesh": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dnf\\epel-release": {
     "driver": "dnf",
     "fields": {
@@ -196752,6 +198642,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "dnf\\libfuse2": {
     "driver": "dnf",
@@ -199019,6 +200916,13 @@
     },
     "name": "Allusion"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -199720,6 +201624,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -199926,6 +201837,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -200151,6 +202069,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -200438,6 +202363,13 @@
    }
   },
   "cadcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -201247,6 +203179,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -201637,6 +203576,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -201668,6 +203614,13 @@
    }
   },
   "dbx": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -201694,6 +203647,13 @@
    }
   },
   "deckcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -201797,6 +203757,13 @@
    }
   },
   "designcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -202136,6 +204103,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -202391,6 +204365,13 @@
    }
   },
   "effectcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -202555,6 +204536,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -202573,6 +204561,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -202691,6 +204686,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -202901,6 +204903,13 @@
    }
   },
   "filmcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -203075,6 +205084,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -203201,6 +205217,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -203756,6 +205779,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -204601,6 +206631,13 @@
    }
   },
   "gridcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -204904,6 +206941,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -204951,6 +206995,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -204999,6 +207050,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -205640,6 +207698,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -207032,6 +209097,13 @@
    }
   },
   "lap": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lap": {
     "driver": "native-pkg-file",
     "fields": {
@@ -208103,6 +210175,13 @@
    }
   },
   "lightcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -208551,6 +210630,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -208970,6 +211056,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -209298,6 +211391,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -209369,6 +211469,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -209839,6 +211946,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -210439,6 +212553,13 @@
    }
   },
   "pdfcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -210519,6 +212640,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -210541,6 +212669,13 @@
    }
   },
   "photocraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -212537,6 +214672,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -212831,6 +214973,13 @@
    }
   },
   "soundcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -213483,6 +215632,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -214238,6 +216394,13 @@
    }
   },
   "vectorcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -214296,6 +216459,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -215002,6 +217172,13 @@
    }
   },
   "wordcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -215388,6 +217565,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -216061,6 +218245,13 @@
     },
     "name": "Allusion"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -216728,6 +218919,13 @@
    }
   },
   "balena-etcher": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\balena-etcher": {
     "driver": "native-pkg-file",
     "fields": {
@@ -216934,6 +219132,13 @@
    }
   },
   "bitwarden": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bitwarden": {
     "driver": "native-pkg-file",
     "fields": {
@@ -217106,6 +219311,13 @@
    }
   },
   "bruno": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\bruno": {
     "driver": "native-pkg-file",
     "fields": {
@@ -217393,6 +219605,13 @@
    }
   },
   "cadcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\cadcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -218202,6 +220421,13 @@
    }
   },
   "croc": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\croc": {
     "driver": "native-pkg-file",
     "fields": {
@@ -218546,6 +220772,13 @@
    }
   },
   "dbeaver": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbeaver": {
     "driver": "native-pkg-file",
     "fields": {
@@ -218577,6 +220810,13 @@
    }
   },
   "dbx": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\dbx": {
     "driver": "native-pkg-file",
     "fields": {
@@ -218603,6 +220843,13 @@
    }
   },
   "deckcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\deckcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -218706,6 +220953,13 @@
    }
   },
   "designcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\designcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219045,6 +221299,13 @@
    }
   },
   "doppler": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\doppler": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219268,6 +221529,13 @@
    }
   },
   "effectcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\effectcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219432,6 +221700,13 @@
    }
   },
   "emby": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219450,6 +221725,13 @@
    }
   },
   "emby-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\emby": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219556,6 +221838,13 @@
    }
   },
   "fastfetch": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -219766,6 +222055,13 @@
    }
   },
   "filmcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\filmcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -219940,6 +222236,13 @@
    }
   },
   "foldingathome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\foldingathome": {
     "driver": "native-pkg-file",
     "fields": {
@@ -220066,6 +222369,13 @@
    }
   },
   "fresh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\fresh": {
     "driver": "native-pkg-file",
     "fields": {
@@ -220605,6 +222915,13 @@
      }
     },
     "name": "Ghostty"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -221396,6 +223713,13 @@
    }
   },
   "gridcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\gridcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -221699,6 +224023,13 @@
    }
   },
   "headscale": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -221746,6 +224077,13 @@
    }
   },
   "headscale-service": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\headscale-glue": {
     "driver": "glue",
     "fields": {
@@ -221794,6 +224132,13 @@
    }
   },
   "helix": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "dotfiles\\helix-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -222418,6 +224763,13 @@
    }
   },
   "insomnia": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\insomnia": {
     "driver": "native-pkg-file",
     "fields": {
@@ -223710,6 +226062,13 @@
    }
   },
   "lap": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lap": {
     "driver": "native-pkg-file",
     "fields": {
@@ -224781,6 +227140,13 @@
    }
   },
   "lightcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\lightcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -225229,6 +227595,13 @@
     },
     "name": "MediaChips"
    },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\libfuse2": {
     "driver": "apt",
     "fields": {
@@ -225631,6 +228004,13 @@
    }
   },
   "mononoki-nerd": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\fontconfig": {
     "driver": "apt",
     "fields": {
@@ -225959,6 +228339,13 @@
    }
   },
   "navidrome": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\ffmpeg": {
     "driver": "apt",
     "fields": {
@@ -226040,6 +228427,13 @@
      }
     },
     "name": "Neovim"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -226563,6 +228957,13 @@
    }
   },
   "obsidian": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\obsidian": {
     "driver": "native-pkg-file",
     "fields": {
@@ -227163,6 +229564,13 @@
    }
   },
   "pdfcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\pdfcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -227243,6 +229651,13 @@
    }
   },
   "phoronix-test-suite": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\php": {
     "driver": "apt",
     "fields": {
@@ -227265,6 +229680,13 @@
    }
   },
   "photocraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\photocraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -229098,6 +231520,13 @@
    }
   },
   "sesh": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "apt\\tmux": {
     "driver": "apt",
     "fields": {
@@ -229392,6 +231821,13 @@
    }
   },
   "soundcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\soundcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -230027,6 +232463,13 @@
    }
   },
   "tmog": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\tmog": {
     "driver": "native-pkg-file",
     "fields": {
@@ -230755,6 +233198,13 @@
    }
   },
   "vectorcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\vectorcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -230813,6 +233263,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "apt\\libfuse2": {
     "driver": "apt",
@@ -231607,6 +234064,13 @@
    }
   },
   "wordcraft": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "native-pkg-file\\wordcraft": {
     "driver": "native-pkg-file",
     "fields": {
@@ -231993,6 +234457,13 @@
    }
   },
   "yazi": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -232619,6 +235090,13 @@
      }
     },
     "name": "Allusion"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -233900,6 +236378,13 @@
     },
     "name": "CADCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -234781,6 +237266,13 @@
     },
     "name": "DBX"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -234805,6 +237297,13 @@
      }
     },
     "name": "DeckCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -234916,6 +237415,13 @@
      }
     },
     "name": "DesignCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -235564,6 +238070,13 @@
     },
     "name": "EffectCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -236046,6 +238559,13 @@
      }
     },
     "name": "FilmCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -237642,6 +240162,13 @@
      }
     },
     "name": "GridCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -239684,6 +242211,13 @@
     },
     "name": "Lap"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -240586,6 +243120,13 @@
     },
     "name": "LightCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -241151,6 +243692,13 @@
     },
     "name": "MediaChips"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -241483,6 +244031,13 @@
      }
     },
     "name": "Mononoki"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\fontconfig": {
     "driver": "xbps",
@@ -241925,6 +244480,13 @@
      "glue": "tree-sitter-cli"
     },
     "name": "tree-sitter-cli-glue"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -242792,6 +245354,13 @@
     },
     "name": "PdfCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -242883,6 +245452,13 @@
      }
     },
     "name": "PhotoCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -245190,6 +247766,13 @@
     },
     "name": "SoundCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -245824,6 +248407,13 @@
      }
     },
     "name": "TMOG"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -246531,6 +249121,13 @@
     },
     "name": "VectorCraft"
    },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
    "xbps\\libfuse2": {
     "driver": "xbps",
     "fields": {
@@ -246565,6 +249162,13 @@
      }
     },
     "name": "VideoHubApp"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -247346,6 +249950,13 @@
      }
     },
     "name": "WordCraft"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\libfuse2": {
     "driver": "xbps",
@@ -254945,6 +257556,13 @@
      }
     },
     "name": "Mononoki"
+   },
+   "xbps\\curl": {
+    "driver": "xbps",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
    },
    "xbps\\fontconfig": {
     "driver": "xbps",

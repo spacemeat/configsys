@@ -201,7 +201,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   probing binaries; no non-interactive env), dnf/zypper/xbps multi-package set_version, `strip:` crash,
   dnf4 versionlock, source upgrade/archives/system scope, gem/luarocks scope + gem set-version/upgrade,
   cabal ≥3.10 XDG path, appImage/font don't require curl, `_alt._pm` sniffs the host. (drivers-os-04/05/
-  07/09/10/11, drivers-lang-07..14/16, routing-13) · effort M · [open]
+  07/09/10/11, drivers-lang-07..14/16, routing-13) · effort M · [done — done — units carry the resolved native manager (rc.native): native-pkg-file picks deb/rpm/pacman from it (zypper for rpm on openSUSE), the gcc/clang drivers too; dpkg probe status-guarded; apt-get non-interactive; dnf/zypper/xbps set-version + pacman remove act on the whole packages: set; a bad strip: is a load error + a failing step, never a traceback; dnf is_locked parses dnf4 exactly; source follows the remote branch, re-points a changed repo:, keeps its tree in user space ($SUDO for system prefixes), rebuilds archives from a fresh stage; gem/luarocks report the tree a package lives in, gem set-version removes the other versions, uninstall -a, update --user-install; cabal finds/removes XDG ~/.local/bin store links; appImage/font/native-pkg-file require curl]
 - **B15 [MED] Routing correctness batch:** `disabled-drivers` ignores the native manager; provider-pin on a
   capability-that-is-a-component; `{}` name-drop satisfies a hard require; partial `parts` bundles; driver
   gated by one requires ambiguity; `version-floors` changes resolution; ARM void_musl detected as glibc;

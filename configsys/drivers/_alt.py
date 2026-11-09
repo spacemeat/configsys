@@ -73,14 +73,17 @@ class AltDriver(Driver):
     def _master_bin(self, rc):
         return f'/usr/bin/{self._link(rc)}-{self._ver(rc)}'
 
-    @staticmethod
-    def _pm():
-        '''Package manager: 'dnf' where present (Fedora/RHEL), else 'apt'. The runner
-        is local, so the host's PM is the target's. CONFIGSYS_PM forces it (tests, or
-        an unusual host).'''
-        forced = os.environ.get('CONFIGSYS_PM')
+    def _pm(self, rc=None):
+        '''Package manager: CONFIGSYS_PM when set (tests, an unusual host), else the native manager
+        the resolver settled for this machine (`rc.native`, stamped by Context.prepare_units — B14),
+        else 'dnf' where present (Fedora/RHEL) and 'apt' otherwise.'''
+        env = getattr(self.paths, 'env', None) if self.paths is not None else None
+        forced = (env or os.environ).get('CONFIGSYS_PM')
         if forced in ('apt', 'dnf'):
             return forced
+        native = getattr(rc, 'native', '') if rc is not None else ''
+        if native in ('apt', 'dnf'):
+            return native
         return 'dnf' if shutil.which('dnf') else 'apt'
 
     def _pm_install(self, pm, pkgs):
@@ -108,7 +111,7 @@ class AltDriver(Driver):
         update. Extracted to bare X.Y[.Z] so it lines up with get_version's parse. None if the PM
         can't answer (e.g. --pretend, offline).'''
         master = self._packages(rc)[0]                     # e.g. gcc-13 (apt) / gcc13 (dnf)
-        if self._pm() == 'apt':
+        if self._pm(rc) == 'apt':
             r = self.runner.run(f'apt-cache policy {shlex.quote(master)}')
             for line in (r.stdout or '').splitlines() if r.ok else ():
                 line = line.strip()
@@ -196,7 +199,7 @@ class AltDriver(Driver):
         why = vendor_path_problem(rc.fields)       # key/list paths stay in apt's dirs (A10)
         if why:
             return Result.fail(f'{rc.comp}: {why}')
-        pm = self._pm()
+        pm = self._pm(rc)
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
         lines = ['set -e']
         if pm == 'apt':
@@ -210,14 +213,14 @@ class AltDriver(Driver):
 
     def upgrade(self, rc):
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
-        return self.runner.run(self._pm_upgrade(self._pm(), pkgs),
+        return self.runner.run(self._pm_upgrade(self._pm(rc), pkgs),
                                sudo=True, capture=False)
 
     def set_version(self, rc, version):
         return self.install(rc)
 
     def uninstall(self, rc):
-        pm = self._pm()
+        pm = self._pm(rc)
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
         lines = ['set -e']
         if pm == 'apt':

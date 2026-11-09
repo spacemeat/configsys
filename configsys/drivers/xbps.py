@@ -159,8 +159,8 @@ class Xbps(NativePkgManager):
 
     def set_version(self, rc, version):
         # best-effort exact edition (only resolvable while it's still in a configured repo).
-        spec = f'{rc.name}-{version}'
-        return self.runner.run(f'xbps-install -y {shlex.quote(spec)}', sudo=True, capture=False)
+        spec = ' '.join(shlex.quote(f'{p}-{version}') for p in self._pkg_list(rc))   # the whole set (B14)
+        return self.runner.run(f'xbps-install -y {spec}', sudo=True, capture=False)
 
     def lock(self, rc):
         return self.runner.run(f'xbps-pkgdb -m hold {self._pkgs(rc)}', sudo=True)

@@ -219,7 +219,7 @@
     drivers: {
         snap:        { standing: never-auto  requires: [ snapd-socket, snapd-snap-link ] }   // never-auto = valid + listed + pinnable, never the auto-default (native/flatpak win); a pin forces it. `requires` pulls in snapd + its socket + the /snap symlink, so a snap works on any distro where snapd is installable (a no-op on Ubuntu, which ships snapd). Where snapd has no method (openSUSE, Void, Alpine, atomic, Amazon Linux, …) those requires can't be met, so the snap driver isn't valid there and no snap method is offered (the derived driver gate). A user's primary plugin can add `flatpak: { standing: never-auto }` the same way.
         flatpak:     { requires: flatpak }
-        appImage:    { requires: [ libfuse2, glibc ] }   // AppImages are glibc builds needing the FUSE2 runtime. A driver is valid only where its requires can be met (the derived gate), so AppImage methods aren't candidates on musl (alpine/chimera/void_musl: no glibc) or on the image-based fedora_atomic/kde_linux (no libfuse2 route) — `where` says why. On Alpine, `pins: { glibc: gcompat }` opts in to the best-effort shim and makes them valid.
+        appImage:    { requires: [ libfuse2, glibc, curl ] }   // the AppImage is fetched with curl. AppImages are glibc builds needing the FUSE2 runtime. A driver is valid only where its requires can be met (the derived gate), so AppImage methods aren't candidates on musl (alpine/chimera/void_musl: no glibc) or on the image-based fedora_atomic/kde_linux (no libfuse2 route) — `where` says why. On Alpine, `pins: { glibc: gcompat }` opts in to the best-effort shim and makes them valid.
         cargo:       { requires: cargo }              // a crate needs the cargo tool
         npm:         { requires: npm }                // a global CLI needs the npm tool (-> node)
         go-install:  { requires: go }                 // `go install` needs the go toolchain
@@ -229,7 +229,8 @@
         cabal:       { requires: cabal }               // a hackage exe needs cabal (-> ghc)
         sdkman:      { requires: sdkman }              // a JVM SDK (scala/groovy/sbt/…) needs the sdkman tool
         brew:        { requires: homebrew  when: "glibc_linux" }   // a formula needs Homebrew itself (pre-installed on uBlue atomic images -> detected, not reinstalled). `when:` is a driver-wide VALIDITY gate: Linuxbrew bottles are glibc builds, so no brew method (nor a `via: native` reaching brew) is a candidate on musl (alpine/chimera/void_musl) — validity only, it adds no specificity. brew ranks just ahead of tarball in driver-preference.
-        font: { requires: [ fontconfig, unzip ] }
+        font:        { requires: [ fontconfig, unzip, curl ] }   // the font archive is fetched with curl, unpacked, then fc-cache'd
+        native-pkg-file: { requires: curl }           // the release .deb/.rpm is fetched with curl
         // pip / pipx on musl (Alpine): pip prefers a `musllinux` wheel and pure-Python wheels
         // install fine, but a C-extension package that ships ONLY `manylinux` (glibc) wheels
         // falls back to building from its sdist — which needs a toolchain (gcc, musl-dev,

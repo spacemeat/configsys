@@ -125,11 +125,11 @@ def test_cabal_skips_update_when_index_present():
 def test_cabal_uninstall_removes_binary():
     r = Runner(pretend=True)
     Cabal(r).uninstall(rc('cabal', 'hlint'))
-    assert r.calls == ['rm -f ~/.cabal/bin/hlint']
+    assert r.calls[0].startswith('rm -f ~/.cabal/bin/hlint; ')   # (+ an XDG ~/.local/bin store link, B14)
     # an explicit exe: field overrides the derived binary name
     r2 = Runner(pretend=True)
     Cabal(r2).uninstall(rc('cabal', 'ormolu-pkg', exe='ormolu'))
-    assert r2.calls == ['rm -f ~/.cabal/bin/ormolu']
+    assert r2.calls[0].startswith('rm -f ~/.cabal/bin/ormolu; ')
 
 
 def test_cabal_get_version_reads_store_symlink():

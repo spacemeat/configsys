@@ -164,7 +164,7 @@ class Zypper(NativePkgManager):
 
     def set_version(self, rc, version):
         # zypper honors `name=version`; --oldpackage permits a downgrade to that exact edition.
-        spec = shlex.quote(f'{rc.name}={version}')
+        spec = ' '.join(shlex.quote(f'{p}={version}') for p in self._pkg_list(rc))   # the whole set (B14)
         return self.runner.run(f'zypper --non-interactive install --oldpackage {spec}',
                                sudo=True, capture=False)
 

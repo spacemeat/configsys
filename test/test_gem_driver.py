@@ -46,14 +46,14 @@ def test_system_scope_uses_sudo_no_user_install():
 def test_set_version_pins_with_user_flag():
     r = Runner(pretend=True)
     Gem(r).set_version(gem(), '2.5.9')
-    assert r.calls == ['gem install --user-install -v 2.5.9 bundler']
+    assert r.calls[0].startswith('gem install --user-install -v 2.5.9 bundler && ')   # + drop others (B14)
 
 
 def test_uninstall_and_upgrade():
     r = Runner(pretend=True)
     Gem(r).uninstall(gem())
     Gem(r).upgrade(gem())
-    assert r.calls == ['gem uninstall -x bundler', 'gem update bundler']
+    assert r.calls == ['gem uninstall -x -a bundler', 'gem update --user-install bundler']
 
 
 def test_uninstall_default_gem_is_a_benign_noop():

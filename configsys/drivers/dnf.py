@@ -101,18 +101,9 @@ class Dnf(NativePkgManager):
         held, hit = self.batched_held(rc)            # the batch's one `versionlock list`
         if hit:
             return held
-        # degrades to False when the plugin isn't installed (list -> nonzero)
-        r = self.runner.run('dnf versionlock list')
-        if not r.ok:
-            return False
-        name = self._probe_name(rc)
-        for line in r.stdout.splitlines():
-            s = line.strip()
-            if s.startswith('Package name:') and s.split(':', 1)[1].strip() == name:
-                return True   # dnf5 format
-            if s == name or s.startswith(name + '-'):
-                return True   # dnf4 format fallback
-        return False
+        # held_keys parses both formats EXACTLY (a lock on bash-completion is not one on bash — B14);
+        # degrades to False when the plugin isn't installed (list -> nonzero -> None)
+        return self._probe_name(rc) in (self.held_keys() or ())
 
     def upgradable_index(self):
         # `dnf -q check-update` lists "name.arch  version  repo" and EXITS 100 when updates exist
@@ -221,7 +212,8 @@ class Dnf(NativePkgManager):
         pre = self.ensure_prereqs(rc)
         if pre is not None:
             return pre
-        spec = shlex.quote(f'{rc.name}-{version}')
+        # pin the whole `packages:` set (rc.name is the component, not a package — B14)
+        spec = ' '.join(shlex.quote(f'{p}-{version}') for p in self._pkg_list(rc))
         # install covers same-or-upgrade; a lower target needs the downgrade verb
         return self.runner.run(f'dnf install -y {spec} || dnf downgrade -y {spec}',
                                sudo=True, capture=False)

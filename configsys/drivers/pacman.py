@@ -167,6 +167,10 @@ class Pacman(NativePkgManager):
     # install/upgrade come from the NativePkgManager templates (pacman -S installs-or-upgrades);
     # remove is custom because `pacman -R` can't take a GROUP name:
     def uninstall(self, rc):
+        if rc.fields.get('packages'):
+            # a `packages:` set: remove the members that are installed (rc.name is the component — B14)
+            return self.runner.run(f'pacman -R --noconfirm $(pacman -Qq {self._pkgs(rc)} 2>/dev/null)',
+                                   sudo=True, capture=False)
         # if this is a group, expand to its installed members (`pacman -Qgq xfce4`); else remove direct
         n = shlex.quote(rc.name)
         cmd = (f'if pacman -Qq {n} >/dev/null 2>&1; then pacman -R --noconfirm {n}; '

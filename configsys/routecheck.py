@@ -96,6 +96,11 @@ def check_component(name, component, cascade):
         if bad is not None:
             raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `sha256:` {bad!r} is not a '
                               '64-hex-digit digest (a scalar, or a map by cpu / package format)')
+        if b.details.get('strip') is not None:
+            from .driver import strip_count
+            if strip_count(b.details['strip']) is None:
+                raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `strip:` '
+                                  f'{b.details["strip"]!r} is not a whole number of path components')
         why = vendor_path_problem(b.details)           # root writes stay in the keyring/source dirs (A10)
         if why:
             raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) {why}')

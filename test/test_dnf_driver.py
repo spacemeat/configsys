@@ -184,3 +184,30 @@ def test_batch_index_batches_get_version_across_units():
     assert d.get_version(pkg('mc')) is None          # not in the index -> not installed
     assert fr.calls == []                            # answered from the batch, zero subprocesses
     assert d.batch_installed_index(batch) == {'btop': '1.4.0', 'htop': '3.3.0'}
+
+
+def test_set_version_pins_every_package_of_a_set():
+    # B14 / drivers-os-05: rc.name is the component (opengl-dev), not a package
+    from configsys.drivers.xbps import Xbps
+    from configsys.drivers.zypper import Zypper
+    from configsys.drivers.pacman import Pacman
+    u = ResolvedComponent(key='dnf\\opengl-dev', driver='dnf', comp='opengl-dev',
+                          fields={'name': 'opengl-dev', 'packages': ['mesa-libGL-devel', 'mesa-libGLU-devel']})
+    r = Runner(pretend=True)
+    Dnf(r).set_version(u, '1.0')
+    assert r.calls[-1] == ('sudo dnf install -y mesa-libGL-devel-1.0 mesa-libGLU-devel-1.0 || '
+                           'dnf downgrade -y mesa-libGL-devel-1.0 mesa-libGLU-devel-1.0')
+    Zypper(r).set_version(u, '1.0')
+    assert 'mesa-libGL-devel=1.0 mesa-libGLU-devel=1.0' in r.calls[-1]
+    Xbps(r).set_version(u, '1.0')
+    assert r.calls[-1] == 'sudo xbps-install -y mesa-libGL-devel-1.0 mesa-libGLU-devel-1.0'
+    Pacman(r).uninstall(u)
+    assert 'pacman -Qq mesa-libGL-devel mesa-libGLU-devel' in r.calls[-1] and 'opengl-dev' not in r.calls[-1]
+
+
+def test_is_locked_reads_dnf4_globs_exactly():
+    # B14 / drivers-os-09: `bash-completion-1:2.11-16.el10.*` locks bash-completion, not bash
+    listing = 'bash-completion-1:2.11-16.el10.*\n'
+    fr = FakeRunner([('dnf versionlock list', 0, listing)])
+    assert Dnf(fr).is_locked(pkg('bash')) is False
+    assert Dnf(fr).is_locked(pkg('bash-completion')) is True
