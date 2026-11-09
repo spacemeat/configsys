@@ -110,6 +110,18 @@ def test_declared_reads_primary_flag(tmp_path):
     assert plugins.primary_name(decls) == 'cfg'
 
 
+def test_source_hint_fits_the_kind_of_source(tmp_path):
+    assert 'did you mean github:x/y' in plugins.source_hint('github.com:x/y')
+    assert 'private repo?' in plugins.source_hint('github:x/y')
+    plain = tmp_path / 'mine'
+    plain.mkdir()                                       # a local dir that was never `git init`ed
+    hint = plugins.source_hint(str(plain))
+    assert f'{plain} is not a git repository' in hint and '`git init`' in hint
+    assert 'private repo' not in hint
+    assert 'private repo' not in plugins.source_hint(f'file:{plain}')
+    assert 'does not exist' in plugins.source_hint(str(tmp_path / 'nowhere'))
+
+
 def test_primary_flag_takes_every_bool_spelling_and_check_names_a_bad_one(tmp_path, capsys):
     # `primary: True` / `on` / `1` were silently NOT primary (only true/yes counted)
     for v in ('true', 'True', 'yes', 'on', '1'):

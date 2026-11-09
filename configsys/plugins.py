@@ -1753,11 +1753,19 @@ def upsert_decl(decls, source, ref):
 
 def source_hint(source):
     '''A nudge when a source can't be synced: the common `github.com:x/y` mistyping of the
-    `github:x/y` shorthand, else how to reach a private repo.'''
+    `github:x/y` shorthand; for a local path, that it is missing or not a git repository (or has
+    nothing committed); else how to reach a private repo.'''
     for prov in ('github', 'gitlab'):
         pfx = prov + '.com:'
         if source.startswith(pfx):
             return f'(did you mean {prov}:{source[len(pfx):]} ?)'
+    lp = _local_source_path(source)
+    if lp is not None:
+        if not lp.exists():
+            return f'({lp} does not exist)'
+        if not (lp / '.git').exists():
+            return f'({lp} is not a git repository — `git init` it and commit your .hu files first)'
+        return f'(is the ref committed in {lp}?)'
     return ('(private repo? use ssh git@host:owner/repo.git, a token via '
             'CONFIGSYS_GIT_TOKEN, or a configured git credential helper)')
 
