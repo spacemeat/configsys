@@ -669,8 +669,9 @@ Bindings of **different `via:`** may overlap freely — that is a component with
 install methods in one context (native + flatpak on Ubuntu), not an error. `when:` states
 **validity only** (does this method work here); *which* valid method becomes the default is the
 separate preference channel (§8a). A genuine tie there is a resolve-time error, and `configsys
-check` warns `method-tie` (`routecheck._method_tie_warnings`, judged against the built-in
-`DEFAULT_DRIVER_PREFERENCE` and ignoring `never-auto` bindings and vias whose `drivers:` block is
+check` warns `method-tie` (`routecheck._method_tie_warnings`, judged against the same effective
+order resolution uses — each OS block's `driver-preference:` over its subtree, then your
+`driver-preference:` setting, then the built-in `DEFAULT_DRIVER_PREFERENCE` — and ignoring `never-auto` bindings and vias whose `drivers:` block is
 `never-auto`, exactly as `resolve._select` sets them aside) — not a load-time error, and never a
 reason to narrow a validity `when:`.
 

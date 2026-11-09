@@ -77,9 +77,13 @@ def check_report(ctx):
     except ConfigsysError:
         raise                              # a parse/structural error before we can lint
 
+    try:                                    # method ties rank by your driver-preference too
+        preference = ctx.config.driver_preference()
+    except ConfigsysError:
+        preference = None
     issues = routecheck.validate(components, cascade, drivers,
                                  pending_vias=ctx.plugin_pending_vias,
-                                 components_checked=validated is not None)
+                                 components_checked=validated is not None, preference=preference)
     include_warnings = (layers.ignored_section_warnings(layer_list)
                         + layers.unknown_section_warnings(layer_list)
                         + layers.setting_value_warnings(layer_list)

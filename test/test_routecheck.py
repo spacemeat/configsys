@@ -357,3 +357,43 @@ def test_a_garbled_standing_is_flagged(tmp_path):
         not i.is_error for i in issues if i.kind == 'bad-standing')
     assert any("driver 'snap'" in m and '5x' in m for _c, m in bad)
     assert any('via:native' in m and 'hi' in m for c, m in bad if c == 'b')
+
+
+def _ties(loaded, preference=None):
+    from configsys import routecheck
+    c, comps, drivers, _na = loaded
+    return [i.message for i in routecheck.validate(comps, c, drivers, preference=preference)
+            if i.kind == 'method-tie']
+
+
+_TIE = 'x: { install: [ { via: cargo }  { via: gem } ] }'     # both outside the built-in order
+
+
+def test_method_tie_ranks_by_each_os_blocks_driver_preference(tmp_path):
+    # resolution ranks by the effective order per OS block (resolve._effective_preference) — so does
+    # check: an OS block's `driver-preference:` that settles the pair there is no tie there
+    plain = 'linux: {}  debian: { using: linux  native: apt }  fedora: { using: linux  native: dnf }'
+    assert len(_ties(_tiny(tmp_path, plain, _TIE))) == 1
+    everywhere = ('linux: { driver-preference: [ cargo ] }  debian: { using: linux  native: apt }  '
+                  'fedora: { using: linux  native: dnf }')
+    assert _ties(_tiny(tmp_path, everywhere, _TIE)) == []
+    # settled on debian only: still a tie elsewhere (fedora, bare linux) — never witnessed on debian
+    debian = ('linux: {}  debian: { using: linux  native: apt  driver-preference: [ gem ] }  '
+              'fedora: { using: linux  native: dnf }')
+    ties = _ties(_tiny(tmp_path, debian, _TIE))
+    assert len(ties) == 1 and 'e.g. on debian' not in ties[0] and 'by default' in ties[0]
+    only = 'debian: { native: apt  driver-preference: [ gem ] }  fedora: { native: dnf }'
+    ties = _ties(_tiny(tmp_path, only, _TIE))
+    assert len(ties) == 1 and 'e.g. on fedora ' in ties[0]
+    # a descendant's own list falls back to its ancestor's (ubuntu: native, then debian's gem), so
+    # only the bare `linux` block — which names neither — is left tied
+    sub = ('linux: {}  debian: { using: linux  native: apt  driver-preference: [ gem ] }  '
+           'ubuntu: { using: debian  driver-preference: [ native ] }')
+    ties = _ties(_tiny(tmp_path, sub, _TIE))
+    assert len(ties) == 1 and 'e.g. on linux ' in ties[0]
+
+
+def test_method_tie_honors_the_machine_driver_preference(tmp_path):
+    plain = 'linux: {}  debian: { using: linux  native: apt }'
+    assert len(_ties(_tiny(tmp_path, plain, _TIE))) == 1
+    assert _ties(_tiny(tmp_path, plain, _TIE), preference=['gem']) == []

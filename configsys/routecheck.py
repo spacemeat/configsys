@@ -138,16 +138,58 @@ def check_component(name, component, cascade):
                 f'their when: comparable (one a subset of the other) or disjoint')
 
 
-def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
-    '''Cross-method (different via) bindings that overlap AND would tie under the built-in
-    driver-preference (nothing separates them) — resolution errors on such a machine, so flag it
-    at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.
-    `never_auto_drivers` = the vias whose `drivers:` block is `standing: never-auto` (defaults to the
-    set routes.load stamped on the cascade) — excluded from the default pool exactly like
-    resolve._select does, so a never-auto driver can't read as a false tie.'''
-    from .resolve import _prefer_rank, _binding_never_auto, DEFAULT_DRIVER_PREFERENCE as order
+def _preference_regions(cascade, preference=None):
+    '''[(region, order, label)] — the machines that share one effective driver-preference order
+    (resolve._effective_preference walks the lineage's `driver-preference:` lists, then `preference`
+    — the machine setting — then the built-in default). A region is the subtree of an OS block that
+    declares a list, minus the subtrees of its descendants that declare their own (`region` a
+    predicate, `label` that block); the rest of the machines share the no-block order (`region`
+    None when no block declares one, `label` None).'''
+    from types import SimpleNamespace
+    from .resolve import _effective_preference
+    blocks = getattr(cascade, 'blocks', None) or {}
+    decl = sorted(n for n, b in blocks.items() if isinstance(b, dict) and b.get('driver-preference'))
 
-    def rank(b):
+    def order(lineage):
+        return _effective_preference(cascade, SimpleNamespace(lineage=lineage), preference)
+
+    if not decl:
+        return [(None, order(()), None)]
+    rest = predicate.Not(predicate.Or([predicate.Os(n) for n in decl]))
+    rest._text = f'<no driver-preference block: not {decl}>'
+    out = [(rest, order(()), None)]
+    for name in decl:
+        lineage = cascade.lineage(name)
+        under = sorted(d for d in decl if d != name and name in cascade.lineage(d))
+        region = (predicate.Os(name) if not under else
+                  predicate.And([predicate.Os(name), predicate.Not(predicate.Or([predicate.Os(d) for d in under]))]))
+        region._text = f'<driver-preference region {name} minus {under}>'
+        out.append((region, order(lineage), name))
+    return out
+
+
+def _within(pred, region):
+    '''`pred` restricted to `region` (None = everywhere), keeping a memo key when both have one.'''
+    if region is None:
+        return pred
+    node = predicate.And([pred, region])
+    if getattr(pred, '_text', None) is not None:
+        node._text = f'({pred._text}) and {region._text}'
+    return node
+
+
+def _method_tie_warnings(name, component, cascade, never_auto_drivers=None, preference=None):
+    '''Cross-method (different via) bindings that overlap AND would tie under the effective
+    driver-preference where they overlap (nothing separates them) — resolution errors on such a
+    machine, so flag it at check time. The order is resolution's own (resolve._effective_preference):
+    each OS block's `driver-preference:` over its subtree, then `preference` (the machine setting),
+    then the built-in default — so a pair an OS block's list settles there is no tie there
+    (_preference_regions). `never_auto_drivers` = the vias whose `drivers:` block is `standing:
+    never-auto` (defaults to the set routes.load stamped on the cascade) — excluded from the default
+    pool exactly like resolve._select does, so a never-auto driver can't read as a false tie.'''
+    from .resolve import _prefer_rank, _binding_never_auto
+
+    def rank(b, order):
         return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
 
     # a `standing: never-auto` binding is never eligible to be the auto-default, so it can never
@@ -157,15 +199,11 @@ def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
         never_auto_drivers = getattr(cascade, 'never_auto_drivers', frozenset())
     eligible = [(i, b) for i, b in enumerate(component.bindings)
                 if not _binding_never_auto(b) and b.via not in never_auto_drivers]
+    regions = None
 
     out = []
     for (i, a), (j, b) in combinations(eligible, 2):
-        if a.via == b.via or rank(a) != rank(b):
-            continue
-        # both must be CANDIDATES somewhere at once: overlap on the driver-gated sets (a gated-out
-        # driver's binding never competes — the same filter resolve._matching applies)
-        ga, gb = gated(a, cascade), gated(b, cascade)
-        if not predicate.overlap(ga, gb, cascade):
+        if a.via == b.via or _prefer_rank(a) != _prefer_rank(b):
             continue
         # a STRICT subset one way means most-specific resolves the default (no tie). A tie needs
         # equal or incomparable preds where they overlap — i.e. no strict subset either way.
@@ -174,9 +212,23 @@ def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
         sb = predicate.subset(b.pred, a.pred, cascade)
         if sa != sb:
             continue
-        out.append(f'methods via:{a.via} and via:{b.via} overlap (e.g. on '
-                   f'{predicate.witness(ga, gb, cascade)}) and are equally preferred '
-                   f'by default — add a `driver-preference` order or a `standing:` rank to pick one')
+        # both must be CANDIDATES somewhere at once, in a region whose order doesn't separate them:
+        # overlap on the driver-gated sets (a gated-out driver's binding never competes — the same
+        # filter resolve._matching applies)
+        ga, gb = gated(a, cascade), gated(b, cascade)
+        if regions is None:
+            regions = _preference_regions(cascade, preference)
+        for region, order, label in regions:
+            if rank(a, order) != rank(b, order):
+                continue
+            seen = predicate.witness(_within(ga, region), gb, cascade)
+            if seen is None:
+                continue
+            by = f"by {label}'s driver-preference" if label else 'by default'
+            out.append(f'methods via:{a.via} and via:{b.via} overlap (e.g. on {seen}) and are '
+                       f'equally preferred {by} — add a `driver-preference` order or a `standing:` '
+                       f'rank to pick one')
+            break
     return out
 
 
@@ -450,7 +502,7 @@ def _as_parts(v):
 
 
 def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_drivers=None,
-             components_checked=False):
+             components_checked=False, preference=None):
     '''Lint the merged component set -> [Issue] (empty = clean). Errors: ambiguity, a parts cycle,
     an unknown via: driver, an unknown component in parts:, a malformed version constraint, a script
     with no install-cmd, a tarball with no installDir, a facet named like an os block. Warnings
@@ -463,7 +515,9 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
     loaded (untrusted / incompatible): they're known-but-unavailable, so they don't count as
     unknown-via errors here — the app surfaces a single "trust the plugin" nudge instead.
     `components_checked` = every component already passed `check_component` (a validated
-    routes.load returned them), so the ambiguity pass is skipped rather than run twice.'''
+    routes.load returned them), so the ambiguity pass is skipped rather than run twice.
+    `preference` = the machine's `driver-preference:` setting, which method ties are ranked by (with
+    each OS block's own list and the built-in default) exactly as resolution ranks them.'''
     from .attrs import unknown_attrs
     from .drivers import supported_names
     from .resolve import cap_names, standing_problem
@@ -483,7 +537,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
                 check_component(name, comp, cascade)
             except AmbiguityError as e:
                 add('ambiguity', str(e), comp)
-        for msg in _method_tie_warnings(name, comp, cascade, never_auto_drivers):
+        for msg in _method_tie_warnings(name, comp, cascade, never_auto_drivers, preference):
             add('method-tie', msg, comp, 'warning')
         for msg in retired_key_warnings(comp):
             add('retired-key', msg, comp, 'warning')
