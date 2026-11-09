@@ -14,6 +14,10 @@ developer's machine through configsys or git.
   — no password prompt mid-suite, no `apt-get update` as root.
 - `Runner.run` refuses to execute (raises `RealRunnerError`) unless the runner is `--pretend` or
   the test is marked `@pytest.mark.real_runner` (it needs real git / `curl file://` / shells).
+- No network from the test process: a socket connect to anything but loopback or a unix socket
+  raises `NetworkDisabledError` (an OSError, so version discovery reads it as offline) unless the
+  test is marked `@pytest.mark.network` — the suite never spends your api.github.com rate limit
+  or depends on what a remote serves (review-2026-11-2 tests-tools-04).
 '''
 
 import os
@@ -47,10 +51,23 @@ class RealRunnerError(RuntimeError):
     '''A test reached a real (non-pretend) Runner.run without `@pytest.mark.real_runner`.'''
 
 
+class NetworkDisabledError(OSError):
+    '''A test opened a network connection without `@pytest.mark.network`.'''
+
+
+def _local(address):
+    if not isinstance(address, tuple):              # AF_UNIX path
+        return True
+    host = str(address[0])
+    return host in ('localhost', '::1') or host.startswith('127.')
+
+
 def pytest_configure(config):
     config.addinivalue_line(
         'markers', 'real_runner: the test executes real commands through configsys.runner.Runner '
                    '(git, curl file://, shells) — never sudo')
+    config.addinivalue_line(
+        'markers', 'network: the test may open network connections (off by default)')
 
 
 @pytest.fixture(scope='session')
@@ -88,6 +105,32 @@ def _hermetic(request, monkeypatch, tmp_path_factory, _fake_sudo_dir):
         return real_run(self, cmd, *a, **kw)
 
     monkeypatch.setattr(_runner.Runner, 'run', guarded_run)
+
+    if request.node.get_closest_marker('network') is None:
+        import socket
+        real_connect, real_connect_ex = socket.socket.connect, socket.socket.connect_ex
+
+        def guarded_connect(sock, address):
+            if not _local(address):
+                raise NetworkDisabledError(f'network disabled in tests: connect to {address!r} '
+                                           '(mark the test @pytest.mark.network)')
+            return real_connect(sock, address)
+
+        def guarded_connect_ex(sock, address):
+            if not _local(address):
+                raise NetworkDisabledError(f'network disabled in tests: connect to {address!r}')
+            return real_connect_ex(sock, address)
+        real_getaddrinfo = socket.getaddrinfo
+
+        def guarded_getaddrinfo(host, *a, **kw):        # DNS happens in C, before any connect
+            if host is not None and not _local((host,)):
+                raise NetworkDisabledError(f'network disabled in tests: resolve {host!r}')
+            return real_getaddrinfo(host, *a, **kw)
+        monkeypatch.setattr(socket.socket, 'connect', guarded_connect)
+        monkeypatch.setattr(socket.socket, 'connect_ex', guarded_connect_ex)
+        monkeypatch.setattr(socket, 'getaddrinfo', guarded_getaddrinfo)
+        from configsys import versions as _versions          # no backoff sleeps on a refused fetch
+        monkeypatch.setattr(_versions, '_RETRY_DELAYS', tuple(0 for _ in _versions._RETRY_DELAYS))
     yield
     if sudo_log.exists():
         pytest.fail(f'the test ran sudo (blocked by test/conftest.py): {sudo_log.read_text()!r}')

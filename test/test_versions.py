@@ -406,6 +406,7 @@ def test_http_fetch_retries_throttling_then_succeeds(monkeypatch):
             raise urllib.error.HTTPError(req.full_url, 429, 'Too Many Requests', {}, None)
         return Resp(b'<feed/>')
     monkeypatch.setattr(versions.urllib.request, 'urlopen', urlopen)
+    monkeypatch.setattr(versions, '_RETRY_DELAYS', (1.0, 3.0))   # the harness zeroes the backoff
     assert versions.http_fetch('https://github.com/x/y/releases.atom', _sleep=slept.append) == '<feed/>'
     assert len(attempts) == 3 and slept == [1.0, 3.0]
 
