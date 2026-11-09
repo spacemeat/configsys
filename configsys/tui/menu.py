@@ -2990,15 +2990,6 @@ def _machines_modal(stdscr, pal, ctx, targets):
                 mode = 'confirm'
 
 
-# Layer-grouped profiles pane: a group header is a pnode whose key starts with _GKEY. Groups are
-# keyed by the top-definition layer's ROLE, shown in this order with these labels; repo last (biggest,
-# collapsed by default). Any non-repo/user/primary/machine layer (a data plugin) folds into 'plugin'.
-_GKEY = '\x00#grp:'
-_GROUP_ORDER = ['machine', 'user', 'primary', 'plugin', 'repo']
-_GROUP_LABEL = {'machine': 'machine', 'user': 'this machine', 'primary': 'your primary',
-                'plugin': 'plugins', 'repo': 'repo catalog'}
-
-
 # Serializes the ProfileScreen catalog warm-up (`_resolve` over ~800 components) against the UI
 # thread's own `_resolve`. It is NOT required for every Resolver call: a resolve only READS the shared
 # Resolver except for its memo caches (dict writes, atomic under the GIL), and only the load pipeline's
@@ -3027,12 +3018,9 @@ class ProfileScreen:
         self.pfilter = self.cfilter = ''   # substring filters for the profiles / catalog panes
         self.expanded = set()            # node keys of expanded profiles (inline `+include` tree)
         self.reveal = None               # key of a just-expanded node -> reveal its subtree next draw
-        self.grouped = False             # v3: a flat browse list (repo+plugin consolidated); `L` -> layer
-        self.collapsed_groups = set()    # groups. Origin is a catalog column, so no default split.
         self.selected_comps = set()      # `space` multi-select: component names T/S/I act on as a batch
         self.target_machines = None      # v3 matrix: the selected edit-target machines (set); None -> {current}
-        self._new_count_cache = {}       # (profile, ceiling) -> #NEW members; (re)built lazily per reload
-        self._group_new_cache = {}       # group -> #distinct NEW members; the `⁺N` header/row badges
+        self._new_count_cache = {}       # profile -> (#NEW, #interesting) members; rebuilt lazily per reload
         self.attr_inc = set()            # `A` faceted attr filter: lowercased tags to INCLUDE
         self.attr_exc = {'dotfiles', 'glue'}   # ...and to EXCLUDE — hide the -dotfiles/-glue companions
                                                # by default (each has its own page)
@@ -3202,43 +3190,15 @@ class ProfileScreen:
                                            and self._probe_thread.is_alive())
 
     # -- profiles tree (top-level profiles + inline `+include` children) --
-    @staticmethod
-    def _fold_role(role):
-        return role if role in ('machine', 'user', 'primary', 'repo') else 'plugin'
-
-    def _profile_group(self, name):
-        '''Which pane group a profile belongs to — the ROLE of its top (highest-precedence)
-        definition layer, folded to one of _GROUP_ORDER. Drives the flat/legacy grouping + the
-        per-group header counts.'''
-        try:
-            defs = self.ctx.config.profile_layer_defs(name)
-            role = defs[-1]['role'] if defs else 'repo'
-        except Exception:                            # noqa: BLE001 — a broken profile falls to repo
-            role = 'repo'
-        return self._fold_role(role)
-
-    def _profile_groups(self, name):
-        '''EVERY pane group `name` has a definition in (folded roles), so a same-name clone shows
-        under YOUR group while the pristine system original still shows under repo/plugin — the
-        two-spaces view. Falls back to its top group.'''
-        try:
-            defs = self.ctx.config.profile_layer_defs(name)
-            gs = {self._fold_role(d['role']) for d in defs}
-        except Exception:                            # noqa: BLE001
-            gs = set()
-        return gs or {self._profile_group(name)}
-
-    _SYSTEM_GROUPS = ('repo', 'plugin')              # browse-only spaces: rows here are read-only
 
     def visible_pnodes(self):
         '''Flattened visible tree: [(name, depth, key, expandable, expanded, kind)]. `kind` is
-        'profile' (a top-level profile), 'include' (a `+other` child — a live include), or 'group'
-        (a layer-group header, key starts _GKEY). A root profile's children are its `+includes`.
-        `key` is the ancestor path (root = key.split('\\x00')[0] = the curated profile).'''
+        'profile' (a top-level profile) or 'include' (a `+other` child — a live include). A root
+        profile's children are its `+includes`. `key` is the ancestor path (root =
+        key.split('\\x00')[0] = the curated profile).'''
         # cache: the tree changes only with config identity (an edit -> ctx.invalidate) + the browse
-        # toggles (filter / grouping / expand / collapse). Called ~5x per frame, so memoize on that.
-        sig = (id(self.ctx.config), self.pfilter, self.grouped,
-               frozenset(self.expanded), frozenset(self.collapsed_groups))
+        # toggles (filter / expand / collapse). Called ~5x per frame, so memoize on that.
+        sig = (id(self.ctx.config), self.pfilter, frozenset(self.expanded))
         if getattr(self, '_vpn_sig', None) == sig:
             return self._vpn_cache
         f = self.pfilter.lower()
@@ -3251,86 +3211,32 @@ class ProfileScreen:
         roots = [p for p in browse if f in p.lower()] if f else browse
         out = []
 
-        def walk(name, depth, path, kind, group):
+        def walk(name, depth, path, kind):
             cfg = self.ctx.config
-            key = ((group + '\x00') if group else '') + '\x00'.join(path + [name])
+            key = '\x00'.join(path + [name])
             kids = [(c, 'include') for c in sorted(cfg.profile_includes(name))
                     if c not in path and c != name and c in self._profset]
             expandable = bool(kids)
             expanded = expandable and key in self.expanded
-            out.append((name, depth, key, expandable, expanded, kind, group))
+            out.append((name, depth, key, expandable, expanded, kind))
             if expanded:
                 for c, ck in kids:
-                    walk(c, depth + 1, path + [name], ck, group)
+                    walk(c, depth + 1, path + [name], ck)
 
-        if not self.grouped:
-            for r in roots:
-                walk(r, 0, [], 'profile', None)      # flat view: merged/top read (group None)
-            self._vpn_sig, self._vpn_cache = sig, out
-            return out
-        buckets = {}
         for r in roots:
-            for gid in self._profile_groups(r):      # a profile appears under EVERY group it defines in
-                buckets.setdefault(gid, []).append(r)
-        for gid in _GROUP_ORDER:
-            grp = buckets.get(gid)
-            if not grp:
-                continue
-            collapsed = (gid in self.collapsed_groups) and not f   # a live filter forces groups open
-            label = _GROUP_LABEL[gid]
-            if gid == 'machine':                     # name the selected machine in its header
-                mn = self.ctx.config.selected_machine()
-                label = f'machine: {mn}' if mn else 'machine'
-            out.append((label, 0, _GKEY + gid, True, not collapsed, 'group', gid))
-            if not collapsed:
-                for r in grp:                        # members stay at depth 0 (header is a full-width bar)
-                    walk(r, 0, [], 'profile', gid)
+            walk(r, 0, [], 'profile')
         self._vpn_sig, self._vpn_cache = sig, out
         return out
 
-    def is_group_header(self, nd):
-        return bool(nd) and isinstance(nd[2], str) and nd[2].startswith(_GKEY)
-
     def node_kind(self, nd):
         return nd[5] if nd and len(nd) > 5 else 'profile'
-
-    def node_group(self, nd):
-        '''The pane group a node was emitted under (repo/plugin/primary/user/machine), or None in
-        the flat view. Drives the per-layer read ceiling + the read-only marker on system rows.'''
-        return nd[6] if nd and len(nd) > 6 else None
-
-    def group_ceiling(self, group):
-        '''The layer index to READ a profile at when it is shown under `group` — so a repo/plugin
-        (system) row renders pristine upstream members even when a user clone shadows it. None (the
-        merged/top read) for the flat view or an unknown group.'''
-        return self.ctx.config.role_ceilings().get(group) if group else None
-
-    def cur_group(self):
-        return self.node_group(self.cur_node())
-
-    def cur_ceiling(self):
-        return self.group_ceiling(self.cur_group())
-
-    def cur_readonly(self):
-        '''The current LEFT node is a browse-only SYSTEM row (repo/plugin group) — its definition
-        can't be edited in place; edits must go through `clone` (c).'''
-        return self.cur_group() in self._SYSTEM_GROUPS
 
     def cur_node(self):
         v = self.visible_pnodes()
         return v[self.lcur] if 0 <= self.lcur < len(v) else None
 
-    def toggle_grouping(self):
-        '''`L`: flip between the layer-grouped pane and a flat alphabetical sort.'''
-        self.grouped = not self.grouped
-        self.lcur, self.ltop = 0, 0
-
     def expand_cur(self):
         nd = self.cur_node()
-        if self.is_group_header(nd):                  # a group header -> uncollapse the group
-            self.collapsed_groups.discard(nd[2][len(_GKEY):])
-            self.reveal = nd[2]
-            return True
         if nd and nd[3] and not nd[4]:               # expandable and collapsed
             self.expanded.add(nd[2])
             self.reveal = nd[2]                      # reveal the opened subtree on the next draw
@@ -3342,10 +3248,6 @@ class ProfileScreen:
         if not (0 <= self.lcur < len(v)):
             return
         nd = v[self.lcur]
-        if self.is_group_header(nd):                  # a group header -> collapse the group
-            if nd[4]:                                 # currently expanded
-                self.collapsed_groups.add(nd[2][len(_GKEY):])
-            return
         name, depth, key, expandable, expanded = nd[:5]
         if expanded:
             self.expanded.discard(key)
@@ -3356,19 +3258,19 @@ class ProfileScreen:
                     break
 
     def scoped_members(self):
-        '''The catalog is ALWAYS scoped to the selected browse profile's members (read at its per-layer
-        ceiling) — the `!all` profile is the browse-everything lens, so no separate scope toggle.'''
-        return self.members(self.cur_curate(), self.cur_ceiling())
+        '''The catalog is ALWAYS scoped to the selected browse profile's members — the `!all` profile
+        is the browse-everything lens, so no separate scope toggle.'''
+        return self.members(self.cur_curate())
 
-    def _profile_counts(self, name, ceiling):
-        '''(#NEW, #interesting) among `name`'s members read at `ceiling`, in one pass. NEW =
-        undispositioned & untriaged (is_new); interesting = bookmarked (disposition). Memoized.'''
-        key = (name, ceiling)
+    def _profile_counts(self, name):
+        '''(#NEW, #interesting) among `name`'s members, in one pass. NEW = undispositioned &
+        untriaged (is_new); interesting = bookmarked (disposition). Memoized.'''
+        key = name
         cache = self._new_count_cache
         if key not in cache:
             cfg = self.ctx.config
             try:
-                mem = self.members(name, ceiling)
+                mem = self.members(name)
                 nnew = sum(1 for c in mem if cfg.is_new(c) and not self._is_companion(c))
                 nint = sum(1 for c in mem if cfg.disposition(c) == 'interesting')
                 cache[key] = (nnew, nint)
@@ -3376,55 +3278,35 @@ class ProfileScreen:
                 cache[key] = (0, 0)
         return cache[key]
 
-    def profile_new_count(self, name, ceiling=None):
+    def profile_new_count(self, name):
         '''#NEW members of `name` (the `⁺N` badge). Memoized until the next reload.'''
-        return self._profile_counts(name, ceiling)[0]
+        return self._profile_counts(name)[0]
 
-    def profile_interesting_count(self, name, ceiling=None):
+    def profile_interesting_count(self, name):
         '''#INTERESTING (bookmarked) members of `name` (the `☆N` badge). Memoized until reload.'''
-        return self._profile_counts(name, ceiling)[1]
+        return self._profile_counts(name)[1]
 
-    def profile_untracked_count(self, name, ceiling=None):
+    def profile_untracked_count(self, name):
         '''#members of `name` that are INSTALLED on this box but NOT tracked on the current machine
-        (the `⊙N` badge — claimable). Memoized per (config, profile, ceiling, probe results seen): a
-        frame asked it for every visible row (~half the screen's per-keystroke cost — C6).'''
-        key = (id(self.ctx.config), name, ceiling, id(getattr(self, '_overlay', None)),
+        (the `⊙N` badge — claimable). Memoized per (config, profile, probe results seen): a frame
+        asked it for every visible row (~half the screen's per-keystroke cost — C6).'''
+        key = (id(self.ctx.config), name, id(getattr(self, '_overlay', None)),
                len(getattr(self, '_probe_installed', None) or {}), getattr(self, 'show_install', None))
         memo = self.__dict__.setdefault('_untracked_memo', {})
         if key in memo:
             return memo[key]
         if len(memo) > 512:
             memo.clear()
-        memo[key] = n = self._profile_untracked_count(name, ceiling)
+        memo[key] = n = self._profile_untracked_count(name)
         return n
 
-    def _profile_untracked_count(self, name, ceiling=None):
+    def _profile_untracked_count(self, name):
         tracked = self.ctx.config.included()
         try:
-            mem = self.members(name, ceiling)
+            mem = self.members(name)
         except Exception:                            # noqa: BLE001
             return 0
         return sum(1 for c in mem if c not in tracked and self.install_state(c, force=True) != 'none')
-
-    def group_new_count(self, gid):
-        '''(#NEW, #interesting) distinct across all profiles in pane-group `gid`, read at the group's
-        ceiling — the `⁺N`/`☆N` on a group header, so a collapsed "repo catalog" still advertises the
-        triage/bookmark work inside it. Memoized until the next reload.'''
-        if gid in self._group_new_cache:
-            return self._group_new_cache[gid]
-        cfg = self.ctx.config
-        ceil = self.group_ceiling(gid)
-        new_set, int_set = set(), set()
-        for p in self.profiles:
-            if gid in self._profile_groups(p):
-                try:
-                    mem = self.members(p, ceil)
-                except Exception:                        # noqa: BLE001
-                    continue
-                new_set |= {c for c in mem if cfg.is_new(c) and not self._is_companion(c)}
-                int_set |= {c for c in mem if cfg.disposition(c) == 'interesting'}
-        self._group_new_cache[gid] = (len(new_set), len(int_set))
-        return self._group_new_cache[gid]
 
     def _parts(self, name):
         '''The parts of `name`'s CONTEXT-VALID `via: parts` binding — component-level `parts:` plus the
@@ -3613,7 +3495,7 @@ class ProfileScreen:
         highlighted item). Drives `t`/`s`/`i`.'''
         if self.focus == 'left':
             prof = self.cur_curate()
-            return sorted(self.members(prof, self.cur_ceiling())) if prof else []
+            return sorted(self.members(prof)) if prof else []
         vc = self.vcatalog()
         return [vc[self.rcur]] if vc and 0 <= self.rcur < len(vc) else []
 
@@ -3694,7 +3576,6 @@ class ProfileScreen:
         self.profiles = cfg.profile_names()
         self._profset = set(self.profiles)
         self._new_count_cache = {}                    # NEW badges recompute after any edit
-        self._group_new_cache = {}
         self.selected_comps &= set(self.ctx.routes.components)   # drop selections for gone components
         self.catalog = sorted(self.ctx.routes.components)
         # KEEP self._res: a membership / profile edit doesn't change how a component RESOLVES (its
@@ -3727,31 +3608,20 @@ class ProfileScreen:
 
     def cur_profile(self):
         nd = self.cur_node()
-        return None if (nd is None or self.is_group_header(nd)) else nd[0]
+        return None if nd is None else nd[0]
 
     def cur_curate(self):
         '''The profile the RIGHT catalog edits reflect: the current node's own profile.'''
         nd = self.cur_node()
-        if nd is None or self.is_group_header(nd):
+        if nd is None:
             return None
         return nd[0]
 
-    def members(self, profile, ceiling=None):
+    def members(self, profile):
         try:
-            return set(self.ctx.config.profile_components(profile, ceiling)) if profile else set()
+            return set(self.ctx.config.profile_components(profile)) if profile else set()
         except ConfigError:
             return set()
-
-    def own_members(self, profile, ceiling=None):
-        '''Components the profile declares as its OWN (direct/self-amend, not via a +other include).'''
-        try:
-            return set(self.ctx.config.profile_own_components(profile, ceiling)) if profile else set()
-        except ConfigError:
-            return set()
-
-    def removed_members(self, profile, ceiling=None):
-        '''Components a `~term` removes from the profile (for the `~` marker).'''
-        return self.ctx.config.profile_removed(profile, ceiling) if profile else set()
 
     def relation(self, profile):
         '''Provenance of the profile's top definition vs any lower same-name def: 'tracked' (`+self`),

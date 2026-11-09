@@ -50,7 +50,7 @@ def test_profile_tree_and_browse(tmp_path):
     names = [nd[0] for nd in ps.visible_pnodes()]
     assert names[0] == '!all'                                  # the browse-everything lens, first
     assert 'finders' in names and 'languages' in names        # repo browse profiles
-    assert not any(ps.is_group_header(nd) for nd in ps.visible_pnodes())   # flat, no layer groups
+    assert {nd[5] for nd in ps.visible_pnodes()} <= {'profile', 'include'}   # flat, no layer groups
     ps.lcur = 0                                                # !all -> the whole catalog
     assert len(ps.vcatalog()) == len(ps.catalog)
     ps.lcur = names.index('finders')                          # a profile -> its members only
@@ -75,16 +75,14 @@ def test_profile_new_count_badge(tmp_path):
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
     ps = menu.ProfileScreen(ctx)
-    ceil = ps.group_ceiling('repo')
-    before = ps.profile_new_count('shells', ceil)
-    assert before == len(ps.members('shells', ceil))         # a fresh home: every member is NEW
-    assert ps.group_new_count('repo')[0] > 0                 # (NEW, interesting); the repo group has NEW work
+    before = ps.profile_new_count('shells')
+    assert before == len(ps.members('shells')) > 0           # a fresh home: every member is NEW
 
-    one = sorted(ps.members('shells', ceil))[0]
+    one = sorted(ps.members('shells'))[0]
     actions.set_disposition(ctx, one, 'interesting')         # triage one -> interesting
     ps = menu.ProfileScreen(ctx)                             # reload -> caches rebuild
-    assert ps.profile_new_count('shells', ceil) == before - 1
-    assert ps.profile_interesting_count('shells', ceil) == 1   # ☆N tracks bookmarks
+    assert ps.profile_new_count('shells') == before - 1
+    assert ps.profile_interesting_count('shells') == 1       # ☆N tracks bookmarks
 
 
 def test_parts_component_installed_iff_all_parts(tmp_path):
@@ -162,7 +160,7 @@ def test_profile_pane_is_flat_browse_only(tmp_path):
     ctx = _rctx(tmp_path)
     ps = menu.ProfileScreen(ctx)
     v = ps.visible_pnodes()
-    assert not any(ps.is_group_header(nd) for nd in v)         # no group headers (flat)
+    assert {nd[5] for nd in v} <= {'profile', 'include'}       # no group headers (flat)
     names = {nd[0] for nd in v}
     assert 'finders' in names and 'languages' in names        # repo browse profiles present
     assert '!all' in names and '!uninstall' in names          # the two keyword browse lenses show

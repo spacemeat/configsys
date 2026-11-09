@@ -475,18 +475,7 @@ class Config:
                 src[k] = role
         return src
 
-    def role_ceilings(self):
-        '''{pane-group: highest layer index of that group} — folding each layer's role the way the
-        per-layer pane groups profiles (machine/user/primary/repo kept, everything else -> plugin).
-        A group's ceiling is the layer to read a profile AT when it is shown under that group, so a
-        system (repo/plugin) row renders the pristine upstream members even under a user clone.'''
-        out = {}
-        for i, layer in enumerate(self._layers):
-            g = layer.role if layer.role in ('machine', 'user', 'primary', 'repo') else 'plugin'
-            out[g] = max(out.get(g, -1), i)
-        return out
-
-    def profile_components(self, profile, ceiling=None):
+    def profile_components(self, profile):
         '''The ordered, deduped component list a profile expands to. A profile value is a list
         of terms, applied left-to-right: a bare `name` adds a component, `+name` splices in
         another profile's members (recursively), `~name` removes a component added so far. Order
@@ -505,20 +494,16 @@ class Config:
         if not chain:
             raise ConfigError(
                 f'no profile named "{profile}" (see `configsys profile list`)')
-        top = self._top_at(profile, ceiling)             # top def, or the highest at/below `ceiling`
-        if top is None:
-            return []
-        idx, val, _src = top
-        return self._expand(profile, idx, val, (), ceiling=ceiling)
+        idx, val, _src = chain[-1]                        # the top definition
+        return self._expand(profile, idx, val, ())
 
-    def profile_own_components(self, profile, ceiling=None):
+    def profile_own_components(self, profile):
         '''The components a profile declares AS ITS OWN — for menu attribution. Same as
         profile_components but `+other` (a cross-profile include) is NOT expanded: those
         components belong to the other profile. `+self` amendment IS followed (a profile's
         inherited-from-below members are still its own). So `sculpture-artist: [ +user, blender ]`
         owns just `blender`, while `user: [ +user, apod ]` owns the base `user` set plus apod.
-        This keeps the menu from repeating a base profile's components under every includer.
-        `ceiling` reads the profile as of that layer (per-layer pane); None = the top def.'''
+        This keeps the menu from repeating a base profile's components under every includer.'''
         if profile == self.ALL_PROFILE:
             return self._all_components()
         if profile == self.UNINSTALL_PROFILE:            # synthetic lens over the `uninstall:` queue
@@ -526,11 +511,8 @@ class Config:
         chain = self._chain.get(profile)
         if not chain:
             raise ConfigError(f'profile "{profile}" is not defined')
-        top = self._top_at(profile, ceiling)
-        if top is None:
-            return []
-        idx, val, _src = top
-        return self._expand(profile, idx, val, (), own_only=True, ceiling=ceiling)
+        idx, val, _src = chain[-1]
+        return self._expand(profile, idx, val, (), own_only=True)
 
     UNINSTALL_PROFILE = '!uninstall'
 
@@ -575,24 +557,20 @@ class Config:
         direct_of, indirect_of = self._pc_index
         return list(direct_of.get(name, [])), list(indirect_of.get(name, []))
 
-    def profile_removed(self, profile, ceiling=None):
-        '''Components a `~term` drops anywhere in `profile`'s chain — for the profile editor's `~`
-        marker (a component explicitly removed, so it isn't a member even if an include brought it).
-        A `~subprofile` term contributes ALL of that subprofile's expanded members. `ceiling` (a
-        layer index) limits the scan to defs at or below it and resolves `~subprofile` at or below
-        it too — the per-layer pane's pristine read.'''
+    def profile_removed(self, profile):
+        '''Components a `~term` drops anywhere in `profile`'s chain — what `profile show` lists as
+        declined (a component explicitly removed, so it isn't a member even if an include brought
+        it). A `~subprofile` term contributes ALL of that subprofile's expanded members.'''
         out = set()
         for idx, _val, _src in self._chain.get(profile, ()):
-            if ceiling is not None and idx > ceiling:
-                continue
             for term in self._own_terms(profile, idx):
                 op, ref = _split_term(term)
                 if op != '~':
                     continue
-                sub = self._top_at(ref, ceiling)
+                sub = self._top(ref)
                 if sub is not None and ref != profile:     # ~subprofile -> all its members
                     try:
-                        out.update(self._expand(ref, sub[0], sub[1], (), ceiling=ceiling))
+                        out.update(self._expand(ref, sub[0], sub[1], ()))
                     except ConfigError:
                         pass
                 else:                                      # ~component
@@ -651,26 +629,16 @@ class Config:
         supplied the universe. Sorted for a stable menu order.'''
         return sorted(self._universe_provider() if self._universe_provider else [])
 
-    def _top_at(self, name, ceiling):
-        '''The highest chain entry (idx, val, src) for `name` whose layer index is <= `ceiling`
-        (the top when ceiling is None). None if the profile has no def at or below that layer. Lets
-        the per-layer pane read a profile as a lower (system) layer sees it — includes resolve to
-        their own at-or-below defs too, so a cloned/shadowing user layer never leaks into that view.'''
+    def _top(self, name):
+        '''The top chain entry (idx, val, src) for profile `name`, or None if it isn't defined.'''
         entries = self._chain.get(name, ())
-        if not entries:
-            return None
-        if ceiling is None:
-            return entries[-1]
-        below = [e for e in entries if e[0] <= ceiling]
-        return below[-1] if below else None
+        return entries[-1] if entries else None
 
-    def _expand(self, name, idx, val, stack, own_only=False, ceiling=None):
+    def _expand(self, name, idx, val, stack, own_only=False):
         '''Expand one profile definition (name@idx) to its component list. `stack` holds the
         (name, layer_index) frames being expanded, so cycle detection distinguishes a self-
         inherit chain (same name, strictly-lower layer) from a real loop. `own_only` skips
-        `+other` includes (see profile_own_components). `ceiling` (a layer index) restricts every
-        `+other`/`~other` resolution to that profile's highest def AT OR BELOW it — the per-layer
-        pane's at-or-below read, so a system row stays pristine under a same-name user clone.'''
+        `+other` includes (see profile_own_components).'''
         key = (name, idx)
         if key in stack:
             raise ConfigError('profile include cycle: '
@@ -689,22 +657,22 @@ class Config:
                             f'profile "{name}": `+{name}` has no lower-layer definition to '
                             f'inherit (nothing to amend)')
                     lidx, lval, _ = lower[-1]
-                    members = self._expand(name, lidx, lval, stack, own_only, ceiling)
-                else:                                      # another profile's def (at or below ceiling)
-                    sub = self._top_at(ref, ceiling)
+                    members = self._expand(name, lidx, lval, stack, own_only)
+                else:                                      # another profile's top def
+                    sub = self._top(ref)
                     if not sub:
                         raise ConfigError(
                             f'profile "{name}": `+{ref}` includes an undefined profile "{ref}"')
                     sidx, sval, _ = sub
-                    members = self._expand(ref, sidx, sval, stack, ceiling=ceiling)
+                    members = self._expand(ref, sidx, sval, stack)
                 for c in members:
                     if c not in out:
                         out.append(c)
             elif op == '~':                                # remove: a subprofile's members, or one component
-                sub = self._top_at(ref, ceiling) if ref != name else None
+                sub = self._top(ref) if ref != name else None
                 if sub is not None and ref in self._chain:  # a defined profile -> subtract its whole member set
                     sidx, sval, _ = sub                     # (order-sensitive, like ~component: a later add re-adds)
-                    drop = set(self._expand(ref, sidx, sval, stack, ceiling=ceiling))
+                    drop = set(self._expand(ref, sidx, sval, stack))
                     out = [c for c in out if c not in drop]
                 elif ref in out:                           # a component
                     out.remove(ref)

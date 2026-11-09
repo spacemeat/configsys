@@ -376,7 +376,7 @@ def test_thumb_scrollbar_math():
 
 
 def test_visible_pnodes_cache_invalidates_on_expand_and_filter(tmp_path):
-    # D2 perf: visible_pnodes is memoized on (config identity, filter, grouping, expand/collapse). The
+    # D2 perf: visible_pnodes is memoized on (config identity, filter, expand/collapse). The
     # cache must refresh when any of those UI toggles change, or the tree would go stale.
     from configsys.tui.menu import ProfileScreen
     ps = ProfileScreen(_ctx(tmp_path))

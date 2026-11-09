@@ -22,7 +22,7 @@ import curses
 from fnmatch import fnmatchcase
 
 from .. import menu
-from ..menu import (_GKEY, ProfileScreen as _ProfilesModel, _attr_filter_modal, _busy,
+from ..menu import (ProfileScreen as _ProfilesModel, _attr_filter_modal, _busy,
                     _component_machines_modal, _draw_nav, _fill_bg, _filter_edit, _find_edit, _fit,
                     _machines_modal, _page_rows, _panel, _pick_method_name, _popup_choose, _put,
                     _scroll_reveal, _scroll_top, _scrollbar_h, _scrollbar_v, _wordwrap, _wrap)
@@ -112,12 +112,6 @@ class ProfilesScreen(Screen):
         lw = max(16, w // 6) + 6                          # profiles pane: narrow, leaving the grid room (+6 cols)
         rleft, rw = lw + 1, w - lw - 1
         prof = vm.prof                                   # the selected profile
-        _ceil = ps.cur_ceiling()                          # per-layer read: a system row shows pristine members
-        # the legacy painter computed these (unused in the paint) — kept as calls so the model's
-        # per-frame caches warm identically
-        ps.members(prof, _ceil)
-        ps.own_members(prof, _ceil)
-        ps.removed_members(prof, _ceil)
         _disp = ctx.config.dispositions()                # {comp: seen|interesting} for the catalog markers
         ov_inst, ov_orph, ov_uninst = ps.overlay()       # install-axis overlay data (empty unless `O` on)
         _sel = pal.sel_bg_rgb
@@ -142,15 +136,8 @@ class ProfilesScreen(Screen):
         ps.ltop = _scroll_top(ps.lcur, ps.ltop, lih, len(vnodes))
         _lho = getattr(ps, 'lhoff', 0)                   # browse-pane horizontal char offset
         _lmax = 0                                        # widest visible row -> sets ps.lhmax below
-        group_counts = {}                                # per-group root count for the header badges
-        if ps.grouped:
-            _pf = ps.pfilter.lower()
-            for _p in (ps.profiles if not _pf else [x for x in ps.profiles if _pf in x.lower()]):
-                for g in ps._profile_groups(_p):         # a profile counts under every group it defines in
-                    group_counts[g] = group_counts.get(g, 0) + 1
         for vis, i in enumerate(range(ps.ltop, min(len(vnodes), ps.ltop + lih))):
             name, depth, key, expandable, expanded, kind = vnodes[i][:6]
-            node_group = vnodes[i][6] if len(vnodes[i]) > 6 else None
             y = lit + vis
             cur = i == ps.lcur
             foc = cur and ps.focus == 'left'
@@ -161,24 +148,12 @@ class ProfilesScreen(Screen):
             elif rbg is not None:
                 _put(stdscr, y, lil, ' ' * liw,
                      curses.A_REVERSE if low_color else pal.fill(y, lil, h, w, bg=rbg))
-            if kind == 'group':                           # a layer-group header row
-                gid = key[len(_GKEY):]
-                _gnew, _gint = ps.group_new_count(gid)
-                hdr = (f'{"▾" if expanded else "▹"} {name} ({group_counts.get(gid, 0)})'
-                       + (f'  ⁺{_gnew}' if _gnew else '') + (f'  ☆ {_gint}' if _gint else ''))
-                _lmax = max(_lmax, len(hdr))
-                _put(stdscr, y, lil, _fit(hdr.upper()[_lho:], liw),
-                     pal.style('menu_header', y, lil, h, w, selected=foc, bg=(None if low_color else rbg))
-                     | rev)
-                continue
             exp = '▾' if expanded else ('▹' if expandable else ' ')
             scope = '▸' if i == ps.lcur else ' '         # marks the profile the catalog is showing
             prefix = list(f'{scope}{"  " * depth}{exp}')
             # Exclusion attribution: paint a `~` in the at-fault ancestor's status-glyph column.
             struck = False
             _parts = key.split('\x00')
-            if node_group:                                        # a grouped key is group-prefixed
-                _parts = _parts[1:]
             for ai, anc in enumerate(_parts[:-1]):                # ancestors; path index == their depth
                 try:
                     if name in ctx.config.profile_excludes(anc):
@@ -188,10 +163,9 @@ class ProfilesScreen(Screen):
                         struck = True
                 except Exception:                                  # noqa: BLE001 — a bad profile marks nothing
                     pass
-            _ceil_r = ps.group_ceiling(node_group)
-            nnew = ps.profile_new_count(name, _ceil_r)
-            nint = ps.profile_interesting_count(name, _ceil_r)
-            nunt = ps.profile_untracked_count(name, _ceil_r)   # installed here but not tracked (claimable)
+            nnew = ps.profile_new_count(name)
+            nint = ps.profile_interesting_count(name)
+            nunt = ps.profile_untracked_count(name)       # installed here but not tracked (claimable)
             newtag = f'  ⁺{nnew}' if nnew else ''
             inttag = f'  ☆ {nint}' if nint else ''
             unttag = f'  ⊙ {nunt}' if nunt else ''
@@ -227,11 +201,9 @@ class ProfilesScreen(Screen):
         # DEFINITION — its top layer's authored term list; a note names lower layers.
         _defs = ctx.config.profile_layer_defs(prof) if (desc_h and ps.focus == 'left' and prof) else []
         if _defs:
-            _grp = ps.cur_group()
-            _rowdef = next((d for d in _defs if ps._fold_role(d['role']) == _grp), _defs[-1]) if _grp else _defs[-1]
-            _ro = ' · browse-only' if ps.cur_readonly() else ''
+            _rowdef = _defs[-1]                                   # its top layer's definition
             dit, dil, dih, diw = _panel(stdscr, pal, top, rleft, desc_h, rw,
-                                        f'profile: {prof}  [{_rowdef["role"]}{_ro}]', False, h, w)
+                                        f'profile: {prof}  [{_rowdef["role"]}]', False, h, w)
             top_def = _rowdef                                     # show THIS layer's authored terms
             shown = [f'"{t}"' if str(t).startswith('^') else str(t) for t in top_def['terms']]
             body = '[ ' + '  '.join(shown) + ' ]' if shown else '[ ]'
@@ -511,9 +483,7 @@ class ProfilesScreen(Screen):
             ps.focus = 'right' if ps.focus == 'left' else 'left'   # tab / shift-tab toggle
         elif pfact == 'confirm' and ps.focus == 'left':
             _nd = ps.cur_node()
-            if ps.is_group_header(_nd):        # a group header: fold/unfold it
-                (ps.collapse_cur if _nd[4] else ps.expand_cur)()
-            elif _nd and _nd[3]:               # expandable -> drill the tree in place (reveal subs)
+            if _nd and _nd[3]:               # expandable -> drill the tree in place (reveal subs)
                 (ps.collapse_cur if _nd[4] else ps.expand_cur)()
             else:
                 ps.focus = 'right'             # a leaf profile: open the components pane for it
@@ -686,7 +656,7 @@ class ProfilesScreen(Screen):
             # left pane is focused, else the catalog rows currently shown.
             if ps.focus == 'left':
                 prof = ps.cur_curate()
-                allvis = ps.members(prof, ps.cur_ceiling()) if prof else set()
+                allvis = ps.members(prof) if prof else set()
             else:
                 allvis = set(ps.vcatalog())
             if allvis:
