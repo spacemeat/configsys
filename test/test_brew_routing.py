@@ -181,7 +181,8 @@ def test_real_native_still_beats_brew(real):
 
 
 def test_real_homebrew_pulled_when_brew_chosen_off_atomic(real):
-    units, errs = real('ubuntu', '24.04').resolve_resilient(['croc'])
+    # (pinned to brew, so the catalog's other methods for it never change what this tests)
+    units, errs = real('ubuntu', '24.04').resolve_resilient(['croc'], extra_pins={'croc': 'brew'})
     assert not errs
     assert {'brew\\croc', 'script\\homebrew', 'apt\\curl', 'apt\\git'} <= set(units)
 

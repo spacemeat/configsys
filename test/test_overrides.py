@@ -158,3 +158,20 @@ def test_resolve_resilient_reports_unsatisfiable_requirement(tmp_path):
     units, errors = r.resolve_resilient(['btop', 'xclip-glue'])
     assert 'apt\\btop' in units                               # unrelated component fine
     assert 'xclip-glue' in errors and 'shell-glue' in errors['xclip-glue']
+
+
+def test_disjoint_cpu_twins_of_one_via_both_survive_the_merge():
+    # review-2026-11-2 catalog pass: an x86_64 + an aarch64 tarball with the same `when:` used to
+    # collapse into one (merge identity was only (via, when))
+    from configsys.routes import _merge_component_chain
+    spec = {'install': [{'via': 'tarball', 'cpu-names': {'x86_64': 'x64'}, 'url': 'a'},
+                        {'via': 'tarball', 'cpu-names': {'aarch64': 'aarch64'}, 'url': 'b'}]}
+    merged = _merge_component_chain('x', [(spec, 'routes.hu')])
+    assert sorted(b['url'] for b in merged['install']) == ['a', 'b']
+    # a higher layer naming no cpus still overrides every same (via, when) twin below it
+    over = {'install': [{'via': 'tarball', 'url': 'mine'}]}
+    merged = _merge_component_chain('x', [(spec, 'routes.hu'), (over, 'user.hu')])
+    assert [b['url'] for b in merged['install']] == ['mine']
+    # and a drop naming no cpus retracts both
+    drop = {'install': [{'via': 'tarball', 'drop': True}]}
+    assert _merge_component_chain('x', [(spec, 'routes.hu'), (drop, 'user.hu')])['install'] == []

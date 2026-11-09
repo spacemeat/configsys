@@ -78,9 +78,18 @@ def _check_component_keys(name, spec):
 
 
 def _binding_identity(b):
-    '''A binding's merge identity: (via, when-as-written). A higher-layer binding with the same
-    identity OVERRIDES the lower; a `drop:` binding with this identity retracts it.'''
-    return (b.get('via'), None if b.get('when') is None else str(b.get('when')).strip())
+    '''A binding's merge identity: (via, when-as-written, the cpus it covers or None). The cpus come
+    from `cpu-names:` (or a cpu-keyed `asset:`), so two disjoint-cpu twins of one via + when — the
+    x86_64 and aarch64 tarballs of one release — are two bindings, not one silently collapsing into
+    the other (they used to need a dummy `when: "linux"` to stay apart). A higher-layer binding with
+    the same identity OVERRIDES the lower; one that names no cpus overrides every same (via, when)
+    binding below it; a `drop:` retracts them the same way.'''
+    cpus = b.get('cpu-names')
+    if not isinstance(cpus, dict):
+        asset = b.get('asset')
+        cpus = asset if isinstance(asset, dict) and not ({'deb', 'rpm', 'pacman'} & set(asset)) else None
+    key = tuple(sorted(cpus)) if isinstance(cpus, dict) and cpus else None
+    return (b.get('via'), None if b.get('when') is None else str(b.get('when')).strip(), key)
 
 
 def _merge_component_chain(name, chain):
@@ -107,9 +116,16 @@ def _merge_component_chain(name, chain):
                 attrs.append(a)
         for b in (spec.get('install') or []):
             ident = _binding_identity(b)
+            # a binding naming no cpus speaks for every same (via, when) binding below it
+            covered = ([k for k in bindings if k[:2] == ident[:2]] if ident[2] is None
+                       else [ident] if ident in bindings else [])
             if _truthy(b.get('drop')):
-                bindings.pop(ident, None)
+                for k in covered:
+                    bindings.pop(k, None)
                 continue
+            for k in covered:
+                if k != ident:
+                    bindings.pop(k, None)
             bindings[ident] = {**b, '__source__': src}
     out = {**fields, 'install': list(bindings.values())}
     if attrs:
