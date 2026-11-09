@@ -63,6 +63,7 @@ _MOVED = {  # name -> the module that defines it
     '_plugin_code_elem': 'panes', '_DF_STATE_ELEM': 'panes',
     '_ContentRootLabelMixin': 'panes', 'DotfilesScreen': 'panes', 'GlueScreen': 'panes',
     '_DF_HEADERS': 'panes', '_df_cells': 'panes', '_is_user_glue': 'panes', '_glue_cells': 'panes',
+    '_GLUE_HEADERS': 'panes',
     '_sample_components_state': 'preview', '_SampleCfg': 'preview', '_SampleCtx': 'preview',
     '_sample_profiles_state': 'preview', '_sample_plugins_state': 'preview',
     '_sample_glue_state': 'preview', '_sample_dotfiles_state': 'preview', 'ThemeScreen': 'preview',
@@ -104,12 +105,6 @@ def _route_key(keymap, screen, ch):
     if gact in ROUTER_ACTIONS:
         return gact, None
     return None, keymap.screen_for(ch)
-
-
-
-_GLUE_HEADERS = ['component', 'state', 'conf.d', 'source']
-
-
 
 
 def run(ctx):

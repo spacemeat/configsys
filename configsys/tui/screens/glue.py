@@ -15,9 +15,8 @@ the three MVVM seams (docs/tui-architecture.md):
 from .. import menu
 from ...drivers.glue import GLUE_STATE_LABEL as _GLUE_STATE_LABEL
 from ..flows import _pretend_note
-from ..menu import _GLUE_HEADERS
 from ..paint import _fit, _page_rows, _panel, _put
-from ..panes import _DF_STATE_ELEM, _glue_cells, _is_user_glue, GlueScreen as _GlueModel
+from ..panes import _DF_STATE_ELEM, _GLUE_HEADERS, _glue_cells, _is_user_glue, GlueScreen as _GlueModel
 from ..screen import suspended
 from . import table
 from .base import Intent, Screen, ViewModel, result_ok, results_note

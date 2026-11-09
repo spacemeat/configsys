@@ -293,3 +293,14 @@ def test_activate_group_builds_an_inline_block_once(ctx, monkeypatch, tmp_path):
     assert built == ['nu'] and '6 snippet(s)' in intent.note, intent.note
     block = gs.gd._expand('~/.config/nushell/config.nu').read_text()
     assert all(f'let s{i} = {i}' in block for i in range(6))
+
+
+def test_the_glue_headers_live_beside_their_cells():
+    # the Glue table's columns sit next to _glue_cells (as Dotfiles' do), not in the router; the
+    # menu facade still resolves the old name
+    import inspect
+    from configsys.tui import panes
+    from configsys.tui.screens import glue
+    assert panes._GLUE_HEADERS == ['component', 'state', 'conf.d', 'source']
+    assert menu._GLUE_HEADERS is panes._GLUE_HEADERS
+    assert 'from ..menu import _GLUE_HEADERS' not in inspect.getsource(glue)

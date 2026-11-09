@@ -1159,6 +1159,10 @@ def _is_user_glue(row):
     return len(row) > 6 and bool(row[6])
 
 
+# Columns: COMPONENT, STATE, CONF.D (the snippet's link in the shell's conf.d), SOURCE.
+_GLUE_HEADERS = ['component', 'state', 'conf.d', 'source']
+
+
 def _glue_cells(row):
     '''The four column strings for a glue row — state in the active/available/inactive vocabulary
     (a user snippet whose conf.d link is missing reads 'inactive').'''
