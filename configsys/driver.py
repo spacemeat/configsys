@@ -47,6 +47,10 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
                                   location_override(rc), display_path(p)
     command trust               : command_trusted(rc), untrusted_command_result(rc)
+    files + names               : will_write(path) (call BEFORE writing into a content root — your
+                                  primary plugin's tree; the write journal commits exactly that),
+                                  installed_name(rc, driver=None) (a binding's `installed-name:`,
+                                  scalar or driver-keyed map, for one manager)
   Injection : __init__(runner, paths) — runner.run(cmd, *, sudo=False, capture=True)
               -> Result(.ok/.returncode/.stdout) (also importable from configsys.plugins);
               paths.home/.env/.expand(p)/...
@@ -444,6 +448,24 @@ class Driver:
         except OSError:
             pass
         return None
+
+    def will_write(self, path):
+        '''Announce a write into `path` BEFORE making it — the primary plugin's write journal
+        (primarygit) commits exactly the announced paths that changed, so a driver writing into a
+        content root (your primary's dotfiles/glue) must say so, or its write reads as your hand edit
+        (review-2026-11-2 F3: frozen here so a rename of primarygit can't silently break a plugin).'''
+        from . import primarygit
+        primarygit.will_write(path)
+
+    @staticmethod
+    def installed_name(rc, driver=None):
+        '''A binding's `installed-name:` for one package manager (`driver`, default the unit's own),
+        or None — scalar for every manager, or a driver-keyed map with an optional `default:`. The one
+        helper a plugin driver should use (hand-reading the field crashes on the map form — F3).'''
+        inm = rc.fields.get('installed-name')
+        if isinstance(inm, dict):
+            inm = inm.get(driver or rc.driver) or inm.get('default')
+        return str(inm) if inm else None
 
     def location_override(self, rc):
         '''The per-component install-location override for this unit, or None. Set from the config

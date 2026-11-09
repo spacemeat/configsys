@@ -46,7 +46,8 @@ FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_ke
                 'outdated_signal', 'upstream_version', 'download_target', 'arch_token',
                 'location_override', 'command_trusted', 'untrusted_command_result',
                 'expected_sha256', 'verify_download',       # (review-2026-11-2 A1: asset checksums)
-                'latest_index', 'batched_latest', 'batched_held')   # (C1: batched candidates)
+                'latest_index', 'batched_latest', 'batched_held',   # (C1: batched candidates)
+                'will_write', 'installed_name')            # (F3: the write journal + installed-name)
 
 
 def test_frozen_optional_hooks_present():
@@ -110,3 +111,21 @@ def test_register_rejects_a_nameless_driver():
         assert False, 'expected ValueError for a nameless driver'
     except ValueError:
         pass
+
+
+def test_installed_name_takes_both_forms():
+    # F3 / drivers-os-16: a plugin driver reading the field by hand crashed on the map form
+    rc = types.SimpleNamespace(driver='apt', fields={'installed-name': {'apt': 'cargo', 'default': 'rust'}})
+    assert api.Driver.installed_name(rc) == 'cargo' and api.Driver.installed_name(rc, 'dnf') == 'rust'
+    rc.fields = {'installed-name': 'libfoo'}
+    assert api.Driver.installed_name(rc, 'pacman') == 'libfoo'
+
+
+def test_the_splash_abi_is_pinned():
+    # F3 / tui-theme-19: re-exported as frozen; now pinned like the Driver surface
+    import inspect
+    assert api.SplashFrame._fields == ('progress', 'counts', 'label', 'dt', 'elapsed', 'done')
+    for attr in ('name', 'fps', 'min_duration'):
+        assert hasattr(api.Splash, attr), attr
+    assert list(inspect.signature(api.Splash.__init__).parameters)[:5] == ['self', 'scr', 'pal', 'size', 'seed']
+    assert callable(api.Splash.render) and callable(api.register_splash)

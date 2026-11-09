@@ -271,7 +271,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   (routing-20/31/34) · [open]
 - **F3** `primarygit.will_write` is required of code-plugin drivers but isn't in the frozen ABI; the splash
   ABI is re-exported as frozen but not pinned; installed-name dict form has no shared helper.
-  (primary-22, tui-theme-19, drivers-os-16) · [open]
+  (primary-22, tui-theme-19, drivers-os-16) · [done — done — Driver.will_write(path) and Driver.installed_name(rc, driver) are frozen public helpers (docstring list + test_abi_surface); the splash ABI (SplashFrame fields, Splash attrs + constructor, register_splash) is pinned by the ABI test; configsys-void reads installed-name through the helper (its own commit)]
 - **F4** Private reach-ins (app.py into a dozen modules; `Config._layers`; ad-hoc ctx attributes; three
   "--pretend, nothing written" conventions). (app-cli-24/29, config-layers-24, tui-core-21, tui-screens-23,
   actions-35) · [open]

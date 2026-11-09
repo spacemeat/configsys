@@ -20,11 +20,9 @@ def installed_name(rc, driver=None):
     a driver-keyed map (`installed-name: { apt: libreoffice-core }`, optional `default:`) — an
     apt-ism (a Debian meta over split packages) must not make pacman/dnf/brew probe a package that
     doesn't exist there; a manager the map doesn't name (and no `default:`) probes the ordinary
-    name. A scalar applies to every manager (back-compat). `driver` defaults to the unit's own.'''
-    inm = rc.fields.get('installed-name')
-    if isinstance(inm, dict):
-        inm = inm.get(driver or rc.driver) or inm.get('default')
-    return str(inm) if inm else None
+    name. A scalar applies to every manager (back-compat). `driver` defaults to the unit's own.
+    (The frozen, plugin-facing spelling is `Driver.installed_name`.)'''
+    return Driver.installed_name(rc, driver)
 
 
 class NativePkgManager(Driver):
