@@ -14,8 +14,9 @@ Usage:
   python3 tools/namesweep.py                 # summary: package count per manager
   python3 tools/namesweep.py --manager apt   # one package name per line (feed to a container)
   python3 tools/namesweep.py --json          # full {manager: {pkg: [components]}} as JSON
-  python3 tools/namesweep.py --sweep [--only apt,dnf]   # verify in podman; exit 1 on drift, 2 if
-                                                        # a manager couldn't be checked
+  python3 tools/namesweep.py --sweep [--only apt,dnf]   # verify in podman; exit 1 on drift (any
+                                                        # unchecked manager still named), else 2
+                                                        # if a manager couldn't be checked
   python3 tools/namesweep.py --sweep --plugin <routes.hu> --context <block> --manager <mgr>
           --image <image> [--setup <file.sh>] [--allowlist <file.hu>]   # a plugin OS
 (test/run-name-sweep-in-podman.sh wraps --sweep.)
@@ -189,7 +190,9 @@ _DEFAULT_MANAGERS = tuple(m for m, _b, _v in MANAGERS)
 
 def sweep(only=None):
     '''Verify every native package configsys maps to still exists in its target repos. Prints
-    drift (renames/removals) and returns 1 if any survives the allowlist, else 0.'''
+    drift (renames/removals) and returns 1 if any survives the allowlist (even when another manager
+    went unchecked — the NOT CHECKED summary is printed either way), 2 if none drifted but a manager
+    couldn't be checked, else 0.'''
     if not shutil.which('podman'):
         print('namesweep: podman not found', file=sys.stderr)
         return 2
@@ -236,9 +239,11 @@ def sweep(only=None):
     n = sum(len(v) for v in drift.values())
     if n:
         print(f'\nname sweep: {n} package(s) drifted — fix the route or allowlist them.')
-        return 1
     if failed:                                   # no verdict for these managers — never "OK"
-        print(f'\nname sweep: NOT CHECKED — {", ".join(failed)} (see above)')
+        print(f'{"" if n else chr(10)}name sweep: NOT CHECKED — {", ".join(failed)} (see above)')
+    if n:
+        return 1                                 # drift outranks: 1 even when some went unchecked
+    if failed:
         return 2
     print('\nname sweep: OK — every native package exists in its target repo.')
     return 0

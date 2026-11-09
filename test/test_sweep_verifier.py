@@ -41,6 +41,24 @@ def test_sweep_exits_nonzero_when_a_manager_was_not_checked(monkeypatch, capsys)
     assert 'NOT CHECKED' in out.out and 'now exists' not in out.out    # no bogus allowlist advice
 
 
+def test_drift_alongside_an_unchecked_manager_still_names_it(monkeypatch, capsys):
+    # drift (exit 1) used to return before the NOT CHECKED summary, so a manager with no verdict was
+    # only an stderr line above — the summary now says both; the exit stays 1 (drift outranks)
+    monkeypatch.setattr(namesweep.shutil, 'which', lambda _x: '/usr/bin/podman')
+    monkeypatch.setattr(namesweep, 'extract', lambda **_k: {'apk': {'curl': ['curl']}, 'apt': {'jq': ['jq']}})
+    monkeypatch.setattr(namesweep, '_load_allowlist', lambda *a: {})
+
+    def run(argv, **_k):
+        if 'alpine' in ' '.join(argv):
+            return SimpleNamespace(stdout=f'curl\n{namesweep.DONE}\n', stderr='', returncode=0)
+        return SimpleNamespace(stdout='', stderr='manifest unknown', returncode=125)
+    monkeypatch.setattr(namesweep.subprocess, 'run', run)
+    assert namesweep.sweep(only={'apk', 'apt'}) == 1
+    out = capsys.readouterr().out
+    assert 'DRIFT  apk: package "curl"' in out and '1 package(s) drifted' in out
+    assert 'NOT CHECKED — apt' in out
+
+
 def test_sweep_rejects_an_unknown_manager(monkeypatch, capsys):
     monkeypatch.setattr(namesweep.shutil, 'which', lambda _x: '/usr/bin/podman')
     assert namesweep.sweep(only={'fedora'}) == 2                       # a block, not a manager

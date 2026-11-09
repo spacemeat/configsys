@@ -95,7 +95,7 @@ Missing names → the components that map to them (the extractor's reverse map),
 `DRIFT  dnf: package "sagemath" NOT FOUND  (component: sagemath)`. `namesweep.py --sweep` exits:
 
 - **1** — some missing name survives the allowlist (drift is reported first, even when another
-  manager also went unchecked);
+  manager also went unchecked — that manager is still named in the `NOT CHECKED` summary line);
 - **2** — no verdict: podman missing, an unknown manager in `--only` (it is validated against the
   verifier table, so `--only fedora` — a block, not a manager — errors instead of sweeping
   nothing), or any manager NOT CHECKED (`name sweep: NOT CHECKED — <managers>`);
