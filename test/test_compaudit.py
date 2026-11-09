@@ -213,3 +213,41 @@ def test_github_token_precedence_and_gh_fallback(monkeypatch):
     monkeypatch.setattr(subprocess, 'run',             # gh present but logged out
                         lambda *a, **k: subprocess.CompletedProcess(a, 1, stdout='', stderr='not logged in'))
     assert ca.github_token() == (None, None)
+
+
+# -- outages are not findings (review-2026-11-2 tests-tools-07) ---------------------------------
+
+class DownFetcher(FakeFetcher):
+    '''The repo page answers; everything about releases fails (network error / throttled).'''
+    def __init__(self, status):
+        super().__init__({})
+        self.status = status
+
+    def get(self, url, follow=True):
+        if url == 'https://github.com/a/b':
+            return (200, url, '')
+        return (self.status, url, None)
+
+
+@pytest.mark.parametrize('status', [None, 429, 503])
+def test_an_unreadable_release_page_is_a_note_never_broken(status):
+    asset = {'component': 'x', 'via': 'tarball', 'glob': 'x-*-linux.tar.gz', 'when': None}
+    _facts, finds = ca.probe_github(DownFetcher(status), 'a/b', [asset])
+    kinds = {(f['severity'] if 'severity' in f else f.get('kind'), f.get('code')) for f in finds}
+    assert not any('broken' in str(f) for f in finds)
+    assert any('probe-failed' in str(f) for f in finds), kinds
+
+
+def test_a_torn_cache_file_is_a_miss(tmp_path):
+    f = ca.Fetcher.__new__(ca.Fetcher)
+    f.dir, f.ttl, f.offline, f.token = tmp_path, 3600, True, None
+    import hashlib
+    url = 'https://example.org/x'
+    key = hashlib.sha256(f'True:{url}'.encode()).hexdigest()
+    (tmp_path / f'{key}.json').write_text('{"status": 200, "fin')          # torn mid-write
+    assert f.get(url) == (None, url, None)                                 # offline miss, no crash
+
+
+def test_run_probes_survives_flathub_down():
+    ca.run_probes({}, FakeFetcher({}))                                     # 404 everywhere: no crash
+    ca.run_probes({}, DownFetcher(None))

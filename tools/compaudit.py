@@ -335,8 +335,11 @@ class Fetcher:
         key = hashlib.sha256(f'{follow}:{url}'.encode()).hexdigest()
         cf = self.dir / f'{key}.json'
         if cf.exists() and (self.offline or time.time() - cf.stat().st_mtime < self.ttl):
-            d = json.loads(cf.read_text())
-            return d['status'], d['final'], d['body']
+            try:
+                d = json.loads(cf.read_text())
+                return d['status'], d['final'], d['body']
+            except (ValueError, KeyError, OSError):
+                pass                                # a torn/odd cache file is a miss, never a crash
         if self.offline:
             return None, url, None
         host = urllib.parse.urlparse(url).hostname
@@ -348,7 +351,9 @@ class Fetcher:
             if host == 'crates.io':
                 time.sleep(1)                       # crates.io crawler policy: 1 req/s
         if status is not None and (status < 500 and status != 429 and status != 403):
-            cf.write_text(json.dumps({'status': status, 'final': final, 'body': body}))
+            tmp = cf.with_name(f'{cf.name}.{threading.get_ident()}.tmp')   # atomic: never a torn file
+            tmp.write_text(json.dumps({'status': status, 'final': final, 'body': body}))
+            os.replace(tmp, cf)
         return status, final, body
 
     @staticmethod
@@ -363,8 +368,8 @@ class Fetcher:
         except urllib.error.HTTPError as e:
             loc = e.headers.get('Location') if 300 <= e.code < 400 else None
             return e.code, loc or url, None
-        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
-            return None, url, f'network error: {e}'
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError):
+            return None, url, None                  # no status, no body: callers read it as a failed probe
 
 
 
@@ -395,6 +400,9 @@ def probe_github(f, repo, assets):
                                     proposed=f'github: {m.group(1)}'))
     target = facts.get('full_name') or repo
     st, loc, _b = f.get(f'https://github.com/{target}/releases/latest', follow=False)
+    # a fetch that got no answer, or a throttle/refusal, is no evidence about the assets: those turn
+    # into a `note probe-failed`, never a "broken" finding (review-2026-11-2 tests-tools-07)
+    failed = [st is None or st >= 429]
     tag = None
     if st in (301, 302) and loc and '/releases/tag/' in loc:
         tag = urllib.parse.unquote(loc.rsplit('/releases/tag/', 1)[1])
@@ -403,11 +411,12 @@ def probe_github(f, repo, assets):
         return facts, findings
     # Mirror versions._github_asset_url_live: the driver tries `latest`, then walks recent releases
     # (prereleases included) for one that carries the asset; matching is case-insensitive.
-    latest = _release_assets(f, target, tag) if tag else []
+    latest = _release_assets(f, target, tag, failed) if tag else []
     facts['latest_assets'] = latest
     pending = [a for a in assets if not _glob_hit(a['glob'], latest)]
     if pending:
         st, _u, html = f.get(f'https://github.com/{target}/releases')
+        failed.append(st is None or st >= 429)
         tags = []
         for t in re.findall(r'/releases/tag/([^"?#]+)"', html or ''):
             t = urllib.parse.unquote(t)
@@ -415,7 +424,7 @@ def probe_github(f, repo, assets):
                 tags.append(t)
         found = {}
         for t in tags[:10]:
-            names = _release_assets(f, target, t)
+            names = _release_assets(f, target, t, failed)
             for a in pending:
                 if a['glob'] not in found and _glob_hit(a['glob'], names):
                     found[a['glob']] = t
@@ -423,6 +432,11 @@ def probe_github(f, repo, assets):
                 break
         for a in pending:
             where = found.get(a['glob'])
+            if not where and any(failed):
+                findings.append(_fd('note', 'probe-failed',
+                                    f'{a["component"]} via:{a["via"]}: could not read {target}\'s releases '
+                                    f'(network error or throttled) — {a["glob"]!r} not checked', binding=_bkey(a)))
+                continue
             if where and not tag:
                 findings.append(_fd('note', 'prerelease-only',
                                     f'{a["component"]} via:{a["via"]}: {target} publishes no stable release; '
@@ -440,8 +454,10 @@ def probe_github(f, repo, assets):
     return facts, findings
 
 
-def _release_assets(f, repo, tag):
-    _st, _u, html = f.get(f'https://github.com/{repo}/releases/expanded_assets/{urllib.parse.quote(tag)}')
+def _release_assets(f, repo, tag, failed=None):
+    st, _u, html = f.get(f'https://github.com/{repo}/releases/expanded_assets/{urllib.parse.quote(tag)}')
+    if failed is not None:
+        failed.append(st is None or st >= 429)
     return sorted({urllib.parse.unquote(n) for n in re.findall(r'/releases/download/[^"/]+/([^"?#]+)"', html or '')})
 
 
@@ -593,10 +609,14 @@ def _bkey(a):
 
 def run_probes(units, fetcher):
     '''Attach `probe_facts` + `probe_findings` to each unit in place.'''
-    _st, _u, b1 = fetcher.get('https://flathub.org/api/v2/eol/rebase')
-    _st, _u, b2 = fetcher.get('https://flathub.org/api/v2/eol/message')
-    eol_rebase = rebase_old_to_new(json.loads(b1) if b1 else {})
-    eol_msg = json.loads(b2) if b2 else {}
+    def _json(url):                                 # an unreachable/odd flathub never aborts the scan
+        st, _u, body = fetcher.get(url)
+        try:
+            return json.loads(body) if (st == 200 and body) else {}
+        except ValueError:
+            return {}
+    eol_rebase = rebase_old_to_new(_json('https://flathub.org/api/v2/eol/rebase'))
+    eol_msg = _json('https://flathub.org/api/v2/eol/message')
     aur_all = sorted({p for u in units.values() for p in u['probes'].get('aur', [])})
     aur = probe_aur(fetcher, aur_all) if aur_all else {}
     brew_all = sorted({p for u in units.values() for p in u['probes'].get('brew', [])})

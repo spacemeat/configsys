@@ -132,11 +132,22 @@ _VERIFIERS = {
 }
 
 
+# The verifier's last line: its absence means the container never ran the check (an image that
+# failed to pull, no network, a podman error) — whose empty output would otherwise read as "every
+# name exists" (review-2026-11-2 tests-tools-06).
+DONE = '__CFS_DONE__'
+
+
+class VerifierFailed(RuntimeError):
+    '''The container never completed the check — its output says nothing about the names.'''
+
+
 def _build_snippet(setup, check):
-    '''setup + a read-loop that prints each name whose CHECK fails (i.e. doesn't exist).'''
+    '''setup + a read-loop that prints each name whose CHECK fails (i.e. doesn't exist), then DONE.'''
     return (f'{setup}\n'
             'while IFS= read -r p; do [ -z "$p" ] && continue\n'
-            f'    {check} || echo "$p"; done\n')
+            f'    {check} || echo "$p"; done\n'
+            f'echo {DONE}\n')
 
 
 def _load_allowlist(path=ALLOWLIST):
@@ -150,11 +161,16 @@ def _load_allowlist(path=ALLOWLIST):
 
 
 def _run_verifier(image, snippet, names, timeout=2400):
+    '''-> (missing names, returncode). Raises VerifierFailed when the container never finished
+    the check (no DONE line), so an outage can't pass for "nothing is missing".'''
     proc = subprocess.run(['podman', 'run', '-i', '--rm', image, 'sh', '-c', snippet],
                           input='\n'.join(names) + '\n', capture_output=True, text=True,
                           timeout=timeout)
-    missing = [ln.strip() for ln in proc.stdout.splitlines() if ln.strip()]
-    return missing, proc.returncode
+    lines = [ln.strip() for ln in proc.stdout.splitlines() if ln.strip()]
+    if DONE not in lines:
+        tail = (proc.stderr or '').strip().splitlines()[-1:] or [f'exit {proc.returncode}']
+        raise VerifierFailed(f'{image}: the check never ran — {tail[0]}')
+    return [ln for ln in lines if ln != DONE], proc.returncode
 
 
 # The green gate: all six package families. NOTE openSUSE ships some versioned names
@@ -172,7 +188,12 @@ def sweep(only=None):
     data = extract()
     allow = _load_allowlist()
     targets = only or set(_DEFAULT_MANAGERS)
-    drift, stale = {}, {}
+    unknown = sorted(set(targets) - set(_VERIFIERS))
+    if unknown:                                  # `--only fedora` (a block, not a manager) swept nothing
+        print(f'namesweep: unknown manager(s) {", ".join(unknown)} — known: '
+              f'{", ".join(sorted(_VERIFIERS))}', file=sys.stderr)
+        return 2
+    drift, stale, failed = {}, {}, []
     versions = {m: v for m, _b, v in MANAGERS}
     for mgr, (image, setup) in _VERIFIERS.items():
         image = image.format(ver=versions.get(mgr, ''))
@@ -183,7 +204,12 @@ def sweep(only=None):
         try:
             missing, rc = _run_verifier(image, _build_snippet(setup, _CHECK[mgr]), names)
         except subprocess.TimeoutExpired:
-            print(f'   {mgr}: verifier timed out — skipped', file=sys.stderr)
+            print(f'   {mgr}: verifier timed out', file=sys.stderr)
+            failed.append(mgr)
+            continue
+        except VerifierFailed as e:
+            print(f'   {mgr}: {e}', file=sys.stderr)
+            failed.append(mgr)
             continue
         allowed = allow.get(mgr, set())
         real = {p: data[mgr][p] for p in missing if p not in allowed}
@@ -203,6 +229,9 @@ def sweep(only=None):
     if n:
         print(f'\nname sweep: {n} package(s) drifted — fix the route or allowlist them.')
         return 1
+    if failed:                                   # no verdict for these managers — never "OK"
+        print(f'\nname sweep: NOT CHECKED — {", ".join(failed)} (see above)')
+        return 2
     print('\nname sweep: OK — every native package exists in its target repo.')
     return 0
 
@@ -231,6 +260,9 @@ def sweep_plugin(plugin, context, manager, image, setup='', allowlist=None):
         missing, _rc = _run_verifier(image, _build_snippet(setup, check), names)
     except subprocess.TimeoutExpired:
         print(f'   {context}: verifier timed out', file=sys.stderr)
+        return 2
+    except VerifierFailed as e:
+        print(f'   {context}: {e}', file=sys.stderr)
         return 2
     drift = {p: names_map[p] for p in missing if p not in allow}
     for p in sorted(drift):
