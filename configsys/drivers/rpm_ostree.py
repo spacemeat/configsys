@@ -65,12 +65,15 @@ class RpmOstree(Driver):
 
     def _layer(self, verb, rc):
         pkg = shlex.quote(self._pkg(rc))
+        # the advisory is ONE quoted token built from the raw name — never spliced into a
+        # double-quoted echo, where a `$(…)` in a package name would run (drivers-os-03)
         if _truthy(rc.fields.get('apply-live')):
-            cmd = (f'rpm-ostree {verb} --apply-live -y {pkg} && '
-                   f'echo "configsys: {verb} {pkg} applied live (also staged for next boot)" >&2')
+            msg = shlex.quote(f'configsys: {verb} {self._pkg(rc)} applied live (also staged for next boot)')
+            cmd = f'rpm-ostree {verb} --apply-live -y {pkg} && echo {msg} >&2'
         else:
-            cmd = (f'rpm-ostree {verb} -y {pkg} && '
-                   f'echo "configsys: {verb} {pkg} staged — reboot (or set apply-live) to activate" >&2')
+            msg = shlex.quote(f'configsys: {verb} {self._pkg(rc)} staged — reboot (or set apply-live) '
+                              f'to activate')
+            cmd = f'rpm-ostree {verb} -y {pkg} && echo {msg} >&2'
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def install(self, rc):

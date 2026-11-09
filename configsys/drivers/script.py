@@ -7,8 +7,8 @@ so the black box is explicit in the route rather than hidden in driver code:
   install-cmd     (required) shell command that installs the tool
   version-cmd     (optional) command whose output reports the installed version;
                   absent / failing / empty output  =>  "not installed"
-  version-re      (optional) regex whose group 1 is the version inside version-cmd (and
-                  latest-cmd) output
+  version-re      (optional) regex whose group 1 (the whole match when it has no group) is the
+                  version inside version-cmd (and latest-cmd) output
   latest-cmd      (optional) command whose output reports the UPSTREAM/candidate version (same
                   version-re applied) — e.g. `apt-cache policy <pkg> | grep Candidate` for a
                   script that's really a package install. Absent => falls back to a `version:`
@@ -59,8 +59,13 @@ class Script(Driver):
             return None
         rex = rc.fields.get('version-re')
         if rex:
-            m = re.search(rex, out)
-            return m.group(1) if m else None
+            try:                                       # a bad pattern reads unknown (routecheck names it)
+                m = re.search(str(rex), out)
+            except re.error:
+                return None
+            if not m:
+                return None
+            return m.group(1) if m.groups() else m.group(0)   # no capture group: the whole match
         return out.splitlines()[0].strip()
 
     def get_version(self, rc):
@@ -81,7 +86,7 @@ class Script(Driver):
             return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'install-cmd')
         if not cmd:
-            return Result('(script: no install-cmd in route)', 1)
+            return Result.fail(f'{rc.comp}: the script binding has no `install-cmd:`')
         return self.runner.run(cmd, capture=False)
 
     def uninstall(self, rc):
@@ -99,7 +104,7 @@ class Script(Driver):
             return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'upgrade-cmd') or self._cmd(rc, 'install-cmd')
         if not cmd:
-            return Result('(script: no upgrade-cmd/install-cmd in route)', 1)
+            return Result.fail(f'{rc.comp}: the script binding has no `upgrade-cmd:` or `install-cmd:`')
         return self.runner.run(cmd, capture=False)
 
     def set_version(self, rc, version):
@@ -107,8 +112,8 @@ class Script(Driver):
             return self.untrusted_command_result(rc)
         cmd = self._cmd(rc, 'set-version-cmd')
         if not cmd:
-            return Result(f'⚠ "{rc.comp}" declares no set-version-cmd; version pinning '
-                          f'is unsupported for this script.', 1)
+            return Result.fail(f'⚠ "{rc.comp}" declares no set-version-cmd; version pinning '
+                               f'is unsupported for this script.')
         return self.runner.run(cmd.replace('$VERSION', version), capture=False)
 
     def location(self, rc):

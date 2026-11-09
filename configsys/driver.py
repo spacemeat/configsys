@@ -39,13 +39,17 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
                               an optional upgradable_advisory() the core looks up with getattr
     version signals         : outdated_signal(rc), upstream_version(rc), and an optional
                               version_advisory(rc) the core looks up with getattr
-  Helpers a subclass MAY call, in three clusters:
+  Helpers a subclass MAY call, in clusters:
     resolve + fetch an artifact : resolve_version(rc, *, refresh=False), version_spec(rc),
                                   download_url(rc, version), download_target(rc, version=None),
                                   upstream_version(rc), arch(), arch_token(rc),
-                                  expected_sha256(rc, *keys), verify_download(rc, file_q, *keys)
+                                  expected_sha256(rc, *keys), verify_download(rc, file_q, *keys),
+                                  download_failure(rc, version) (the reason when there's no URL)
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
-                                  location_override(rc), display_path(p)
+                                  location_override(rc), display_path(p), home(),
+                                  toolchain_bindirs() (managed rust/go bin dirs, for a build PATH)
+    install markers             : MARKER_PREFIX, marker_path(dir, rc, kind='version'),
+                                  read_marker(path) (empty marker = 'installed', absent = None)
     command trust               : command_trusted(rc), untrusted_command_result(rc)
     files + names               : will_write(path) (call BEFORE writing into a content root — your
                                   primary plugin's tree; the write journal commits exactly that),
@@ -74,7 +78,9 @@ SYSTEM_PREFIX = Path('/opt')
 # A resolved version must look like a version: start alphanumeric, then version punctuation only.
 # Anything else (spaces, shell metacharacters) is refused before it can reach a shell — a tag name
 # is network input, not author text. Covers v-prefixed, dotted, epoch (1:2.3), +build, ~pre forms.
-_SAFE_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+~:-]*$')
+# Public: the op loop checks an explicit `set-version` request against it too (actions.run_plan).
+SAFE_VERSION_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._+~:-]*$')
+_SAFE_VERSION_RE = SAFE_VERSION_RE
 
 # Coarse, universal update tiers for the System Updates lane (docs/system-updates.md).
 # A FIXED set so grouping stays consistent across managers; each driver maps its native notion (apt
@@ -179,8 +185,10 @@ class Driver:
         return self.default_scope
 
     def _scope(self, rc):
-        '''Effective install scope for a component (field wins; else driver default).'''
-        return rc.fields.get('scope') or self.default_scope
+        '''Effective install scope for a component — `scope(rc)`, the one truth: a `scope` field
+        counts only on an honors_scope driver (drivers-os-14: a stray `scope: system` on a fixed-
+        scope binding no longer flips sudo()/scoped_dir() while scope() ignores it).'''
+        return self.scope(rc)
 
     def sudo(self, rc):
         '''System scope needs root for its mutations; user scope never does.'''
@@ -378,6 +386,88 @@ class Driver:
         return (f" && {{ printf '%s  %s\\n' {want.lower()} {file_q} | sha256sum -c --quiet - "
                 f"|| {{ echo 'configsys: download does not match its sha256 — not installed' >&2; "
                 f"rm -f {file_q}; false; }}; }}")
+
+    def download_failure(self, rc, version):
+        '''Why a download driver has no URL to fetch for `rc` — the reason its `Result.fail` carries
+        (drivers-lang-20: shared by tarball/appImage/font/native-pkg-file/source, so the TUI summary
+        and `report` say why, not just "exit 1"). `version` is what resolution produced (may be '').'''
+        spec = self._disco_spec(rc)
+        asset = spec.get('asset') if isinstance(spec, dict) else None
+        if asset:
+            return (f'no release asset matched `{asset}` for {rc.comp} '
+                    f'{version or "(version unresolved)"} — check the asset name/arch/case '
+                    f'for this platform, or run `configsys refresh`')
+        if not rc.fields.get('url'):
+            return (f'{rc.comp}: binding has neither a `url:` template nor a matching '
+                    f'`version:` asset to download')
+        return f'{rc.comp}: could not build a download URL (version unresolved?)'
+
+    # -- path-driver kit (tarball/appImage/font/source; plugin build drivers may use it too) ----
+
+    MARKER_PREFIX = '.configsys-'   # every configsys marker / stage name in an install dir
+
+    def home(self):
+        '''configsys's home (`--home` / CONFIGSYS_HOME aware), never a bare $HOME.'''
+        return Path(self.paths.home) if self.paths is not None else Path.home()
+
+    def marker_path(self, d, rc, kind='version'):
+        '''`<d>/.configsys-<comp>.<kind>` — the marker a path driver keeps in its install dir: the
+        recorded `version`, or an ownership marker (`cloned`, `adopted`).'''
+        return Path(d) / f'{self.MARKER_PREFIX}{rc.comp}.{kind}'
+
+    @staticmethod
+    def read_marker(path):
+        '''The version a marker records: its text, `'installed'` when it is empty (present, version
+        unrecorded — an unresolved discovery wrote it), None when it is absent or unreadable.'''
+        try:
+            v = Path(path).read_text(encoding='utf-8').strip()
+        except (FileNotFoundError, NotADirectoryError, OSError):
+            return None
+        return v or 'installed'
+
+    def toolchain_bindirs(self):
+        '''The bin dirs of the toolchains configsys manages, for a non-interactive build/install
+        shell's PATH (it hasn't sourced the glue): rustup's ~/.cargo/bin, the `go` tarball's
+        `$CONFIGSYS_SDK_DIR/go/bin` as Paths lays it out (env > `dirs: { sdk: }` > default) at user
+        then system scope, and where `go install` puts tools (GOBIN, else GOPATH/bin, else ~/go/bin).
+        One answer instead of three diverging constants (drivers-lang-22). With no `paths` (unit
+        tests) the defaults, `$HOME` left for the shell to expand.'''
+        gobin = self._gobin()
+        cargo = str(self.home() / '.cargo' / 'bin') if self.paths is not None else '$HOME/.cargo/bin'
+        return list(dict.fromkeys([cargo, *self._go_sdk_bindirs(),
+                                   str(gobin) if gobin is not None else '$HOME/go/bin']))
+
+    def _go_sdk_bindirs(self):
+        '''The managed Go toolchain's bin dir at user then system scope (the `go` tarball's
+        `installDir: $CONFIGSYS_SDK_DIR/go`).'''
+        if self.paths is None:
+            return ['$HOME/sdks/go/bin', str(SYSTEM_PREFIX / 'sdks' / 'go' / 'bin')]
+        return list(dict.fromkeys(str(Path(str(self.paths.install_dir('$CONFIGSYS_SDK_DIR/go', s))) / 'bin')
+                                  for s in ('user', 'system')))
+
+    def _gobin(self):
+        '''Where `go install` puts binaries — what `go env GOBIN GOPATH` reports, read in-process (no
+        spawn): GOBIN, else the first GOPATH entry's bin, else <home>/go/bin; the environment first,
+        then `go env -w`'s file ($GOENV, else <config>/go/env). None with no `paths` (the ~/go/bin
+        default, left for the shell).'''
+        if self.paths is None:
+            return None
+        env, home = self.paths.env, self.home()
+        saved = {}
+        gofile = env.get('GOENV') or str(Path(env.get('XDG_CONFIG_HOME') or home / '.config') / 'go' / 'env')
+        if gofile != 'off':
+            try:
+                for line in Path(gofile).read_text(encoding='utf-8').splitlines():
+                    k, eq, v = line.partition('=')
+                    if eq:
+                        saved[k.strip()] = v.strip()
+            except OSError:
+                pass
+        gobin = env.get('GOBIN') or saved.get('GOBIN')
+        if gobin:
+            return Path(gobin)
+        gopath = (env.get('GOPATH') or saved.get('GOPATH') or '').split(os.pathsep)[0]
+        return Path(gopath) / 'bin' if gopath else home / 'go' / 'bin'
 
     def unsafe_dir_reason(self, path):
         '''Why `path` must never be deleted or replaced wholesale as a component's own install dir —
@@ -768,7 +858,6 @@ class Driver:
         return None
 
     def display_path(self, p):
-        '''Collapse HOME to ~ for readable display.'''
-        s = str(p)
-        home = str(self.paths.home) if self.paths is not None else str(Path.home())
-        return '~' + s[len(home):] if home and s.startswith(home) else s
+        '''Collapse HOME to ~ for readable display (on a path boundary — paths.tilde).'''
+        from .paths import tilde
+        return tilde(p, self.home())

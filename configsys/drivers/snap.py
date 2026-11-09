@@ -92,11 +92,17 @@ class Snap(Driver):
         held, hit = self.batched_held(rc)            # the batch's one held-set query
         if hit:
             return held
-        # a held snap shows `held` in `snap list`'s Notes column. Best-effort.
+        # a held snap shows `held` in `snap list`'s Notes column (Name Version Rev Tracking Publisher
+        # Notes): THIS snap's row, matched by its Name column — never a substring of another column
         r = self.runner.run(f'snap list {shlex.quote(self._snap(rc))}')
         if not r.ok:
             return False
-        return any(self._snap(rc) in ln and 'held' in ln for ln in r.stdout.splitlines())
+        name = self._snap(rc)
+        for ln in r.stdout.splitlines()[1:]:             # skip the header
+            cols = ln.split()
+            if cols and cols[0] == name and any('held' in c.split(',') for c in cols[5:]):
+                return True
+        return False
 
     def upgradable_index(self):
         '''{snap: (installed, candidate)} from `snap refresh --list` — the pending-refresh set.
@@ -137,9 +143,8 @@ class Snap(Driver):
     # -- mutate (sudo) ----------------------------------------------------
 
     def install(self, rc):
-        return self.runner.run(
-            f'snap install {self._extra(rc)} {shlex.quote(self._snap(rc))}'.replace('  ', ' '),
-            sudo=True, capture=False)
+        toks = ['snap', 'install', self._extra(rc), shlex.quote(self._snap(rc))]
+        return self.runner.run(' '.join(t for t in toks if t), sudo=True, capture=False)
 
     def uninstall(self, rc):
         return self.runner.run(f'snap remove {shlex.quote(self._snap(rc))}', sudo=True, capture=False)

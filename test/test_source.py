@@ -42,7 +42,7 @@ def test_install_command_construction(tmp_path):
     # after checkout, scrub the tree pristine so a reused checkout's stale build/ (cached
     # CMakeCache etc.) can't survive — preserving only our version marker
     assert f"git -C {src} clean -xfd -e '.configsys-*'" in cmd   # every own marker survives the clean
-    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
+    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:/opt/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make && make install )') in cmd
     assert f'mkdir -p {src.parent} && mkdir -p {prefix}' in cmd
     assert 'printf %s v1.2.3' in cmd                       # marker records the version/ref
@@ -54,7 +54,7 @@ def test_build_gets_toolchain_bin_dirs_on_path(tmp_path):
     # since it runs in a fresh non-interactive shell — so those dirs are prepended to PATH.
     r = Runner(pretend=True)
     Source(r, paths=None).install(src_unit(tmp_path, ref='v1', build='cargo build --release'))
-    assert 'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && cargo build --release' in r.calls[0]
+    assert 'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:/opt/sdks/go/bin:$HOME/go/bin:$PATH" && cargo build --release' in r.calls[0]
 
 
 def test_build_path_adds_extra_dirs(tmp_path):
@@ -62,7 +62,7 @@ def test_build_path_adds_extra_dirs(tmp_path):
     rc = src_unit(tmp_path, ref='v1', build='make', **{'build-path': '$PREFIX/toolchain/bin'})
     Source(r, paths=None).install(rc)
     prefix = tmp_path / 'prefix'
-    assert f'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:{prefix}/toolchain/bin:$PATH"' in r.calls[0]
+    assert f'export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:/opt/sdks/go/bin:$HOME/go/bin:{prefix}/toolchain/bin:$PATH"' in r.calls[0]
 
 
 def test_version_static_forms_the_tag(tmp_path):
@@ -102,7 +102,7 @@ def test_install_from_source_archive(tmp_path):
     cmd = r.calls[0]
     assert 'curl -fSL' in cmd and 'foo-1.2.3.tar.gz' in cmd
     assert 'tar -xf' in cmd and '--strip-components=1' in cmd   # strip the foo-1.2.3/ wrapper
-    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
+    assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:/opt/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make install )') in cmd
     assert 'git clone' not in cmd                               # archive path, not git
 
@@ -354,3 +354,32 @@ def test_system_scope_keeps_the_tree_in_user_space_and_needs_sudo_in_the_recipe(
     drv.install(rc)
     assert 'sudo make PREFIX=/usr/local install' in r.calls[-1]
     assert 'sudo mkdir -p /usr/local' in r.calls[-1]
+
+
+def test_toolchain_dirs_follow_the_sdk_dir_at_both_scopes(tmp_path):
+    # drivers-lang-22: the build PATH used to hard-code ~/sdks/go/bin, missing a `dirs: { sdk: }`
+    # layout and the system-scope /opt/<sdk>/go the `go` tarball lands in
+    home = tmp_path / 'home'
+    p = Paths(env={'CONFIGSYS_HOME': str(home), 'CONFIGSYS_SYSTEMSCOPE_DIR': str(tmp_path / 'opt')})
+    p.set_config_dirs({'sdk': 'tools'})
+    r = Runner(pretend=True)
+    Source(r, paths=p).install(src_unit(tmp_path, ref='v1', build='make'))
+    want = (f'{home}/.cargo/bin:{home}/tools/go/bin:{tmp_path}/opt/tools/go/bin:{home}/go/bin')
+    assert f'export PATH="{want}:$PATH" && make' in r.calls[0]
+
+
+def test_arch_in_a_build_is_the_cpu_names_token(tmp_path):
+    # drivers-lang-31: the url's $ARCH went through cpu-names:, the build's didn't
+    r = Runner(pretend=True)
+    rc = src_unit(tmp_path, repo=None, url='https://x.invalid/foo-$ARCH.tar.gz', build='make ARCH=$ARCH',
+                  **{'cpu-names': {'x86_64': 'amd64'}})
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_ARCH': 'x86_64'})
+    Source(r, paths=p).install(rc)
+    assert 'foo-amd64.tar.gz' in r.calls[0] and 'make ARCH=amd64' in r.calls[0]
+
+
+def test_an_unresolved_archive_says_why(tmp_path):
+    # drivers-lang-20: a declared url that couldn't be built names the cause, not "neither a repo:"
+    r = Runner(pretend=True)
+    res = Source(r, paths=None).install(src_unit(tmp_path, repo=None, url='https://x.invalid/foo-$VERSION.tgz'))
+    assert not res.ok and 'could not build a download URL' in res.stderr and not r.calls

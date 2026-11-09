@@ -103,8 +103,9 @@ _GO_OUT = (
 
 
 def test_go_install_index_keyed_by_install_path():
-    from configsys.drivers.go_install import _GO_PATH   # reads use the managed go, like installs
-    idx = GoInstall(FakeRunner({f'PATH="{_GO_PATH}:$PATH" go version -m ~/go/bin': (0, _GO_OUT)})).installed_index()
+    tool = GoInstall(None).tool()                        # reads use the managed go, like installs
+    assert tool.startswith('PATH="$HOME/sdks/go/bin:')
+    idx = GoInstall(FakeRunner({f'{tool} version -m ~/go/bin': (0, _GO_OUT)})).installed_index()
     assert idx == {'golang.org/x/tools/cmd/goimports': '0.18.0',   # v stripped, dep line ignored
                    'github.com/go-delve/delve/cmd/dlv': '1.22.1'}
 

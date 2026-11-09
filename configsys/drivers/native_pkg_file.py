@@ -131,11 +131,11 @@ class NativePkgFile(Driver):
     def install(self, rc):
         version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
-            return Result(f'(native-pkg-file: no release asset resolved for {rc.comp})', 1)
+            return Result.fail(self.download_failure(rc, version))
         fmt = self._format(rc)
         inst = self._install_cmd(fmt, '"$PKG"', rc)
         if inst is None:
-            return Result('(native-pkg-file: no supported native package tool on this system)', 1)
+            return Result.fail(f'{rc.comp}: native-pkg-file found no supported native package tool on this system')
         # the file MUST keep the format's real extension: `apt-get install <file>` recognizes a
         # local package only by a `.deb` suffix (a bare `.pkg` -> "E: Unsupported file … given on
         # commandline"), and dnf/rpm likewise want `.rpm`.
@@ -158,7 +158,7 @@ class NativePkgFile(Driver):
         elif fmt == 'pacman':
             cmd = f'pacman -R --noconfirm {pkg}'
         else:
-            return Result('(native-pkg-file: no supported native package tool on this system)', 1)
+            return Result.fail(f'{rc.comp}: native-pkg-file found no supported native package tool on this system')
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def upgrade(self, rc):

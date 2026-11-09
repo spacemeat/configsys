@@ -38,24 +38,35 @@ class Sdkman(ModuleDriver):
     def _sdk(self, args, **kw):
         return self.runner.run(f'{self.TOOL} {args}', **kw)
 
+    def _pin(self, rc):
+        '''The pinned version (a `version:` literal, or a discovery spec RESOLVED — never the spec's
+        text), or None: unpinned, or a spec that didn't resolve (drivers-lang-32).'''
+        return self.resolve_version(rc) if rc.fields.get('version') else None
+
     def _spec(self, rc):
         '''`<candidate>` or `<candidate> <version>` when a `version:` is pinned.'''
         c = shlex.quote(self.module(rc))
-        v = rc.fields.get('version')
-        return f'{c} {shlex.quote(str(v))}' if v else c
+        v = self._pin(rc)
+        return f'{c} {shlex.quote(v)}' if v else c
 
     # -- read -------------------------------------------------------------
 
     def _pinned_dir(self, rc):
-        return f'.sdkman/candidates/{self.module(rc)}/{rc.fields["version"]}'
+        return f'.sdkman/candidates/{self.module(rc)}/{self._pin(rc)}'
+
+    def _unresolved_pin(self, rc):
+        return Result.fail(f'{rc.comp}: its sdkman `version:` didn\'t resolve to a version — '
+                           f'not installing the candidate\'s default in its place')
 
     def get_version(self, rc):
-        pinned = rc.fields.get('version')
-        if pinned:
+        if rc.fields.get('version'):
+            pinned = self._pin(rc)
+            if not pinned:
+                return None
             if self.paths is not None:
-                return str(pinned) if (Path(self.paths.home) / self._pinned_dir(rc)).is_dir() else None
+                return pinned if (Path(self.paths.home) / self._pinned_dir(rc)).is_dir() else None
             r = self.runner.run(f'test -d "$HOME"/{shlex.quote(self._pinned_dir(rc))}')
-            return str(pinned) if r.ok else None
+            return pinned if r.ok else None
         # `sdk current <c>` in a fresh shell just reports the default — the `current` symlink under the
         # candidate dir — but sourcing sdkman-init.sh first costs ~0.4 s per unit. Read the link
         # directly; spawn only when `current` exists as something else (a hand-made dir).
@@ -78,10 +89,12 @@ class Sdkman(ModuleDriver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        if rc.fields.get('version') and not self._pin(rc):
+            return self._unresolved_pin(rc)
         return self._sdk(f'install {self._spec(rc)}', capture=False)
 
     def uninstall(self, rc):
-        v = rc.fields.get('version') or self.get_version(rc)
+        v = self._pin(rc) if rc.fields.get('version') else self.get_version(rc)
         if not v:
             return Result(f'(sdkman: {self.module(rc)} not installed)', 0)
         return self._sdk(f'uninstall {shlex.quote(self.module(rc))} {shlex.quote(str(v))}',

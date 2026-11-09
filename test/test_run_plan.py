@@ -223,3 +223,32 @@ def test_fix_scope_runs_in_the_loop_and_refreshes_the_receipt(tmp_path, monkeypa
     res = actions.run_plan(ctx, [('fix-scope', rc.key, rc)], ledger=led, on_line=lambda *_a: None)
     assert res.outcomes[0].ok and calls == [('user', 'system')]
     assert Ledger.load(ctx.paths).records[rc.key]['receipt']['fields']['scope'] == 'system'
+
+
+def test_set_version_refuses_a_non_version_before_any_driver_runs(tmp_path, monkeypatch):
+    # drivers-lang-28: a script's set-version-cmd / a source build splice $VERSION raw — the requested
+    # version is checked once, here, for every driver and both surfaces
+    calls = []
+
+    class Recording:
+        pretend = False
+
+        def run(self, cmd, **kw):
+            calls.append(cmd)
+            return Result(cmd, 0)
+
+        def end_sudo(self):
+            pass
+    ctx = _ctx(tmp_path)
+    ctx.runner = Recording()
+    rc = ResolvedComponent(key='script\\tool', driver='script', comp='tool',
+                           fields={'name': 'tool', 'set-version-cmd': 'install-tool $VERSION'})
+    for bad in ('1.2 3', '$(id)', '-rf'):
+        res = actions.run_plan(ctx, [('set-version', 'script\\tool', rc)], version=bad,
+                               on_line=lambda *_a: None)
+        assert not res.outcomes[0].ok and res.n_fatal == 1
+        assert repr(bad) in res.outcomes[0].detail and 'not a version' in res.outcomes[0].detail
+    assert calls == []
+    res = actions.run_plan(ctx, [('set-version', 'script\\tool', rc)], version='1.2.3',
+                           on_line=lambda *_a: None)
+    assert res.outcomes[0].ok and calls == ['PATH="$HOME/.local/bin:$PATH"; install-tool 1.2.3']

@@ -101,3 +101,36 @@ def test_version_probe_finds_a_tool_in_local_bin(tmp_path, monkeypatch):
     v = Script(Runner()).get_version(sc(**{'version-cmd': 'claude --version 2>/dev/null',
                                            'version-re': '([0-9][0-9.]*)'}))
     assert v == '2.1.9'
+
+
+def test_version_re_without_a_group_is_the_whole_match():
+    # drivers-lang-24: m.group(1) raised IndexError for a group-less pattern
+    fr = FakeRunner([('tool --version', 0, 'tool 1.2.3 (build 9)\n')])
+    d = Script(fr)
+    assert d.get_version(sc('tool', **{'version-cmd': 'tool --version', 'version-re': r'[0-9]+\.[0-9.]+'})) == '1.2.3'
+
+
+def test_an_invalid_version_re_reads_unknown_and_fails_the_route_check():
+    fr = FakeRunner([('tool --version', 0, 'tool 1.2.3\n')])
+    assert Script(fr).get_version(sc('tool', **{'version-cmd': 'tool --version', 'version-re': '([0-9.]+'})) is None
+    import os
+    from configsys import routes
+    from configsys.errors import ConfigError
+    from configsys.routecheck import check_component
+    cascade = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))[0]
+    comp = routes.Component('tool', {'install': [{'via': 'script', 'install-cmd': 'x',
+                                                  'version-re': '([0-9.]+'}]})
+    with pytest.raises(ConfigError, match=r"'tool'.*version-re"):
+        check_component('tool', comp, cascade)
+
+
+def test_missing_commands_fail_with_a_reason_in_stderr():
+    # drivers-lang-20: the reason rode in Result.cmd, so the TUI summary showed only "exit 1"
+    from configsys import actions
+    d = Script(FakeRunner())
+    res = d.install(sc('tool'))
+    assert not res.ok and 'install-cmd' in actions.fail_detail(res)
+    res = d.upgrade(sc('tool'))
+    assert not res.ok and 'install-cmd' in actions.fail_detail(res)
+    res = d.set_version(sc('tool'), '1.0')
+    assert not res.ok and 'set-version-cmd' in actions.fail_detail(res)

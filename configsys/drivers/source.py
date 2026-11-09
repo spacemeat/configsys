@@ -61,7 +61,7 @@ import shlex
 from ..driver import Driver
 from ..runner import Result
 
-MARKER_PREFIX = '.configsys-'
+MARKER_PREFIX = Driver.MARKER_PREFIX
 
 
 class Source(Driver):
@@ -89,10 +89,10 @@ class Source(Driver):
 
     def _own_marker(self, rc, kind):
         '''`<src>/.configsys-<comp>.<kind>` — `cloned` (configsys created the tree) or `adopted`.'''
-        return self._src_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.{kind}'
+        return self.marker_path(self._src_dir(rc), rc, kind)
 
     def _marker(self, rc):
-        return self._src_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
+        return self.marker_path(self._src_dir(rc), rc)
 
     def _ref(self, rc, version):
         '''The git ref to check out: an explicit `ref:`, else `tag-prefix`+version, else HEAD.'''
@@ -104,8 +104,10 @@ class Source(Driver):
 
     def _sub(self, text, version, src, prefix, rc=None):
         sudo = 'sudo' if rc is not None and self._scope(rc) == 'system' else ''
+        # $ARCH is the binding's `cpu-names:` token, as in its download url (drivers-lang-31)
+        arch = self.arch_token(rc) if rc is not None else self.arch()
         return (str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
-                .replace('$VERSION', version or '').replace('$ARCH', self.arch())
+                .replace('$VERSION', version or '').replace('$ARCH', arch)
                 .replace('$SUDO', sudo))
 
     @staticmethod
@@ -116,11 +118,7 @@ class Source(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        try:
-            v = self._marker(rc).read_text(encoding='utf-8').strip()
-        except (FileNotFoundError, NotADirectoryError, OSError):
-            return None
-        return v or None
+        return self.read_marker(self._marker(rc))     # empty = present, version unrecorded
 
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)
@@ -215,6 +213,9 @@ class Source(Driver):
             # the feed-discovered one); an explicit set_version target is kept as given
             version, url = self.download_target(rc, version if explicit else None)
             if not url:
+                spec = self._disco_spec(rc)
+                if rc.fields.get('url') or (isinstance(spec, dict) and spec.get('asset')):
+                    return Result.fail(self.download_failure(rc, version))   # declared, unresolved
                 return Result.fail(f'{rc.comp}: source binding has neither a `repo:` to clone nor '
                                    f'a `url:`/`version:` archive to download')
             # B14: a configsys-made tree is rebuilt from a FRESH extract — into a sibling stage, our
@@ -241,22 +242,19 @@ class Source(Driver):
                f'printf %s {shlex.quote(stamp)} > {shlex.quote(str(self._marker(rc)))}')
         return self.runner.run(cmd, capture=False)
 
-    # Well-known USERLAND toolchain bin dirs, prepended to PATH for the build so a NON-native
-    # toolchain a recipe `requires:` is found — rustup's cargo/rustc in ~/.cargo/bin, the Go
-    # toolchain tarball in ~/sdks/go/bin ($CONFIGSYS_SDK_DIR default), and `go install` tools in
-    # ~/go/bin (GOPATH/bin). A native toolchain on the system PATH still works (these just take
+    # The managed toolchains' bin dirs (Driver.toolchain_bindirs: the Go tarball under
+    # $CONFIGSYS_SDK_DIR/go at either scope, as `dirs:`/env lay it out, `go install` tools in ~/go/bin,
+    # rustup's ~/.cargo/bin) are prepended to PATH for the build so a NON-native toolchain a recipe
+    # `requires:` is found. A native toolchain on the system PATH still works (these just take
     # precedence when present; a missing dir is harmlessly ignored by PATH lookup). This is what lets
     # a floor-pinned toolchain (rust->rustup, go->tarball) actually build, since the build runs in a
-    # fresh non-interactive shell that hasn't sourced bash.d. (These are the DEFAULT locations; if you
-    # override CONFIGSYS_SDK_DIR/scope, add that bin dir via the recipe's `build-path:`.) A recipe
-    # adds more via `build-path:`.
-    _TOOLCHAIN_BINDIRS = ('$HOME/.cargo/bin', '$HOME/sdks/go/bin', '$HOME/go/bin')
+    # fresh non-interactive shell that hasn't sourced bash.d. A recipe adds more via `build-path:`.
 
     def _build_path(self, rc, version, src, prefix):
         extra = rc.fields.get('build-path')
         extra = extra if isinstance(extra, list) else ([extra] if extra else [])
-        dirs = list(self._TOOLCHAIN_BINDIRS) + [self._sub(d, version, src, prefix) for d in extra]
-        return ':'.join(dirs)   # $HOME left literal so the build shell expands it; route data trusted
+        dirs = self.toolchain_bindirs() + [self._sub(d, version, src, prefix) for d in extra]
+        return ':'.join(dirs)   # a `build-path:` $HOME is left literal for the build shell; route data trusted
 
     def upgrade(self, rc):
         # idempotent: re-resolve latest, fetch, checkout the new ref, rebuild in place

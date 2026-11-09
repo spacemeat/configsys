@@ -28,6 +28,13 @@ _UPDATE_BACKOFF = 1.5
 _APT_ENV = 'DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a'
 
 
+def _step_failed(rc, step, r):
+    '''The classified failing Result for a vendor-setup step (`step` names it) that exited non-zero.'''
+    cat, rem = classify(r.output)
+    tail = r.output.splitlines()[-1].strip() if r.output else f'exit {r.returncode}'
+    return Result.fail(f'{rc.comp}: {step} failed: {tail}', category=cat, remediation=rem)
+
+
 def _parse_policy(text, want):
     '''{name: candidate-version} from `apt-cache policy pkg1 pkg2 ...` output, restricted to `want`.
     Each package block starts with `<name>:` at column 0; its indented `Candidate:` line gives the
@@ -150,38 +157,49 @@ class Apt(NativePkgManager):
         Steam), archive components (`repo-component`), and third-party signing key +
         source list (`pubkey-*`/`source-*`). Idempotent — each step is skipped when
         already satisfied. Returns None normally, or a classified failing Result if a
-        vendor repo could not be verified (so install/upgrade abort cleanly).'''
+        setup step failed or a vendor repo could not be verified (so install/upgrade abort
+        cleanly).'''
         f = rc.fields
         from ..routecheck import vendor_path_problem
         why = vendor_path_problem(f)                     # root writes stay in the keyring/source dirs
         if why:
             return Result.fail(f'{rc.comp}: {why}')
 
+        # each setup step's failure stops here, named (drivers-os-13) — never an install that then
+        # fails on a missing repo/arch/key with the real cause scrolled away
         for arch in self._as_list(f.get('foreign-arch')):
             a = shlex.quote(arch)
             # enable the multiarch once (idempotent), then refresh lists so its
             # packages become visible. `steam:i386` needs i386 on an amd64 host.
-            self.runner.run(
+            r = self.runner.run(
                 f'if ! dpkg --print-foreign-architectures | grep -qx {a}; then '
                 f'dpkg --add-architecture {a} && apt-get update; fi',
                 sudo=True, capture=False)
+            if not r.ok:
+                return _step_failed(rc, f'enabling the {arch} architecture', r)
 
         for comp in self._as_list(f.get('repo-component')):
             c = shlex.quote(comp)
             # add-apt-repository is idempotent and refreshes apt lists itself.
-            self.runner.run(f'add-apt-repository -y {c}', sudo=True, capture=False)
+            r = self.runner.run(f'add-apt-repository -y {c}', sudo=True, capture=False)
+            if not r.ok:
+                return _step_failed(rc, f'adding the {comp} archive component', r)
 
         # `ppa`: a Launchpad PPA (e.g. deadsnakes/ppa for python3.12/3.13) — `add-apt-repository -y
         # ppa:<name>` adds it + refreshes. Needs software-properties-common (declare it in requires:).
         for ppa in self._as_list(f.get('ppa')):
-            p = shlex.quote(ppa if ppa.startswith('ppa:') else f'ppa:{ppa}')
-            self.runner.run(f'add-apt-repository -y {p}', sudo=True, capture=False)
+            name = ppa if ppa.startswith('ppa:') else f'ppa:{ppa}'
+            r = self.runner.run(f'add-apt-repository -y {shlex.quote(name)}', sudo=True, capture=False)
+            if not r.ok:
+                return _step_failed(rc, f'adding {name}', r)
 
         key_url, key_path = f.get('pubkey-url'), f.get('pubkey-path')
         if key_url and key_path:
             kp, ku = shlex.quote(key_path), shlex.quote(key_url)
-            self.runner.run(f'[ -f {kp} ] || sudo curl -fsSL {ku} -o {kp}',
-                            capture=False)
+            r = self.runner.run(f'[ -f {kp} ] || sudo curl -fsSL {ku} -o {kp}',
+                                capture=False)
+            if not r.ok:
+                return _step_failed(rc, f'fetching the signing key {key_url}', r)
 
         src_url, src_path = f.get('source-url'), f.get('source-path')
         if src_url and src_path:

@@ -99,9 +99,8 @@ class ConfigScreen(Screen):
         h, w = size
         iw = w - 2                                    # panel interior width (panel spans the row)
         vm.has_primary = bool(_pl.primary_name(_pl.declared(ctx.paths.user_config_file)))
-        _home = os.path.expanduser('~')
-        p = str(ctx.paths.user_config_file)
-        local_path = '~' + p[len(_home):] if _home and p.startswith(_home) else p
+        from ...paths import tilde
+        local_path = tilde(ctx.paths.user_config_file, os.path.expanduser('~'))
         for key in cs.keys:
             info = cs.settings[key]
             vm.names.append(key)

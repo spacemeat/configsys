@@ -361,7 +361,7 @@ class Flatpak(Driver):
             return appid in self.batch['masked']
         for flag in ('--user', '--system'):
             r = self.runner.run(f'flatpak mask {flag}')
-            if r.ok and any(appid in line for line in r.stdout.splitlines()):
+            if r.ok and appid in r.stdout.split():      # exact, as the batched mask set (drivers-os-12)
                 return True
         return False
 

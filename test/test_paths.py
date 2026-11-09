@@ -148,3 +148,24 @@ def test_content_root_label(tmp_path):
     assert p.content_root_label(p.user_glue_dir) == '<local>'
     assert p.content_root_label(tmp_path / 'plugins/configsys-user/glue') == '<plugin>'
     assert p.content_root_label(tmp_path / 'plugins/configsys-blender/glue') == '<configsys-blender>'
+
+
+def test_tilde_collapses_home_only_on_a_path_boundary():
+    # drivers-os-15: a raw prefix test rendered /home/alice as `~ice` under HOME=/home/al
+    from configsys.paths import tilde
+    assert tilde('/home/alice/bin/x', '/home/al') == '/home/alice/bin/x'
+    assert tilde('/home/al/bin', '/home/al') == '~/bin'
+    assert tilde('/home/al', '/home/al') == '~'
+    assert tilde('/home/al/bin', '/home/al/') == '~/bin'
+    assert tilde('/x', '') == '/x'
+    from configsys.driver import Driver
+    assert Driver(None, Paths(env={'HOME': '/home/al'})).display_path('/home/alice/bin/x') == '/home/alice/bin/x'
+
+
+def test_no_raw_home_prefix_collapse_is_left():
+    import re
+    root = Path(__file__).resolve().parent.parent / 'configsys'
+    bad = [str(f) for f in root.rglob('*.py')
+           if f.name != 'paths.py'                     # tilde() itself
+           and re.search(r"'~' \+ \w+\[len\(", f.read_text(encoding='utf-8'))]
+    assert bad == []

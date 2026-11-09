@@ -70,3 +70,17 @@ def test_upgrade_setversion_lock_are_informational_noops():
         assert res.ok                 # informational, not a hard failure
         # the explanatory message rides on Result.cmd (the cargo/ledger convention)
         assert 'rpm-ostree' in res.cmd.lower() or 'lock' in res.cmd.lower()
+
+
+def test_the_advisory_never_expands_a_package_name():
+    # drivers-os-03: the name sat inside a double-quoted echo, where `$(…)` would run as root
+    import shlex
+    for fields in ({}, {'apply-live': True}):
+        r = Runner(pretend=True)
+        RpmOstree(r).install(pkg('foo$(touch X)', fields))
+        cmd = r.calls[0][len('sudo '):]
+        toks = shlex.split(cmd)
+        assert toks[toks.index('echo') + 1].startswith('configsys: install foo$(touch X) ')
+        assert '"' not in cmd                                  # no double-quoted (expanding) text
+        assert all('$(touch X)' not in t or t.startswith(('foo', 'configsys:')) for t in toks)
+        assert "'foo$(touch X)'" in cmd                        # single-quoted: inert

@@ -40,7 +40,8 @@ def test_driver_public_contract_present():
 
 # the optional hooks frozen 2026-10-10 (no ABI bump: a new promise about existing members)
 FROZEN_ATTRS = ('targets_version', 'holds_version', 'native_backed', 'batch',
-                'trusted_registry', 'command_fields')      # (review-2026-11-2 A1)
+                'trusted_registry', 'command_fields',      # (review-2026-11-2 A1)
+                'MARKER_PREFIX')                           # (drivers-lang-35: the path-driver kit)
 FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_key', 'batch_index',
                 'batch_installed_index', 'batched_version', 'explicit_keys', 'origin_index',
                 'upgradable_index', 'update_dedup_key', 'held_keys', 'classify_index', 'upgrade_all',
@@ -48,7 +49,9 @@ FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_ke
                 'location_override', 'command_trusted', 'untrusted_command_result',
                 'expected_sha256', 'verify_download',       # (review-2026-11-2 A1: asset checksums)
                 'latest_index', 'batched_latest', 'batched_held',   # (C1: batched candidates)
-                'will_write', 'installed_name')            # (F3: the write journal + installed-name)
+                'will_write', 'installed_name',            # (F3: the write journal + installed-name)
+                'download_failure', 'home', 'marker_path', 'read_marker',   # (drivers-lang-20/-35)
+                'toolchain_bindirs')                       # (drivers-lang-22)
 
 
 def test_frozen_optional_hooks_present():
@@ -145,3 +148,47 @@ def test_resolved_component_is_exported_and_no_resolver_key_reaches_fields():
         assert not set(_RESOLVER_KEYS) & set(rc.fields), (rc.key, sorted(rc.fields))
     loaded = __import__('configsys.routes', fromlist=['load']).load(routes)
     assert loaded.cascade is loaded[0] and len(loaded) == 4
+
+
+def test_the_marker_kit_reads_alike_in_every_path_driver(tmp_path):
+    # drivers-lang-35: four copies of the marker read disagreed (source read an empty marker as
+    # not-installed); one helper now settles it — empty = 'installed', absent = None
+    from configsys.componentObj import ResolvedComponent
+    from configsys.drivers import get_driver
+    from configsys.paths import Paths
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})
+    d = tmp_path / 'inst'
+    fields = {'installDir': str(d), 'path': str(d / 'x.AppImage'), 'location-override': str(d)}
+    for via in ('tarball', 'appImage', 'font', 'source'):
+        drv = get_driver(via, Runner(pretend=True), p)
+        f = dict(fields, **({'location-override': str(d / 'x.AppImage')} if via == 'appImage' else {}))
+        rc = ResolvedComponent(key=f'{via}\\x', driver=via, comp='x', fields=f)
+        d.mkdir(exist_ok=True)
+        (d / 'x.AppImage').write_text('elf')
+        marker = drv.marker_path(d, rc)
+        assert marker == d / '.configsys-x.version'
+        marker.unlink(missing_ok=True)
+        if via != 'appImage':                        # an AppImage's file is its presence
+            assert drv.get_version(rc) is None, via
+        marker.write_text('')
+        assert drv.get_version(rc) == 'installed', via
+        marker.write_text('1.2\n')
+        assert drv.get_version(rc) == '1.2', via
+    assert api.Driver.read_marker(tmp_path / 'nope') is None
+    assert api.Driver(None, p).home() == tmp_path / 'home'
+
+
+def test_scope_and_the_internal_scope_agree():
+    # drivers-os-14: _scope read a `scope` field even on a fixed-scope driver, so sudo()/scoped_dir
+    # disagreed with scope()
+    class Fixed(api.Driver):
+        name = 'fixed-test'
+        default_scope = 'user'
+    class Honoring(api.Driver):
+        name = 'honoring-test'
+        honors_scope = True
+    rc = types.SimpleNamespace(name='pkg', comp='pkg', fields={'scope': 'system'})
+    d = Fixed(Runner(pretend=True))
+    assert d.scope(rc) == d._scope(rc) == 'user' and d.sudo(rc) is False
+    h = Honoring(Runner(pretend=True))
+    assert h.scope(rc) == h._scope(rc) == 'system' and h.sudo(rc) is True

@@ -18,6 +18,13 @@ from ._native import NativePkgManager
 _VERSIONLOCK_PLUGIN = 'python3-dnf-plugin-versionlock'
 
 
+def _step_failed(rc, step, r):
+    '''The classified failing Result for a repo-setup step (`step` names it) that exited non-zero.'''
+    cat, rem = classify(r.output)
+    tail = r.output.splitlines()[-1].strip() if r.output else f'exit {r.returncode}'
+    return Result.fail(f'{rc.comp}: {step} failed: {tail}', category=cat, remediation=rem)
+
+
 def _as_list(v):
     if v is None:
         return []
@@ -157,19 +164,26 @@ class Dnf(NativePkgManager):
             return Result.fail(f'{rc.comp}: {why}')
         f = rc.fields
         key = f.get('pubkey-url')
+        # each setup step's failure stops here, named (drivers-os-13), before the install runs
         if key and '$' not in key:
-            self.runner.run(f'rpm --import {shlex.quote(key)}', sudo=True, capture=False)
+            r = self.runner.run(f'rpm --import {shlex.quote(key)}', sudo=True, capture=False)
+            if not r.ok:
+                return _step_failed(rc, f'importing the signing key {key}', r)
         # enable-repo: turn on a distro repo that ships disabled — e.g. EL's CRB
         # (CodeReady Builder), which RPM Fusion's ffmpeg needs (ladspa/rubberband live
         # there). config-manager is in dnf-plugins-core; ensure it, then enable each.
         enable = _as_list(f.get('enable-repo'))
         if enable:
-            self.runner.run('dnf install -y dnf-plugins-core', sudo=True, capture=False)
+            r = self.runner.run('dnf install -y dnf-plugins-core', sudo=True, capture=False)
+            if not r.ok:
+                return _step_failed(rc, 'installing dnf-plugins-core (for config-manager)', r)
             for repo in enable:
                 cmd = f'dnf config-manager --set-enabled {shlex.quote(repo)}'
                 if repo == 'crb':        # EL 8 calls CodeReady Builder `powertools` (EL 9+: `crb`)
                     cmd += ' || dnf config-manager --set-enabled powertools'
-                self.runner.run(cmd, sudo=True, capture=False)
+                r = self.runner.run(cmd, sudo=True, capture=False)
+                if not r.ok:
+                    return _step_failed(rc, f'enabling the {repo} repo', r)
         repo_id, repo_url = f.get('repo-id'), f.get('repo-url')
         if repo_id and repo_url:
             name = f.get('repo-name', repo_id)

@@ -25,14 +25,9 @@ import re
 import shlex
 
 from ..runner import Result
-from ._module import ModuleDriver
+from ._module import ModuleDriver, pep503_name as _norm
 
 _PIP = 'python3 -m pip'
-
-
-def _norm(name):
-    # PEP 503: distribution names are case-insensitive and treat runs of -_. as equivalent.
-    return re.sub(r'[-_.]+', '-', name.strip().lower())
 
 
 class Pip(ModuleDriver):

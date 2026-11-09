@@ -176,3 +176,54 @@ def test_system_scope_never_runs_the_download_as_root(tmp_path):
     extract = [c for c in r.calls if '--appimage-extract' in c]
     assert extract and not any(c.startswith('sudo ') for c in extract)
     assert 'cp -Lf' not in extract[0] and 'realpath -e' in extract[0]
+
+
+# -- drivers-lang-20: a download driver with no URL says WHY (not just "exit 1") ------------------
+
+@pytest.mark.parametrize('via', ['appImage', 'font', 'native-pkg-file', 'tarball'])
+def test_an_unbuildable_download_url_names_its_cause(tmp_path, via):
+    from configsys import actions
+    fields = {'url': 'https://x.invalid/app-$VERSION.bin', 'path': str(tmp_path / 'apps/a.AppImage'),
+              'installDir': str(tmp_path / 'apps/a')}
+    rc = ResolvedComponent(key=f'{via}\\demo', driver=via, comp='demo', fields=fields)
+    r = Runner(pretend=True)
+    res = get_driver(via, r, Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})).install(rc)
+    assert not res.ok and r.calls == []
+    assert 'could not build a download URL' in actions.fail_detail(res)
+
+
+def test_an_unmatched_asset_glob_is_named(tmp_path):
+    from configsys import actions
+    rc = ResolvedComponent(key='appImage\\demo', driver='appImage', comp='demo',
+                           fields={'path': str(tmp_path / 'a.AppImage'),
+                                   'version': {'github': 'o/r', 'asset': 'demo-*.AppImage'}})
+    res = AppImage(Runner(pretend=True), Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'h')})).install(rc)
+    assert not res.ok and 'demo-*.AppImage' in actions.fail_detail(res)
+
+
+# -- drivers-lang-26: no `path:` = not installed, an install that says so, a routecheck error -------
+
+def test_a_binding_without_path_reads_missing_and_refuses(tmp_path):
+    home = tmp_path / 'home'
+    home.mkdir()
+    rc = ResolvedComponent(key='appImage\\demo', driver='appImage', comp='demo',
+                           fields={'url': 'https://x.invalid/demo.AppImage'})
+    r = Runner(pretend=True)
+    d = AppImage(r, Paths(env={'CONFIGSYS_HOME': str(home)}))
+    assert d.get_version(rc) is None                         # the scope base exists — not "installed"
+    assert d.get_installed(rc) == (None, None)
+    res = d.install(rc)
+    assert not res.ok and '`path:`' in res.stderr and r.calls == []
+    assert not d.uninstall(rc).ok and r.calls == []
+    assert d.location(rc) is None
+
+
+def test_routecheck_refuses_an_appimage_binding_without_path():
+    from configsys import routes
+    from configsys.errors import ConfigError
+    from configsys.routecheck import check_component
+    import os as _os
+    cascade = routes.load(_os.path.join(_os.path.dirname(__file__), '..', 'routes.hu'))[0]
+    comp = routes.Component('demo', {'install': [{'via': 'appImage', 'url': 'https://x.invalid/d.AppImage'}]})
+    with pytest.raises(ConfigError, match=r"'demo'.*no `path:`"):
+        check_component('demo', comp, cascade)

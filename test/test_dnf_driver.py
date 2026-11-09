@@ -199,3 +199,22 @@ def test_is_locked_reads_dnf4_globs_exactly():
     fr = FakeRunner([('dnf versionlock list', 0, listing)])
     assert Dnf(fr).is_locked(pkg('bash')) is False
     assert Dnf(fr).is_locked(pkg('bash-completion')) is True
+
+
+def test_a_failed_key_import_stops_before_the_install():
+    # drivers-os-13: `rpm --import` / dnf-plugins-core / config-manager results were discarded
+    unit = ResolvedComponent(key='dnf\\x', driver='dnf', comp='x',
+                             fields={'name': 'x', 'pubkey-url': 'https://x.invalid/k.asc'})
+    r = FakeRunner([('rpm --import', 1, 'error: could not import')])
+    res = Dnf(r).install(unit)
+    assert not res.ok and 'importing the signing key' in res.stderr
+    assert not any('dnf install -y x' in c for c in r.calls)
+
+
+def test_a_failed_enable_repo_stops_before_the_install():
+    unit = ResolvedComponent(key='dnf\\x', driver='dnf', comp='x',
+                             fields={'name': 'x', 'enable-repo': 'crb'})
+    r = FakeRunner([('config-manager --set-enabled', 1, 'Error: No matching repo')])
+    res = Dnf(r).install(unit)
+    assert not res.ok and 'crb repo' in res.stderr
+    assert not any('dnf install -y x' in c for c in r.calls)

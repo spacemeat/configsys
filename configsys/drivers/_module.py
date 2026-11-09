@@ -28,9 +28,17 @@ scope-honoring driver's system scope. Lock state is the ledger's (the Driver def
 ecosystems has a native hold.
 '''
 
+import re
 import shlex
 
 from ..driver import Driver
+
+
+def pep503_name(dist):
+    '''A PyPI distribution name, PEP 503-normalized: lowercase, runs of -_. collapsed to one -. pip
+    and pipx key what they installed by it (route `Faker` -> `faker`), so both drivers' index keys
+    and lookups go through this ONE normalizer.'''
+    return re.sub(r'[-_.]+', '-', str(dist)).strip().lower()
 
 
 class ModuleDriver(Driver):

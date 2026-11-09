@@ -1,12 +1,12 @@
 '''go_install.py — the go-install driver: Go tools via `go install <pkg>@<ver>`.
 
-User-space (binaries land in GOBIN, default ~/go/bin), no sudo. Go keeps no registry
+User-space (binaries land in GOBIN, else GOPATH/bin, default ~/go/bin — Driver._gobin), no sudo. Go keeps no registry
 of installed tools, so version state is read back from the binary itself with
 `go version -m <bin>` (the embedded module version); uninstall is just removing the
 binary. No native lock, so lock intent lives in the ledger.
 
 The route `name` is the module PATH (e.g. github.com/x/y/cmd/z); the installed
-binary is its last path segment. A `version:` spec pins it; otherwise @latest. The
+binary is its last path segment (a major-version suffix dropped: …/foo/v2 installs `foo`). A `version:` spec pins it; otherwise @latest. The
 go tool is the driver `requires: go`, satisfied by the `go` toolchain component.
 
 `checkout: true` (binding field): build from a git CHECKOUT of the module instead of
@@ -27,14 +27,7 @@ import shlex
 from ..runner import Result
 from ._module import ModuleDriver
 
-_GOBIN = '~/go/bin'
-# Prefer a configsys-managed Go toolchain (the `go` tarball installs under $CONFIGSYS_SDK_DIR/go) over
-# a system `go`. The non-interactive runner shell doesn't source the PATH glue, so a bare `go install`
-# would run an old /usr/bin/go and choke on a modern module's go.mod ("invalid go version '1.25.0'").
-# If no tarball go is installed, the dir simply doesn't exist and PATH falls through to the system go.
-# The READS (`go version -m`) need it too: with go ONLY from the tarball (a go>=X floor's advice), a
-# bare `go` isn't found and every go-installed tool read "not installed".
-_GO_PATH = '${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin'
+_GOBIN = '~/go/bin'                       # the default GOBIN, when nothing else says (no `paths`)
 
 # a Go pseudo-version's trailing `<yyyymmddhhmmss>-<12-hex commit>` (v0.0.0-20261020010606-2c8d24d94015)
 _PSEUDO_RE = re.compile(r'\d{14}-([0-9a-f]{12})$')
@@ -42,9 +35,30 @@ _PSEUDO_RE = re.compile(r'\d{14}-([0-9a-f]{12})$')
 
 class GoInstall(ModuleDriver):
     name = 'go-install'
-    TOOL = f'PATH="{_GO_PATH}:$PATH" go'
-    LIST_CMD = '{tool} version -m ' + _GOBIN
+    TOOL = 'go'
+    LIST_CMD = '{tool} version -m {gobin}'
     BIN_DIR = _GOBIN
+
+    def tool(self, rc=None):
+        # Prefer a configsys-managed Go toolchain (the `go` tarball, under $CONFIGSYS_SDK_DIR/go at
+        # either scope — Driver._go_sdk_bindirs) over a system `go`. The non-interactive runner shell
+        # doesn't source the PATH glue, so a bare `go install` would run an old /usr/bin/go and choke
+        # on a modern module's go.mod ("invalid go version '1.25.0'"). If no tarball go is installed,
+        # the dirs simply don't exist and PATH falls through to the system go. The READS (`go version
+        # -m`) need it too: with go ONLY from the tarball (a go>=X floor's advice), a bare `go` isn't
+        # found and every go-installed tool read "not installed".
+        return f'PATH="{":".join(self._go_sdk_bindirs())}:$PATH" go'
+
+    def _gobin_sh(self):
+        '''The GOBIN dir as shell text: `~/go/bin` for the unresolved default, else quoted.'''
+        gobin = self._gobin()
+        return shlex.quote(str(gobin)) if gobin is not None else _GOBIN
+
+    def installed_index(self):
+        r = self.runner.run(self.LIST_CMD.format(tool=self.tool(), gobin=self._gobin_sh()))
+        if not r.ok:
+            return None
+        return self.parse_list(r.stdout or '')
 
     @staticmethod
     def module(rc):
@@ -55,7 +69,8 @@ class GoInstall(ModuleDriver):
     _path = module
 
     def _bin(self, rc):
-        return self._path(rc).rsplit('/', 1)[-1]  # installed binary = last path segment
+        # installed binary = last path segment, a major-version suffix dropped (…/foo/v2 -> foo)
+        return re.sub(r'/v\d+$', '', self._path(rc)).rsplit('/', 1)[-1]
 
     def _at(self, rc, version=None):
         v = version or self.resolve_version(rc) or 'latest'
@@ -86,7 +101,7 @@ class GoInstall(ModuleDriver):
         ver, hit = self.batched_version(rc)          # answer from the one `go version -m` when batched
         if hit:
             return ver
-        r = self.runner.run(f'{self.TOOL} version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
+        r = self.runner.run(f'{self.tool()} version -m {self._gobin_sh()}/{shlex.quote(self._bin(rc))}')
         if not r.ok or not r.stdout:
             return None
         # a `mod\t<module>\t<version>` line carries the module's version
@@ -117,7 +132,7 @@ class GoInstall(ModuleDriver):
 
     def _go_install(self, spec):
         # run `go install` with a configsys-managed go (if any) ahead of the system one on PATH
-        return self.runner.run(f'{self.TOOL} install {shlex.quote(spec)}',
+        return self.runner.run(f'{self.tool()} install {shlex.quote(spec)}',
                                capture=False)
 
     @staticmethod
@@ -141,7 +156,7 @@ class GoInstall(ModuleDriver):
         cmd = (f'tmp=$(mktemp -d) || exit 1; '
                f'git clone --quiet --filter=blob:none {shlex.quote(repo)} "$tmp/src" && '
                f'git -C "$tmp/src" checkout --quiet {shlex.quote(ref)} && '
-               f'( cd "$tmp/src" && PATH="{_GO_PATH}:$PATH" go install . ); '
+               f'( cd "$tmp/src" && {self.tool()} install . ); '
                f'rc=$?; rm -rf "$tmp"; exit $rc')
         return self.runner.run(cmd, capture=False)
 
@@ -151,14 +166,20 @@ class GoInstall(ModuleDriver):
         return self._go_install(self._at(rc))
 
     def uninstall(self, rc):
-        return self.runner.run(f'rm -f {_GOBIN}/{shlex.quote(self._bin(rc))}', capture=False)
+        return self.runner.run(f'rm -f {self._gobin_sh()}/{shlex.quote(self._bin(rc))}', capture=False)
 
     def upgrade(self, rc):
         if self._checkout(rc):
             return self._checkout_install(rc, self._fresh_latest(rc))
-        return self._go_install(f'{self._path(rc)}@latest')
+        # a route `version:` spec is honored, as install does (drivers-lang-21) — asked fresh; with
+        # none, `@latest` IS the proxy's latest
+        return self._go_install(self._at(rc, self._fresh_latest(rc) if self._disco_spec(rc) else None))
 
     def set_version(self, rc, version):
         if self._checkout(rc):
             return self._checkout_install(rc, version)
         return self._go_install(self._at(rc, version))
+
+    def location(self, rc):
+        gobin = self._gobin()
+        return self.display_path(gobin) if gobin is not None else _GOBIN

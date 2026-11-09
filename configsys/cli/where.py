@@ -39,8 +39,8 @@ def _layer_label(source, paths):
     path with $HOME collapsed to ~ (so user/included files show where they live).'''
     if source in (str(paths.routes_file), paths.routes_file):
         return 'routes.hu'
-    s, home = str(source), str(paths.home)
-    return '~' + s[len(home):] if home and s.startswith(home) else s
+    from ..paths import tilde
+    return tilde(source, paths.home)
 
 
 def _source_label(comp, paths):
@@ -178,8 +178,8 @@ def where_profile_report(ctx, name):
     def label(src):
         if src in (str(ctx.paths.config_file), ctx.paths.config_file):
             return 'config.hu (repo)'
-        s, home = str(src), str(ctx.paths.home)
-        return '~' + s[len(home):] if home and s.startswith(home) else s
+        from ..paths import tilde
+        return tilde(src, ctx.paths.home)
 
     out = [name, f'  browse lens   relation: {cfg.profile_relation(name)}']
     out.append('  layers (low → high)')

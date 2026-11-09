@@ -106,6 +106,15 @@ def check_component(name, component, cascade):
         why = vendor_path_problem(b.details)           # root writes stay in the keyring/source dirs (A10)
         if why:
             raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) {why}')
+        if b.via == 'appImage' and not b.details.get('path'):   # appimage-no-path (drivers-lang-26)
+            raise ConfigError(f'component {name!r}: binding #{i} (via:appImage) has no `path:` — '
+                              'the file the .AppImage is installed as (e.g. `$CONFIGSYS_APP_DIR/foo.AppImage`)')
+        if b.via == 'script' and b.details.get('version-re') is not None:
+            try:                                       # a bad regex fails here, not in every probe
+                re.compile(str(b.details['version-re']))
+            except re.error as e:
+                raise ConfigError(f'component {name!r}: binding #{i} (via:script) `version-re:` '
+                                  f'{b.details["version-re"]!r} is not a valid regex ({e})') from None
         if b.via == 'dotfiles':                        # paths a capture/relocate/backup acts on (A4)
             from .drivers.dotfiles import link_specs, spec_problem
             for _n, src, dst, absorb in link_specs(b.details):

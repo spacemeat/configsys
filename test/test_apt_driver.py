@@ -465,3 +465,28 @@ def test_a_codename_source_line_uses_the_base_distros_codename():
     r = Runner(pretend=True)
     Apt(r).install(comp)
     assert any('${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}' in c for c in r.calls)
+
+
+@pytest.mark.parametrize('field, value, needle, step', [
+    ('ppa', 'deadsnakes/ppa', 'add-apt-repository -y ppa:deadsnakes/ppa', 'ppa:deadsnakes/ppa'),
+    ('foreign-arch', 'i386', 'dpkg --add-architecture', 'i386 architecture'),
+    ('repo-component', 'universe', 'add-apt-repository -y universe', 'universe'),
+])
+def test_a_failed_setup_step_stops_before_the_install(field, value, needle, step):
+    # drivers-os-13: these results were discarded, so `apt-get install` ran anyway and failed on a
+    # missing repo with the real cause scrolled away
+    unit = ResolvedComponent(key='apt\\x', driver='apt', comp='x', fields={'name': 'x', field: value})
+    r = FakeRunner([(needle, 1, 'E: could not add it')])
+    res = Apt(r).install(unit)
+    assert not res.ok and step in res.stderr and 'failed' in res.stderr
+    assert not any('apt-get install' in c for c in r.calls)
+
+
+def test_a_failed_key_fetch_stops_before_the_install():
+    unit = ResolvedComponent(key='apt\\x', driver='apt', comp='x',
+                             fields={'name': 'x', 'pubkey-url': 'https://x.invalid/k.gpg',
+                                     'pubkey-path': '/etc/apt/keyrings/x.gpg'})
+    r = FakeRunner([('curl -fsSL', 22, '')])
+    res = Apt(r).install(unit)
+    assert not res.ok and 'signing key' in res.stderr
+    assert not any('apt-get install' in c for c in r.calls)

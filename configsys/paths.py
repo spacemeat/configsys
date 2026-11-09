@@ -49,6 +49,20 @@ CONFIG_DIR_KEYS = {
 _ENV_TO_DIR_KEY = {env: key for key, (env, _d) in CONFIG_DIR_KEYS.items()}
 
 
+def tilde(p, home):
+    '''`p` with `home` collapsed to `~` for display — only on a path boundary (`home` itself, or
+    `home/…`), so /home/alice never renders as `~ice` under HOME=/home/al (drivers-os-15). The one
+    helper every display site uses.'''
+    s, h = str(p), str(home or '').rstrip(os.sep)
+    if not h:
+        return s
+    if s == h:
+        return '~'
+    if s.startswith(h + os.sep):
+        return '~' + s[len(h):]
+    return s
+
+
 class Paths:
     def __init__(self, env=None):
         self.env = dict(os.environ) if env is None else dict(env)

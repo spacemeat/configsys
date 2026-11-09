@@ -113,3 +113,19 @@ def test_upgrading_a_pinned_binding_installs_the_pin_never_sdk_upgrade():
     d, fr = _drv()
     d.upgrade(rc('java', version='17.0.20-tem'))
     assert 'sdk install java 17.0.20-tem' in fr.calls[-1] and 'sdk upgrade' not in fr.calls[-1]
+
+
+def test_a_version_spec_is_resolved_never_spliced_as_text(monkeypatch):
+    # drivers-lang-32: str(rc.fields['version']) turned a discovery dict into shell text
+    from configsys import versions
+    spec = {'url': 'https://x.invalid/java', 'regex': '([0-9.]+-tem)'}
+    monkeypatch.setattr(versions, 'discover', lambda s, paths, **kw: '21.0.5-tem' if s == spec else None)
+    d, fr = _drv()
+    d.install(rc('java', version=spec))
+    assert fr.calls[-1].endswith('sdk install java 21.0.5-tem') and '{' not in fr.calls[-1]
+    assert d.location(rc('java', version=spec)) == '~/.sdkman/candidates/java/21.0.5-tem'
+    monkeypatch.setattr(versions, 'discover', lambda s, paths, **kw: None)   # unresolvable
+    d, fr = _drv()
+    res = d.install(rc('java', version=spec))
+    assert not res.ok and 'resolve' in res.stderr and fr.calls == []        # never the bare default
+    assert d.get_version(rc('java', version=spec)) is None and fr.calls == []

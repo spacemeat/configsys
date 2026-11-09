@@ -19,12 +19,9 @@ first via the normal cascade. We never launch the app ourselves.
 
 import re
 import shlex
-from pathlib import Path
 
 from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
-
-MARKER_PREFIX = '.configsys-'
 
 
 class AppImage(Driver):
@@ -36,17 +33,25 @@ class AppImage(Driver):
 
     # -- locations --------------------------------------------------------
 
-    def _home(self):
-        return self.paths.home if self.paths is not None else Path.home()
-
     def _target(self, rc):
         # bare-relative path -> HOME (user) or /opt (system); ~/absolute pass through. A config
-        # `locations:` override (absolute) points straight at the .AppImage, scope-bypassing.
-        return self.location_override(rc) or self.scoped_dir(rc.fields.get('path', ''), rc)
+        # `locations:` override (absolute) points straight at the .AppImage, scope-bypassing. No
+        # `path:` (and no override) = None: scoped_dir('') is the scope base itself, which exists, so
+        # the component would read installed (drivers-lang-26; routecheck refuses such a binding).
+        loc = self.location_override(rc)
+        if loc:
+            return loc
+        raw = rc.fields.get('path')
+        return self.scoped_dir(raw, rc) if raw else None
 
     def _marker(self, rc):
         t = self._target(rc)
-        return t.parent / f'{MARKER_PREFIX}{rc.comp}.version'
+        return self.marker_path(t.parent, rc) if t is not None else None
+
+    @staticmethod
+    def _no_path(rc):
+        return Result.fail(f'{rc.comp}: the appImage binding has no `path:` (where the .AppImage file '
+                           f'goes) — add one, or a `locations:` entry')
 
     _DESKTOP_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._-]*$')
 
@@ -58,20 +63,18 @@ class AppImage(Driver):
 
     def _desktop_file(self, rc):
         name = self._desktop_id(rc) or f'configsys-{rc.comp}'
-        return self._home() / '.local/share/applications' / f'{name}.desktop'
+        return self.home() / '.local/share/applications' / f'{name}.desktop'
 
     def _icon_file(self, rc):
-        return self._home() / '.local/share/icons' / f'configsys-{rc.comp}.png'
+        return self.home() / '.local/share/icons' / f'configsys-{rc.comp}.png'
 
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        if not self._target(rc).exists():
+        t = self._target(rc)
+        if t is None or not t.exists():
             return None
-        try:
-            return self._marker(rc).read_text(encoding='utf-8').strip() or 'installed'
-        except (FileNotFoundError, NotADirectoryError, OSError):
-            return 'installed'
+        return self.read_marker(self._marker(rc)) or 'installed'   # the file is there: no marker = unrecorded
 
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/apps (user) or /opt (system)
@@ -81,8 +84,10 @@ class AppImage(Driver):
     def install(self, rc):
         version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
-            return Result('(appImage: no url in route)', 1)
+            return Result.fail(self.download_failure(rc, version))
         t = self._target(rc)
+        if t is None:
+            return self._no_path(rc)
         why = self.unsafe_dir_reason(t)               # never `mv -f` over a shared path (~/.bashrc, /usr/…)
         if why is None and t.exists() and not t.is_file():
             why = f'{t} is a directory'
@@ -148,12 +153,14 @@ class AppImage(Driver):
 
     def uninstall(self, rc):
         t = self._target(rc)
+        if t is None:
+            return self._no_path(rc)
         marker, df, icon = self._marker(rc), self._desktop_file(rc), self._icon_file(rc)
         # only remove when we manage it (our marker is present)
         extra = ''
         did = self._desktop_id(rc)
         if did:   # the self-integrated icons the app (or its AppRun) dropped under hicolor
-            hicolor = self._home() / '.local/share/icons/hicolor'
+            hicolor = self.home() / '.local/share/icons/hicolor'
             extra = (f'; [ -d {shlex.quote(str(hicolor))} ] && find {shlex.quote(str(hicolor))} '
                      f'-path "*/apps/*" -name {shlex.quote(did + ".*")} -type f -delete')
         cmd = (f'if [ -f {shlex.quote(str(marker))} ]; then '
@@ -162,5 +169,6 @@ class AppImage(Driver):
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
 
     def location(self, rc):
-        return self.display_path(self._target(rc))
+        t = self._target(rc)
+        return self.display_path(t) if t is not None else None
 

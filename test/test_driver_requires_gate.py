@@ -38,7 +38,7 @@ COMPS = '''
     shim:     { provides: glibc  standing: never-auto  install: [ { via: native  when: "musly" } ] }
     homebrew: { install: [ { via: script  install-cmd: x  uninstall-cmd: y } ] }
     zipd:     { install: [ { via: snap } ] }
-    app:      { install: [ { via: snap }  { via: appImage  url: "https://x/app.AppImage" } ] }
+    app:      { install: [ { via: snap }  { via: appImage  url: "https://x/app.AppImage"  path: apps/app.AppImage } ] }
     snaponly: { install: [ { via: snap } ] }
     native1:  { install: [ { via: native } ] }
 '''

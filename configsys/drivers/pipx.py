@@ -15,7 +15,7 @@ import json
 import re
 import shlex
 
-from ._module import ModuleDriver
+from ._module import ModuleDriver, pep503_name
 
 # Invoke via the module, not the bare `pipx` script: right after a pip --user
 # bootstrap the script isn't on PATH in the non-interactive runner shell, but the
@@ -67,12 +67,14 @@ class Pipx(ModuleDriver):
     VERSION_SPEC = '{pkg}=={ver}'
     BIN_DIR = '~/.local/bin'
 
-    @staticmethod
-    def _norm(dist):
-        '''PEP 503 normalized project name: lowercase, runs of -_. collapsed to one -. pipx keys its
-        `list` venvs by this (e.g. route `Faker` -> venv `faker`), so presence lookups must match on
-        the normalized form, not the raw route name.'''
-        return re.sub(r'[-_.]+', '-', str(dist)).strip().lower()
+    # pipx keys its `list` venvs by the PEP 503 name (route `Faker` -> venv `faker`), so presence
+    # lookups match on the normalized form, never the raw route name
+    _norm = staticmethod(pep503_name)
+
+    def index_key(self, rc):
+        # installed_index's keys are normalized, so the probe cache and the orphan scan find a
+        # route named `Faker` (drivers-lang-29)
+        return self._norm(self.module(rc))
 
     # -- read -------------------------------------------------------------
 
@@ -92,7 +94,7 @@ class Pipx(ModuleDriver):
             meta = venv.get('metadata') or {}
             ver = (meta.get('main_package') or {}).get('package_version')
             if ver:
-                idx[dist] = ver
+                idx[self._norm(dist)] = ver
             pv = meta.get('python_version')                # e.g. "Python 3.10.12"
             if pv:
                 pys[self._norm(dist)] = pv
@@ -114,11 +116,10 @@ class Pipx(ModuleDriver):
             idx = self.installed_index()
         if not idx:
             return None
-        want = self.module(rc)
-        if want in idx:                                    # exact hit (already-normalized route name)
+        want = self.index_key(rc)                          # PEP 503-normalized (Faker -> faker)
+        if want in idx:
             return idx[want]
-        want = self._norm(want)                            # else match PEP 503-normalized (Faker->faker)
-        return next((v for d, v in idx.items() if self._norm(d) == want), None)
+        return next((v for d, v in idx.items() if self._norm(d) == want), None)   # a hand-built index
 
     def _venv_pythons(self):
         '''{norm_dist: "Python X.Y.Z"} — the interpreter each installed venv runs. Populated as a
@@ -182,6 +183,8 @@ class Pipx(ModuleDriver):
         version below PyPI's absolute latest — naming the gating python and the pin that lifts it.
         None when uncapped or unknowable. Interactive-only (does its own PyPI read; never the inspect
         hot path). This is the "soft max-ceiling" surfacing — not a hard floor.'''
+        if self._offline():                         # --pretend: no PyPI read (drivers-lang-30)
+            return None
         if self.resolve_version(rc) is not None:    # an explicit version: spec -> not python-scoped
             return None
         py = self._target_python(rc)
@@ -218,6 +221,8 @@ class Pipx(ModuleDriver):
         — uv when it's present and new enough, pip when uv is absent). Read-only; same pipx method +
         venv either way. Cached on the RUNNER (one per batch; each op builds a fresh driver), so a
         batch probes uv (and notes) once, not per component.'''
+        if self._offline():
+            return ''                     # --pretend: no `uv --version` probe; pipx's default backend
         memo = self.runner.__dict__.setdefault('_pipx_backend', {})   # per runner = per batch (C4)
         if 'flag' in memo:
             return memo['flag']

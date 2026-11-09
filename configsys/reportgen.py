@@ -196,8 +196,8 @@ def _route(ctx, name):
 def _layer_label(source, paths):
     if source in (str(paths.routes_file), paths.routes_file):
         return 'routes.hu'
-    s, home = str(source), str(paths.home)
-    return '~' + s[len(home):] if home and s.startswith(home) else s
+    from .paths import tilde
+    return tilde(source, paths.home)
 
 
 def collect(ctx, component=None, failure=None, failures=None):

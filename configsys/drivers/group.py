@@ -9,6 +9,9 @@ package that creates it with `requires:`.
 Runs under sudo; `${SUDO_USER:-$USER}` targets the real user, not root.
 '''
 
+import grp
+import os
+import pwd
 import shlex
 
 from ..driver import Driver
@@ -29,10 +32,31 @@ class Group(Driver):
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
+        # the current user's groups from the DB (reflects usermod without a re-login) — asked
+        # in-process (drivers-lang-36: was a shell pipeline per unit); --pretend keeps the runner path
+        if not getattr(self.runner, 'pretend', False):
+            member = self._member(self._group(rc))
+            if member is not None:
+                return 'member' if member else None
         g = shlex.quote(self._group(rc))
-        # the current user's groups from the DB (reflects usermod without a re-login)
         r = self.runner.run(f'id -nG "$(id -un)" | tr " " "\\n" | grep -qx {g}')
         return 'member' if r.ok else None
+
+    @staticmethod
+    def _member(group):
+        '''Whether the current user is in `group` per the group DB, or None when it can't tell.'''
+        try:
+            pw = pwd.getpwuid(os.geteuid())
+            gids = os.getgrouplist(pw.pw_name, pw.pw_gid)
+        except (KeyError, OSError):
+            return None
+        names = set()
+        for gid in gids:
+            try:
+                names.add(grp.getgrgid(gid).gr_name)
+            except KeyError:                           # a gid with no name in the DB
+                pass
+        return group in names
 
     def get_latest(self, rc):
         return 'member'
@@ -41,8 +65,8 @@ class Group(Driver):
 
     def install(self, rc):
         g = shlex.quote(self._group(rc))
-        cmd = (f'usermod -aG {g} {_USER} && '
-               f'echo "configsys: added to group {self._group(rc)} — log out/in to take effect" >&2')
+        msg = shlex.quote(f'configsys: added to group {self._group(rc)} — log out/in to take effect')
+        cmd = f"usermod -aG {g} {_USER} && printf '%s\\n' {msg} >&2"
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):

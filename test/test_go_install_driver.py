@@ -18,7 +18,7 @@ def test_registered_and_unprivileged():
     assert d.privileged is False
 
 
-_P = 'PATH="${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin:$PATH" '
+_P = 'PATH="$HOME/sdks/go/bin:/opt/sdks/go/bin:$PATH" '
 
 
 def test_install_uses_latest_and_no_sudo():
@@ -157,3 +157,46 @@ def test_checkout_without_a_version_fails_cleanly(monkeypatch):
     r = Runner(pretend=True)
     res = GoInstall(r).install(_checkout_tool())
     assert not res.ok and 'proxy' in res.output and r.calls == []
+
+
+# -- drivers-lang-21 / -22: a version: spec on upgrade, /vN binaries, GOBIN, the managed go ---------
+
+def test_upgrade_honors_a_route_version_spec():
+    # install honored `version:`; upgrade jumped to @latest — a version the UI never showed
+    r = Runner(pretend=True)
+    GoInstall(r).upgrade(ResolvedComponent(key='go-install\\gopls', driver='go-install', comp='gopls',
+                                           fields={'name': 'golang.org/x/tools/gopls',
+                                                   'version': '0.16.2'}))
+    assert r.calls == [_P + 'go install golang.org/x/tools/gopls@0.16.2']
+
+
+def test_a_major_version_suffix_is_not_the_binary_name():
+    r = Runner(pretend=True)
+    GoInstall(r).uninstall(tool('foo', 'example.com/foo/v2'))
+    assert r.calls == ['rm -f ~/go/bin/foo']                  # go names the binary `foo`, not `v2`
+
+
+def test_gobin_and_the_managed_go_follow_the_paths_layout(tmp_path):
+    from configsys.paths import Paths
+    home = tmp_path / 'home'
+    p = Paths(env={'CONFIGSYS_HOME': str(home), 'GOBIN': str(home / '.local/bin'),
+                   'CONFIGSYS_SDK_DIR': 'tools', 'CONFIGSYS_SYSTEMSCOPE_DIR': str(tmp_path / 'opt')})
+    r = Runner(pretend=True)
+    d = GoInstall(r, p)
+    d.uninstall(tool())
+    d.install(tool())
+    assert r.calls[0] == f'rm -f {home}/.local/bin/goimports'
+    assert r.calls[1].startswith(f'PATH="{home}/tools/go/bin:{tmp_path}/opt/tools/go/bin:$PATH" go install ')
+    assert d.location(tool()) == '~/.local/bin'
+
+
+def test_gobin_falls_back_to_gopath_then_the_go_env_file(tmp_path):
+    from configsys.paths import Paths
+    home = tmp_path / 'home'
+    p = Paths(env={'CONFIGSYS_HOME': str(home), 'GOPATH': f'{tmp_path}/gp:{tmp_path}/other'})
+    assert GoInstall(None, p)._gobin() == tmp_path / 'gp' / 'bin'      # GOPATH's FIRST entry
+    (home / '.config/go').mkdir(parents=True)
+    (home / '.config/go/env').write_text(f'GOBIN={tmp_path}/written\n')   # what `go env -w` keeps
+    assert GoInstall(None, Paths(env={'CONFIGSYS_HOME': str(home)}))._gobin() == tmp_path / 'written'
+    assert GoInstall(None, Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'h2')}))._gobin() \
+        == tmp_path / 'h2' / 'go' / 'bin'                                 # nothing set: ~/go/bin

@@ -74,10 +74,59 @@ def test_group_add_and_remove_commands():
     assert 'gpasswd -d "${SUDO_USER:-$USER}" docker' in r.calls[1]
 
 
-def test_group_get_version_reflects_membership():
+def test_group_get_version_reflects_membership(monkeypatch):
+    # drivers-lang-36: answered in-process from the group DB — no `id -nG | grep` spawn per unit
+    import grp
+    import types
+    names = {100: 'users', 998: 'docker'}
+    monkeypatch.setattr(os, 'getgrouplist', lambda user, gid: [100, 998, 4242])   # 4242: no name
+    monkeypatch.setattr(grp, 'getgrgid', lambda gid: types.SimpleNamespace(gr_name=names[gid]))
+    calls = []
+
+    class Recording:
+        def run(self, cmd, **kw):
+            calls.append(cmd)
+            return Result(cmd, 1)
+    assert Group(Recording()).get_version(_rc('group', 'docker-group', name='docker')) == 'member'
+    assert Group(Recording()).get_version(_rc('group', 'wheel-group', name='wheel')) is None
+    assert calls == []
+
+
+def test_group_get_version_under_pretend_keeps_the_runner_probe():
     rc = _rc('group', 'docker-group', name='docker')
-    assert Group(Fake(0)).get_version(rc) == 'member'
-    assert Group(Fake(1)).get_version(rc) is None
+    r = Runner(pretend=True)
+    Group(r).get_version(rc)
+    assert any('id -nG' in c for c in r.calls)
+
+
+def test_group_install_message_is_one_quoted_token():
+    r = Runner(pretend=True)
+    Group(r).install(_rc('group', 'g', name='x$(id)'))
+    (cmd,) = r.calls
+    assert "usermod -aG 'x$(id)'" in cmd
+    assert "printf '%s\\n' 'configsys: added to group x$(id) — log out/in to take effect' >&2" in cmd
+
+
+def test_service_unit_names_are_validated_before_any_command():
+    # drivers-lang-25: a `.socket` unit skipped the runit validation and reached a double-quoted echo
+    r = Runner(pretend=True)
+    res = Service(r).install(_rc('service', 'x', unit='x$(id>/tmp/pwn).socket'))
+    assert not res.ok and 'unsafe unit name' in res.stderr and r.calls == []
+    res = Service(r).uninstall(_rc('service', 'x', unit='../../x.service'))
+    assert not res.ok and r.calls == []
+    res = Service(r).install(_rc('service', 'x', unit='x.service', runit='*'))
+    assert not res.ok and 'unsafe runit' in res.stderr and r.calls == []
+    res = Service(r).install(_rc('service', 'x', unit='x.service', runit='a..b'))
+    assert not res.ok and r.calls == []
+
+
+def test_service_messages_are_quoted_tokens():
+    r = Runner(pretend=True)
+    Service(r).install(_rc('service', 'cups', unit='cups.socket'))
+    (cmd,) = r.calls
+    assert "printf '%s\\n' 'configsys: cups.socket is a systemd-only unit; runit has no counterpart'" in cmd
+    assert "printf '%s\\n' 'configsys: no systemd or runit here; skipped cups.socket'" in cmd
+    assert 'echo "configsys: cups' not in cmd
 
 
 # -- docker composition --------------------------------------------------

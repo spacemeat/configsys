@@ -64,3 +64,19 @@ def test_get_latest_reads_channel_and_lock_note():
             'code  1.96.4   189  latest/stable  vscode✓    held\n')
     rl = FakeRunner([('snap list', 0, held)])
     assert Snap(rl).is_locked(dist()) is True
+
+
+def test_per_unit_is_locked_reads_this_snaps_notes_column():
+    # drivers-os-12: any line containing the name AND `held` anywhere read as held
+    header = 'Name  Version  Rev  Tracking       Publisher   Notes\n'
+    other = FakeRunner([('snap list', 0, header + 'codex  1.0  12  latest/stable  held-corp✓  -\n'
+                                                  'code-held  2.0  3  latest/stable  x  held\n')])
+    assert Snap(other).is_locked(dist(name='code')) is False
+    held = FakeRunner([('snap list', 0, header + 'code  1.0  12  latest/stable  vscode✓  classic,held\n')])
+    assert Snap(held).is_locked(dist(name='code')) is True
+
+
+def test_install_command_has_no_double_space_without_flags():
+    r = FakeRunner()
+    Snap(r).install(dist(comp='btop', name='btop'))
+    assert r.calls == ['sudo snap install btop']

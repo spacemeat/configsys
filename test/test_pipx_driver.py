@@ -29,14 +29,13 @@ def test_registered_and_unprivileged():
 
 
 def test_install_uninstall_upgrade_commands_are_user_space():
-    # install probes uv up front to choose pipx's backend; pretend uv-probe returns nothing (no uv)
-    # so the default backend is used (no --backend flag). uninstall/upgrade don't probe.
+    # install probes uv up front to choose pipx's backend — but never under --pretend (no probe:
+    # pipx's default backend, no --backend flag; drivers-lang-30). uninstall/upgrade don't probe.
     r = Runner(pretend=True)
     Pipx(r).install(dist())
     Pipx(r).uninstall(dist())
     Pipx(r).upgrade(dist())
     assert r.calls == [
-        'uv --version',
         'python3 -m pipx install termapod',
         'python3 -m pipx uninstall termapod',
         'python3 -m pipx upgrade termapod',
@@ -79,7 +78,7 @@ def test_backend_probe_is_cached_across_ops():
 def test_set_version_forces_reinstall():
     r = Runner(pretend=True)
     Pipx(r).set_version(dist(), '0.1.2')
-    assert r.calls == ['uv --version', 'python3 -m pipx install --force termapod==0.1.2']
+    assert r.calls == ['python3 -m pipx install --force termapod==0.1.2']
 
 
 def test_get_version_parses_pipx_list_json():
@@ -110,7 +109,7 @@ def test_location_is_local_bin():
 def test_interpreter_pin_passes_python_flag_to_pipx():
     r = Runner(pretend=True)
     Pipx(r).install(dist(name='black', python='python3.12'))
-    assert r.calls == ['uv --version', 'python3 -m pipx install --python python3.12 black']
+    assert r.calls == ['python3 -m pipx install --python python3.12 black']
 
 
 def test_upgrade_with_interpreter_pin_reinstalls_with_that_python():
@@ -119,8 +118,7 @@ def test_upgrade_with_interpreter_pin_reinstalls_with_that_python():
     # built on py3.10 otherwise caps mitmproxy at 11.x.
     r = Runner(pretend=True)
     Pipx(r).upgrade(dist(name='mitmproxy', python='/usr/bin/python3.13'))
-    assert r.calls == ['uv --version',
-                       'python3 -m pipx reinstall --python /usr/bin/python3.13 mitmproxy']
+    assert r.calls == ['python3 -m pipx reinstall --python /usr/bin/python3.13 mitmproxy']
 
 
 def test_upgrade_without_pin_stays_a_plain_upgrade():
@@ -231,3 +229,39 @@ def test_version_advisory_silent_when_pin_reaches_latest(monkeypatch):
     monkeypatch.setattr(vmod, 'http_fetch', lambda url, **kw: pypi)
     r = FakeRunner(responses=[('pipx list --json', 0, json.dumps({'venvs': {}}))])
     assert Pipx(r).version_advisory(dist(comp='pywal16', name='pywal16', python='python3.13')) is None
+
+
+def test_pretend_reads_no_pypi_and_probes_no_uv(monkeypatch):
+    # drivers-lang-30: --pretend is side-effect-free, network reads included — the advisory's PyPI
+    # read and the uv backend probe both skip
+    from configsys import versions
+    fetched = []
+    monkeypatch.setattr(versions, 'http_fetch', lambda url, *a, **k: fetched.append(url) or '{}')
+    r = Runner(pretend=True)
+    p = Pipx(r)
+    assert p.version_advisory(dist(python='python3.12')) is None
+    assert fetched == []
+    p.install(dist())
+    assert 'uv --version' not in r.calls
+
+
+def test_route_name_case_matches_the_normalized_index():
+    # drivers-lang-29: pipx keys its venvs by the PEP 503 name; a route named `Faker` must find the
+    # `faker` venv through the index key the probe cache and the orphan scan use
+    from configsys import orphans
+    fr = FakeRunner([('pipx list --json', 0, _pipx_list('Faker', '30.1.0'))])
+    p = Pipx(fr)
+    rc = dist(comp='faker', name='Faker')
+    idx = p.installed_index()
+    assert p.index_key(rc) == 'faker' and idx == {'faker': '30.1.0'}
+    assert idx.get(p.index_key(rc)) == '30.1.0'            # the probecache lookup
+    assert orphans._unit_keys(rc, p) == {'faker'}          # the orphan scan's slot: not an orphan
+    p.batch = p.batch_index([rc])
+    assert p.get_version(rc) == '30.1.0'
+
+
+def test_pip_and_pipx_share_one_normalizer():
+    from configsys.drivers import pip as pip_mod
+    from configsys.drivers._module import pep503_name
+    assert pip_mod._norm is pep503_name and Pipx._norm is pep503_name
+    assert pep503_name('Zope.Interface__x') == 'zope-interface-x'

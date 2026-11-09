@@ -52,7 +52,10 @@ def test_install_and_uninstall_keep_a_hostile_name_in_one_shell_word(name, tmp_p
     for op in ('install', 'uninstall'):
         before = len(runner.calls)
         try:
-            getattr(_REGISTRY[name](runner, paths), op)(rc)
+            res = getattr(_REGISTRY[name](runner, paths), op)(rc)
+            if res is not None and not res.ok and 'unsafe' in (res.output or '') \
+                    and len(runner.calls) == before:    # refused as a failed Result, no command run
+                refused.append(op)
         except ValueError as e:                         # refused the unsafe name before any command
             assert 'unsafe' in str(e), e
             refused.append(op)

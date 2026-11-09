@@ -58,7 +58,7 @@ def test_the_where_view_says_why_it_was_passed_over(tmp_path):
     '{ via: script  install-cmd: "true"  version-cmd: "echo 1"  uninstall-cmd: "true" }',
     '{ via: native  source-line: "deb http://x.invalid stable main"  pubkey-url: "http://x.invalid/k" }',
     '{ via: native  ppa: "ppa:evil/ppa" }',
-    '{ via: appImage  url: "https://x.invalid/a.AppImage" }',
+    '{ via: appImage  url: "https://x.invalid/a.AppImage"  path: apps/a.AppImage }',
     '{ via: cargo  name: demo }',
     '{ via: group  name: docker }',
     '{ via: flatpak  hub: evil  hub-url: "https://x.invalid/repo"  app: org.x.Demo }',

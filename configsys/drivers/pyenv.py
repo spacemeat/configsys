@@ -7,11 +7,18 @@ latest patch and compiles it. The pyenv tool itself + the C build deps are the d
 (a source compile). Runs pyenv by its explicit path, since the driver acts before any shell `pyenv init`.
 '''
 
+import re
 import shlex
-from pathlib import Path
 
 from ..driver import Driver
+from ..osversion import parse_loose
 from ..runner import Result
+
+
+def _patch_key(v):
+    '''Sort key for installed patches of one line: numerically (3.11.10 above 3.11.9 — a string sort
+    put 3.11.9 first), a plain release above a same-numbered variant (3.13.1 over 3.13.1t / rc).'''
+    return (parse_loose(v) or (), bool(re.fullmatch(r'\d+(\.\d+)*', v)), v)
 
 
 class Pyenv(Driver):
@@ -19,13 +26,17 @@ class Pyenv(Driver):
     privileged = False
 
     def _pyenv(self):
-        home = self.paths.home if self.paths is not None else Path.home()
-        root = home / '.pyenv'
+        root = self.home() / '.pyenv'
         return f'PYENV_ROOT={shlex.quote(str(root))} {shlex.quote(str(root / "bin" / "pyenv"))}'
 
-    @staticmethod
-    def _line(rc):
-        return str(rc.fields.get('version') or rc.comp)   # the minor line, e.g. "3.11"
+    def _line(self, rc):
+        '''The minor line, e.g. "3.11": the binding's `version:` (resolved — a spec never reaches the
+        shell as text), else the X.Y in the component name (python3.11 -> 3.11).'''
+        v = self.resolve_version(rc)
+        if v:
+            return v
+        m = re.search(r'\d+\.\d+', rc.comp)
+        return m.group(0) if m else rc.comp
 
     def _installed(self):
         r = self.runner.run(f'{self._pyenv()} versions --bare --skip-aliases')
@@ -36,7 +47,8 @@ class Pyenv(Driver):
     def get_version(self, rc):
         # the newest installed patch whose X.Y matches the requested line (3.11 -> 3.11.9)
         line = self._line(rc)
-        matches = sorted(v for v in self._installed() if v == line or v.startswith(line + '.'))
+        matches = sorted((v for v in self._installed() if v == line or v.startswith(line + '.')),
+                         key=_patch_key)
         return matches[-1] if matches else None
 
     def get_latest(self, rc):

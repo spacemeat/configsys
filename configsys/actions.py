@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 
 from . import layers, plugins, primarygit, settings
+from .driver import SAFE_VERSION_RE
 
 
 # --pretend is a true dry run for the TUI too: every config-editing action below refuses to write
@@ -369,6 +370,18 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
                 # tarball/appImage/font/... set_version would just reinstall the ROUTED version and say
                 # "ok" — a lie about what got installed. Refuse up front, naming the fix.
                 msg = no_version_target_message(rc.via or rc.driver, rc.comp)
+                on_line(f'set-version {key}: FAILED — {msg}')
+                outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
+                rc_code = rc_code or 1
+                n_fatal += 1
+                continue
+            if cur_op == 'set-version' and version is not None \
+                    and not SAFE_VERSION_RE.match(str(version)):
+                # drivers splice the version into commands (a script's set-version-cmd, a source
+                # build's $VERSION): refuse anything outside the version charset, for every driver (and
+                # both surfaces) at this one chokepoint — the resolve-side check, applied to your input
+                msg = (f'{str(version)!r} is not a version (letters, digits and . _ + ~ : - only, '
+                       f'starting with a letter or digit)')
                 on_line(f'set-version {key}: FAILED — {msg}')
                 outcomes.append(OpOutcome(cur_op, key, rc.name, False, msg))
                 rc_code = rc_code or 1

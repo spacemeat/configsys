@@ -14,8 +14,6 @@ from pathlib import Path
 from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
-MARKER_PREFIX = '.configsys-'
-
 # Never rm -rf one of these: a tarball install dir is wiped on every (re)install, so it MUST be a
 # dedicated subdir, never a shared base. Guards the empty/missing-`installDir:` case, where
 # scoped_dir('') resolves to the bare scope base ($HOME for user, /opt for system) and the swap would
@@ -52,18 +50,13 @@ class Tarball(Driver):
         return Path(os.path.normpath(str(d))), None
 
     def _marker(self, rc):
-        return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
+        return self.marker_path(self._install_dir(rc), rc)
 
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        try:
-            v = self._marker(rc).read_text(encoding='utf-8').strip()
-        except (FileNotFoundError, NotADirectoryError, OSError):
-            return None
-        # the marker EXISTS, so it's installed even if the version went unrecorded (an unresolved
-        # discovery wrote an empty one) — 'installed' like appImage, not "missing"
-        return v or 'installed'
+        # an empty marker still EXISTS, so it reads 'installed' (an unresolved discovery wrote it)
+        return self.read_marker(self._marker(rc))
 
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/apps (user) or /opt (system)
@@ -73,18 +66,7 @@ class Tarball(Driver):
     def install(self, rc):
         version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
-            spec = rc.fields.get('version')
-            asset = spec.get('asset') if isinstance(spec, dict) else None
-            if asset:
-                reason = (f'no release asset matched `{asset}` for {rc.comp} '
-                          f'{version or "(version unresolved)"} — check the asset name/arch/case '
-                          f'for this platform, or run `configsys refresh`')
-            elif not rc.fields.get('url'):
-                reason = (f'{rc.comp}: binding has neither a `url:` template nor a matching '
-                          f'`version:` asset to download')
-            else:
-                reason = f'{rc.comp}: could not build a download URL (version unresolved?)'
-            return Result.fail(reason)
+            return Result.fail(self.download_failure(rc, version))
         d, unsafe = self._safe_install_dir(rc)
         if unsafe:
             return Result.fail(unsafe)
@@ -95,7 +77,7 @@ class Tarball(Driver):
         # Build into a SIBLING staging dir, then atomically swap into place (rm old && mv stage) —
         # so a failed download/extract (or a failed upgrade) leaves the EXISTING install untouched
         # instead of a partial/bricked dir. See docs/done/driver-resilience-plan.md (P4 transactional).
-        stage = str(d) + MARKER_PREFIX + 'stage'
+        stage = str(d) + self.MARKER_PREFIX + 'stage'
         dq = shlex.quote(str(d))
         sq = shlex.quote(stage)
         uq = shlex.quote(url)

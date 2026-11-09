@@ -15,8 +15,6 @@ from pathlib import Path
 from ..driver import Driver, _CURL_DOWNLOAD
 from ..runner import Result
 
-MARKER_PREFIX = '.configsys-'
-
 
 class Font(Driver):
     name = 'font'
@@ -27,30 +25,24 @@ class Font(Driver):
 
     # -- locations --------------------------------------------------------
 
-    def _home(self):
-        return self.paths.home if self.paths is not None else Path.home()
-
     def _font_base(self, rc):
         if self.scope(rc) == 'system':
             return Path('/usr/local/share/fonts')
         env = self.paths.env if self.paths is not None else {}
         xdg = env.get('XDG_DATA_HOME')
-        base = Path(xdg) if xdg else self._home() / '.local/share'
+        base = Path(xdg) if xdg else self.home() / '.local/share'
         return base / 'fonts'
 
     def _font_dir(self, rc):
         return self.location_override(rc) or (self._font_base(rc) / f'configsys-{rc.comp}')
 
     def _marker(self, rc):
-        return self._font_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
+        return self.marker_path(self._font_dir(rc), rc)
 
     # -- read -------------------------------------------------------------
 
     def get_version(self, rc):
-        try:
-            return self._marker(rc).read_text(encoding='utf-8').strip() or 'installed'   # present, version unrecorded
-        except (FileNotFoundError, NotADirectoryError, OSError):
-            return None
+        return self.read_marker(self._marker(rc))     # empty = present, version unrecorded
 
     def get_installed(self, rc):
         return self._installed_across_scopes(rc)   # ~/.local/share/fonts (user) or /usr/local (system)
@@ -60,25 +52,30 @@ class Font(Driver):
     def install(self, rc):
         version, url = self.download_target(rc)          # the version of what's actually fetched
         if not url:
-            return Result('(font: no url in route)', 1)
+            return Result.fail(self.download_failure(rc, version))
 
         d = self._font_dir(rc)
         why = self.replace_dir_refusal(d, self._marker(rc))   # never rm -rf a shared/unowned dir (A6)
         if why:
             return Result.fail(f'{rc.comp}: refusing to install fonts into {d} — {why}')
         dq, uq = shlex.quote(str(d)), shlex.quote(url)
+        pq = shlex.quote(str(d.parent))
         mq, vq = shlex.quote(str(self._marker(rc))), shlex.quote(version)
 
+        # TRANSACTIONAL (drivers-lang-27): download and unzip into the temp dir first, and replace the
+        # installed dir only once that worked — a failed download/unzip leaves the old fonts in
+        # place. The trap removes the temp dir on every exit, a failure included.
         script = '\n'.join([
             'set -e',
             'tmp=$(mktemp -d)',
+            'trap \'rm -rf "$tmp"\' EXIT',
             f'{_CURL_DOWNLOAD} {uq} -o "$tmp/font.zip"{self.verify_download(rc, chr(34) + "$tmp/font.zip" + chr(34))}',
-            f'rm -rf {dq} && mkdir -p {dq}',
-            # `*.[to]tf` matches .ttf and .otf in one glob (so a missing type isn't
-            # an unzip "nothing matched" error)
-            f'unzip -o -j "$tmp/font.zip" "*.[to]tf" -d {dq}',
+            'mkdir -p "$tmp/out"',
+            # ONE glob for .ttf/.otf/.ttc/.otc in any case (.TTF too) — a second pattern that
+            # matched nothing would be an unzip "filename not matched" error
+            'unzip -o -j "$tmp/font.zip" \'*.[tToO][tT][fFcC]\' -d "$tmp/out"',
+            f'rm -rf {dq} && mkdir -p {pq} && mv "$tmp/out" {dq}',
             f'printf %s {vq} > {mq}',
-            'rm -rf "$tmp"',
             f'fc-cache -f {dq} >/dev/null 2>&1 || true',
         ])
         return self.runner.run(script, sudo=self.sudo(rc), capture=False)

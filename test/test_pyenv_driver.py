@@ -66,3 +66,19 @@ def test_upgrade_reinstalls_the_line_and_location_globs_it(tmp_path):
     d.upgrade(rc(version='3.11'))
     assert fr.calls[-1].endswith('install -s 3.11')
     assert d.location(rc(version='3.11')) == '~/.pyenv/versions/3.11.*'
+
+
+def test_get_version_sorts_patches_numerically(tmp_path):
+    # drivers-lang-23: a string sort put 3.11.9 above 3.11.10
+    d, _ = _drv(tmp_path, [('versions --bare', 0, '3.11.9\n3.11.10\n3.11.2\n')])
+    assert d.get_version(rc(version='3.11')) == '3.11.10'
+    d, _ = _drv(tmp_path, [('versions --bare', 0, '3.13.1t\n3.13.1\n3.13.0\n')])
+    assert d.get_version(rc('python3.13', version='3.13')) == '3.13.1'   # the release over its variant
+
+
+def test_the_line_falls_back_to_the_component_names_x_y(tmp_path):
+    # drivers-lang-32: with no version: the line was the whole comp name ('python3.11')
+    d, fr = _drv(tmp_path)
+    assert d._line(rc('python3.11')) == '3.11'
+    d.install(rc('python3.11'))
+    assert fr.calls[-1].endswith('install -s 3.11')

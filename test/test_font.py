@@ -29,8 +29,8 @@ def test_install_command_construction(tmp_path):
     cmd = r.calls[0]
     fdir = tmp_path / '.local/share/fonts/configsys-mononoki-nerd'
     assert 'curl -fSL --retry 3 --retry-delay 2 https://x/F.zip' in cmd   # 5xx/timeouts retried
-    assert f'mkdir -p {fdir}' in cmd
-    assert '*.[to]tf' in cmd            # extracts ttf + otf in one glob
+    assert f'mkdir -p {fdir.parent}' in cmd and f'mv "$tmp/out" {fdir}' in cmd
+    assert "'*.[tToO][tT][fFcC]'" in cmd   # ttf/otf/ttc/otc, any case, in ONE glob
     assert 'printf %s v1.0' in cmd
     assert 'fc-cache' in cmd
     assert 'sudo' not in cmd            # user scope default
@@ -82,3 +82,37 @@ def test_real_install_extract_marker_uninstall(tmp_path):
 
     fam.uninstall(rc)
     assert not fdir.exists()
+
+
+# -- drivers-lang-27: a failed download/unzip leaves the installed fonts alone ----------------------
+
+def test_install_is_transactional_in_shape(tmp_path):
+    r = Runner(pretend=True)
+    Font(r, paths=Paths(env={'CONFIGSYS_HOME': str(tmp_path)})).install(font_unit())
+    cmd = r.calls[0]
+    fdir = tmp_path / '.local/share/fonts/configsys-mononoki-nerd'
+    assert 'trap \'rm -rf "$tmp"\' EXIT' in cmd
+    assert cmd.index('unzip ') < cmd.index(f'rm -rf {fdir}')    # the old dir goes only after unzip worked
+    assert '-d "$tmp/out"' in cmd
+
+
+@pytest.mark.real_runner
+def test_a_failed_unzip_keeps_the_installed_fonts(tmp_path, monkeypatch):
+    home = tmp_path / 'home'
+    fdir = home / '.local/share/fonts/configsys-mononoki-nerd'
+    fdir.mkdir(parents=True)
+    (fdir / 'Old.ttf').write_text('old')
+    (fdir / '.configsys-mononoki-nerd.version').write_text('v0.9')
+    bins = tmp_path / 'bin'
+    bins.mkdir()
+    for name, body in (('curl', 'while [ $# -gt 0 ]; do [ "$1" = -o ] && : > "$2"; shift; done'),
+                       ('unzip', 'exit 9'), ('fc-cache', 'exit 0')):
+        (bins / name).write_text(f'#!/bin/sh\n{body}\n')
+        (bins / name).chmod(0o755)
+    import os
+    monkeypatch.setenv('PATH', f'{bins}:{os.environ["PATH"]}')     # fake curl/unzip first (fake sudo kept)
+    p = Paths(env={'CONFIGSYS_HOME': str(home)})
+    res = Font(Runner(), paths=p).install(font_unit())
+    assert not res.ok
+    assert (fdir / 'Old.ttf').read_text() == 'old'               # untouched
+    assert (fdir / '.configsys-mononoki-nerd.version').read_text() == 'v0.9'

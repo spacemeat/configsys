@@ -23,6 +23,7 @@ import re
 import shlex
 
 from ..driver import Driver
+from ..runner import Result
 
 _HAS_SYSTEMD = 'command -v systemctl >/dev/null 2>&1'
 _HAS_RUNIT = '[ -d /var/service ]'
@@ -30,6 +31,19 @@ _HAS_RUNIT = '[ -d /var/service ]'
 # deliberately unquoted so a glob expands; names are validated to a safe charset first.
 _RS = '_rs() { for d in /etc/sv/$1; do :; done; [ -d "$d" ] && basename "$d"; }; '
 _SAFE = re.compile(r'^[A-Za-z0-9_.@*?\[\]-]+$')
+# a systemd unit name (its `\x2d` escapes included); `..` is refused separately (drivers-lang-25)
+_UNIT = re.compile(r'^[A-Za-z0-9:_.@\\-]+$')
+
+
+def _safe_runit(n):
+    '''A runit name: the charset above, at least one letter/digit (a bare `*` would enable every
+    service in /etc/sv), and no `..`.'''
+    return bool(_SAFE.match(n)) and any(c.isalnum() for c in n) and '..' not in n
+
+
+def _note(msg):
+    '''`printf` of a fixed message to stderr — the message one quoted token, never shell text.'''
+    return f"printf '%s\\n' {shlex.quote(msg)} >&2"
 
 
 class Service(Driver):
@@ -40,7 +54,10 @@ class Service(Driver):
 
     @staticmethod
     def _unit(rc):
-        return rc.fields.get('unit') or rc.comp
+        u = str(rc.fields.get('unit') or rc.comp)
+        if not _UNIT.match(u) or '..' in u:
+            raise ValueError(f'service {rc.comp}: unsafe unit name {u!r}')
+        return u
 
     def _runit(self, rc):
         '''The runit service name(s) for this binding, or [] when it has none (a .socket unit).'''
@@ -51,7 +68,7 @@ class Service(Driver):
                 return []
             names = [u[:-len('.service')] if u.endswith('.service') else u]
         names = [names] if isinstance(names, str) else [str(n) for n in names]
-        bad = [n for n in names if not _SAFE.match(n)]
+        bad = [n for n in names if not _safe_runit(n)]
         if bad:
             raise ValueError(f'service {rc.comp}: unsafe runit name(s) {bad}')
         return names
@@ -78,6 +95,12 @@ class Service(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        try:
+            return self._install(rc)
+        except ValueError as e:                      # an unsafe unit/runit name: no command built
+            return Result.fail(str(e))
+
+    def _install(self, rc):
         u = shlex.quote(self._unit(rc))
         enable = 'systemctl enable ' + ('' if rc.fields.get('start') is False else '--now ') + u
         if self._runit(rc):
@@ -86,15 +109,19 @@ class Service(Driver):
                 rc, f'{down}ln -sfn "/etc/sv/$s" "/var/service/$s"',
                 'echo "configsys: no runit service /etc/sv/$n (is its package installed?)" >&2; exit 1')
         else:
-            runit = (f'echo "configsys: {self._unit(rc)} is a systemd-only unit; runit has no '
-                     f'counterpart" >&2; exit 1')
+            runit = (_note(f'configsys: {self._unit(rc)} is a systemd-only unit; runit has no '
+                           f'counterpart') + '; exit 1')
         cmd = (f'if {_HAS_SYSTEMD}; then {enable}; '
                f'elif {_HAS_RUNIT}; then ( {runit} ); '
-               f'else echo "configsys: no systemd or runit here; skipped {self._unit(rc)}" >&2; fi')
+               f'else {_note(f"configsys: no systemd or runit here; skipped {self._unit(rc)}")}; fi')
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):
-        u = shlex.quote(self._unit(rc))
+        try:
+            u = shlex.quote(self._unit(rc))
+            self._runit(rc)
+        except ValueError as e:
+            return Result.fail(str(e))
         runit = (self._runit_script(rc, 'sv down "$s" 2>/dev/null; rm -f "/var/service/$s"', 'continue')
                  if self._runit(rc) else ':')
         return self.runner.run(f'if {_HAS_SYSTEMD}; then systemctl disable --now {u}; '

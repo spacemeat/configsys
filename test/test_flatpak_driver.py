@@ -278,3 +278,11 @@ def test_install_without_a_hub_omits_the_remote_token():
     Flatpak(r).install(u)
     cmd = r.calls[-1]
     assert "''" not in cmd and 'org.x.X' in cmd and cmd.rstrip().endswith('org.x.X')
+
+
+def test_per_unit_is_locked_is_an_exact_app_id_match():
+    # drivers-os-12: a substring test read org.foo.Bar as masked when only org.foo.Bar2 was
+    r = FakeRunner([('flatpak mask', 0, 'org.foo.Bar2\n')])
+    assert Flatpak(r).is_locked(fp('org.foo.Bar')) is False
+    r = FakeRunner([('flatpak mask', 0, '  org.foo.Bar\n')])
+    assert Flatpak(r).is_locked(fp('org.foo.Bar')) is True
