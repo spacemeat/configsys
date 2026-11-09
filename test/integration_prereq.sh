@@ -9,6 +9,11 @@ PKG="${PKG:-btop}"
 say() { printf '\n=== %s ===\n' "$*"; }
 fail() { printf '\nFAIL: %s\n' "$*" >&2; exit 1; }
 
+if ! grep -q '^ID=ubuntu' /etc/os-release; then          # universe is an Ubuntu archive component
+    echo "SKIP: the repo-component prereq test is Ubuntu-only (no universe on $(. /etc/os-release; echo "$ID"))"
+    exit 0
+fi
+
 say "disable the 'universe' component so the prereq is actually required"
 sudo add-apt-repository -y --remove universe
 sudo apt-get update -qq

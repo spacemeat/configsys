@@ -30,8 +30,14 @@ for spec in "${specs[@]}"; do
     "$bin" --version | grep -q " $n\." || fail "$comp toolset gcc is not version $n"
     echo "  toolset gcc: $($bin --version | head -1)"
 
-    say "activation via scl works for gcc-toolset-$n"
-    scl_ver=$(scl enable "gcc-toolset-$n" -- gcc --version | head -1)
+    say "activation works for gcc-toolset-$n"
+    if [ -f "/usr/lib/gcc-toolset/$n-env.source" ]; then   # EL 10: no SCL enable script any more
+        scl_ver=$(bash -c "source /usr/lib/gcc-toolset/$n-env.source && gcc --version" | head -1)
+    elif command -v scl >/dev/null; then                   # EL 8/9
+        scl_ver=$(scl enable "gcc-toolset-$n" -- gcc --version | head -1)
+    else
+        scl_ver=$(bash -c "source /opt/rh/gcc-toolset-$n/enable && gcc --version" | head -1)
+    fi
     echo "  scl enable ...: $scl_ver"
     grep -q " $n\." <<<"$scl_ver" || fail "scl-activated gcc is not version $n"
 done

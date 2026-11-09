@@ -3,7 +3,9 @@
 RHEL-driver distros (RHEL, Rocky, AlmaLinux, CentOS Stream) ship versioned compilers
 as `gcc-toolset-N` meta packages that install under /opt/rh/gcc-toolset-N — NOT on the
 default PATH (the system gcc stays put). You activate a toolset for a shell with
-`scl enable gcc-toolset-13 bash` or `source /opt/rh/gcc-toolset-13/enable`.
+`scl enable gcc-toolset-13 bash` or `source /opt/rh/gcc-toolset-13/enable` (EL 8/9), or on EL 10 —
+which drops the SCL enable script — `source /usr/lib/gcc-toolset/15-env.source` (or run a command
+through `gcc-toolset-15-env`).
 
 configsys installs the toolset and reports its real gcc version (read from the
 toolset's own gcc binary, since the meta package's rpm version is just the collection
@@ -71,10 +73,10 @@ class GccToolset(Driver):
         return self.install(rc)  # the toolset version is fixed by the package
 
     def lock(self, rc):
-        return Result('(gcc-toolset: activate via scl, not configsys)', 0)
+        return Result('(gcc-toolset: no version hold — the toolset version is fixed by its package)', 0)
 
     def unlock(self, rc):
-        return Result('(gcc-toolset: activate via scl, not configsys)', 0)
+        return Result('(gcc-toolset: no version hold — the toolset version is fixed by its package)', 0)
 
     def location(self, rc):
         return self._prefix(rc)
