@@ -651,7 +651,8 @@ block's `detect:` markers can refine it (see "OS blocks and drivers"). A distro 
 own routes as the first `ID_LIKE` entry that has one, without a version (so versioned atoms read
 false) and with a warning on the issues page; with no such relative it is an error that points at
 `--os` and `configsys request-os`. `--os BLOCK[:VERSION]` (or `CONFIGSYS_OS`) forces the block; an
-unknown block is an error. A `when:` naming
+unknown block is an error. (`request-os` under a forced block still describes the real host, and says
+so.) A `when:` naming
 an unknown OS block is a `check` warning, since it would never match. Two bindings of the
 **same driver** whose conditions overlap must be comparable (one more specific than the other), or
 configsys reports a load-time ambiguity; overlapping bindings of *different* drivers are legal

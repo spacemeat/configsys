@@ -547,12 +547,14 @@ def _os_release_fields(path='/etc/os-release'):
     return out
 
 
-def os_request_payload(ctx):
+def os_request_payload(ctx, os_info=None, forced=None):
     '''Assemble the (unscrubbed) OS-request payload: the detected os-release, how configsys currently
     maps it (block + native package manager), and platform facts. `modeled` is False when the block is
     a generic Linux root (or has no native manager) — i.e. the distro isn't specifically supported.
-    Serves both "please add this OS" and "a system update changed/broke things — here's my env".'''
-    oi = ctx.os_info
+    Serves both "please add this OS" and "a system update changed/broke things — here's my env".
+    `os_info` replaces ctx.os_info — the real host's detection under a `forced` --os (whose value is
+    recorded, so the body can say it describes the host, not the forced block).'''
+    oi = os_info or ctx.os_info
     block = oi.block
     try:
         native = ctx.routes.cascade.native(block)
@@ -570,6 +572,7 @@ def os_request_payload(ctx):
         },
         'native': native,
         'modeled': modeled,
+        'forced': forced,
         'os_release': _os_release_fields(),
         'platform': {
             'kernel': platform.platform(),
@@ -590,6 +593,10 @@ def render_os_request(payload, *, home=None, secrets=()):
     L = []
     L.append(f"**OS:** `{sc(o['pretty'] or o['id'] or o['block'])}`")
     L.append('')
+    if payload.get('forced'):
+        L.append(f"_configsys was run with a forced OS (`--os {sc(payload['forced'])}`); this request "
+                 f"describes the real host, as configsys detects it without that._")
+        L.append('')
     if payload['modeled']:
         L.append(f"configsys already models this OS (block `{o['block']}`, native `{payload['native']}`)"
                  f" — this report is to **fix or extend** it (e.g. a version update changed a package "

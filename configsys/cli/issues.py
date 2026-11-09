@@ -5,6 +5,7 @@ Split out of app.py (review-2026-11-2 D2).
 
 from collections import namedtuple
 
+from ..errors import ConfigsysError
 from .common import ask
 
 
@@ -166,12 +167,31 @@ def cmd_request(ctx, args):
                             save_as='last-request.md')
 
 
+def _real_host_os(ctx):
+    '''The real host's OsInfo under a forced --os / CONFIGSYS_OS: request-os sends the host's
+    /etc/os-release, so the block + native manager it states must be the host's too, never the forced
+    block mixed in. Detected, settled and refined as a run without the override would be; a host no
+    block covers keeps its own ID (reported as not modeled).'''
+    from .. import osdetect
+    env = {k: v for k, v in ctx.env.items() if k not in ('CONFIGSYS_OS', 'CONFIGSYS_OS_VERSION')}
+    info = osdetect.detect(env)
+    cascade = ctx.routes.cascade
+    try:
+        osdetect.settle(info, cascade.blocks)
+    except ConfigsysError:
+        return info
+    info.block = osdetect.refine(info.block, cascade, env)
+    return info
+
+
 def cmd_request_os(ctx, args):
     '''Suggest THIS OS for inclusion, or report that a system update changed/broke it. Captures the
     detected os-release + how configsys currently maps it (block + native manager), shows the scrubbed
     body, and files it only on approval — same no-hidden-telemetry contract as report/request.'''
     from .. import reportgen
-    payload = reportgen.os_request_payload(ctx)
+    # under a forced --os: describe the real host (its os-release is what gets sent), and say so
+    forced = (ctx.env.get('CONFIGSYS_OS') or ctx.os_info.block) if ctx.os_info.forced else None
+    payload = reportgen.os_request_payload(ctx, _real_host_os(ctx) if forced else None, forced=forced)
     secrets = reportgen.secret_values(ctx.env)
     body = reportgen.render_os_request(payload, home=ctx.paths.home, secrets=secrets)
     title = reportgen.os_request_title(payload)

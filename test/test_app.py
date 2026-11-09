@@ -582,6 +582,21 @@ def test_request_os_print_files_nothing(tmp_path, capsys):
     assert 'Send this to' not in out                      # --print never prompts/sends
 
 
+def test_request_os_under_a_forced_os_describes_the_real_host(tmp_path, capsys, monkeypatch):
+    # the os-release it carries is the host's, so the block + native it states must be too — not
+    # the forced --os mixed in — and it says so
+    from configsys import osdetect, reportgen
+    monkeypatch.setattr(osdetect, '_parse_os_release',
+                        lambda path: {'ID': 'ubuntu', 'ID_LIKE': 'debian', 'VERSION_ID': '24.04'})
+    monkeypatch.setattr(reportgen, '_os_pretty', lambda: 'Ubuntu 24.04 LTS')
+    monkeypatch.setattr(reportgen, '_os_release_fields', lambda path='': {'ID': 'ubuntu'})
+    rc = main(['--home', str(tmp_path), '--os', 'fedora', '--pretend', 'request-os', '--print'])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert 'configsys block:** `ubuntu` 24.04' in out and 'native: `apt`' in out
+    assert 'fedora' in out and 'real host' in out          # the forced block is named, not described
+
+
 def test_file_issue_returns_display_lines(tmp_path, monkeypatch):
     # the no-gh path, so the test never touches the network / files a real issue
     import configsys.app as app
