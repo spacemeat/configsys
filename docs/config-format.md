@@ -903,7 +903,7 @@ zoxide-glue: { install: [ { via: glue  requires: shell-glue  glue: zoxide } ] }
 **Installer shell writes.** With `installer-shell-writes: block` (the default), an installer that
 appends to your shell startup files (sdkman, nvm, rustup, conda, …) has the file restored to its
 prior contents and the removed lines **staged** as an inactive glue candidate:
-`configsys dotfiles staged` (or `configsys glue staged`) lists them, `activate` turns one into your
+`configsys glue staged` (or `configsys dotfiles staged`) lists them, `activate` turns one into your
 own user glue (in your primary plugin, or this machine's store with `--local`), and `discard` drops
 it. `installer-shell-writes-allow` exempts named components.
 

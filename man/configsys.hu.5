@@ -560,7 +560,7 @@ Your own startup snippets live in a \fBuser.d\fR folder and load after component
 .IP \(bu 2
 Opt out on a machine with \fBdisabled-drivers: [ glue ]\fR (and/or \fBdotfiles\fR) to manage your own shell startup files; the shell-writes guard still keeps installers from editing them.
 .PP
-\fBInstaller shell writes.\fR With \fBinstaller-shell-writes: block\fR (the default), an installer that appends to your shell startup files (sdkman, nvm, rustup, conda, …) has the file restored to its prior contents and the removed lines \fBstaged\fR as an inactive glue candidate: \fBconfigsys dotfiles staged\fR (or \fBconfigsys glue staged\fR) lists them, \fBactivate\fR turns one into your own user glue (in your primary plugin, or this machine's store with \fB--local\fR), and \fBdiscard\fR drops it. \fBinstaller-shell-writes-allow\fR exempts named components.
+\fBInstaller shell writes.\fR With \fBinstaller-shell-writes: block\fR (the default), an installer that appends to your shell startup files (sdkman, nvm, rustup, conda, …) has the file restored to its prior contents and the removed lines \fBstaged\fR as an inactive glue candidate: \fBconfigsys glue staged\fR (or \fBconfigsys dotfiles staged\fR) lists them, \fBactivate\fR turns one into your own user glue (in your primary plugin, or this machine's store with \fB--local\fR), and \fBdiscard\fR drops it. \fBinstaller-shell-writes-allow\fR exempts named components.
 .SH COMPONENT-NAMES
 .PP
 A higher layer (typically a plugin) can patch the package name a component maps to under a given driver, or drop it where that driver has no package, without redefining the component:

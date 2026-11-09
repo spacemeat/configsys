@@ -325,7 +325,7 @@ def finish(paths, component, snap):
         shells = ', '.join(sorted({s for s, _ in staged}) or captured)
         notes.append(f'guarded: reverted {n} line(s) {component} tried to add to your {shells} rc '
                      f'(configsys owns shell integration). Staged as inactive glue — review with '
-                     f'`configsys dotfiles staged`, enable with `configsys dotfiles activate {component}`.')
+                     f'`configsys glue staged`, enable with `configsys glue activate {component}`.')
     for label, tgt, added in getattr(captured, 'linked', ()):
         where = label if label.startswith('/') else f'~/{label}'
         notes.append(f'guarded: {component} added {len(added)} line(s) to {where}, a link to {tgt} — '

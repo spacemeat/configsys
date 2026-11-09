@@ -286,8 +286,8 @@ output in the TUI); the count is the installer's non-blank lines, not the `# fro
 
 ```
 -> guarded: reverted 3 line(s) sdkman tried to add to your bash rc (configsys owns shell
-   integration). Staged as inactive glue — review with `configsys dotfiles staged`, enable with
-   `configsys dotfiles activate sdkman`.
+   integration). Staged as inactive glue — review with `configsys glue staged`, enable with
+   `configsys glue activate sdkman`.
 ```
 
 **Reviewing staged glue.** Each verb is under both `configsys glue …` and `configsys dotfiles …`

@@ -188,8 +188,8 @@ def cmd_dotfiles_staged(ctx, args):
         for line in body:
             print(f'      {line}')
         print()
-    print('activate: `configsys dotfiles activate <component>`   '
-          'discard: `configsys dotfiles discard <component>`')
+    print('activate: `configsys glue activate <component>`   '
+          'discard: `configsys glue discard <component>`')
     return 0
 
 
@@ -246,6 +246,14 @@ def _print_user_glue(drv, entries):
     for shell, snippet, link, state in entries:
         print(f'  {"!" if state != "linked" else " "} {state:8} {shell:{sw}} '
               f'{disp(link) if link else "-"}  ->  {disp(snippet)}')
+
+
+def _glue_summary(buckets):
+    '''`dotfiles status`'s glue tally from {label: count} — every GLUE_STATE_LABEL bucket (changed =
+    active, but its shipped source moved on), in _GLUE_ORDER's active-first order.'''
+    from ..drivers.glue import GLUE_STATE_LABEL
+    order = dict.fromkeys(GLUE_STATE_LABEL.get(s, s) for s in _GLUE_ORDER)
+    return ', '.join(f'{buckets[lbl]} {lbl}' for lbl in order if lbl in buckets)
 
 
 def cmd_dotfiles_status(ctx, args):
@@ -323,7 +331,7 @@ def cmd_dotfiles_status(ctx, args):
         lbl = GLUE_STATE_LABEL.get(state, state)
         gbuckets[lbl] = gbuckets.get(lbl, 0) + n
     csum = ', '.join(f'{ccounts[s]} {s}' for s in CONFIG_STATES if s in ccounts)
-    gsum = ', '.join(f'{gbuckets[l]} {l}' for l in ('active', 'available', 'inactive') if l in gbuckets)
+    gsum = _glue_summary(gbuckets)
     parts = [p for p in (f'config: {csum}' if csum else '', f'glue: {gsum}' if gsum else '') if p]
     if parts:
         print('\n' + '   '.join(parts))

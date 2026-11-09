@@ -32,6 +32,24 @@ def test_dotfiles_staged_lists_from_the_state_dir(tmp_path, capsys, zsh_only):
     assert _cs(tmp_path, 'dotfiles', 'staged') == 0
     out = capsys.readouterr().out
     assert 'foo [zsh]' in out and 'staged-glue' in out and 'export FOO=1' in out
+    # the canonical spelling of the verbs (`dotfiles activate|discard` stays an alias)
+    assert '`configsys glue activate <component>`' in out
+    assert '`configsys glue discard <component>`' in out and 'dotfiles activate' not in out
+
+
+def test_shell_guard_note_names_the_glue_verbs(tmp_path, monkeypatch):
+    from configsys import shellguard
+    from configsys.paths import Paths
+    paths = Paths({'HOME': str(tmp_path), 'CONFIGSYS_STATE_DIR': str(tmp_path / 's')})
+    monkeypatch.setattr(shellguard, 'revert_and_capture', lambda home, snap: {'zsh': 'export X=1\n'})
+    note = shellguard.finish(paths, 'foo', {'snap': True})
+    assert '`configsys glue staged`' in note and '`configsys glue activate foo`' in note
+
+
+def test_glue_summary_counts_every_bucket_incl_changed():
+    from configsys.cli.dotfiles import _glue_summary
+    assert _glue_summary({'active': 2, 'changed': 1, 'available': 3, 'inactive': 1}) == \
+        '2 active, 1 changed, 3 available, 1 inactive'
 
 
 def test_dotfiles_activate_makes_user_glue_and_unstages(tmp_path, capsys, zsh_only):
