@@ -185,7 +185,7 @@ def test_classify_unmet_vs_dangling(plugin):
     on_arch = ctx_for(plugin, disabled=('flatpak',))
     assert stranded.classify_unroutable(on_arch, ['fponly', 'fedonly', 'lw']) == {
         'fponly': ('unmet', 'only installable via disabled driver(s): flatpak'),
-        'fedonly': ('dangling', 'no install method on this OS any more'),
+        'fedonly': ('dangling', 'no install method valid on this OS'),
     }                                            # lw still has a method (pacman) -> not classified
     # its own method is fine, but its requires-closure needs the disabled driver -> unmet, not error
     assert stranded.classify_unroutable(on_arch, ['needsfp']) == {
@@ -225,7 +225,7 @@ def test_unroutable_rows_carry_the_stranded_install(plugin, monkeypatch):
     ctx, led = ctx_for(plugin), Ledger()
     receipt(led, 'dnf\\fedonly', 'fedonly', 'native')   # say it came over from a Fedora box config
     monkeypatch.setattr(stranded, 'foreign_index', lambda *a, **k: None)
-    rows = stranded.unroutable_states(ctx, {'fedonly': ('dangling', 'no install method on this OS any more'),
+    rows = stranded.unroutable_states(ctx, {'fedonly': ('dangling', 'no install method valid on this OS'),
                                             'fponly': ('unmet', 'only via flatpak')},
                                       led, cache=FakeCache({('dnf', 'fedonly'): '5'}))
     fed = rows['dnf\\fedonly']
@@ -296,3 +296,41 @@ def test_an_explicitly_gated_driver_is_never_probed(tmp_path):
     q.write_text(PLUGIN)
     stranded.find(ctx_for(str(q), cpu='aarch64'), 'gatedapp', ledger=Ledger(), cache=Recording({}))
     assert 'appImage' in probed
+
+
+def test_a_pick_held_only_by_the_trust_gate_reads_untrusted_not_dangling(tmp_path, monkeypatch):
+    # docs/plugins.md §6: an untrusted plugin's command-carrying binding isn't a candidate, and "a
+    # pick that has no other method shows that as its error" — the untrusted status naming the fix,
+    # never `dangling` ("no install method on this OS"), which sends you looking in the wrong place
+    plug = tmp_path / 'toyplug'
+    plug.mkdir()
+    (plug / 'plugin.hu').write_text('{ name: toyplug }')
+    data = plug / 'routes.hu'
+    data.write_text('''{ components: {
+        held: { description: "x"  install: [ { via: script  install: "true"  version: "echo 1" } ] }
+        mixed: { description: "x"  install: [ { via: script  install: "true"  version: "echo 1" }
+                                              { via: native  when: "arch" } ] }
+    } }''')
+    r = Resolver(ROUTES, 'arch', '20260101', 'x86_64', plugin_files=[str(data)],
+                 command_trust=lambda p: False)
+    ctx = SimpleNamespace(routes=r, runner=Runner(pretend=True), paths=None)
+    _units, errs = r.resolve_resilient(['held', 'mixed'])
+    assert 'held' in errs and 'mixed' not in errs  # mixed still has pacman
+    classes = stranded.classify_unroutable(ctx, ['held'])
+    status, detail = classes['held']
+    assert status == 'untrusted'
+    assert 'via script' in detail and '`configsys plugin trust toyplug`' in detail
+    monkeypatch.setattr(stranded, 'foreign_index', lambda *a, **k: None)
+    rows = stranded.unroutable_states(ctx, classes, Ledger(), cache=FakeCache({}))
+    st = rows['—\\held']
+    assert st.status == 'untrusted' and st.untrusted and not st.supported
+    from configsys.tui.models import OPS
+    assert not OPS['install'][2](st)              # never stageable until trusted
+    texts = [(tag, t) for _l, tag, t in stranded.diagnostics(rows)]
+    assert texts == [('untrusted', f'held: {detail}')]
+
+
+def test_dangling_wording_fits_a_pick_that_never_had_a_method(plugin):
+    # `fedonly` never had a method on Arch: "any more" would claim it once did
+    status, detail = stranded.classify_unroutable(ctx_for(plugin), ['fedonly'])['fedonly']
+    assert status == 'dangling' and 'any more' not in detail

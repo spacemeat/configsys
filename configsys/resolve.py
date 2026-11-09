@@ -312,6 +312,14 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
     return ctx
 
 
+def untrusted_plugin(binding):
+    '''The plugin a binding's layer file belongs to — its checkout's dir name, which is what
+    `configsys plugin trust <name>` takes (a data file may sit in a subdir of the checkout).'''
+    from .layers import _plugin_tree
+    src = getattr(binding, 'source', None)
+    return os.path.basename(_plugin_tree(src)) if src else '?'
+
+
 def _gate_note(component, context, pin):
     '''" — <via>: <why>" for each of `component`'s bindings a driver gate removed here (the bindings
     otherwise valid), so "no binding here" names the reason instead of leaving you to guess.'''
@@ -327,8 +335,9 @@ def _gate_note(component, context, pin):
         untrusted = trustgate.gated(b, context)
         if untrusted is not None and b.via not in notes and arch_ok(b.details, cpu) \
                 and b.pred.eval(context):
-            notes[b.via] = (f'from the untrusted plugin layer {os.path.basename(os.path.dirname(b.source))} '
-                            f'— {untrusted} (review it, then `configsys plugin trust`)')
+            plug = untrusted_plugin(b)
+            notes[b.via] = (f'from the untrusted plugin layer {plug} '
+                            f'— {untrusted} (review it, then `configsys plugin trust {plug}`)')
             continue
         drv = driver_gated(b, context)
         if drv is None or b.via in notes or not (arch_ok(b.details, cpu) and b.pred.eval(context)):

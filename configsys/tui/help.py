@@ -33,7 +33,7 @@ _HELP = {
                          'installed+tracked (also installed components you haven\'t tracked)'),
             ('status', 'installed · outdated (newer available) · missing · locked (version held) · '
                        'partial (some units installed) · unsupported (no driver for its method here) · '
-                       'untrusted (its driver comes from a plugin you haven\'t trusted) · error (a probe '
+                       'untrusted (it needs a plugin you haven\'t trusted) · error (a probe '
                        'or op failed)'),
             ('routing status', 'shown instead of the version status: switch (installed via a method '
                                'routes no longer offer here; {components:op-install} swaps it out) · unmet (installable only '

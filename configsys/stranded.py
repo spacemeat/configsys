@@ -15,6 +15,9 @@ routing state, shown as a status distinct from `outdated`:
              (installState.plan_with_swaps), which removes the stranded install.
   unmet    — no install method enabled, but one would be valid if a `disabled-drivers:` driver
              were on (directly, or somewhere in its requires-closure). Not dangling.
+  untrusted — no install method valid here, but one would be once its plugin is trusted (an
+             untrusted plugin's command-carrying binding — the trust gate, trustgate.py). The row
+             is the ordinary `untrusted` state, naming `configsys plugin trust <plugin>`.
   dangling — no install method valid on this OS at all. Never staged for removal: an existing
              install keeps working, and removing it is the user's call.
 
@@ -35,7 +38,8 @@ from dataclasses import dataclass, field
 from .componentObj import ResolvedComponent
 from .drivers import get_driver
 
-ROUTE_STATUSES = ('dangling', 'unmet', 'switch')        # precedence, most severe first
+ROUTE_STATUSES = ('dangling', 'untrusted', 'unmet', 'switch')        # precedence, most severe first
+DANGLING_TEXT = 'no install method valid on this OS'   # whether it never had one here or lost it
 NO_METHOD = '—'                  # driver of a placeholder row: a pick with no install method here
 
 # config drivers link files, they aren't an install METHOD of a component
@@ -209,9 +213,12 @@ def foreign_index(ctx, cache=None):
 
 def classify_unroutable(ctx, names):
     '''{name: (status, detail)} for requested `names` that failed to resolve because no install
-    method is valid ('dangling') or only a disabled driver's would be ('unmet'). Names that failed
-    for other reasons (ambiguity, an unknown component) are left out — they stay errors.'''
-    from .resolve import candidate_bindings
+    method is valid ('dangling'), only a disabled driver's would be ('unmet'), or only an untrusted
+    plugin's command-carrying binding would be ('untrusted' — the trust gate, docs/plugins.md §6).
+    Names that failed for other reasons (ambiguity, an unknown component) are left out — they stay
+    errors.'''
+    import copy
+    from .resolve import candidate_bindings, untrusted_plugin
     r = ctx.routes
     disabled = frozenset(getattr(r, 'disabled', ()) or ())
     out = {}
@@ -219,13 +226,27 @@ def classify_unroutable(ctx, names):
         comp = r.components.get(name)
         if comp is None:
             continue
-        if candidate_bindings(comp, r.cascade, r.context()):
+        here = r.context()
+        if candidate_bindings(comp, r.cascade, here):
             # it HAS a method; did a disabled driver break its requires-closure?
             if disabled and not _routes(r, name) and _routes_without_disabled(r, name):
                 out[name] = ('unmet', 'a dependency needs a disabled driver ('
                              + ', '.join(sorted(disabled)) + ')')
             continue
-        # nothing valid now; with no driver disabled, is there? Then disabling is the cause — either
+        # nothing valid now; would there be with its plugin trusted? Then the trust gate is the
+        # cause — say so (and which plugin to review), never "no install method on this OS"
+        if getattr(here, 'untrusted_sources', None):
+            trusted = copy.copy(here)          # a shared, cached context: never mutate it
+            trusted.untrusted_sources = frozenset()
+            held = candidate_bindings(comp, r.cascade, trusted)
+            if held:
+                vias = ', '.join(sorted({b.via for b in held}))
+                plugs = sorted({untrusted_plugin(b) for b in held})
+                out[name] = ('untrusted', f'only installable via {vias} from the untrusted plugin '
+                             f'{", ".join(plugs)} — review it, then `configsys plugin trust '
+                             f'{plugs[0]}`')
+                continue
+        # with no driver disabled, is there? Then disabling is the cause — either
         # the method's own driver is disabled, or its driver's requires need one (snap on Arch needs
         # snapd, which only installs via aur: disable aur and snap can't work either)
         would = candidate_bindings(comp, r.cascade, r.context(disabled=())) if disabled else []
@@ -236,7 +257,7 @@ def classify_unroutable(ctx, names):
                          else f'only installable via {", ".join(vias)}, which needs a disabled driver '
                               f'({", ".join(sorted(disabled))})')
         else:
-            out[name] = ('dangling', 'no install method on this OS any more')
+            out[name] = ('dangling', DANGLING_TEXT)
     return out
 
 
@@ -309,9 +330,12 @@ def unroutable_states(ctx, classes, ledger, cache=None):
             rc = ResolvedComponent(key=f'{NO_METHOD}\\{name}', driver=NO_METHOD, comp=name,
                                    requested_as={name})
             present, ver = False, None
+        # trust-held: the existing `untrusted` state (unsupported until trusted, its hint in
+        # `error` like a code plugin's driver), so it reads and stages exactly like one
+        held = status == 'untrusted'
         out[rc.key] = ComponentState(
-            component=rc, supported=True, present=present, installed_version=ver,
-            latest_version=None, locked=False, lock_source=None, error=None,
+            component=rc, supported=not held, untrusted=held, present=present, installed_version=ver,
+            latest_version=None, locked=False, lock_source=None, error=(detail if held else None),
             route_status=status, route_detail=detail, stranded=tuple(found))
     return out
 
@@ -338,8 +362,8 @@ def diagnostics(states):
                         f'{name}: installed via {installs} — {why}. Installing it (TUI `i`, or '
                         f'`configsys install {name}`) swaps that out for {st.component.driver}; '
                         f'`v` first to choose a different method'))
-        elif status == 'unmet':
-            out.append(('warn', 'unmet', f'{name}: {st.route_detail}'
+        elif status in ('unmet', 'untrusted'):
+            out.append(('warn', status, f'{name}: {st.route_detail}'
                         + (f' — still installed via {installs}' if installs else '')))
         else:
             out.append(('warn', 'dangling', f'{name}: {st.route_detail}'

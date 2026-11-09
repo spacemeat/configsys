@@ -19,7 +19,8 @@ status and distinct from `outdated`:
 |---|---|---|
 | `switch` | installed via a method that isn't a candidate here any more (removed from routes, gated out, or its driver disabled), while another valid method exists | nothing automatic. Installing the component (TUI `i`, or `configsys install <comp>`) runs the method swap: the stranded install is removed first, then the current method installs (a no-op if it's already there). `tui/models.OPS['install']` deliberately allows `i` on a `switch` row even when the current method is already present ("make current"). To choose a *different* method first, press `v` (or `configsys pin set <comp> <via>`); the method-swap offer (`tui/flows._offer_method_swap`) then stages the same remove-and-reinstall. |
 | `unmet` | no install method enabled, but one would be valid if a `disabled-drivers:` driver were on — the method's own driver, a driver its driver's `requires:` need (the derived driver gate: on Arch snapd installs only via aur, so disabling aur gates snap too), or one somewhere in the component's requires-closure | not dangling. Re-enable the driver, or leave it. `i` is never offered. |
-| `dangling` | no install method valid on this OS at all | never staged for removal; `i` is never offered. An existing install keeps working and shows in the row; removing it is the user's call (TUI `x` on the row, or `configsys remove <comp>` — both remove the stranded install). |
+| `untrusted` | no install method valid here, but one would be once its plugin is trusted — every binding left is an untrusted plugin's command-carrying one (the trust gate, `trustgate.py`; docs/plugins.md §6) | the row is the ordinary `untrusted` state (unsupported until trusted), its detail naming `configsys plugin trust <plugin>`; `i` is never offered. Review the plugin and trust it, or leave it. |
+| `dangling` | no install method valid on this OS at all (whether it never had one here or lost it) | never staged for removal; `i` is never offered. An existing install keeps working and shows in the row; removing it is the user's call (TUI `x` on the row, or `configsys remove <comp>` — both remove the stranded install). |
 
 Each status also gets a `warn` line on the `!` page and in `configsys inspect`
 (`stranded.diagnostics`). A stranded install also appears in the row's "also present" list, labelled
@@ -86,7 +87,9 @@ examples:
   the previous verdict.
 - `classify_unroutable` turns resolve errors of the dangling/unmet kind into `Context.route_classes`
   (removed from `resolve_errors`; other failures — ambiguity, unknown component — stay errors).
-  With no candidate, it re-asks `resolve.candidate_bindings` under `r.context(disabled=())`: a hit is
+  With no candidate, it first re-asks `resolve.candidate_bindings` with the trust gate lifted (a copy
+  of the context with no `untrusted_sources`): a hit is `untrusted`, naming the plugin
+  (`resolve.untrusted_plugin`). Otherwise it re-asks under `r.context(disabled=())`: a hit is
   `unmet` (naming the disabled driver directly, or "needs a disabled driver" when the hit's driver
   is only derived-gated), no hit is `dangling`. With a candidate, it compares `resolve_resilient([name])`
   with `resolve_resilient([name], disabled=())` (a per-call override — no shared resolver state is

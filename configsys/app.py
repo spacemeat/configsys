@@ -139,7 +139,7 @@ class Context:
         self.plugin_code_conflicts = []  # code-level registration collisions (version-source/transport)
         self.plugin_pending_vias = set()  # via names those gated-out plugins would provide
         self.resolve_errors = {}      # {requested_name: message} from the last resilient resolve
-        self.route_classes = {}       # {requested_name: ('dangling'|'unmet', detail)} (stranded.py)
+        self.route_classes = {}       # {requested_name: ('dangling'|'unmet'|'untrusted', detail)} (stranded.py)
         # working-TARGET machine: `--machine X` curates/plans machine X's set from any box (overrides
         # the local `machine:` setting for this run). None -> use the box's own `machine:` selection.
         self.machine_override = getattr(args, 'machine', None) or None
@@ -593,8 +593,8 @@ class Context:
                     r.event(report.VERBOSE, f'  not adopting installed {what} -> {choice}: {dropped[what]}')
                 else:
                     r.event(report.DEFAULT, f'  adopting installed: {what} -> {choice}')
-        # picks with no install method valid here (dangling) or only a disabled driver's (unmet)
-        # are a ROUTING STATUS, not an error: they get a row (+ any stranded install) below
+        # picks with no install method valid here (dangling), only a disabled driver's (unmet) or only
+        # an untrusted plugin's (untrusted) are a ROUTING STATUS, not an error: they get a row (+ any stranded install) below
         from . import stranded
         self.route_classes = stranded.classify_unroutable(self, list(self.resolve_errors or {}))
         for name in self.route_classes:
