@@ -89,8 +89,12 @@ class Os:
             return False
         if self.op is None:
             return True                 # bare atom: subtree membership only
-        if ctx.scale_root_of(self.name) != ctx.system_scale_root:
-            return False                # versioned atom on a foreign scale never matches
+        sroot = ctx.scale_root_of(self.name)
+        if sroot != ctx.system_scale_root:
+            # a foreign scale: only through a registered base (D8 — Zorin 18 is Ubuntu 24.04 for
+            # `ubuntu >= 24.04`); otherwise never matches
+            base = ctx.base_versions.get(sroot)
+            return base is not None and _CMP[self.op](base, self.version)
         return ctx.version is not None and _CMP[self.op](ctx.version, self.version)
 
 
@@ -135,8 +139,12 @@ class Context:
     blocks are version scale-roots.'''
 
     def __init__(self, lineage, version=None, cpu=None, scale_roots=(),
-                 facets_cat=None, facets_ver=None, disabled=(), has_native=True):
+                 facets_cat=None, facets_ver=None, disabled=(), has_native=True, base_versions=None):
         self.lineage = list(lineage)
+        # D8: {scale-root: version} this release also counts as — a derivative's registered base
+        # (Zorin 18 -> {ubuntu: 24.04}); a versioned atom on that scale compares against it
+        self.base_versions = {k: (parse_version(v) if isinstance(v, str) else tuple(v))
+                              for k, v in (base_versions or {}).items()}
         # False on an OS block with no system package manager (KDE Linux, an image-based distro):
         # `via: native` bindings are then non-matching, like a false `when:` (resolve._matching).
         self.has_native = has_native
@@ -298,6 +306,7 @@ def parse(text):
 # atoms all fall out for free.
 
 _SENTINEL_CPU = '\x00other'
+_BASES = '\x00bases'                  # ver_assign key: {scale-root: base version} for a derivative cell
 
 
 def _collect(preds, cascade):
@@ -371,8 +380,10 @@ def _holds(pred, lineage, sroot_leaf, scale_roots, blocks, cat_assign, ver_assig
                 return False
             if pred.op is None:
                 return True
-            if _scale_root(pred.name, lineage, scale_roots) != sroot_leaf:
-                return False
+            atom_root = _scale_root(pred.name, lineage, scale_roots)
+            if atom_root != sroot_leaf:
+                base = (ver_assign.get(_BASES) or {}).get(atom_root)   # D8: a registered base
+                return base is not None and _cmp_sample(pred.op, (base, 0), pred.version)
             return _cmp_sample(pred.op, ver_assign[None], pred.version)
         # name is not any OS block -> a version facet (only the versioned form is meaningful)
         if pred.op is None:
@@ -392,13 +403,27 @@ def _cells(preds, cascade):
     ver_names = sorted(vaxes, key=lambda x: (x is not None, x or ''))
     cat_lists = [cat_dims[n] for n in cat_names]
     ver_lists = [vaxes[n] for n in ver_names]
+    bases = getattr(cascade, 'release_bases', None) or {}
     for leaf in cascade.blocks:
         lineage = cascade.lineage(leaf)
         sroot = _scale_root(leaf, lineage, cascade.scale_roots)
+        # a derivative line with registered bases also gets one cell per registered release, where
+        # a versioned atom on its base's scale compares against that base (D8); the generic samples
+        # stay too — they stand for a release the registry doesn't know (bases: none)
+        extra = []
+        if sroot in bases and hasattr(cascade, 'bases_of'):
+            for v in sorted(bases[sroot]):
+                extra.append(((v, 0), cascade.bases_of(leaf, v)))
         for cat_combo in itertools.product(*cat_lists):
             cat_assign = dict(zip(cat_names, cat_combo))
             for ver_combo in itertools.product(*ver_lists):
                 yield lineage, sroot, blocks, cat_assign, dict(zip(ver_names, ver_combo))
+                if ver_names and ver_names[0] is None:
+                    for sample, bmap in extra:
+                        va = dict(zip(ver_names, ver_combo))
+                        va[None] = sample
+                        va[_BASES] = bmap
+                        yield lineage, sroot, blocks, cat_assign, va
 
 
 def subset(a, b, cascade):

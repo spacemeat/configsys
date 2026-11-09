@@ -335,11 +335,19 @@ matches, so `configsys check` warns `unknown-os` (`routecheck.validate`).
   it borrows Ubuntu's line (Pop 22.04 *is* Ubuntu 22.04). Mint, LMDE, Zorin, elementary, MX and
   PikaOS each own their numbers, so each is its own scale-root and a versioned `ubuntu`/`debian`
   atom never misreads them.
+- **Derivative bases.** A derivative's registered release names the release it is built on —
+  `releases: { 18: { …  base: "ubuntu 24.04" } }` on `zorin` — and a versioned atom on that base's
+  scale compares against it (`OsCascade.bases_of` → `Context.base_versions`; the static grid adds a
+  cell per registered release, so specificity and overlap agree). So `ubuntu >= 24.04` holds on
+  Zorin 18 and Mint 22.x, and a gate never lists derivatives by hand; one names a derivative only
+  where it really differs from its base. A derivative release the registry doesn't know reads as
+  an unknown version (versioned atoms false) and `check` says to register it.
 - A **bare** OS atom is pure subtree membership (any version). A **versioned** OS atom matches only
   when the atom's nearest scale-root equals the system's (`Context.scale_root_of` /
-  `system_scale_root`). So `debian < 12` matches Debian proper, **not** Pop or Mint; `ubuntu < 23.04`
-  matches Ubuntu and Pop; `debian` (bare) still matches all of them. Rolling blocks (arch,
-  tumbleweed, void) have no version, so only their bare atoms are meaningful.
+  `system_scale_root`) — or is a registered base of it (above). So `debian < 12` matches Debian
+  proper and MX 21 / LMDE releases built on Debian 11, **not** Pop or Ubuntu; `ubuntu < 23.04`
+  matches Ubuntu, Pop and Mint 21.x; `debian` (bare) still matches all of them. Rolling blocks
+  (arch, tumbleweed, void) have no version, so only their bare atoms are meaningful.
 
 Identity and scale are orthogonal: sharing a version line does not make two OSes the
 same OS.

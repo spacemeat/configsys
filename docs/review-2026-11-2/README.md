@@ -33,6 +33,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 - 2026-11-08 — A17 — the suite is hermetic (conftest guard); A2 A3 A4 A5 A7 B2 follow.
 - 2026-11-08 — A1 trust gate, A6/A9 destructive-path guards, A8 config drivers never write through links, B1+D3 one plan builder (CLI honors adopted installs; only missing deps).
 - 2026-11-08 — B3 B12 B13 — bash loads glue everywhere, fish appends, zsh no longer leaks null_glob, the launcher works through symlinks / from your CWD / on EL 9.
+- 2026-11-08 — D8 — derivatives resolve like their base (Zorin/Mint/elementary/LMDE/MX).
 
 ## 0. Fixed during the review
 None — report-only.
@@ -246,7 +247,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   model; three hand-copied table screens; seven modal frames. (tui-screens-06..10, tui-core-08) · L · [open]
 - **D8 The release registry drives derivative gates** — a derivative's `base:` lets `ubuntu >= 24.04` reach
   Zorin 18 / Mint 22 (os-releases plan phase 5); retires 31 hand-kept lists and fixes 11 wrong gates.
-  (os-releases.md §3) · effort M · [open]
+  (os-releases.md §3) · effort M · [done — derivative releases carry base: in the registry; versioned base atoms evaluate through it at runtime and in the static grid; 31 hand-kept derivative lists retired (equivalence-checked); check warns for an unregistered derivative release]
 - **D9 A parity table that fails when a CLI verb ships without a TUI decision.** (parity-11) · S · [open]
 
 ### Tier E — docs vs code

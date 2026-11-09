@@ -55065,12 +55065,13 @@
    }
   },
   "eza": {
-   "apt\\curl": {
+   "apt\\eza": {
     "driver": "apt",
     "fields": {
-     "name": "curl"
+     "name": "eza",
+     "repo-component": "universe"
     },
-    "name": "curl"
+    "name": "eza"
    },
    "dotfiles\\eza-dotfiles": {
     "driver": "dotfiles",
@@ -55081,19 +55082,6 @@
      }
     },
     "name": "eza-dotfiles"
-   },
-   "tarball\\eza": {
-    "driver": "tarball",
-    "fields": {
-     "installDir": "$CONFIGSYS_APP_DIR/eza",
-     "name": "eza",
-     "version": {
-      "asset": "eza_$ARCH-unknown-linux-gnu.tar.gz",
-      "github": "eza-community/eza",
-      "strip-v": "true"
-     }
-    },
-    "name": "eza"
    }
   },
   "eza-dotfiles": {
@@ -56814,66 +56802,12 @@
    }
   },
   "gping": {
-   "apt\\curl": {
+   "apt\\gping": {
     "driver": "apt",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "apt\\git": {
-    "driver": "apt",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
-   "brew\\gping": {
-    "driver": "brew",
     "fields": {
      "name": "gping"
     },
     "name": "gping"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "glue\\homebrew-glue": {
-    "driver": "glue",
-    "fields": {
-     "glue": "homebrew"
-    },
-    "name": "homebrew-glue"
-   },
-   "glue\\shell-glue": {
-    "driver": "glue",
-    "fields": {
-     "loader": "all"
-    },
-    "name": "shell-glue"
-   },
-   "script\\homebrew": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
-    },
-    "name": "homebrew"
    }
   },
   "graalvm": {
@@ -62025,13 +61959,36 @@
    }
   },
   "newsboat": {
-   "apt\\newsboat": {
+   "apt\\curl": {
     "driver": "apt",
     "fields": {
-     "name": "newsboat",
-     "repo-component": "universe"
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\newsboat": {
+    "driver": "brew",
+    "fields": {
+     "name": "newsboat"
     },
     "name": "newsboat"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
    },
    "dotfiles\\newsboat-dotfiles": {
     "driver": "dotfiles",
@@ -62042,6 +61999,36 @@
      }
     },
     "name": "newsboat-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "newsboat-dotfiles": {
@@ -62851,9 +62838,9 @@
    "apt\\p7zip": {
     "driver": "apt",
     "fields": {
-     "name": "p7zip-full"
+     "name": "7zip"
     },
-    "name": "p7zip-full"
+    "name": "7zip"
    }
   },
   "pango": {
@@ -66181,37 +66168,6 @@
     },
     "name": "curl"
    },
-   "apt\\git": {
-    "driver": "apt",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
-   "brew\\tuxedo": {
-    "driver": "brew",
-    "fields": {
-     "name": "tuxedo"
-    },
-    "name": "tuxedo"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "glue\\homebrew-glue": {
-    "driver": "glue",
-    "fields": {
-     "glue": "homebrew"
-    },
-    "name": "homebrew-glue"
-   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -66226,21 +66182,18 @@
     },
     "name": "tuxedo-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
+   "tarball\\tuxedo": {
+    "driver": "tarball",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "installDir": "$CONFIGSYS_APP_DIR/tuxedo",
+     "name": "tuxedo",
      "version": {
-      "github": "Homebrew/brew"
-     },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+      "asset": "tuxedo-*-$ARCH-unknown-linux-gnu.tar.gz",
+      "github": "webstonehq/tuxedo",
+      "strip-v": "true"
+     }
     },
-    "name": "homebrew"
+    "name": "tuxedo"
    }
   },
   "tuxedo-glue": {
@@ -67976,44 +67929,6 @@
    }
   },
   "yazi": {
-   "apt\\curl": {
-    "driver": "apt",
-    "fields": {
-     "name": "curl"
-    },
-    "name": "curl"
-   },
-   "apt\\git": {
-    "driver": "apt",
-    "fields": {
-     "name": "git"
-    },
-    "name": "git"
-   },
-   "brew\\yazi": {
-    "driver": "brew",
-    "fields": {
-     "name": "yazi"
-    },
-    "name": "yazi"
-   },
-   "dotfiles\\git-dotfiles": {
-    "driver": "dotfiles",
-    "fields": {
-     "config": {
-      "dst": "~/.gitconfig",
-      "src": "gitconfig"
-     }
-    },
-    "name": "git-dotfiles"
-   },
-   "glue\\homebrew-glue": {
-    "driver": "glue",
-    "fields": {
-     "glue": "homebrew"
-    },
-    "name": "homebrew-glue"
-   },
    "glue\\shell-glue": {
     "driver": "glue",
     "fields": {
@@ -68028,21 +67943,19 @@
     },
     "name": "yazi-glue"
    },
-   "script\\homebrew": {
-    "driver": "script",
+   "native-pkg-file\\yazi": {
+    "driver": "native-pkg-file",
     "fields": {
-     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-     "location": "/home/linuxbrew/.linuxbrew",
-     "name": "homebrew",
-     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
-     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
-     "version": {
-      "github": "Homebrew/brew"
+     "asset": {
+      "aarch64": "yazi-aarch64-unknown-linux-gnu.deb",
+      "x86_64": "yazi-x86_64-unknown-linux-gnu.deb"
      },
-     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
-     "version-re": "Homebrew ([0-9][0-9.]*)"
+     "name": "yazi",
+     "version": {
+      "github": "sxyazi/yazi"
+     }
     },
-    "name": "homebrew"
+    "name": "yazi"
    }
   },
   "yazi-glue": {

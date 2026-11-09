@@ -39,6 +39,10 @@ _GIT_IDENTITY = {'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@t',
                  'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@t'}
 
 
+# test-suite switches (not configsys settings) that survive the scrub
+_TEST_CONTROLS = frozenset({'CONFIGSYS_REGEN_GOLDEN'})
+
+
 class RealRunnerError(RuntimeError):
     '''A test reached a real (non-pretend) Runner.run without `@pytest.mark.real_runner`.'''
 
@@ -61,7 +65,7 @@ def _fake_sudo_dir(tmp_path_factory):
 @pytest.fixture(autouse=True)
 def _hermetic(request, monkeypatch, tmp_path_factory, _fake_sudo_dir):
     for name in list(os.environ):
-        if name.startswith(('CONFIGSYS_', 'XDG_')):
+        if name.startswith(('CONFIGSYS_', 'XDG_')) and name not in _TEST_CONTROLS:
             monkeypatch.delenv(name, raising=False)
     home = tmp_path_factory.mktemp('home')
     monkeypatch.setenv('HOME', str(home))

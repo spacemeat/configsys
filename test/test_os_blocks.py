@@ -56,10 +56,13 @@ def test_rhel_rebuilds_borrow_rhel_scale(cascade):
 
 
 def test_mint_owns_its_own_scale(cascade):
-    # Mint 21 = Ubuntu 22.04 (DIFFERENT digits). A versioned `ubuntu` atom must NOT misfire on
-    # Mint just because 21 < 23.04 — Mint is its own scale-root, so the scale guard rejects it.
-    assert not holds(cascade, 'ubuntu < 23.04', 'linuxmint', '21')
-    assert not holds(cascade, 'debian < 12', 'lmde', '6')
+    # Mint 21 = Ubuntu 22.04 (DIFFERENT digits). Mint's own digits never stand for Ubuntu's — but
+    # its registered release names its base (D8), so a versioned `ubuntu` atom reads THAT version:
+    # Mint 21 is Ubuntu 22.04, Mint 22 is 24.04; an unregistered Mint release matches no ubuntu atom.
+    assert holds(cascade, 'ubuntu < 23.04', 'linuxmint', '21')
+    assert not holds(cascade, 'ubuntu < 23.04', 'linuxmint', '22')
+    assert not holds(cascade, 'ubuntu >= 20.04', 'linuxmint', '99')   # not in the registry
+    assert not holds(cascade, 'debian < 12', 'lmde', '6') and holds(cascade, 'debian = 12', 'lmde', '6')
     assert holds(cascade, 'ubuntu', 'linuxmint', '21')    # bare ubuntu still matches (routes)
     assert holds(cascade, 'linuxmint < 22', 'linuxmint', '21')   # its own scale targets it
 
@@ -193,8 +196,8 @@ def test_void_flavors_share_xbps_but_not_glibc(cascade):
 
 def test_zorin_owns_its_scale_scientific_borrows_el(cascade):
     assert cascade.native('zorin') == 'apt' and cascade.native('scientific') == 'dnf'
-    # Zorin 17 = Ubuntu 22.04 (different digits): a versioned ubuntu atom must not misfire on it
-    assert not holds(cascade, 'ubuntu < 23.04', 'zorin', '17')
+    # Zorin 17 = Ubuntu 22.04 (different digits): a versioned ubuntu atom reads its registered base
+    assert holds(cascade, 'ubuntu < 23.04', 'zorin', '17') and not holds(cascade, 'ubuntu < 23.04', 'zorin', '18')
     assert holds(cascade, 'ubuntu', 'zorin', '17') and holds(cascade, 'zorin >= 17', 'zorin', '18')
     # SL 7.9 IS RHEL 7.9: EL's versioned atoms apply
     assert holds(cascade, 'rhel < 8', 'scientific', '7.9') and holds(cascade, 'rhel', 'scientific', '7.9')
@@ -220,3 +223,13 @@ def test_chimera_is_musl_with_no_native_yet():
     assert 'glibc' not in r.cascade.provides('chimera')          # musl: glibc binaries decline
     with pytest.raises(ResolveError):
         r.resolve_names(['ghostty'])                              # glibc AppImage + natives only
+
+
+def test_the_static_grid_sees_derivative_bases_too(cascade):
+    # D8: specificity / overlap agree with runtime — `ubuntu >= 24.04` and a bare `zorin` overlap
+    # (on Zorin 18), and `ubuntu >= 24.04` is no longer disjoint from `linuxmint`
+    from configsys import predicate
+    P = predicate.parse
+    assert predicate.overlap(P('ubuntu >= 24.04'), P('zorin'), cascade)
+    assert predicate.overlap(P('ubuntu < 23.04'), P('linuxmint'), cascade)
+    assert not predicate.overlap(P('ubuntu >= 24.04'), P('zorin < 18'), cascade)

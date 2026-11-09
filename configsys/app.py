@@ -2512,6 +2512,18 @@ def cmd_check(ctx, args):
             f"before it ages out (a python3.X component installs a NEWER interpreter alongside, but "
             f"doesn't replace the one configsys runs on).")
 
+    # D8: a derivative release the registry doesn't know gets no base, so gates written against its
+    # base line (`ubuntu >= 24.04`) don't reach it — say which release to register (/update-os)
+    try:
+        _cas, _blk, _ver = ctx.routes.cascade, ctx.routes.block, ctx.routes.version
+        _sroot = next((n for n in _cas.lineage(_blk) if n in _cas.scale_roots), None)
+        if _sroot in _cas.release_bases and _ver and not _cas.bases_of(_blk, _ver):
+            py_floor_warnings.append(
+                f'{_sroot} {_ver} is not in the release registry — gates written for its base '
+                f'(e.g. `ubuntu >= 24.04`) do not reach it until it is (routes.hu `releases:`, /update-os)')
+    except Exception:                                  # noqa: BLE001 — an advisory never breaks check
+        pass
+
     from . import plugins as _plugins
     _top = _plugins.declared(ctx.paths.user_config_file)
     _decls = _plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)

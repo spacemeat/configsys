@@ -178,10 +178,32 @@ def _truthy(v):
 
 # The release registry: an OS block that owns a version line may carry `releases: { <VERSION_ID>:
 # { status: … } }` — which releases exist and what each ships. Read by the maintenance tools
-# (tools/osaudit.py, the /update-os skill); the resolver doesn't consult it (docs/routing-model.md §6).
+# (tools/osaudit.py, the /update-os skill). The resolver reads ONE field: a derivative release's
+# `base: "<block> <version>"` (OsCascade.bases_of — D8), so versioned atoms on the base's scale reach
+# it (docs/routing-model.md §6).
 RELEASE_STATUSES = ('prerelease', 'released', 'eol')
 RELEASE_FIELDS = frozenset({'status', 'released', 'eol', 'codename', 'image', 'glibc', 'python3',
-                            'gcc', 'manager', 'note'})
+                            'gcc', 'manager', 'note', 'base'})
+
+
+def _release_bases(os_dict):
+    '''{block: {version tuple: (base block, base version tuple)}} from each os block's
+    `releases: { <v>: { base: "<block> <version>" } }` (a malformed `base:` is skipped; `check`
+    lints the registry).'''
+    out = {}
+    for name, blk in (os_dict or {}).items():
+        rels = blk.get('releases') if isinstance(blk, dict) else None
+        for ver, entry in (rels.items() if isinstance(rels, dict) else ()):
+            base = entry.get('base') if isinstance(entry, dict) else None
+            parts = str(base or '').split()
+            if len(parts) != 2:
+                continue
+            try:
+                out.setdefault(name, {})[tuple(predicate.parse_version(str(ver)))] = (
+                    parts[0], tuple(predicate.parse_version(parts[1])))
+            except Exception:                          # noqa: BLE001 — a bad version: skipped
+                continue
+    return out
 
 
 class OsCascade:
@@ -205,6 +227,26 @@ class OsCascade:
         # `cpu-names:`). Applies to a `via: native` binding that reaches that manager too.
         self.driver_gates = {}
         self._gate_pred_cache = {}
+        # D8 (review-2026-11-2): a derivative release's `base:` in the release registry —
+        # {scale-root block: {version tuple: (base scale-root block, base version tuple)}} — so
+        # `ubuntu >= 24.04` reaches Zorin 18 / Mint 22 without hand-listing every derivative.
+        self.release_bases = _release_bases(os_dict)
+
+    def bases_of(self, block, version):
+        '''{scale-root: version} this machine ALSO counts as for versioned atoms: the base its
+        registered release names, and that base's own base, … ({} for a release the registry doesn't
+        know — `check` says so — or a line with no bases).'''
+        lineage = self.lineage(block)
+        sroot = next((n for n in lineage if n in self.scale_roots), None)
+        v = predicate.parse_version(version) if isinstance(version, str) else version
+        out = {}
+        while sroot is not None and v is not None and sroot in self.release_bases:
+            hit = self.release_bases[sroot].get(tuple(v))
+            if hit is None or hit[0] in out:
+                break
+            out[hit[0]] = hit[1]
+            sroot, v = hit
+        return out
 
     def provides(self, block):
         '''Capabilities baseline in this environment (union over the lineage's blocks).'''
@@ -259,7 +301,8 @@ class OsCascade:
         native = self.native(block)
         ctx = predicate.Context(self.lineage(block), version, cpu, self.scale_roots,
                                 facets_cat=self.facets_cat, facets_ver=self.facets_ver,
-                                disabled=disabled, has_native=native is not None)
+                                disabled=disabled, has_native=native is not None,
+                                base_versions=self.bases_of(block, version))
         # the driver gates evaluated ONCE for this machine: resolve._matching drops every binding
         # of a gated-out driver (and a `via: native` binding when this OS's manager is gated out)
         ctx.native_driver = native

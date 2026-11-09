@@ -47,43 +47,43 @@
         elementary:{ using: ubuntu    scale-root: true   // elementary OS (own numbering: 6/7/8); ships the Pantheon desktop
             // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
             releases: {
-                7: { status: released  released: 2023-01-31  codename: horus  note: "Ubuntu 22.04 base" }
-                7.1: { status: released  released: 2023-10-03  codename: horus  note: "Ubuntu 22.04 base" }
-                8: { status: released  released: 2024-11-26  codename: circe  note: "Ubuntu 24.04 base" }
-                8.1: { status: released  released: 2025-12-22  codename: circe  note: "Ubuntu 24.04 base" }
+                7: { status: released  released: 2023-01-31  codename: horus  base: "ubuntu 22.04" }
+                7.1: { status: released  released: 2023-10-03  codename: horus  base: "ubuntu 22.04" }
+                8: { status: released  released: 2024-11-26  codename: circe  base: "ubuntu 24.04" }
+                8.1: { status: released  released: 2025-12-22  codename: circe  base: "ubuntu 24.04" }
             } }
         linuxmint: { using: ubuntu    scale-root: true   // Mint main (own numbering)
             // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
             releases: {
-                21: { status: released  released: 2022-07-31  eol: 2027-04-30  codename: vanessa  note: "Ubuntu 22.04 base" }
-                21.1: { status: released  released: 2022-12-20  eol: 2027-04-30  codename: vera  note: "Ubuntu 22.04 base" }
-                21.2: { status: released  released: 2023-07-16  eol: 2027-04-30  codename: victoria  note: "Ubuntu 22.04 base" }
-                21.3: { status: released  released: 2024-01-12  eol: 2027-04-30  codename: virginia  note: "Ubuntu 22.04 base" }
-                22: { status: released  released: 2024-07-25  eol: 2029-04-30  codename: wilma  note: "Ubuntu 24.04 base" }
-                22.1: { status: released  released: 2025-01-16  eol: 2029-04-30  codename: xia  note: "Ubuntu 24.04 base" }
-                22.2: { status: released  released: 2025-09-04  eol: 2029-04-30  codename: zara  note: "Ubuntu 24.04 base" }
-                22.3: { status: released  released: 2026-01-11  eol: 2029-04-30  codename: zena  note: "Ubuntu 24.04 base" }
+                21: { status: released  released: 2022-07-31  eol: 2027-04-30  codename: vanessa  base: "ubuntu 22.04" }
+                21.1: { status: released  released: 2022-12-20  eol: 2027-04-30  codename: vera  base: "ubuntu 22.04" }
+                21.2: { status: released  released: 2023-07-16  eol: 2027-04-30  codename: victoria  base: "ubuntu 22.04" }
+                21.3: { status: released  released: 2024-01-12  eol: 2027-04-30  codename: virginia  base: "ubuntu 22.04" }
+                22: { status: released  released: 2024-07-25  eol: 2029-04-30  codename: wilma  base: "ubuntu 24.04" }
+                22.1: { status: released  released: 2025-01-16  eol: 2029-04-30  codename: xia  base: "ubuntu 24.04" }
+                22.2: { status: released  released: 2025-09-04  eol: 2029-04-30  codename: zara  base: "ubuntu 24.04" }
+                22.3: { status: released  released: 2026-01-11  eol: 2029-04-30  codename: zena  base: "ubuntu 24.04" }
             } }
         zorin:     { using: ubuntu    scale-root: true   // Zorin OS (own numbering; VERSION_ID is the major only: 17 = Ubuntu 22.04, 18 = 24.04)
             // own numbering on an Ubuntu LTS base; no container image, so not swept (the base is)
             releases: {
-                17: { status: released  released: 2023-12-20  eol: 2027-06-01  note: "Ubuntu 22.04 base; VERSION_ID is the major only (17.0–17.3)" }
-                18: { status: released  released: 2025-10-14  eol: 2029-06-01  note: "Ubuntu 24.04 base; VERSION_ID is the major only" }
+                17: { status: released  released: 2023-12-20  eol: 2027-06-01  note: "VERSION_ID is the major only (17.0–17.3)"  base: "ubuntu 22.04" }
+                18: { status: released  released: 2025-10-14  eol: 2029-06-01  note: "VERSION_ID is the major only"  base: "ubuntu 24.04" }
             } }
         lmde:      { using: debian    scale-root: true   // Mint Debian Edition (own numbering)
             // own numbering on a Debian base; no container image, so not swept (the base is)
             releases: {
-                6: { status: eol  released: 2023-09-27  eol: 2026-01-01  codename: faye  note: "Debian 12 base" }
-                7: { status: released  released: 2025-10-14  codename: gigi  note: "Debian 13 base" }
+                6: { status: eol  released: 2023-09-27  eol: 2026-01-01  codename: faye  base: "debian 12" }
+                7: { status: released  released: 2025-10-14  codename: gigi  base: "debian 13" }
             } }
         kali:      { using: debian }                                // kali-rolling (Debian testing) — rolling, bare membership like tumbleweed
         pikaos:    { using: debian    scale-root: true }            // Debian-based gaming distro; own date numbering (26.MM.DD) so it's its own scale-root
         mx:        { using: debian    scale-root: true   // MX Linux (ID=mx, ID_LIKE=debian); own numbering (MX-19/21/23/25 tracking Debian)
             // own numbering on a Debian base; no container image, so not swept (the base is)
             releases: {
-                21: { status: eol  released: 2021-10-21  eol: 2026-06-30  codename: wildflower  note: "Debian 11 base" }
-                23: { status: released  released: 2023-07-31  eol: 2028-06-10  codename: libretto  note: "Debian 12 base" }
-                25: { status: released  released: 2025-11-09  eol: 2030-06-30  codename: infinity  note: "Debian 13 base" }
+                21: { status: eol  released: 2021-10-21  eol: 2026-06-30  codename: wildflower  base: "debian 11" }
+                23: { status: released  released: 2023-07-31  eol: 2028-06-10  codename: libretto  base: "debian 12" }
+                25: { status: released  released: 2025-11-09  eol: 2030-06-30  codename: infinity  base: "debian 13" }
             } }
         avlinux:   { using: mx }                                    // AV Linux MX Edition — MX-based multimedia distro; tracks MX (if it keeps ID=mx the `mx` block already covers it)
         // Raspberry Pi OS. Bookworm+ rebranded os-release to ID=debian (indistinguishable from plain
@@ -540,7 +540,7 @@
         cbonsai:    { attrs: [ CLI FOSS copyleft ] description: "cbonsai — a random bonsai-tree generator that draws in your terminal." install: [ { via: native  when: "fedora or alpine or opensuse or fedora_atomic or void or void_musl" }  { via: aur  name: cbonsai }  { via: brew  name: cbonsai } ] }   // GPL; Arch has it only in the AUR; not in Debian/EL repos -> declines there
         cmatrix:    { attrs: [ CLI FOSS copyleft ] description: "cmatrix — the Matrix digital-rain screen effect for the terminal." install: [ { via: native }  { via: brew  name: cmatrix } ] }   // packaged on every family
         neo:        { attrs: [ TUI FOSS copyleft ] description: "neo — Matrix-style digital rain in the terminal (`neo`; a modern cmatrix)."
-                      install: [ { via: native  when: "(ubuntu >= 24.04) or (debian >= 12) or (elementary >= 8) or (linuxmint >= 22) or (lmde >= 6) or (mx >= 23) or (zorin >= 18) or pikaos or kali or fedora"  repo-component: universe  name: { apt: neo-cli  default: neo } }
+                      install: [ { via: native  when: "(ubuntu >= 24.04) or (debian >= 12) or pikaos or kali or fedora"  repo-component: universe  name: { apt: neo-cli  default: neo } }
                                  { via: aur  name: neo-matrix } ] }   // st3w/neo: Debian 12+/Ubuntu 24.04+ (neo-cli), Fedora; AUR on Arch; source-only elsewhere
         // pipes.sh: a self-contained bash script. Packaged only in the AUR; everywhere else install it
         // the upstream way (`make install`) into ~/.local — a single script + its manpage, no build.
@@ -640,10 +640,10 @@
         // AppImage bundles Qt. Its only network call is an update check.
         tmog: { attrs: [ GUI app proprietary freeware freemium ] description: "TMOG — Task Manager OG, a classic Windows-style GUI task manager / system monitor (`tmog-task-manager`)."
             install: [ { via: aur  when: "arch"  name: tmog-bin }   // `when: "arch"`: keeps it ahead of the AppImage, whose version gate lists arch
-                       { via: native-pkg-file  when: "(ubuntu >= 24.04) or (debian >= 12) or (elementary >= 8) or (linuxmint >= 22) or (lmde >= 6) or (mx >= 23) or (zorin >= 18) or pikaos or kali"  name: taskmanagerog  cpu-names: { x86_64: amd64  aarch64: arm64 }
+                       { via: native-pkg-file  when: "(ubuntu >= 24.04) or (debian >= 12) or pikaos or kali"  name: taskmanagerog  cpu-names: { x86_64: amd64  aarch64: arm64 }
                          version: { url: "https://tmog.org/"  regex: "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage" }
                          url: "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.deb" }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: TMOG  scope: user
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  cpu-names: { x86_64: x86_64  aarch64: aarch64 }  name: TMOG  scope: user
                          version: { url: "https://tmog.org/"  regex: "TaskManagerOG-([0-9]+[.][0-9]+[.][0-9]+)-x86_64[.]AppImage" }
                          url: "https://tmog.org/rtm/downloads/TaskManagerOG-$VERSION-$ARCH.AppImage"  path: ~/apps/tmog.appimage } ] }
         htop: { attrs: [ TUI app FOSS copyleft ] description: "Interactive process viewer — a colorful, friendlier top."
@@ -2473,7 +2473,7 @@
                          version: { url: "https://www.xnview.com/en/xnview-mp/"  regex: "Version +([0-9]+[.][0-9]+(?:[.][0-9]+)?)" }
                          url: "https://download.xnview.com/XnView_MP-linux.x86_64.rpm" } ] }   // proprietary: the sandboxed flatpak is the default; vendor .deb/.rpm (stable "latest" URLs, x86_64 — the ARM build is stale) + AUR are pinnable
         lap:        { attrs: [ GUI app FOSS copyleft tele ] description: "Lap — an offline-first photo manager for large local libraries (`Lap`; local AI search, faces, dedupe)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"
                          version: { github: julyx10/lap  strip-v: true }  asset: { x86_64: "Lap_*_amd64.deb"  aarch64: "Lap_*_arm64.deb" } }
                        { via: appImage  cpu-names: { x86_64: amd64  aarch64: aarch64 }  name: Lap  scope: user
                          version: { github: julyx10/lap  strip-v: true  asset: "Lap_*_$ARCH.AppImage" }  path: ~/apps/lap.appimage } ] }   // Tauri app, not in any distro; the .deb needs webkit2gtk-4.1 (Ubuntu 22.04+/Debian 12+). Aptabase usage stats are ON by default (tele)
@@ -2521,111 +2521,111 @@
         // atomically (write-temp + rename, which would replace a per-file symlink).
         photocraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "PhotoCraft — ArtCraft's open-source Photoshop alternative: a raster image editor with layers, masks, adjustment layers and PSD/PSB round-tripping (`photocraft`, `photocraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/photocraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/photocraft  strip-v: true }
                          asset: { x86_64: "photocraft-*-linux-x86_64.deb"  aarch64: "photocraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/photocraft  strip-v: true }
                          asset: { x86_64: "photocraft-*-linux-x86_64.rpm"  aarch64: "photocraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: photocraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PhotoCraft  scope: user  desktop-id: ai.storyteller.photocraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: PhotoCraft  scope: user  desktop-id: ai.storyteller.photocraft
                          version: { github: storytold/photocraft  strip-v: true  asset: "photocraft-*-linux-$ARCH.AppImage" }  path: ~/apps/photocraft.appimage } ] }
         vectorcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "VectorCraft — ArtCraft's open-source Illustrator alternative: a vector illustration editor (`vectorcraft`, `vectorcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/vectorcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/vectorcraft  strip-v: true }
                          asset: { x86_64: "vectorcraft-*-linux-x86_64.deb"  aarch64: "vectorcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/vectorcraft  strip-v: true }
                          asset: { x86_64: "vectorcraft-*-linux-x86_64.rpm"  aarch64: "vectorcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: vectorcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: VectorCraft  scope: user  desktop-id: ai.storyteller.vectorcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: VectorCraft  scope: user  desktop-id: ai.storyteller.vectorcraft
                          version: { github: storytold/vectorcraft  strip-v: true  asset: "vectorcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/vectorcraft.appimage } ] }
         lightcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "LightCraft — ArtCraft's open-source Lightroom alternative: a local-first RAW photo catalog and non-destructive developer (`lightcraft`, `lightcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/lightcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/lightcraft  strip-v: true }
                          asset: { x86_64: "lightcraft-*-linux-x86_64.deb"  aarch64: "lightcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/lightcraft  strip-v: true }
                          asset: { x86_64: "lightcraft-*-linux-x86_64.rpm"  aarch64: "lightcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: lightcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: LightCraft  scope: user  desktop-id: ai.storyteller.lightcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: LightCraft  scope: user  desktop-id: ai.storyteller.lightcraft
                          version: { github: storytold/lightcraft  strip-v: true  asset: "lightcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/lightcraft.appimage } ] }
         designcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "DesignCraft — ArtCraft's open-source InDesign alternative: a page-layout / desktop-publishing app (`designcraft`, `designcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/designcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/designcraft  strip-v: true }
                          asset: { x86_64: "designcraft-*-linux-x86_64.deb"  aarch64: "designcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/designcraft  strip-v: true }
                          asset: { x86_64: "designcraft-*-linux-x86_64.rpm"  aarch64: "designcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: designcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DesignCraft  scope: user  desktop-id: ai.storyteller.designcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: DesignCraft  scope: user  desktop-id: ai.storyteller.designcraft
                          version: { github: storytold/designcraft  strip-v: true  asset: "designcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/designcraft.appimage } ] }
         filmcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "FilmCraft — ArtCraft's open-source Premiere Pro alternative: a non-linear video editor with its own H.264/HEVC/ProRes/AAC codecs (`filmcraft`, `filmcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/filmcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/filmcraft  strip-v: true }
                          asset: { x86_64: "filmcraft-*-linux-x86_64.deb"  aarch64: "filmcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/filmcraft  strip-v: true }
                          asset: { x86_64: "filmcraft-*-linux-x86_64.rpm"  aarch64: "filmcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: filmcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: FilmCraft  scope: user  desktop-id: ai.storyteller.filmcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: FilmCraft  scope: user  desktop-id: ai.storyteller.filmcraft
                          version: { github: storytold/filmcraft  strip-v: true  asset: "filmcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/filmcraft.appimage } ] }
         effectcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "EffectCraft — ArtCraft's open-source After Effects alternative: a motion-graphics and compositing app (`effectcraft`, `effectcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/effectcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/effectcraft  strip-v: true }
                          asset: { x86_64: "effectcraft-*-linux-x86_64.deb"  aarch64: "effectcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/effectcraft  strip-v: true }
                          asset: { x86_64: "effectcraft-*-linux-x86_64.rpm"  aarch64: "effectcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: effectcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: EffectCraft  scope: user  desktop-id: ai.storyteller.effectcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: EffectCraft  scope: user  desktop-id: ai.storyteller.effectcraft
                          version: { github: storytold/effectcraft  strip-v: true  asset: "effectcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/effectcraft.appimage } ] }
         pdfcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "PdfCraft — ArtCraft's open-source Acrobat alternative: a PDF viewer/editor — annotate, edit, forms, sign, OCR (`pdfcraft`, `pdfcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/pdfcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/pdfcraft  strip-v: true }
                          asset: { x86_64: "pdfcraft-*-linux-x86_64.deb"  aarch64: "pdfcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/pdfcraft  strip-v: true }
                          asset: { x86_64: "pdfcraft-*-linux-x86_64.rpm"  aarch64: "pdfcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: pdfcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: PdfCraft  scope: user  desktop-id: ai.storyteller.pdfcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: PdfCraft  scope: user  desktop-id: ai.storyteller.pdfcraft
                          version: { github: storytold/pdfcraft  strip-v: true  asset: "pdfcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/pdfcraft.appimage } ] }
         wordcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "WordCraft — ArtCraft's open-source Microsoft Word alternative: a word processor with DOCX round-tripping and offline spelling/grammar (`wordcraft`, `wordcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/wordcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/wordcraft  strip-v: true }
                          asset: { x86_64: "wordcraft-*-linux-x86_64.deb"  aarch64: "wordcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/wordcraft  strip-v: true }
                          asset: { x86_64: "wordcraft-*-linux-x86_64.rpm"  aarch64: "wordcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: wordcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: WordCraft  scope: user  desktop-id: ai.storyteller.wordcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: WordCraft  scope: user  desktop-id: ai.storyteller.wordcraft
                          version: { github: storytold/wordcraft  strip-v: true  asset: "wordcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/wordcraft.appimage } ] }
         gridcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "GridCraft — ArtCraft's open-source Microsoft Excel alternative: a spreadsheet with XLSX support, formulas, conditional formatting and charts (`gridcraft`, `gridcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/gridcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/gridcraft  strip-v: true }
                          asset: { x86_64: "gridcraft-*-linux-x86_64.deb"  aarch64: "gridcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/gridcraft  strip-v: true }
                          asset: { x86_64: "gridcraft-*-linux-x86_64.rpm"  aarch64: "gridcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: gridcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: GridCraft  scope: user  desktop-id: ai.storyteller.gridcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: GridCraft  scope: user  desktop-id: ai.storyteller.gridcraft
                          version: { github: storytold/gridcraft  strip-v: true  asset: "gridcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/gridcraft.appimage } ] }
         deckcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "DeckCraft — ArtCraft's open-source Microsoft PowerPoint alternative: a presentation / slide-show editor (`deckcraft`, `deckcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/deckcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/deckcraft  strip-v: true }
                          asset: { x86_64: "deckcraft-*-linux-x86_64.deb"  aarch64: "deckcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/deckcraft  strip-v: true }
                          asset: { x86_64: "deckcraft-*-linux-x86_64.rpm"  aarch64: "deckcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: deckcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: DeckCraft  scope: user  desktop-id: ai.storyteller.deckcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: DeckCraft  scope: user  desktop-id: ai.storyteller.deckcraft
                          version: { github: storytold/deckcraft  strip-v: true  asset: "deckcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/deckcraft.appimage } ] }
         cadcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "CADCraft — ArtCraft's open-source AutoCAD alternative: a 2D computer-aided design and drafting app with model/paper-space layouts (`cadcraft`, `cadcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/cadcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/cadcraft  strip-v: true }
                          asset: { x86_64: "cadcraft-*-linux-x86_64.deb"  aarch64: "cadcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/cadcraft  strip-v: true }
                          asset: { x86_64: "cadcraft-*-linux-x86_64.rpm"  aarch64: "cadcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: cadcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: CADCraft  scope: user  desktop-id: ai.storyteller.cadcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: CADCraft  scope: user  desktop-id: ai.storyteller.cadcraft
                          version: { github: storytold/cadcraft  strip-v: true  asset: "cadcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/cadcraft.appimage } ] }
         soundcraft: { attrs: [ GUI CLI app FOSS permissive ]
             description: "SoundCraft — ArtCraft's open-source Avid Pro Tools alternative: a digital audio workstation — recording, editing, mixing, plugins (`soundcraft`, `soundcraft-cli`)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: storytold/soundcraft  strip-v: true }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: storytold/soundcraft  strip-v: true }
                          asset: { x86_64: "soundcraft-*-linux-x86_64.deb"  aarch64: "soundcraft-*-linux-aarch64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: storytold/soundcraft  strip-v: true }
                          asset: { x86_64: "soundcraft-*-linux-x86_64.rpm"  aarch64: "soundcraft-*-linux-aarch64.rpm" } }
                        { via: aur  when: "arch and cpu: x86_64"  name: soundcraft }
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  name: SoundCraft  scope: user  desktop-id: ai.storyteller.soundcraft
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  name: SoundCraft  scope: user  desktop-id: ai.storyteller.soundcraft
                          version: { github: storytold/soundcraft  strip-v: true  asset: "soundcraft-*-linux-$ARCH.AppImage" }  path: ~/apps/soundcraft.appimage } ] }
 
         // apod (termapod): scrapes NASA's Astronomy Picture of the Day and splats it to the terminal
@@ -3027,7 +3027,7 @@
             install: [ { via: native  when: "void_musl or alpine" }  { via: native  when: fedora_atomic }   // atomic: brew has neovim directly — cleaner than an AppImage needing fuse2
                        { via: native  when: "debian or fedora or arch or opensuse or void"  repo-component: universe  standing: never-auto }
                        { via: native  when: "rhel"  requires: epel  standing: never-auto }
-                       { via: appImage  when: "(arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali)"  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
+                       { via: appImage  when: "(arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali)"  cpu-names: { x86_64: x86_64  aarch64: arm64 }  name: Neovim  scope: user   // -> requires libfuse2; keep it in ~/apps
                          version: { github: neovim/neovim  asset: "nvim-linux-$ARCH.appimage" }
                          url: "https://github.com/neovim/neovim/releases/download/$VERSION/nvim-linux-$ARCH.appimage"
                          path: ~/apps/nvim.appimage }
@@ -3244,12 +3244,12 @@
         // built on ubuntu-22.04 (glibc >= 2.35; the .deb needs webkit2gtk-4.1), so every method is gated to
         // those OSes. Releases share the repo with a `packages-v*` CLI tag stream -> tag-re keeps to `v*`.
         dbx: { attrs: [ GUI app FOSS permissive ] description: "DBX — a lightweight, cross-platform client for 100+ databases (`dbx`; optional bring-your-own-key AI assistant)."
-            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$" }
+            install: [ { via: native-pkg-file  when: "(ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$" }
                          asset: { x86_64: "DBX_*_amd64.deb"  aarch64: "DBX_*_arm64.deb" } }
                        { via: native-pkg-file  when: "fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16)"  version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$" }
                          asset: { x86_64: "DBX-*-1.x86_64.rpm"  aarch64: "DBX_*_arm64.rpm" } }
                        { via: aur  when: "arch"  name: dbx-bin }   // `when: "arch"`: keeps it ahead of the AppImage, whose version gate lists arch
-                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or (elementary >= 7) or (linuxmint >= 21) or (lmde >= 6) or (mx >= 23) or (zorin >= 17) or pikaos or kali"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: DBX  scope: user
+                       { via: appImage  when: "arch or void or fedora or (rhel >= 10) or opensuse_tumbleweed or (opensuse_leap >= 16) or (ubuntu >= 22.04) or (debian >= 12) or pikaos or kali"  cpu-names: { x86_64: amd64  aarch64: arm64 }  name: DBX  scope: user
                          version: { github: t8y2/dbx  tag-re: "^v([0-9][0-9.]*)$"  asset: "DBX_*_$ARCH.AppImage" }  path: ~/apps/dbx.appimage } ] }
         k9s: { attrs: [ TUI FOSS permissive ] suggests: [ k9s-dotfiles  k9s-glue ] 
             description: "Terminal UI to navigate and manage Kubernetes clusters."

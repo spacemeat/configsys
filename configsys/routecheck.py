@@ -323,6 +323,11 @@ def release_registry_issues(cascade):
             for key in ('released', 'eol'):
                 if key in rel and not _ISO_DATE.match(str(rel[key])):
                     out.append((f'{label}: {key}: {rel[key]!r} is not YYYY-MM-DD', src))
+            if 'base' in rel:
+                parts = str(rel['base']).split()
+                if len(parts) != 2 or parts[0] not in cascade.blocks or not parse_version(parts[1]):
+                    out.append((f"{label}: base: {rel['base']!r} — use \"<os block> <version>\", "
+                                'e.g. "ubuntu 24.04"', src))
     return out
 
 
