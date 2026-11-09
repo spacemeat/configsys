@@ -18,6 +18,10 @@ from ..driver import Driver
 
 class Snap(Driver):
     name = 'snap'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset({'classic'})
     privileged = True          # snapd is root-owned; install/remove/refresh need sudo
     default_scope = 'system'
     honors_scope = False

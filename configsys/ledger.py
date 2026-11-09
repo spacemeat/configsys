@@ -105,7 +105,12 @@ class Ledger:
         if rc.driver in _NO_RECEIPT:
             return
         fields = {k: v for k, v in (rc.fields or {}).items() if k != 'name'}
-        self._rec(rc.key)['receipt'] = {'via': rc.via or rc.driver, 'name': rc.name, 'fields': fields}
+        rec = {'via': rc.via or rc.driver, 'name': rc.name, 'fields': fields}
+        if getattr(rc, 'source', ''):
+            # the layer that defined the binding: a replayed receipt is trusted exactly as that layer
+            # is NOW (an untrusted or removed plugin's recorded commands don't run — review A1/actions-07)
+            rec['source'] = str(rc.source)
+        self._rec(rc.key)['receipt'] = rec
 
     def clear_receipt(self, key):
         if key in self.records:

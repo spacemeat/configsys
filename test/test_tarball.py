@@ -326,3 +326,36 @@ def test_every_asset_download_retries_transient_errors():
     assert '--retry' in driver._CURL_DOWNLOAD
     for mod in (driver, appImage, font, native_pkg_file, tarball):
         assert 'curl -fSL {' not in inspect.getsource(mod), mod.__name__   # all via _CURL_DOWNLOAD
+
+
+@pytest.mark.real_runner
+def test_a_declared_sha256_is_checked_before_anything_is_unpacked(tmp_path):
+    # 2026-09 A7 / review-2026-11-2 A1: a download that doesn't match its sha256: never installs
+    import hashlib
+    payload = tmp_path / 'hello.txt'
+    payload.write_text('hi')
+    tarpath = tmp_path / 'pkg-9.9.tar'
+    with tarfile.open(tarpath, 'w') as t:
+        t.add(payload, arcname='pkg/hello.txt')
+    good = hashlib.sha256(tarpath.read_bytes()).hexdigest()
+    tb = Tarball(Runner(pretend=False), paths=None)
+    for digest, ok in (('0' * 64, False), ({'x86_64': good, 'aarch64': good}, True)):
+        inst = tmp_path / f'inst-{ok}'
+        rc = ResolvedComponent(key='tarball\\pkg', driver='tarball', comp='pkg',
+                               fields={'url': f'file://{tarpath}', 'installDir': str(inst),
+                                       'version': {'static': '9.9'}, 'sha256': digest})
+        res = tb.install(rc)
+        if ok and not res.ok and 'sha256' not in (res.output or ''):
+            pytest.skip('curl lacks file:// support in this environment')
+        assert res.ok is ok
+        assert (inst / 'pkg' / 'hello.txt').exists() is ok
+
+
+def test_no_sha256_means_no_check_and_a_digest_is_checked_before_unpacking(tmp_path):
+    r = Runner(pretend=True)
+    Tarball(r, paths=None).install(tb_unit(tmp_path / 'a'))
+    assert 'sha256sum' not in r.calls[0]
+    rc = tb_unit(tmp_path / 'b')
+    rc.fields['sha256'] = 'f' * 64
+    Tarball(r, paths=None).install(rc)
+    assert 'sha256sum -c' in r.calls[-1] and r.calls[-1].index('sha256sum') < r.calls[-1].index('tar -xf')

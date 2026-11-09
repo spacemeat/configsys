@@ -69,6 +69,7 @@ Finished or superseded plans. The body is historical; the header says where the 
 | [startup-perf-plan.md](done/startup-perf-plan.md) | DONE | 2026-08-12 | 2026-08-12 (c24a056) | Startup performance investigation + fixes (~50s → ~5s). |
 | [system-update-coverage-plan.md](done/system-update-coverage-plan.md) | DONE | 2026-09-21 | 2026-09-23 (cd65037) | configsys as the single updater: system updates P0–P3. |
 | [theme-redesign.md](done/theme-redesign.md) | DONE | 2026-08-03 | 2026-08-04 (cadaaa7) | Shared color map + per-page role styles. |
+| [trust-gate-plan.md](done/trust-gate-plan.md) | DONE | 2026-11-08 | 2026-11-08 | One trust gate at resolution: an untrusted plugin layer contributes only packages by name from trusted registries; everything that runs, builds, downloads or privileges waits for `plugin trust` (review-2026-11-2 A1). *Lives on in docs/plugins.md §6.* |
 | [tui-screens-plan.md](done/tui-screens-plan.md) | DONE | 2026-08-03 | 2026-08-03 (dad4f31) | The TUI screen set. |
 
 ## Archive — `docs/history/`, `docs/review-*/`

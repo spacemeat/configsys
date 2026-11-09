@@ -270,8 +270,34 @@ def _data_files(plugin_dir, manifest):
     plugin.hu.'''
     listed = manifest.get('data')
     if listed:
-        return [str(plugin_dir / f) for f in (listed if isinstance(listed, list) else [listed])]
-    return sorted(str(p) for p in plugin_dir.glob('*.hu') if p.name != 'plugin.hu')
+        return [str(plugin_dir / f) for f in (listed if isinstance(listed, list) else [listed])
+                if _contained_in(plugin_dir, plugin_dir / f)]
+    return sorted(str(p) for p in plugin_dir.glob('*.hu')
+                  if p.name != 'plugin.hu' and _contained_in(plugin_dir, p))
+
+
+def _contained_in(plugin_dir, path):
+    '''True if `path` resolves inside the plugin's checkout — a `data:`/`code:` entry (or a symlinked
+    file) that points out of it would be loaded under the plugin's trust but never covered by its
+    content hash (review-2026-11-2 A1 / plugins-05).'''
+    try:
+        root = os.path.realpath(str(plugin_dir))
+        rp = os.path.realpath(str(path))
+    except (OSError, ValueError):
+        return False
+    return rp.startswith(root.rstrip(os.sep) + os.sep)
+
+
+def uncontained_entries(plugin_dir, manifest):
+    '''The manifest `data:`/`code:` entries (and data-file symlinks) that resolve outside the plugin's
+    checkout — skipped at load; `check` names them.'''
+    pdir = Path(plugin_dir)
+    listed = manifest.get('data')
+    entries = (listed if isinstance(listed, list) else [listed]) if listed else \
+        [p.name for p in pdir.glob('*.hu') if p.name != 'plugin.hu']
+    if manifest.get('code'):
+        entries = list(entries) + [manifest['code']]
+    return [str(e) for e in entries if not _contained_in(pdir, pdir / str(e))]
 
 
 def layer_files(plugins_dir, decls):
@@ -309,8 +335,7 @@ def checksum_ok(plugins_dir, decl):
     want = decl.get('sha256')
     if not want:
         return True
-    got = plugin_identity(plugins_dir / dir_name(decl['source']))
-    return got is not None and _norm_sha(got) == _norm_sha(want)
+    return approval_matches(want, plugins_dir / dir_name(decl['source']))   # (either hash format)
 
 
 # -- code trust (P2b): a plugin that ships code runs with the user's privileges during
@@ -327,9 +352,45 @@ def plugin_identity(plugin_dir):
     '''A content hash over the plugin's files — a transport-independent identity that trust
     binds to (P2c+): it replaces the old git-commit id, so a plugin fetched by any transport
     (git, tarball, OCI, …) can be trusted, and an edited working tree is caught (unlike a
-    commit sha). sha256 over every file under plugin_dir — minus .git/ and __pycache__/ and
-    *.pyc — in sorted path order (path bytes + NUL + content + NUL). "sha256:<hex>", or None
-    if the dir is absent/has no files.'''
+    commit sha). sha256 over every entry under plugin_dir — minus .git/ and __pycache__/ and
+    *.pyc — in sorted path order, each LENGTH-PREFIXED (`F<len>:<path><len>:<content>`), so two
+    different trees can never be laid out into the same byte stream (review-2026-11-2 F1). A
+    symlink is hashed as its link text (`L…`), never followed — what it points at outside the tree
+    is never covered by trust, so data/code loading refuses to go through one. "sha256:<hex>"
+    (prefix `v2:` folded into the digest), or None if the dir is absent/has no files.'''
+    root = Path(plugin_dir)
+    if not root.is_dir():
+        return None
+    entries = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        rel_dir = Path(dirpath).relative_to(root)
+        dirnames[:] = sorted(d for d in dirnames if d not in _HASH_SKIP_DIRS)
+        for d in list(dirnames):                     # a symlinked dir: hash the link, don't descend
+            full = Path(dirpath) / d
+            if full.is_symlink():
+                entries.append(((rel_dir / d).as_posix(), full, True))
+                dirnames.remove(d)
+        for f in filenames:
+            full = Path(dirpath) / f
+            if full.suffix == '.pyc':
+                continue
+            entries.append(((rel_dir / f).as_posix(), full, full.is_symlink()))
+    if not entries:
+        return None
+    h = hashlib.sha256(b'configsys-plugin-identity v2\0')
+    for rel, full, link in sorted(entries):
+        rb = rel.encode('utf-8')
+        data = os.readlink(full).encode('utf-8', 'surrogateescape') if link else full.read_bytes()
+        h.update(b'L' if link else b'F')
+        h.update(f'{len(rb)}:'.encode() + rb + f'{len(data)}:'.encode() + data)
+    return f'sha256:{h.hexdigest()}'
+
+
+def legacy_identity(plugin_dir):
+    '''The plugin's content hash in the format used before 2026-11-08 (path + NUL + content + NUL,
+    symlinks followed) — so an approval or a `sha256:` pin recorded then still matches the SAME
+    content (it is accepted only while the content is exactly what was approved; any change reads
+    *changed* and is re-approved in the new format).'''
     root = Path(plugin_dir)
     if not root.is_dir():
         return None
@@ -344,7 +405,19 @@ def plugin_identity(plugin_dir):
         h.update(b'\0')
         h.update(p.read_bytes())
         h.update(b'\0')
-    return 'sha256:' + h.hexdigest()
+    return f'sha256:{h.hexdigest()}'
+
+
+def approval_matches(approved, plugin_dir):
+    '''True if a recorded approval / pin `approved` is the plugin's current content — in the current
+    hash format, or the legacy one (legacy_identity).'''
+    if not approved:
+        return False
+    cur = plugin_identity(plugin_dir)
+    if cur is not None and _norm_sha(approved) == _norm_sha(cur):
+        return True
+    old = legacy_identity(plugin_dir)
+    return old is not None and _norm_sha(approved) == _norm_sha(old)
 
 
 def _read_flat_map(path):
@@ -453,7 +526,63 @@ def command_source_trusted(paths, source):
     if name is None:
         return True                                  # core / user / include — trusted as the user
     pdir = Path(paths.plugins_dir) / name
-    return is_trusted(paths.plugin_trust_file, name, plugin_identity(pdir))
+    if name == _primary_dir_name(paths):             # your primary: the `primary-trust` setting
+        mode = primary_trust_mode(paths)
+        if mode == 'identity' or (mode == 'signed' and _head_signed(pdir)):
+            return True
+    return approval_matches(read_trust(paths.plugin_trust_file).get(name), pdir)
+
+
+_PRIMARY_CACHE = {}                                   # (config path, mtime) -> (primary dir name, mode)
+
+
+def _primary_facts(paths):
+    cfg = Path(paths.user_config_file)
+    try:
+        key = (str(cfg), cfg.stat().st_mtime_ns)
+    except OSError:
+        return (None, 'identity')
+    if key not in _PRIMARY_CACHE:
+        try:
+            decls = declared(cfg)
+            prim = next((d for d in decls if d.get('primary')), None)
+            name = dir_name(prim['source']) if prim else None
+        except Exception:                            # noqa: BLE001 — an unreadable config: no primary
+            name = None
+        mode = str(layers.read_setting(cfg, 'primary-trust') or 'identity').strip().lower()
+        if mode not in layers.SETTING_CHOICES['primary-trust']:
+            mode = 'identity'
+        _PRIMARY_CACHE.clear()
+        _PRIMARY_CACHE[key] = (name, mode)
+    return _PRIMARY_CACHE[key]
+
+
+def _primary_dir_name(paths):
+    return _primary_facts(paths)[0]
+
+
+def primary_trust_mode(paths):
+    '''The top config's `primary-trust:` ('identity' | 'content' | 'signed'; default identity).'''
+    return _primary_facts(paths)[1]
+
+
+_SIGNED_CACHE = {}                                    # (dir, HEAD oid) -> bool
+
+
+def _head_signed(pdir):
+    '''True if the checkout's HEAD commit carries a good signature (git `%G?` = G). Through
+    primarygit.PrimaryRepo, so git's repo-locating env vars can't point it at another repo.'''
+    try:
+        repo = primarygit.PrimaryRepo(pdir)
+        head = repo.text('rev-parse', 'HEAD')
+        if not head:
+            return False
+        key = (str(pdir), head)
+        if key not in _SIGNED_CACHE:
+            _SIGNED_CACHE[key] = repo.text('log', '-1', '--format=%G?', head) == 'G'
+        return _SIGNED_CACHE[key]
+    except Exception:                                # noqa: BLE001 — unreadable: not signed
+        return False
 
 
 def _spec_bindings(spec):
@@ -502,15 +631,33 @@ def _scan_executable_data(pdir):
         if isinstance(facets, dict) and any(isinstance(fs, dict) and fs.get('detect')
                                             for fs in facets.values()):
             return True
+        # `keys:` from a plugin are honored only once it's trusted (a rebind can turn `j` into
+        # "trust every plugin" — review-2026-11-2 A11), so a plugin shipping keys is trustable.
+        if isinstance(data, dict) and isinstance(data.get('keys'), dict) and data['keys']:
+            return True
         comps = data.get('components') if isinstance(data, dict) else None
         for spec in (comps.values() if isinstance(comps, dict) else ()):
             for b in _spec_bindings(spec):
-                # glue is shell SOURCED at every shell start, and drivers/glue.py refuses ANY glue
-                # whose defining layer is an untrusted plugin — so any shipped glue binding (or a
-                # binding carrying a nested `glue:` half) is executable data.
-                if b.get('via') in ('script', 'source', 'glue') or 'glue' in b or any(
-                        k in b for k in ('source-line', 'ppa', 'apt-source')):
+                # every binding an untrusted layer may NOT contribute (trustgate: repos, keys,
+                # downloads, builds, scripts, glue, dotfiles, services, groups …) is executable data;
+                # a binding carrying a nested `glue:` half too. For `via: native` the manager isn't
+                # known here, so its command fields are checked against every registry driver's.
+                via = b.get('via')
+                if 'glue' in b:
                     return True
+                if via == 'native':
+                    from .drivers import _REGISTRY
+                    if any(k in b for cls in _REGISTRY.values() if getattr(cls, 'trusted_registry', False)
+                           for k in cls.command_fields):
+                        return True
+                    if isinstance(b.get('version'), dict) and b['version'].get('url'):
+                        return True
+                    continue
+                from . import trustgate
+                if trustgate.binding_needs_trust(via, b) is not None:
+                    return True
+    if any(d.is_dir() for d in (pdir / 'dotfiles', pdir / 'glue')):   # shipped content trees
+        return True
     for f in pdir.rglob('*'):                         # shipped glue snippets (any — they're sourced)
         if not f.is_file() or f.suffix not in ('.sh', '.fish', '.elv', '.nu', '.zsh', '.bash'):
             continue
@@ -669,7 +816,9 @@ def status(plugins_dir, decls, *, trust_file=None, lock_file=None):
             'has_code': has_code, 'has_recipes': has_recipes,
             'identity': identity,
             'checksum': checksum,
-            'code_state': code_state(manifest, synced, trust.get(key), identity, trustable=trustable),
+            'code_state': code_state(manifest, synced,
+                                     (identity if identity and approval_matches(trust.get(key), pdir)
+                                      else trust.get(key)), identity, trustable=trustable),
         })
     return rows
 
@@ -1180,6 +1329,8 @@ def _import_module(pdir, manifest):
     import importlib.util
     import sys
     code_file = pdir / manifest['code']
+    if not _contained_in(pdir, code_file):        # outside the checkout = outside the trusted hash
+        raise FileNotFoundError(f'code: {manifest["code"]} is outside the plugin\'s checkout')
     if not code_file.exists():
         raise FileNotFoundError(f'code: {manifest["code"]} not found')
     mod_name = f'configsys_plugin_{pdir.name}'
@@ -1243,7 +1394,7 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
         if not _abi_ok(manifest):
             skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
             continue
-        if not is_trusted(trust_file, key, plugin_identity(pdir)):
+        if not approval_matches(read_trust(trust_file).get(key), pdir):
             skipped.append((key, 'untrusted code (run: configsys plugin trust <name>)'))
             continue
         try:

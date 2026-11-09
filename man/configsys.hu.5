@@ -105,6 +105,8 @@ A machine setting has a \fBkind\fR (scalar, bool, list or map) and a \fBnature\f
 .IP \(bu 2
 \fB\fBprimary-verify\fR\fR (\fBoff\fR or \fBsigned\fR, machine; default \fBoff\fR): with \fBsigned\fR, your primary plugin takes in commits from its remote only when each one has a good signature from a key git trusts on this machine (a GPG key in your keyring, or an SSH key in \fBgpg.ssh.allowedSignersFile\fR). \fBplugin sync\fR leaves the primary where it was when new commits aren't signed, a first sync (\fBplugin bless\fR on a new machine) doesn't clone a primary whose newest commit isn't signed, and \fBplugin push\fR doesn't combine with unsigned commits. Read only from your top config: a value in your primary plugin is ignored (and \fBcheck\fR warns), so a commit pushed to the primary can't turn it off. Sign your own commits (\fBgit config --global commit.gpgsign true\fR) before you turn it on — configsys's commits follow that setting. See plugins.md §8.
 .IP \(bu 2
+\fB\fBprimary-trust\fR\fR (\fBidentity\fR, \fBcontent\fR or \fBsigned\fR, machine; default \fBidentity\fR): whether your primary plugin's command-carrying data (glue, dotfiles, scripts, vendor repos, downloads, \fBkeys:\fR) runs without \fBconfigsys plugin trust\fR. \fBidentity\fR trusts whatever syncs into it (it is yours); \fBcontent\fR treats it like any plugin, so a sync that changes it needs \fBplugin trust\fR again; \fBsigned\fR trusts it while its newest commit carries a good signature, else by content. Read only from your top config, so a commit pushed to the primary can't grant itself trust. See plugins.md §6.
+.IP \(bu 2
 \fB\fBsplash\fR\fR (scalar, uniform; default unset): the startup wait-screen. A splash name (or the name of the plugin that ships it), \fBrandom\fR for a different one each run, or \fBoff\fR. Unset uses the built-in \fBbraille-bar\fR.
 .IP \(bu 2
 \fB\fBeffects\fR\fR (scalar, machine; default unset): TUI motion. \fBfull\fR (gradient and splash), \fBreduced\fR (no gradient, a calmer splash) or \fBnone\fR (no gradient; only the plain built-in progress bar). Unset picks \fBreduced\fR over SSH, else \fBfull\fR. \fB--effects\fR overrides it.
@@ -315,6 +317,10 @@ Every binding may use:
 \fB\fBcpu-names:\fR\fR a map from CPU to upstream's spelling (\fB{ x86_64: amd64  aarch64: arm64 }\fR). \fB$ARCH\fR expands through it, and its keys are the CPUs the download exists for: on any other CPU the binding isn't valid, without making it more specific.
 .IP \(bu 2
 \fB\fBversion:\fR\fR, \fB\fBurl:\fR\fR, \fB\fBasset:\fR\fR and \fB\fBlatest-check:\fR\fR for download-based drivers (see "Versions").
+.IP \(bu 2
+\fB\fBsha256:\fR\fR on a tarball, AppImage, font or native-pkg-file binding: the download's digest — a 64-hex-digit string, or a map by CPU (\fB{ x86_64: …  aarch64: … }\fR) or, for native-pkg-file, by package format first (\fB{ deb: …  rpm: … }\fR). The file is checked right after it downloads, before anything is unpacked or installed; a mismatch fails the step. It pairs with a pinned \fBversion:\fR.
+.IP \(bu 2
+\fB\fBpubkey-path:\fR\fR / \fB\fBsource-path:\fR\fR (apt vendor repos) must name a file directly in an apt keyring dir (\fB/usr/share/keyrings/\fR, \fB/etc/apt/keyrings/\fR, \fB/etc/apt/trusted.gpg.d/\fR) / in \fB/etc/apt/sources.list.d/\fR, and a dnf \fB\fBrepo-id:\fR\fR is a plain name — configsys writes there as root, so any other target is a load error.
 .PP
 Driver-specific fields include:
 .IP \(bu 2

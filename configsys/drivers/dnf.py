@@ -25,6 +25,10 @@ def _as_list(v):
 
 class Dnf(NativePkgManager):
     name = 'dnf'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset({'repo-url', 'repo-id', 'repo-name', 'pubkey-url', 'enable-repo'})
     INSTALL = 'dnf install -y {pkgs}'
     REMOVE = 'dnf remove -y {pkgs}'
     UPGRADE = 'dnf upgrade -y {pkgs}'
@@ -126,6 +130,10 @@ class Dnf(NativePkgManager):
         per-release key) can't be imported eagerly — `rpm --import` doesn't expand them. Such
         a key is left only in the .repo's `gpgkey=`, where dnf expands it and auto-imports on
         the first `-y` install. Literal keys are still imported up front.'''
+        from ..routecheck import vendor_path_problem
+        why = vendor_path_problem(rc.fields)              # a repo-id is a plain name (its .repo path)
+        if why:
+            return Result.fail(f'{rc.comp}: {why}')
         f = rc.fields
         key = f.get('pubkey-url')
         if key and '$' not in key:

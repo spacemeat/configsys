@@ -31,6 +31,7 @@ The brief: (the user's brief, verbatim — see `.claude/skills/review-code/SKILL
 ## Progress (updated as work lands)
 - 2026-11-08 — review written; report-only run (no fixes applied, per your choice).
 - 2026-11-08 — A17 — the suite is hermetic (conftest guard); A2 A3 A4 A5 A7 B2 follow.
+- 2026-11-08 — A1 trust gate, A6/A9 destructive-path guards, A8 config drivers never write through links, B1+D3 one plan builder (CLI honors adopted installs; only missing deps).
 
 ## 0. Fixed during the review
 None — report-only.
@@ -83,7 +84,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   **Fix:** gate at resolution (theme 1) + `ships_executable_data` covers every such field; asset
   `sha256:`/https for downloads (A7); keyring/sources paths confined (A10). (security-01/02/04/06/07,
   plugins-01/05, drivers-os-01, drivers-lang-04/05, dotfiles-glue-21, actions-07, subsystems-04,
-  config-layers-04) · effort L → plan doc · [open]
+  config-layers-04) · effort L → plan doc · [done — one trust gate at resolution (trustgate.py): untrusted layers contribute only packages by name from trusted registries; run_plan re-check; receipts carry source; primary-trust setting; vendor paths confined; code:/data: contained; v2 identity; https-only version fetch; sha256: on downloads — docs/done/trust-gate-plan.md]
 - **A2 [CRITICAL] Editing a scalar setting deletes the lines after it.** `hutext.value_end` treats a quoted
   value as trivia → `config set`/`machine use`/TUI Config on `machine: "laptop"` deletes the next key's
   line (your `picks:`), or truncates a one-line file. Same family: `remove_sections` deletes the wrong span
@@ -111,22 +112,22 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   and `~/.local/bin` / `/usr/local/bin` aren't refused; install doesn't check the marker (uninstall does);
   font `locations:` → `rm -rf` anywhere; `locations:` paths unvalidated (CWD-relative; `~` is the real home
   under `--home`). **Fix:** one `safe_remove` (theme 2). (drivers-lang-02, subsystems-02, config-layers-07) ·
-  effort M · [open]
+  effort M · [done — Driver.unsafe_dir_reason + replace_dir_refusal before every rm -rf / mv-over (tarball, font, source, appImage); unowned dirs need --force; binary:/exe: are names; locations: absolute or ~ (configsys home), normalized]
 - **A7 [HIGH] TUI `x`/`L` on a component also removes/holds its shared dependencies** — `x` on a brew
   formula removed Homebrew + git + curl (apt then takes rust, cargo, steam); the confirm lists units only.
   The CLI touches only the component. **Fix:** act on `resolve_with_roots([name])` like the CLI. (tui-core-01)
-  · effort S · [done — remove/lock/unlock act on a row's own units (bundle: its parts; profile: its components' own units); deps only from their own rows]
+  · effort S · [done 8f9ee56 — remove/lock/unlock act on a row's own units (bundle: its parts; profile: its components' own units); deps only from their own rows]
 - **A8 [HIGH] Glue/dotfiles writes through symlinks into your portable configs.** The shell-writes guard
   reverts THROUGH the `zsh-dotfiles` link (overwriting your captured zshrc in the primary); removing
   `shell-glue` strips the loader block through it; `dotfiles` uninstall restores `.pre-configsys` over a
-  live config. (dotfiles-glue-01/03/17) · effort M · [open]
+  live config. (dotfiles-glue-01/03/17) · effort M · [done — shell-writes guard skips dotfiles/glue and never writes through a link; dotfiles uninstall removes only its own link and restores into the gap only; glue removal leaves a linked rc alone]
 - **A9 [HIGH] `source` install wipes a pre-existing checkout's uncommitted work; uninstall/method-swap
-  then `rm -rf`s it.** (drivers-lang-01) · effort S · [open]
+  then `rm -rf`s it.** (drivers-lang-01) · effort S · [done — source trees: .cloned/.adopted markers; an unowned checkout is refused (install --adopt builds there without cleaning); local changes need --force; remove deletes only a clean tree configsys created]
 - **A10 [HIGH] A streamed sudo / warm-batch op runs twice when the child prints a non-UTF-8 byte.**
   (subsystems-01) · effort S · [open]
 - **A11 [HIGH] An untrusted plugin's `keys:` can turn `j` on the Plugins screen into "trust every plugin";**
   and `t`/`T`/`b` grant trust on one unconfirmed keystroke. **Fix:** trust/bless actions not rebindable
-  from plugin layers + a confirm. (tui-theme-01, parity-07) · effort S · [open]
+  from plugin layers + a confirm. (tui-theme-01, parity-07) · effort S · [done — keys stay rebindable; a plugin's keys: count only once it is trusted (Config.key_layers; check names ignored ones) — with A1]
 - **A12 [HIGH] `plugin push` combines the remote into a primary you LOCKED** (and auto-push does it on any
   CLI edit). (primary-02) · effort S · [open]
 - **A13 [MED] Primary edge-case data loss:** "Stop" deletes an ignored file of yours; `plugin undo` of a
@@ -155,10 +156,10 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 
 - **B1 [HIGH] CLI ops ignore the detection tier:** `upgrade X` uninstalls an adopted install and upgrades
   nothing; `remove` misses it; `location` points elsewhere; CLI install/upgrade re-installs every present
-  dependency (the TUI doesn't). (routing-01/09/15, app-cli-01/04) · effort M · [open]
+  dependency (the TUI doesn't). (routing-01/09/15, app-cli-01/04) · effort M · [done — actions.resolve_targets: CLI ops resolve through auto-tighten + the detection tier; detection keeps an installed default method (routing-09)]
 - **B2 [HIGH] Version locks kept in the ledger aren't honored** by `u`/`U`/`i`/`I` or `configsys upgrade
   <name>` (67 default methods on pop are ledger-locked). **Fix:** guard in `run_plan`. (actions-02,
-  tui-core-02, parity-02) · effort S · [done — run_plan refuses an explicit upgrade of a locked unit (ledger or native hold), remove ends the lock, set-version re-holds, a lock follows a method swap; TUI U/I skip locked, u says why]
+  tui-core-02, parity-02) · effort S · [done 8f9ee56 — run_plan refuses an explicit upgrade of a locked unit (ledger or native hold), remove ends the lock, set-version re-holds, a lock follows a method swap; TUI U/I skip locked, u says why]
 - **B3 [HIGH] Bash glue loads only where `~/.bashrc` sources `~/.bash_aliases`** — Debian-family only; on
   Fedora/RHEL/Arch/Void/Alpine no bash glue runs. (dotfiles-glue-02) · effort S · [open]
 - **B4 [HIGH] Bad data still bricks load:** a `parts:` cycle (RecursionError in inspect/check/where/TUI);
@@ -249,13 +250,13 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 
 ### Tier E — docs vs code
 - **E1** docs/plugins.md §6 promises vendor-source/recipe data is refused until trust — fold into A1 (code
-  is wrong). (security-07) · [open]
+  is wrong). (security-07) · [done — docs/plugins.md §6 rewritten to the enforced gate (with A1)]
 - **E2** comment/docstring drift across 12 areas (retired models, deleted painters, M1 notes) — for the next
   `/update-docs --deep`. (app-cli-17, config-layers-22, dotfiles-glue-37, drivers-lang-33, routing-33,
   subsystems-14/15, tui-core-12, tui-screens-19, tui-theme-24, primary-24) · [open]
 
 ### Tier F — ABI / interface (decide before collaborators)
-- **F1** Trust identity isn't length-prefixed (constructible collision) — bump with A1. (plugins-08) · [open]
+- **F1** Trust identity isn't length-prefixed (constructible collision) — bump with A1. (plugins-08) · [done — plugin_identity v2: length-prefixed, symlinks hashed as links; old-format approvals/pins still match unchanged content (with A1)]
 - **F2** Retired vocabulary as live identifiers (`candidate_only` …) and positional routing returns.
   (routing-20/31/34) · [open]
 - **F3** `primarygit.will_write` is required of code-plugin drivers but isn't in the frozen ABI; the splash

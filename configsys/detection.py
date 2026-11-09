@@ -113,6 +113,15 @@ def detect_pins(ctx, units, progress=None):
         comp = r.components.get(name)
         if comp is None or not comp.bindings:
             return None
+        # the RESOLVED method installed too? then keep it — adopting a first-listed alternative would
+        # move management off the default, and the next swap would remove it (routing-09; provider
+        # adoption has the same guard)
+        drv = get_driver(rc.driver, ctx.runner, ctx.paths)
+        try:
+            if drv is not None and cache.version(drv, rc) is not None:
+                return None
+        except Exception:                       # noqa: BLE001 — a failed probe: keep looking
+            pass
         inst_via = _installed_via(ctx, comp, cx, cache, unless_only=rc.via)
         return (name, inst_via) if (inst_via and inst_via != rc.via) else None
     for res in _parallel_map(_method, unit_list, progress=relay):

@@ -542,3 +542,17 @@ def test_cs_loc_reads_the_cache(tmp_path):
                              env={'HOME': str(tmp_path), 'PATH': '/usr/bin:/bin',
                                   'CONFIGSYS_STATE_DIR': str(tmp_path)}).stdout
         assert out.splitlines() == ['/opt/bun here', '/apps/zig', 'end'], (sh, out)
+
+
+def test_removing_the_loader_never_edits_a_linked_zshrc(tmp_path):
+    # dotfiles-glue-17 (A8): the block in a captured zshrc is part of your portable config
+    from configsys.drivers.glue import _RC_BEGIN, _RC_END
+    p = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home'), 'CONFIGSYS_GLUE_SHELLS': 'zsh'})
+    p.home.mkdir(parents=True)
+    captured = tmp_path / 'primary' / 'zshrc'
+    captured.parent.mkdir()
+    text = f'# mine\n{_RC_BEGIN}\nsource things\n{_RC_END}\n'
+    captured.write_text(text)
+    (p.home / '.zshrc').symlink_to(captured)
+    Glue(Runner(pretend=False), paths=p)._remove_shell_loader('zsh')
+    assert captured.read_text() == text and (p.home / '.zshrc').is_symlink()

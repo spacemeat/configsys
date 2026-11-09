@@ -43,6 +43,10 @@ def _parse_upgradable(stdout):
 
 class Pacman(NativePkgManager):
     name = 'pacman'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset()
     holds_version = False          # rolling: no hold, and repos carry only the current version
     INSTALL = 'pacman -S --noconfirm {pkgs}'
     UPGRADE = 'pacman -S --noconfirm {pkgs}'      # -S already installs-or-upgrades to the current rev

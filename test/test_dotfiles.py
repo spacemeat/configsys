@@ -1,3 +1,4 @@
+import types
 import pytest
 import os
 from pathlib import Path
@@ -648,3 +649,49 @@ def test_a_single_file_spec_holding_a_private_key_is_not_captured(tmp_path):
     rc = df_unit(specs={'key': {'src': 'netrc-key', 'dst': '~/.netrc-key'}}, comp='netrc')
     df.capture(rc)
     assert not (p.user_dotfiles_dir / 'netrc.cfs' / 'netrc-key').exists()
+
+
+# -- review-2026-11-2 A8: config drivers never write through a link into your portable config ------
+
+def test_shell_guard_never_writes_through_the_zshrc_link_dotfiles_just_made(tmp_path):
+    from configsys import shellguard
+    home = tmp_path / 'home'
+    home.mkdir()
+    captured = tmp_path / 'store' / 'zshrc'
+    captured.parent.mkdir()
+    captured.write_text('# my portable zshrc\nexport EDITOR=nvim\n')
+    snap = shellguard.snapshot(home)                       # fresh box: no ~/.zshrc
+    (home / '.zshrc').symlink_to(captured)                 # zsh-dotfiles links it into place
+    assert shellguard.revert_and_capture(home, snap) == {}
+    assert captured.read_text() == '# my portable zshrc\nexport EDITOR=nvim\n'
+    assert shellguard.arm(types.SimpleNamespace(home=home), object(), 'zsh-dotfiles', 'install',
+                          'dotfiles') is None             # and the guard isn't even armed for it
+
+
+def test_uninstall_leaves_a_real_file_that_replaced_our_link(tmp_path):
+    p = paths_for(tmp_path)
+    cfg_store = p.user_dotfiles_dir / 'neovim.cfs' / 'neovim'
+    cfg_store.mkdir(parents=True)
+    (cfg_store / 'init.lua').write_text('captured')
+    dst = p.home / '.config' / 'nvim'
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.with_name('nvim.pre-configsys').mkdir()
+    (dst.with_name('nvim.pre-configsys') / 'init.lua').write_text('months-old backup')
+    dst.mkdir()                                            # an atomic save replaced our link
+    (dst / 'init.lua').write_text('LIVE edits')
+    df = DotFiles(Runner(pretend=False), paths=p)
+    res = df.uninstall(df_unit())
+    assert res.ok and 'left in place' in res.output
+    assert (dst / 'init.lua').read_text() == 'LIVE edits'
+    assert (dst.with_name('nvim.pre-configsys') / 'init.lua').exists()
+
+
+def test_uninstall_never_removes_another_tools_link(tmp_path):
+    p = paths_for(tmp_path)
+    other = tmp_path / 'stow' / 'nvim'
+    other.mkdir(parents=True)
+    dst = p.home / '.config' / 'nvim'
+    dst.parent.mkdir(parents=True)
+    dst.symlink_to(other)
+    df = DotFiles(Runner(pretend=False), paths=p)
+    assert df.uninstall(df_unit()).ok and dst.is_symlink()

@@ -1,3 +1,4 @@
+import pytest
 import json
 
 from configsys import versions
@@ -476,3 +477,35 @@ def test_source_key_includes_what_changes_the_answer():
     a = versions.source_key({'github': 'x/y'})
     assert a != versions.source_key({'github': 'x/y', 'pick': 'highest'})
     assert a != versions.source_key({'github': 'x/y', 'tag-re': 'core@(.*)'})
+
+
+def test_version_fetches_are_https_only_and_the_token_goes_only_to_the_api(monkeypatch):
+    # review-2026-11-2 A1 / subsystems-04: a version spec can't read a local file or beacon over
+    # http, and the GitHub token never leaves for another host
+    import urllib.error
+    import urllib.request
+    from configsys import versions
+    for url in ('file:///etc/os-release', 'http://x.invalid/v', 'ftp://x.invalid/v'):
+        with pytest.raises(urllib.error.URLError):
+            versions.http_fetch(url, _sleep=lambda s: None)
+    seen = []
+
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b'1.0'
+
+    def fake_open(req, timeout=None):
+        seen.append((req.full_url, req.headers.get('Authorization')))
+        return _Resp()
+    monkeypatch.setenv('GITHUB_TOKEN', 'secret')
+    monkeypatch.setattr(urllib.request, 'urlopen', fake_open)
+    versions.http_fetch('https://evil.invalid/?api.github.com')
+    versions.http_fetch('https://api.github.com/repos/a/b/releases')
+    assert seen == [('https://evil.invalid/?api.github.com', None),
+                    ('https://api.github.com/repos/a/b/releases', 'Bearer secret')]

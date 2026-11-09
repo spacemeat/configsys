@@ -56,11 +56,32 @@ def _read(path):
         return None
 
 
+class Snapshot(dict):
+    '''{abs_path_str: content|None} plus `.ident` {abs_path_str: what the path IS} — a regular file,
+    absent, or a symlink to a given target (see _identity).'''
+    ident = None
+
+
+def _identity(path):
+    '''('link', target) | ('file',) | ('absent',) | ('other',) — lstat, never followed.'''
+    try:
+        if path.is_symlink():
+            return ('link', os.readlink(path))
+        if path.is_file():
+            return ('file',)
+        return ('other',) if path.exists() else ('absent',)
+    except OSError:
+        return ('other',)
+
+
 def snapshot(home):
-    '''{abs_path_str: content|None} for every guarded rc file (None = absent). Cheap: a handful of
-    small text files, read just before an install so the writer is known by diff afterward.'''
+    '''{abs_path_str: content|None} for every guarded rc file (None = absent), and each one's
+    identity. Cheap: a handful of small text files, read just before an install so the writer is
+    known by diff afterward.'''
     home = Path(home)
-    return {str(home / rel): _read(home / rel) for rel, _shell in GUARDED}
+    snap = Snapshot({str(home / rel): _read(home / rel) for rel, _shell in GUARDED})
+    snap.ident = {str(home / rel): _identity(home / rel) for rel, _shell in GUARDED}
+    return snap
 
 
 def _added_lines(before, after):
@@ -137,11 +158,21 @@ def revert_and_capture(home, snap):
     home = Path(home)
     shell_of = {str(home / rel): shell for rel, shell in GUARDED}
     per_shell = {}                                  # shell -> [ (filename, [added lines]) ]
+    idents = getattr(snap, 'ident', None) or {}
     for path_str, before in snap.items():
         path = Path(path_str)
         now = _read(path)
         if now == before:
             continue                                # untouched — nothing to revert or capture
+        if path_str in idents and _identity(path) != idents[path_str] \
+                and 'link' in (_identity(path)[0], idents[path_str][0]):
+            # the path became (or stopped being, or re-pointed) a LINK — a config being linked into
+            # place (zsh-dotfiles), not an installer appending lines —
+            # and writing the snapshot back would go THROUGH the new link into your captured config
+            # (dotfiles-glue-01). Leave it.
+            continue
+        if path.is_symlink():
+            continue                                # never write through a link into its target
         before_rest, before_blocks = _split_cs_blocks(before)
         now_rest, now_blocks = _split_cs_blocks(now)
         if now is not None and now_rest == before_rest:
@@ -179,11 +210,15 @@ def _format_block(blocks):
 _GUARDED_OPS = ('install', 'upgrade', 'set-version')
 
 
-def arm(paths, config, component, op):
+_OWN_DRIVERS = frozenset({'dotfiles', 'glue'})       # configsys's own config drivers: not "installers"
+
+
+def arm(paths, config, component, op, driver=None):
     '''Snapshot the guarded rc files before an installer op, or None when the guard doesn't apply
-    (non-installer op, no config, guard off, or component allow-listed). Degrades to None if config
-    lacks the accessor (older/stub contexts) — never blocks an install.'''
-    if op not in _GUARDED_OPS or config is None:
+    (non-installer op, no config, guard off, component allow-listed, or configsys's OWN dotfiles/glue
+    driver — linking your zshrc into place is not an installer scribbling in it). Degrades to None if
+    config lacks the accessor (older/stub contexts) — never blocks an install.'''
+    if op not in _GUARDED_OPS or config is None or driver in _OWN_DRIVERS:
         return None
     try:
         if not config.guard_shell_writes(component):

@@ -32,6 +32,10 @@ HUB_REPOS = {
 
 class Flatpak(Driver):
     name = 'flatpak'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset({'hub-url'})
     privileged = False
 
     # -- helpers ----------------------------------------------------------

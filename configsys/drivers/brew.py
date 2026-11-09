@@ -48,6 +48,10 @@ def brew_env():
 
 class Brew(Driver):
     name = 'brew'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset()
     privileged = False
     default_scope = 'user'   # brew's prefix is user-owned; ops never sudo
 

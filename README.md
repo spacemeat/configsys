@@ -346,10 +346,10 @@ manpages install` puts it (and `configsys.hu(5)`) under `~/.local/share/man`.
 ```
 configsys [tui]                    # interactive TUI (default; prints the inspect table when not on a terminal)
 configsys inspect                  # install-state table for this machine's picks, then any issues
-configsys install  <name>...       # install (pulls dependencies first, ordered) [--force] [--no-deps]
+configsys install  <name>...       # install (missing dependencies first) [--force] [--no-deps|--with-deps]
 configsys install --picks [--yes]  # install every pick of this machine that isn't installed yet
 configsys remove   <name>...       # uninstall
-configsys upgrade  <name>...       # upgrade to latest [--force] [--no-deps]
+configsys upgrade  <name>...       # upgrade to latest [--force] [--no-deps|--with-deps]
 configsys upgrade --picks [--yes]  # upgrade every outdated pick of this machine
 configsys upgrade --system [--yes] # upgrade all system updates via each package manager's own bulk upgrade
 configsys updates                  # list system updates: upgradable packages that aren't configsys components
@@ -399,12 +399,15 @@ language toolchain, for example. Methods that install only the version their rou
 (tarballs, AppImages, fonts, `.deb`/`.rpm` files, the AUR, …) refuse; pin a method that supports
 versions first.
 
-**Rebuilding a component.** `install <name>` runs even when the component is already present:
-package managers re-run their install (a no-op if it's current), and a **`via: source`** component
-always rebuilds from a clean checkout. So to pick up a recipe change at an unchanged version, or to
-recover a half-finished build, just `install` it again. **`--no-deps`** runs the op on **only the
-named component(s)** — no dependency installs and no `auto-tighten` upgrades — so you rebuild that
-one thing without its whole dependency tree — e.g. `configsys install --no-deps blender-5.2`
+**Dependencies and rebuilding.** `install` and `upgrade` (and the TUI's `X`) install a component's
+dependencies only when they're **missing**; a dependency that's already present is left alone.
+**`--with-deps`** re-runs every dependency too. `install <name>` itself runs even when the component
+is already present: package managers re-run their install (a no-op if it's current), and a
+**`via: source`** component always rebuilds from a clean checkout. So to pick up a recipe change at
+an unchanged version, or to recover a half-finished build, just `install` it again. If configsys
+adopted an install of the component through another method (see `adopt-installed`), that install is
+the one acted on. **`--no-deps`** runs the op on **only the named component(s)** — no dependency
+installs and no `auto-tighten` upgrades — e.g. `configsys install --no-deps blender-5.2`
 (from the [configsys-blender](#known-plugins) plugin) rebuilds Blender alone, leaving its compiler
 and CUDA toolkit as they are. It still removes an install of the same component made by another
 method, so skipping dependencies never leaves you with two copies.

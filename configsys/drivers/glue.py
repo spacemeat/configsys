@@ -910,6 +910,11 @@ class Glue(Driver):
         rc_path = self._expand(rc_rel)
         if not rc_path.exists():
             return
+        if rc_path.is_symlink():
+            # a captured/managed rc (zsh-dotfiles links ~/.zshrc into your store or primary): its
+            # loader block is part of YOUR portable config, shared with your other machines — never
+            # edited through the link (install doesn't add it there either; dotfiles-glue-17)
+            return
         text = rc_path.read_text()
         if _RC_BEGIN not in text:
             return

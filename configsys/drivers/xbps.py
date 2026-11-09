@@ -43,6 +43,10 @@ def _split_pkgver(pkgver):
 
 class Xbps(NativePkgManager):
     name = 'xbps'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset()
     INSTALL = 'xbps-install -Sy {pkgs}'
     REMOVE = 'xbps-remove -y {pkgs}'
     UPGRADE = 'xbps-install -Suy {pkgs}'

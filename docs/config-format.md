@@ -159,6 +159,12 @@ warns about one in a file (configsys then uses the default).
   primary plugin is ignored (and `check` warns), so a commit pushed to the primary can't turn it off.
   Sign your own commits (`git config --global commit.gpgsign true`) before you turn it on —
   configsys's commits follow that setting. See plugins.md §8.
+- **`primary-trust`** (`identity`, `content` or `signed`, machine; default `identity`): whether your
+  primary plugin's command-carrying data (glue, dotfiles, scripts, vendor repos, downloads, `keys:`)
+  runs without `configsys plugin trust`. `identity` trusts whatever syncs into it (it is yours);
+  `content` treats it like any plugin, so a sync that changes it needs `plugin trust` again;
+  `signed` trusts it while its newest commit carries a good signature, else by content. Read only
+  from your top config, so a commit pushed to the primary can't grant itself trust. See plugins.md §6.
 - **`splash`** (scalar, uniform; default unset): the startup wait-screen. A splash name (or the
   name of the plugin that ships it), `random` for a different one each run, or `off`. Unset uses
   the built-in `braille-bar`.
@@ -460,6 +466,14 @@ Every binding may use:
   the binding isn't valid, without making it more specific.
 - **`version:`**, **`url:`**, **`asset:`** and **`latest-check:`** for download-based drivers (see
   "Versions").
+- **`sha256:`** on a tarball, AppImage, font or native-pkg-file binding: the download's digest — a
+  64-hex-digit string, or a map by CPU (`{ x86_64: …  aarch64: … }`) or, for native-pkg-file, by
+  package format first (`{ deb: …  rpm: … }`). The file is checked right after it downloads, before
+  anything is unpacked or installed; a mismatch fails the step. It pairs with a pinned `version:`.
+- **`pubkey-path:`** / **`source-path:`** (apt vendor repos) must name a file directly in an apt
+  keyring dir (`/usr/share/keyrings/`, `/etc/apt/keyrings/`, `/etc/apt/trusted.gpg.d/`) / in
+  `/etc/apt/sources.list.d/`, and a dnf **`repo-id:`** is a plain name — configsys writes there as
+  root, so any other target is a load error.
 
 Driver-specific fields include:
 

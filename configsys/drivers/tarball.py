@@ -7,6 +7,7 @@ declared version comes from the route ($SDKVERSION); "latest" is that declared
 version. There is no native version lock — lock intent lives in the ledger.
 '''
 
+import os
 import shlex
 from pathlib import Path
 
@@ -19,9 +20,9 @@ MARKER_PREFIX = '.configsys-'
 # dedicated subdir, never a shared base. Guards the empty/missing-`installDir:` case, where
 # scoped_dir('') resolves to the bare scope base ($HOME for user, /opt for system) and the swap would
 # `rm -rf $HOME`. A `locations:` override to one of these is refused for the same reason.
-_SHARED_SYSTEM_DIRS = frozenset(
-    Path(p) for p in ('/', '/opt', '/usr', '/usr/local', '/bin', '/sbin', '/lib', '/etc', '/var',
-                      '/home', '/root', '/tmp', '/srv', '/boot', '/dev', '/proc', '/sys'))
+def _plain_name(s):
+    '''A `binary:` file name, never a path (a `../..` would write outside the stage dir).'''
+    return os.path.basename(str(s)) or 'binary'
 
 
 class Tarball(Driver):
@@ -44,15 +45,11 @@ class Tarball(Driver):
         `installDir:` resolves to the scope base ($HOME / /opt), so without this guard `install`
         would wipe the home directory. Read-only callers keep using `_install_dir`.'''
         d = self._install_dir(rc)
-        dp = Path(str(d))
-        bases = set()
-        if self.paths is not None:
-            bases = {Path(str(self.paths.home)), Path(str(self.paths.scope_base('user'))),
-                     Path(str(self.paths.scope_base('system')))}
-        if dp in _SHARED_SYSTEM_DIRS or dp in bases or dp == dp.parent:
-            return None, (f'{rc.comp}: refusing to (un)install into {dp} — a tarball binding needs a '
-                          f'dedicated `installDir:` (the dir is rm -rf\'d on every (re)install)')
-        return d, None
+        why = self.unsafe_dir_reason(d)               # normalized; `..`, shared and protected dirs refused
+        if why:
+            return None, (f'{rc.comp}: refusing to (un)install into {d} — {why}; a tarball binding needs '
+                          f'a dedicated `installDir:` (the dir is rm -rf\'d on every (re)install)')
+        return Path(os.path.normpath(str(d))), None
 
     def _marker(self, rc):
         return self._install_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
@@ -91,6 +88,9 @@ class Tarball(Driver):
         d, unsafe = self._safe_install_dir(rc)
         if unsafe:
             return Result.fail(unsafe)
+        taken = self.replace_dir_refusal(d, self._marker(rc))   # a dir we didn't install: never rm -rf it
+        if taken:
+            return Result.fail(f'{rc.comp}: {taken}')
 
         # Build into a SIBLING staging dir, then atomically swap into place (rm old && mv stage) —
         # so a failed download/extract (or a failed upgrade) leaves the EXISTING install untouched
@@ -106,22 +106,23 @@ class Tarball(Driver):
         if archive == 'none':
             # bare executable (bazelisk, kubectl, ...): no archive to unpack — download straight
             # to <stage>/<binary> and make it executable. `binary:` overrides the file name.
-            binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
-            build = f'{_CURL_DOWNLOAD} {uq} -o {binpath} && chmod +x {binpath}'
+            binpath = shlex.quote(f'{stage}/{_plain_name(rc.fields.get("binary") or rc.comp)}')
+            build = f'{_CURL_DOWNLOAD} {uq} -o {binpath}{self.verify_download(rc, binpath)} && chmod +x {binpath}'
         elif archive in ('gz', 'gzip'):
             # a SINGLE gzip-compressed binary (e.g. tree-sitter's `tree-sitter-linux-x64.gz`) — NOT
             # a `.tar.gz` (those are tar streams, handled by the tar branch below, which auto-detects
             # gzip/xz/bz2/zst). There is no archive to walk; gunzip the stream straight to
             # <stage>/<binary> and make it executable. `binary:` overrides the file name.
-            binpath = shlex.quote(f'{stage}/{rc.fields.get("binary") or rc.comp}')
+            binpath = shlex.quote(f'{stage}/{_plain_name(rc.fields.get("binary") or rc.comp)}')
             tmp = shlex.quote(f'{stage}/.configsys-download.gz')
-            build = (f'{_CURL_DOWNLOAD} {uq} -o {tmp} && '
+            build = (f'{_CURL_DOWNLOAD} {uq} -o {tmp}{self.verify_download(rc, tmp)} && '
                      f'gunzip -c {tmp} > {binpath} && chmod +x {binpath} && rm -f {tmp}')
         else:
             # download + unpack via the shared acquire (same fragment the source driver builds on).
             # `strip:` drops N leading tar path components — e.g. the Go tarball's `go/` wrapper so
             # its bin/pkg/src land directly in installDir; default None = extract as-is (unchanged).
-            build = self._fetch_and_extract(url, stage, rc.fields.get("archive"), rc.fields.get("strip"))
+            build = self._fetch_and_extract(url, stage, rc.fields.get("archive"), rc.fields.get("strip"),
+                                            rc=rc)
         cmd = (f'rm -rf {sq} && mkdir -p {sq} && {build} && printf %s {verq} > {marker} && '
                f'rm -rf {dq} && mv {sq} {dq}')
         return self.runner.run(cmd, sudo=self.sudo(rc), capture=False)

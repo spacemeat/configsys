@@ -12,6 +12,7 @@ The cabal tool is the driver `requires: cabal`, satisfied by the `cabal` compone
 '''
 
 import re
+import os
 import shlex
 
 from ..driver import Driver
@@ -39,7 +40,7 @@ class Cabal(Driver):
     def _exe(self, rc):
         # best-effort: the installed executable usually matches the package name; a route can
         # override with an explicit `exe:` field when it doesn't.
-        return rc.fields.get('exe') or self._pkg(rc)
+        return os.path.basename(str(rc.fields.get('exe') or self._pkg(rc)))   # a name, never a path
 
     # -- read -------------------------------------------------------------
 

@@ -28,7 +28,6 @@ from .drivers import get_driver
 from .installState import InstallState
 from .ledger import Ledger
 from .paths import Paths
-from .planning import expand_plan
 from .routes import Resolver
 from .runner import Runner
 
@@ -766,19 +765,8 @@ def _confirm_plan(ctx, plan, *, yes=False):
     return True
 
 
-def _targeted_plan(ctx, op, base_plan, units):
-    '''The `--no-deps` plan: only the named units, but the method-switch swap still applies —
-    skipping dependencies never means doubling up an install. With no expand_plan to order it,
-    every remove (a swap's old install, its glue) runs first. Returns (plan, units).'''
-    if op in ('install', 'upgrade', 'set-version', 'remove'):
-        from .installState import plan_with_swaps
-        base_plan, units = plan_with_swaps(ctx, base_plan, units)
-    return ([s for s in base_plan if s[0] == 'remove'] +
-            [s for s in base_plan if s[0] != 'remove']), units
-
-
 def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, confirm=False,
-                 yes=False):
+                 yes=False, with_deps=False):
     if ledger is None:
         ledger = Ledger.load(ctx.paths)      # every op writes it now: locks, and install receipts
     got = _expand_profile_args_detail(ctx, names)
@@ -812,8 +800,9 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, co
         if skipped:
             print(f'configsys: skipped {len(skipped)} not installable here: {", ".join(skipped)}')
         names = routable
+    from . import actions
     if names:
-        units, roots = ctx.routes.resolve_with_roots(names)
+        units, roots = actions.resolve_targets(ctx, names)    # honors adopted installs (B1)
     else:
         units, roots = {}, set()
     if not roots and not stranded_removes:
@@ -838,42 +827,19 @@ def _dispatch_op(ctx, names, op, *, ledger=None, version=None, no_deps=False, co
     for step in stranded_removes:
         base_plan.append(step)
         units[step[1]] = step[2]
-    if no_deps:
-        # targeted rebuild: run the op on ONLY the named unit(s) — no dependency folding, no
-        # auto-tighten. A source component installs unconditionally, so this force-REBUILDS it
-        # (e.g. to pick up a recipe change at an unchanged version) without rebuilding its deps.
-        plan, units = _targeted_plan(ctx, op, base_plan, units)
-    else:
-        # `auto-tighten`: if a consumer being installed floors a toolchain above its INSTALLED version
-        # (e.g. goimports needs go>=1.21 but resident go is 1.18), schedule the provider's upgrade too.
-        # Dependency order already sequences a provider before its consumer, so the upgrade lands first.
-        if op in ('install', 'upgrade', 'set-version') and ctx.config.auto_tighten():
-            from . import flooradvise
-            for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
-                base_plan.append(('upgrade', pkey, prc))
-        if op in ('install', 'upgrade', 'set-version', 'remove'):
-            # method-switch swap: if a target is currently installed via ANOTHER method (a pin
-            # change, a route/OS shift), remove that old install first so we don't double up. Both a
-            # swap and a remove also drop the glue companions left behind (plan_companion_cleanup).
-            from .installState import plan_with_swaps
-            base_plan, units = plan_with_swaps(ctx, base_plan, units)
-        plan = expand_plan(base_plan, units)
-
-    if op in ('install', 'upgrade', 'set-version'):
-        # no surprises: a version FLOOR the default method can't meet (e.g. hlint's cabal >= 3.10.2 vs
-        # Ubuntu 24.04's 3.8.1) would fail deep in the run — say so, with the fix, BEFORE it starts.
-        # (inspect / the TUI's ! page surface the same advisories.)
-        try:
-            from . import flooradvise
-            for adv in flooradvise.advise(ctx, list(units.values())):
-                print(f'configsys: heads-up — {adv["text"]}', file=sys.stderr)
-        except Exception:                    # noqa: BLE001 — an advisory must never block the op
-            pass
+    # ONE plan builder for both surfaces (actions.build_plan): --no-deps = only the named units (a
+    # source component rebuilds just itself); else auto-tighten, the method-switch swap, and only the
+    # MISSING dependencies folded in (--with-deps re-runs the whole tree). Floor heads-ups come back
+    # to show BEFORE anything runs.
+    plan, units, advisories = actions.build_plan(ctx, base_plan, units, no_deps=no_deps,
+                                                 with_deps=with_deps)
+    for text in advisories:
+        print(f'configsys: heads-up — {text}', file=sys.stderr)
     if confirm and not _confirm_plan(ctx, plan, yes=yes):
         return 1
     maybe_refresh_before_plan(ctx, plan)     # refresh the OS index once up front (see the setting)
-    from . import actions
     result = actions.run_plan(ctx, plan, ledger=ledger, version=version)   # the shared op loop
+    actions.after_run(ctx, result.outcomes, units)
     if result.failures:
         _offer_report(ctx, result.failures, fatal=result.n_fatal)
     if op in ('install', 'upgrade', 'set-version') and getattr(ctx, 'config', None) is not None \
@@ -1067,6 +1033,8 @@ def _ops_from_picks(ctx, args, op):
 
 def cmd_install(ctx, args):
     ctx.paths.dotfiles_force = getattr(args, 'force', False)   # read by the dotfiles driver
+    ctx.paths.install_force = getattr(args, 'force', False)    # a dir/file configsys didn't make (A6/A9)
+    ctx.paths.source_adopt = getattr(args, 'adopt', False)     # build in your own checkout (A9)
     names, confirm = args.names, False
     if getattr(args, 'picks', False):
         names, rc = _ops_from_picks(ctx, args, 'install')
@@ -1077,6 +1045,7 @@ def cmd_install(ctx, args):
         print('configsys: `install` needs component name(s), or `--picks` for every uninstalled pick')
         return 1
     return _dispatch_op(ctx, names, 'install', no_deps=getattr(args, 'no_deps', False),
+                        with_deps=getattr(args, 'with_deps', False),
                         confirm=confirm, yes=getattr(args, 'yes', False))
 
 
@@ -1098,7 +1067,9 @@ def cmd_upgrade(ctx, args):
               '`--system` to upgrade the whole system')
         return 1
     ctx.paths.dotfiles_force = getattr(args, 'force', False)
+    ctx.paths.install_force = getattr(args, 'force', False)
     return _dispatch_op(ctx, names, 'upgrade', no_deps=getattr(args, 'no_deps', False),
+                        with_deps=getattr(args, 'with_deps', False),
                         confirm=confirm, yes=getattr(args, 'yes', False))
 
 
@@ -2554,6 +2525,13 @@ def cmd_check(ctx, args):
     conflict_warnings += ctx.plugin_code_conflicts    # code-only (version-source/transport)
     conflict_warnings += [_plugins.fmt_shadow(*s) for s in
                           _plugins.shadowed_builtins(ctx.paths.plugins_dir, _decls)]
+    conflict_warnings += [f"plugin {_plugins.dir_name(d['source'])}: `{e}` points outside the "
+                          f"plugin's checkout — not loaded (it isn't covered by trust)"
+                          for d in _decls
+                          for e in _plugins.uncontained_entries(
+                              ctx.paths.plugins_dir / _plugins.dir_name(d['source']),
+                              _plugins.read_manifest(ctx.paths.plugins_dir / _plugins.dir_name(d['source'])))
+                          if (ctx.paths.plugins_dir / _plugins.dir_name(d['source'])).is_dir()]
     conflict_warnings += [f"plugin {_plugins.dir_name(d['source'])}: content does not match "
                           f"declared sha256 — quarantined"
                           for d in _decls
@@ -2562,7 +2540,10 @@ def cmd_check(ctx, args):
     # TUI keybindings: an unknown action/scope (typo), an unparseable key name, or a self-conflict
     # (one key on two actions in a scope) in any layer's `keys:` section.
     from .tui.keyspec import lint_keys
-    key_warnings = lint_keys(layer_list)
+    _ignored = {os.path.normpath(x.path) for x in ctx.config.untrusted_key_layers()}
+    key_warnings = lint_keys([x for x in layer_list if os.path.normpath(x.path) not in _ignored])
+    key_warnings += [f'{os.path.basename(p)}: `keys:` ignored until its plugin is trusted '
+                     f'(configsys plugin trust)' for p in sorted(_ignored)]
 
     # manual version pins the LAST `refresh` found behind upstream (from a `latest-check:` source).
     # Read-only from the stamp — never hits the network here; empty until you run `configsys refresh`.
@@ -3667,12 +3648,16 @@ def build_parser():
 
     # each op's description carries extra notes (rebuild semantics + --no-deps, picks, stranded
     # removal, holds) — surfaced in the generated man page, which uses each command's description.
-    _rebuild_note = (' Components already present are not skipped: a package manager re-runs (a no-op '
-                     'when current), and a `via: source` component rebuilds from a clean checkout, so '
-                     're-running install picks up a recipe change even at the same version. --no-deps '
-                     'acts on only the named components, without installing their dependencies. '
+    _rebuild_note = (' A named component already present is not skipped: a package manager re-runs (a '
+                     'no-op when current), and a `via: source` component rebuilds from a clean checkout, '
+                     'so re-running install picks up a recipe change even at the same version. Its '
+                     'dependencies are installed only when missing (--with-deps re-runs them all; '
+                     '--no-deps skips them). An install configsys adopted through another method is '
+                     'the one acted on. A locked component is not upgraded until you unlock it. '
                      '--force lets a dotfiles install overwrite an on-system file that was never '
-                     'captured (it is backed up to .pre-configsys first).')
+                     'captured (it is backed up to .pre-configsys first), and lets a tarball, font or '
+                     'AppImage replace a directory or file configsys did not install. A source '
+                     'component builds only in a checkout configsys created, or one you --adopt.')
     _op_notes = {
         'install': (_rebuild_note + ' Installing does not add a component to this machine\'s picks; '
                     '`configsys picks add` does that. --picks installs every pick of this box that '
@@ -3708,12 +3693,22 @@ def build_parser():
         if name in ('install', 'upgrade'):
             sp.add_argument('--force', action='store_true',
                             help='let a dotfiles install overwrite an on-system file that was never '
-                                 'captured (backed up to .pre-configsys); `configsys dotfiles capture` '
-                                 'first is usually better')
+                                 'captured (backed up to .pre-configsys; `configsys dotfiles capture` '
+                                 'first is usually better), a tarball/font/AppImage replace a dir or '
+                                 'file configsys didn\'t install, and a source build discard local '
+                                 'changes in a checkout configsys made')
+            if name == 'install':
+                sp.add_argument('--adopt', action='store_true',
+                                help='let a source component build in an existing checkout configsys '
+                                     "didn't create (fetch + checkout only: your files are never "
+                                     'cleaned, and remove never deletes it)')
             sp.add_argument('--no-deps', action='store_true',
                             help='act on only the named components, without installing their '
-                                 'dependencies. A source component always rebuilds, so this rebuilds '
-                                 'just it (e.g. to pick up a recipe change), not its dependencies')
+                                 'missing dependencies. A source component always rebuilds, so this '
+                                 'rebuilds just it (e.g. to pick up a recipe change)')
+            sp.add_argument('--with-deps', action='store_true',
+                            help='also re-run every dependency, present or not (by default only '
+                                 'missing dependencies are installed)')
             sp.add_argument('--picks', action='store_true',
                             help=("also act on every pick of this box that is not installed: show "
                                   'the plan and ask first (on this box only, so not with --machine '

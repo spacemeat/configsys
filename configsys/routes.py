@@ -265,6 +265,9 @@ class OsCascade:
         ctx.native_driver = native
         ctx.gated_drivers = frozenset(d for d, (_t, p) in self.driver_gates.items()
                                       if not p.eval(ctx))
+        # the untrusted plugin layer files: their command-carrying bindings aren't candidates
+        # (trustgate.gated — review-2026-11-2 A1)
+        ctx.untrusted_sources = getattr(self, 'untrusted_sources', frozenset())
         return ctx
 
     def gate_pred(self, via):
@@ -337,6 +340,15 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     # repo's always merge; a plugin's merge ONLY when that plugin is content-TRUSTED (`command_trust`,
     # from plugins.command_source_trusted). An untrusted plugin's facets are dropped with an
     # actionable warning — never silent, never blanket-refused (a trusted plugin gets its probes).
+    # TRUST (review-2026-11-2 A1): the plugin layer files that aren't content-trusted. Their bindings
+    # stay visible, but only plain packages-by-name from a trusted registry are candidates
+    # (trustgate.gated, read off every context) — repos, keys, downloads, builds, scripts, glue and
+    # dotfiles from them wait for `configsys plugin trust`.
+    untrusted_sources = frozenset(
+        os.path.normpath(lyr.path) for lyr in layer_list
+        if lyr.role in ('plugin', 'primary', 'include') and command_trust is not None
+        and not command_trust(lyr.path))
+
     def _facet_ok(lyr):
         if lyr.role == 'repo':
             return True
@@ -383,6 +395,7 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     # derivative-distro block, an include's, or a machine-local tweak in the TOP config (highest
     # precedence, e.g. `drivers: { snap: { standing: never-auto } }` on this box only).
     cascade = OsCascade(layers.merge_dict_section(layer_list, 'os', layers.ALL_ROLES), facets)
+    cascade.untrusted_sources = untrusted_sources
     cascade.os_sources = layers.dict_section_sources(layer_list, 'os')
     drvs = layers.merge_dict_section(layer_list, 'drivers', layers.ALL_ROLES)
     cascade.driver_specs = drvs                      # raw `drivers:` blocks (routecheck lints them)
@@ -644,9 +657,24 @@ class Resolver:
         self.provider_rules = rules         # {cap: rule that picked its auto provider} (for `where`)
         return to_resolved_components(units), errors
 
-    def resolve_with_roots(self, names):
+    def resolve_with_roots(self, names, extra_pins=None, soft_pins=None):
+        '''-> ({key: ResolvedComponent}, root keys) for the named components. `extra_pins` (auto-
+        tighten floor pins) and `soft_pins` (the detection tier) layer under YOUR pins exactly as in
+        resolve_resilient, so a CLI op on an adopted install targets that install (B1).'''
         from .adapt import to_resolved_components
-        units, roots = self._resolve(names)
+        if not (extra_pins or soft_pins):
+            units, roots = self._resolve(names)
+            return to_resolved_components(units), roots
+        from .resolve import resolve_roots
+        soft_pins, extra_pins = dict(soft_pins or {}), dict(extra_pins or {})
+        pins = {**soft_pins, **extra_pins, **self.pins}
+        soft = frozenset(k for k in soft_pins if k not in self.pins and k not in extra_pins)
+        dropped = {}
+        units, roots = resolve_roots(list(names), self.cascade, self.components, self.drivers,
+                                     self.block, self.version, self.cpu, pins, self.overrides,
+                                     self.preference, self.candidate_only, self.disabled,
+                                     soft=soft, dropped_out=dropped)
+        self.dropped_soft_pins = dropped
         return to_resolved_components(units), roots
 
     def candidates(self, name, include_unavailable=False):

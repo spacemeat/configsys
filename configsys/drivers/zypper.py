@@ -30,6 +30,10 @@ def _version_from_info(stdout):
 
 class Zypper(NativePkgManager):
     name = 'zypper'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset()
     INSTALL = 'zypper --non-interactive install {pkgs}'
     REMOVE = 'zypper --non-interactive remove {pkgs}'
     UPGRADE = 'zypper --non-interactive update {pkgs}'

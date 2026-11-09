@@ -36,7 +36,7 @@ MACHINE_SETTING_SECTIONS = frozenset({
     'driver-preference', 'disabled-drivers', 'auto-tighten', 'adopt-installed', 'detect-coexisting',
     'installer-shell-writes', 'installer-shell-writes-allow', 'refresh-before-execute',
     'install-overlay', 'reboot-advice', 'splash', 'effects', 'orphans-ignore', 'primary-push',
-    'primary-verify',
+    'primary-verify', 'primary-trust',
 })
 
 
@@ -48,12 +48,14 @@ SETTING_CHOICES = {
     'refresh-before-execute': ('auto', 'always', 'never'),
     'effects': ('full', 'reduced', 'none'),
     'primary-verify': ('off', 'signed'),
+    'primary-trust': ('identity', 'content', 'signed'),
 }
 
 # Settings read ONLY from this machine's top config: a value in your primary plugin (or anywhere
-# else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, so
-# a commit pushed to the primary must not be able to switch it off.
-TOP_CONFIG_ONLY = frozenset({'primary-verify'})
+# else) is ignored, with a `check` warning. `primary-verify` guards what the primary may bring in, and
+# `primary-trust` decides whether its commands run without a re-trust, so a commit pushed to the
+# primary must not be able to change either.
+TOP_CONFIG_ONLY = frozenset({'primary-verify', 'primary-trust'})
 
 
 def setting_value_warnings(layers):
@@ -71,7 +73,17 @@ def setting_value_warnings(layers):
             if layer.role != 'user':
                 warns.append(f'{layer.path}: `{key}:` is read only from your top config '
                              f'(~/.config/configsys/configsys.hu), so it is ignored here')
+        locs = layer.data.get('locations')
+        for comp, path in (locs.items() if isinstance(locs, dict) else ()):
+            if not _location_ok(path):
+                warns.append(f'{layer.path}: `locations: {comp}={path}` must be an absolute path or '
+                             f'start with ~/ — ignored')
     return warns
+
+
+def _location_ok(path):
+    s = str(path).strip()
+    return s.startswith('/') or s == '~' or s.startswith('~/')
 
 
 def machine_setting_sections():

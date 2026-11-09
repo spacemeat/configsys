@@ -72,6 +72,10 @@ class Source(Driver):
         base = '/usr/local' if self._scope(rc) == 'system' else '~/.local'
         return self.scoped_dir(base, rc)
 
+    def _own_marker(self, rc, kind):
+        '''`<src>/.configsys-<comp>.<kind>` — `cloned` (configsys created the tree) or `adopted`.'''
+        return self._src_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.{kind}'
+
     def _marker(self, rc):
         return self._src_dir(rc) / f'{MARKER_PREFIX}{rc.comp}.version'
 
@@ -118,6 +122,26 @@ class Source(Driver):
         prefix = self._prefix(rc)
         srcq = shlex.quote(str(src))
 
+        # OWNERSHIP (review-2026-11-2 A9): a tree configsys didn't create is never cleaned or deleted.
+        # `.configsys-<comp>.cloned` = configsys made it (clone / archive extract); `.adopted` = you let
+        # configsys build in your own checkout (`install --adopt`: fetch + checkout only, never a
+        # clean or a forced reset, never removed); `.version` alone = an install from before these
+        # markers. A dir with none of them is refused, naming --adopt.
+        why = self.unsafe_dir_reason(src)
+        if why:
+            return Result.fail(f'{rc.comp}: refusing to build in {src} — {why}')
+        cloned, adopted = self._own_marker(rc, 'cloned'), self._own_marker(rc, 'adopted')
+        clq, adq, vmq = (shlex.quote(str(cloned)), shlex.quote(str(adopted)),
+                         shlex.quote(str(self._marker(rc))))
+        force = bool(getattr(self.paths, 'install_force', False))
+        adopt = bool(getattr(self.paths, 'source_adopt', False))
+        claim = (f'if [ -e {srcq} ] && [ ! -e {vmq} ] && [ ! -e {clq} ] && [ ! -e {adq} ]; then '
+                 + (f'touch {adq}; ' if adopt else
+                    f'echo "configsys: {src} exists and configsys didn\'t create it — '
+                    f'\`configsys install {rc.comp} --adopt\` builds there (fetch + checkout only; '
+                    f'your files are never cleaned or deleted), or move it aside" >&2; exit 3; ')
+                 + 'fi && ')
+
         repo = rc.fields.get('repo')
         if repo:                                    # git acquisition: clone-or-fetch, checkout ref
             ref = self._ref(rc, version)
@@ -127,11 +151,23 @@ class Source(Driver):
             # change (or a failed partial build) never takes effect. Exclude our version marker so a
             # failed rebuild doesn't wrongly read as uninstalled (the artifacts install into $PREFIX,
             # which the clean never touches). See docs/done/driver-resilience-plan.md (transactional builds).
-            marker_name = f'{MARKER_PREFIX}{rc.comp}.version'
-            acquire = (f'{{ [ -d {srcq}/.git ] || git clone {shlex.quote(repo)} {srcq}; }} && '
+            # An ADOPTED checkout is yours: a plain checkout (it fails rather than overwrite your
+            # edits), no clean. A configsys-made tree with local changes (you edited config.h, a
+            # failed build patched a file) is refused unless --force, which discards them.
+            refq = shlex.quote(ref)
+            mine = shlex.quote(f'{MARKER_PREFIX}*')
+            dirty = (f'[ -z "$(git -C {srcq} status --porcelain --untracked-files=normal -- . '
+                     f'\":(exclude){MARKER_PREFIX}*\")" ]')
+            pristine = (f'git -C {srcq} checkout -f {refq} && '      # -f resets tracked files (a build may patch one)
+                        f'git -C {srcq} clean -xfd -e {mine}')
+            guard = ('' if force else
+                     f'{{ {dirty} || {{ echo "configsys: {src} has local changes — commit or stash '
+                     f'them, or \`install --force\` to discard them" >&2; exit 4; }}; }} && ')
+            acquire = (f'{claim}{{ [ -d {srcq}/.git ] || {{ git clone {shlex.quote(repo)} {srcq} && '
+                       f'touch {clq}; }}; }} && '
                        f'git -C {srcq} fetch --tags --force && '
-                       f'git -C {srcq} checkout -f {shlex.quote(ref)} && '     # -f resets tracked files (a build may patch one)
-                       f'git -C {srcq} clean -xfd -e {shlex.quote(marker_name)}')
+                       f'if [ -e {adq} ]; then git -C {srcq} checkout {refq}; '
+                       f'else {guard}{pristine}; fi')
             stamp = version or ref
         else:                                       # archive acquisition: download + extract
             # the version of the archive actually fetched (an asset glob's release may differ from
@@ -140,8 +176,11 @@ class Source(Driver):
             if not url:
                 return Result.fail(f'{rc.comp}: source binding has neither a `repo:` to clone nor '
                                    f'a `url:`/`version:` archive to download')
-            acquire = self._fetch_and_extract(url, src, rc.fields.get('archive'),
-                                              rc.fields.get('strip', 1))
+            fresh = f'[ -e {srcq} ] || created=1; '
+            acquire = (f'{claim}{fresh}'
+                       + self._fetch_and_extract(url, src, rc.fields.get('archive'),
+                                                 rc.fields.get('strip', 1), rc=rc)
+                       + f' && {{ [ -z "${{created:-}}" ] || touch {clq}; }}')
             stamp = version or 'source'
 
         build = ' && '.join(self._sub(s, version, src, prefix) for s in steps)
@@ -183,13 +222,22 @@ class Source(Driver):
         srcq = shlex.quote(str(src))
         unc = rc.fields.get('uninstall-cmd')
         pre = (f'( cd {srcq} && {self._sub(unc, "", src, self._prefix(rc))} ) && ' if unc else '')
-        # only touch a tree we manage (our marker present), mirroring the tarball driver
-        cmd = (f'if [ -f {shlex.quote(str(self._marker(rc)))} ]; then '
-               f'{pre}rm -rf {srcq}; fi')
+        cloned = shlex.quote(str(self._own_marker(rc, 'cloned')))
+        # only touch a tree we manage (our marker present); DELETE it only when configsys created it,
+        # it is a safe path, and it holds no local changes — else it stays, and we say so (A9)
+        unsafe = self.unsafe_dir_reason(src)
+        clean = (f'{{ [ ! -d {srcq}/.git ] || [ -z "$(git -C {srcq} status --porcelain '
+                 f'--untracked-files=normal -- . \":(exclude){MARKER_PREFIX}*\")" ]; }}')
+        drop = ('false' if unsafe else f'[ -e {cloned} ] && {clean}')
+        cmd = (f'if [ -f {shlex.quote(str(self._marker(rc)))} ]; then {pre}'
+               f'if {drop}; then rm -rf {srcq}; else rm -f {shlex.quote(str(self._marker(rc)))}; '
+               f'echo "configsys: kept {src} (configsys didn\'t create it, or it has local changes)"; '
+               f'fi; fi')
         res = self.runner.run(cmd, capture=False)
         if res.ok and not unc:
-            return Result(f'⚠ removed the source tree for "{rc.comp}"; files it installed under '
-                          f'the prefix may remain (no uninstall-cmd in the route).', 0)
+            return Result(f'⚠ removed "{rc.comp}" (its source tree is deleted only if configsys created '
+                          f'it); files it installed under the prefix may remain (no uninstall-cmd in '
+                          f'the route).', 0)
         return res
 
     def location(self, rc):

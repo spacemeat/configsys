@@ -174,6 +174,10 @@ class AltDriver(Driver):
     # -- mutate -----------------------------------------------------------
 
     def install(self, rc):
+        from ..routecheck import vendor_path_problem
+        why = vendor_path_problem(rc.fields)       # key/list paths stay in apt's dirs (A10)
+        if why:
+            return Result.fail(f'{rc.comp}: {why}')
         pm = self._pm()
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
         lines = ['set -e']

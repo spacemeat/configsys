@@ -16,7 +16,12 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
                             (False = set_version can't reach a requested version; the op
                             loop refuses set-version instead of calling it), holds_version
                             (False = a rolling manager that can't hold/downgrade), native_backed
-                            (True = installs register in the OS package database)
+                            (True = installs register in the OS package database),
+                            trusted_registry + command_fields (True = a package BY NAME from a
+                            registry the system already trusts, which an UNTRUSTED plugin layer may
+                            route to unless it sets one of command_fields — trustgate.py; default
+                            False: the driver runs, builds or downloads code, and an untrusted
+                            plugin's bindings of it wait for `plugin trust`)
   Ops to implement        : get_version, get_latest, is_locked, install, uninstall,
                             upgrade, set_version, lock, unlock
   Overridable (optional)  : location(rc), scope(rc), get_installed(rc),
@@ -35,7 +40,8 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
   Helpers a subclass MAY call, in three clusters:
     resolve + fetch an artifact : resolve_version(rc, *, refresh=False),
                                   download_url(rc, version), download_target(rc, version=None),
-                                  upstream_version(rc), arch(), arch_token(rc)
+                                  upstream_version(rc), arch(), arch_token(rc),
+                                  expected_sha256(rc, *keys), verify_download(rc, file_q, *keys)
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
                                   location_override(rc), display_path(p)
     command trust               : command_trusted(rc), untrusted_command_result(rc)
@@ -48,6 +54,7 @@ change without an ABI bump — subclasses must not rely on them.
 '''
 
 
+import os
 import platform
 import re
 import shlex
@@ -92,8 +99,28 @@ def tier_by_name(key):
 _CURL_DOWNLOAD = 'curl -fSL --retry 3 --retry-delay 2'
 
 
+# What configsys never `rm -rf`s (or moves over) as "a component's own directory", whatever a route,
+# a plugin or `locations:` says (review-2026-11-2 A6, Driver.unsafe_dir_reason).
+_SYSTEM_TREES = ('/usr', '/etc', '/var', '/boot', '/lib', '/lib32', '/lib64', '/bin', '/sbin',
+                 '/dev', '/proc', '/sys', '/run', '/home', '/root', '/mnt', '/media', '/snap', '/nix')
+_SHARED_NAMES = frozenset({'bin', 'sbin', 'lib', 'lib32', 'lib64', 'libexec', 'share', 'include',
+                           'etc', 'man', 'src', 'games', 'var', 'local', 'state', 'cache', 'fonts',
+                           'applications', 'icons'})
+_HOME_SHARED = ('.local', '.local/bin', '.local/share', '.local/lib', '.local/state',
+                '.local/share/fonts', '.local/share/applications', '.local/share/icons', '.config',
+                '.cache', 'bin', 'Desktop', 'Documents', 'Downloads', 'Music', 'Pictures', 'Public',
+                'Templates', 'Videos')
+
+
 class Driver:
     name = None             # subclasses set, e.g. 'apt'
+    # TRUST (docs/plugins.md §6, trustgate.py): `trusted_registry = True` marks a driver that installs a
+    # package BY NAME from a registry the system already trusts (distro repos, Flathub, the Snap Store,
+    # Homebrew core); an UNTRUSTED plugin layer may contribute its bindings unless one sets a field in
+    # `command_fields` (adds a repo / key / remote, or widens privilege). Every other driver runs,
+    # builds or downloads code, so its bindings from an untrusted layer wait for `plugin trust`.
+    trusted_registry = False
+    command_fields = frozenset()
     privileged = False      # True if mutating ops need sudo
     default_scope = 'user'  # this driver's scope when not overridden
     honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
@@ -291,14 +318,112 @@ class Driver:
         s = f'--strip-components={int(strip)} ' if strip else ''
         return f'tar -xf {tmp_q} {s}-C {dest_q}'
 
-    def _fetch_and_extract(self, url, dest, archive_fmt=None, strip=None):
+    def _fetch_and_extract(self, url, dest, archive_fmt=None, strip=None, rc=None):
         '''Shell fragment shared by the tarball (binary) and source (build) drivers: create
-        `dest`, curl the archive into a temp file there, unpack it, remove the temp. Needs curl
-        (the binding/driver `requires: curl`).'''
+        `dest`, curl the archive into a temp file there, verify it against the binding's `sha256:`
+        (when `rc` declares one), unpack it, remove the temp. Needs curl (the binding/driver
+        `requires: curl`).'''
         dq = shlex.quote(str(dest))
         tmp = shlex.quote(str(Path(dest) / '.configsys-download.archive'))
-        return (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {shlex.quote(url)} -o {tmp} && '
+        return (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {shlex.quote(url)} -o {tmp}'
+                f'{self.verify_download(rc, tmp)} && '
                 f'{self._extract_cmd(url, tmp, dq, archive_fmt, strip)} && rm -f {tmp}')
+
+    _SHA256 = re.compile(r'^[0-9a-fA-F]{64}$')
+
+    def expected_sha256(self, rc, *keys):
+        '''The binding's `sha256:` for what this machine downloads, or None: a scalar, or a map keyed
+        by cpu (`x86_64` / its `cpu-names:` token) — and, for native-pkg-file, by package format
+        first (`keys`, e.g. 'deb'). A value that isn't 64 hex digits reads as None (routecheck flags
+        it). Meaningful with a pinned `version:` (a fixed digest can't follow `latest`).'''
+        v = (getattr(rc, 'fields', None) or {}).get('sha256') if rc is not None else None
+        if isinstance(v, dict):                       # only then is this machine's cpu needed
+            for k in (*keys, self.arch(), self.arch_token(rc)):
+                if isinstance(v, dict) and k in v:
+                    v = v[k]
+        return v if isinstance(v, str) and self._SHA256.match(v) else None
+
+    def verify_download(self, rc, file_q, *keys):
+        '''`' && <check>'` — a shell fragment that fails the command unless the downloaded file at
+        the (already shell-quoted) `file_q` matches the binding's `sha256:` (looked up by `keys`
+        first, see expected_sha256) — or '' when the binding declares none. Spliced right after the
+        download, before anything unpacks or installs it (2026-09 A7 / review-2026-11-2 A1).'''
+        want = self.expected_sha256(rc, *keys)
+        if want is None:
+            return ''
+        return (f" && {{ printf '%s  %s\\n' {want.lower()} {file_q} | sha256sum -c --quiet - "
+                f"|| {{ echo 'configsys: download does not match its sha256 — not installed' >&2; "
+                f"rm -f {file_q}; false; }}; }}")
+
+    def unsafe_dir_reason(self, path):
+        '''Why `path` must never be deleted or replaced wholesale as a component's own install dir —
+        or None when it may. Normalized first (a `..` can't sneak past), then refused: a relative
+        path; `/` and every top-level dir; anything inside a distro-owned tree (`/usr/*`, `/etc/*`,
+        `/var/*`, …) and a shared dir like `/usr/local/bin` or `/opt/share`; your home, the scope
+        bases, the app/sdk/src category dirs and configsys's state dir — and every ANCESTOR of them;
+        a shared dir directly in your home (`~/.config`, `~/.local/bin`, `~/Documents`, any `~/.dir`).
+        The guard every path driver (tarball, font, source, appImage) asks before an rm -rf / mv, and
+        plugin drivers may too (review-2026-11-2 A6).'''
+        s = str(path)
+        if not s or not os.path.isabs(s):
+            return f'{s or "(empty)"} is not an absolute path'
+        p = Path(os.path.normpath(s))
+        if p == p.parent or p.parent == Path('/'):
+            return f'{p} is a top-level directory'
+        home = Path(os.path.normpath(str(self.paths.home if self.paths is not None else Path.home())))
+        local = str(p).startswith('/usr/local/')        # yours: /usr/local/go, …/share/fonts/configsys-x
+        mine = p.is_relative_to(home)                   # inside your home (itself often under /home)
+        for tree in _SYSTEM_TREES:
+            if str(p).startswith(tree + '/') and not (local or mine):
+                return f'{p} is inside {tree}, which the system owns'
+        if p.name in _SHARED_NAMES and (local or len(p.parts) <= 4):
+            return f'{p} is a shared directory'
+        protected = []
+        if self.paths is not None:
+            pp = self.paths
+            protected = [Path(str(pp.home)), Path(str(pp.state_dir))]
+            for scope in ('user', 'system'):
+                try:
+                    protected.append(Path(str(pp.scope_base(scope))))
+                except Exception:                      # noqa: BLE001
+                    pass
+            for var in ('CONFIGSYS_APP_DIR', 'CONFIGSYS_SDK_DIR', 'CONFIGSYS_SRC_DIR'):
+                for scope in ('user', 'system'):      # a category dir as each scope lays it out
+                    try:
+                        protected.append(Path(str(pp.install_dir(pp.dir_var(var), scope))))
+                    except Exception:                  # noqa: BLE001
+                        pass
+        protected.append(home)
+        for q in protected:
+            q = Path(os.path.normpath(str(q)))
+            if p == q or q.is_relative_to(p):
+                return f'{p} is (or contains) {q}'
+        try:
+            rel = p.relative_to(home)
+        except ValueError:
+            rel = None
+        if rel is not None and (str(rel) in _HOME_SHARED
+                                or (len(rel.parts) == 1 and rel.parts[0].startswith('.'))):
+            return f'{p} is a shared directory in your home'
+        return None
+
+    def replace_dir_refusal(self, d, marker):
+        '''Why an install may not `rm -rf` and replace `d` — `unsafe_dir_reason`, or `d` already holds
+        files and no `marker` of this component (configsys didn't put it there: a hand install, your
+        own checkout) — or None. `install --force` (paths.install_force) takes over such a dir.'''
+        why = self.unsafe_dir_reason(d)
+        if why:
+            return why
+        if getattr(self.paths, 'install_force', False):
+            return None
+        try:
+            dp = Path(str(d))
+            if dp.is_dir() and any(dp.iterdir()) and not Path(str(marker)).exists():
+                return (f'{dp} already exists and configsys didn\'t install it — move it aside, or '
+                        '`install --force` to replace it')
+        except OSError:
+            pass
+        return None
 
     def location_override(self, rc):
         '''The per-component install-location override for this unit, or None. Set from the config
@@ -308,7 +433,12 @@ class Driver:
         component's install HERE", regardless of the binding's `dir`/`installDir` and the scope
         layout. Path-based drivers prefer it over their computed target; package drivers ignore it.'''
         loc = rc.fields.get('location-override')
-        return Path(str(loc)).expanduser() if loc else None
+        if not loc:
+            return None
+        paths = getattr(self, 'paths', None)
+        if paths is not None:                          # `~` is configsys's HOME (--home), never $HOME
+            return Path(os.path.normpath(str(paths.expand(str(loc)))))
+        return Path(os.path.normpath(str(Path(str(loc)).expanduser())))
 
     def scoped_dir(self, raw, rc):
         '''Resolve an install path via the Paths layout (single source of truth): the

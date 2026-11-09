@@ -70,8 +70,10 @@ def _rc_from_receipt(key, rec, comp):
     driver = key.split('\\', 1)[0]
     fields = dict(rec.get('fields') or {})
     fields['name'] = rec['name']
+    # the receipt's recorded source: its replayed commands are trusted as that layer is NOW (a
+    # receipt from before receipts carried one reads as core, as it always did)
     return ResolvedComponent(key=key, driver=driver, comp=comp, via=rec.get('via') or driver,
-                             fields=fields, requested_as={comp})
+                             fields=fields, requested_as={comp}, source=rec.get('source') or '')
 
 
 def _unit_rc(r, comp, b):

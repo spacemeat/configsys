@@ -800,13 +800,15 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
         return False, 'nothing staged', []
     units = {k: st.component for k, st in ms.states.items()
              if not _is_system_update(st)}                # synthetic units never reach expand/run_plan
-    # method-switch swap: a staged install whose component is also installed via another method
-    # gets that old install removed first (remove-before-reinstall). Mirrors the CLI plan path.
-    from ..installState import plan_with_swaps
-    raw, units = plan_with_swaps(ctx, raw, units)
-    plan = expand_plan(raw, units, ms.states)
+    # the ONE plan builder the CLI uses too (actions.build_plan): auto-tighten, the method-switch
+    # swap (remove-before-reinstall), only the missing dependencies (this screen's states), and the
+    # version-floor heads-ups to show before you confirm
+    from ..actions import build_plan
+    plan, units, advisories = build_plan(ctx, raw, units, states=ms.states) if raw else ([], units, [])
 
     with suspended(stdscr):
+        for text in advisories:
+            print(f'heads-up — {text}')
         print('\nAbout to execute:')
         # System Updates run FIRST: bring the base current before installing new packages against it —
         # cleaner dependency resolution everywhere, and on Arch it avoids the partial-upgrade footgun
@@ -846,15 +848,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
                 reportgen.record_run(ctx.paths, bulk_failures, bulk_keys)
         if plan:                                          # then the per-component ops, against the fresh base
             outcomes += execute_plan(ctx, plan, ledger, refresh=False)
-        # drain the persisted !uninstall queue for components we just successfully removed
-        try:
-            from .. import actions as _act
-            for o in outcomes:
-                st = ms.states.get(o.key)
-                if o.op == 'remove' and o.ok and st is not None:
-                    _act.stage_uninstall(ctx, st.component.comp, on=False)
-        except Exception:                           # noqa: BLE001 — draining must never fail the run
-            pass
+        # drain the persisted !uninstall queue for components we just removed (shared with the CLI)
+        from ..actions import after_run
+        after_run(ctx, outcomes, units)
         n_ok = sum(1 for o in outcomes if o.ok)
         warned = [o for o in outcomes if getattr(o, 'installed_with_warning', False)]
         advisories = [o for o in outcomes if getattr(o, 'advisory', False)]

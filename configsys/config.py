@@ -75,6 +75,7 @@ class Config:
         roots.append((paths.user_config_file, 'user'))
         layer_list, warns = layers.expand_tolerant(roots, {'plugin', 'primary'})
         cfg = cls(layer_list)
+        cfg._paths = paths            # (key_layers asks plugin trust)
         cfg._machine_override = machine.strip() if isinstance(machine, str) and machine.strip() else None
         cfg.load_warnings = warns     # a malformed primary/plugin layer skipped, not fatal
         return cfg
@@ -185,7 +186,8 @@ class Config:
         install lives HERE, find/manage it there" — an absolute, scope-bypassing override that
         path-based drivers (source builds, appImage, tarball, font) honor over their computed dir.
         Distinct from the per-CATEGORY `dirs:` layout (which applies to every component of a class).'''
-        return layers.merge_scalar_map(self._layers, 'locations', _MACHINE_ROLES)
+        return {k: v for k, v in layers.merge_scalar_map(self._layers, 'locations', _MACHINE_ROLES).items()
+                if layers._location_ok(v)}            # a relative path is ignored (check warns)
 
     def theme(self):
         '''The merged TUI `theme:` overrides. Unlike the other machine settings, `theme` is purely
@@ -238,7 +240,25 @@ class Config:
         from that action (tui.keyspec.merge_layer_keys) — identical to a plain per-action overlay when
         nothing conflicts.'''
         from .tui.keyspec import merge_layer_keys
-        return merge_layer_keys(self._layers)
+        return merge_layer_keys(self.key_layers())
+
+    def key_layers(self):
+        '''The layers whose `keys:` count: repo, includes of yours, your top config — and a plugin
+        (or the primary) only once it is trusted (plugins.command_source_trusted; the primary under
+        `primary-trust`). Every key stays rebindable, but an untrusted plugin can't turn `j` on the
+        Plugins screen into "trust every plugin" (review-2026-11-2 A11).'''
+        paths = getattr(self, '_paths', None)
+        if paths is None:
+            return list(self._layers)
+        from . import plugins
+        return [lyr for lyr in self._layers
+                if not (isinstance(lyr.data.get('keys'), dict) and lyr.data['keys'])
+                or plugins.command_source_trusted(paths, lyr.path)]
+
+    def untrusted_key_layers(self):
+        '''The layers whose `keys:` are ignored until their plugin is trusted (for `check` / `!`).'''
+        kept = {id(lyr) for lyr in self.key_layers()}
+        return [lyr for lyr in self._layers if id(lyr) not in kept]
 
     def driver_preference(self):
         '''The global driver-preference order (a machine setting; whole-list replace across
@@ -334,6 +354,17 @@ class Config:
         v = layers.merge_scalar(self._layers, 'primary-verify', ('user',))
         v = str(v).strip().lower() if v is not None else 'off'
         return v if v in layers.SETTING_CHOICES['primary-verify'] else 'off'
+
+    def primary_trust(self):
+        '''`primary-trust`: how your primary plugin's command-carrying data (glue, dotfiles, scripts,
+        vendor repos, keys) is trusted — 'identity' (default: it is yours; whatever syncs in runs),
+        'content' (like any plugin: re-trust after a sync changes it), 'signed' (identity while its
+        newest commit has a good signature, else content). Top config ONLY (layers.TOP_CONFIG_ONLY).
+        The trust check itself reads it from the file (plugins.primary_trust_mode), which needs no
+        Config.'''
+        v = layers.merge_scalar(self._layers, 'primary-trust', ('user',))
+        v = str(v).strip().lower() if v is not None else 'identity'
+        return v if v in layers.SETTING_CHOICES['primary-trust'] else 'identity'
 
     def splash(self):
         '''The chosen startup splash: a registered provider NAME, a disable token (false/off/no),

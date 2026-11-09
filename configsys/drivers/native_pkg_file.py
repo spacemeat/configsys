@@ -122,8 +122,9 @@ class NativePkgFile(Driver):
         # SECURITY: this runs as ROOT. A predictable /tmp name let a local user pre-symlink it so
         # root's `curl -o` clobbers an arbitrary file. Download into a private root-owned `mktemp -d`
         # dir (mode 700, unguessable — portable across GNU/busybox, unlike --suffix), and quote $PKG.
+        check = self.verify_download(rc, '"$PKG"', fmt)    # a format-keyed sha256: map, deb/rpm first
         cmd = (f'D="$(mktemp -d)" && PKG="$D/pkg.{ext}" && '
-               f'{_CURL_DOWNLOAD} {shlex.quote(url)} -o "$PKG" && {inst} && rm -rf "$D"')
+               f'{_CURL_DOWNLOAD} {shlex.quote(url)} -o "$PKG"{check} && {inst} && rm -rf "$D"')
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):

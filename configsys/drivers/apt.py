@@ -60,6 +60,11 @@ def _provided_names(provides):
 
 class Apt(NativePkgManager):
     name = 'apt'
+    # a package BY NAME from a registry this system already trusts: an untrusted plugin's binding
+    # of it is a candidate unless it sets one of these (trustgate, docs/plugins.md §6)
+    trusted_registry = True
+    command_fields = frozenset({'ppa', 'source-line', 'source-url', 'source-path', 'pubkey-url',
+                                'pubkey-path', 'debconf', 'foreign-arch'})
     ENV = _APT_ENV                         # DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a
     INSTALL = 'apt-get install -y {pkgs}'
     REMOVE = 'apt-get remove -y {pkgs}'
@@ -147,6 +152,10 @@ class Apt(NativePkgManager):
         already satisfied. Returns None normally, or a classified failing Result if a
         vendor repo could not be verified (so install/upgrade abort cleanly).'''
         f = rc.fields
+        from ..routecheck import vendor_path_problem
+        why = vendor_path_problem(f)                     # root writes stay in the keyring/source dirs
+        if why:
+            return Result.fail(f'{rc.comp}: {why}')
 
         for arch in self._as_list(f.get('foreign-arch')):
             a = shlex.quote(arch)

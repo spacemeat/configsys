@@ -72,3 +72,32 @@ def test_method_detection_adopts_installed_via(tmp_path, monkeypatch):
     assert 'apt\\multi' in units
     monkeypatch.setattr(detection, '_installed_via', _installed({'multi': 'flatpak'}))
     assert detection.detect_pins(_ctx(r), units) == {'multi': 'flatpak'}   # adopt the installed method
+
+
+def test_an_installed_default_method_is_never_traded_for_an_alternative(tmp_path, monkeypatch):
+    # routing-09: both installed -> keep the resolved (default) method; adopting the first-listed
+    # alternative would move management off it and the next swap would remove it
+    comps = 'multi: { install: [ { via: flatpak  app: org.x }  { via: native } ] }'
+    r = _resolver(tmp_path, comps)
+    units, _ = r.resolve_resilient(['multi'])
+    assert 'apt\\multi' in units                                # native is the default here
+
+    class _Drv:
+        def get_version(self, rc):
+            return '1.0'
+    monkeypatch.setattr(detection, 'get_driver', lambda *a, **k: _Drv())
+    monkeypatch.setattr(detection, '_installed_via', _installed({'multi': 'flatpak'}))
+    assert detection.detect_pins(_ctx(r), units) == {}
+
+
+def test_cli_targets_resolve_through_the_detection_tier(tmp_path, monkeypatch):
+    # B1: `configsys upgrade multi` acts on the adopted flatpak install, not the default apt unit
+    from configsys import actions
+    comps = 'multi: { install: [ { via: native }  { via: flatpak  app: org.x } ] }'
+    r = _resolver(tmp_path, comps)
+    monkeypatch.setattr(detection, 'detect_pins', lambda ctx, units, progress=None: {'multi': 'flatpak'})
+    ctx = types.SimpleNamespace(routes=r, runner=types.SimpleNamespace(pretend=False), paths=None,
+                                config=types.SimpleNamespace(pins=lambda: {}, auto_tighten=lambda: False,
+                                                             adopt_installed=lambda: True))
+    units, roots = actions.resolve_targets(ctx, ['multi'])
+    assert roots == {'flatpak\\multi'} and 'apt\\multi' not in units

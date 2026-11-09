@@ -38,12 +38,14 @@ def test_driver_public_contract_present():
 
 
 # the optional hooks frozen 2026-10-10 (no ABI bump: a new promise about existing members)
-FROZEN_ATTRS = ('targets_version', 'holds_version', 'native_backed', 'batch')
+FROZEN_ATTRS = ('targets_version', 'holds_version', 'native_backed', 'batch',
+                'trusted_registry', 'command_fields')      # (review-2026-11-2 A1)
 FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_key', 'batch_index',
                 'batch_installed_index', 'batched_version', 'explicit_keys', 'origin_index',
                 'upgradable_index', 'update_dedup_key', 'held_keys', 'classify_index', 'upgrade_all',
                 'outdated_signal', 'upstream_version', 'download_target', 'arch_token',
-                'location_override', 'command_trusted', 'untrusted_command_result')
+                'location_override', 'command_trusted', 'untrusted_command_result',
+                'expected_sha256', 'verify_download')       # (review-2026-11-2 A1: asset checksums)
 
 
 def test_frozen_optional_hooks_present():

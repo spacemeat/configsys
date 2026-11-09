@@ -12,6 +12,7 @@ from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 from configsys.drivers.source import Source
 from configsys.resolve import ResolveError
+from configsys.paths import Paths
 from configsys.runner import Runner
 from configsys.routes import Resolver
 
@@ -40,7 +41,7 @@ def test_install_command_construction(tmp_path):
     assert 'git -C' in cmd and 'fetch --tags' in cmd
     # after checkout, scrub the tree pristine so a reused checkout's stale build/ (cached
     # CMakeCache etc.) can't survive — preserving only our version marker
-    assert f'git -C {src} clean -xfd -e .configsys-mytool.version' in cmd
+    assert f"git -C {src} clean -xfd -e '.configsys-*'" in cmd   # every own marker survives the clean
     assert (f'( cd {src} && export PATH="$HOME/.cargo/bin:$HOME/sdks/go/bin:$HOME/go/bin:$PATH" && '
             f'./configure --prefix={prefix} && make && make install )') in cmd
     assert f'mkdir -p {src.parent} {prefix}' in cmd
@@ -205,3 +206,65 @@ def test_resolve_version_rejects_shell_metacharacters(tmp_path):
         rc = ResolvedComponent(key='source\\x', driver='source', comp='x',
                                fields={'version': good, 'repo': 'https://h/r', 'build': 'make'})
         assert drv.resolve_version(rc) == good
+
+
+# -- review-2026-11-2 A9: a checkout configsys didn't create is never cleaned or deleted -----------
+
+def _git(cwd, *a):
+    import subprocess
+    subprocess.run(['git', *a], cwd=cwd, check=True, capture_output=True)
+
+
+def _upstream(tmp_path):
+    up = tmp_path / 'upstream'
+    up.mkdir()
+    _git(up, 'init', '-q', '-b', 'main')
+    (up / 'config.def.h').write_text('default\n')
+    (up / '.gitignore').write_text('build/\n')
+    _git(up, 'add', '-A')
+    _git(up, 'commit', '-qm', 'init')
+    _git(up, 'tag', 'v1')
+    return up
+
+
+def _src_setup(tmp_path, adopt=False, force=False):
+    from configsys.drivers.source import Source
+    paths = Paths(env={'CONFIGSYS_HOME': str(tmp_path / 'home')})
+    paths.source_adopt, paths.install_force = adopt, force
+    rc = ResolvedComponent(key='source\\dwm', driver='source', comp='dwm',
+                           fields={'repo': str(_upstream(tmp_path) if not (tmp_path / 'upstream').exists()
+                                               else tmp_path / 'upstream'),
+                                   'version': {'static': '1'}, 'tag-prefix': 'v', 'build': 'true'})
+    return Source(Runner(), paths=paths), rc, tmp_path / 'home' / 'src' / 'dwm'
+
+
+@pytest.mark.real_runner
+def test_your_own_checkout_is_refused_then_adopted_never_cleaned_or_deleted(tmp_path):
+    drv, rc, src = _src_setup(tmp_path)
+    src.parent.mkdir(parents=True)
+    _git(src.parent, 'clone', '-q', str(tmp_path / 'upstream'), 'dwm')
+    (src / 'config.h').write_text('my config\n')                 # untracked, yours
+    (src / 'config.def.h').write_text('my edit\n')               # a tracked edit
+    res = drv.install(rc)
+    assert not res.ok and (src / 'config.h').exists()            # refused, nothing touched
+    drv, rc, src = _src_setup(tmp_path, adopt=True)
+    (src / 'config.def.h').write_text('default\n')               # (a plain checkout won't overwrite edits)
+    assert drv.install(rc).ok
+    assert (src / 'config.h').read_text() == 'my config\n'       # adopted: no clean
+    drv.uninstall(rc)
+    assert (src / 'config.h').exists() and (src / '.git').exists()   # adopted: never deleted
+
+
+@pytest.mark.real_runner
+def test_a_configsys_clone_with_local_changes_needs_force_and_clean_ones_are_removed(tmp_path):
+    drv, rc, src = _src_setup(tmp_path)
+    assert drv.install(rc).ok and (src / '.configsys-dwm.cloned').exists()
+    (src / 'config.h').write_text('edited after install\n')
+    res = drv.install(rc)
+    assert not res.ok and (src / 'config.h').exists()            # local changes: refused
+    drv.uninstall(rc)
+    assert src.exists()                                           # ...and not deleted either
+    drv, rc, src = _src_setup(tmp_path, force=True)
+    assert drv.install(rc).ok and not (src / 'config.h').exists()   # --force discards them
+    drv.uninstall(rc)
+    assert not src.exists()                                       # ours and clean: removed

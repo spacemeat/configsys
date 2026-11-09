@@ -65,10 +65,17 @@ def http_fetch(url, timeout=10, *, _sleep=time.sleep):
     short backoff (honoring a small Retry-After), so one blip doesn't leave a version unresolved for
     the whole run. A 404/403 (a real answer: gone, or the API's hourly limit) is not retried.'''
     import urllib.error
+    import urllib.parse
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != 'https':
+        # never `file://` (a version spec would read a local file) and never plaintext — every
+        # version source configsys knows is https (review-2026-11-2 A1 / subsystems-04)
+        raise urllib.error.URLError(f'refusing a non-https version URL: {url}')
     headers = {'User-Agent': 'configsys'}
-    # A token lifts GitHub's unauthenticated 60/hr rate limit; optional.
+    # A token lifts GitHub's unauthenticated 60/hr rate limit; optional. Sent ONLY to the API host
+    # itself (a substring test would hand it to `https://evil/?api.github.com`).
     token = os.environ.get('CONFIGSYS_GITHUB_TOKEN') or os.environ.get('GITHUB_TOKEN')
-    if token and 'api.github.com' in url:
+    if token and parts.hostname == 'api.github.com':
         headers['Authorization'] = f'Bearer {token}'
     for attempt in range(len(_RETRY_DELAYS) + 1):
         try:

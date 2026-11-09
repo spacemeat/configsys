@@ -31,6 +31,47 @@ def gated(binding, cascade):
     return binding.pred if g is None else predicate.And([binding.pred, g])
 
 
+# Where a binding may make configsys write fetched bytes AS ROOT: apt keyrings and source lists, and
+# a dnf .repo named by its id (review-2026-11-2 A10 / 2026-09 A10). Any other target is a load error.
+_KEY_DIRS = ('/usr/share/keyrings/', '/etc/apt/keyrings/', '/etc/apt/trusted.gpg.d/')
+_SOURCE_DIRS = ('/etc/apt/sources.list.d/',)
+_REPO_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9._:+-]*$')
+
+
+def _confined(path, dirs):
+    s = str(path)
+    return s.startswith(dirs) and '..' not in s.split('/') and '/' not in s[len(next(
+        d for d in dirs if s.startswith(d))):]
+
+
+def _bad_sha256(v):
+    '''The first malformed digest in a binding's `sha256:` (scalar or nested map), or None.'''
+    if v is None:
+        return None
+    if isinstance(v, dict):
+        return next((b for b in map(_bad_sha256, v.values()) if b is not None), None)
+    return None if isinstance(v, str) and re.fullmatch(r'[0-9a-fA-F]{64}', v) else str(v)
+
+
+def vendor_path_problem(details):
+    '''Why a binding's root-written vendor path is unsafe, or None: `pubkey-path:` / `apt-source:
+    key-path:` must be a file directly in an apt keyring dir, `source-path:` / `apt-source: list:` a
+    file directly in /etc/apt/sources.list.d/, and a dnf `repo-id:` a plain name (it becomes
+    /etc/yum.repos.d/<id>.repo).'''
+    d = details or {}
+    src = d.get('apt-source') if isinstance(d.get('apt-source'), dict) else {}
+    for label, val, dirs in (('pubkey-path', d.get('pubkey-path'), _KEY_DIRS),
+                             ('apt-source key-path', src.get('key-path'), _KEY_DIRS),
+                             ('source-path', d.get('source-path'), _SOURCE_DIRS),
+                             ('apt-source list', src.get('list'), _SOURCE_DIRS)):
+        if val is not None and not _confined(val, dirs):
+            return f'`{label}: {val}` must be a file directly in {" or ".join(dirs)}'
+    rid = d.get('repo-id')
+    if rid is not None and not _REPO_ID.match(str(rid)):
+        return f'`repo-id: {rid}` must be a plain name (letters, digits, . _ : + -)'
+    return None
+
+
 def check_component(name, component, cascade):
     '''Verify a component's bindings resolve unambiguously. Two bindings of the SAME `via:` that
     overlap must be comparable (one `when:` ⊆ the other) — else which variant of that one method
@@ -44,6 +85,13 @@ def check_component(name, component, cascade):
         if m is not None and not (isinstance(m, dict) and m and all(isinstance(v, str) for v in m.values())):
             raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `cpu-names:` must be a '
                               f'non-empty map {{ <cpu>: <upstream token> }}, e.g. {{ x86_64: amd64  aarch64: arm64 }}')
+        bad = _bad_sha256(b.details.get('sha256'))
+        if bad is not None:
+            raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) `sha256:` {bad!r} is not a '
+                              '64-hex-digit digest (a scalar, or a map by cpu / package format)')
+        why = vendor_path_problem(b.details)           # root writes stay in the keyring/source dirs (A10)
+        if why:
+            raise ConfigError(f'component {name!r}: binding #{i} (via:{b.via}) {why}')
         if b.via == 'dotfiles':                        # paths a capture/relocate/backup acts on (A4)
             from .drivers.dotfiles import link_specs, spec_problem
             for _n, src, dst, absorb in link_specs(b.details):

@@ -2,7 +2,9 @@
 concrete unit closure (worklist to a fixpoint over requires/provides/parts).
 '''
 
-from . import predicate
+import os
+
+from . import predicate, trustgate
 from .errors import ConfigsysError
 
 
@@ -127,7 +129,7 @@ def _matching(component, context, pins):
     no_native = not getattr(context, 'has_native', True)
     return [b for b in bindings
             if b.via not in disabled and not (no_native and b.via == 'native')
-            and driver_gated(b, context) is None
+            and driver_gated(b, context) is None and trustgate.gated(b, context) is None
             and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
 
 
@@ -155,10 +157,14 @@ def driver_gate_reason(binding, cascade, context):
     driver isn't valid here (drivers: brew when: glibc_linux)", or for a DERIVED gate "the snap
     driver can't work here: nothing provides "snapd" here (required by snapd-socket)" — or None (not
     gated out here).'''
+    untrusted = trustgate.gated(binding, context)
+    if untrusted is not None:
+        return (f'it comes from an untrusted plugin layer and {untrusted} — review the plugin, '
+                'then `configsys plugin trust`')
     drv = driver_gated(binding, context)
     if drv is None:
         return None
-    via_note = f' — this OS\'s native manager' if binding.via == 'native' else ''
+    via_note = ' — this OS\'s native manager' if binding.via == 'native' else ''
     derived = (getattr(context, 'derived_gates', None) or {}).get(drv)
     if derived is not None:
         return f"the {drv} driver{via_note} can't work here: {derived}"
@@ -252,6 +258,12 @@ def _gate_note(component, context, pin):
     notes = {}
     for b in component.bindings:
         if pin is not None and b.via != pin:
+            continue
+        untrusted = trustgate.gated(b, context)
+        if untrusted is not None and b.via not in notes and arch_ok(b.details, cpu) \
+                and b.pred.eval(context):
+            notes[b.via] = (f'from the untrusted plugin layer {os.path.basename(os.path.dirname(b.source))} '
+                            f'— {untrusted} (review it, then `configsys plugin trust`)')
             continue
         drv = driver_gated(b, context)
         if drv is None or b.via in notes or not (arch_ok(b.details, cpu) and b.pred.eval(context)):
@@ -551,14 +563,17 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
 
 
 def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-                  overrides=None, preference=None, candidate_only=None, disabled=None):
+                  overrides=None, preference=None, candidate_only=None, disabled=None,
+                  soft=None, dropped_out=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
-    are not roots). The app applies the requested op to these, and expand_plan folds in deps.'''
-    ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, pins,
+    are not roots). The app applies the requested op to these, and expand_plan folds in deps.
+    `soft` / `dropped_out` as in resolve_resilient (the detection tier's adopt-installed pins).'''
+    hard = {k: v for k, v in (pins or {}).items() if k not in (soft or ())}   # soft pins never open a gate
+    ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, hard,
                         overrides, preference, candidate_only)
     st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
-                candidate_only)
+                candidate_only, soft=soft, dropped=dropped_out)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides

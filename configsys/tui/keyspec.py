@@ -135,10 +135,10 @@ def merge_layer_keys(layers, warnings=None):
 def config_keys(config):
     '''The merged `keys:` for a Config with rebind-wins (merge_layer_keys) applied over its layer
     stack; falls back to `config.keys()` for an object without layers.'''
-    layers = getattr(config, '_layers', None)
-    if layers is None:
+    if getattr(config, '_layers', None) is None:
         return config.keys()
-    return merge_layer_keys(layers)
+    kl = getattr(config, 'key_layers', None)          # only trusted plugins' keys (A11)
+    return merge_layer_keys(kl() if kl is not None else config._layers)
 
 
 class Keymap:

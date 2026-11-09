@@ -6,6 +6,7 @@ stay in lockstep (the TUI is a skin over these, never a parallel implementation)
 cached config so the change takes effect on the next read. See docs/done/tui-screens-plan.md (F3).
 '''
 
+import os
 import re
 from pathlib import Path
 
@@ -195,6 +196,119 @@ def pretend_unresolved_download(drv, rc):
     return not url
 
 
+_PLAN_OPS = ('install', 'upgrade', 'set-version', 'remove')
+
+
+def resolve_targets(ctx, names):
+    """(units, root keys) for a CLI op on `names`, resolved the way inspect and the TUI resolve them:
+    your pins, then the opt-in auto-tighten floor pins, then the detection tier's soft pins
+    (`adopt-installed:`) — so `upgrade X` acts on the install X actually has, never on the default
+    method next to it (review-2026-11-2 B1). Under --pretend detection is skipped (probes read empty),
+    exactly as the inspect pipeline does."""
+    routes = ctx.routes
+    units, roots = routes.resolve_with_roots(names)
+    tighten, detected = {}, {}
+    cfg = getattr(ctx, 'config', None)
+    if cfg is not None and cfg.auto_tighten():
+        from . import flooradvise
+        tighten = flooradvise.tighten_pins(ctx, list(units.values())) or {}
+    if cfg is not None and cfg.adopt_installed() and not getattr(ctx.runner, 'pretend', False):
+        from . import detection
+        detected = detection.detect_pins(ctx, units) or {}
+    if tighten or detected:
+        units, roots = routes.resolve_with_roots(names, extra_pins=(tighten or None),
+                                                 soft_pins=(detected or None))
+    return units, roots
+
+
+def _dependency_states(ctx, plan, units):
+    """{key: ComponentState} for the dependency units a plan's install-ish steps would fold in —
+    probed now, so `expand_plan` installs only the MISSING ones (the TUI passes its own states)."""
+    from .installState import InstallState
+    from .ledger import Ledger
+    named = {key for _op, key, _rc in plan}
+    deps, stack = {}, [key for op, key, _rc in plan if op in ('install', 'upgrade', 'set-version')]
+    while stack:
+        rc = units.get(stack.pop())
+        for dep in (getattr(rc, 'deps', ()) or ()) if rc is not None else ():
+            if dep in units and dep not in deps and dep not in named:
+                deps[dep] = units[dep]
+                stack.append(dep)
+    if not deps:
+        return {}
+    try:
+        return InstallState(ctx.runner, Ledger.load(ctx.paths), ctx.paths).inspect(deps)
+    except Exception:                                  # noqa: BLE001 — can't tell: treat as missing
+        return {}
+
+
+def build_plan(ctx, steps, units, *, states=None, no_deps=False, with_deps=False):
+    """The ONE plan builder the CLI and the TUI share (review-2026-11-2 D3): `steps` = the requested
+    `[(op, key, rc)]` (the CLI's named roots, or the TUI's staged units). Returns `(plan, units,
+    advisories)`:
+    - `no_deps`: only the named units (`--no-deps`; the method-switch swap still applies — never a
+      double install — and every remove runs first);
+    - otherwise: opt-in auto-tighten upgrades of a resident provider below a consumer's floor, the
+      method-switch swap (`plan_with_swaps`), and `expand_plan`, which folds in only the MISSING
+      dependencies (`states` — the TUI's, else probed here; `with_deps` re-runs the whole tree);
+    - `advisories`: version-floor heads-ups (flooradvise) for an install-ish plan, to show BEFORE the
+      confirm. Both surfaces print/show them the same way."""
+    from .installState import plan_with_swaps
+    from .planning import expand_plan
+    steps = list(steps)
+    installish = any(op in ('install', 'upgrade', 'set-version') for op, _k, _r in steps)
+    if no_deps:
+        if any(op in _PLAN_OPS for op, _k, _r in steps):
+            steps, units = plan_with_swaps(ctx, steps, units)
+        plan = [s for s in steps if s[0] == 'remove'] + [s for s in steps if s[0] != 'remove']
+    else:
+        cfg = getattr(ctx, 'config', None)
+        if installish and cfg is not None and cfg.auto_tighten():
+            from . import flooradvise
+            have = {key for _op, key, _rc in steps}
+            for pkey, prc in flooradvise.resident_upgrades_probed(ctx, units).items():
+                if pkey not in have:
+                    steps.append(('upgrade', pkey, prc))
+        if any(op in _PLAN_OPS for op, _k, _r in steps):
+            steps, units = plan_with_swaps(ctx, steps, units)
+        if states is None and not with_deps:
+            states = _dependency_states(ctx, steps, units)
+        plan = expand_plan(steps, units, None if with_deps else states)
+    advisories = []
+    if installish:
+        try:
+            from . import flooradvise
+            advisories = [a['text'] for a in flooradvise.advise(ctx, list(units.values()))]
+        except Exception:                              # noqa: BLE001 — an advisory never blocks the op
+            advisories = []
+    return plan, units, advisories
+
+
+def after_run(ctx, outcomes, units):
+    """The post-run step both surfaces share: a component you just removed leaves the `uninstall:`
+    queue (it used to drain only from the TUI)."""
+    for o in outcomes:
+        rc = units.get(o.key)
+        if o.op == 'remove' and o.ok and rc is not None:
+            try:
+                stage_uninstall(ctx, rc.comp, on=False)
+            except Exception:                          # noqa: BLE001 — draining never fails the run
+                pass
+
+
+def _layer_may_run(ctx, drv, rc):
+    '''False when `rc`'s binding comes from an untrusted plugin layer AND carries commands / root
+    writes / downloads (trustgate.unit_needs_trust) — the run-time twin of the resolution gate.'''
+    from . import trustgate
+    if not getattr(rc, 'source', '') or getattr(ctx, 'paths', None) is None:
+        return True
+    try:
+        trusted = drv.command_trusted(rc)
+    except Exception:                                  # noqa: BLE001
+        trusted = True
+    return trusted or trustgate.unit_needs_trust(rc) is None
+
+
 def _unit_locked(drv, rc, key, ledger):
     '''True if `key` is version-locked: in the ledger (every driver without a native hold), or by
     the manager's own hold (apt-mark, dnf versionlock, brew pin…). Best-effort: a probe error reads
@@ -246,6 +360,15 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             rc_code = rc_code or 1
             n_fatal += 1
             continue
+        if cur_op != 'remove' and not _layer_may_run(ctx, drv, rc):
+            # defense in depth for the resolution gate (trustgate): a step whose binding came from an
+            # untrusted plugin and carries commands / root writes / downloads never runs (an install
+            # receipt replayed later, a hand-built plan). Removing what's installed stays possible.
+            res = drv.untrusted_command_result(rc)
+            on_line(f'{cur_op} {key}: refused — {res.output}')
+            outcomes.append(OpOutcome(cur_op, key, rc.name, False, 'untrusted plugin', advisory=True))
+            rc_code = rc_code or 1
+            continue
         locked = (cur_op in ('upgrade', 'set-version', 'remove')
                   and _unit_locked(drv, rc, key, ledger))
         if cur_op == 'upgrade' and locked:
@@ -258,7 +381,8 @@ prompt; the keep-alive is released and the ledger saved at the end. Progress
             continue
         on_line(f'{cur_op} {key} (pkg: {rc.name}) ...')
         rc_snap = (None if pretend else      # nothing runs in a dry run, so nothing to guard or revert
-                   shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op))
+                   shellguard.arm(ctx.paths, getattr(ctx, 'config', None), rc.comp, cur_op,
+                                  rc.driver))
         res = None
         try:
             try:
@@ -698,6 +822,12 @@ CONFIG_SETTINGS = {
                                     'take in commits from its remote only when each has a good '
                                     "signature from a key you trust; 'off' (default). Read only from "
                                     'your top config.', 'configsys.hu(5)'),
+    'primary-trust':     ('scalar', "Whether your primary plugin's commands, glue, dotfiles and keys "
+                                    "run without `plugin trust`: 'identity' (default — it is yours, "
+                                    "whatever syncs in is trusted), 'content' (re-trust after every "
+                                    "sync that changes it, like any plugin), 'signed' (trusted while "
+                                    "its newest commit carries a good signature, else by content). "
+                                    'Read only from your top config.', 'configsys.hu(5)'),
     'splash':            ('scalar', 'Startup wait-screen animation: a splash provider name, '
                                     "'random' to pick one at random each run, off to disable, or "
                                     'unset for the built-in default.',
@@ -752,6 +882,7 @@ SETTING_NATURE = {
     'reboot-advice':     'uniform',           # a behavior preference (override per-machine with `m`)
     'primary-push':      'uniform',           # it travels in the primary it governs
     'primary-verify':    'machine',           # top config only: the primary must not switch it off
+    'primary-trust':     'machine',           # top config only: the primary must not grant itself trust
     'splash':            'uniform',
     'effects':           'machine',           # about THIS terminal/transport (SSH), not shared config
     'orphans-ignore':    'machine',           # acknowledged one-offs on THIS box, not shared config
@@ -785,6 +916,7 @@ _SETTING_GETTERS = {
     'reboot-advice':          lambda c: c.reboot_advice(),
     'primary-push':           lambda c: c.primary_push(),
     'primary-verify':         lambda c: c.primary_verify(),
+    'primary-trust':          lambda c: c.primary_trust(),
     'splash':                 lambda c: c.splash(),
     'effects':                lambda c: c.effects(),
     'orphans-ignore':         lambda c: c.orphans_ignore(),
@@ -802,14 +934,28 @@ def _map_tokens(mapping):
     return [f'{k}={v}' for k, v in sorted((mapping or {}).items())]
 
 
+def location_problem(path):
+    '''Why a `locations:` value is unusable, or None: it must be absolute or `~`-rooted (`~` is
+    configsys's home, so --home stays a sandbox) — a relative path would land wherever configsys
+    happened to run (config-layers-07). `..` parts are normalized away when it is used.'''
+    s = str(path).strip()
+    if not (s.startswith('/') or s == '~' or s.startswith('~/')):
+        return f'{s!r} must be an absolute path or start with ~/'
+    return None
+
+
 def _parse_map_tokens(tokens):
-    '''`key=value` tokens -> {key: value}. Raises ValueError on a token without `=`.'''
+    '''`component=path` tokens -> {component: path}, each path absolute or `~`-rooted. Raises
+    ValueError on a token without `=` or a relative path.'''
     out = {}
     for t in tokens:
         k, sep, v = str(t).partition('=')
         if not sep or not k.strip() or not v.strip():
             raise ValueError(f'expected <component>=<path>, got {t!r}')
-        out[k.strip()] = v.strip()
+        why = location_problem(v)
+        if why:
+            raise ValueError(f'{k.strip()}: {why}')
+        out[k.strip()] = os.path.normpath(v.strip()) if not v.strip().startswith('~') else v.strip()
     return out
 
 

@@ -63,13 +63,16 @@ class Font(Driver):
             return Result('(font: no url in route)', 1)
 
         d = self._font_dir(rc)
+        why = self.replace_dir_refusal(d, self._marker(rc))   # never rm -rf a shared/unowned dir (A6)
+        if why:
+            return Result.fail(f'{rc.comp}: refusing to install fonts into {d} — {why}')
         dq, uq = shlex.quote(str(d)), shlex.quote(url)
         mq, vq = shlex.quote(str(self._marker(rc))), shlex.quote(version)
 
         script = '\n'.join([
             'set -e',
             'tmp=$(mktemp -d)',
-            f'{_CURL_DOWNLOAD} {uq} -o "$tmp/font.zip"',
+            f'{_CURL_DOWNLOAD} {uq} -o "$tmp/font.zip"{self.verify_download(rc, chr(34) + "$tmp/font.zip" + chr(34))}',
             f'rm -rf {dq} && mkdir -p {dq}',
             # `*.[to]tf` matches .ttf and .otf in one glob (so a missing type isn't
             # an unzip "nothing matched" error)
@@ -88,6 +91,9 @@ class Font(Driver):
 
     def uninstall(self, rc):
         d = self._font_dir(rc)
+        why = self.unsafe_dir_reason(d)
+        if why:
+            return Result.fail(f'{rc.comp}: refusing to remove {d} — {why}')
         marker = self._marker(rc)
         script = '\n'.join([
             f'if [ -f {shlex.quote(str(marker))} ]; then',

@@ -165,3 +165,14 @@ def test_real_install_chmod_marker_desktop_and_uninstall(tmp_path):
     ai.uninstall(rc)
     assert not target.exists()
     assert not desktop.exists()
+
+
+def test_system_scope_never_runs_the_download_as_root(tmp_path):
+    # drivers-lang-04: the icon extraction RUNS the downloaded file — as you, even at system scope
+    r = Runner(pretend=True)
+    unit = ai_unit(tmp_path / 'app.appimage')
+    unit.fields['scope'] = 'system'
+    AppImage(r, paths=Paths(env={'CONFIGSYS_HOME': str(tmp_path)})).install(unit)
+    extract = [c for c in r.calls if '--appimage-extract' in c]
+    assert extract and not any(c.startswith('sudo ') for c in extract)
+    assert 'cp -Lf' not in extract[0] and 'realpath -e' in extract[0]

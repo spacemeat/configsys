@@ -195,20 +195,33 @@ reported by `check`.
 
 ## 6. Trust
 
-The dividing line is **does configsys run something from it as a program** — and some data does.
+The dividing line is **does configsys run, build, download or privilege something from it** — and
+most install methods do. An untrusted plugin may still *define* things; what it may not do is make
+configsys execute them.
 
-- **Inert data plugins** — components installed through package managers and downloads (apt,
-  flatpak, tarball, …), OS blocks, profiles, themes. These sync and load freely. The worst case
-  is bad definitions, which `configsys check` catches, and installs stay explicit.
-- **Command-carrying data** — a `via: script` or `via: source` binding, an apt
-  `source-line:`/`ppa:`/`apt-source:`, **any shipped glue** (a `via: glue` binding, a snippet under
-  a `glue/` directory, a `#!cs-eval` directive — glue is sourced at every shell start), or a
-  `facets:` `detect:` probe. configsys runs these as shell commands, so they need the same trust as
-  code: until you approve the plugin, its recipes and glue are refused with a "run `configsys plugin
-  trust <name>`" message, and its facets are ignored. `plugin trust` accepts a data-only plugin that
-  ships any of these (`plugins.ships_executable_data`), so the nudge can always be acted on.
+- **What an untrusted plugin may contribute** — components, profiles, OS blocks, drivers' data,
+  themes, and **install bindings that name a package from a registry your system already trusts**:
+  a `via: native` package from your distro's repos, a Flathub app, a Snap Store snap, a Homebrew
+  core formula (drivers marked `trusted_registry`) — as long as the binding sets none of that
+  driver's `command_fields` (an apt `ppa:`/`source-line:`/`pubkey-*`/`debconf:`/`foreign-arch:`, a
+  dnf `repo-*`/`enable-repo:`, a flatpak `hub-url:`, a snap `classic:`) and no `version: { url: }`.
+- **Everything else waits for trust** — vendor repos and keys, upstream `.deb`/`.rpm` files
+  (`native-pkg-file`), tarballs, AppImages, fonts, every language installer (cargo, pip, npm, …),
+  `aur`, `script`, `source`, the gcc/clang alternatives, services, group membership, dotfiles
+  templates, **any shipped glue** (sourced at every shell start), `facets:` `detect:` probes, and
+  `keys:` (a rebind could turn a harmless key into "trust every plugin"). Such a binding is not a
+  candidate: `where` names it "from an untrusted plugin layer — review it, then `configsys plugin
+  trust`", and a pick that has no other method shows that as its error. The gate sits at resolution
+  (`trustgate.py`), so every surface agrees, and the op loop checks it again before any step runs.
+  `plugin trust` accepts a data-only plugin that ships any of these (`plugins.ships_executable_data`),
+  so the nudge can always be acted on.
 - **Code plugins** (a `code:` module) — not imported, and their drivers not registered, until
-  trusted.
+  trusted. A `code:` or `data:` entry that resolves outside the plugin's checkout is never loaded
+  (it isn't covered by the content hash); `check` names it.
+
+Downloads can also be pinned to their bytes: a `sha256:` on a tarball, AppImage, font or
+native-pkg-file binding (a digest, or a map by cpu / package format) is checked right after the
+download, before anything is unpacked or installed. It pairs with a pinned `version:`.
 
 Trust is an explicit command, never an inline prompt, so the CLI stays scriptable:
 
@@ -221,14 +234,21 @@ configsys: trusted examplos @ bd14ddac0922 — its code will run
 ```
 
 An approval records the plugin's **content hash** — a sha256 over every file in the plugin
-directory except `.git/`, `__pycache__/` and `*.pyc`. Any change to the files, from a new release
+directory except `.git/`, `__pycache__/` and `*.pyc`, each length-prefixed (so two different trees
+can't hash alike); a symlink counts as its link text, never what it points at. (The hash format
+changed on 2026-11-08; an approval or `sha256:` pin recorded in the old format still matches the
+same content, and any change is re-approved in the new one.) Any change to the files, from a new release
 or from tampering with the synced copy, changes the hash: `plugin list` then shows *changed since
 trust* and the code stays off until you trust it again. Because the hash covers content rather
 than a git commit, it works for plugins fetched by any transport. Approvals live in
 `~/.config/configsys/plugin-trust.hu`, keyed by the plugin's directory name.
 
-Your primary plugin follows the same rule: if it carries code or command-carrying data, trust it
-too.
+Your primary plugin is yours, so by default whatever syncs into it is trusted (`primary-trust:
+identity`). A top-config setting changes that: `primary-trust: content` treats it like any plugin (a
+sync that changes it needs `plugin trust` again), and `primary-trust: signed` trusts it while its
+newest commit carries a good signature (pair it with `primary-verify: signed`), else by content. The
+setting is read only from your top config, so a commit pushed to the primary can't grant itself
+trust.
 
 ### 6a. Review before you take it, and lock what alarms you
 

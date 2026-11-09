@@ -756,19 +756,33 @@ class DotFiles(Driver):
         if not pairs:
             return Result.fail(f'{rc.comp}: dotfiles binding has no link specs (needs src:/dst:)')
         import shlex
-        lines = []
+        lines, kept = [], []
+        roots = [str(r) for r, _tier in self._content_roots(rc)]
         for _src, tgt, absorb in pairs:
             t = shlex.quote(str(tgt))
-            # only remove our own symlink; then put back what we displaced — the absorbed file
-            # (relocated original) if there is one, else any plain `.pre-configsys` backup.
-            lines.append(f'if [ -L {t} ]; then rm -f {t}; fi')
+            # Remove ONLY our own link — one that resolves into a configsys content root — and put
+            # back what we displaced (the absorbed original, else the first `.pre-configsys` backup)
+            # only into the gap it leaves. A real file there (an app that saves atomically replaced
+            # our link with your current config) or someone else's link (stow, chezmoi) is yours:
+            # left as it is, with the backup beside it, and named (dotfiles-glue-03).
+            ours = tgt.is_symlink() and any(_inside(str(tgt), r) for r in roots)
+            if not ours:
+                if tgt.is_symlink() or tgt.exists():
+                    kept.append(self.display_path(tgt))
+                continue
+            lines.append(f'rm -f {t}')
             if absorb is not None:
                 a = shlex.quote(str(absorb))
-                lines.append(f'if [ -e {a} ]; then mv {a} {t}; '
-                             f'elif [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
+                lines.append(f'if [ -e {a} ]; then mv -n {a} {t}; '
+                             f'elif [ -e {t}{BACKUP_SUFFIX} ]; then mv -n {t}{BACKUP_SUFFIX} {t}; fi')
             else:
-                lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv {t}{BACKUP_SUFFIX} {t}; fi')
-        return self.runner.run('\n'.join(lines), capture=False)
+                lines.append(f'if [ -e {t}{BACKUP_SUFFIX} ]; then mv -n {t}{BACKUP_SUFFIX} {t}; fi')
+        res = self.runner.run('\n'.join(lines), capture=False) if lines else Result('(nothing linked)', 0)
+        if kept and res.ok:
+            note = ('left in place (not configsys\'s link — your file, or another tool\'s link; any '
+                    f'{BACKUP_SUFFIX} backup is beside it): ' + ', '.join(kept))
+            return Result(res.cmd, 0, stdout=note)
+        return res
 
     def location(self, rc):
         targets = [self.display_path(tgt) for _src, tgt, _absorb in self._pairs(rc)]

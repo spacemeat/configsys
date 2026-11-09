@@ -83,13 +83,23 @@ class AppImage(Driver):
         if not url:
             return Result('(appImage: no url in route)', 1)
         t = self._target(rc)
+        why = self.unsafe_dir_reason(t)               # never `mv -f` over a shared path (~/.bashrc, /usr/…)
+        if why is None and t.exists() and not t.is_file():
+            why = f'{t} is a directory'
+        if why is None and t.exists() and not self._marker(rc).exists() \
+                and not getattr(self.paths, 'install_force', False):
+            why = (f'{t} already exists and configsys didn\'t install it — move it aside, or '
+                   '`install --force` to replace it')
+        if why:
+            return Result.fail(f'{rc.comp}: refusing to install the AppImage at {t} — {why}')
         tq, dq = shlex.quote(str(t)), shlex.quote(str(t.parent))
         uq, mq, vq = shlex.quote(url), shlex.quote(str(self._marker(rc))), shlex.quote(version)
 
         # download to a temp file, then atomically mv into place — a failed/partial download (or a
         # failed upgrade) leaves the EXISTING AppImage intact, not a truncated/broken one (P4).
         tmp = shlex.quote(str(t) + '.configsys-download')
-        cmd = (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {uq} -o {tmp} && chmod +x {tmp} && mv -f {tmp} {tq} && '
+        cmd = (f'mkdir -p {dq} && {_CURL_DOWNLOAD} {uq} -o {tmp}{self.verify_download(rc, tmp)} && '
+               f'chmod +x {tmp} && mv -f {tmp} {tq} && '
                f'printf %s {vq} > {mq}')
         res = self.runner.run(cmd, sudo=self.sudo(rc), capture=False)
         if res.ok:
@@ -100,17 +110,20 @@ class AppImage(Driver):
     def _extract_icon(self, rc):
         '''Best-effort: pull the AppImage's embedded icon (.DirIcon) into the icon
         dir so the .desktop entry has a real icon. `--appimage-extract` self-extracts
-        without needing FUSE; any failure is non-fatal.'''
+        without needing FUSE; any failure is non-fatal. It RUNS the downloaded file, so it always
+        runs as you, never under sudo, even at system scope (drivers-lang-04) — the file is
+        world-readable/executable after install, and the icon lands in your home anyway. A
+        `.DirIcon` that is a symlink is copied only if it resolves inside the extracted tree.'''
         t = self._target(rc)
         icon = self._icon_file(rc)
         tq, iq, idq = shlex.quote(str(t)), shlex.quote(str(icon)), shlex.quote(str(icon.parent))
         self.runner.run(
             f'tmp=$(mktemp -d) && cd "$tmp" && '
             f'{tq} --appimage-extract .DirIcon >/dev/null 2>&1; '
-            f'if [ -e squashfs-root/.DirIcon ]; then '
-            f'mkdir -p {idq} && cp -Lf squashfs-root/.DirIcon {iq}; fi; '
+            f'src=$(realpath -e squashfs-root/.DirIcon 2>/dev/null); '
+            f'case "$src" in "$tmp"/squashfs-root/*) mkdir -p {idq} && cp -f "$src" {iq} ;; esac; '
             f'cd / && rm -rf "$tmp"',
-            sudo=self.sudo(rc), capture=False)
+            sudo=False, capture=False)
 
     def _write_desktop(self, rc):
         '''Best-effort application-menu entry (user-space, own runner call so
