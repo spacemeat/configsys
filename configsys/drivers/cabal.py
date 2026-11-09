@@ -17,7 +17,7 @@ import re
 import os
 import shlex
 
-from ..driver import Driver
+from ._module import ModuleDriver
 
 _CABAL_BIN = '~/.cabal/bin'
 _XDG_BIN = '~/.local/bin'                 # cabal-install >= 3.10 without ~/.cabal (B14)
@@ -29,21 +29,20 @@ _STORE_GLOBS = '*/cabal/store/*|*/.cabal/store/*'
 _GHCUP_BIN = '$HOME/.ghcup/bin'
 
 
-class Cabal(Driver):
+class Cabal(ModuleDriver):
     name = 'cabal'
-    privileged = False
-
-    def _cabal(self, subcmd, **kw):
-        return self.runner.run(f'PATH="{_GHCUP_BIN}:$PATH" cabal {subcmd}', **kw)
-
-    @staticmethod
-    def _pkg(rc):
-        return rc.name  # route `name` field is the hackage package
+    TOOL = f'PATH="{_GHCUP_BIN}:$PATH" cabal'
+    # installing an installed executable again upgrades it; a version is `pkg-version`
+    CMDS = {'install': '{tool} install {pkg} --overwrite-policy=always',
+            'upgrade': '{tool} install {pkg} --overwrite-policy=always',
+            'set_version': '{tool} install {spec} --overwrite-policy=always'}
+    VERSION_SPEC = '{pkg}-{ver}'
+    BIN_DIR = _CABAL_BIN
 
     def _exe(self, rc):
         # best-effort: the installed executable usually matches the package name; a route can
         # override with an explicit `exe:` field when it doesn't.
-        return os.path.basename(str(rc.fields.get('exe') or self._pkg(rc)))   # a name, never a path
+        return os.path.basename(str(rc.fields.get('exe') or self.module(rc)))   # a name, never a path
 
     # -- read -------------------------------------------------------------
 
@@ -58,7 +57,7 @@ class Cabal(Driver):
         tgt = (r.stdout or '').strip()
         if not tgt:
             return None                                   # no such binary -> not installed
-        m = re.search(rf'/{re.escape(self._pkg(rc))}-([0-9][0-9.]*)-', tgt)
+        m = re.search(rf'/{re.escape(self.module(rc))}-([0-9][0-9.]*)-', tgt)
         return m.group(1) if m else 'installed'           # present; version unknown (non-store binary)
 
     # -- mutate -----------------------------------------------------------
@@ -69,12 +68,11 @@ class Cabal(Driver):
         skipped when an index is already present, so a batch doesn't re-fetch per package).'''
         r = self.runner.run('ls ~/.cabal/packages/*/*.tar* ~/.cache/cabal/packages/*/*.tar* 2>/dev/null')
         if not (r.ok and r.stdout.strip()):
-            self._cabal('update', capture=False)
+            self.runner.run(f'{self.TOOL} update', capture=False)
 
     def install(self, rc):
         self._ensure_index()
-        return self._cabal(
-            f'install {shlex.quote(self._pkg(rc))} --overwrite-policy=always', capture=False)
+        return self.run_op('install', rc)
 
     def uninstall(self, rc):
         # cabal has no `uninstall` for executables — remove the installed binary (in ~/.local/bin only
@@ -89,9 +87,4 @@ class Cabal(Driver):
 
     def set_version(self, rc, version):
         self._ensure_index()
-        spec = f'{self._pkg(rc)}-{version}'
-        return self._cabal(
-            f'install {shlex.quote(spec)} --overwrite-policy=always', capture=False)
-
-    def location(self, rc):
-        return _CABAL_BIN
+        return self.run_op('set_version', rc, version)

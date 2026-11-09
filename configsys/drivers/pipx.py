@@ -15,8 +15,7 @@ import json
 import re
 import shlex
 
-from ..driver import Driver
-from ..runner import Result
+from ._module import ModuleDriver
 
 # Invoke via the module, not the bare `pipx` script: right after a pip --user
 # bootstrap the script isn't on PATH in the non-interactive runner shell, but the
@@ -56,13 +55,17 @@ def _shipped_pythons(routes_file):
     return _FALLBACK_PYTHONS
 
 
-class Pipx(Driver):
+class Pipx(ModuleDriver):
     name = 'pipx'
-    privileged = False
-
-    @staticmethod
-    def _dist(rc):
-        return rc.name  # route `name` field is the PyPI distribution (== the command)
+    TOOL = _PIPX
+    # {backend}/{python}: the venv-creating ops pick pipx's backend up front and honor an interpreter
+    # pin; --force on set_version overwrites an existing venv (a downgrade, or a prior pip install)
+    CMDS = {'install': '{tool} install {backend}{python}{pkg}',
+            'uninstall': '{tool} uninstall {pkg}',
+            'upgrade': '{tool} upgrade {pkg}',
+            'set_version': '{tool} install {backend}--force {python}{spec}'}
+    VERSION_SPEC = '{pkg}=={ver}'
+    BIN_DIR = '~/.local/bin'
 
     @staticmethod
     def _norm(dist):
@@ -111,7 +114,7 @@ class Pipx(Driver):
             idx = self.installed_index()
         if not idx:
             return None
-        want = self._dist(rc)
+        want = self.module(rc)
         if want in idx:                                    # exact hit (already-normalized route name)
             return idx[want]
         want = self._norm(want)                            # else match PEP 503-normalized (Faker->faker)
@@ -140,7 +143,7 @@ class Pipx(Driver):
         m = re.search(r'(\d+\.\d+)', str(pin)) if pin else None
         if m:
             return m.group(1)                              # "python3.12" / "/usr/bin/python3.13" -> "3.12"
-        pv = self._venv_pythons().get(self._norm(self._dist(rc)))
+        pv = self._venv_pythons().get(self._norm(self.module(rc)))
         m = re.search(r'(\d+\.\d+(?:\.\d+)?)', pv) if pv else None
         return m.group(1) if m else None                  # "Python 3.10.12" -> "3.10.12"
 
@@ -153,7 +156,7 @@ class Pipx(Driver):
         # publish a newer version that drops old pythons — pywal16 3.8.15 needs >=3.11 but a 3.10 venv
         # caps at 3.8.10; reporting 3.8.15 there would read outdated with no way to move).
         from .. import versions
-        spec = {'pypi': self._dist(rc)}
+        spec = {'pypi': self.module(rc)}
         py = self._target_python(rc)
         if py:
             spec['python'] = py
@@ -186,7 +189,7 @@ class Pipx(Driver):
             return None
         from .. import versions
         try:
-            data = json.loads(versions.http_fetch(versions.PYPI_LATEST.format(dist=self._dist(rc))))
+            data = json.loads(versions.http_fetch(versions.PYPI_LATEST.format(dist=self.module(rc))))
         except Exception:                           # noqa: BLE001 — advisory must never break the report
             return None
         absolute = (data.get('info') or {}).get('version')
@@ -235,34 +238,19 @@ class Pipx(Driver):
         memo['flag'] = flag
         return flag
 
-    def install(self, rc):
-        return self.runner.run(
-            f'{_PIPX} install {self._backend()}{self._py_flag(rc)}{shlex.quote(self._dist(rc))}',
-            capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(f'{_PIPX} uninstall {shlex.quote(self._dist(rc))}',
-                               capture=False)
+    def placeholders(self, op, rc):
+        if '{backend}' not in self.CMDS[op]:
+            return {}                     # uninstall/upgrade: no uv probe
+        return {'backend': self._backend(), 'python': self._py_flag(rc)}
 
     def upgrade(self, rc):
-        py = self._py_flag(rc)
-        if py:
+        if self._py_flag(rc):
             # a pinned interpreter can't be applied by `pipx upgrade` (reuses the venv's python), and
             # `pipx install --force` IGNORES --python — `pipx reinstall` is the ONE that rebuilds the
             # venv with a new interpreter. It re-resolves the (unpinned) spec, so it also picks up the
             # latest — an interpreter-aware upgrade. e.g. mitmproxy 12 needs py>=3.12; a py3.10 venv
             # silently caps upgrades at 11.x.
             return self.runner.run(
-                f'{_PIPX} reinstall {self._backend()}{py}{shlex.quote(self._dist(rc))}',
+                f'{_PIPX} reinstall {self._backend()}{self._py_flag(rc)}{shlex.quote(self.module(rc))}',
                 capture=False)
-        return self.runner.run(f'{_PIPX} upgrade {shlex.quote(self._dist(rc))}', capture=False)
-
-    def set_version(self, rc, version):
-        spec = f'{self._dist(rc)}=={version}'
-        # --force overwrites an existing venv (e.g. a downgrade, or a prior pip install)
-        return self.runner.run(
-            f'{_PIPX} install {self._backend()}--force {self._py_flag(rc)}{shlex.quote(spec)}',
-            capture=False)
-
-    def location(self, rc):
-        return '~/.local/bin'
+        return self.run_op('upgrade', rc)

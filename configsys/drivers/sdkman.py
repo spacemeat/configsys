@@ -19,8 +19,8 @@ import re
 import shlex
 from pathlib import Path
 
-from ..driver import Driver
 from ..runner import Result
+from ._module import ModuleDriver
 
 # `sdk` is a shell function — source the init script every call. auto-answer keeps `sdk install`
 # non-interactive; self-update off keeps it quiet and deterministic under automation.
@@ -30,28 +30,24 @@ _INIT = ('export sdkman_auto_answer=true sdkman_selfupdate_feature=false; '
 _CUR_RE = re.compile(r'version\s+([0-9][0-9A-Za-z.\-+]*)', re.I)
 
 
-class Sdkman(Driver):
+class Sdkman(ModuleDriver):
     name = 'sdkman'
-    privileged = False           # user-scope (~/.sdkman); never sudo
-    default_scope = 'user'
-
-    @staticmethod
-    def _cand(rc):
-        return rc.name           # the SDKMAN candidate (== the component name unless routed otherwise)
+    default_scope = 'user'       # user-scope (~/.sdkman); never sudo
+    TOOL = f'{_INIT} && sdk'
 
     def _sdk(self, args, **kw):
-        return self.runner.run(f'{_INIT} && sdk {args}', **kw)
+        return self.runner.run(f'{self.TOOL} {args}', **kw)
 
     def _spec(self, rc):
         '''`<candidate>` or `<candidate> <version>` when a `version:` is pinned.'''
-        c = shlex.quote(self._cand(rc))
+        c = shlex.quote(self.module(rc))
         v = rc.fields.get('version')
         return f'{c} {shlex.quote(str(v))}' if v else c
 
     # -- read -------------------------------------------------------------
 
     def _pinned_dir(self, rc):
-        return f'.sdkman/candidates/{self._cand(rc)}/{rc.fields["version"]}'
+        return f'.sdkman/candidates/{self.module(rc)}/{rc.fields["version"]}'
 
     def get_version(self, rc):
         pinned = rc.fields.get('version')
@@ -64,13 +60,13 @@ class Sdkman(Driver):
         # candidate dir — but sourcing sdkman-init.sh first costs ~0.4 s per unit. Read the link
         # directly; spawn only when `current` exists as something else (a hand-made dir).
         if self.paths is not None:
-            cur = Path(self.paths.home) / '.sdkman' / 'candidates' / self._cand(rc) / 'current'
+            cur = Path(self.paths.home) / '.sdkman' / 'candidates' / self.module(rc) / 'current'
             if cur.is_symlink():
                 ver = os.path.basename(os.readlink(cur).rstrip('/'))
                 return ver if ver and ver[0].isdigit() and cur.exists() else None
             if not cur.exists():
                 return None                # no default set -> "Not using any version of X"
-        r = self._sdk(f'current {shlex.quote(self._cand(rc))}')
+        r = self._sdk(f'current {shlex.quote(self.module(rc))}')
         if not r.ok or not r.stdout:
             return None
         m = _CUR_RE.search(r.stdout)       # "Not using any version of X" has no digit -> None
@@ -87,17 +83,17 @@ class Sdkman(Driver):
     def uninstall(self, rc):
         v = rc.fields.get('version') or self.get_version(rc)
         if not v:
-            return Result(f'(sdkman: {self._cand(rc)} not installed)', 0)
-        return self._sdk(f'uninstall {shlex.quote(self._cand(rc))} {shlex.quote(str(v))}',
+            return Result(f'(sdkman: {self.module(rc)} not installed)', 0)
+        return self._sdk(f'uninstall {shlex.quote(self.module(rc))} {shlex.quote(str(v))}',
                          capture=False)
 
     def upgrade(self, rc):
         if rc.fields.get('version'):       # a pin moves only when the route's id is bumped — never
             return self.install(rc)        # `sdk upgrade`, which would retarget the shared default
-        return self._sdk(f'upgrade {shlex.quote(self._cand(rc))}', capture=False)
+        return self._sdk(f'upgrade {shlex.quote(self.module(rc))}', capture=False)
 
     def set_version(self, rc, version):
-        c = shlex.quote(self._cand(rc))
+        c = shlex.quote(self.module(rc))
         v = shlex.quote(str(version))
         return self._sdk(f'install {c} {v} && sdk default {c} {v}', capture=False)
 
@@ -110,4 +106,4 @@ class Sdkman(Driver):
     def location(self, rc):
         if rc.fields.get('version'):
             return f'~/{self._pinned_dir(rc)}'
-        return f'~/.sdkman/candidates/{self._cand(rc)}/current'
+        return f'~/.sdkman/candidates/{self.module(rc)}/current'

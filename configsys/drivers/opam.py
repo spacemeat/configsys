@@ -11,29 +11,29 @@ confirmed against opam 2.1.5.
 
 import shlex
 
-from ..driver import Driver
-from ..runner import Result
+from ._module import ModuleDriver
 
 
-class Opam(Driver):
+class Opam(ModuleDriver):
     name = 'opam'
-    privileged = False
-
-    @staticmethod
-    def _pkg(rc):
-        return rc.name  # route `name` field is the opam package
+    TOOL = 'opam'
+    # opam refuses every package op until it's initialised; `opam init` is idempotent (a fast no-op
+    # once done, a one-time compiler-switch setup the first time). A version is pinned `pkg.version`.
+    CMDS = {'install': '{tool} init --no-setup --yes && {tool} install -y {pkg}',
+            'uninstall': '{tool} remove -y {pkg}',
+            'upgrade': '{tool} upgrade -y {pkg}',
+            'set_version': '{tool} install -y {spec}'}
+    VERSION_SPEC = '{pkg}.{ver}'
+    # ONE `opam list` for the batch. --safe never mutates / never errors on an uninitialized opam
+    # (it just yields empty output -> nothing installed).
+    LIST_CMD = '{tool} list --installed --short --columns=name,version --safe'
+    BIN_DIR = '~/.opam'
 
     # -- read -------------------------------------------------------------
 
-    def installed_index(self):
-        '''{package: version} from ONE `opam list` — the base batch_index enumerates once instead of
-        a call per package during inspect. --safe never mutates / never errors on an uninitialized
-        opam (it just yields empty output -> nothing installed).'''
-        r = self.runner.run('opam list --installed --short --columns=name,version --safe')
-        if not r.ok:
-            return None
+    def parse_list(self, stdout):
         idx = {}
-        for line in r.stdout.splitlines():
+        for line in stdout.splitlines():
             parts = line.split()
             if len(parts) >= 2:
                 idx[parts[0]] = parts[1]
@@ -46,31 +46,8 @@ class Opam(Driver):
         # --safe never mutates and never errors on an uninitialized opam (which otherwise
         # exits 50 demanding `opam init`): it just yields empty output → not installed.
         r = self.runner.run(
-            f'opam list --installed --short --columns=version --safe {shlex.quote(self._pkg(rc))}')
+            f'opam list --installed --short --columns=version --safe {shlex.quote(self.module(rc))}')
         if not r.ok or not r.stdout:
             return None
         v = r.stdout.strip().splitlines()
         return v[0].strip() if v and v[0].strip() else None
-
-    # -- mutate -----------------------------------------------------------
-
-    def install(self, rc):
-        # opam refuses every package op until it's initialised; `opam init` is idempotent (a
-        # fast no-op once done, a one-time compiler-switch setup the first time).
-        return self.runner.run(
-            f'opam init --no-setup --yes && opam install -y {shlex.quote(self._pkg(rc))}',
-            capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(f'opam remove -y {shlex.quote(self._pkg(rc))}', capture=False)
-
-    def upgrade(self, rc):
-        return self.runner.run(f'opam upgrade -y {shlex.quote(self._pkg(rc))}', capture=False)
-
-    def set_version(self, rc, version):
-        # opam pins a version with the `pkg.version` form
-        spec = f'{self._pkg(rc)}.{version}'
-        return self.runner.run(f'opam install -y {shlex.quote(spec)}', capture=False)
-
-    def location(self, rc):
-        return '~/.opam'

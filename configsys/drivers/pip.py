@@ -24,8 +24,8 @@ get_latest resolves from pypi.org only when the route carries a
 import re
 import shlex
 
-from ..driver import Driver
 from ..runner import Result
+from ._module import ModuleDriver
 
 _PIP = 'python3 -m pip'
 
@@ -35,13 +35,15 @@ def _norm(name):
     return re.sub(r'[-_.]+', '-', name.strip().lower())
 
 
-class Pip(Driver):
+class Pip(ModuleDriver):
     name = 'pip'
-    privileged = False
-
-    @staticmethod
-    def _dist(rc):
-        return rc.name  # route `name` field is the PyPI distribution (== the command)
+    TOOL = _PIP
+    CMDS = {'install': '{tool} install --user {pkg}',
+            'uninstall': 'PIP_BREAK_SYSTEM_PACKAGES=1 {tool} uninstall -y {pkg}',
+            'upgrade': '{tool} install --user --upgrade {pkg}',
+            'set_version': '{tool} install --user {spec}'}
+    VERSION_SPEC = '{pkg}=={ver}'
+    BIN_DIR = '~/.local/bin'
 
     # -- read -------------------------------------------------------------
 
@@ -68,7 +70,7 @@ class Pip(Driver):
                 if isinstance(e, dict) and e.get('name') and e.get('version')}
 
     def index_key(self, rc):
-        return _norm(self._dist(rc))                  # match installed_index's normalized keys
+        return _norm(self.module(rc))                  # match installed_index's normalized keys
 
     def explicit_keys(self):
         '''Cross-distro: keep only the dists PIP ITSELF installed (INSTALLER=pip), dropping the
@@ -103,6 +105,9 @@ class Pip(Driver):
     def batch_installed_index(self, batch):
         return batch if isinstance(batch, dict) else None   # the batch IS the installed index
 
+    def tool(self, rc=None):
+        return self._pip(rc) if rc is not None else _PIP
+
     @staticmethod
     def _pip(rc):
         # interpreter-pin: `python: python3.12` on the binding installs into THAT python's user site;
@@ -113,9 +118,9 @@ class Pip(Driver):
         if rc.fields.get('python'):
             # a pinned interpreter's user site — probe IT (the batch enumerates the default python only)
             idx = self._user_index(self._pip(rc))
-            return idx.get(_norm(self._dist(rc))) if idx else None
+            return idx.get(_norm(self.module(rc))) if idx else None
         idx = self.batch if self.batch is not None else self.installed_index()
-        return idx.get(_norm(self._dist(rc))) if idx else None
+        return idx.get(_norm(self.module(rc))) if idx else None
 
     def _disco_spec(self, rc):
         '''A `version: { pypi: <dist> }` spec scoped to the interpreter pip installs into (the
@@ -144,29 +149,12 @@ class Pip(Driver):
 
     # -- mutate -----------------------------------------------------------
 
-    def install(self, rc):
-        return self.runner.run(
-            f'{self._pip(rc)} install --user {shlex.quote(self._dist(rc))}', capture=False)
-
     def uninstall(self, rc):
-        cmd = f'PIP_BREAK_SYSTEM_PACKAGES=1 {self._pip(rc)} uninstall -y {shlex.quote(self._dist(rc))}'
+        cmd = self.command('uninstall', rc)
         if not getattr(self.runner, 'pretend', False):
             idx = self._user_index(self._pip(rc))
-            if idx is not None and _norm(self._dist(rc)) not in idx:
+            if idx is not None and _norm(self.module(rc)) not in idx:
                 # nothing of ours to remove: a same-named dist elsewhere belongs to the distro (or a
                 # venv), and `pip uninstall` would reach for it (PEP 668 refusal / "installed by debian")
-                return Result(cmd, 0, stdout=f'{self._dist(rc)}: not installed in the user site; nothing to remove')
+                return Result(cmd, 0, stdout=f'{self.module(rc)}: not installed in the user site; nothing to remove')
         return self.runner.run(cmd, capture=False)
-
-    def upgrade(self, rc):
-        return self.runner.run(
-            f'{self._pip(rc)} install --user --upgrade {shlex.quote(self._dist(rc))}',
-            capture=False)
-
-    def set_version(self, rc, version):
-        spec = f'{self._dist(rc)}=={version}'
-        return self.runner.run(f'{self._pip(rc)} install --user {shlex.quote(spec)}',
-                               capture=False)
-
-    def location(self, rc):
-        return '~/.local/bin'

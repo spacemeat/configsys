@@ -11,22 +11,22 @@ component (which pulls lua). Command syntax confirmed against luarocks 3.8.0.
 
 import shlex
 
-from ..driver import Driver
+from ._module import ModuleDriver
 
 
-class LuaRocks(Driver):
+class LuaRocks(ModuleDriver):
     name = 'luarocks'
-    privileged = False
     default_scope = 'user'
     honors_scope = True
-
-    @staticmethod
-    def _rock(rc):
-        return rc.name
-
-    def _local_flag(self, rc):
-        # --local applies to install/remove; only user scope uses it
-        return '' if self._scope(rc) == 'system' else '--local '
+    TOOL = 'luarocks'
+    # --local (the per-user tree) on install/remove in user scope; installing an already-present
+    # rock upgrades it to the latest
+    CMDS = {'install': '{tool} install {scope}{pkg}',
+            'uninstall': '{tool} remove {scope}{pkg}',
+            'upgrade': '{tool} install {scope}{pkg}',
+            'set_version': '{tool} install {scope}{pkg} {ver}'}
+    SCOPE_FLAGS = {'user': '--local'}
+    BIN_DIR = '~/.luarocks'
 
     # -- read -------------------------------------------------------------
 
@@ -71,12 +71,12 @@ class LuaRocks(Driver):
         ver, hit = self.batched_version(rc)          # answer from the one porcelain listing when batched
         if hit:
             return ver
-        r = self.runner.run(f'luarocks list --porcelain {shlex.quote(self._rock(rc))}')
+        r = self.runner.run(f'luarocks list --porcelain {shlex.quote(self.module(rc))}')
         if not r.ok or not r.stdout:
             return None
         for line in r.stdout.splitlines():
             parts = line.split('\t')
-            if len(parts) >= 2 and parts[0] == self._rock(rc):
+            if len(parts) >= 2 and parts[0] == self.module(rc):
                 return parts[1]
         return None
 
@@ -87,32 +87,10 @@ class LuaRocks(Driver):
             v = self.batch['installed'].get(self.index_key(rc))
             where = self.batch['scopes'].get(self.index_key(rc), set())
         else:
-            rows = [row for row in (self._rows(self._rock(rc)) or []) if row[0] == self._rock(rc)]
+            rows = [row for row in (self._rows(self.module(rc)) or []) if row[0] == self.module(rc)]
             v = rows[0][1] if rows else None
             where = {self._tree_scope(tree) for _n, _v, tree in rows}
         if v is None:
             return (None, None)
         want = self._scope(rc)
         return (v, want if (want in where or not where) else sorted(where)[0])
-
-    # -- mutate -----------------------------------------------------------
-
-    def install(self, rc):
-        return self.runner.run(f'luarocks install {self._local_flag(rc)}{shlex.quote(self._rock(rc))}',
-                               sudo=self.sudo(rc), capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(f'luarocks remove {self._local_flag(rc)}{shlex.quote(self._rock(rc))}',
-                               sudo=self.sudo(rc), capture=False)
-
-    def upgrade(self, rc):
-        # install of an already-present rock upgrades it to the latest
-        return self.install(rc)
-
-    def set_version(self, rc, version):
-        return self.runner.run(
-            f'luarocks install {self._local_flag(rc)}{shlex.quote(self._rock(rc))} '
-            f'{shlex.quote(version)}', sudo=self.sudo(rc), capture=False)
-
-    def location(self, rc):
-        return '~/.luarocks' if self._scope(rc) != 'system' else None

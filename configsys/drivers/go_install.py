@@ -24,8 +24,8 @@ must be the module root (the main package at its top); `repo:` overrides the clo
 import re
 import shlex
 
-from ..driver import Driver
 from ..runner import Result
+from ._module import ModuleDriver
 
 _GOBIN = '~/go/bin'
 # Prefer a configsys-managed Go toolchain (the `go` tarball installs under $CONFIGSYS_SDK_DIR/go) over
@@ -40,21 +40,22 @@ _GO_PATH = '${CONFIGSYS_SDK_DIR:-$HOME/sdks}/go/bin'
 _PSEUDO_RE = re.compile(r'\d{14}-([0-9a-f]{12})$')
 
 
-class GoInstall(Driver):
+class GoInstall(ModuleDriver):
     name = 'go-install'
-    privileged = False
+    TOOL = f'PATH="{_GO_PATH}:$PATH" go'
+    LIST_CMD = '{tool} version -m ' + _GOBIN
+    BIN_DIR = _GOBIN
 
     @staticmethod
-    def _path(rc):
-        return rc.name.split('@', 1)[0]  # module path, sans any @version the user wrote
+    def module(rc):
+        # the module path, sans any @version the user wrote — also the index key: installed_index is
+        # keyed by each binary's embedded install `path`
+        return rc.name.split('@', 1)[0]
+
+    _path = module
 
     def _bin(self, rc):
         return self._path(rc).rsplit('/', 1)[-1]  # installed binary = last path segment
-
-    def index_key(self, rc):
-        # the installed_index is keyed by the binary's embedded install `path`, which is the module
-        # path SANS any @version the route wrote — align the batch lookup to that, not raw rc.name.
-        return self._path(rc)
 
     def _at(self, rc, version=None):
         v = version or self.resolve_version(rc) or 'latest'
@@ -62,18 +63,15 @@ class GoInstall(Driver):
 
     # -- read -------------------------------------------------------------
 
-    def installed_index(self):
+    def parse_list(self, stdout):
         '''{module-path: version} from ONE `go version -m <GOBIN>` over every installed binary — the
         base batch_index enumerates once instead of a `go version -m <bin>` call per tool during
         inspect. Go keeps no registry, so this reads each binary's embedded module info: a block
-        headed by "<bin>: goX.Y" carries `\tpath\t<pkg>` (the install path = the route `name`, the
-        default index_key) and `\tmod\t<module>\t<version>`.'''
-        r = self.runner.run(f'PATH="{_GO_PATH}:$PATH" go version -m {_GOBIN}')
-        if not r.ok:
-            return None
+        headed by "<bin>: goX.Y" carries `\tpath\t<pkg>` (the install path = index_key) and
+        `\tmod\t<module>\t<version>`.'''
         idx = {}
         path = None
-        for line in r.stdout.splitlines():
+        for line in stdout.splitlines():
             if line and line == line.lstrip():
                 path = None                           # a new "<bin>: goX.Y" header — reset the block
                 continue
@@ -88,7 +86,7 @@ class GoInstall(Driver):
         ver, hit = self.batched_version(rc)          # answer from the one `go version -m` when batched
         if hit:
             return ver
-        r = self.runner.run(f'PATH="{_GO_PATH}:$PATH" go version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
+        r = self.runner.run(f'{self.TOOL} version -m {_GOBIN}/{shlex.quote(self._bin(rc))}')
         if not r.ok or not r.stdout:
             return None
         # a `mod\t<module>\t<version>` line carries the module's version
@@ -119,7 +117,7 @@ class GoInstall(Driver):
 
     def _go_install(self, spec):
         # run `go install` with a configsys-managed go (if any) ahead of the system one on PATH
-        return self.runner.run(f'PATH="{_GO_PATH}:$PATH" go install {shlex.quote(spec)}',
+        return self.runner.run(f'{self.TOOL} install {shlex.quote(spec)}',
                                capture=False)
 
     @staticmethod
@@ -164,6 +162,3 @@ class GoInstall(Driver):
         if self._checkout(rc):
             return self._checkout_install(rc, version)
         return self._go_install(self._at(rc, version))
-
-    def location(self, rc):
-        return _GOBIN

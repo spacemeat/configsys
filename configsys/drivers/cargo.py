@@ -10,10 +10,8 @@ get_latest is deferred (crates.io lookup would be a network call per inspect);
 '''
 
 import re
-import shlex
 
-from ..driver import Driver
-from ..runner import Result
+from ._module import ModuleDriver
 
 # `cargo install --list` lines look like: "tree-sitter-cli v0.20.8:"
 _LIST_RE = re.compile(r'^(\S+)\s+v?([^\s:]+):')
@@ -24,55 +22,20 @@ _LIST_RE = re.compile(r'^(\S+)\s+v?([^\s:]+):')
 _CARGO_BIN = '$HOME/.cargo/bin'
 
 
-class Cargo(Driver):
+class Cargo(ModuleDriver):
     name = 'cargo'
-    privileged = False
+    TOOL = f'PATH="{_CARGO_BIN}:$PATH" cargo'
+    CMDS = {'install': '{tool} install {pkg}',
+            'uninstall': '{tool} uninstall {pkg}',
+            'upgrade': '{tool} install --force {pkg}',          # --force reinstalls at the latest
+            'set_version': '{tool} install --force --version {ver} {pkg}'}
+    LIST_CMD = '{tool} install --list'                          # every installed crate, one call
+    BIN_DIR = '~/.cargo/bin'
 
-    @staticmethod
-    def _crate(rc):
-        return rc.name  # route `name` field is the crate name
-
-    def _cargo(self, subcmd, **kw):
-        return self.runner.run(f'PATH="{_CARGO_BIN}:$PATH" cargo {subcmd}', **kw)
-
-    # -- read -------------------------------------------------------------
-
-    def get_version(self, rc):
-        ver, hit = self.batched_version(rc)          # one `cargo install --list` for the whole batch
-        if hit:
-            return ver
-        idx = self.installed_index()                  # unbatched: enumerate (still one call, per crate)
-        return idx.get(self._crate(rc)) if idx is not None else None
-
-    def installed_index(self):
-        '''{crate: version} of everything `cargo install --list` reports — one enumeration, so the
-        coexistence/claim/overlay scans check every cargo component without a call each.'''
-        r = self._cargo('install --list')
-        if not r.ok:
-            return None
+    def parse_list(self, stdout):
         out = {}
-        for line in r.stdout.splitlines():
+        for line in stdout.splitlines():
             m = _LIST_RE.match(line)
             if m:
                 out[m.group(1)] = m.group(2)
         return out
-
-    # -- mutate -----------------------------------------------------------
-
-    def install(self, rc):
-        return self._cargo(f'install {shlex.quote(self._crate(rc))}', capture=False)
-
-    def uninstall(self, rc):
-        return self._cargo(f'uninstall {shlex.quote(self._crate(rc))}', capture=False)
-
-    def upgrade(self, rc):
-        # --force reinstalls at the latest version
-        return self._cargo(f'install --force {shlex.quote(self._crate(rc))}', capture=False)
-
-    def set_version(self, rc, version):
-        return self._cargo(
-            f'install --force --version {shlex.quote(version)} '
-            f'{shlex.quote(self._crate(rc))}', capture=False)
-
-    def location(self, rc):
-        return '~/.cargo/bin'

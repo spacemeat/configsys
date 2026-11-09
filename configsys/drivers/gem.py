@@ -16,27 +16,27 @@ The gem tool ships with Ruby, so this driver `requires: ruby`, satisfied by the
 import re
 import shlex
 
-from ..driver import Driver
 from ..runner import Result
+from ._module import ModuleDriver
 
 # `gem list -e <name>` prints e.g.  "rails (7.1.3, 7.0.8)"
 _LIST_RE = re.compile(r'^(\S+)\s+\(([^,)]+)')
 _GEM_NAME = re.compile(r'[A-Za-z0-9_][A-Za-z0-9_.-]*')
 
 
-class Gem(Driver):
+class Gem(ModuleDriver):
     name = 'gem'
-    privileged = False
     default_scope = 'user'
     honors_scope = True
-
-    @staticmethod
-    def _gem(rc):
-        return rc.name  # route `name` field is the gem name
-
-    def _user_flag(self, rc):
-        # install AND update take --[no-]user-install; uninstall acts over the whole gem path
-        return '' if self._scope(rc) == 'system' else '--user-install '
+    TOOL = 'gem'
+    # install AND update take --[no-]user-install; uninstall acts over the whole gem path, and -a
+    # takes every installed version (with two, gem stops to ask "Select gem to uninstall")
+    CMDS = {'install': '{tool} install {scope}{pkg}',
+            'uninstall': '{tool} uninstall -x -a {pkg}',
+            'upgrade': '{tool} update {scope}{pkg}'}
+    SCOPE_FLAGS = {'user': '--user-install'}
+    LIST_CMD = '{tool} list'
+    BIN_DIR = '~/.gem'
 
     _SCOPES_RB = ('u = Gem.user_dir; Gem::Specification.each { |s| next if s.default_gem?; '
                   'puts [s.name, s.base_dir == u ? "user" : "system"].join("\\t") }')
@@ -67,7 +67,7 @@ class Gem(Driver):
         v = self.get_version(rc)
         if v is None:
             return (None, None)
-        where = (self._scope_index() or {}).get(self._gem(rc)) or set()
+        where = (self._scope_index() or {}).get(self.module(rc)) or set()
         want = self._scope(rc)
         return (v, want if (want in where or not where) else sorted(where)[0])
 
@@ -82,15 +82,12 @@ class Gem(Driver):
         a real install lists its version FIRST ("(2.6.1, default: 2.2.22)").'''
         return None if ver.startswith('default:') else ver
 
-    def installed_index(self):
+    def parse_list(self, stdout):
         '''{gem: version} from ONE `gem list` — the base batch_index enumerates once instead of a
         `gem list -e` call per gem during inspect. Default-only gems are omitted (they read as
         absent, exactly as get_version reports them).'''
-        r = self.runner.run('gem list')
-        if not r.ok:
-            return None
         idx = {}
-        for line in r.stdout.splitlines():
+        for line in stdout.splitlines():
             m = _LIST_RE.match(line)
             if m:
                 ver = self._real_version(m.group(2).strip())
@@ -102,43 +99,32 @@ class Gem(Driver):
         ver, hit = self.batched_version(rc)          # answer from the one `gem list` when batched
         if hit:
             return ver
-        r = self.runner.run(f'gem list -e {shlex.quote(self._gem(rc))}')
+        r = self.runner.run(f'gem list -e {shlex.quote(self.module(rc))}')
         if not r.ok or not r.stdout:
             return None
         for line in r.stdout.splitlines():
             m = _LIST_RE.match(line)
-            if m and m.group(1) == self._gem(rc):
+            if m and m.group(1) == self.module(rc):
                 return self._real_version(m.group(2).strip())
         return None
 
     # -- mutate -----------------------------------------------------------
 
-    def install(self, rc):
-        return self.runner.run(
-            f'gem install {self._user_flag(rc)}{shlex.quote(self._gem(rc))}',
-            sudo=self.sudo(rc), capture=False)
-
     def uninstall(self, rc):
-        # -a: every installed version — with two, gem stops to ask "Select gem to uninstall"
-        r = self.runner.run(f'gem uninstall -x -a {shlex.quote(self._gem(rc))}',
-                            sudo=self.sudo(rc), capture=False)
+        r = self.run_op('uninstall', rc)
         # "default gems" (bundler, etc.) ship WITH Ruby and CANNOT be removed by `gem uninstall` —
         # it exits non-zero with "cannot be uninstalled because it is a default gem". That's not a
         # broken op to report: the message already streamed, so treat it as a benign no-op (advisory)
         # instead of a failure that would nag for a bug report.
         if not r.ok and 'default gem' in r.output.lower():
-            return Result(r.cmd, 0, stdout=(r.output or f'{self._gem(rc)}: default gem, kept'),
+            return Result(r.cmd, 0, stdout=(r.output or f'{self.module(rc)}: default gem, kept'),
                           advisory=True)
         return r
-
-    def upgrade(self, rc):
-        return self.runner.run(f'gem update {self._user_flag(rc)}{shlex.quote(self._gem(rc))}',
-                               sudo=self.sudo(rc), capture=False)
 
     def set_version(self, rc, version):
         # gem keeps versions side by side and the binstub runs the NEWEST — so install the target,
         # then remove every other version (B14): what set-version says is what runs
-        name = self._gem(rc)
+        name = self.module(rc)
         if not _GEM_NAME.fullmatch(name):                  # it is spliced into a sed pattern below
             return Result.fail(f'{rc.comp}: {name!r} is not a gem name')
         g, v = shlex.quote(name), shlex.quote(version)
@@ -146,9 +132,6 @@ class Gem(Driver):
                   f"tr ',' '\\n' | sed 's/^ *//' | grep -v '^default:' | grep -v -x -F {v}")
         sudo = 'sudo ' if self.sudo(rc) else ''
         return self.runner.run(
-            f'gem install {self._user_flag(rc)}-v {v} {g} && '
+            f'gem install {self.scope_flag(rc)}-v {v} {g} && '
             f'for o in $({others}); do {sudo}gem uninstall -x -v "$o" {g} || exit 1; done',
             sudo=self.sudo(rc), capture=False)
-
-    def location(self, rc):
-        return '~/.gem' if self._scope(rc) != 'system' else None

@@ -16,18 +16,23 @@ import shlex
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from ..driver import Driver
-from ..runner import Result
+from ._module import ModuleDriver
 
 
 _NODE_BUNDLED = {'npm', 'corepack'}   # ship INSIDE the node package on every distro, not user-installed
 
 
-class Npm(Driver):
+class Npm(ModuleDriver):
     name = 'npm'
-    privileged = False
     default_scope = 'user'
     honors_scope = True
+    TOOL = 'npm'
+    CMDS = {'install': '{tool} install -g {scope}{pkg}',
+            'uninstall': '{tool} uninstall -g {scope}{pkg}',
+            'upgrade': '{tool} update -g {scope}{pkg}',
+            'set_version': '{tool} install -g {scope}{spec}'}
+    VERSION_SPEC = '{pkg}@{ver}'
+    BIN_DIR = '~/.local/bin'
 
     def explicit_keys(self):
         '''The global packages the user actually installed — every global minus the ones bundled with
@@ -38,11 +43,7 @@ class Npm(Driver):
             return None
         return set(idx) - _NODE_BUNDLED
 
-    @staticmethod
-    def _pkg(rc):
-        return rc.name  # route `name` field is the npm package (== the command)
-
-    def _prefix_flag(self, rc):
+    def scope_flag(self, rc):
         '''User scope pins a per-user prefix (sudo-free); system scope uses node's
         own global prefix. Returned with a trailing space so it slots into a command.'''
         if self._scope(rc) == 'system':
@@ -96,46 +97,20 @@ class Npm(Driver):
 
     def get_version(self, rc):
         if self.batch is not None:               # batched: the scope's pre-listed index
-            return self.batch.get(self._scope(rc), {}).get(self._pkg(rc))
+            return self.batch.get(self._scope(rc), {}).get(self.module(rc))
         # `npm ls -g` often exits non-zero (unmet peer deps, extraneous pkgs) while still
         # emitting valid JSON, so parse stdout rather than gating on returncode.
-        r = self.runner.run(f'npm ls -g {self._prefix_flag(rc)}--depth=0 --json')
+        r = self.runner.run(f'npm ls -g {self.scope_flag(rc)}--depth=0 --json')
         if not r.stdout:
             return None
         try:
             data = json.loads(r.stdout)
         except ValueError:
             return None
-        dep = (data.get('dependencies') or {}).get(self._pkg(rc))
+        dep = (data.get('dependencies') or {}).get(self.module(rc))
         return dep.get('version') if dep else None
 
     def get_installed(self, rc):
         # a package may sit in either prefix; probe both so a scope mismatch never
         # reads as "missing" (mirrors the path-based scope-honoring drivers).
         return self._installed_across_scopes(rc)
-
-    # -- mutate -----------------------------------------------------------
-
-    def install(self, rc):
-        return self.runner.run(
-            f'npm install -g {self._prefix_flag(rc)}{shlex.quote(self._pkg(rc))}',
-            sudo=self.sudo(rc), capture=False)
-
-    def uninstall(self, rc):
-        return self.runner.run(
-            f'npm uninstall -g {self._prefix_flag(rc)}{shlex.quote(self._pkg(rc))}',
-            sudo=self.sudo(rc), capture=False)
-
-    def upgrade(self, rc):
-        return self.runner.run(
-            f'npm update -g {self._prefix_flag(rc)}{shlex.quote(self._pkg(rc))}',
-            sudo=self.sudo(rc), capture=False)
-
-    def set_version(self, rc, version):
-        spec = f'{self._pkg(rc)}@{version}'
-        return self.runner.run(
-            f'npm install -g {self._prefix_flag(rc)}{shlex.quote(spec)}',
-            sudo=self.sudo(rc), capture=False)
-
-    def location(self, rc):
-        return '~/.local/bin' if self._scope(rc) != 'system' else None
