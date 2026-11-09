@@ -1156,9 +1156,10 @@ def _log(repo, n):
     no commit message or file name can hold, and each file comes as a `:<modes> <blobs> <status>`
     token then its name — so a header is any token in a token's place that isn't one, and a body
     holding `\\x1e` / `\\x1f` (the old separators, remote-controlled) splits nothing. Files as
-    `diff-tree --root -r` listed them: a merge lists none.'''
+    `diff-tree --root -r` listed them: a merge lists none. (No `--no-abbrev`: it would make `%h` the
+    full sha too; the raw lines' abbreviated blob ids are never read.)'''
     out = repo.git('log', f'-n{int(n)}', '-z', '--raw', '--no-renames', '--root', '--no-show-signature',
-                   '--no-abbrev', '--format=%H %h %as %P%n%s%n%b')
+                   '--format=%H %h %as %P%n%s%n%b')
     recs, toks, i = [], out.out.split(b'\0') if out.ok else [], 0
     while i < len(toks):
         tok = toks[i]

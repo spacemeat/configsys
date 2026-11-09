@@ -473,6 +473,13 @@ def test_plugin_log_marks_unpushed_and_configsys_made(primary, capsys):
     assert '`configsys plugin undo` takes back' in out
     first = next(ln for ln in out.splitlines() if ' A' in ln and 'picks' not in ln)
     assert first.lstrip().startswith(tuple('0123456789abcdef'))         # pushed, not configsys's: no marks
+    # a SHORT id is shown (it was the full 40-char sha), the full one kept for git
+    from configsys import primarygit
+    from configsys.app import Context, build_parser
+    _name, changes = primarygit.history(Context(build_parser().parse_args(base + ['inspect'])))
+    c = changes[0]
+    assert len(c.sha) == 40 and c.sha.startswith(c.short) and len(c.short) < 40
+    assert c.sha not in out and f' {c.short} ' in out
 
 
 @needs_git
