@@ -447,8 +447,10 @@ def witness(a, b, cascade):
             for ns, v in sorted(ca.items()):
                 if ns != 'cpu' and v != _SENTINEL_CPU:
                     parts.append(f'{ns}:{v}')
-            for name, s in sorted((kv for kv in va.items() if kv[0] is not None)):
+            for name, s in sorted((kv for kv in va.items() if kv[0] not in (None, _BASES))):
                 parts.append(f'{name} {".".join(map(str, s[0]))}')
+            for root, v in sorted((va.get(_BASES) or {}).items()):   # D8: the base it stands for
+                parts.append(f'(= {root} {".".join(map(str, v))})')
             return ' '.join(parts)
     return None
 
