@@ -75,7 +75,7 @@ _SHOW_TARGETS = ('routes', 'config')
 def _show_file(ctx, what):
     '''(path, kind) for a base data file. kind describes it for messages.'''
     return {'routes': (ctx.paths.routes_file, 'routes.hu'),
-            'config': (ctx.paths.config_file, 'config.hu template')}[what]
+            'config': (ctx.paths.config_file, 'config.hu (the shipped profiles and default keys)')}[what]
 
 
 def cmd_keys(ctx, args):
@@ -116,10 +116,11 @@ def cmd_keys(ctx, args):
 
 
 def cmd_show(ctx, args):
-    '''Print a shipped base data file — routes.hu or the config.hu template — or, with --path,
-    just its on-disk location. Handy once configsys is installed (pip/pipx) rather than cloned:
-    the files then live in package data, so `configsys show routes --path` says where, and
-    `configsys show routes` prints the file you can no longer `cat` from a checkout.'''
+    '''Print a shipped base data file — routes.hu, or config.hu (the repo layer: the shipped profiles
+    and default keys) — or, with --path, just its on-disk location. Handy once configsys is
+    installed (pip/pipx) rather than cloned: the files then live in package data, so `configsys show
+    routes --path` says where, and `configsys show routes` prints the file you can no longer `cat`
+    from a checkout.'''
     what = getattr(args, 'what', None)
     if not what:
         print('configsys: name what to show — ' + ' | '.join(_SHOW_TARGETS))

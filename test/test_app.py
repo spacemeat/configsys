@@ -471,10 +471,14 @@ def test_show_routes_prints_the_base_file(tmp_path, capsys):
     out = capsys.readouterr().out
     assert 'components:' in out and 'os:' in out          # it really is routes.hu
 
-def test_show_config_prints_the_base_template(tmp_path, capsys):
+def test_show_config_prints_the_shipped_profiles_and_keys(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['show', 'config'])
     assert rc == 0
     assert 'profiles:' in capsys.readouterr().out
+    # config.hu is the repo layer (shipped profiles + default keys), not a template for your config
+    from configsys.cli.settings import _show_file
+    ctx = Context(build_parser().parse_args(base_args(tmp_path) + ['inspect']))
+    assert 'template' not in _show_file(ctx, 'config')[1]
 
 def test_show_path_prints_location_not_contents(tmp_path, capsys):
     rc = main(base_args(tmp_path) + ['show', 'routes', '--path'])
