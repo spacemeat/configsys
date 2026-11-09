@@ -703,7 +703,7 @@ class Context:
                 continue
             try:
                 b = select_binding(comp, routes.cascade, cx, routes.pins, routes.preference,
-                                   routes.candidate_only)
+                                   routes.never_auto_drivers)
             except ResolveError:
                 b = None
             if b is None:
@@ -1862,7 +1862,7 @@ def where_report(ctx, name):
     if comp.bindings:
         try:
             selected, candidates, reason = _select(comp, r.cascade, cx, r.pins, r.preference,
-                                                   r.candidate_only)
+                                                   r.never_auto_drivers)
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
@@ -2619,7 +2619,7 @@ def check_report(ctx):
     ctx.ensure_plugin_code()          # register trusted plugin drivers so `via:` validates
     _route_w = []
     try:
-        cascade, components, drivers, _candidate_only = routes.load(
+        cascade, components, drivers, _never_auto_drivers = routes.load(
             ctx.paths.routes_file, ctx.paths.user_config_file,
             ctx.plugin_files, validate=False, warnings_out=_route_w)
         roots = ([(ctx.paths.routes_file, 'repo'), (ctx.paths.config_file, 'repo')]

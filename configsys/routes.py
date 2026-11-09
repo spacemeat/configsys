@@ -7,6 +7,7 @@ this machine's context. Resolution itself lives in resolve.py; the RC marshallin
 '''
 
 import os
+from collections import namedtuple
 
 from . import layers, predicate
 from .errors import ConfigError, ConfigsysError
@@ -154,7 +155,7 @@ class Component:
         # non-default of a versioned pair. See resolve.py `_satisfy`.
         from .resolve import NEVER_AUTO, _standing
         _st = _standing(spec)
-        self.opt_in = _st == NEVER_AUTO
+        self.never_auto = _st == NEVER_AUTO
         # an INTEGER component `standing:` RANKS this component among the providers of a capability
         # (higher wins) when several could auto-satisfy a `requires:` — resolve._pick_provider. 0 =
         # unranked (the default); a strict top rank resolves what would otherwise be an ambiguity.
@@ -236,7 +237,7 @@ class OsCascade:
         self.driver_specs = {}                 # raw merged `drivers:` blocks (set by load)
         self.driver_sources = {}               # {driver: file whose block wins} (provenance)
         self.os_sources = {}                   # {os block: file whose block wins} (provenance)
-        self.candidate_only = frozenset()      # vias whose driver block is `standing: never-auto`
+        self.never_auto_drivers = frozenset()      # vias whose driver block is `standing: never-auto`
         # driver-wide VALIDITY gates: {driver: (when-text, Predicate)} from a `drivers:` block's
         # `when:` (set by load). A binding whose driver's gate is false here is not a candidate —
         # like a false binding `when:` — but the gate adds NO specificity (validity-only, like
@@ -380,6 +381,10 @@ def _pf(entry):
     return (entry, 'plugin')
 
 
+# what `load` returns — named, and still a 4-tuple so every `c, comps, drv, na = load(…)` works (F2)
+Loaded = namedtuple('Loaded', 'cascade components drivers never_auto_drivers')
+
+
 def load(path, overrides_path=None, plugin_files=(), validate=True,
          warnings_out=None, layers_out=None, command_trust=None):
     '''-> (OsCascade, {component_name: Component}, {driver: [required caps]}).
@@ -519,11 +524,11 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     # that via as valid+listed but never the auto-default (see resolve._select). Ships on snap; a
     # user's primary plugin (or any plugin) can add flatpak etc. via the same overlaid `drivers:`.
     from .resolve import NEVER_AUTO, _standing
-    candidate_only = frozenset(name for name, spec in drvs.items()
+    never_auto_drivers = frozenset(name for name, spec in drvs.items()
                                if isinstance(spec, dict) and _standing(spec) == NEVER_AUTO)
-    cascade.candidate_only = candidate_only          # so routecheck.validate mirrors resolve._select
+    cascade.never_auto_drivers = never_auto_drivers          # so routecheck.validate mirrors resolve._select
     _apply_version_floors(components, layers.merge_version_floors(layer_list))
-    return cascade, components, drivers, candidate_only
+    return Loaded(cascade, components, drivers, never_auto_drivers)
 
 
 class _ForgivingPaths:
@@ -668,7 +673,7 @@ class Resolver:
                  disabled=None, command_trust=None):
         self.load_warnings = []       # skipped files/components (for diagnostics)
         self.layers = []              # expanded layer stack low→high (for `-v` reporting)
-        self.cascade, self.components, self.drivers, self.candidate_only = load(
+        self.cascade, self.components, self.drivers, self.never_auto_drivers = load(
             routes_path, overrides_path, plugin_files,
             warnings_out=self.load_warnings, layers_out=self.layers, command_trust=command_trust)
         # probe declared facets (gpu vendor, cuda version, …) so `when:` can gate on hardware /
@@ -716,13 +721,13 @@ class Resolver:
                              block or self.block, self.version if block is None else version,
                              self.cpu, self.disabled if disabled is None else disabled,
                              {**self.tighten_pins, **self.pins},
-                             self.overrides, self.preference, self.candidate_only)
+                             self.overrides, self.preference, self.never_auto_drivers)
 
     def _resolve(self, names):
         from .resolve import resolve_roots
         return resolve_roots(list(names), self.cascade, self.components, self.drivers,
                              self.block, self.version, self.cpu, self.pins, self.overrides,
-                             self.preference, self.candidate_only, self.disabled)
+                             self.preference, self.never_auto_drivers, self.disabled)
 
     def resolve_names(self, names):
         from .adapt import to_resolved_components
@@ -757,7 +762,7 @@ class Resolver:
         units, errors = resolve_resilient(list(names), self.cascade, self.components,
                                           self.drivers, self.block, self.version,
                                           self.cpu, pins, self.overrides, self.preference,
-                                          self.candidate_only, self.disabled,
+                                          self.never_auto_drivers, self.disabled,
                                           soft=soft, dropped_out=dropped,
                                           provider_rules_out=rules, skipped_parts_out=skipped)
         if record:
@@ -784,7 +789,7 @@ class Resolver:
         dropped = {}
         units, roots = resolve_roots(list(names), self.cascade, self.components, self.drivers,
                                      self.block, self.version, self.cpu, pins, self.overrides,
-                                     self.preference, self.candidate_only, self.disabled,
+                                     self.preference, self.never_auto_drivers, self.disabled,
                                      soft=soft, dropped_out=dropped)
         self.dropped_soft_pins = dropped
         return to_resolved_components(units), roots
@@ -813,7 +818,7 @@ class Resolver:
         reps = via_representatives(valid, self.cascade)
         try:
             winner = _select(comp, self.cascade, ctx, self.pins, self.preference,
-                             self.candidate_only)[0]
+                             self.never_auto_drivers)[0]
         except ResolveError:
             winner = None
         from .resolve import binding_pin
@@ -822,7 +827,7 @@ class Resolver:
         if pinned_via is not None:                 # what UNPINNING would give you (B16 / tui-core-05)
             try:
                 auto = _select(comp, self.cascade, ctx, {k: v for k, v in self.pins.items() if k != name},
-                               self.preference, self.candidate_only)[0]
+                               self.preference, self.never_auto_drivers)[0]
             except ResolveError:
                 auto = None
         auto_via = auto.via if auto is not None else None

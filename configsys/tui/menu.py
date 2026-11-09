@@ -1059,7 +1059,7 @@ def _why(ctx, name):
     pinned = binding_pin(r.pins, name)
     pins = {k: v for k, v in r.pins.items() if k != name} if pinned else r.pins
     try:
-        rule = _select(comp, r.cascade, cx, pins, r.preference, r.candidate_only)[2]
+        rule = _select(comp, r.cascade, cx, pins, r.preference, r.never_auto_drivers)[2]
     except ResolveError:
         rule = ''
     if pinned:                       # the pin decides; the rule is what the auto-default (`*`) follows
@@ -1084,7 +1084,7 @@ def _edges_text(ctx, name):
         from ..resolve import ResolveError, _select, cap_constraints, cap_names
         r = ctx.routes
         cx = r.context()
-        won = _select(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)[0]
+        won = _select(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)[0]
         for cap in cap_names(won.details.get('requires')):
             if cap not in req_names:
                 req_names.append(cap)
@@ -1978,7 +1978,7 @@ def _capability_choices(routes, name):
     try:                                                 # + the winning binding's requires (mirrors _edges_text)
         from ..resolve import ResolveError, _select, cap_names
         cx = routes.context()
-        won = _select(comp, routes.cascade, cx, routes.pins, routes.preference, routes.candidate_only)[0]
+        won = _select(comp, routes.cascade, cx, routes.pins, routes.preference, routes.never_auto_drivers)[0]
         caps.update(cap_names(won.details.get('requires')))
     except ResolveError:
         pass
@@ -2038,7 +2038,7 @@ def _pick_provider_cap(stdscr, pal, ctx, name, cap, provs):
     routes = ctx.routes
     pins = ctx.config.pins()
     pinned = pins.get(cap)
-    default = next((p for p in provs if not getattr(routes.components[p], 'opt_in', False)), None)
+    default = next((p for p in provs if not getattr(routes.components[p], 'never_auto', False)), None)
     # the provider in effect now: an explicit pin, else this row (if it provides cap), else the default
     current = pinned or (name if cap in getattr(routes.components.get(name), 'provides', ()) else default)
     avail, options = {}, []
@@ -2050,7 +2050,7 @@ def _pick_provider_cap(stdscr, pal, ctx, name, cap, provs):
             tags.append('pinned')
         elif p == current:
             tags.append('current')
-        if not getattr(routes.components[p], 'opt_in', False):
+        if not getattr(routes.components[p], 'never_auto', False):
             tags.append('default')
         if not here:
             tags.append('n/a here')
@@ -2723,7 +2723,7 @@ ATTR_AXES = [
                    'theme', 'plugin', 'game', 'service', 'group', 'dotfiles', 'glue']),
     ('license',   ['FOSS', 'FOSSish', 'proprietary', 'source-available', 'freeware',
                    'GNU', 'copyleft', 'permissive']),
-    ('data',      ['tele', 'tele-optin', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),
+    ('data',      ['tele', 'tele-never_auto', 'account', 'cloud', 'online', 'ads', 'paid', 'freemium']),
     ('pedigree',  ['electron', 'patent', 'legacy', 'beta']),
 ]
 _ATTR_AXIS_OF = {t.lower(): axis for axis, tags in ATTR_AXES for t in tags}

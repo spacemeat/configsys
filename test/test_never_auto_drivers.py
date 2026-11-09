@@ -35,7 +35,7 @@ def test_snap_is_listed_but_not_the_ubuntu_default(tmp_path):
     assert set(r.resolve_names(['browser'])) == {'apt\\browser'}
     cx = r.cascade.context('ubuntu', '24.04', None)
     winner, cands, _reason = _select(r.components['browser'], r.cascade, cx, r.pins,
-                                     r.preference, r.candidate_only)
+                                     r.preference, r.never_auto_drivers)
     assert winner.via == 'native'
     # ...but snap is still a LISTED candidate (the picker/`where` show it).
     assert {b.via for b in candidate_bindings(r.components['browser'], r.cascade, cx)} == \
@@ -53,13 +53,13 @@ def test_binding_pin_still_forces_snap(tmp_path):
     assert set(r.resolve_names(['browser'])) == {'snap\\browser'}
 
 
-def test_candidate_only_wins_when_it_is_the_only_method(tmp_path):
+def test_never_auto_drivers_wins_when_it_is_the_only_method(tmp_path):
     r = _resolver(tmp_path, 'snap: { standing: never-auto }', SNAPONLY)
     assert set(r.resolve_names(['thing'])) == {'snap\\thing'}
 
 
 def test_flag_is_parsed_off_the_drivers_section(tmp_path):
     r = _resolver(tmp_path, 'snap: { standing: never-auto }', BROWSER)
-    assert 'snap' in r.candidate_only
+    assert 'snap' in r.never_auto_drivers
     r2 = _resolver(tmp_path, 'snap: {}', BROWSER)
-    assert 'snap' not in r2.candidate_only
+    assert 'snap' not in r2.never_auto_drivers

@@ -79,11 +79,11 @@ def test_gate_covers_a_native_binding_that_reaches_the_gated_manager(tmp_path):
 def test_gate_adds_no_specificity(tmp_path):
     r = _res(tmp_path, 'debian')
     comp, ctx = r.components['nat'], r.context()
-    win, cands, rule = _select(comp, r.cascade, ctx, {}, None, r.candidate_only)
+    win, cands, rule = _select(comp, r.cascade, ctx, {}, None, r.never_auto_drivers)
     # had the gate made brew's `glibc_linux` match-set narrower than native's "always", brew would
     # win by most-specific; instead both are raw "always" and preference decides -> native
     assert win.via == 'native' and rule == 'driver-preference' and len(cands) == 2
-    win, _c, rule = _select(r.components['tar'], r.cascade, ctx, {}, None, r.candidate_only)
+    win, _c, rule = _select(r.components['tar'], r.cascade, ctx, {}, None, r.never_auto_drivers)
     assert win.via == 'brew' and rule == 'driver-preference'      # brew ranks ahead of tarball
 
 
@@ -139,7 +139,7 @@ def test_method_tie_lint_ignores_overlap_inside_a_gated_out_driver(tmp_path):
 def test_gate_naming_an_unknown_os_warns(tmp_path):
     cascade, components, drivers, co = routes.load(
         _write(tmp_path, drivers='drivers: { brew: { when: "glibcc_linux" } }'))
-    issues = routecheck.validate(components, cascade, drivers, candidate_only=co)
+    issues = routecheck.validate(components, cascade, drivers, never_auto_drivers=co)
     assert any(i.kind == 'unknown-os' and 'brew' in i.message for i in issues)
 
 

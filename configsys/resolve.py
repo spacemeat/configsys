@@ -231,7 +231,7 @@ def not_candidate_reason(binding, cascade, context, pin=None):
 # -- derived driver gates: a driver is valid only where its own `requires:` can be met ----------
 
 def gated_context(cascade, components, drivers, block, version=None, cpu=None, disabled=(),
-                  pins=None, overrides=None, preference=None, candidate_only=None):
+                  pins=None, overrides=None, preference=None, never_auto_drivers=None):
     '''This machine's predicate context with EVERY driver gate applied: the explicit `drivers:`
     `when:` gates (OsCascade.context) plus the DERIVED ones — a driver whose own `requires:` can't be
     met here is not valid here, so none of its bindings is a candidate (snap where snapd has no
@@ -251,7 +251,7 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
     pins = dict(pins or {})
     key = (id(components), id(drivers), id(overrides), block, version, cpu,
            frozenset(disabled or ()), frozenset((k, str(v)) for k, v in pins.items()),
-           tuple(preference or ()), frozenset(candidate_only or ()))
+           tuple(preference or ()), frozenset(never_auto_drivers or ()))
     cache = cascade.__dict__.setdefault('_gated_ctx_cache', {})
     if key in cache:
         return cache[key]
@@ -267,8 +267,8 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
             if not caps or drv in ctx.gated_drivers or drv in getattr(ctx, 'disabled', ()):
                 continue
             st = _State(cascade, components, drivers, ctx, pins, overrides or {}, preference,
-                        candidate_only, shared=shared)
-            shared = shared or (st.providers, st.optin)
+                        never_auto_drivers, shared=shared)
+            shared = shared or (st.providers, st.never_auto)
             try:
                 for cap in caps:
                     st._satisfy(cap, None, f'the {drv} driver', f'the {drv} driver')
@@ -374,7 +374,7 @@ def _standing(spec):
     if s is None:
         return None
     st = str(s).strip().lower()
-    if st in (NEVER_AUTO, 'candidate', 'never'):
+    if st == NEVER_AUTO:                               # (the undocumented 'candidate'/'never' aliases: retired)
         return NEVER_AUTO
     try:
         return int(st)
@@ -389,7 +389,7 @@ def _prefer_rank(binding):
     return s if isinstance(s, int) else 0
 
 
-def _binding_candidate_only(binding):
+def _binding_never_auto(binding):
     '''True if this binding is `standing: never-auto`: offered / listed / pinnable, but never the
     auto-default while an ordinary method is valid — so a validity-gated method (a debian-only vendor
     `.deb`) can be available without beating a broad method (a universal flatpak) by specificity.'''
@@ -466,12 +466,12 @@ def _by_preference(matching, component, cascade, context, preference):
     return best, rule
 
 
-def _select(component, cascade, context, pins=None, preference=None, candidate_only=None):
+def _select(component, cascade, context, pins=None, preference=None, never_auto_drivers=None):
     '''-> (winning Binding, [all candidates], reason). Candidates = `when:`-valid bindings
     (validity only). The default among them: the single most-specific `when:`, else the
     preference channel. Raises ResolveError if nothing is valid or the choice is undecidable.
 
-    `candidate_only` (a set of via/driver names, e.g. {'snap'}, from `standing: never-auto` on a
+    `never_auto_drivers` (a set of via/driver names, e.g. {'snap'}, from `standing: never-auto` on a
     `drivers:` block) marks methods that are valid and LISTED but never win the AUTO-default while
     any ordinary method is valid here — so a low-preference-yet-narrowly-gated method (snap is gated
     `when: ubuntu`, which would otherwise beat a broad native binding by specificity) can be offered
@@ -487,13 +487,13 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
                            f'{_gate_note(component, context, pin)}')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
-    excluded = candidate_only or frozenset()
+    excluded = never_auto_drivers or frozenset()
     # a `drivers:` block describes the MANAGER, whichever via label reached it: a never-auto block on
     # this OS's native manager (e.g. `brew`) covers its `via: native` bindings too.
     native_drv = cascade.native(context.lineage[0]) if (excluded and context.lineage) else None
     pool = [b for b in matching
             if b.via not in excluded and not (b.via == 'native' and native_drv in excluded)
-            and not _binding_candidate_only(b)] or matching
+            and not _binding_never_auto(b)] or matching
     if len(pool) == 1:
         return pool[0], matching, 'only ordinary method here'
     ms = _most_specific_binding(pool, cascade)
@@ -503,9 +503,9 @@ def _select(component, cascade, context, pins=None, preference=None, candidate_o
     return winner, matching, rule
 
 
-def select_binding(component, cascade, context, pins=None, preference=None, candidate_only=None):
+def select_binding(component, cascade, context, pins=None, preference=None, never_auto_drivers=None):
     '''The one binding that resolves here (the default method). See _select.'''
-    return _select(component, cascade, context, pins, preference, candidate_only)[0]
+    return _select(component, cascade, context, pins, preference, never_auto_drivers)[0]
 
 
 def _driver(binding, cascade, block):
@@ -532,7 +532,7 @@ def _package(binding, driver, component):
 
 
 # keys that steer resolution, not installation — never handed to a driver.
-_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'standing')
+_RESOLVER_KEYS = ('requires', 'suggests', 'parts', 'app', 'standing', 'provides')   # never a driver field
 
 
 def _install_fields(details, package):
@@ -584,7 +584,7 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
 # -- full resolution: the worklist to a fixpoint ---------------------------
 
 def resolve(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-            overrides=None, preference=None, candidate_only=None, disabled=None):
+            overrides=None, preference=None, never_auto_drivers=None, disabled=None):
     '''Resolve a profile (component names) to the full unit closure for a context.
 
     Phase 1 seeds every explicit want and registers what it provides, BEFORE any
@@ -600,11 +600,11 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
     return resolve_roots(names, cascade, components, drivers, block, version, cpu, pins,
-                         overrides, preference, candidate_only, disabled)[0]
+                         overrides, preference, never_auto_drivers, disabled)[0]
 
 
 def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=None, pins=None,
-                  overrides=None, preference=None, candidate_only=None, disabled=None,
+                  overrides=None, preference=None, never_auto_drivers=None, disabled=None,
                   soft=None, dropped_out=None):
     '''Like resolve(), but also return the set of unit keys bound *directly* by the named
     components (a named parts-component contributes its parts' keys; driver/driver deps
@@ -612,9 +612,9 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
     `soft` / `dropped_out` as in resolve_resilient (the detection tier's adopt-installed pins).'''
     hard = {k: v for k, v in (pins or {}).items() if k not in (soft or ())}   # soft pins never open a gate
     ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, hard,
-                        overrides, preference, candidate_only)
+                        overrides, preference, never_auto_drivers)
     st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
-                candidate_only, soft=soft, dropped=dropped_out)
+                never_auto_drivers, soft=soft, dropped=dropped_out)
     roots = set()
     for name in names:
         roots |= st.add_component(name, root=name)  # phase 1: wants + their provides
@@ -624,7 +624,7 @@ def resolve_roots(names, cascade, components, drivers, block, version=None, cpu=
 
 
 def resolve_resilient(names, cascade, components, drivers, block, version=None, cpu=None,
-                      pins=None, overrides=None, preference=None, candidate_only=None, disabled=None,
+                      pins=None, overrides=None, preference=None, never_auto_drivers=None, disabled=None,
                       soft=None, dropped_out=None, provider_rules_out=None, skipped_parts_out=None):
     '''Resilient resolution for the inspect/TUI pipeline: a requested name that can't resolve
     (unknown, no binding here, or an unsatisfiable requirement) is collected into `errors`
@@ -639,9 +639,9 @@ def resolve_resilient(names, cascade, components, drivers, block, version=None, 
     `provider_rules_out` (a dict) collects {cap: the rule that picked its auto provider}.'''
     hard = {k: v for k, v in (pins or {}).items() if k not in (soft or ())}   # soft pins never open a gate
     ctx = gated_context(cascade, components, drivers, block, version, cpu, disabled, hard,
-                        overrides, preference, candidate_only)
+                        overrides, preference, never_auto_drivers)
     st = _State(cascade, components, drivers, ctx, pins or {}, overrides or {}, preference,
-                candidate_only, soft=soft, dropped=dropped_out)
+                never_auto_drivers, soft=soft, dropped=dropped_out)
     errors = {}
     root_keys = {}
     for name in names:
@@ -704,15 +704,15 @@ def provider_standing(components):
     return rank
 
 
-def _bindable(component, cascade, ctx, pins, preference=None, candidate_only=None):
+def _bindable(component, cascade, ctx, pins, preference=None, never_auto_drivers=None):
     try:
-        select_binding(component, cascade, ctx, pins, preference, candidate_only)
+        select_binding(component, cascade, ctx, pins, preference, never_auto_drivers)
         return True
     except ResolveError:
         return False
 
 
-_INDEX_CACHE = {}                        # id(components) -> (components, providers, optin)
+_INDEX_CACHE = {}                        # id(components) -> (components, providers, never_auto)
 
 
 def _component_indexes(components):
@@ -726,16 +726,16 @@ def _component_indexes(components):
     for name, comp in components.items():
         for cap in set(comp.provides) | {name}:         # a component always provides its own name
             providers.setdefault(cap, []).append(name)
-    optin = {n for n, c in components.items() if getattr(c, 'opt_in', False)}
+    never_auto = {n for n, c in components.items() if getattr(c, 'never_auto', False)}
     if len(_INDEX_CACHE) > 16:
         _INDEX_CACHE.clear()
-    _INDEX_CACHE[id(components)] = (components, providers, optin)
-    return providers, optin
+    _INDEX_CACHE[id(components)] = (components, providers, never_auto)
+    return providers, never_auto
 
 
 class _State:
     def __init__(self, cascade, components, drivers, ctx, pins, overrides=None, preference=None,
-                 candidate_only=None, soft=None, dropped=None, shared=None):
+                 never_auto_drivers=None, soft=None, dropped=None, shared=None):
         self.cascade = cascade
         self.components = components
         self.drivers = drivers
@@ -748,7 +748,7 @@ class _State:
         self.skipped_parts = {}             # {bundle: [(part, why)]} parts with no route here (B15)
         self.provider_rules = {}           # cap -> the rule that picked its auto provider (explain/where)
         self.preference = preference       # driver-preference order (config global); None = built-in
-        self.candidate_only = candidate_only or frozenset()   # vias never auto-defaulted (e.g. snap)
+        self.never_auto_drivers = never_auto_drivers or frozenset()   # vias never auto-defaulted (e.g. snap)
         self.overrides = overrides or {}   # {driver: {component: pkg-or-drop}} (component-names)
         self.block = ctx.lineage[0]
         self.units = {}
@@ -765,7 +765,7 @@ class _State:
         # unconstrained path is byte-identical (the golden).
         self.resident_version = {}                 # cap -> provided version of the default resident
         self.constrained = {}                      # (cap, constraint) -> frozenset(keys)
-        # `shared` = (providers, optin) from a sibling _State over the same components (gated_context
+        # `shared` = (providers, never_auto) from a sibling _State over the same components (gated_context
         # runs many scratch resolutions) — both depend only on `components`, so reuse them
         # Without one, the pair is cached per loaded component set (C3: rebuilding the provider index
         # from all ~830 components was 81% of a single-name resolve — `where`, coverage, the golden).
@@ -775,7 +775,7 @@ class _State:
         # never-auto providers are never AUTO-pulled to close a requirement — only used when the
         # component is explicitly wanted (then it's in inventory before we look for candidates)
         # or named by a provider-pin. Keeps a best-effort shim (gcompat) from installing itself.
-        self.optin = shared[1]
+        self.never_auto = shared[1]
         self.via_names = pin_via_names()           # for binding-vs-provider pin classification
         self.queue = []                            # (req_key, req_name, cap, constraint, root, optional)
 
@@ -877,7 +877,7 @@ class _State:
         soft_pinned = comp.name in self.soft and comp.name in self.pins
         try:
             b = select_binding(comp, self.cascade, self.ctx, self.pins, self.preference,
-                               self.candidate_only)
+                               self.never_auto_drivers)
             if soft_pinned:
                 why = self._method_requires_problem(comp, b)
                 if why is not None:            # the adopted method's OWN requires can't be met here
@@ -888,7 +888,7 @@ class _State:
                 raise
             unpinned = {k: v for k, v in self.pins.items() if k != comp.name}
             b = select_binding(comp, self.cascade, self.ctx, unpinned, self.preference,
-                               self.candidate_only)
+                               self.never_auto_drivers)
             self.dropped.setdefault(comp.name, str(e))
             return b
 
@@ -906,7 +906,7 @@ class _State:
             return None
         hard = {k: v for k, v in self.pins.items() if k not in self.soft}
         st = _State(self.cascade, self.components, self.drivers, self.ctx, hard, self.overrides,
-                    self.preference, self.candidate_only, shared=(self.providers, self.optin))
+                    self.preference, self.never_auto_drivers, shared=(self.providers, self.never_auto))
         try:
             for cap, con in reqs:
                 st._satisfy(cap, con, comp.name, comp.name)
@@ -1035,7 +1035,7 @@ class _State:
             # must not silently become the `cc`/`cxx` provider) — a pin or explicit want enables
             # them. BUT requiring a component by its OWN NAME (`requires: gcc-10`, where the provider
             # p == the required cap) IS that explicit want, so it bypasses never-auto.
-            auto = [p for p in viable if p not in self.optin or p == cap]
+            auto = [p for p in viable if p not in self.never_auto or p == cap]
             if not auto:
                 hint = f' — enable one with a provider-pin, e.g. pins: {{ {cap}: {viable[0]} }}'
                 raise ResolveError(f'nothing auto-provides "{cap}" here (required by {requiring}){hint}')
@@ -1081,7 +1081,7 @@ class _State:
                                    f'"{cap} {constraint}" here')
             chosen = pin
         else:                                           # the constraint enables never-auto; prefer ordinary on a tie
-            pool = [p for p in viable if p not in self.optin] or viable
+            pool = [p for p in viable if p not in self.never_auto] or viable
             if len(pool) == 1:
                 chosen = pool[0]
             elif self._version_scoped(cap):

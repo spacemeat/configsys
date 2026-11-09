@@ -19,7 +19,7 @@ def test_versioned_compilers_provide_standards_and_are_optin():
     r = Resolver(ROUTES, 'ubuntu', '24.04')
     for name in VERSIONED:
         comp = r.components[name]
-        assert comp.opt_in, f'{name} must be opt-in so it does not shadow cpp-toolchain'
+        assert comp.never_auto, f'{name} must be opt-in so it does not shadow cpp-toolchain'
         for cap in ('cc', 'cxx', 'C11', 'C17', 'C++17', 'C++20', 'C++23'):
             assert cap in comp.provides, f'{name} should provide {cap}'
     # C23 (`-std=c23`) arrived in GCC 14; GCC 13 has only the partial -std=c2x
@@ -69,7 +69,7 @@ def test_libcxx_is_optin_and_pinnable_for_clang():
     # cxx-stdlib defaults to libstdc++ (unambiguous despite libc++ also providing it, since libc++ is
     # opt-in); provider-pinning cxx-stdlib -> libc++ swaps the stdlib with no g++/libstdc++.
     r = Resolver(ROUTES, 'ubuntu', '24.04')
-    assert r.components['libc++'].opt_in and not r.components['libstdc++'].opt_in
+    assert r.components['libc++'].never_auto and not r.components['libstdc++'].never_auto
     assert Resolver(ROUTES, 'ubuntu', '24.04').resolve_names(['libstdc++'])['apt\\libstdc++'].name == 'g++'
     pinned = Resolver(ROUTES, 'ubuntu', '24.04', pins={'cxx-stdlib': 'libc++'}).resolve_names(['clang-19'])
     assert pinned['apt\\libc++'].name == 'libc++-dev'

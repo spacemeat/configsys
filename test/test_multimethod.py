@@ -94,7 +94,7 @@ def test_most_specific_same_method_still_wins(tmp_path):
     assert reason == 'most-specific when:' and winner.details.get('repo-component') == 'extra'
 
 
-def test_per_binding_candidate_only_offered_but_never_default(tmp_path):
+def test_per_binding_never_auto_drivers_offered_but_never_default(tmp_path):
     # A debian-gated method tagged `standing: never-auto` is listed + pinnable, but its narrow
     # `when:` must NOT let it beat a universal method by specificity (the vendor-.deb-under-flatpak
     # case). Distinct from the driver-level flag: only THIS binding opts out.

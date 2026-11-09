@@ -268,7 +268,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
 ### Tier F — ABI / interface (decide before collaborators)
 - **F1** Trust identity isn't length-prefixed (constructible collision) — bump with A1. (plugins-08) · [done 48507e9 — plugin_identity v2: length-prefixed, symlinks hashed as links; old-format approvals/pins still match unchanged content (with A1)]
 - **F2** Retired vocabulary as live identifiers (`candidate_only` …) and positional routing returns.
-  (routing-20/31/34) · [open]
+  (routing-20/31/34) · [done — done — candidate_only / opt_in / optin renamed never_auto_drivers / never_auto (and _binding_never_auto; test_never_auto_drivers.py); the standing aliases candidate/never dropped; binding provides: no longer reaches rc.fields; routes.load returns a Loaded named tuple; ResolvedComponent is exported from configsys.plugins]
 - **F3** `primarygit.will_write` is required of code-plugin drivers but isn't in the frozen ABI; the splash
   ABI is re-exported as frozen but not pinned; installed-name dict form has no shared helper.
   (primary-22, tui-theme-19, drivers-os-16) · [done — done — Driver.will_write(path) and Driver.installed_name(rc, driver) are frozen public helpers (docstring list + test_abi_surface); the splash ABI (SplashFrame fields, Splash attrs + constructor, register_splash) is pinned by the ABI test; configsys-void reads installed-name through the helper (its own commit)]

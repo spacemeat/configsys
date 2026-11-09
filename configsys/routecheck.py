@@ -124,14 +124,14 @@ def check_component(name, component, cascade):
                 f'their when: comparable (one a subset of the other) or disjoint')
 
 
-def _method_tie_warnings(name, component, cascade, candidate_only=None):
+def _method_tie_warnings(name, component, cascade, never_auto_drivers=None):
     '''Cross-method (different via) bindings that overlap AND would tie under the built-in
     driver-preference (nothing separates them) — resolution errors on such a machine, so flag it
     at check time. Best-effort: a machine's own `driver-preference`/OS override can still fix it.
-    `candidate_only` = the vias whose `drivers:` block is `standing: never-auto` (defaults to the
+    `never_auto_drivers` = the vias whose `drivers:` block is `standing: never-auto` (defaults to the
     set routes.load stamped on the cascade) — excluded from the default pool exactly like
     resolve._select does, so a never-auto driver can't read as a false tie.'''
-    from .resolve import _prefer_rank, _binding_candidate_only, DEFAULT_DRIVER_PREFERENCE as order
+    from .resolve import _prefer_rank, _binding_never_auto, DEFAULT_DRIVER_PREFERENCE as order
 
     def rank(b):
         return (-_prefer_rank(b), order.index(b.via) if b.via in order else len(order))
@@ -139,10 +139,10 @@ def _method_tie_warnings(name, component, cascade, candidate_only=None):
     # a `standing: never-auto` binding is never eligible to be the auto-default, so it can never
     # TIE for it — resolution excludes it from the default pool. Mirror that here (else an opt-in
     # never-auto method overlapping an ordinary one reads as a false ambiguity).
-    if candidate_only is None:
-        candidate_only = getattr(cascade, 'candidate_only', frozenset())
+    if never_auto_drivers is None:
+        never_auto_drivers = getattr(cascade, 'never_auto_drivers', frozenset())
     eligible = [(i, b) for i, b in enumerate(component.bindings)
-                if not _binding_candidate_only(b) and b.via not in candidate_only]
+                if not _binding_never_auto(b) and b.via not in never_auto_drivers]
 
     out = []
     for (i, a), (j, b) in combinations(eligible, 2):
@@ -374,7 +374,7 @@ def _as_parts(v):
     return [v] if isinstance(v, str) else [x for x in (v or []) if isinstance(x, str)]
 
 
-def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_only=None):
+def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_drivers=None):
     '''Lint the merged component set -> [Issue] (empty = clean). Covers ambiguity, unknown
     via: driver, unknown component in parts: (all errors), and when:-names-unknown-OS +
     requires-nothing-provides (warnings — localized). Attribution via each Component.source.
@@ -399,7 +399,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), candidate_o
             check_component(name, comp, cascade)
         except AmbiguityError as e:
             add('ambiguity', str(e), comp)
-        for msg in _method_tie_warnings(name, comp, cascade, candidate_only):
+        for msg in _method_tie_warnings(name, comp, cascade, never_auto_drivers):
             add('method-tie', msg, comp, 'warning')
         for msg in retired_key_warnings(comp):
             add('retired-key', msg, comp, 'warning')

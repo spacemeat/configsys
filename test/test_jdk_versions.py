@@ -43,7 +43,7 @@ def test_real_routes_jdk_family_shape():
     # the default `jdk` provides jdk:21; the siblings are never-auto opt-ins
     assert r.components['jdk'].prov_versions.get('jdk') == '21'
     for sib in ('jdk-17', 'jdk-25', 'graalvm'):
-        assert r.components[sib].opt_in, f'{sib} should be never-auto'
+        assert r.components[sib].never_auto, f'{sib} should be never-auto'
     # a plain `requires: jdk` consumer (scala) resolves the default with no ambiguity
     u, e = r.resolve_resilient(['scala'])
     assert not e.get('scala') and 'jdk' in {k.split('\\')[1] for k in u}

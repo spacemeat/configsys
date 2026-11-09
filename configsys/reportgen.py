@@ -181,7 +181,7 @@ def _route(ctx, name):
     if comp.bindings:
         cx = r.context()
         try:
-            b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)
+            b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)
             out['binding'] = {'via': b.via, 'when': b.when or 'always'}
         except ResolveError:
             out['binding'] = None
@@ -386,7 +386,7 @@ def _parts_targets(r, name, block, version):
         return None
     cx = r.context(block, version or None)
     try:
-        b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.candidate_only)
+        b = select_binding(comp, r.cascade, cx, r.pins, r.preference, r.never_auto_drivers)
     except ResolveError:
         return None
     if b.via != 'parts':

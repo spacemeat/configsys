@@ -105,7 +105,7 @@ def test_gated_context_is_cached_and_keyed_by_pins(tmp_path):
     r = _res(tmp_path, 'musly')
     assert r.context() is r.context()
     other = gated_context(r.cascade, r.components, r.drivers, 'musly', None, 'x86_64', (),
-                          {'glibc': 'shim'}, r.overrides, r.preference, r.candidate_only)
+                          {'glibc': 'shim'}, r.overrides, r.preference, r.never_auto_drivers)
     assert other is not r.context() and 'appImage' not in other.derived_gates
 
 

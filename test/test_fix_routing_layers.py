@@ -180,7 +180,7 @@ def test_never_auto_driver_is_not_a_false_method_tie(tmp_path):
     casc, comps, _d, co = load(routes, validate=False)
     assert co == frozenset({'zzz-drv'})
     assert routecheck._method_tie_warnings('t', comps['t'], casc) == []
-    assert routecheck._method_tie_warnings('t', comps['t'], casc, candidate_only=frozenset()) != []
+    assert routecheck._method_tie_warnings('t', comps['t'], casc, never_auto_drivers=frozenset()) != []
 
 
 # -- #9 ships_executable_data -----------------------------------------------------------------

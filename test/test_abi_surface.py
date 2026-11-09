@@ -129,3 +129,18 @@ def test_the_splash_abi_is_pinned():
         assert hasattr(api.Splash, attr), attr
     assert list(inspect.signature(api.Splash.__init__).parameters)[:5] == ['self', 'scr', 'pal', 'size', 'seed']
     assert callable(api.Splash.render) and callable(api.register_splash)
+
+
+def test_resolved_component_is_exported_and_no_resolver_key_reaches_fields():
+    # F2 / routing-31: plugin tests imported componentObj directly; `provides:` leaked into rc.fields
+    import os
+    from configsys.resolve import _RESOLVER_KEYS
+    from configsys.routes import Resolver
+    assert 'ResolvedComponent' in api.__all__ and api.ResolvedComponent.__name__ == 'ResolvedComponent'
+    routes = os.path.join(os.path.dirname(__file__), '..', 'routes.hu')
+    r = Resolver(routes, 'pop_os!', '24.04', 'x86_64')
+    units, _e = r.resolve_resilient(['rust', 'go', 'cabal'])
+    for rc in units.values():
+        assert not set(_RESOLVER_KEYS) & set(rc.fields), (rc.key, sorted(rc.fields))
+    loaded = __import__('configsys.routes', fromlist=['load']).load(routes)
+    assert loaded.cascade is loaded[0] and len(loaded) == 4

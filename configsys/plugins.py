@@ -26,6 +26,7 @@ from .driver import Driver
 from .drivers import register_driver
 from .errors import ConfigError
 from .runner import Result
+from .componentObj import ResolvedComponent   # the unit a driver op receives (F2)
 from .splashes import Splash, SplashFrame, register_splash
 from . import hutext
 from .hutext import scalar as _scalar
@@ -59,6 +60,7 @@ ABI_SUPPORTED = frozenset({1})
 # change without a bump.
 __all__ = [
     'Driver', 'register_driver', 'register_version_source', 'register_transport', 'Result',
+    'ResolvedComponent',
     'Splash', 'SplashFrame', 'register_splash',
     'ABI_VERSION', 'ABI_SUPPORTED',
     'declared', 'source_url', 'dir_name', 'read_manifest', 'layer_files', 'status', 'sync',
