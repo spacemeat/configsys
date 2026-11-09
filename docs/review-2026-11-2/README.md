@@ -289,7 +289,7 @@ areas' carry-over tables: **123 fixed, 200 still open, 19 obsolete**. Of the 202
   CLI-only); the uninstall queue has no CLI. (dotfiles-glue-33, parity-12, actions-29, app-cli-22) · [done — done — `configsys uninstall list|add|rm|clear` (clear_uninstall finally has a caller); `glue staged|activate|discard` beside the dotfiles aliases; Glue screen keys n (new snippet, $EDITOR), o (override), S (review staged writes: activate / discard)]
 - **G5 [LOW]** Primary UX: the TUI push popup doesn't list files; `plugin undo` takes back another
   machine's change without saying so; a pushed `.hu` isn't parse-checked; signed-only push doesn't warn on
-  unsigned outgoing commits. (primary-14/15/20/21) · [open]
+  unsigned outgoing commits. (primary-14/15/20/21) · [done — done — the TUI push popup lists the commits + files about to leave (Question.listing as the popup body); undo confirms name a change made on another machine (Change.machine); a .hu settled by edit or by side must parse (re-offered, else stop); signed-only push warns its own commits are unsigned]
 - **G6 [LOW]** Theme lint; `keys` provenance; CLI catalog search; `--version`; the example plugin's
   README commands fail. (tui-theme-15/22, parity-18/19, app-cli-33, plugins-04) · [open]
 

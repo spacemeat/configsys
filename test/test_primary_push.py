@@ -666,3 +666,37 @@ def test_undo_of_a_commit_that_added_files_saves_them_first(primary, capsys):
     hits = list(saved.rglob('foo.conf'))
     assert hits and hits[0].read_text() == 'only copy\n'
     assert any('saved in' in ln for ln in lines)
+
+
+@needs_git
+def test_signed_only_push_warns_that_its_own_commits_are_unsigned(primary):
+    # G5 / primary-21: other verifying machines would refuse them
+    base, clone, bare, other = primary
+    ctx = _ctx(base)
+    top = ctx.paths.user_config_file
+    top.write_text(top.read_text().rstrip().rstrip('}') + '  primary-verify: signed }\n')
+    (clone / 'p.hu').write_text(BASE_P.replace('desk: [ jq ]', 'desk: [ jq fzf ]'))
+    _git(clone, 'commit', '-qam', 'mine')
+    seen = []
+
+    class UI(primarygit.PushUI):
+        def ask(self, q):
+            if q.kind == 'confirm-push':
+                seen.append(q.title)
+                return False
+            return q.unattended
+    primarygit.push(_ctx(base), UI())
+    assert seen and 'not signed' in seen[0], seen
+
+
+@needs_git
+def test_history_names_the_machine_a_change_was_made_on(primary):
+    # G5 / primary-20: undo's confirm can say "made on desk, not this machine"
+    base, clone, bare, other = primary
+    ctx = _ctx(base)
+    top = ctx.paths.user_config_file
+    top.write_text(top.read_text().rstrip().rstrip('}') + '  machine: desk }\n')
+    assert main(base + ['picks', 'add', 'fzf']) == 0
+    _name, changes = primarygit.history(_ctx(base), 5)
+    newest = next(c for c in changes if c.by_configsys)
+    assert newest.machine == 'desk'

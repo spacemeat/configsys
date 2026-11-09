@@ -759,12 +759,12 @@ class _TuiPushUI(primarygit.PushUI):
     def ask(self, q):
         '''A `primarygit.Question` as a popup: its title (with the first few listed items), its
         choices with their letters; Enter starts on the cautious answer, Esc gives it.'''
-        shown = '; '.join(it.split(' ', 1)[-1] if q.kind == 'confirm-push' else it for it in q.items[:3])
-        title = q.title + (f' — {shown}' + (' …' if len(q.items) > 3 else '') if shown and q.kind in
-                           ('include-own', 'confirm-push') else '')
+        # the same listing the CLI prints (Question.listing: the commits, then the FILES about to
+        # leave — what shows a freshly captured dotfile holding a token; G5 / primary-15)
+        body = q.listing() if q.kind in ('include-own', 'confirm-push') else []
         start = next((i for i, c in enumerate(q.choices) if c.answer == q.enter), 0)
-        i = _popup_choose(self.stdscr, self.pal, title, [(c.label, c.key) for c in q.choices], start=start,
-                          shortcuts={c.key: i for i, c in enumerate(q.choices)})
+        i = _popup_choose(self.stdscr, self.pal, q.title, [(c.label, c.key) for c in q.choices], start=start,
+                          shortcuts={c.key: i for i, c in enumerate(q.choices)}, body=body)
         return q.choices[i].answer if i is not None else q.enter
 
     def edit(self, path):
@@ -1790,20 +1790,25 @@ def _busy(stdscr, pal, msg):
     stdscr.refresh()
 
 
-def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
+def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None, body=()):
     '''A modal chooser drawn OVER the current screen (no drop to the terminal). `options` is a
     list of (label, tag-string). j/k or arrows move, enter selects, esc/q cancels. Returns the
     chosen index or None. `shortcuts` is an optional {char: index} map (e.g. {'y': 0, 'n': 1}) so a
-    letter jumps straight to (and picks) an option. The background stays put; the loop redraws.'''
+    letter jumps straight to (and picks) an option. `body`: lines shown (dim, unselectable) above the
+    options — what a question is about (the commits + files a push would send). The background stays
+    put; the loop redraws.'''
     h, w = stdscr.getmaxyx()
+    body = list(body)[:max(0, h - len(options) - 8)]      # the choices always fit
     n = len(options)
-    inner = max([len(title)] + [len(lbl) + len(tag) + 2 for lbl, tag in options] + [24])
+    inner = max([len(title)] + [len(lbl) + len(tag) + 2 for lbl, tag in options]
+                + [min(len(b), w - 8) for b in body] + [24])
     box_w = min(inner + 4, max(20, w - 2))
-    box_h = min(n + 4, max(5, h - 2))
+    box_h = min(n + 4 + (len(body) + 1 if body else 0), max(5, h - 2))
+    nb = (len(body) + 1) if body else 0                  # body rows + a spacer
     y0 = max(0, (h - box_h) // 2)
     x0 = max(0, (w - box_w) // 2)
     border = pal.get('accent') | curses.A_BOLD
-    vis = max(1, box_h - 4)                  # option rows that fit inside the box (below title, above hint)
+    vis = max(1, box_h - 4 - nb)             # option rows that fit inside the box (below title + body)
     sel = start
     ptop = 0
     while True:
@@ -1816,12 +1821,14 @@ def _popup_choose(stdscr, pal, title, options, start=0, shortcuts=None):
         for r in range(1, box_h - 1):
             _put(stdscr, y0 + r, x0, '│' + ' ' * (box_w - 2) + '│', border)
         _put(stdscr, y0 + box_h - 1, x0, '└' + '─' * (box_w - 2) + '┘', border)
+        for r, line in enumerate(body):
+            _put(stdscr, y0 + 2 + r, x0 + 2, _fit(line, box_w - 4), pal.get('dim'))
         for r, i in enumerate(range(ptop, min(n, ptop + vis))):
             label, tag = options[i]
             attr = curses.A_REVERSE if i == sel else curses.A_NORMAL
-            _put(stdscr, y0 + 2 + r, x0 + 2, _fit(label.ljust(box_w - 4), box_w - 4), attr)
+            _put(stdscr, y0 + 2 + nb + r, x0 + 2, _fit(label.ljust(box_w - 4), box_w - 4), attr)
             if tag:
-                _put(stdscr, y0 + 2 + r, x0 + box_w - 2 - len(tag), tag,
+                _put(stdscr, y0 + 2 + nb + r, x0 + box_w - 2 - len(tag), tag,
                      attr | pal.get('dim'))
         if ptop > 0:                         # more above / below than the window shows
             _put(stdscr, y0 + 1, x0 + box_w - 3, '↑', border)

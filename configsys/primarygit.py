@@ -671,7 +671,8 @@ def question(kind, *, name, items=(), files=(), path=None, detail=None, index=0,
     elif kind == 'value':
         title = f'{name}: {path}, setting {index + 1} of {count} — {detail}'
     elif kind == 'confirm-push':
-        title = f'{name}: push {_count(len(items))} to {_printable(source)}?'
+        title = (f'{name}: push {_count(len(items))} to {_printable(source)}?'
+                 + (f' — {detail}' if detail else ''))
     else:
         raise KeyError(kind)
     return Question(kind, title, choices, enter, unattended, items, files, path, detail, index, count,
@@ -941,7 +942,16 @@ def push(ctx, ui=None):
             return False, lines
         ahead, _b = repo.ahead_behind(upstream)
     commits, files = _outgoing(repo, None if first else upstream)
-    if not ui.ask(question('confirm-push', name=name, items=commits, files=files, source=source)):
+    warn = None
+    if _verify(ctx) and commits:                       # primary-verify: signed — your OWN outgoing ones
+        r = repo.git('log', '--format=%G?', *([f'{upstream}..HEAD'] if not first else ['HEAD']))
+        unsigned = sum(1 for ln in r.stdout.split() if ln != 'G') if r.ok else 0
+        if unsigned:                                   # (G5 / primary-21) — they'd be refused elsewhere
+            verb = 'is not' if unsigned == 1 else 'are not'
+            warn = (f'{unsigned} of these {verb} signed — your other machines (primary-verify: signed) '
+                    f'will refuse them; set `commit.gpgsign` in {root}')
+    if not ui.ask(question('confirm-push', name=name, items=commits, files=files, source=source,
+                           detail=warn)):
         return False, lines + [f'{name}: not pushed — your changes stay committed here.']
     ui.progress(f'pushing {name} …')
     pushed = repo.git('push', '--quiet', 'origin', f'HEAD:refs/heads/{branch}',
@@ -971,6 +981,7 @@ class Change:
     files: tuple
     pushed: bool
     by_configsys: bool
+    machine: str = ''          # the machine whose configsys made it ("Made by configsys on laptop.")
 
 
 def history(ctx, n=10):
@@ -996,9 +1007,11 @@ def history(ctx, n=10):
             sha, short, date, subject, body, parents = parts[:6]
             files = repo.git('diff-tree', '--root', '--no-commit-id', '--name-only', '-r', '-z', sha)
             names = tuple(os.fsdecode(f) for f in files.out.split(b'\0') if f) if files.ok else ()
+            m = re.search(re.escape(_MADE_BY) + r' on (.+?)\.?$', body, re.M)
             changes.append(Change(sha, short, date, _printable(subject), tuple(map(_printable, names)),
                                   sha not in unpushed,
-                                  _MADE_BY in body and len(parents.split()) == 1))
+                                  _MADE_BY in body and len(parents.split()) == 1,
+                                  _printable(m.group(1)) if m else ''))
         return name, changes
     except Exception:                                  # noqa: BLE001 — best-effort, never a crash
         return None
@@ -1252,11 +1265,22 @@ def _replay(ctx, ui, name, repo, upstream):
                                             index=i, count=len(conflicted)))
         if choice in ('mine', 'theirs'):
             _take(repo, path, 'ours' if choice == 'mine' else 'theirs')
+            if _hu_problem(root / path):                # a side's lines can still leave broken humon
+                return False, [f'{name}: {path} does not read as humon after taking that side '
+                               f'({_hu_problem(root / path)}) — nothing was pushed']
         elif choice == 'edit':
-            ui.edit(root / path)
-            if _has_markers(root / path):
-                choice = 'stop'
+            for _attempt in range(3):                   # a typo would be pushed to every machine,
+                ui.edit(root / path)                    # which then skips the file (G5 / primary-14)
+                why = 'conflict markers left' if _has_markers(root / path) else _hu_problem(root / path)
+                if not why:
+                    break
+                if not ui.ask(question('file', name=name, path=path, detail=f'it does not parse: {why}',
+                                       index=i, count=len(conflicted))) == 'edit':
+                    choice = 'stop'
+                    break
             else:
+                choice = 'stop'
+            if choice == 'edit':
                 repo.git('add', '-A', paths=[path])
         if choice not in ('mine', 'theirs', 'edit'):
             return False, []
@@ -1407,6 +1431,18 @@ def _settle_aside(repo, name, aside, *, keep_theirs):
         elif not (src.exists() or src.is_symlink()):
             os.replace(dst, src)
     return lines
+
+
+def _hu_problem(path):
+    '''Why `path` (a .hu file) doesn't parse as humon, or None (not a .hu file / it reads fine).'''
+    if not str(path).endswith('.hu'):
+        return None
+    try:
+        from .layers import read_tree
+        read_tree(path)
+        return None
+    except Exception as e:                             # noqa: BLE001
+        return str(e).split(': ', 1)[-1][:120]
 
 
 def _stash_top(repo):

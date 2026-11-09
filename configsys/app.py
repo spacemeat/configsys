@@ -3245,8 +3245,10 @@ def _plugin_undo(ctx, args):
     def confirm(change):
         if args.yes or not (sys.stdin.isatty() and sys.stdout.isatty()):
             return True
+        other = change.machine and change.machine != primarygit._machine(ctx)
         print(f'configsys: undo {change.short} "{change.subject}"'
-              + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]')
+              + ('' if change.pushed else '  (not pushed yet)') + f'  [{", ".join(change.files)}]'
+              + (f'\n  NOTE: this change was made on {change.machine}, not this machine' if other else ''))
         print('  any file it ADDED leaves the primary (and your disk) — a copy is saved under '
               f'{ctx.paths.state_dir}/undo/{change.short}/ first')
         try:

@@ -81,7 +81,10 @@ def _history(stdscr, pal, ctx, pl):
     if not last or pick != 0:
         return None
     files = ', '.join(last.files[:4]) + (' …' if len(last.files) > 4 else '')
-    sure = menu._popup_choose(stdscr, pal, f'Undo "{last.subject}"? ({files}) — a file it added is saved '
+    other = last.machine and last.machine != primarygit._machine(ctx)
+    sure = menu._popup_choose(stdscr, pal, f'Undo "{last.subject}"'
+                                           + (f' (made on {last.machine}, not this machine)' if other else '')
+                                           + f'? ({files}) — a file it added is saved '
                                            f'to <state>/undo/{last.short}/ first',
                               [('Undo it', 'y'), ('Keep it', 'n')], start=1, shortcuts={'y': 0, 'n': 1})
     if sure != 0:
