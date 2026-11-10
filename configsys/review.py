@@ -58,9 +58,14 @@ class Section:
     note: str = ''                                    # one more line under the title
 
     def heading(self, act):
-        '''The title line, its actions named by `act(placeholder)` (None: by their verbs).'''
+        '''The title line, its actions named by `act(placeholder)` (None: by their verbs). Only the
+        placeholders are replaced — any other brace (git allows `{` in a ref name) is just text.'''
         name = act or (lambda p: ACTIONS[p][1])
-        return f'{ARROW[self.direction]} ' + self.title.format(**{p: name(p) for p in ACTIONS})
+        title = self.title
+        for p in ACTIONS:
+            if f'{{{p}}}' in title:
+                title = title.replace(f'{{{p}}}', name(p))
+        return f'{ARROW[self.direction]} {title}'
 
 
 @dataclass

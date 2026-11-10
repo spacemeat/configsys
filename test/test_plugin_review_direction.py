@@ -376,3 +376,16 @@ def test_the_push_preview_and_its_question_show_what_goes_out_in_words(world, ca
     assert any('plugin update configsys-source --latest' in ln for ln in listing)
     assert '  plugin.hu' in listing and '    configsys-source: ref v0.1.12 → v0.1.13' in listing
     assert not ok and 'v0.1.13' not in _git(bare, 'show', 'main:plugin.hu')     # "don't push": nothing sent
+
+
+def test_a_brace_in_a_ref_is_just_text_in_a_title():
+    s = review.Section(review.IN, '{update} would bring in: v1 → feat{x}')   # git allows `{` in a ref
+    assert s.heading(None) == '↓ update would bring in: v1 → feat{x}'
+
+
+def test_a_tag_pinned_primary_is_reviewed_like_any_synced_plugin(world, capsys):
+    base, clone, _bare, _other, _src = world
+    _git(clone, 'checkout', '-q', '--detach', 'HEAD')                       # pinned: not on its branch
+    capsys.readouterr()
+    assert main(base + ['plugin', 'diff', 'prim']) == 0
+    assert '↓ up to date — nothing to pull in' in capsys.readouterr().out

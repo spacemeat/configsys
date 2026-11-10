@@ -316,9 +316,10 @@ def cmd_plugin_diff(ctx, args, eff):
         print(f'configsys: no declared plugin matches {args.name!r}')
         return 1
     row = plugins.status(ctx.paths.plugins_dir, [target], lock_file=ctx.paths.plugin_lock_file)[0]
-    primary = bool(row.get('primary') and row.get('synced'))
+    pdir = ctx.paths.plugins_dir / plugins.dir_name(target['source'])
+    on_branch = bool(row.get('primary') and (pdir / '.git').exists() and primarygit.PrimaryRepo(pdir).branch())
     remote = args.to
-    if not remote and not primary:                     # (the primary is compared with its branch)
+    if not remote and not on_branch:                   # (a primary on its branch is compared with it)
         remote, _kind = plugins.latest_ref(ctx.runner, target['source'])
     kind, _base, to, what = actions.plugin_review_plan(row, remote)
     if kind is None:
