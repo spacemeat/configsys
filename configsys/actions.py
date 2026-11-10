@@ -1417,7 +1417,7 @@ def theme_plugins(ctx):
 
 
 def _theme_only_plugin(pdir):
-    '''True when the plugin dir `pdir` holds nothing but a theme pack (what save_theme_plugin writes):
+    '''True when the plugin dir `pdir` holds nothing but a theme (what save_theme_plugin writes):
     no `code:` / `plugins:`, a `data:` of just theme.hu, and no other data file — so rewriting its
     manifest as theme-only can't silently stop anything else in it from loading.'''
     man = plugins.read_manifest(pdir) or {}
@@ -1437,10 +1437,10 @@ def save_theme_plugin(ctx, name, *, force=False):
     primary plugin, and for an existing plugin that ships more than a theme (its manifest would be
     rewritten theme-only and its data / code / plugins would stop loading).'''
     if not plugins._SAFE_DIR_RE.match(name or ''):
-        raise ValueError(f'{name!r} is not a usable theme pack name — one word of letters, digits, '
+        raise ValueError(f'{name!r} is not a usable theme plugin name — one word of letters, digits, '
                          '`.`, `_` or `-` (no `/`, not starting with a dot)')
     if name == plugins.primary_name(plugins.declared(ctx.paths.user_config_file)):
-        raise ValueError(f'{name} is your primary plugin — export the pack under another name, or '
+        raise ValueError(f'{name} is your primary plugin — export the theme under another name, or '
                          f'promote the theme into the primary instead')
     pdir = Path(ctx.paths.plugins_dir) / name
     existed = pdir.exists()
@@ -1460,8 +1460,8 @@ def save_theme_plugin(ctx, name, *, force=False):
 
 
 def _overlay_theme(base, top):
-    '''`top` laid over `base`, per key all the way down (your override of one role keeps the pack's
-    others).'''
+    '''`top` laid over `base`, per key all the way down (your override of one role keeps the theme
+    plugin's others).'''
     out = {k: (dict(v) if isinstance(v, dict) else v) for k, v in (base or {}).items()}
     for k, v in (top or {}).items():
         out[k] = _overlay_theme(out.get(k), v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
@@ -1469,8 +1469,8 @@ def _overlay_theme(base, top):
 
 
 def load_theme(ctx, name, *, target=None, reset=False):
-    '''Apply a saved theme plugin's `theme:` to the edit target. By default the pack goes UNDER your
-    own theme overrides (they stay on top — decision 18); `reset=True` replaces them with the pack
+    '''Apply a saved theme plugin's `theme:` to the edit target. By default its theme goes UNDER your
+    own theme overrides (they stay on top — decision 18); `reset=True` replaces them with it
     (the TUI asks first). Returns (changed, label|None).'''
     if _pretend(ctx):
         return False, PRETEND_NOT_SAVED

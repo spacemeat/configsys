@@ -247,8 +247,8 @@ _HELP = {
     'theme': {
         'desc': "Live theme editor. Top left: the shared color map (name → #rrggbb). Top right: the "
                 "sampled page's role styles. Below: a live sample of that page. Edits apply and save "
-                "instantly; {theme:save} exports a theme pack or promotes the full look to your primary "
-                "plugin, {theme:load} loads a saved pack (under your own changes, or replacing them).",
+                "instantly; {theme:save} exports a theme plugin or promotes the full look to your primary "
+                "plugin, {theme:load} loads a saved theme plugin (under your own changes, or replacing them).",
         'glossary': [
             ('map', 'shared colors; a role references one by name, or uses a literal #rrggbb'),
             ('roles', '{global:confirm} sets a role\'s foreground, {theme:edit-bg} its background (empty clears it) — a '

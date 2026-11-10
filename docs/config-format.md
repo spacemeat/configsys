@@ -1226,8 +1226,8 @@ one works.
   a role.
 - `gradient-toggle` (`p`): toggle this page's background gradient.
 - `copy-page` (`D`): copy this page's look onto another.
-- `save` (`s`): export a theme pack, or promote the theme to your primary plugin.
-- `load` (`L`): load a saved theme pack.
+- `save` (`s`): export a theme plugin, or promote the theme to your primary plugin.
+- `load` (`L`): load a saved theme plugin.
 
 ### Key names
 

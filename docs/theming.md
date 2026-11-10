@@ -228,14 +228,14 @@ few share the nearest one.
   config already sets is edited there). The status line names where edits go. So your theme already
   lives in the right place, and theme plugins still show through the parts you haven't touched.
   `s` is only for deliberate **full-snapshot** saves:
-  - **export theme pack…** — writes the *complete* look (every map color, every page role, the
+  - **export theme plugin…** — writes the *complete* look (every map color, every page role, the
     gradients) to a named theme plugin, loadable later with `L` and shareable. A full snapshot
     reproduces exactly even if the built-in defaults change later.
   - **promote full theme → primary** (only when a primary plugin is blessed and synced) — writes
     the complete look into your primary and removes the local copy. This is deliberately
     **absolute**: a full theme in the primary overrides any theme plugin, so it asks first.
-- **`L`** loads a saved theme plugin and asks how: **under my overrides** (the pack fills in what you
-  haven't retuned — the default) or **replace my overrides** (back to the pack exactly; your
+- **`L`** loads a saved theme plugin and asks how: **under my overrides** (the theme plugin fills in what you
+  haven't retuned — the default) or **replace my overrides** (back to the theme plugin exactly; your
   changes are lost).
 
 ## The startup splash

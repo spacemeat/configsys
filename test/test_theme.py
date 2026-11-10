@@ -375,7 +375,7 @@ def test_a_theme_snapshot_keeps_the_theme_page_and_every_overridden_role():
     assert snap['pages']['components']['my_odd_role']['fg'] == '#0000ff'
 
 
-def test_loading_a_theme_pack_keeps_your_overrides_on_top_unless_reset():
+def test_loading_a_theme_plugin_keeps_your_overrides_on_top_unless_reset():
     from configsys.actions import _overlay_theme
     pack = {'colors': {'accent': '#111111', 'title': '#222222'}}
     mine = {'colors': {'accent': '#ffffff'}}

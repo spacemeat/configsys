@@ -83,7 +83,7 @@ def test_save_theme_plugin_refuses_a_path_name(tmp_path):
 def test_theme_save_cli_refuses_a_path_name(tmp_path, capsys):
     from configsys.app import main
     assert main(['--home', str(tmp_path), '--os', 'pop', '-q', 'theme', 'save', '../../x']) == 1
-    assert 'not a usable theme pack name' in capsys.readouterr().err
+    assert 'not a usable theme plugin name' in capsys.readouterr().err
     assert not (tmp_path / 'x').exists() and not (tmp_path / '.config' / 'x').exists()
 
 

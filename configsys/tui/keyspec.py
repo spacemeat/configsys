@@ -442,7 +442,7 @@ ACTION_LABELS = {
     'new': 'add a color to the map',
     'reset': 'reset to default', 'edit-bg': 'edit background', 'effect-bold': 'toggle bold',
     'effect-underline': 'toggle underline', 'effect-reverse': 'toggle reverse', 'gradient-toggle': 'toggle gradient',
-    'copy-page': 'copy this page onto another', 'save': 'save / export', 'load': 'load a theme pack',
+    'copy-page': 'copy this page onto another', 'save': 'save / export', 'load': 'load a theme plugin',
 }
 
 

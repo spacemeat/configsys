@@ -1010,6 +1010,7 @@ edit that file, not this section -->
 - **swap** — Switching a component's method: the old install is removed first, then the new one installs — never both at once. *See also:* **also-present**, **pin**.
 - **system-updates** (`configsys updates`, `upgrade --system`) — The OS packages with pending updates that aren't configsys components — shown and applied in bulk, so configsys can be your one updater. *See also:* **tier**.
 - **target-machine** — On the Profiles screen, the machine column(s) your tracking edits apply to — this box's machine by default; choose several with `M`. *See also:* **track**, **machine**, **picks**.
+- **theme-plugin** — A plugin that ships a `theme:` — load it with `configsys theme load` (or `L` on the Theme screen), or save the current theme as one with `configsys theme save`. *See also:* **plugin**. *Not:* “theme pack”.
 - **tier** — How System Updates groups pending OS updates, most fundamental first: kernel, core, standard, apps. *See also:* **system-updates**.
 - **top-config** (`~/.config/configsys/configsys.hu`) — This machine's own config file — the highest layer, never shared. Machine-local settings and `--local` edits land here. *See also:* **layer**, **setting-nature**, **primary-plugin**.
 - **track** — Adding a component to a machine's picks (TUI Profiles `T` / `t`, or `configsys picks add`). Tracked components are that machine's install set. *See also:* **picks**, **claim**.

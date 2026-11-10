@@ -119,3 +119,19 @@ def test_a_generic_was_beside_a_retired_term_does_not_hide_it(tmp_path):
     _terms, retired = da.load_glossary()
     hits = da._check_retired(p, p.read_text().splitlines(), retired)
     assert [h['line'] for h in hits] == [1]
+
+
+def test_theme_plugin_is_the_term():
+    # themes always come as ordinary plugins that ship a `theme:` — "theme plugin", never "theme
+    # pack", in the glossary and everywhere user-facing (code strings, README, live docs, config.hu)
+    import re
+    terms, _retired = da.load_glossary()
+    assert 'theme pack' in [str(a) for a in terms['theme-plugin'].get('avoid') or []]
+    root = HERE.parent
+    files = [*(root / 'configsys').rglob('*.py'), root / 'README.md', root / 'config.hu',
+             *(root / 'docs').glob('*.md'), root / 'man' / 'configsys.1', root / 'man' / 'configsys.hu.5']
+    hits = [f'{p.relative_to(root)}:{n}' for p in files
+            for n, line in enumerate(p.read_text(encoding='utf-8').splitlines(), 1)
+            if re.search(r'theme[ _-]?packs?\b', line, re.I)
+            and '*Not:*' not in line]                   # the generated glossary names it, to avoid
+    assert hits == []

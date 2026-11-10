@@ -364,10 +364,10 @@ class ThemeScreen(Screen):
                         note = label
             elif tact == 'save':
                 # Live edits already persist to your primary/local, WYSIWYG. `s` is only for
-                # deliberate FULL-SNAPSHOT saves: export a shareable pack, or promote the
+                # deliberate FULL-SNAPSHOT saves: export a shareable theme plugin, or promote the
                 # complete look into your primary (absolute — overrides theme plugins).
                 prim = actions.primary_theme_target(ctx)             # primary name, or None
-                opts = [('export theme pack…', 'export')]
+                opts = [('export theme plugin…', 'export')]
                 if prim:
                     opts.append((f'promote full theme → primary ({prim})', 'promote'))
                 idx = _popup_choose(stdscr, pal, 'save theme',
@@ -383,8 +383,8 @@ class ThemeScreen(Screen):
                         note = f'promoted full theme → {label}' if ok else label
                     else:
                         note = 'promote cancelled'
-                elif idx is not None:                                # export a standalone pack
-                    nm = _input_box(stdscr, pal, 'export theme pack — name', '')
+                elif idx is not None:                                # export a standalone theme plugin
+                    nm = _input_box(stdscr, pal, 'export theme plugin — name', '')
                     if nm and nm.strip():
                         nm = nm.strip()
                         _pdir, existed = _w(actions.save_theme_plugin)(ctx, nm)
@@ -393,11 +393,11 @@ class ThemeScreen(Screen):
                                                [('overwrite', ''), ('cancel', '')], 1)
                             if oi == 0:
                                 _w(actions.save_theme_plugin)(ctx, nm, force=True)
-                                note = f'exported theme pack {nm} (overwritten)'
+                                note = f'exported theme plugin {nm} (overwritten)'
                             else:
                                 note = 'export cancelled'
                         else:
-                            note = f'exported theme pack {nm}'
+                            note = f'exported theme plugin {nm}'
             elif tact == 'load':
                 names = actions.theme_plugins(ctx)
                 if names:
@@ -405,7 +405,7 @@ class ThemeScreen(Screen):
                     if idx is not None:
                         how = _popup_choose(stdscr, pal, f'load {names[idx]}',
                                             [('under my overrides', 'keep everything I retuned'),
-                                             ('replace my overrides', 'reset to the pack — mine are lost')], 0)
+                                             ('replace my overrides', 'reset to the theme plugin — mine are lost')], 0)
                         if how is not None:
                             _w(actions.load_theme)(ctx, names[idx], reset=(how == 1))
                             new_pal = Palette(ctx.config.theme())

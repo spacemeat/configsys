@@ -148,6 +148,11 @@
             def: "A plugin declared in your top config with `--local`: it adds components (and profiles, OS blocks or drivers) on this machine only, never sets machine settings, and never travels with your primary plugin."
             see: [ plugin  top-config  primary-plugin ]
         }
+        theme-plugin: {
+            def: "A plugin that ships a `theme:` — load it with `configsys theme load` (or `L` on the Theme screen), or save the current theme as one with `configsys theme save`."
+            see: [ plugin ]
+            avoid: [ "theme pack" ]
+        }
         push: {
             short: "`configsys plugin push`"
             def: "Publishing your primary plugin: configsys commits each of its own edits there as you work, and a push combines them with what your other machines published, asking you about any conflict. The `primary-push` setting chooses when it happens (ask, auto, auto-on-quit, manual); `configsys plugin undo` takes back a change."

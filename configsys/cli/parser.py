@@ -593,10 +593,11 @@ def build_parser():
                                             'overrides (--reset replaces them)',
                                description='Apply a theme plugin: its theme goes under your own '
                                            'overrides, which stay on top (--reset replaces them '
-                                           'with the pack).')
+                                           'with the theme plugin\'s).')
     th_load.add_argument('name', help='theme plugin name (see `theme list`)')
     th_load.add_argument('--reset', action='store_true',
-                         help='replace your theme overrides with the pack instead of keeping them on top')
+                         help='replace your theme overrides with the theme plugin\'s instead of keeping '
+                              'them on top')
     th_load.add_argument('--local', action='store_true',
                          help="write to this machine's top config, not the primary plugin")
 
