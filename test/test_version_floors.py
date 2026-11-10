@@ -63,39 +63,95 @@ def test_resolution_is_unchanged_by_a_floor(tmp_path):
     assert set(plain.resolve_names(['ripgrep'])) == set(floored.resolve_names(['ripgrep']))
 
 
+# -- layer precedence: a patch SETS an existing floor unless the `requires:` that wrote that floor
+#    sits in a HIGHER layer than the patch; a bare requirement has no floor to defend ------------
+
 _SRC_FLOORED = ('{ components: { ripgrep: { install: [ { via: source  repo: "https://x/y"  '
                 'requires: [ { cargo: ">=1.96" } ]  build: "x" } ] } }')
+_COMP_FLOORED = ('{ components: { ripgrep: { requires: [ { cargo: ">=1.96" } ]  install: [ '
+                 '{ via: source  repo: "https://x/y"  build: "x" } ] } }')
 
 
-def test_a_looser_floor_never_loosens_an_inline_one(tmp_path):
-    # version-floors only TIGHTEN: a patch below the inline floor keeps the inline floor
-    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.80" } } }'
-    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
-    assert _src_binding(r).req_versions == {'cargo': '>=1.96'}
+def _floors(con):
+    return '{ version-floors: { ripgrep: { cargo: "' + con + '" } } }'
 
 
-def test_a_stricter_floor_tightens_an_inline_one(tmp_path):
-    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.99" } } }'
-    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+def test_a_higher_layer_floor_loosens_an_inline_one(tmp_path):
+    # the user manages: a patch above the definition replaces its floor, looser included
+    lo = _plugin(tmp_path, _SRC_FLOORED + ' }', 'lo.hu')
+    hi = _plugin(tmp_path, _floors('>=1.80'), 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.80'}
+
+
+def test_a_higher_layer_floor_tightens_an_inline_one(tmp_path):
+    lo = _plugin(tmp_path, _SRC_FLOORED + ' }', 'lo.hu')
+    hi = _plugin(tmp_path, _floors('>=1.99'), 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
     assert _src_binding(r).req_versions == {'cargo': '>=1.99'}
 
 
-def test_an_incomparable_floor_adds_to_the_inline_one(tmp_path):
-    # neither implies the other (`>=1.96` vs `<2`): both must hold
-    body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: "<2" } } }'
-    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
-    from configsys.osversion import meets
-    con = _src_binding(r).req_versions['cargo']
-    assert meets('1.97', con) and not meets('1.90', con) and not meets('2.1', con)
+def test_a_higher_layer_floor_replaces_an_incomparable_one(tmp_path):
+    # replaced, not combined: `<2` from above stands alone
+    lo = _plugin(tmp_path, _SRC_FLOORED + ' }', 'lo.hu')
+    hi = _plugin(tmp_path, _floors('<2'), 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
+    assert _src_binding(r).req_versions == {'cargo': '<2'}
 
 
-def test_check_warns_on_a_floor_looser_than_the_inline_one(tmp_path):
-    from configsys import routecheck
+def test_a_lower_layer_floor_never_overrides_a_higher_definition(tmp_path):
+    lo = _plugin(tmp_path, _floors('>=1.80'), 'lo.hu')
+    hi = _plugin(tmp_path, _SRC_FLOORED + ' }', 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.96'}         # looser: kept out
+    lo2 = _plugin(tmp_path, _floors('>=1.99'), 'lo2.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo2, hi])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.96'}         # stricter: kept out too
+
+
+def test_a_lower_layer_floor_fills_a_bare_requirement(tmp_path):
+    # a bare `requires: cargo` sets no floor, so any layer's patch supplies it — a floors data
+    # plugin sorted below the recipes it serves (configsys-versions under configsys-source)
+    lo = _plugin(tmp_path, _floors('>=1.90'), 'lo.hu')
+    hi = _plugin(tmp_path, _SRC + ' }', 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.90'}
+
+
+def test_a_same_layer_floor_sets_the_inline_one(tmp_path):
+    # not from a LOWER layer, so the file's own patch is its last word on that floor
     body = _SRC_FLOORED + '  version-floors: { ripgrep: { cargo: ">=1.80" } } }'
     r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[_plugin(tmp_path, body)])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.80'}
+
+
+def test_the_binding_layer_counts_not_a_later_amend(tmp_path):
+    # a higher layer that only ADDS a binding doesn't re-author the source binding's requires:
+    # a patch between the two still sets the source binding's floor
+    lo = _plugin(tmp_path, _SRC_FLOORED + ' }', 'lo.hu')
+    mid = _plugin(tmp_path, _floors('>=1.80'), 'mid.hu')
+    hi = _plugin(tmp_path, '{ components: { ripgrep: { install: [ { via: cargo } ] } } }', 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, mid, hi])
+    assert _src_binding(r).req_versions == {'cargo': '>=1.80'}
+
+
+def test_component_level_requires_follow_the_same_rule(tmp_path):
+    comp_def = _plugin(tmp_path, _COMP_FLOORED + ' }', 'def.hu')
+    below = _plugin(tmp_path, _floors('>=1.80'), 'below.hu')
+    above = _plugin(tmp_path, _floors('>=1.70'), 'above.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[below, comp_def])
+    assert r.components['ripgrep'].req_versions == {'cargo': '>=1.96'}
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[comp_def, above])
+    assert r.components['ripgrep'].req_versions == {'cargo': '>=1.70'}
+
+
+def test_check_has_no_loose_floor_warning(tmp_path):
+    # the retired "version-floors only tighten" rule: a looser patch is honored, nothing to warn
+    from configsys import routecheck
+    lo = _plugin(tmp_path, _SRC_FLOORED + ' }', 'lo.hu')
+    hi = _plugin(tmp_path, _floors('>=1.80'), 'hi.hu')
+    r = Resolver(ROUTES, 'ubuntu', '24.04', 'x86_64', plugin_files=[lo, hi])
     issues = routecheck.validate({'ripgrep': r.components['ripgrep']}, r.cascade, r.drivers,
                                  components_checked=True)
-    loose = [i for i in issues if i.kind == 'loose-floor']
-    assert len(loose) == 1 and loose[0].severity == 'warning'
-    assert '>=1.80' in loose[0].message and '>=1.96' in loose[0].message
-    assert 'no effect' in loose[0].message
+    assert not [i for i in issues if i.kind == 'loose-floor']
+    assert not hasattr(r.components['ripgrep'], 'loose_floors')

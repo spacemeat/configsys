@@ -576,7 +576,7 @@ component-names: {
 It is keyed by driver and overlaid across the layer stack (later wins per driver and component): a string replaces the resolved package name; \fB{}\fR (or an empty value) means "not available through this driver", so the component isn't offered there. See docs/routing-model.md for the full rules.
 .SH VERSION-FLOORS
 .PP
-\fBversion-floors:\fR tightens version requirements without redefining components:
+\fBversion-floors:\fR sets the version floor of an existing requirement without redefining the component:
 .PP
 .RS 4
 .nf
@@ -586,7 +586,7 @@ version-floors: {
 .fi
 .RE
 .PP
-A floor applies only where the component already \fBrequires:\fR that capability (at the component level or on a binding); a floor for a capability it doesn't require is ignored, so this section never adds a dependency. It never loosens one either: where the requirement already carries a constraint, the stricter of the two applies (both, when neither implies the other), and a floor looser than the inline one has no effect — \fBconfigsys check\fR warns \fBloose-floor\fR. Later layers win per component and capability.
+A floor applies only where the component already \fBrequires:\fR that capability (at the component level or on a binding); a floor for a capability it doesn't require is ignored, so this section never adds a dependency. Later layers win per component and capability. Against a constraint written in the \fBrequires:\fR itself, layer precedence decides, whether the patch is tighter or looser: the patch replaces it unless that \fBrequires:\fR was written in a higher layer than the patch. For a component-level requirement that is the highest layer that set the component's \fBrequires:\fR; for a binding's, the layer that contributed that binding. A patch in the same file as the \fBrequires:\fR replaces it too. A requirement written with no constraint (\fBrequires: cargo\fR) takes the floor from a patch in any layer, so a floors plugin that sorts below the recipes it serves still supplies their floors.
 .SH FACETS
 .PP
 A \fBfacet\fR is a detected fact about the machine (a GPU vendor, a tool's version) that \fBwhen:\fR can test. The repo, plugins and included files declare facets with probes:

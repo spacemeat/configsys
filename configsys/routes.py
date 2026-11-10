@@ -108,8 +108,11 @@ def _merge_component_chain(name, chain):
       overrides the lower, a `drop:` binding retracts the matching inherited one;
     - the other fields (provides/requires/suggests/parts/standing) override with inheritance.
     Each surviving binding is tagged `__source__` with the layer that contributed it (so a dotfiles
-    binding's content root, and provenance, follow the defining layer even across an amend).'''
+    binding's content root, and provenance, follow the defining layer even across an amend), and
+    the spec carries `__requires_source__`, the layer whose component-level `requires:` stands (a
+    `version-floors:` patch from below it doesn't override its floors — _apply_version_floors).'''
     fields, bindings, attrs = {}, {}, []   # bindings: (via, when) -> spec dict (insertion order kept)
+    req_src = None
     for val, src in chain:
         if _not_a_map(val):                # `foo: bar` is a typo, never a silent tombstone (routing-25)
             raise ConfigError(f'component {name!r}: expected a map ({{ install: [ … ] }}, or {{}} to '
@@ -117,11 +120,13 @@ def _merge_component_chain(name, chain):
         spec = val if isinstance(val, dict) else {}
         _check_component_keys(name, spec)
         if not spec:                   # {} tombstone: forget everything below, start fresh
-            fields, bindings, attrs = {}, {}, []
+            fields, bindings, attrs, req_src = {}, {}, [], None
             continue
         for k in _COMPONENT_FIELDS:
             if k in spec:
                 fields[k] = spec[k]
+        if 'requires' in spec:
+            req_src = src
         for a in as_list(spec.get('attrs')):   # attrs UNION across layers (a plugin can add tags)
             if a not in attrs:
                 attrs.append(a)
@@ -141,6 +146,8 @@ def _merge_component_chain(name, chain):
     out = {**fields, 'install': list(bindings.values())}
     if attrs:
         out['attrs'] = attrs
+    if req_src is not None:
+        out['__requires_source__'] = req_src
     return out
 
 
@@ -158,7 +165,7 @@ class Component:
         self.prov_versions = cap_constraints(spec.get('provides'))
         self.requires = cap_names(spec.get('requires'))
         self.req_versions = cap_constraints(spec.get('requires'))
-        self.loose_floors = []   # [(where, cap, floor, inline)] — version-floors with no effect (check)
+        self.requires_source = spec.get('__requires_source__')   # layer whose `requires:` stands
         self.suggests = cap_names(spec.get('suggests'))   # soft deps: pulled if resolvable, else skipped
         self.parts = as_list(spec.get('parts'))
         # a `standing: never-auto` provider satisfies a `requires:` only when explicitly wanted /
@@ -604,7 +611,8 @@ def load(path, overrides_path=None, plugin_files=(), validate=True,
     never_auto_drivers = frozenset(name for name, spec in drvs.items()
                                if isinstance(spec, dict) and _standing(spec) == NEVER_AUTO)
     cascade.never_auto_drivers = never_auto_drivers          # so routecheck.validate mirrors resolve._select
-    _apply_version_floors(components, layers.merge_version_floors(layer_list))
+    _apply_version_floors(components, layers.merge_version_floors(layer_list),
+                          {os.path.normpath(L.path): i for i, L in enumerate(layer_list)})
     if check and clean and fingerprint is not None:
         _VALIDATED.add(fingerprint)
     return Loaded(cascade, components, drivers, never_auto_drivers)
@@ -701,42 +709,32 @@ def _driver_gates(drvs, sources, forgiving, warnings_out=None):
     return gates
 
 
-def _stricter(inline, floor):
-    '''(constraint, looser) — the stricter of an inline constraint and a `version-floors:` patch.
-    The patch when it admits no version the inline one doesn't (osversion.implies), the inline one
-    when the patch is LOOSER (`looser` = True: the patch has no effect), and both together (`,` =
-    AND) when neither implies the other (`>=1.96` and `<2`).'''
-    from .osversion import implies
-    if inline is None or inline == floor or implies(floor, inline):
-        return floor, False
-    if implies(inline, floor):
-        return inline, True
-    return f'{inline},{floor}', False
-
-
-def _apply_version_floors(components, floors):
-    '''Patch merged `version-floors` {component: {cap: constraint}} onto the built components: set
-    the floor wherever the component ALREADY requires the cap (its component-level `requires`, and
-    any binding that requires it). A patch only TIGHTENS an existing requirement — a floor for a cap
-    the component doesn't require is IGNORED, so it never creates a requirement, and one looser than
-    an inline constraint keeps the inline one (_stricter; `check` warns `loose-floor`, recorded in
-    `comp.loose_floors`). It DOES act like an authored floor at either level: the resolver selects
-    (or fails) a provider of that cap by version, exactly as for `requires: { cap: ">=N" }` written
-    in place (routing-model §11; B15).'''
+def _apply_version_floors(components, floors, rank):
+    '''Patch merged `version-floors` {component: {cap: (constraint, layer index)}} onto the built
+    components: SET the floor wherever the component ALREADY requires the cap (its component-level
+    `requires`, and any binding that requires it). A floor for a cap the component doesn't require
+    is IGNORED, so it never creates a requirement. Against a floor written inline it follows LAYER
+    PRECEDENCE, tighter or looser alike (the user manages): the patch replaces it unless the
+    `requires:` that wrote it — the component's (`comp.requires_source`) or the binding's
+    (`b.source`) — sits in a HIGHER layer than the patch (`rank`: layer path -> index); a same-layer
+    patch replaces it too. A bare requirement has no floor to defend, so any layer's patch sets it
+    (a floors plugin sorted below the recipes it serves). It acts like an authored floor at either
+    level: the resolver selects (or fails) a provider of that cap by version, exactly as for
+    `requires: { cap: ">=N" }` written in place (routing-model §11; B15).'''
+    def _layer(src):
+        return rank.get(os.path.normpath(src), -1) if src else -1
     for cname, cap_map in floors.items():
         comp = components.get(cname)
         if comp is None or not isinstance(cap_map, dict):
             continue
-        for cap, con in cap_map.items():
+        for cap, (con, at) in cap_map.items():
             con = str(con)
-            targets = [('requires', comp.req_versions)] if cap in comp.requires else []
-            targets += [(f'binding via:{b.via} requires', b.req_versions) for b in comp.bindings
+            targets = [(comp.req_versions, comp.requires_source)] if cap in comp.requires else []
+            targets += [(b.req_versions, b.source) for b in comp.bindings
                         if cap in cap_names(b.details.get('requires'))]
-            for where, cons in targets:
-                inline = cons.get(cap)
-                cons[cap], looser = _stricter(inline, con)
-                if looser:
-                    comp.loose_floors.append((where, cap, con, inline))
+            for cons, src in targets:
+                if cap not in cons or _layer(src) <= at:
+                    cons[cap] = con
 
 
 _FACET_CACHE = {}

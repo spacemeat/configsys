@@ -943,7 +943,7 @@ class _State:
         # selects a resident by version. A component's config is just another required component
         # (a `via: dotfiles` one), so it flows through here too.
         # the binding's constraints INCLUDING any `version-floors:` patch (routes._apply_version_floors
-        # writes them to req_versions) — a floor tightens at component and binding level alike (B15)
+        # writes them to req_versions) — a patched floor applies at component and binding level alike (B15)
         bind_cons = dict(getattr(binding, 'req_versions', None)
                          or cap_constraints(binding.details.get('requires')))
         # driver-level requires are keyed by the DRIVER that installs the unit: a `via: native`

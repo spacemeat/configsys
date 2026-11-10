@@ -405,7 +405,7 @@ def collect_named(layers, section, roles=None):
 def merge_two_level(layers, section, roles=None):
     '''Overlay a two-level `{outer: {inner: value}}` section across layers (later layers win per
     (outer, inner)) -> {outer: {inner: value}}; a non-map outer entry is ignored. `roles`
-    (optional) restricts which layers contribute. The engine of component-names / version-floors.'''
+    (optional) restricts which layers contribute. The engine of component-names.'''
     out = {}
     for layer in layers:
         if roles is not None and layer.role not in roles:
@@ -440,13 +440,21 @@ def name_override_source(layers, driver, component):
     return None
 
 
-def merge_version_floors(layers, roles=None):
-    '''Overlay the `version-floors` section across layers -> {component: {cap: constraint}}. The
-    analog of component-names for VERSION constraints: a higher layer patches a (component,
-    capability) floor WITHOUT redefining the component, so a data plugin that follows its `main`
-    branch can supply auto-derived toolchain floors (floorderive) that fold into existing recipes. Later layers win per
-    (component, cap).'''
-    return merge_two_level(layers, 'version-floors', roles)
+def merge_version_floors(layers):
+    '''Overlay the `version-floors` section across layers -> {component: {cap: (constraint, layer
+    index)}}. The analog of component-names for VERSION constraints: a higher layer patches a
+    (component, capability) floor WITHOUT redefining the component, so a data plugin that follows
+    its `main` branch can supply auto-derived toolchain floors (floorderive) that fold into
+    existing recipes. Later layers win per (component, cap); the winner's index is kept because
+    routes._apply_version_floors weighs it against the layer whose `requires:` wrote an inline floor.'''
+    out = {}
+    for i, layer in enumerate(layers):
+        sec = layer.data.get('version-floors')
+        if isinstance(sec, dict):
+            for comp, caps in sec.items():
+                if isinstance(caps, dict):
+                    out.setdefault(comp, {}).update({cap: (con, i) for cap, con in caps.items()})
+    return out
 
 
 def merge_scalar(layers, section, roles):

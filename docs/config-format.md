@@ -932,7 +932,8 @@ this driver", so the component isn't offered there. See docs/routing-model.md fo
 
 ## version-floors
 
-`version-floors:` tightens version requirements without redefining components:
+`version-floors:` sets the version floor of an existing requirement without redefining the
+component:
 
 ```hu
 version-floors: {
@@ -942,10 +943,14 @@ version-floors: {
 
 A floor applies only where the component already `requires:` that capability (at the component
 level or on a binding); a floor for a capability it doesn't require is ignored, so this section
-never adds a dependency. It never loosens one either: where the requirement already carries a
-constraint, the stricter of the two applies (both, when neither implies the other), and a floor
-looser than the inline one has no effect — `configsys check` warns `loose-floor`. Later layers win
-per component and capability.
+never adds a dependency. Later layers win per component and capability. Against a constraint
+written in the `requires:` itself, layer precedence decides, whether the patch is tighter or
+looser: the patch replaces it unless that `requires:` was written in a higher layer than the
+patch. For a component-level requirement that is the highest layer that set the component's
+`requires:`; for a binding's, the layer that contributed that binding. A patch in the same file
+as the `requires:` replaces it too. A requirement written with no constraint (`requires: cargo`)
+takes the floor from a patch in any layer, so a floors plugin that sorts below the recipes it
+serves still supplies their floors.
 
 ## facets
 

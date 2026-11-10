@@ -217,8 +217,10 @@ the full spec). Its sections:
 
 Any layer may also patch without redefining a component: `component-names: { <driver>: { <comp>:
 <pkg> | {} } }` (per-driver package-name patch, `{}` = no package there, so that method can't
-satisfy a hard require; routing-model §10a) and `version-floors:` (tightens an existing
-`requires:`, never adds one; it selects at binding level too).
+satisfy a hard require; routing-model §10a) and `version-floors:` (SETS an existing `requires:`'
+floor by layer precedence — it replaces an inline floor, tighter or looser, unless that
+`requires:` was written in a higher layer; fills a bare one from any layer; never adds one; it
+selects at binding level too).
 
 Resolution (resolve.py; the app runs `resolve_resilient`) is a worklist to a fixpoint over one
 fixed machine context: seed the explicitly-wanted components + what they provide, then close

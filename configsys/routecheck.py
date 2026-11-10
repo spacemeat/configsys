@@ -508,7 +508,7 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
     with no install-cmd, a tarball with no installDir, a facet named like an os block. Warnings
     (localized): method ties, retired / malformed preference keys, unknown attrs, ignored parts:,
     unknown OS / bare-facet `when:` atoms, requires nothing provides, unsatisfiable version
-    constraints, a `version-floors:` looser than the inline floor (no effect), os-block / release-registry / plugin-preference-knob problems. Attribution via each
+    constraints, os-block / release-registry / plugin-preference-knob problems. Attribution via each
     Component.source (the os/drivers file for the rest).
 
     `pending_vias` are via names provided by a declared code plugin that is present but not
@@ -541,10 +541,6 @@ def validate(components, cascade, drivers, pending_vias=frozenset(), never_auto_
             add('method-tie', msg, comp, 'warning')
         for msg in retired_key_warnings(comp):
             add('retired-key', msg, comp, 'warning')
-        for where, cap, floor, inline in getattr(comp, 'loose_floors', ()):
-            add('loose-floor', f'`version-floors:` {cap} {floor} is looser than its {where} '
-                               f'{cap} {inline}, so it has no effect (version-floors only tighten)',
-                comp, 'warning')
         why = standing_problem({'standing': getattr(comp, 'standing', None)})
         if why:
             add('bad-standing', why, comp, 'warning')

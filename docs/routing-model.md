@@ -1156,11 +1156,14 @@ Resolution with a constraint (`_State._satisfy_constrained`):
 
 The `version-floors:` section (`{ <component>: { <cap>: "<constraint>" } }`, overlaid across layers
 by `layers.merge_version_floors`) patches floors onto existing components without redefining them;
-it only tightens a requirement the component (or one of its bindings) already has, never creates
-one, and acts exactly like a floor written in place, at component and binding level alike
-(`routes._apply_version_floors`). Against an inline constraint the stricter one applies
-(`routes._stricter`; both when neither implies the other), and a looser patch has no effect —
-`check` warns `loose-floor`. `configsys check` warns `unsatisfiable-constraint` when every
+it sets the floor of a requirement the component (or one of its bindings) already has, never
+creates one, and acts exactly like a floor written in place, at component and binding level alike
+(`routes._apply_version_floors`). Against an inline constraint it follows layer precedence,
+tighter or looser alike: the patch's layer (the highest one setting that `(component, cap)`)
+replaces the inline floor unless the `requires:` that wrote it sits in a strictly higher layer —
+the layer that last set the component's `requires:` (`Component.requires_source`, recorded by
+`_merge_component_chain`) or the one that contributed the binding (`Binding.source`). A bare
+requirement has no floor to defend, so a patch from any layer sets it. `configsys check` warns `unsatisfiable-constraint` when every
 provider declares a concrete version and none meets a constraint, flags provider-pins that conflict
 with a consumer's constraint, and errors `bad-constraint` on a constraint whose operand doesn't
 parse (`>=3.1x` — at resolve time it abstains, so it is never met). Details: docs/versioned-requires.md.
