@@ -3,7 +3,7 @@
 > **Status: DONE** — finished 2026-11-07 (0c62c22). Phases 1 (efa9c38), 2 (da323ea), 4 (e03afa8,
 > fd0e94f, ab5c941) and 5 (a4e5132, 3e8be8a, 17643aa, 0aa1606, 0c62c22) shipped; phase 3 was split
 > out to docs/done/primary-journal-plan.md (its decision-1 part shipped, f5e0340).
-> Lives on in: docs/plugins.md §8 (publishing your primary), CLAUDE.md (primarygit / humerge / hutext).
+> Lives on in: docs/plugins.md §8 (publishing your primary) and §8a (primarygit / humerge / hutext).
 
 The review of `configsys/primarygit.py` and `configsys/humerge.py` (docs/review-2026-11/primary.md)
 found that the push works on its tested paths and fails badly off them: an interrupted or failed combine

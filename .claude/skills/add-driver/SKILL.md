@@ -89,7 +89,7 @@ below):
 `set_version`, `lock`, `unlock`) plus usually `location`. Rules that bit us before:
 - **Everything through `self.runner.run`** — that is what makes `--pretend` and the tests work. A
   driver that writes files itself (dotfiles, glue, tarball, appImage) must check
-  `self.runner.pretend` before any write; `--pretend` is a full dry run (CLAUDE.md).
+  `self.runner.pretend` before any write; `--pretend` is a full dry run (docs/principles.md "Safety").
 - **A write into a content root** (your primary plugin's `dotfiles/`/`glue/` tree) calls
   `self.will_write(path)` BEFORE writing — the primary's write journal commits exactly the announced
   paths (an unannounced write reads as your hand edit; test/test_primary_journal.py `WRITES`).

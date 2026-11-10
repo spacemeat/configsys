@@ -101,5 +101,10 @@ examples:
   removes them when the new method installs (remove-before-install ordering is
   `planning.expand_plan`'s), and `installState.plan_companion_cleanup` drops the old method's glue
   companions with them.
+- The ledger (`ledger.py`, `state.hu`) that holds the receipts (and the version locks) saves
+  atomically under an exclusive lock, writing back only the keys this process changed, so a TUI
+  that loaded it an hour ago doesn't overwrite what a CLI run saved since. An unreadable `state.hu`
+  reads as empty (an error on the `!` page) and is moved aside to `state.hu.corrupt-<time>` on the
+  next save.
 - `configsys remove <comp>` on an unroutable component (`cli/ops._dispatch_op`) removes its stranded
   install(s); a `profile:` member with nothing here to remove is skipped with a one-line notice.

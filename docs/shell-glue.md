@@ -98,7 +98,9 @@ conf.d can be communal, fish's especially) — is moved aside to the first free
 `<name>.pre-configsys`, `.pre-configsys.1`, `.2`, … (an earlier backup is never overwritten, and no
 one else's link is silently replaced). `_linked.unlink` removes only a link configsys owns and puts
 `<name>.pre-configsys` back into the gap; a real file or another tool's link there is left and
-reported. Both are pretend-aware (they echo and touch nothing).
+reported. Both are pretend-aware (they echo and touch nothing). The glue and dotfiles drivers'
+install/uninstall stdout is human notes (what was activated or moved aside, backups made), so they
+set `notes_in_stdout` and the op loop prints those lines under the step's `ok`.
 
 **The preludes and their caches.** `configsys-glue` ships `00-configsys.<ext>` (the `00-` sorts it
 first). It defines a `configsys` function that defers to a real `configsys` on PATH (a pipx install,

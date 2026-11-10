@@ -17,6 +17,18 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   pill that bricks every later op. Same posture for any driver mutation: no half-applied state that wedges the next run.
 - **Read the target before deleting or overwriting it**, and confirm hard-to-reverse or
   outward-facing actions unless already authorized.
+- **`--pretend` is a full dry run.** The runner echoes instead of executing (so probes read empty
+  and everything reads missing — never a false "NOT DETECTED"), and nothing is written: no
+  ledger lock or receipt, `.cfs` marker, `last-failure.hu`, plugin trust or lock, plugin dir or
+  review cache, primary commit or push, refresh stamp or `stale-pins.json`, method-version /
+  flatpak / glue-locations / startup-timing / `grid-memo.json` cache, dotfiles capture or move, glue
+  snippet, filed `report`/`request` (`cli.issues._file_issue`), config edit (the CLI's
+  `cli.common._pretend_edit`; a TUI writer in actions.py returns `(False,
+  actions.PRETEND_NOT_SAVED)`), generated user config or moved legacy config. An uncached download
+  prints a `<latest release>` placeholder (`actions.pretend_unresolved_download`). Every new write
+  path honors `ctx.runner.pretend`: `test/test_pretend_sweep.py` runs every mutating verb (its
+  `VERBS`) under `--pretend` against a populated sandbox home and fails on any file change, and
+  `test/test_tui_pretend_sweep.py` drives every screen action key the same way.
 
 ## Working relationship
 

@@ -753,6 +753,60 @@ to it — provided it is synced, ABI-compatible, has no `sha256:` pin (a new fil
 hash) and its manifest has no explicit `data:` list (a new file would be ignored). Never under
 `--pretend`.
 
+### 8a. How it is built (for contributors)
+
+The primary's git work is `configsys/primarygit.py`; its `.hu` merge is `configsys/humerge.py`; the
+humon text surgery both share with `plugins.set_section` and troveio (the comment- and string-aware
+scanner with humon's three quote styles and no escapes, scalar quoting, the one-line emitter) is
+`configsys/hutext.py`, and nowhere else.
+
+- **Every git call goes through `primarygit.PrimaryRepo`**: argv lists, bytes in and `os.fsdecode`
+  out, literal pathspecs NUL-separated on stdin (never on the command line), git's repo-locating
+  variables (`GIT_DIR` and kin) scrubbed, and for fetch/push a non-interactive environment that
+  keeps your ssh command and only adds `BatchMode`.
+- **The write journal.** `snapshot()` opens a bracket around each CLI command and each TUI action
+  (no git yet). Every configsys writer into the primary calls `primarygit.will_write(path)` BEFORE
+  writing — `plugins.set_section` / `remove_sections` / `scaffold_primary`,
+  `actions._writable_primary_file` / `save_theme_plugin`, the dotfiles capture / manifest /
+  relocate writes, the glue user-snippet / override / `99-user` writes,
+  `cli.plugin._sweep_glue_to_primary`, `plugin init`'s merge, and a code plugin's driver through the
+  frozen `Driver.will_write` — and `commit()` commits exactly the recorded paths that changed. A new
+  writer must call it too: `test/test_primary_journal.py`'s `WRITES` fails until it does.
+- **Questions.** Every question a push asks is a `primarygit.Question`, built by `question(kind, …)`
+  from the `QUESTIONS` table (its choices with their keys, the Enter/Esc answer, the unattended
+  answer) and passed to `PushUI.ask`: `cli.plugin._CliPushUI` asks on the terminal,
+  `tui.flows._TuiPushUI` in a popup whose body is `Question.listing()` (the commits and files about to
+  leave), and the `PushUI` base class gives the unattended answers.
+- **The combine** (`_combine`) stashes your edits, runs `_replay`, and on any exit that isn't a
+  combined result — a stop, a git failure, an exception, Ctrl-C — `_restore`s HEAD, aborts and
+  unstashes. `_replay` rebases onto the remote with `humerge` registered as git's merge driver for
+  `*.hu` for that one command only (`_merge_driver`, which runs `humerge.main` isolated: `python -I
+  -c` with configsys's own path first, so nothing committed to the primary can shadow an import). On
+  a remaining conflict it aborts the rebase and merges instead: each `.hu` conflict is asked per key
+  (`_settle_hu` → a `value` question), any other file per file, applied with `git merge-file
+  --ours/--theirs` on the index stages so only the overlapping hunks take a side; a `.hu` settled by
+  edit or by side must parse. `explain_git_failure` words a refusal. A locked primary whose remote is
+  ahead is never combined into.
+- **humerge** merges per key through maps. The `SET_LISTS` (a machine's picks, `disabled-drivers`,
+  `orphans-ignore`, `installer-shell-writes-allow`, a component's `attrs`) are order-free: both sides'
+  additions and removals combine. The `ORDERED_LISTS` (profile terms) get a diff3 sequence merge.
+  `plugins:` merges per source, keeping the newer version tag, in layer-precedence order. The merged
+  text is mine's with only the changed keys rewritten and combined lists edited in place (`_relist`,
+  comments kept), verified by re-reading; theirs' text is taken whole only when mine changed nothing.
+  A clean git line merge wins unless it differs only in set-list order or duplicates, or holds a key
+  twice; a list holding a metatag is unmergeable, so it is asked.
+- **State, policy, guards.** `primarygit.state` returns a `PrimaryState` (name, branch, ahead,
+  behind, dirty, first_push), worded by `glyphs` / `chip` / `describe`; `fetch` refreshes it. What
+  each `primary-push` mode does is the `PUSH_POLICY` table. `primarygit.local_work` lists what
+  deleting a clone would lose (uncommitted or unpushed work, stashes, no remote, a plugin authored in
+  place) — the guard `plugin remove` and every other removal of a plugin clone asks first.
+  `plugins.unsigned_commits` is the `primary-verify: signed` check (`%G?` must be `G`),
+  `plugins.sync_note` words sync's `kept` / `diverged` / `ahead` outcomes, and
+  `plugins.primary_trusts` is the one `primary-trust` decision for the primary's data and code.
+- **History and undo.** `primarygit.history` returns `Change`s (`Change.machine` names the machine
+  whose configsys made one); `undo` takes back the newest non-merge commit whose body says `Made by
+  configsys` — `reset --keep` when it is the unpushed HEAD, else a revert committed as `Undo: …`.
+
 ## 9. Machine-level plugins
 
 To make a source tree or an app's own `.hu` files contribute components to *this machine only*,
