@@ -91,7 +91,7 @@ VERBS = [
     ['plugin', 'sync'], ['plugin', 'bless', 'codeplug'], ['plugin', 'unbless'], ['plugin', 'add', 'github:nobody/none'],
     ['plugin', 'remove', 'codeplug'], ['plugin', 'update'], ['plugin', 'update', 'codeplug', '--ref', 'v1', '--pin'],
     ['plugin', 'trust', '--all'], ['plugin', 'untrust', 'codeplug'], ['plugin', 'lock', 'codeplug'],
-    ['plugin', 'diff', 'codeplug', '--to', 'v1'], ['plugin', 'init', 'configsys-me'],
+    ['plugin', 'diff', 'codeplug', '--to', 'v1'], ['plugin', 'diff', 'codeplug', '--raw'], ['plugin', 'init', 'configsys-me'],
     ['plugin', 'set-source', 'srcplug', 'github:me/codeplug'], ['plugin', 'push'], ['plugin', 'undo', '--yes'],
     ['report', 'btop', '--yes'], ['request', 'btop', '--yes'], ['request-os', '--yes'],
     ['orphans', '--ignore', 'nano'], ['orphans', '--unignore', 'x'], ['orphans', '--adopt', 'jq'],

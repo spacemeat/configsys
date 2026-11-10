@@ -319,20 +319,22 @@ _STATUS = {'added': '  (new file)', 'deleted': '  (deleted)'}
 _GIT_HEADERS = ('index ', '--- ', '+++ ', 'new file mode', 'deleted file mode')   # the file line says it
 
 
-def render(sections, act=None, *, raw=False, heading=True, most_commits=20):
+def render(sections, act=None, *, raw=False, heading=True, commits=True, most_commits=20):
     '''Role-tagged lines [(kind, text)] for `sections`: each title (kind 'head-in' / 'head-out',
-    its actions named by `act`, see Section.heading), its note, its commits, then each file with its
-    word summary — or, `raw` (or a file with no summary), its unified diff. Kinds: head-in, head-out,
-    note, commit, file, add, del, change (summaries), hunk, meta, ctx (diff lines).'''
+    its actions named by `act`, see Section.heading — left out with `heading` False), its note, its
+    commits (unless `commits` False), then each file with its word summary — or, `raw` (or a file with
+    no summary), its unified diff. Kinds: head-in, head-out, note, commit, file, add, del, change
+    (summaries), hunk, meta, ctx (diff lines). The push preview and its question print the ↑ section
+    this way too (primarygit).'''
     out = []
     for s in sections:
         if heading:
             out.append((f'head-{s.direction}', s.heading(act)))
         if s.note:
             out.append(('note', f'    {s.note}'))
-        for c in s.commits[:most_commits]:
+        for c in (s.commits[:most_commits] if commits else ()):
             out.append(('commit', f'    {c}'))
-        if len(s.commits) > most_commits:
+        if commits and len(s.commits) > most_commits:
             out.append(('commit', f'    … and {len(s.commits) - most_commits} more'))
         for f in s.files:
             if raw:

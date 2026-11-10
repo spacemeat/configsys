@@ -338,3 +338,41 @@ def test_the_tui_note_after_u_says_where_it_landed(world, monkeypatch):
     note = flows._after_primary_action(ctx, snap, intent.note, cnotes)
     assert note == ('configsys-source updated to v0.1.13 (latest tag) — recorded in your primary (prim), '
                     'not pushed yet (P)')
+
+
+# -- CLI parity: --raw, and the push preview shows the same ↑ ------------------------------------
+
+def test_plugin_diff_raw_prints_the_unified_diffs(world, capsys):
+    base, _clone, _bare, _other, _src = world
+    _update_source(base)
+    capsys.readouterr()
+    assert main(base + ['plugin', 'diff', 'prim', '--raw']) == 0
+    out = capsys.readouterr().out
+    assert '\n↑ `configsys plugin push` would share: 1 change\n' in out
+    assert '\ndiff --git a/plugin.hu b/plugin.hu\n' in out and '\n+  plugins: [\n' in out
+    assert 'configsys-source: ref v0.1.12 → v0.1.13' not in out
+
+
+def test_the_push_preview_and_its_question_show_what_goes_out_in_words(world, capsys):
+    from configsys import primarygit
+    base, _clone, bare, _other, _src = world
+    _update_source(base)
+    capsys.readouterr()
+    assert main(base + ['--pretend', 'plugin', 'push']) == 0
+    out = capsys.readouterr().out
+    assert '[pretend] would push 1 change to' in out
+    assert '[pretend]     ' in out and 'plugin update configsys-source --latest' in out
+    assert '[pretend]   plugin.hu\n' in out and '[pretend]     configsys-source: ref v0.1.12 → v0.1.13\n' in out
+
+    asked = []
+
+    class UI(primarygit.PushUI):
+        def ask(self, q):
+            asked.append(q)
+            return False if q.kind == 'confirm-push' else q.unattended
+    ok, _lines = primarygit.push(_ctx(base), UI())
+    q = next(q for q in asked if q.kind == 'confirm-push')
+    listing = q.listing()
+    assert any('plugin update configsys-source --latest' in ln for ln in listing)
+    assert '  plugin.hu' in listing and '    configsys-source: ref v0.1.12 → v0.1.13' in listing
+    assert not ok and 'v0.1.13' not in _git(bare, 'show', 'main:plugin.hu')     # "don't push": nothing sent

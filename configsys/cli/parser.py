@@ -732,6 +732,8 @@ def build_parser():
     pdf.add_argument('name', help='plugin name, source, or dir')
     pdf.add_argument('--to', metavar='REF',
                      help='compare against this ref instead of the newest version tag (or main/master)')
+    pdf.add_argument('--raw', action='store_true',
+                     help='print each change as its unified diff instead of in words')
     ppu = plsub.add_parser('push', help='publish your primary plugin: combine what this machine '
                                         'committed with what your other machines pushed (asking about '
                                         'anything both changed), and push to its branch',

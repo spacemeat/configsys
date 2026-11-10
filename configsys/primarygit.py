@@ -680,6 +680,7 @@ class Question:
     unattended: object
     items: tuple = ()
     files: tuple = ()
+    details: tuple = ()                                # confirm-push: each file, and in words what changes
     path: str = None
     detail: str = None
     index: int = 0
@@ -692,20 +693,26 @@ class Question:
         return next((c.answer for c in self.choices if c.key == key), self.enter)
 
     def listing(self, most=20):
-        '''The lines to show under the title: the items (at most `most`), then confirm-push's files.'''
+        '''The lines to show under the title: the items (at most `most`), then confirm-push's files —
+        each with what it changes, in words (`details`, review.render's ↑ section), when there are.'''
         out = list(self.items[:most])
         if len(self.items) > most:
             out.append(f'… and {len(self.items) - most} more')
-        if self.files:
+        if self.details:
+            out += list(self.details[:most * 2])
+            if len(self.details) > most * 2:
+                out.append(f'… and {len(self.details) - most * 2} more lines')
+        elif self.files:
             out.append(f'files: {", ".join(self.files[:most])}'
                        + (f' … and {len(self.files) - most} more' if len(self.files) > most else ''))
         return out
 
 
-def question(kind, *, name, items=(), files=(), path=None, detail=None, index=0, count=1, ref=None,
-             branch=None, source=None):
+def question(kind, *, name, items=(), files=(), details=(), path=None, detail=None, index=0, count=1,
+             ref=None, branch=None, source=None):
     '''Build the `kind` question (a key of QUESTIONS), with its title worded once for every UI.'''
     name, items, files = _printable(name), tuple(map(_printable, items)), tuple(map(_printable, files))
+    details = tuple(map(_printable, details))
     path, detail = (_printable(path) if path is not None else None), (_printable(detail) if detail else None)
     choices, enter, unattended = QUESTIONS[kind]
     fill = {'branch': branch or 'its branch', 'aside': ' (sets aside the answers above)' if index else ''}
@@ -727,8 +734,8 @@ def question(kind, *, name, items=(), files=(), path=None, detail=None, index=0,
                  + (f' — {detail}' if detail else ''))
     else:
         raise KeyError(kind)
-    return Question(kind, title, choices, enter, unattended, items, files, path, detail, index, count,
-                    ref, branch)
+    return Question(kind, title, choices, enter, unattended, items, files, details, path, detail, index,
+                    count, ref, branch)
 
 
 class PushUI:
@@ -1100,6 +1107,7 @@ class _PushSession:
                 warn = (f'{unsigned} of these {verb} signed — your other machines (primary-verify: signed) '
                         f'will refuse them; set `commit.gpgsign` in {root}')
         if not self.ui.ask(question('confirm-push', name=name, items=commits, files=files,
+                                    details=_outgoing_words(root, None if first else upstream),
                                     source=self.source, detail=warn)):
             return self.end(False, *self._take_back_combine())
         self.lines += _settle_aside(repo, name, self.aside, keep_theirs=True)
@@ -1297,8 +1305,21 @@ def _outgoing(repo, upstream):
     return commits, files
 
 
+def _outgoing_words(root, upstream, commits=False):
+    '''The ↑ section a push would send (review.outgoing), as the lines `plugin diff` prints for it —
+    each file, and what it changes in words — without its title (and, unless `commits`, its commits).
+    Read-only; [] when it can't be read.'''
+    try:
+        from . import review
+        sec = review.outgoing(root, upstream)
+        return [t for _k, t in review.render([sec], heading=False, commits=commits)]
+    except Exception:                                  # noqa: BLE001 — the plain file list still shows
+        return []
+
+
 def _pretend_preview(name, root, source):
-    '''What `plugin push` would send, as of the last fetch — read-only (no fetch, no commit).'''
+    '''What `plugin push` would send, as of the last fetch — read-only (no fetch, no commit): its
+    commits, then each file with what it changes in words (the ↑ section `plugin diff` shows).'''
     tag = '[pretend]'
     if not (root / '.git').exists():
         return [f'{tag} {name} isn\'t synced here — nothing would be pushed']
@@ -1315,9 +1336,13 @@ def _pretend_preview(name, root, source):
     out = [f'{tag} would push {_count(len(commits))} to {source} (as of the last fetch'
            + (f'; {_count(behind)} from your other machines would be combined first' if behind else '')
            + '):']
-    out += [f'{tag}   {_printable(c)}' for c in commits[:20]]
-    out += [f'{tag}   files: {", ".join(_printable(f) for f in files[:20])}'
-            + (f' … and {len(files) - 20} more' if len(files) > 20 else '')]
+    words = _outgoing_words(root, upstream if has_up else None, commits=True)
+    if words:
+        out += [f'{tag} {_printable(ln)}' for ln in words]
+    else:
+        out += [f'{tag}   {_printable(c)}' for c in commits[:20]]
+        out += [f'{tag}   files: {", ".join(_printable(f) for f in files[:20])}'
+                + (f' … and {len(files) - 20} more' if len(files) > 20 else '')]
     return out + [f'{tag} nothing sent']
 
 

@@ -1203,7 +1203,7 @@ one works.
 - `picks-to-primary` (`M`): move this box's local picks into your primary plugin, as
   `configsys picks to-primary` does.
 - `raw-diff` (`d`): switch the review pane between word summaries of each `.hu` change and the raw
-  unified diff, a file at a time.
+  unified diff, a file at a time, as `configsys plugin diff --raw` does.
 
 **glue**:
 

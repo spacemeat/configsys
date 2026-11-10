@@ -307,8 +307,9 @@ def review_act(name, to=None):
 
 
 def cmd_plugin_diff(ctx, args, eff):
-    '''`plugin diff NAME [--to R]`: print the review — what would come in (↓) and what this copy has
-    that its remote doesn't (↑) — the TUI Plugins review pane, as text (review.render).'''
+    '''`plugin diff NAME [--to R] [--raw]`: print the review — what would come in (↓) and what this
+    copy has that its remote doesn't (↑) — the TUI Plugins review pane, as text (review.render): each
+    `.hu` change in words, or `--raw` its unified diff.'''
     from .. import actions, plugins, review
     target = plugins.find_decl(eff, ctx.paths.plugins_dir, args.name)
     if target is None:
@@ -333,7 +334,8 @@ def cmd_plugin_diff(ctx, args, eff):
         return 0 if rv.error.startswith('[pretend]') else 1
     print(f'configsys: {row["name"]}: {rv.span}' + (' (as of the last fetch — --pretend fetches nothing)'
                                                      if pretend else ''))
-    for _kind, line in review.render(rv.sections, review_act(row['name'], args.to)):
+    for _kind, line in review.render(rv.sections, review_act(row['name'], args.to),
+                                     raw=getattr(args, 'raw', False)):
         print(line)
     return 0
 
