@@ -36,11 +36,22 @@ def test_disposition_merge_and_is_new():
              ('user', '{ profiles: { mine: [ htop  bat ] }  dispositions: { ripgrep: seen  eza: interesting } }'))
     assert c.disposition('ripgrep') == 'seen' and c.disposition('eza') == 'interesting'
     assert c.disposition('fd') is None
-    # NEW = undispositioned: not in a user profile, not seen/interesting, not uninstall
+    # NEW = not marked seen/interesting and picked on NO machine: a profile — even one you
+    # authored — is only a browse lens, so its members stay NEW until you look at them
     assert c.is_new('fd') and c.is_new('fzf')                 # in a system profile only -> NEW
-    assert not c.is_new('htop') and not c.is_new('bat')       # in the user profile `mine` -> included
+    assert c.is_new('htop') and c.is_new('bat')               # in your own profile `mine` -> still NEW
     assert not c.is_new('ripgrep') and not c.is_new('eza')    # dispositioned
-    assert c.user_layer_components() == {'htop', 'bat'}       # only your profile's members count
+
+
+def test_picked_on_any_machine_is_not_new():
+    # a pick in ANY column of the matrix (merged repo < primary < user) takes a component out of
+    # NEW — not only this box's
+    c = _cfg(('primary', '{ picks: { laptop: [ fd ]  desk: [ fzf ] } }'),
+             ('user', '{ machine: desk  picks: { desk: [ bat ]  this-machine: [ htop ] } }'))
+    assert c.picked_components() == {'fd', 'bat', 'htop'}     # the user's desk list replaced fzf's
+    assert not c.is_new('fd') and not c.is_new('bat') and not c.is_new('htop')
+    assert c.is_new('fzf') and c.is_new('ripgrep')
+    assert c.picked_on('fd') == ['laptop'] and c.picked_on('fzf') == []
 
 
 def test_dispositions_layered_local_overrides_lower():
@@ -58,7 +69,7 @@ def test_uninstall_is_not_new():
 
 # -- actions + CLI --------------------------------------------------------
 
-def _ctx(tmp_path, body='{ configs: [ mine ]  profiles: { mine: [ htop  bat ] } }'):
+def _ctx(tmp_path, body='{ picks: { laptop: [ htop ] }  profiles: { mine: [ htop  bat ] } }'):
     from configsys.app import Context, build_parser
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True, exist_ok=True)
@@ -100,10 +111,14 @@ def test_disp_cli_get_set_list(tmp_path):
             cmd_disp(ctx, build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop'] + argv))
         return buf.getvalue()
 
-    assert 'include' in run(['disp', 'get', 'htop'])           # member of `mine`
+    assert 'htop: picked on laptop' in run(['disp', 'get', 'htop'])   # tracked by a machine
+    assert 'bat: new' in run(['disp', 'get', 'bat'])           # only in a profile -> still new
     assert 'fd: new' in run(['disp', 'get', 'fd'])
     run(['disp', 'set', 'fd', 'interesting'])
-    assert 'fd: interesting' in run(['disp', 'get', 'fd'])
+    assert 'fd: marked interesting' in run(['disp', 'get', 'fd'])
+    run(['disp', 'set', 'fd', 'seen'])
+    assert 'fd: marked seen' in run(['disp', 'get', 'fd'])
+    run(['disp', 'set', 'fd', 'interesting'])
     out = run(['disp', 'list'])
     assert 'interesting (1): fd' in out and 'NEW (undispositioned):' in out
     newout = run(['disp', 'list', '--new'])

@@ -60,7 +60,9 @@ def test_disp_list_and_get(home, capsys):
     assert home('disp', 'get', 'fzf') == 0
     assert 'interesting' in _out(capsys)
     assert home('disp', 'get', 'ripgrep') == 0
-    assert 'new' in _out(capsys)
+    assert 'ripgrep: picked on this-machine' in _out(capsys)    # a pick takes it out of NEW
+    assert home('disp', 'get', 'bat') == 0
+    assert 'bat: new' in _out(capsys)
 
 
 def test_updates_under_pretend_lists_nothing_and_exits_zero(home, capsys):

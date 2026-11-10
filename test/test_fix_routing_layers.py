@@ -71,11 +71,11 @@ def test_primary_may_set_machine_settings(tmp_path):
 
 def test_machine_roles_has_no_phantom_role():
     assert config_mod._MACHINE_ROLES == ('repo', 'primary', 'user')
-    # review-2026-11-2 config-layers-23: user_layer_components reads only real roles too — a layer
-    # of the phantom `machine` role authors nothing
-    c = Config([layers.Layer('m.hu', 'machine', {'profiles': {'p': ['btop']}}),
-                layers.Layer('u.hu', 'user', {'profiles': {'q': ['fd']}})])
-    assert c.user_layer_components() == {'fd'}
+    # review-2026-11-2 config-layers-23: the NEW rule's picked set reads only real roles too — a
+    # layer of the phantom `machine` role picks nothing
+    c = Config([layers.Layer('m.hu', 'machine', {'picks': {'this-machine': ['btop']}}),
+                layers.Layer('u.hu', 'user', {'picks': {'laptop': ['fd']}})])
+    assert c.picked_components() == {'fd'}
     assert not hasattr(c, '_profiles') and not hasattr(Config, 'PICKS_PROFILE')
     assert not hasattr(layers, 'merge_named') and not hasattr(layers, '_DEFINITION_SECTIONS')
 

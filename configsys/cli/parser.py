@@ -339,7 +339,8 @@ def build_parser():
                                      'catalog components (they never install anything)',
                         description='View or set dispositions: your triage marks on catalog '
                                     'components — seen or interesting — so new ones stand out. '
-                                    'Components you have not marked are NEW. Dispositions are kept '
+                                    'A component you have not marked that no machine picks is NEW. '
+                                    'Dispositions are kept '
                                     'per machine (your top config) and never install anything. '
                                     'Subcommands: list (the default), get, set.')
     dpsub = dp.add_subparsers(dest='disp_command')
@@ -349,9 +350,9 @@ def build_parser():
                                        'many are still NEW (not triaged).')
     dpl.add_argument('--new', action='store_true', help='list every NEW component instead')
     dpg = dpsub.add_parser('get', help="print a component's disposition",
-                           description="Print a component's disposition: seen, interesting or new — "
-                                       'or that one of your own profiles includes it, or that it is '
-                                       'staged for removal.')
+                           description="Print a component's disposition: the machines that pick it, "
+                                       'that it is staged for removal, marked seen or interesting, '
+                                       'or new.')
     dpg.add_argument('name', help='component name')
     dps = dpsub.add_parser('set', help="set a component's disposition (kept per machine)",
                            description="Set a component's disposition, in your top config (or "

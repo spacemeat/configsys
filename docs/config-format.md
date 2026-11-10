@@ -297,9 +297,11 @@ picks: {
   machine's set for that run; install and execute still act on the local machine only.
 - The TUI **Profiles** screen is the same matrix, interactively (`t`/`T` track, `m`/`M` choose
   machines); the **Components** screen shows this machine's picks with their state.
-- **`dispositions:`** (a map of component to `seen` or `interesting`; an unlisted component is
-  NEW) is a side-store of triage marks, so you can work through the catalog once; it never installs
-  anything. `configsys disp list|get|set`.
+- **`dispositions:`** (a map of component to `seen` or `interesting`) is a side-store of triage
+  marks, so you can work through the catalog once; it never installs anything. A component is
+  **NEW** when it has no mark, no machine picks it (any column of `picks:`) and it isn't staged
+  in `uninstall:` — NEW only draws your eye to options you haven't looked at, so being in a
+  profile, even one you wrote, doesn't count. `configsys disp list|get|set`.
 - **`uninstall:`** (a list) is the queue of removals you stage on the TUI Profiles screen (`x`) or
   with `configsys uninstall add|rm|clear` (`uninstall list` shows it), shown as the `!uninstall`
   lens; they run with the next execute or `configsys remove`. `check` warns about a component that

@@ -88,7 +88,8 @@ _HELP = {
                         "inst'd (● installed+tracked / "
                         '⊙ installed+untracked [dimmed when orphans-ignore lists it] / ◐ partial: some parts, or a required component '
                         'missing / ○ none / ⮾ staged for uninstall / ⊘ no install method on this OS) · '
-                        'new ◆ · flag ☆ interesting / · seen · then one Included cell per machine '
+                        'new ◆ (not marked seen/interesting and picked on no machine) · '
+                        'flag ☆ interesting / · seen · then one Included cell per machine '
                         '(● tracked / ○ not; bold on a target machine)'),
             ('track ({profiles:track-all} / {profiles:track-one})', '{profiles:track-all} toggles TRACKING of the multi-select set, else of the highlighted item; '
                               '{profiles:track-one} always the HIGHLIGHTED item, ignoring the set ({global:confirm} too, on a component). '

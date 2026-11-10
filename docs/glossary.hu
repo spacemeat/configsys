@@ -282,7 +282,7 @@
         }
         disposition: {
             short: "`dispositions:`"
-            def: "Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything."
+            def: "Your triage mark on a catalog component — `seen` or `interesting` — kept per machine; it never installs anything. A component with no mark that no machine picks is NEW, so the options you haven't looked at stand out."
             see: [ picks ]
         }
         orphan: {

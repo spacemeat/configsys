@@ -70,7 +70,7 @@ def test_find_next_steps_through_siblings():
 
 
 def test_profile_new_count_badge(tmp_path):
-    # ⁺N badge: NEW (undispositioned, not in a user profile) members of a profile; drops as you triage.
+    # ⁺N badge: NEW (undispositioned, picked on no machine) members of a profile; drops as you triage.
     from configsys import actions
     from configsys.tui import menu
     ctx = _rctx(tmp_path)
@@ -83,6 +83,11 @@ def test_profile_new_count_badge(tmp_path):
     ps = menu.ProfileScreen(ctx)                             # reload -> caches rebuild
     assert ps.profile_new_count('shells') == before - 1
     assert ps.profile_interesting_count('shells') == 1       # ☆N tracks bookmarks
+
+    two = sorted(ps.members('shells'))[1]
+    actions.set_included(ctx, two, ['some-other-box'], True)   # picked on ANY machine -> not NEW
+    ps = menu.ProfileScreen(ctx)
+    assert ps.profile_new_count('shells') == before - 2
 
 
 def test_parts_component_installed_iff_all_parts(tmp_path):

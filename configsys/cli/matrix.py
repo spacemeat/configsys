@@ -14,8 +14,8 @@ from .where import _layer_label
 def cmd_disp(ctx, args):
     '''Component dispositions (triage): seen / interesting / new — NEW is the undispositioned
     default, nothing stores it. A machine-local side-store (`dispositions:`). `get` also names the
-    two things that keep a component out of NEW: membership in a profile you authored
-    (`Config.user_layer_components`) and a staged removal (`uninstall:`).'''
+    two other things that keep a component out of NEW: a pick on any machine
+    (`Config.picked_on`) and a staged removal (`uninstall:`).'''
     from .. import actions
     cfg = ctx.config
     sub = getattr(args, 'disp_command', None) or 'list'
@@ -42,12 +42,15 @@ def cmd_disp(ctx, args):
 
     if sub == 'get':
         c = args.name
-        if c in cfg.user_layer_components():
-            state = 'include (in one of your profiles)'
+        on = cfg.picked_on(c)
+        if on:
+            state = f'picked on {", ".join(on)}'
         elif c in cfg.uninstall_queue():
             state = 'uninstall (!uninstall)'
+        elif cfg.disposition(c):
+            state = f'marked {cfg.disposition(c)}'
         else:
-            state = cfg.disposition(c) or 'new'
+            state = 'new'
         print(f'{c}: {state}')
         return 0
 

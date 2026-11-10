@@ -181,7 +181,7 @@ picks: {
 .IP \(bu 2
 The TUI \fBProfiles\fR screen is the same matrix, interactively (\fBt\fR/\fBT\fR track, \fBm\fR/\fBM\fR choose machines); the \fBComponents\fR screen shows this machine's picks with their state.
 .IP \(bu 2
-\fB\fBdispositions:\fR\fR (a map of component to \fBseen\fR or \fBinteresting\fR; an unlisted component is NEW) is a side-store of triage marks, so you can work through the catalog once; it never installs anything. \fBconfigsys disp list|get|set\fR.
+\fB\fBdispositions:\fR\fR (a map of component to \fBseen\fR or \fBinteresting\fR) is a side-store of triage marks, so you can work through the catalog once; it never installs anything. A component is \fBNEW\fR when it has no mark, no machine picks it (any column of \fBpicks:\fR) and it isn't staged in \fBuninstall:\fR — NEW only draws your eye to options you haven't looked at, so being in a profile, even one you wrote, doesn't count. \fBconfigsys disp list|get|set\fR.
 .IP \(bu 2
 \fB\fBuninstall:\fR\fR (a list) is the queue of removals you stage on the TUI Profiles screen (\fBx\fR) or with \fBconfigsys uninstall add|rm|clear\fR (\fBuninstall list\fR shows it), shown as the \fB!uninstall\fR lens; they run with the next execute or \fBconfigsys remove\fR. \fBcheck\fR warns about a component that is both queued and still picked on this machine.
 .IP \(bu 2

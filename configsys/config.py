@@ -181,33 +181,30 @@ class Config:
 
     def disposition(self, comp):
         '''`comp`'s raw side-store disposition ('seen' | 'interesting') or None. NEW is NOT here
-        (NEW = undispositioned — see is_new).'''
+        (NEW = undispositioned and picked nowhere — see is_new).'''
         v = self.dispositions().get(comp)
         return v if v in ('seen', 'interesting') else None
 
-    def user_layer_components(self):
-        '''Every component that is a member of a profile YOU authored — one with a definition in a
-        user/primary layer. Purely-system (repo/plugin-only) profiles don't
-        count; their members stay NEW-eligible. Memoized for the life of this Config.'''
-        if getattr(self, '_user_comps', None) is None:
-            editable = {'user', 'primary'}
-            out = set()
-            for name, chain in self._chain.items():
-                if any(0 <= i < len(self._layers) and self._layers[i].role in editable
-                       for i, _v, _s in chain):
-                    try:
-                        out |= set(self.profile_components(name))
-                    except ConfigError:
-                        pass
-            self._user_comps = out
-        return self._user_comps
+    def picked_components(self):
+        '''Every component picked on ANY machine — the union of every column of the merged `picks:`
+        matrix. What keeps a component out of NEW besides a disposition. A frozenset memoized for
+        the life of this Config (is_new runs per component per frame on Profiles).'''
+        if getattr(self, '_picked_any', None) is None:
+            self._picked_any = frozenset(c for cs in self.picks().values() for c in cs)
+        return self._picked_any
+
+    def picked_on(self, comp):
+        '''The machines (sorted) whose picks include `comp` — `disp get`'s "picked on …".'''
+        return sorted(m for m, cs in self.picks().items() if comp in cs)
 
     def is_new(self, comp):
-        '''True if `comp` is UNDISPOSITIONED — the model's NEW: not seen/interesting, not a member of
-        any profile you authored, not staged for uninstall. NEW is the default; nothing stores it.'''
-        return (self.disposition(comp) is None
-                and comp not in self.uninstall_queue()
-                and comp not in self.user_layer_components())
+        '''True if `comp` is NEW: not marked seen/interesting, not staged for uninstall, and picked on
+        NO machine (any column of the matrix). NEW only draws your eye to options you haven't looked
+        at — a profile is a browse lens, so membership (even in one you authored) doesn't count.
+        NEW is the default; nothing stores it.'''
+        return (comp not in self.picked_components()
+                and self.disposition(comp) is None
+                and comp not in self.uninstall_queue())
 
     @_cached
     def locations(self):
