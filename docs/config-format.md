@@ -531,7 +531,8 @@ Driver-specific fields include:
   `universe`), `ppa:`, `foreign-arch:` (for example `i386`), `pubkey-url:` + `pubkey-path:` (a
   signing key), `source-url:` or `source-line:` + `source-path:` (a vendor source list;
   `$CODENAME` in a source line becomes the release codename), and `debconf:` (preseeded answers).
-  A vendor source that breaks the package index is rolled back. Removing the component leaves the
+  A vendor source that breaks the package index is rolled back (when another, broken source is
+  to blame instead, the new one stays and that source is named). Removing the component leaves the
   source and key; `configsys refresh` offers to remove the source once the component is neither
   picked nor installed, and then removes its key too, unless another source names it, a package
   owns it, or it sits in `/etc/apt/trusted.gpg.d/` (a key there vouches for every source).
@@ -583,9 +584,11 @@ Driver-specific fields include:
   `gcc` 14), `slaves:` (the companion tools registered with it as update-alternatives slaves on
   apt), and an apt-only vendor source, added only when the distro doesn't already carry the
   package: `ppa:` (Ubuntu only) or `apt-source: { key: <url>  deb: <line> }` (with optional
-  `key-path:` and `list:`; `$VERSION` and `$CODENAME` are filled in). The key is its own keyring
-  (default `/etc/apt/keyrings/<driver>-<version>.asc`) that only that source trusts — the deb line
-  gets `signed-by=`. Like an apt binding's `source-*`/`pubkey-*`, removing the toolchain leaves the
+  `key-path:` and `list:`; `$VERSION` and `$CODENAME` are filled in), checked like an apt vendor
+  source: if the package index then fails to load because of it, it is removed again with its
+  keyring, and if another, broken source is to blame, it stays and that source is named. The key
+  is its own keyring (default `/etc/apt/keyrings/<driver>-<version>.asc`) that only that source
+  trusts — the deb line gets `signed-by=`. Like an apt binding's `source-*`/`pubkey-*`, removing the toolchain leaves the
   list and keyring; `configsys refresh` offers to remove both once the toolchain is neither picked
   nor installed (the keyring by the same rule as an apt key).
   `CONFIGSYS_PM` forces apt or dnf. **gcc-toolset**

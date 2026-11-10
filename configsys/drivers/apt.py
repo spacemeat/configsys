@@ -54,6 +54,72 @@ def drop_keyring_cmd(key_path, *, sources=APT_SOURCE_FILES, dirs=None):
     return f'grep -rqsF {k} {where} || dpkg -S {k} >/dev/null 2>&1 || rm -f {k}'
 
 
+def _apt_update(runner):
+    '''`apt-get update`, retrying a TRANSIENT stumble a few times with a short backoff — so a
+    momentary hiccup never gets misread as a broken repo (see failures.retry_transient).'''
+    return retry_transient(lambda: runner.run('sudo apt-get update', capture=True),
+                           tries=_UPDATE_TRIES, backoff=_UPDATE_BACKOFF)
+
+
+def commit_source(runner, write_cmd, src_path, key_url=None, key_path=None, *, sudo=False,
+                  drop_key=False):
+    '''Write a vendor apt source (write_cmd writes it — if absent, or always — AND runs apt-get
+    update; `sudo` runs it as root, else it sudo's its own steps), then VALIDATE. On a signature
+    failure with a key configured, re-fetch the key overwriting the stale one and retry once
+    (rotation self-heal). If it STILL fails and we created the source THIS run, roll it back (rm) so
+    a failed setup never leaves a poison pill that breaks every later apt op — BUT only after
+    confirming OUR source is the culprit (apt-get update can fail on a PRE-EXISTING, unrelated broken
+    source, whose "E: The list of sources could not be read" names nothing): re-check with our
+    source disabled, and if it still fails, restore our valid source and report the real,
+    pre-existing breakage instead. `drop_key` also takes the rolled-back source's key out
+    (drop_keyring_cmd — a gcc/clang per-source keyring written with it). Returns None on success, or
+    a classified failing Result. The ONE copy: the apt driver's `source-*` and the gcc/clang
+    `apt-source` both commit through it. See docs/done/driver-resilience-plan.md (P2
+    validate-then-commit).'''
+    sp = shlex.quote(src_path)
+    existed = runner.run(f'test -f {sp}', capture=True).ok
+    res = runner.run(write_cmd, sudo=sudo, capture=True)
+    if res.ok:
+        return None
+    # the write_cmd's embedded `apt-get update` failed but the source is now written — retry a
+    # standalone update (transient-resilient) before treating this as a real failure. A momentary
+    # blip clears here and the source commits cleanly, no rollback, no misleading verdict.
+    res = _apt_update(runner)
+    if res.ok:
+        return None
+    cat, rem = classify(res.output)
+    if cat == SIGNATURE and key_url and key_path:
+        kp, ku = shlex.quote(key_path), shlex.quote(key_url)
+        runner.run(f'sudo curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
+        res = _apt_update(runner)
+        if res.ok:
+            return None
+        cat, rem = classify(res.output)
+    if not existed:
+        # Disable OUR just-created source and re-run update: does apt recover without it?
+        runner.run(f'sudo rm -f {sp}', capture=True)
+        recheck = _apt_update(runner)
+        if not recheck.ok:
+            # STILL failing without our source -> the breakage is pre-existing and unrelated.
+            # Restore our valid source (don't strand a working repo) and report the real problem.
+            runner.run(write_cmd, sudo=sudo, capture=True)   # file is now absent -> re-creates it
+            tail = (recheck.output.splitlines()[-1].strip()
+                    if recheck.output else 'apt-get update failed')
+            cat, rem = classify(recheck.output)
+            return Result.fail(
+                f'apt-get update is failing on a pre-existing apt source, not on {src_path} '
+                f'(removing it did not help): {tail}. Fix the broken source under '
+                f'/etc/apt/sources.list.d/, then retry.', category=cat, remediation=rem)
+        # apt recovered without our source -> ours WAS the culprit; keep it rolled back and report.
+        drop = drop_keyring_cmd(key_path) if drop_key else None
+        if drop:
+            runner.run(f'sudo sh -c {shlex.quote(drop)}', capture=True)
+    tail = (res.output.splitlines()[-1].strip() if res.output else 'apt-get update failed')
+    return Result.fail(f'vendor repo setup for {src_path} failed: {tail}'
+                       + ('' if existed else ' (source rolled back)'),
+                       category=cat, remediation=rem)
+
+
 def _step_failed(rc, step, r):
     '''The classified failing Result for a vendor-setup step (`step` names it) that exited non-zero.'''
     cat, rem = classify(r.output)
@@ -118,60 +184,11 @@ class Apt(NativePkgManager):
         return None
 
     def _apt_update(self):
-        '''`apt-get update`, retrying a TRANSIENT stumble a few times with a short backoff — so a
-        momentary hiccup never gets misread as a broken repo (see failures.retry_transient).'''
-        return retry_transient(lambda: self.runner.run('sudo apt-get update', capture=True),
-                               tries=_UPDATE_TRIES, backoff=_UPDATE_BACKOFF)
+        return _apt_update(self.runner)
 
     def _commit_source(self, write_cmd, src_path, key_url=None, key_path=None):
-        '''Write a vendor apt source (write_cmd writes it only if absent AND runs apt-get update),
-        then VALIDATE. On a signature failure with a key configured, re-fetch the key overwriting the
-        stale one and retry once (rotation self-heal). If it STILL fails and we created the source
-        THIS run, roll it back (rm) so a failed setup never leaves a poison pill that breaks every
-        later apt op — BUT only after confirming OUR source is the culprit (apt-get update can fail on
-        a PRE-EXISTING, unrelated broken source, whose "E: The list of sources could not be read"
-        names nothing): re-check with our source disabled, and if it still fails, restore our valid
-        source and report the real, pre-existing breakage instead. Returns None on success, or a
-        classified failing Result. See docs/done/driver-resilience-plan.md (P2 validate-then-commit).'''
-        sp = shlex.quote(src_path)
-        existed = self.runner.run(f'test -f {sp}', capture=True).ok
-        res = self.runner.run(write_cmd, capture=True)
-        if res.ok:
-            return None
-        # the write_cmd's embedded `apt-get update` failed but the source is now written — retry a
-        # standalone update (transient-resilient) before treating this as a real failure. A momentary
-        # blip clears here and the source commits cleanly, no rollback, no misleading verdict.
-        res = self._apt_update()
-        if res.ok:
-            return None
-        cat, rem = classify(res.output)
-        if cat == SIGNATURE and key_url and key_path:
-            kp, ku = shlex.quote(key_path), shlex.quote(key_url)
-            self.runner.run(f'sudo curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
-            res = self._apt_update()
-            if res.ok:
-                return None
-            cat, rem = classify(res.output)
-        if not existed:
-            # Disable OUR just-created source and re-run update: does apt recover without it?
-            self.runner.run(f'sudo rm -f {sp}', capture=True)
-            recheck = self._apt_update()
-            if not recheck.ok:
-                # STILL failing without our source -> the breakage is pre-existing and unrelated.
-                # Restore our valid source (don't strand a working repo) and report the real problem.
-                self.runner.run(write_cmd, capture=True)     # file is now absent -> re-creates it
-                tail = (recheck.output.splitlines()[-1].strip()
-                        if recheck.output else 'apt-get update failed')
-                cat, rem = classify(recheck.output)
-                return Result.fail(
-                    f'apt-get update is failing on a pre-existing apt source, not on {src_path} '
-                    f'(removing it did not help): {tail}. Fix the broken source under '
-                    f'/etc/apt/sources.list.d/, then retry.', category=cat, remediation=rem)
-            # apt recovered without our source -> ours WAS the culprit; keep it rolled back and report.
-        tail = (res.output.splitlines()[-1].strip() if res.output else 'apt-get update failed')
-        return Result.fail(f'vendor repo setup for {src_path} failed: {tail}'
-                           + ('' if existed else ' (source rolled back)'),
-                           category=cat, remediation=rem)
+        '''commit_source for an apt binding's `source-url`/`source-line` (write_cmd sudo's itself).'''
+        return commit_source(self.runner, write_cmd, src_path, key_url, key_path)
 
     def ensure_prereqs(self, rc):
         '''System setup a component needs before it can install, declared on its

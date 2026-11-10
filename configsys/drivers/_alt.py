@@ -24,8 +24,10 @@ System-scoped (needs root). Component fields (packages differ per OS block):
   ppa       owner/name toolchain PPA to add first (apt only; Ubuntu only, and skipped
             when the distro already ships the package)
   apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only;
-            added only when the distro doesn't carry the package, removed again if apt
-            can't load it). The key is a per-source keyring (key-path, default
+            added only when the distro doesn't carry the package, and validated like the apt
+            driver's own — apt.commit_source: re-keyed once, then removed again with its
+            keyring only if it is what stops apt-get update; a pre-existing broken source
+            elsewhere leaves ours in place and is reported). The key is a per-source keyring (key-path, default
             /etc/apt/keyrings/<driver>-<version>.asc) the deb line names with signed-by=,
             never the global trusted.gpg.d. Like the apt driver's `source-*`/`pubkey-*`,
             uninstall leaves both; `configsys refresh` offers to remove them once the
@@ -45,6 +47,7 @@ from urllib.parse import urlsplit
 
 from ..driver import Driver
 from ..runner import Result
+from . import apt as _apt
 from .apt import drop_keyring_cmd
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
@@ -205,6 +208,7 @@ class AltDriver(Driver):
             # (and its keyring) if an earlier run left it (else apt keeps preferring the vendor's build).
             # The key is a keyring of its own that only this source trusts (signed-by=), never the
             # global trusted.gpg.d, where an unverified vendor key would vouch for every repo.
+            # These lines WRITE the source (+ apt-get update); _commit_vendor_source validates them.
             return [
                 # the UBUNTU codename on a derivative (Mint's `wilma` is noble here) — what vendor
                 # repos serve; the same lookup apt's source-line uses
@@ -216,15 +220,20 @@ class AltDriver(Driver):
                 f'  mkdir -p {shlex.quote(os.path.dirname(key_path) or "/")}',
                 f'  curl -fsSL {shlex.quote(src["key"])} | tee {keyq} >/dev/null',
                 f'  echo {deb_q} | tee {listq} >/dev/null',
-                # validate-then-commit: a source apt can't read (no suite for this codename, a dead
-                # key) is taken back out at once, so it can never poison every later apt run
-                f'  if ! apt-get update; then rm -f {listq} {keyq}; apt-get update || true; '
-                f'echo "configsys: {rc.comp}: the vendor repo failed to load and was removed again" >&2; '
-                'exit 1; fi',
-                f'  {self._drop_legacy_key()}',
+                '  apt-get update',
                 'fi',
             ]
         return []
+
+    def _commit_vendor_source(self, rc, src):
+        '''Write the vendor source and validate it exactly as the apt driver's own (apt.commit_source):
+        a source apt can't read (no suite for this codename, a dead key) is re-keyed once, then taken
+        back out with its keyring — but only if it really is what breaks `apt-get update`; with a
+        pre-existing broken source elsewhere ours is kept and that breakage reported. None = ok.'''
+        key_path, list_path = self._source_paths(rc, src)
+        script = '\n'.join(['set -e'] + self._repo_lines(rc))
+        return _apt.commit_source(self.runner, script, list_path, src['key'], key_path,
+                                  sudo=True, drop_key=True)
 
     def _apt_source(self, rc):
         '''The `apt-source:` (else the driver's default_source) when it names a key and a deb line.'''
@@ -259,7 +268,8 @@ class AltDriver(Driver):
         '''Remove a keyring of ours unless some source still names it (a route may share one) or a
         package owns it — apt.drop_keyring_cmd, the rule apt's own keys follow; `true` for a path
         that rule never touches.'''
-        return drop_keyring_cmd(key_path, sources=('/etc/apt/sources.list', f'{self.apt_lists_dir}/')) or 'true'
+        return drop_keyring_cmd(key_path,
+                                sources=('/etc/apt/sources.list', f'{self.apt_lists_dir}/')) or 'true'
 
     def _drop_legacy_key(self):
         '''An older configsys put the vendor key in the GLOBAL trusted.gpg.d; take it out once no list
@@ -289,8 +299,15 @@ class AltDriver(Driver):
         pm = self._pm(rc)
         pkgs = ' '.join(shlex.quote(p) for p in self._packages(rc))
         lines = ['set -e']
-        if pm == 'apt':
-            lines += self._repo_lines(rc)          # PPA / apt.llvm.org — apt only
+        src = self._apt_source(rc) if pm == 'apt' and not rc.fields.get('ppa') else None
+        if src:                                    # apt.llvm.org / apt-source: validate-then-commit
+            fail = self._commit_vendor_source(rc, src)
+            if fail is not None:
+                return Result.fail(f'{rc.comp}: {fail.output}', category=fail.category,
+                                   remediation=fail.remediation)
+            lines.append(self._drop_legacy_key())  # every list of ours has signed-by now?
+        elif pm == 'apt':
+            lines += self._repo_lines(rc)          # a PPA — apt only
         lines.append(self._pm_install(pm, pkgs))
         if pm == 'apt':
             lines.append(self._alt_install(rc))    # /usr/bin/gcc is an alternatives slot

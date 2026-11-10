@@ -37,11 +37,11 @@ def test_defaults_from_bare_component():
 def test_install_adds_llvm_repo_installs_and_registers_alternative():
     r = Runner(pretend=True)
     Clang(r).install(clang_unit())
-    cmd = r.calls[0]
-    assert cmd.startswith('sudo ')                       # whole script under root
+    assert r.calls[0] == 'test -f /etc/apt/sources.list.d/clang-18.list'   # did WE create it? (rollback)
+    assert all(c.startswith('sudo ') for c in r.calls[1:])                 # the source + install as root
+    cmd = '\n'.join(r.calls)
     assert ('CODENAME="$(. /etc/os-release; echo "${UBUNTU_CODENAME:-${DEBIAN_CODENAME:-$VERSION_CODENAME}}")"'
             in cmd)                                   # derivative-safe (B7; LMDE's own codename too)
-    assert "if ! apt-get update; then rm -f" in cmd                         # a broken source is rolled back
     assert 'apt.llvm.org/llvm-snapshot.gpg.key' in cmd
     # the deb line is quoted with only "$CODENAME" left to expand in-shell (injection-safe)
     assert 'apt.llvm.org/' in cmd and 'llvm-toolchain-' in cmd and '-18 main' in cmd
@@ -54,7 +54,7 @@ def test_install_adds_llvm_repo_installs_and_registers_alternative():
 def test_repo_uses_version_specific_list_and_key_paths():
     r = Runner(pretend=True)
     Clang(r).install(clang_unit('clang-19'))
-    cmd = r.calls[0]
+    cmd = '\n'.join(r.calls)
     assert '/etc/apt/sources.list.d/clang-19.list' in cmd
     assert 'llvm-toolchain-' in cmd and '-19 main' in cmd
 
@@ -64,7 +64,7 @@ def test_vendor_key_is_a_per_source_keyring_named_by_signed_by():
     # with signed-by= — never the global trusted.gpg.d, where it would vouch for every repo
     r = Runner(pretend=True)
     Clang(r).install(clang_unit('clang-19'))
-    cmd = r.calls[0]
+    cmd = '\n'.join(r.calls)
     assert "tee /etc/apt/keyrings/clang-19.asc" in cmd
     assert "'deb [signed-by=/etc/apt/keyrings/clang-19.asc] http://apt.llvm.org/'" in cmd
     assert 'tee /etc/apt/trusted.gpg.d/' not in cmd
@@ -149,6 +149,78 @@ def test_switching_is_not_configsys_and_no_latest():
     assert fam.location(clang_unit()) == '/usr/bin/clang-18'
 
 
+def _apt_world(our_source_breaks_update):
+    '''A scripted runner for the vendor-source step: `test -f`/`rm -f <list>`/the write script track
+    whether OUR list exists; `apt-get update` fails either because of ours (`our_source_breaks_update`)
+    or always (an unrelated, pre-existing broken source).'''
+    from configsys.runner import Result as R
+    LIST = '/etc/apt/sources.list.d/clang-19.list'
+
+    class World:
+        pretend = False
+
+        def __init__(self):
+            self.calls, self.present = [], False
+
+        def run(self, cmd, *, sudo=False, capture=True, **_kw):
+            full = f'sudo {cmd}' if sudo else cmd
+            self.calls.append(full)
+            if cmd.startswith('test -f'):
+                return R(full, 0 if self.present else 1)
+            if cmd == f'sudo rm -f {LIST}':
+                self.present = False
+                return R(full, 0)
+            if f'tee {LIST}' in cmd:                       # the write script: list written, then update
+                self.present = True
+            if 'apt-get update' in cmd:
+                bad = self.present if our_source_breaks_update else True
+                return R(full, 100 if bad else 0, stderr='E: The list of sources could not be read.')
+            return R(full, 0)
+
+        def echo(self, msg):
+            pass
+    return World()
+
+
+@pytest.fixture
+def _no_backoff(monkeypatch):
+    import configsys.drivers.apt as apt_mod
+    monkeypatch.setattr(apt_mod, '_UPDATE_BACKOFF', 0)
+
+
+def test_a_preexisting_broken_source_keeps_our_new_vendor_source(_no_backoff):
+    # decisions 2026-11-09 W2.2 follow-up: the culprit check apt's own vendor sources get — apt-get
+    # update fails WITHOUT our list too, so ours is put back and the real breakage reported
+    r = _apt_world(our_source_breaks_update=False)
+    res = Clang(r).install(clang_unit('clang-19'))
+    assert not res.ok and 'pre-existing apt source' in res.output and 'rolled back' not in res.output
+    assert r.present                                               # our list restored
+    assert not any('keyrings/clang-19.asc' in c and 'rm -f' in c for c in r.calls if 'tee' not in c)
+    assert not any('apt-get install -y clang-19' in c for c in r.calls)
+
+
+def test_our_broken_vendor_source_is_rolled_back_with_its_keyring(_no_backoff):
+    from configsys.drivers.apt import drop_keyring_cmd
+    r = _apt_world(our_source_breaks_update=True)
+    res = Clang(r).install(clang_unit('clang-19'))
+    assert not res.ok and 'rolled back' in res.output and 'pre-existing' not in res.output
+    assert not r.present
+    assert any(drop_keyring_cmd('/etc/apt/keyrings/clang-19.asc') in c for c in r.calls)
+    assert not any('apt-get install -y clang-19' in c for c in r.calls)
+
+
+def test_apt_and_gcc_clang_share_one_commit_source(monkeypatch):
+    import configsys.drivers.apt as apt_mod
+    from configsys.drivers.apt import Apt
+    seen = []
+    monkeypatch.setattr(apt_mod, 'commit_source', lambda runner, write, path, *a, **k: seen.append(path))
+    Clang(Runner(pretend=True)).install(clang_unit('clang-19'))
+    Apt(Runner(pretend=True)).ensure_prereqs(ResolvedComponent(
+        key='apt\\x', driver='apt', comp='x', fields={'name': 'x', 'source-line': 'deb https://x/ y main',
+                                                       'source-path': '/etc/apt/sources.list.d/x.list'}))
+    assert seen == ['/etc/apt/sources.list.d/clang-19.list', '/etc/apt/sources.list.d/x.list']
+
+
 def _run_repo_lines(tmp_path, madison_out, list_exists, setup=None):
     '''Execute the driver's generated repo logic in bash with stub apt-cache/apt-get/curl, against a
     list file (and the apt list/legacy key dirs) in tmp. Returns (list file exists after, log of stub
@@ -173,7 +245,8 @@ def _run_repo_lines(tmp_path, madison_out, list_exists, setup=None):
     drv.apt_lists_dir, drv.legacy_key_dir = str(tmp_path), str(tmp_path / 'trusted.gpg.d')
     if setup:
         setup(tmp_path)
-    script = '\n'.join(['set -e'] + drv._repo_lines(rc))
+    # the write step, then the legacy-key check install runs once that step commits (_alt.install)
+    script = '\n'.join(['set -e'] + drv._repo_lines(rc) + [drv._drop_legacy_key()])
     subprocess.run(['bash', '-c', script], check=True, env={'PATH': f'{stub}:/usr/bin:/bin'})
     return lst.exists(), (log.read_text() if log.exists() else '')
 
