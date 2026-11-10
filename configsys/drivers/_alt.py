@@ -29,7 +29,8 @@ System-scoped (needs root). Component fields (packages differ per OS block):
             /etc/apt/keyrings/<driver>-<version>.asc) the deb line names with signed-by=,
             never the global trusted.gpg.d. Like the apt driver's `source-*`/`pubkey-*`,
             uninstall leaves both; `configsys refresh` offers to remove them once the
-            component is neither picked nor installed (vendor_source / source_cleanup).
+            component is neither picked nor installed (vendor_source; its keyring by
+            apt.drop_keyring_cmd, the rule apt's `pubkey-path` follows too).
             One shape for every apt configsys knows: a one-line `.list` (apt 3 still reads
             it), an armored `.asc` named by signed-by= (needs apt >= 1.4; the oldest in the
             release registry is 2.2), /etc/apt/keyrings made with mkdir -p (only Debian 12 /
@@ -44,6 +45,7 @@ from urllib.parse import urlsplit
 
 from ..driver import Driver
 from ..runner import Result
+from .apt import drop_keyring_cmd
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
 
@@ -248,20 +250,21 @@ class AltDriver(Driver):
         key_path, list_path = self._source_paths(unit, src)
         return src['key'], key_path, list_path
 
-    def source_cleanup(self, key_path):
-        '''The root shell that follows refresh's removal of one of our lists: its keyring (unless
-        another source names it), then an older configsys's global key (once nothing needs it).'''
-        return f'{self._drop_keyring(key_path)}\n{self._drop_legacy_key()}'
+    def legacy_key_cleanup(self):
+        '''The root shell that follows refresh's removal of one of our lists (after its keyring,
+        apt.drop_keyring_cmd): an older configsys's global key, once nothing needs it.'''
+        return self._drop_legacy_key()
 
     def _drop_keyring(self, key_path):
-        '''Remove a keyring of ours unless some source still names it (a route may share one).'''
-        k = shlex.quote(key_path)
-        return f'grep -rqsF {k} {shlex.quote(self.apt_lists_dir)}/ || rm -f {k}'
+        '''Remove a keyring of ours unless some source still names it (a route may share one) or a
+        package owns it — apt.drop_keyring_cmd, the rule apt's own keys follow; `true` for a path
+        that rule never touches.'''
+        return drop_keyring_cmd(key_path, sources=('/etc/apt/sources.list', f'{self.apt_lists_dir}/')) or 'true'
 
     def _drop_legacy_key(self):
         '''An older configsys put the vendor key in the GLOBAL trusted.gpg.d; take it out once no list
         of ours still relies on it (one without signed-by) — run as each list moves to signed-by
-        (install) and after refresh removes a stale list (source_cleanup), the two moments the
+        (install) and after refresh removes a stale list (legacy_key_cleanup), the two moments the
         last list needing it can go. Uninstall leaves sources alone, so it doesn't run there.'''
         old = shlex.quote(f'{self.legacy_key_dir}/{self.name}.asc')
         lists = f'{shlex.quote(self.apt_lists_dir)}/{shlex.quote(self.name)}-*.list'

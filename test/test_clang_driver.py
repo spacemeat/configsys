@@ -108,12 +108,9 @@ def test_vendor_source_names_the_key_keyring_and_list_refresh_manages():
     from configsys.drivers.gcc import Gcc
     assert Gcc(Runner(pretend=True)).vendor_source('gcc-13', {'ppa': 'ubuntu-toolchain-r/test'}) is None
     assert Gcc(Runner(pretend=True)).vendor_source('gcc-13', {}) is None     # no source at all
-    # the refresh removal: the keyring only when no other source still names it, then an older
-    # configsys's global key once no list of ours lacks signed-by
-    cleanup = drv.source_cleanup('/etc/apt/keyrings/clang-19.asc')
-    assert ('grep -rqsF /etc/apt/keyrings/clang-19.asc /etc/apt/sources.list.d/ || '
-            'rm -f /etc/apt/keyrings/clang-19.asc') in cleanup
-    assert 'rm -f /etc/apt/trusted.gpg.d/clang.asc' in cleanup
+    # after refresh removes a stale list of ours: an older configsys's global key, once no list of
+    # ours lacks signed-by (the keyring itself goes through apt.drop_keyring_cmd, like apt's keys)
+    assert 'rm -f /etc/apt/trusted.gpg.d/clang.asc' in drv.legacy_key_cleanup()
 
 
 def test_the_source_it_writes_reads_on_every_apt_release_configsys_knows():

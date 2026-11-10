@@ -497,7 +497,8 @@ error. It names the likely cause (a missing or rotated signing key, a dead repos
 source file at fault, and says whether configsys wrote that file for one of your components or
 something else added it. For a source configsys manages, it offers to re-fetch a rotated signing key
 and retry. It also offers to remove sources it added for components that are neither picked nor installed here
-(removing a component leaves its source; a gcc/clang vendor source goes with its own keyring). It never
+(removing a component leaves its source), along with the signing key the source named, unless
+another source still uses that key or a package owns it. It never
 touches a source it didn't create. Installs fail safe in the same spirit: a new apt/dnf source that
 breaks the index is rolled back, and tarball and AppImage installs build to the side and swap into
 place only when complete. A failed install's output is classified the same way: the cause is

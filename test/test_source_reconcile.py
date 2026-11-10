@@ -1,7 +1,11 @@
+import shlex
 from types import SimpleNamespace
+
+import pytest
 
 from configsys import app
 from configsys.cli import refresh
+from configsys.drivers.apt import drop_keyring_cmd
 from configsys.runner import Result
 
 JLIST = '/etc/apt/sources.list.d/jenkins.list'
@@ -117,13 +121,53 @@ def test_removing_a_stale_clang_source_takes_its_keyring_too():
     assert n == 1
     assert r.calls[0] == f'sudo rm -f {CLANG_LIST}'
     rest = '\n'.join(r.calls[1:])
-    assert f'grep -rqsF {CLANG_KEY} /etc/apt/sources.list.d/ || rm -f {CLANG_KEY}' in rest
+    assert drop_keyring_cmd(CLANG_KEY) in rest
     assert 'trusted.gpg.d/clang.asc' in rest and rest.startswith('sudo ')
-    # an apt route's source still goes alone (its pubkey-path is left, as before)
+
+
+JKEY = '/usr/share/keyrings/jenkins-keyring.asc'
+
+
+def _keyed_ctx(key, runner=None):
+    comps = {'jenkins': SimpleNamespace(bindings=[SimpleNamespace(
+        via='native', details={'source-path': JLIST, 'pubkey-url': 'https://pkg.jenkins.io/k', 'pubkey-path': key})])}
+    return SimpleNamespace(routes=SimpleNamespace(components=comps), runner=runner)
+
+
+def test_removing_a_stale_apt_source_takes_the_key_it_named_too():
+    # decisions 2026-11-09 W2.2 follow-up: one rule for apt's pubkey-path and gcc/clang's keyring
     r = _Runner()
-    app._reconcile_managed_sources(_ctx({'jenkins': JLIST}, r), 'apt', wanted=set(),
+    assert app._reconcile_managed_sources(_keyed_ctx(JKEY, r), 'apt', wanted=set(),
+                                          ask=lambda p: True, lister=lambda: [JLIST]) == 1
+    assert r.calls[0] == f'sudo rm -f {JLIST}'
+    assert r.calls[1] == f'sudo sh -c {shlex.quote(drop_keyring_cmd(JKEY))}'
+
+
+@pytest.mark.parametrize('key', ['/etc/apt/trusted.gpg.d/jenkins.asc',   # global: vouches for every source
+                                 '/opt/jenkins.asc', None])
+def test_a_key_outside_the_signed_by_keyring_dirs_is_never_touched(key):
+    r = _Runner()
+    app._reconcile_managed_sources(_keyed_ctx(key, r), 'apt', wanted=set(),
                                    ask=lambda p: True, lister=lambda: [JLIST])
     assert r.calls == [f'sudo rm -f {JLIST}']
+    assert drop_keyring_cmd(key) is None
+
+
+def test_drop_keyring_keeps_a_key_another_source_names_or_a_package_owns(tmp_path):
+    import subprocess
+    keys, lists, stub = tmp_path / 'keyrings', tmp_path / 'sources.list.d', tmp_path / 'bin'
+    for d in (keys, lists, stub):
+        d.mkdir()
+    (stub / 'dpkg').write_text(f'#!/bin/sh\n[ "$2" = "{keys}/owned.asc" ]\n')   # dpkg -S: owned?
+    (stub / 'dpkg').chmod(0o755)
+    for k in ('named', 'owned', 'free'):
+        (keys / f'{k}.asc').write_text('KEY')
+    (lists / 'other.list').write_text(f'deb [signed-by={keys}/named.asc] https://x/ y main\n')
+    for k in ('named', 'owned', 'free'):
+        cmd = drop_keyring_cmd(str(keys / f'{k}.asc'), sources=(f'{lists}/',), dirs=(f'{keys}/',))
+        subprocess.run(['sh', '-c', cmd], check=True, env={'PATH': f'{stub}:/usr/bin:/bin'})
+    assert (keys / 'named.asc').exists() and (keys / 'owned.asc').exists()
+    assert not (keys / 'free.asc').exists()
 
 
 def test_an_installed_or_receipted_owner_is_never_stale(tmp_path, monkeypatch):

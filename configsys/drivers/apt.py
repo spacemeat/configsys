@@ -29,6 +29,31 @@ _UPDATE_BACKOFF = 1.5
 _APT_ENV = 'DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a'
 
 
+APT_SOURCE_FILES = ('/etc/apt/sources.list', '/etc/apt/sources.list.d/')
+
+
+def _signed_by_key_dirs():
+    '''The keyring dirs a vendor key may be written to (routecheck.vendor_path_problem) minus
+    /etc/apt/trusted.gpg.d: a key there vouches for EVERY source, so no source "names" it and none
+    can be shown not to rely on it — configsys never removes one (bar _alt's own legacy key).'''
+    from ..routecheck import _KEY_DIRS
+    return tuple(d for d in _KEY_DIRS if d != '/etc/apt/trusted.gpg.d/')
+
+
+def drop_keyring_cmd(key_path, *, sources=APT_SOURCE_FILES, dirs=None):
+    '''Root shell that removes a vendor keyring configsys wrote — an apt binding's `pubkey-path`, a
+    gcc/clang apt-source keyring — unless a source still names it (signed-by) or a package owns it
+    (`dpkg -S`); None for a path it may not touch (not directly in a signed-by keyring dir). The ONE
+    rule for both drivers: `configsys refresh` runs it after removing a stale managed source, and
+    the gcc/clang driver when it drops its own source.'''
+    from ..routecheck import _confined
+    if not key_path or not _confined(str(key_path), dirs or _signed_by_key_dirs()):
+        return None
+    k = shlex.quote(str(key_path))
+    where = ' '.join(shlex.quote(s) for s in sources)
+    return f'grep -rqsF {k} {where} || dpkg -S {k} >/dev/null 2>&1 || rm -f {k}'
+
+
 def _step_failed(rc, step, r):
     '''The classified failing Result for a vendor-setup step (`step` names it) that exited non-zero.'''
     cat, rem = classify(r.output)

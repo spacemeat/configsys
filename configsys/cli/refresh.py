@@ -8,6 +8,7 @@ import os
 import re
 from pathlib import Path
 from ..drivers import get_driver
+from ..drivers.apt import drop_keyring_cmd
 from ..ledger import Ledger
 from .common import ask as _ask, print_reboot_advisory
 
@@ -246,7 +247,7 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
             return bool(_ask(prompt, noninteractive='no'))
     import shlex
     removed = 0
-    vendor = _vendor_sources(ctx)                        # a gcc/clang list takes its keyring along
+    vendor = _vendor_sources(ctx)                        # gcc/clang lists: + an older global key
     print('\n── stale managed package sources (their component is neither picked nor installed here) ──')
     home = getattr(getattr(ctx, 'paths', None), 'home', None)
     if home is not None and Path(home) != Path.home():
@@ -259,9 +260,13 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
         if ask(f'  remove {f} — configsys wrote it for `{comp}`, which is neither picked nor installed '
                f'here? [y/N] '):
             ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
-            if f in vendor:
-                _comp, _url, keyring, drv = vendor[f]
-                ctx.runner.run(f'sudo sh -c {shlex.quote(drv.source_cleanup(keyring))}', capture=True)
+            # the key it named goes too, unless another source names it or a package owns it — one
+            # rule for an apt route's pubkey-path and a gcc/clang keyring (apt.drop_keyring_cmd)
+            _url, key_path = _source_key_fields(ctx, comp, f)
+            after = [c for c in (drop_keyring_cmd(key_path),
+                                 vendor[f][3].legacy_key_cleanup() if f in vendor else None) if c]
+            if after:
+                ctx.runner.run(f'sudo sh -c {shlex.quote(chr(10).join(after))}', capture=True)
             removed += 1
     return removed
 
