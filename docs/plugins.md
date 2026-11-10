@@ -148,6 +148,8 @@ dropped.
 plugin's directory leaves the plugin as it is and reports it `kept`, with how to commit or discard
 them. A branch that can't fast-forward because it has commits of its own *and* new ones on the
 remote is reported `diverged` (not updated); one with commits not pushed yet is reported `ahead`.
+Commits made on a tag- or commit-pinned plugin's checkout (which no branch or tag holds) are never
+stepped over either: that sync is reported `kept` too.
 
 **Content pin.** An optional `sha256:` on an entry locks the plugin to an exact content hash. If
 the synced tree doesn't match (a moved tag, a compromised mirror, tampering), the plugin is
@@ -169,7 +171,7 @@ clone — a push URL you set by hand is kept), so you can push a plugin you auth
 | `configsys plugin add <source> [--ref R] [--pin] [--local] [--replace]` | Sync the source first; only if that works, declare it. With a primary plugin set, the entry goes into the primary's manifest (so it travels) — unless the source is a local path, which exists only on this machine and so goes in your top config (configsys says so); `--local` keeps any source in this machine's config (§9). `--replace` swaps out an already-declared plugin of the same name from another source: the old copy is kept as `<name>.replaced-<date>` if it holds work found nowhere else, and a primary stays primary. A locked plugin's name is refused. |
 | `configsys plugin sync` | Fetch every declared plugin (and the plugins they list) to its ref, and report how your component set changed. New or changed code stays inert until trusted. A locked plugin is left as it is (`locked`); a primary under `primary-verify: signed` that would take in unsigned commits is left as it is (`unsigned`, §8). |
 | `configsys plugin list [--fetch]` | Each plugin: source, ref, `[primary]`, or `[via <plugin>]` naming the plugin that declared it, and status — not synced, ok, incompatible ABI, checksum mismatch, local (unpushed), whether its code or recipes are trusted, and whether it is locked — plus what it provides. Also lists name conflicts between plugins and built-in drivers a plugin replaces. |
-| `configsys plugin diff <name> [--to REF]` | The review diff (§6a): what taking the plugin would change, before you sync, update or trust it. `--to` compares against that ref instead of the newest version tag. |
+| `configsys plugin diff <name> [--to REF] [--raw]` | The review (§6a), by direction: what would come in (`↓`) and what your copy has that its remote doesn't (`↑`), before you sync, update, trust or push. Each `.hu` change reads in words; `--raw` prints the unified diffs instead. `--to` compares against that ref instead of the newest version tag. |
 | `configsys plugin lock <name>` / `unlock <name>` | Hold a plugin where it is on this machine (§6a): no sync, update, bless or trust until you unlock it. |
 | `configsys plugin update [name] [--ref R \| --latest] [--pin]` | Re-sync one plugin, moving its `ref:` with `--ref` or `--latest`. It syncs the new ref first and changes the declaration only if that works. `--latest` pins the newest stable version tag on the remote (`v1.2.3` style; pre-release tags ignored), else `main`/`master` — except on a primary that follows a branch, which stays on it (§8). Omit the name (or pass `--all`) to update every plugin; locked ones are skipped, under `--latest` so are locally authored ones, and it exits 1 if any fail. |
 | `configsys plugin remove <name> [--force]` | Undeclare the plugin — from your top config or your primary's manifest — and delete its synced copy. Refused, naming what would be lost, while the copy holds work found nowhere else (uncommitted edits, unpushed commits, stashes, no remote, or authored in place), unless `--force`. A plugin only another plugin declares is refused: that plugin's manifest isn't yours to edit (remove or lock it, or declare the plugin yourself). |
@@ -181,8 +183,9 @@ clone — a push URL you set by hand is kept), so you can push a plugin you auth
 | `configsys plugin init [name] [--dry-run] [--force]` | Create your primary plugin from local bits, or merge them into the existing one (§8). |
 | `configsys plugin set-source <name> <source>` | Repoint a plugin's declared source (such as one `plugin init` made) to its pushed remote, e.g. `github:you/name`, and point the synced clone's `origin` at it too, so the next `sync` fetches from there. The clone is left alone when the new source syncs into a different directory (configsys tells you), isn't git-transported, or is the clone itself. To move a plugin to a source with a different name, use `plugin add <source> --replace`. |
 
-The TUI **Plugins** screen (key `3`) shows the same tree, and below it the review diff (§6a) for
-the selected plugin, fetched in the background as the cursor settles. Its `provides` column lists
+The TUI **Plugins** screen (key `3`) shows the same tree, and below it the review (§6a) for
+the selected plugin — `↓` what would come in, `↑` what would go out — fetched in the background as
+the cursor settles. Its `provides` column lists
 everything a plugin brings as short codes (spelled out on the screen's `?` page): `cm` components,
 `pr` profiles, `os` OS blocks, `dr` drivers, `fa` facets, `nm` package-name patches, `vf` version
 floors, `ms` machine settings, `th` theme, `ky` key bindings, `sp` splashes, `tp` sync transports,
@@ -200,6 +203,8 @@ the tree (`├─`). Keys:
   sync one/all, `u`/`U` update one/all to the newest version tag (`--latest`), `v` set the ref.
 - `t` trust/untrust one, `T` trust every untrusted or changed one (it lists them and asks first),
   `L` lock/unlock (a locked plugin's name carries `⊘`).
+- `d` switches the review between words and the raw unified diff, a file at a time (`Tab` walks the
+  files).
 - `b`/`B` bless/unbless, `P` push your primary, `H` its recent changes (and undo the newest one
   configsys made), `n` create your primary from local content (`plugin init`: shows the plan, asks,
   runs), `O` give the current plugin a new source (`plugin set-source`), `M` move this machine's
@@ -296,13 +301,32 @@ pushed to the primary can't grant itself trust.
 
 ### 6a. Review before you take it, and lock what alarms you
 
-**The review diff** (`configsys plugin diff`, and the Plugins screen's lower pane) shows what a
-plugin would change before you let it:
+**The review** (`configsys plugin diff`, and the Plugins screen's lower pane) shows what would
+change before you let it — by DIRECTION, never as one two-way difference (that would show what your
+copy has and the remote lacks as if the remote were taking it away):
 
-- **Synced:** your on-disk copy against the remote-ref (the Plugins screen's column: the newest
-  stable version tag on the remote, else `main`/`master`) — exactly what `update` would pull in.
-- **Not synced:** its declared `ref:` against the remote-ref; or, when there's no `ref:` or the ref
-  is already the newest, everything at that ref — what a sync would download.
+- **`↓` coming in** — what the remote has that your copy doesn't, from where the two last agreed.
+  For a synced plugin, what `update` would bring in: your copy → the remote-ref (the Plugins
+  screen's column: the newest stable version tag on the remote, else `main`/`master`). For your
+  primary, what your other machines pushed to its branch: `sync` takes it in, or, when both sides
+  changed, `push` combines it with yours. For a plugin not synced yet, its declared `ref:` → the
+  remote-ref; or, when there's no `ref:` or the ref is already the newest, everything at that ref —
+  what a sync would download.
+- **`↑` going out** — shown only when there is some: what your copy has that its remote doesn't.
+  For your primary, the changes `plugin push` (`P`) would share, and the edits you haven't
+  committed (a push asks whether to include those). For any other plugin, commits or edits made
+  there by hand — which no sync or update takes back: it keeps your edits (stopping rather than
+  overwrite one) and never steps over your commits (§4).
+
+Each title names the action that would take it — with its key in the TUI (`↓ update (u) would bring
+in: v0.1.12 → v0.1.13`, `↑ push (P) would share: 1 change`), with its command on the CLI. Each
+changed `.hu` file reads in words, by setting: `splash: plain → braille-bar`, `picks: laptop +
+ripgrep − btop` (an order-free list that was only reordered hasn't changed), `configsys-source: ref
+v0.1.12 → v0.1.13`, `added plugin configsys-foo @v1`, `components.htop.install: added via flatpak`,
+`components.htop.description changed`; a change to comments or layout alone says just that. Any
+other file, or a `.hu` file that doesn't read, shows its diff. `d` on the Plugins screen (`plugin diff
+--raw`) shows the raw unified diff instead, a file at a time. Under `--pretend`, `plugin diff` fetches
+nothing: your primary is read as of its last fetch; any other plugin only says what it would fetch.
 
 For an unsynced plugin the objects are fetched into an inert bare repository under
 `~/.config/configsys/plugin-review/` (created without hook templates, diffed with external diff
@@ -310,7 +334,7 @@ drivers and textconv off). Nothing there is checked out, loaded as a layer, or r
 a plugin before it ever reaches the plugins directory. Only git sources can be reviewed this way.
 
 **A lock** (`configsys plugin lock <name>`, or `L` on the Plugins screen) holds a plugin where it
-is on this machine — typically because its review diff shows something you don't want:
+is on this machine — typically because its review shows something you don't want:
 
 - `sync` leaves it alone (reported `locked`), so a `ref:` moved elsewhere — say, by updating the
   primary plugin that declares it — is never fetched into the plugins directory;
@@ -622,7 +646,8 @@ your signing setting, so they're signed whenever your own commits are. Nothing i
 
 **Seeing where it stands.** The Plugins screen marks your primary's remote-ref column with `↑N` (changes not
 pushed yet), `↓N` (changes your other machines pushed — `s` syncs them in) and `●` (edits not committed
-yet); both arrows at once mean the two sides need combining before a push. The screen fetches the
+yet); both arrows at once mean the two sides need combining before a push. Its review (§6a) says what
+each one is: `↓` the incoming changes, `↑` yours. The screen fetches the
 primary in the background to count `↓`. The Components header shows `<primary>: ↑N to push, ↓N to
 sync` whenever there's something either way (under `primary-push: auto` or `auto-on-quit`, only the `↓` part), and
 `plugin list` says the same in words (`↓` there is as of the last fetch or sync; `plugin list --fetch`
@@ -658,7 +683,8 @@ your other machines, in three steps:
    edit you left out touches a file your other machine also changed, combining would bury it in
    conflict markers, so you're asked first: include it in this push, or stop (nothing pushed,
    nothing here changed).
-3. It lists the changes and the files about to leave this machine and asks before sending them
+3. It lists the changes and the files about to leave this machine — each `.hu` change in words,
+   like the review's `↑` (§6a) — and asks before sending them
    (`--yes` skips the question; a script with no terminal, and `primary-push: auto` / `auto-on-quit`,
    push without asking). Then it pushes to the branch and says how many changes went out. Your other
    machines get them on their next `plugin sync`. Under `primary-verify: signed` it also warns when
@@ -705,8 +731,10 @@ update <name> --ref main` on your other machines). configsys never tags for you.
 prompts: an SSH key that needs its passphrase fails with a note (load it with `ssh-add`, or push from
 the command line). The TUI's background fetch never prompts either, and both keep the ssh command
 you configured (`core.sshCommand` or `GIT_SSH_COMMAND`), only adding `BatchMode`. Nothing is pushed
-under `--pretend`: `--pretend plugin push` lists what a push would send, as of the last fetch, and
-sends nothing.
+under `--pretend`: `--pretend plugin push` lists what a push would send, as of the last fetch (each
+file with what it changes, in words), and sends nothing. `plugin diff <primary>` (or the Plugins
+screen's review of it) shows both directions at once: `↓` what your other machines pushed, `↑` what a
+push would share — a change of yours not pushed yet only ever shows as going out.
 
 **When it's pushed** is the `primary-push` setting (uniform, so it travels in the primary):
 
@@ -814,6 +842,16 @@ scanner with humon's three quote styles and no escapes, scalar quoting, the one-
 - **History and undo.** `primarygit.history` returns `Change`s (`Change.machine` names the machine
   whose configsys made one); `undo` takes back the newest non-merge commit whose body says `Made by
   configsys` — `reset --keep` when it is the unpushed HEAD, else a revert committed as `Undo: …`.
+- **The review and where a change landed.** `actions.plugin_review` builds a `review.Review` of
+  `Section`s — `review.primary` (this copy against its branch on the remote), `review.synced`,
+  `review.unsynced` (the inert cache), and `review.outgoing` for a push's confirmation and its
+  `--pretend` preview — whose two sides part where they last agreed: HEAD when nothing was committed
+  here, else the merge base, never tip against tip. A title names its action as a placeholder
+  (`{push}`, `{update}`, …) that the TUI fills with the key and the CLI with the command;
+  `review.render` is the one renderer both print. `hudiff.summarize` words each `.hu` change from
+  humerge's reading of the two texts. `primarygit.landed` is the one wording for where a committed
+  change went, read from `PUSH_POLICY` — the CLI prints it after a command, the TUI after an action
+  (`tui.flows._after_primary_action`).
 
 ## 9. Machine-level plugins
 

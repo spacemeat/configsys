@@ -149,7 +149,7 @@ overlay, or the current screen (`scr.render`). A `curses.error` mid-paint (a res
 other paint exception shows a one-line error instead of ending the session. Then read one key. The
 `getch` blocks, except it polls at 120 ms while background work must paint on its own: on
 Components while the System Updates scan runs or its result is unconsumed; on Plugins while
-remote-refs or a review diff are still fetching (`PluginScreen.busy`); on Profiles while
+remote-refs or a review are still fetching (`PluginScreen.busy`); on Profiles while
 `overlay_busy()` / `probe_busy()` / `os_busy()`; and on any screen while the background `check`
 lints run (`ctx.check_busy()`). A timeout (`-1`) lets Plugins show a landed diff (`load_diff`),
 recomputes the diagnostics when the `check` lints landed (`ctx._check_dirty`), folds a landed System
@@ -270,7 +270,9 @@ stale rows) and starts a fresh background scan after it (`_rescan_system_updates
   `installed_index` — tarball, script, appImage, …), `ProfileScreen._warm_cache` (pre-resolves the
   catalog), `ProfileScreen.request_available_oses` (the 7-resolve coverage hint for a component with
   no method here), `PluginScreen._start_remote` (each plugin's remote-ref by `git ls-remote`, the
-  primary fetched first for its ↓N) and `PluginScreen._request_diff` (the review diff). Results are
+  primary fetched first for its ↓N) and `PluginScreen._request_diff` (the review: newest request
+  only, each result a `review.Review` cached per plugin and plan — the primary's also per its
+  `PrimaryState`, so a commit there re-reads it; it compares the primary as of that fetch). Results are
   written into model attributes and painted on a later frame; the router's 120 ms poll (above) is what
   makes them appear without a keypress.
 - **`_warm_cache` thread-safety.** The warm thread calls `ProfileScreen._resolve` concurrently with

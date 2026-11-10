@@ -612,10 +612,12 @@ Seven screens; press a number key (shown in the top chip bar) to switch:
    filter by attrs (`f`).
 3. **Plugins** — declared plugins with their ref, ABI and trust status and what each provides
    (short codes, spelled out under `?`) — your primary's also shows `↑` changes to push, `↓` to sync
-   and `●` edits not committed yet — plus a review diff of what taking the selected one would change,
-   readable before it's synced. Add (`a`: it asks for a ref; a local path stays on this machine, and
-   once you have a primary it asks whether a remote source goes to all your machines or just this
-   one), remove (`x`; refused while its clone holds work that exists nowhere else), sync (`s`, `S`
+   and `●` edits not committed yet — plus a review of the selected one by direction: `↓` what would
+   come in (an update, your other machines' changes, or what a sync would download — readable before
+   it's synced) and `↑` what your copy has that its remote doesn't (what a push would share; edits
+   made here), each `.hu` change in words (`d` shows the raw diff). Add (`a`: it asks for a ref; a
+   local path stays on this machine, and once you have a primary it asks whether a remote source
+   goes to all your machines or just this one), remove (`x`; refused while its clone holds work that exists nowhere else), sync (`s`, `S`
    all), update (`u`, `U` all), bless / unbless your primary (`b` / `B`), trust / untrust (`t`; `T`
    trusts every pending one after a confirm), set its ref (`v`) or source (`O`), lock / unlock (`L`).
    For your primary: push it (`P`), see its history and undo configsys's latest change (`H`), move
@@ -831,12 +833,17 @@ from your top config, so a commit pushed to your primary can't change them:
 Before you sync, update or trust a plugin, you can read what it would change:
 
 ```console
-$ ./configsys.sh plugin diff <name>      # synced: your copy -> the newest ref; unsynced: its ref -> the newest
-$ ./configsys.sh plugin lock <name>      # hold it here: sync skips it; update, bless and trust refuse it
+$ ./configsys.sh plugin diff <name>        # ↓ what would come in, ↑ what your copy has that the remote doesn't
+$ ./configsys.sh plugin diff <name> --raw  # the same, as unified diffs
+$ ./configsys.sh plugin lock <name>        # hold it here: sync skips it; update, bless and trust refuse it
 ```
 
-An unsynced plugin's diff is fetched into a review cache that's never loaded or run. A lock is
-machine-local and freezes the plugin where it is; a synced copy keeps loading until you remove it.
+It reads by direction, never as one two-way diff: an update's new ref or your other machines'
+changes come in (`↓`); your own changes not pushed yet, or edits made in a plugin by hand, go out
+(`↑`) — no sync takes them back. Each `.hu` change is said in words
+(`configsys-source: ref v0.1.12 → v0.1.13`). An unsynced plugin's review is fetched into a cache
+that's never loaded or run. A lock is machine-local and freezes the plugin where it is; a synced
+copy keeps loading until you remove it.
 
 [`examples/examplos/`](examples/examplos/) is a complete, copy-able example — the fictional
 **ExamplOS** distro with a `toybox` driver + an `examplos` OS block, walked through step by step
@@ -994,7 +1001,7 @@ edit that file, not this section -->
 - **release-registry** (`releases:` on an OS block) — The facts configsys records about each release of a versioned distro — status (prerelease, released, end-of-life), container image, codename, glibc, python3 and gcc versions. A derivative's release names the release it is built on (`base:`), so a gate like `ubuntu >= 24.04` reaches it. *See also:* **OS-block**, **lineage**.
 - **requires** (`requires:`) — A HARD dependency: the capability must resolve here or the component errors. *See also:* **suggests**, **capability**.
 - **resolution** — Turning wanted component names into concrete units for THIS machine: pick a binding per component, close its requires/suggests, dedupe. *See also:* **unit**, **candidate**.
-- **review-diff** (`configsys plugin diff`) — What taking a plugin would change, readable before you sync, update or trust it: a synced plugin's copy against its newest ref, or an unsynced one's ref against the newest (or everything a sync would download). An unsynced plugin is fetched into a cache that is never loaded or run. *See also:* **plugin**, **plugin-lock**, **trust**.
+- **review-diff** (`configsys plugin diff`) — What would change, by direction, readable before you sync, update, trust or push: ↓ what would come in (a synced plugin's newest ref, what your other machines pushed to your primary, or an unsynced one's ref against the newest — or everything a sync would download) and ↑ what your copy has that its remote doesn't (what a push would share; edits made here, which no sync takes back). Each .hu change is said in words; --raw (TUI d) shows the unified diff. An unsynced plugin is fetched into a cache that is never loaded or run. *See also:* **plugin**, **plugin-lock**, **trust**.
 - **routing-status** — A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS). *See also:* **stranded**, **status**.
 - **scale-root** (`scale-root: true`) — Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version. *See also:* **OS-block**.
 - **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user.

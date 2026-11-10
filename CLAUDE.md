@@ -243,7 +243,10 @@ record their source; an untrusted plugin's `facets:` `detect:` probes and `keys:
 (`identity` default / `content` / `signed`) for its data and code alike. Root-written vendor paths
 are confined (`routecheck.vendor_path_problem`), downloads may carry `sha256:`
 (`Driver.verify_download`), version fetches are https-only. Review + lock (`plugin diff`, `plugin
-lock`; `actions.plugin_review_plan`, `plugin-locks.hu`): docs/plugins.md §6a.
+lock`; `actions.plugin_review` → `review.py`: ↓ coming in / ↑ going out sections, never a two-way
+diff, rendered once for the TUI pane and the CLI by `review.render`, each `.hu` change in words by
+`hudiff.py`; `plugin-locks.hu`): docs/plugins.md §6a. Whatever an action commits into the primary
+ends its note with `primarygit.landed` ("recorded in your primary (x), not pushed yet (P)").
 
 **Stranded installs (configsys/stranded.py; docs/stranded-installs.md).** When routes stop offering
 a component's installed method, it reads `switch` (installing it runs the method swap, removing the

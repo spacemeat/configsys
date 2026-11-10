@@ -720,15 +720,21 @@ def build_parser():
                             description="Lift a plugin's lock, so sync, update, bless and trust "
                                         'act on it again.')
     pulk.add_argument('name', help='plugin name, source, or dir')
-    pdf = plsub.add_parser('diff', help='review what a plugin would change before you take it: a '
-                                        'synced plugin against its newest remote ref; an unsynced one '
-                                        'between its ref and the newest (or everything a sync would '
-                                        'download), fetched into a cache that is never loaded',
-                           description='Review what a plugin would change before you take it, as a '
-                                       'diff: a synced plugin\'s copy against its newest remote ref; '
-                                       'an unsynced one between its declared ref and the newest (or '
-                                       'everything a sync would download), fetched into a cache that '
-                                       'is never loaded or run.')
+    pdf = plsub.add_parser('diff', help='review what would change, by direction: what would come '
+                                        'in (an update, your other machines\' changes, or what a sync '
+                                        'would download) and what your copy has that its remote '
+                                        'doesn\'t (what a push would share)',
+                           description='Review what would change before you take it — by direction, '
+                                       'never as one two-way diff. ↓ what would come in: a synced '
+                                       'plugin\'s newest remote ref, what your other machines pushed '
+                                       'to your primary, or, for an unsynced plugin, its declared ref '
+                                       'against the newest (or everything a sync would download), '
+                                       'fetched into a cache that is never loaded or run. ↑ what your '
+                                       'copy has that its remote doesn\'t: what `plugin push` would '
+                                       'share, or edits made in a plugin by hand, which no sync takes '
+                                       'back. Each .hu change is said in words; --raw prints the '
+                                       'unified diffs. Under --pretend nothing is fetched: your primary '
+                                       'is read as of its last fetch.')
     pdf.add_argument('name', help='plugin name, source, or dir')
     pdf.add_argument('--to', metavar='REF',
                      help='compare against this ref instead of the newest version tag (or main/master)')
