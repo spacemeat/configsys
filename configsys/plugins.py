@@ -1621,7 +1621,9 @@ def _git_checkout(runner, dq, ref, *, follow_default=False):
     keeps a plugin you author in place (your primary) on a real, pushable branch — so edits + commits
     land on the branch, never on a detached HEAD whose commits git will eventually gc — and, being
     ff-only, a re-sync never discards commits. A TAG or commit ref DETACHES (it is immutable — you
-    cannot be "on" it); NO ref -> the remote's default branch (`origin/HEAD`), detached — or, with
+    cannot be "on" it), except over commits made on that detached HEAD that no branch or tag holds:
+    moving off would strand them, so it is 'kept' (the review says a sync stops rather than move past
+    local work); NO ref -> the remote's default branch (`origin/HEAD`), detached — or, with
     `follow_default` (a primary plugin), that branch ATTACHED, like a branch ref. Nothing is ever
     forced: a checkout that would overwrite uncommitted edits (or untracked files) is refused by git,
     reported 'kept', and the edits survive. A pretended/absent run counts as 'ok'.'''
@@ -1656,6 +1658,8 @@ def _git_checkout(runner, dq, ref, *, follow_default=False):
     target = ref if ref else ('origin/HEAD' if _has('origin/HEAD') else None)
     if target is None:
         return 'ok'                              # no ref and no known default branch: leave as-is
+    if _orphan_commits(runner, dq):
+        return 'kept'                            # commits made here on a detached HEAD: moving off strands them
     co = runner.run(f'git -C {dq} checkout --quiet --detach {shlex.quote(target)}', capture=True)
     if co is None or co.ok:
         return 'ok'
@@ -2004,44 +2008,43 @@ def _parse_unified_diff(text):
     return files
 
 
-def diff_against_ref(runner, plugins_dir, decl, target_ref):
-    '''Unified diff of a synced plugin's current HEAD against `target_ref` fetched from its remote —
-    "what updating to target_ref would change" (the review-before-you-trust view). Fetches the ref
-    read-only (no working-tree mutation), then `git diff HEAD..FETCH_HEAD`. Returns (files, err):
-    files as in _parse_unified_diff (empty = no changes / already there), err a message or None.'''
+def fetch_ref(runner, plugins_dir, decl, target_ref):
+    '''Fetch `target_ref` from a synced plugin's remote, read-only for the checkout (objects and
+    FETCH_HEAD only — no working-tree change, no ref moved), for the review (review.synced). Returns
+    (commit, err): the fetched commit, or None and a message.'''
     pdir = plugins_dir / dir_name(decl['source'])
     if not pdir.exists():
-        return [], 'not synced — press s to sync first'
+        return None, 'not synced — press s to sync first'
     if not target_ref:
-        return [], 'no upstream ref to compare against'
+        return None, 'no upstream ref to compare against'
+    if getattr(runner, 'pretend', False):
+        return None, f'[pretend] would fetch {target_ref} to review it'
     genv = _noninteractive_git_env()
     cq, dq, rq = shlex.quote(str(pdir)), shlex.quote(clone_url(decl['source'])), shlex.quote(target_ref)
     fetched = runner.run(f'git -C {cq} fetch --quiet -- {dq} {rq}', capture=True, env=genv)
     if fetched is None or not fetched.ok:
-        return [], f'could not fetch {target_ref} (unreachable or private?)'
-    d = runner.run(f'git -C {cq} diff --no-ext-diff --no-textconv HEAD..FETCH_HEAD', capture=True,
-                   env=genv)
-    if d is None or not d.ok:
-        return [], 'diff failed'
-    return _parse_unified_diff(d.stdout or ''), None
+        return None, f'could not fetch {target_ref} (unreachable or private?)'
+    c = runner.run(f'git -C {cq} rev-parse --verify --quiet "FETCH_HEAD^{{commit}}"', capture=True, env=genv)
+    sha = (c.stdout or '').strip() if c is not None and c.ok else ''
+    return (sha, None) if sha else (None, f'could not read {target_ref} after fetching it')
 
 
 _EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'   # git's well-known empty tree
 
 
-def review_diff(runner, review_dir, decl, base_ref, target_ref):
-    '''Diff two refs of a plugin's REMOTE without syncing it — the review before you download.
-    The objects are fetched into an inert bare repo under `review_dir` (created with no hook
-    templates; never a layer, never loaded, never checked out, nothing in it runs), so this works
-    for an unsynced plugin and leaves the plugins dir untouched. `base_ref` None diffs against the
-    empty tree: the whole content at `target_ref`, i.e. what a sync would download. Returns
-    (files, err) like diff_against_ref. Only git sources can be reviewed.'''
+def review_fetch(runner, review_dir, decl, base_ref, target_ref):
+    '''Fetch two refs of a plugin's REMOTE without syncing it — for the review before you download
+    (review.unsynced). The objects go into an inert bare repo under `review_dir` (created with no hook
+    templates; never a layer, never loaded, never checked out, nothing in it runs), so this works for
+    an unsynced plugin and leaves the plugins dir untouched. `base_ref` None stands for the empty
+    tree: the whole content at `target_ref`, i.e. what a sync would download. Returns (repo, base,
+    target, err): the cache repo and the two commits, or err set. Only git sources can be reviewed.'''
     if not target_ref:
-        return [], 'no upstream ref to compare against'
+        return None, None, None, 'no upstream ref to compare against'
     if _transport_for(decl['source']) is not _git_transport:
-        return [], 'not a git source — nothing to review before syncing'
+        return None, None, None, 'not a git source — nothing to review before syncing'
     if getattr(runner, 'pretend', False):
-        return [], f'[pretend] would fetch {target_ref} into the review cache'
+        return None, None, None, f'[pretend] would fetch {target_ref} into the review cache'
     repo = Path(review_dir) / (dir_name(decl['source']) + '.git')
     genv = _noninteractive_git_env()
     rq, uq = shlex.quote(str(repo)), shlex.quote(clone_url(decl['source']))
@@ -2049,7 +2052,7 @@ def review_diff(runner, review_dir, decl, base_ref, target_ref):
         repo.parent.mkdir(parents=True, exist_ok=True)
         r = runner.run(f'git init --quiet --bare --template= {rq}', capture=True, env=genv)
         if r is None or not r.ok:
-            return [], 'could not create the review cache'
+            return None, None, None, 'could not create the review cache'
 
     def fetch(ref):
         f = runner.run(f'git -C {rq} fetch --quiet --no-tags --force -- {uq} {shlex.quote(ref)}',
@@ -2062,15 +2065,11 @@ def review_diff(runner, review_dir, decl, base_ref, target_ref):
 
     target = fetch(target_ref)
     if not target:
-        return [], f'could not fetch {target_ref} (unreachable or private?)'
+        return None, None, None, f'could not fetch {target_ref} (unreachable or private?)'
     base = fetch(base_ref) if base_ref else _EMPTY_TREE
     if not base:
-        return [], f'could not fetch {base_ref} (unreachable or private?)'
-    d = runner.run(f'git -C {rq} diff --no-ext-diff --no-textconv {base} {target}', capture=True,
-                   env=genv)
-    if d is None or not d.ok:
-        return [], 'diff failed'
-    return _parse_unified_diff(d.stdout or ''), None
+        return None, None, None, f'could not fetch {base_ref} (unreachable or private?)'
+    return repo, base, target, None
 
 
 # Registered sync transports (P2c): a plugin claims a `source:` scheme so `source:

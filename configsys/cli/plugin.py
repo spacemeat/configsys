@@ -297,34 +297,45 @@ def _retarget_clone(ctx, old_dir, new_source):
     print(f'configsys: retargeted the synced clone\'s origin -> {plugins.source_url(new_source)}')
 
 
+def review_act(name, to=None):
+    '''How the CLI names an action in a review title: the command that takes it.'''
+    cmds = {'push': 'configsys plugin push', 'sync': 'configsys plugin sync',
+            'update': f'configsys plugin update {name} ' + (f'--ref {to}' if to else '--latest'),
+            'unlock': f'configsys plugin unlock {name}',
+            'set_source': f'configsys plugin set-source {name} <source>'}
+    return lambda p: f'`{cmds[p]}`'
+
+
 def cmd_plugin_diff(ctx, args, eff):
-    '''`plugin diff NAME [--ref R]`: print the review diff — the TUI Plugins diff pane, as text.'''
-    from .. import actions, plugins
+    '''`plugin diff NAME [--to R]`: print the review — what would come in (↓) and what this copy has
+    that its remote doesn't (↑) — the TUI Plugins review pane, as text (review.render).'''
+    from .. import actions, plugins, review
     target = plugins.find_decl(eff, ctx.paths.plugins_dir, args.name)
     if target is None:
         print(f'configsys: no declared plugin matches {args.name!r}')
         return 1
-    row = plugins.status(ctx.paths.plugins_dir, [target])[0]
+    row = plugins.status(ctx.paths.plugins_dir, [target], lock_file=ctx.paths.plugin_lock_file)[0]
+    primary = bool(row.get('primary') and row.get('synced'))
     remote = args.to
-    if not remote:
+    if not remote and not primary:                     # (the primary is compared with its branch)
         remote, _kind = plugins.latest_ref(ctx.runner, target['source'])
-    kind, base, to, what = actions.plugin_review_plan(row, remote)
+    kind, _base, to, what = actions.plugin_review_plan(row, remote)
     if kind is None:
         print(f'configsys: {row["name"]}: {what}')
         return 1
-    if ctx.runner.pretend:
+    pretend = ctx.runner.pretend
+    if pretend and kind != 'primary':                  # the primary is read as it is, fetching nothing
         print(f'configsys: [pretend] would fetch {to} to review {row["name"]} ({what})')
         return 0
-    files, note, _plan = actions.plugin_review(ctx, target, row, remote)
-    frm = '(nothing)' if base is None else (row['ref'] or 'HEAD') if base == 'HEAD' else base
-    print(f'configsys: {row["name"]}: {frm} -> {to} — {what}')
-    for f in files:
-        print(f'diff --git a/{f["path"]} b/{f["path"]}')
-        for _k, line in f['lines']:
-            print(line)
-    if not files:
-        print(f'configsys: {note}')
-    return 0 if files or not note or 'identical' in note or 'up to date' in note else 1
+    rv = actions.plugin_review(ctx, target, row, remote, fetch=not pretend)
+    if rv.error:
+        print(f'configsys: {row["name"]}: {rv.error}')
+        return 0 if rv.error.startswith('[pretend]') else 1
+    print(f'configsys: {row["name"]}: {rv.span}' + (' (as of the last fetch — --pretend fetches nothing)'
+                                                     if pretend else ''))
+    for _kind, line in review.render(rv.sections, review_act(row['name'], args.to)):
+        print(line)
+    return 0
 
 
 def _primary_dir_name(ctx):

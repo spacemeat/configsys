@@ -38,7 +38,7 @@ def _fake_model():
         remote={plugins.dir_name('github:me/x'): 'v1.0',      # up to date
                 plugins.dir_name('github:org/y'): 'v0.9'},    # newer than ref -> update available
         cur=0, top=0, hscroll=0, focus='table',
-        diff_files=[], diff_note='', diff_span=None, dfile=0, dtop=0, dhscroll=0,
+        diff_review=None, diff_files=[], diff_note='', diff_span=None, dfile=0, dtop=0, dhscroll=0,
         cur_row=lambda: rows[0])
 
 
@@ -101,7 +101,7 @@ def test_handle_nav_moves_cursor_and_invalidates_diff(ctx):
     # nav drops the old diff and asks for the new row's (a --pretend ctx fetches nothing)
     assert scr.model.diff_key == ('configsys-science', 'synced', 'HEAD', 'v0.5.0')
     assert scr.model.diff_files == [] and 'pretend' in scr.model.diff_note
-    assert scr.model.diff_span == ('v0.4.1', 'v0.5.0', 'what an update would change')
+    assert scr.model.diff_span == 'v0.4.1 → v0.5.0'
     assert not intent.dirty
 
 
@@ -110,14 +110,16 @@ def test_review_diff_loads_in_the_background_and_caches(ctx, monkeypatch):
     from configsys import actions
     gate, calls = threading.Event(), []
 
-    def review(c, decl, row, remote):
-        calls.append(row['name'])
+    from configsys.review import IN, File, Review, Section
+
+    def review(c, decl, row, remote, fetch=True):
+        calls.append((row['name'], fetch))
         gate.wait(5)
-        return [{'path': 'a.hu', 'lines': [('add', '+x')]}], '', None
+        return Review([Section(IN, '{update} would bring in: v0.4.1 → v0.5.0', [File('a.hu', [('add', '+x')])])])
     monkeypatch.setattr(actions, 'plugin_review', review)
     pl = menu._sample_plugins_state(ctx)
     monkeypatch.setattr(ctx.runner, 'pretend', False)
-    pl.diff_files, pl.diff_key = [], None
+    pl.diff_review, pl.diff_key = None, None
     pl.load_diff()
     assert pl.busy() and pl.diff_note.startswith('fetching v0.5.0')
     gate.set()
@@ -127,9 +129,9 @@ def test_review_diff_loads_in_the_background_and_caches(ctx, monkeypatch):
         threading.Event().wait(0.01)
     assert pl.busy()                                      # fetched but not yet shown: keep polling
     pl.load_diff()
-    assert [f['path'] for f in pl.diff_files] == ['a.hu'] and not pl.busy()
+    assert [f.path for f in pl.diff_files] == ['a.hu'] and not pl.busy()
     pl.load_diff()
-    assert calls == ['science']                           # cached: one fetch
+    assert calls == [('science', False)]                  # cached: one fetch (the primary's came first)
 
 
 def test_handle_switch_pane_toggles_focus(ctx):

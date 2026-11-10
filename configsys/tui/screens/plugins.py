@@ -4,8 +4,9 @@ The model is `panes.PluginScreen` (state + git/trust ops), composed as `self.mod
 three MVVM seams (docs/tui-architecture.md):
 
 - build_vm: computes the PURE render content — every table cell + its role, column widths, the remote
-  strings, the selected diff file's header and role-tagged lines, and the status/nav strings. No
-  curses, no geometry that needs the drawn borders.
+  strings, the review's role-tagged lines (review.render: ↓ coming in / ↑ going out, each action
+  named with its key), and the status/nav strings. No curses, no geometry that needs the drawn
+  borders.
 - draw: lays the content out (panel rects, the shared table painter — screens/table.py — and the diff
   pane, their clamped scrolls recorded with vm.settle) and paints it — no decisions the VM didn't
   already settle.
@@ -13,12 +14,12 @@ three MVVM seams (docs/tui-architecture.md):
 '''
 
 
-from ... import plugins
+from ... import plugins, review
 from .. import menu
 from ..modals import _input_box
 from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_h, _scrollbar_v
 from ..panes import (
-    _DIFF_ELEM, _plugin_cells, _plugin_code_elem, _PLUGIN_HEADERS, _plugin_remote_elem,
+    _plugin_cells, _plugin_code_elem, _PLUGIN_HEADERS, _plugin_remote_elem, _REVIEW_ELEM,
     PluginScreen)
 from ..screen import suspended
 from . import table
@@ -40,18 +41,24 @@ class PluginsVM(ViewModel):
         self.elems = []            # list[list[str]] — role name per cell
         self.headers = _PLUGIN_HEADERS
         self.display = None        # rows in order (no section rules)
-        # diff content
-        self.diff_title = 'diff'
-        self.diff_has_files = False
-        self.diff_msg = ''         # shown when there are no files
-        self.diff_header = ''      # the [i/n] path +A -B line
-        self.diff_lines = []       # list[(elem, text)] of the selected file
+        # review content
+        self.diff_title = 'review'
+        self.diff_has_files = False  # anything to show below the title
+        self.diff_msg = ''         # shown when there is nothing (loading, an error, no plugin)
+        self.diff_header = ''      # a first line above the body ('' = none)
+        self.diff_lines = []       # list[(elem, text)]: the review's lines
         self.diff_maxlen = 0
         # chrome
         self.status = ''
         self.note = ''             # the transient action note (the host supplies it; '' when none)
         self.nav = ''
         self.focus = 'table'
+
+
+def review_act(km=None):
+    '''How the TUI names an action in a review title: its verb and its key here — `push (P)`.'''
+    km = km or menu._keymap()
+    return lambda p: f'{review.ACTIONS[p][1]} ({km.glyph("plugins", review.ACTIONS[p][0])})'
 
 
 def _nav_str():
@@ -152,29 +159,17 @@ class PluginsScreen(Screen):
     def _build_diff_vm(self, vm):
         pl = self.model
         row = pl.cur_row()
-        span = pl.diff_span
-        if row is not None and span:
-            frm, to, what = span
-            vm.diff_title = f'diff · {row["name"]} · {frm} → {to} · {what}'
-        elif row is not None:
-            remote = pl.remote.get(plugins.dir_name(row['source']))
-            to = remote if isinstance(remote, str) else '—'
-            vm.diff_title = f'diff · {row["name"]} · {row["ref"] or "HEAD"} → {to}'
-        files = pl.diff_files
-        if not files:
+        if row is not None:
+            vm.diff_title = f'review · {row["name"]}' + (f' · {pl.diff_span}' if pl.diff_span else '')
+        rv = pl.diff_review
+        if rv is None or not rv.sections:
             vm.diff_msg = pl.diff_note or (f'{menu._keymap().glyph("plugins", "switch-pane")} here to '
                                            'review what an update would change')
             return
         vm.diff_has_files = True
-        dfile = max(0, min(pl.dfile, len(files) - 1))
-        vm.settle(dfile=dfile)
-        f = files[dfile]
-        added = sum(1 for k, _t in f['lines'] if k == 'add')
-        removed = sum(1 for k, _t in f['lines'] if k == 'del')
-        vm.diff_header = (f'[{dfile + 1}/{len(files)}] {f["path"]}   '
-                          f'+{added} -{removed}   ({menu._keymap().glyph("plugins", "switch-pane")}: next file)')
-        vm.diff_lines = [(_DIFF_ELEM.get(k, 'info_dim'), t) for k, t in f['lines']]
-        vm.diff_maxlen = max((len(t) for _k, t in f['lines']), default=0)
+        lines = review.render(rv.sections, review_act())
+        vm.diff_lines = [(_REVIEW_ELEM.get(k, 'info_dim'), t) for k, t in lines]
+        vm.diff_maxlen = max((len(t) for _k, t in lines), default=0)
 
     # -- draw -------------------------------------------------------------
 
@@ -205,17 +200,20 @@ class PluginsScreen(Screen):
         if not vm.diff_has_files:
             _put(surface, dit, dil, _fit(vm.diff_msg, diw), pal.style('info_dim', dit, dil, h, w))
             return
-        _put(surface, dit, dil, _fit(vm.diff_header, diw), pal.style('accent', dit, dil, h, w))
-        body_h = dih - 1
+        top_row = dit
+        if vm.diff_header:
+            _put(surface, dit, dil, _fit(vm.diff_header, diw), pal.style('accent', dit, dil, h, w))
+            top_row += 1
+        body_h = dih - (top_row - dit)
         lines = vm.diff_lines
         dtop = max(0, min(pl.dtop, max(0, len(lines) - body_h)))
         dhscroll = max(0, min(pl.dhscroll, max(0, vm.diff_maxlen - diw)))
         vm.settle(dtop=dtop, dhscroll=dhscroll, dpage_h=max(1, body_h))
         for vis, i in enumerate(range(dtop, min(len(lines), dtop + body_h))):
             elem, txt = lines[i]
-            y = dit + 1 + vis
+            y = top_row + vis
             _put(surface, y, dil, _fit(txt[dhscroll:], diw), pal.style(elem, y, dil, h, w))
-        _scrollbar_v(surface, pal, dit + 1, dil + diw, body_h, dtop, body_h, len(lines), h, w)
+        _scrollbar_v(surface, pal, top_row, dil + diw, body_h, dtop, body_h, len(lines), h, w)
         _scrollbar_h(surface, pal, dit + dih, dil, diw, dhscroll, diw, vm.diff_maxlen, h, w)
 
     # -- handle -----------------------------------------------------------
@@ -234,21 +232,10 @@ class PluginsScreen(Screen):
         try:
             if pl.focus == 'diff' and pl.diff_key is None:
                 pl.load_diff()
-            if pact == 'switch-pane':
-                if pl.focus == 'table':
-                    pl.focus, pl.dfile = 'diff', 0
-                    pl.load_diff()
-                elif pl.dfile + 1 < len(pl.diff_files):
-                    pl.dfile, pl.dtop, pl.dhscroll = pl.dfile + 1, 0, 0
-                else:
-                    pl.focus = 'table'
-            elif pact == 'switch-pane-back':
+            if pact in ('switch-pane', 'switch-pane-back'):
                 if pl.focus == 'table':
                     pl.focus = 'diff'
                     pl.load_diff()
-                    pl.dfile = max(0, len(pl.diff_files) - 1)
-                elif pl.dfile > 0:
-                    pl.dfile, pl.dtop, pl.dhscroll = pl.dfile - 1, 0, 0
                 else:
                     pl.focus = 'table'
             elif pact in menu._NAV_ACTIONS:

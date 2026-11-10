@@ -2099,15 +2099,21 @@ def plugin_unlock(ctx, ident):
 
 
 def plugin_review_plan(row, remote):
-    '''What the review diff compares for a plugin status `row`, given its resolved remote-ref
-    (`remote`: a ref string, or None). Returns (kind, base, target, what):
-      kind 'synced'   — the on-disk copy (HEAD) -> remote-ref: what an update would pull in;
+    '''What the review compares for a plugin status `row`, given its resolved remote-ref (`remote`:
+    a ref string, or None). Returns (kind, base, target, what):
+      kind 'primary'  — your synced primary: this copy against its branch on the remote (what your
+                        other machines pushed ↓, what a push would share ↑; a primary pinned to a tag
+                        is reviewed like any synced plugin, against `remote`);
+      kind 'synced'   — the on-disk copy (HEAD) -> remote-ref: what an update would bring in ↓, and
+                        any work made here ↑;
       kind 'review'   — two refs of the remote, fetched into the review cache (unsynced): the
                         declared ref -> remote-ref, or, with base None, the whole content at
                         target — what a sync would download (no ref, or the ref is already newest);
       kind None       — nothing to compare (`what` says why).'''
     ref = row.get('ref')
     if row.get('synced'):
+        if row.get('primary'):
+            return 'primary', 'HEAD', ref or remote, 'what your other machines pushed, and what a push would share'
         if not remote:
             return None, None, None, 'no upstream ref to compare against'
         return 'synced', 'HEAD', remote, 'what an update would change'
@@ -2119,17 +2125,33 @@ def plugin_review_plan(row, remote):
     return 'review', None, target, 'not synced — everything a sync would download'
 
 
-def plugin_review(ctx, decl, row, remote):
-    '''Run the review diff plugin_review_plan picks. Returns (files, note, plan).'''
-    plan = plugin_review_plan(row, remote)
-    kind, base, target, what = plan
+def plugin_review(ctx, decl, row, remote, *, fetch=True):
+    '''The review plugin_review_plan picks, by direction (review.py): a `review.Review` whose
+    sections say what would come in (↓) and what this copy has that its remote doesn't (↑), or whose
+    `error` says why nothing could be compared. `fetch` False: the primary is compared as of its last
+    fetch (the TUI's remote-ref thread just fetched it). Under --pretend nothing is fetched.'''
+    from . import review
+    kind, base, target, what = plugin_review_plan(row, remote)
     if kind is None:
-        return [], what, plan
-    if kind == 'synced':
-        files, err = plugins.diff_against_ref(ctx.runner, ctx.paths.plugins_dir, decl, target)
-        return files, err or ('' if files else 'up to date — nothing to pull in'), plan
-    files, err = plugins.review_diff(ctx.runner, ctx.paths.plugin_review_dir, decl, base, target)
-    return files, err or ('' if files else f'{base} and {target} are identical'), plan
+        return review.Review(error=what)
+    pdir = Path(ctx.paths.plugins_dir) / plugins.dir_name(decl['source'])
+    locked = bool(row.get('locked'))
+    if kind == 'primary':
+        if (pdir / '.git').exists() and primarygit.PrimaryRepo(pdir).branch():
+            stale = fetch and not getattr(ctx.runner, 'pretend', False) and not primarygit.fetch(ctx)
+            return review.primary(pdir, locked=locked, stale=stale)
+        if not remote:                               # pinned to a tag: like any synced plugin
+            return review.Review(error='no upstream ref to compare against')
+        target = remote
+    if kind in ('primary', 'synced'):
+        sha, err = plugins.fetch_ref(ctx.runner, ctx.paths.plugins_dir, decl, target)
+        if err:
+            return review.Review(error=err)
+        return review.synced(pdir, sha, frm=row.get('ref') or 'HEAD', to=target, locked=locked)
+    repo, b, t, err = plugins.review_fetch(ctx.runner, ctx.paths.plugin_review_dir, decl, base, target)
+    if err:
+        return review.Review(error=err)
+    return review.unsynced(repo, b, t, base_ref=base, to=target)
 
 
 # -- dotfiles (`configsys dotfiles` + the TUI Dotfiles screen) ------------------------------------

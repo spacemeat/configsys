@@ -71,6 +71,7 @@ def test_review_plan_cases():
     plan = actions.plugin_review_plan
     assert plan({'synced': True, 'ref': 'v1'}, 'v2')[:3] == ('synced', 'HEAD', 'v2')
     assert plan({'synced': True, 'ref': 'v1'}, None)[0] is None
+    assert plan({'synced': True, 'ref': 'main', 'primary': True}, None)[:3] == ('primary', 'HEAD', 'main')
     assert plan({'synced': False, 'ref': 'v1'}, 'v2')[:3] == ('review', 'v1', 'v2')
     assert plan({'synced': False, 'ref': 'v2'}, 'v2')[:3] == ('review', None, 'v2')    # whole content
     assert plan({'synced': False, 'ref': None}, 'main')[:3] == ('review', None, 'main')
@@ -79,27 +80,30 @@ def test_review_plan_cases():
 
 
 @needs_git
-def test_review_diff_reads_an_unsynced_plugin_without_syncing_it(tmp_path):
+def test_review_fetch_reads_an_unsynced_plugin_without_syncing_it(tmp_path):
+    from configsys import review
     src = _repo(tmp_path)
     pdir, cache = tmp_path / 'plugins', tmp_path / 'review'
     decl = {'source': str(src), 'ref': 'v1'}
-    files, err = plugins.review_diff(Runner(pretend=False), cache, decl, 'v1', 'v2')
-    assert err is None and [f['path'] for f in files] == ['routes.hu']
-    assert ('del', '-one') in files[0]['lines'] and ('add', '+two') in files[0]['lines']
+    repo, base, target, err = plugins.review_fetch(Runner(pretend=False), cache, decl, 'v1', 'v2')
+    files = review.unsynced(repo, base, target, base_ref='v1', to='v2').sections[0].files
+    assert err is None and [f.path for f in files] == ['routes.hu']
+    assert ('del', '-one') in files[0].lines and ('add', '+two') in files[0].lines
     # base None = everything a sync would download
-    files, err = plugins.review_diff(Runner(pretend=False), cache, decl, None, 'v1')
-    assert err is None and sorted(f['path'] for f in files) == ['plugin.hu', 'routes.hu']
+    repo, base, target, err = plugins.review_fetch(Runner(pretend=False), cache, decl, None, 'v1')
+    files = review.unsynced(repo, base, target, base_ref=None, to='v1').sections[0].files
+    assert err is None and sorted(f.path for f in files) == ['plugin.hu', 'routes.hu']
     assert not pdir.exists()                                  # nothing synced
-    repo = cache / 'src.git'
+    assert repo == cache / 'src.git'
     assert (repo / 'HEAD').exists() and not (repo / 'hooks').exists()   # bare, no hook templates
-    files, err = plugins.review_diff(Runner(pretend=False), cache, decl, 'v1', 'v9')
-    assert files == [] and 'could not fetch v9' in err
+    _r, _b, _t, err = plugins.review_fetch(Runner(pretend=False), cache, decl, 'v1', 'v9')
+    assert 'could not fetch v9' in err
 
 
-def test_review_diff_refuses_a_non_git_transport(tmp_path, monkeypatch):
+def test_review_fetch_refuses_a_non_git_transport(tmp_path, monkeypatch):
     monkeypatch.setitem(plugins._TRANSPORTS, 'oci', lambda *a: 'cloned')
-    files, err = plugins.review_diff(Runner(pretend=False), tmp_path, {'source': 'oci:x/y'}, None, 'v1')
-    assert files == [] and 'not a git source' in err
+    _r, _b, _t, err = plugins.review_fetch(Runner(pretend=False), tmp_path, {'source': 'oci:x/y'}, None, 'v1')
+    assert 'not a git source' in err
 
 
 # -- the lock ----------------------------------------------------------------
@@ -190,7 +194,7 @@ def test_cli_lock_list_and_diff(tmp_path, capsys):
     capsys.readouterr()
     assert main(home + ['plugin', 'diff', 'sp', '--to', 'v2']) == 0
     out = capsys.readouterr().out
-    assert 'v1 -> v2' in out and '+two' in out
+    assert 'sp: v1 → v2' in out and 'would bring in: v1 → v2' in out and '+two' in out
     assert main(home + ['plugin', 'lock', 'sp']) == 0
     assert main(home + ['plugin', 'list']) == 0
     out = capsys.readouterr().out

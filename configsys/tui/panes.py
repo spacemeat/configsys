@@ -779,16 +779,22 @@ _PLUGIN_HEADERS = ['name', 'source', 'ref', 'remote-ref', 'abi', 'code', 'provid
 
 _DIFF_ELEM = {'add': 'diff_add', 'del': 'diff_del', 'hunk': 'diff_hunk',
               'meta': 'diff_meta', 'ctx': 'info_dim'}
+# review.render's line kinds -> theme elements (the diff kinds, plus titles, files, commits, notes and
+# the summaries' change lines)
+_REVIEW_ELEM = {**_DIFF_ELEM, 'head-in': 'accent', 'head-out': 'accent', 'note': 'info_dim',
+                'commit': 'info', 'file': 'component', 'change': 'diff_hunk'}
 
 
 class PluginScreen:
     '''Two-pane Plugins screen. TOP: a `tree`-style table of declared plugins (incl. transitive)
     with name│source│ref│remote-ref│abi│code│provides columns — j/k select, h/l scroll columns.
-    BOTTOM: the review diff for the selected plugin (actions.plugin_review_plan): a synced plugin's
-    on-disk copy -> its remote-ref, or, unsynced, its ref -> remote-ref (or the whole content a sync
-    would download) fetched into an inert review cache. Loaded on a background thread as the cursor
-    settles, cached per (plugin, base, target); files as headers; hjkl scroll. Tab cycles focus
-    table→diff→next file→table; Shift-Tab reverses. A skin over configsys.actions.plugin_* —
+    BOTTOM: the review for the selected plugin (actions.plugin_review — review.py): by DIRECTION,
+    ↓ what would come in (an update's new ref, what your other machines pushed, or, unsynced, what a
+    sync would download — fetched into an inert review cache) and ↑ what this copy has that its
+    remote doesn't (what a push would share; edits made here). Loaded on a background thread as the
+    cursor settles, cached per (plugin, base, target) — and, for the primary, per where it stands —
+    as a `review.Review`; hjkl scroll. Tab cycles focus table→diff→table; Shift-Tab reverses. A skin
+    over configsys.actions.plugin_* —
     add/remove/sync/bless/update/trust/lock/set-ref/set-source — plus the primary's push / history /
     undo (primarygit).'''
 
@@ -803,11 +809,11 @@ class PluginScreen:
         self.dfile = 0                   # selected file within the loaded diff
         self.dtop = 0                    # vertical scroll within the diff file
         self.dhscroll = 0                # horizontal scroll within the diff
-        self.diff_key = None             # (name, kind, base, target) the shown diff belongs to
-        self.diff_files = []
-        self.diff_note = ''
-        self.diff_span = None            # (from, to, what) for the diff pane title
-        self._diff_cache = {}            # diff_key -> (files, note)
+        self.diff_key = None             # (name, kind, base, target[, primary state]) of the shown review
+        self.diff_review = None          # the shown review.Review, or None while none is
+        self.diff_note = ''              # what the pane says when there's no review to show
+        self.diff_span = None            # what is compared, for the pane title
+        self._diff_cache = {}            # diff_key -> review.Review
         self._diff_want = None           # (diff_key, thunk) the worker should run next
         self._diff_busy = False
         self._diff_awaiting = None       # the diff_key queued but not yet shown
@@ -868,8 +874,13 @@ class PluginScreen:
                     self.remote[key] = None
         threading.Thread(target=run, daemon=True).start()
 
+    @property
+    def diff_files(self):
+        '''Every file the shown review lists, in order.'''
+        return [f for _s, f in self.diff_review.files()] if self.diff_review else []
+
     def _invalidate_diff(self):
-        self.diff_key, self.diff_files, self.diff_note, self.diff_span = None, [], '', None
+        self.diff_key, self.diff_review, self.diff_note, self.diff_span = None, None, '', None
         self._diff_awaiting = None
         self.dfile = self.dtop = self.dhscroll = 0
 
@@ -880,10 +891,10 @@ class PluginScreen:
                 or any(v == 'pending' for v in list(self.remote.values())))
 
     def load_diff(self):
-        '''Show the selected plugin's review diff (actions.plugin_review_plan): from the cache when
-        it's been fetched, else queue it on the background worker and say so. Cheap and idempotent —
-        the screen calls it after every key and on each poll tick.'''
-        from .. import actions, plugins
+        '''Show the selected plugin's review (actions.plugin_review): from the cache when it's been
+        fetched, else queue it on the background worker and say so. Cheap and idempotent — the screen
+        calls it after every key and on each poll tick.'''
+        from .. import actions, plugins, review
         row, node = self.cur_row(), self.cur_tree()
         if row is None or node is None:
             self._invalidate_diff()
@@ -891,36 +902,40 @@ class PluginScreen:
             return
         key = plugins.dir_name(row['source'])
         remote = self.remote.get(key)
-        if remote == 'pending':
-            self.diff_key, self.diff_files, self.diff_span = None, [], None
+        if remote == 'pending':                  # (for the primary: its fetch hasn't landed yet)
+            self.diff_key, self.diff_review, self.diff_span = None, None, None
             self.diff_note = 'resolving remote-ref…'
             return
         plan = actions.plugin_review_plan(row, remote if isinstance(remote, str) else None)
         kind, base, target, what = plan
-        ident = (key, kind, base, target)
+        # the primary's review changes with every commit configsys makes there: key it by where it stands
+        ident = (key, kind, base, target) + ((getattr(self, 'primary_state', None),) if kind == 'primary' else ())
         if ident == self.diff_key:
             return
-        frm = ('∅' if base is None else (row['ref'] or 'HEAD') if base == 'HEAD' else base)
-        span = (frm, target, what) if kind else None
+        span = (None if kind is None else 'this copy ⇄ its remote' if kind == 'primary'
+                else f'everything at {target}' if base is None
+                else f'{row["ref"] or "HEAD"} → {target}' if base == 'HEAD' else f'{base} → {target}')
         if kind is None:
-            self._show(ident, [], what, span)
+            self._show(ident, review.Review(error=what), span)
         elif ident in self._diff_cache:
-            self._show(ident, *self._diff_cache[ident], span)
+            self._show(ident, self._diff_cache[ident], span)
         elif getattr(self.ctx.runner, 'pretend', False):
-            self._show(ident, [], '--pretend: the review diff fetches nothing', span)
+            self._show(ident, review.Review(error='--pretend: the review fetches nothing'), span)
         else:
-            self.diff_key, self.diff_files, self.diff_span = None, [], span
-            self.diff_note = f'fetching {target} to review…'
+            self.diff_key, self.diff_review, self.diff_span = None, None, span
+            self.diff_note = f'fetching {target or "its remote"} to review…'
             self._diff_awaiting = ident
             decl, rref = node['decl'], remote if isinstance(remote, str) else None
-            self._request_diff(ident, lambda: actions.plugin_review(self.ctx, decl, row, rref)[:2])
+            # fetch=False: the remote-ref thread fetched the primary before resolving its row
+            self._request_diff(ident, lambda: actions.plugin_review(self.ctx, decl, row, rref, fetch=False))
 
-    def _show(self, ident, files, note, span):
+    def _show(self, ident, rv, span):
         self._diff_awaiting = None
         if ident != self.diff_key:
             self.dfile = self.dtop = self.dhscroll = 0
-        self.diff_key, self.diff_files, self.diff_note, self.diff_span = ident, files, note, span
-        self.dfile = max(0, min(self.dfile, len(files) - 1))
+        self.diff_key, self.diff_review, self.diff_note = ident, rv, rv.error
+        self.diff_span = rv.span or span
+        self.dfile = max(0, min(self.dfile, len(self.diff_files) - 1))
 
     def _request_diff(self, ident, thunk):
         '''Run `thunk` for `ident` on the single worker thread. Only the NEWEST request matters: a
@@ -942,10 +957,11 @@ class PluginScreen:
                 if ident_ in self._diff_cache:
                     continue
                 try:
-                    files, note = thunk_()
+                    rv = thunk_()
                 except Exception as e:               # noqa: BLE001 — never let it crash
-                    files, note = [], f'review failed: {e}'
-                self._diff_cache[ident_] = (files, note)
+                    from ..review import Review
+                    rv = Review(error=f'review failed: {e}')
+                self._diff_cache[ident_] = rv
         threading.Thread(target=run, daemon=True).start()
 
 

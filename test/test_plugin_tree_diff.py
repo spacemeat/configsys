@@ -1,5 +1,5 @@
 '''The two-pane Plugins TUI's data layer: `declared_tree` (transitive hierarchy for the tree
-view), `_parse_unified_diff`/`diff_against_ref` (the review-before-you-trust diff), and the bulk
+view), `_parse_unified_diff`/`fetch_ref` (the review-before-you-trust diff), and the bulk
 `plugin_trust_all` action. Rendering itself is exercised by the TUI smoke test.'''
 
 import shutil
@@ -97,10 +97,12 @@ def test_parse_unified_diff_empty_is_no_files():
     assert plugins._parse_unified_diff('') == []
 
 
-# -- diff_against_ref: real git fetch + diff -------------------------------
+# -- fetch_ref + review.synced: real git fetch, then what updating would change ---------------
 
 @pytest.mark.skipif(shutil.which('git') is None, reason='git not available')
-def test_diff_against_ref_shows_what_updating_would_change(tmp_path):
+def test_a_synced_review_shows_what_updating_would_change(tmp_path):
+    from configsys import review
+
     def _git(cwd, *a):
         subprocess.run(['git', *a], cwd=cwd, check=True)
 
@@ -116,20 +118,22 @@ def test_diff_against_ref_shows_what_updating_would_change(tmp_path):
     decl = {'source': str(src), 'ref': 'v1'}
     plugins.sync(Runner(pretend=False), pdir, [decl])
 
-    # up to date against v1 -> no changes
-    files, err = plugins.diff_against_ref(Runner(pretend=False), pdir, decl, 'v1')
-    assert err is None and files == []
+    # up to date against v1 -> nothing comes in, nothing goes out
+    sha, err = plugins.fetch_ref(Runner(pretend=False), pdir, decl, 'v1')
+    rv = review.synced(pdir / 'src', sha, frm='v1', to='v1')
+    assert err is None and [s.heading(None) for s in rv.sections] == ['↓ up to date — nothing to pull in']
 
-    # advance the remote and diff v1 -> v2
+    # advance the remote: v1 -> v2 comes in
     (src / 'routes.hu').write_text('two\n')
     _git(src, 'add', '-A'); _git(src, 'commit', '-qm', 'B'); _git(src, 'tag', 'v2')
-    files, err = plugins.diff_against_ref(Runner(pretend=False), pdir, decl, 'v2')
-    assert err is None and len(files) == 1 and files[0]['path'] == 'routes.hu'
-    kinds = [k for k, _t in files[0]['lines']]
-    assert 'del' in kinds and 'add' in kinds          # -one +two
+    sha, err = plugins.fetch_ref(Runner(pretend=False), pdir, decl, 'v2')
+    rv = review.synced(pdir / 'src', sha, frm='v1', to='v2')
+    assert err is None and len(rv.sections) == 1 and rv.sections[0].direction == review.IN
+    files = rv.sections[0].files
+    assert len(files) == 1 and files[0].path == 'routes.hu'
+    assert ('del', '-one') in files[0].lines and ('add', '+two') in files[0].lines
 
 
-def test_diff_against_ref_unsynced_reports_gracefully(tmp_path):
-    files, err = plugins.diff_against_ref(Runner(pretend=False), tmp_path / 'plugins',
-                                          {'source': 'github:x/none'}, 'v1')
-    assert files == [] and 'not synced' in err
+def test_fetch_ref_unsynced_reports_gracefully(tmp_path):
+    sha, err = plugins.fetch_ref(Runner(pretend=False), tmp_path / 'plugins', {'source': 'github:x/none'}, 'v1')
+    assert sha is None and 'not synced' in err

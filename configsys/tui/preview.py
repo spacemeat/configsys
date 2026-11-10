@@ -217,10 +217,12 @@ def _sample_plugins_state(ctx):
     pl.remote[plugins.dir_name('github:org/configsys-science')] = 'v0.5.0'   # newer -> outdated amber
     pl.remote[plugins.dir_name('github:new/configsys-fresh')] = None         # unreachable / unsynced
 
-    pl.diff_files = [{'path': 'science.hu', 'lines': [
+    from ..review import IN, Review, Section, File
+    pl.diff_review = Review([Section(IN, '{update} would bring in: v0.4.1 → v0.5.0', [File('science.hu', [
         ('hunk', '@@ components @@'), ('meta', ' astropy:'),
         ('add', '+   pipx: { name: astropy }'), ('del', '-   pip: { name: astropy }'),
-        ('ctx', '    suggests: astropy-dotfiles')]}]
+        ('ctx', '    suggests: astropy-dotfiles')])])], 'v0.4.1 → v0.5.0')
+    pl.diff_span = pl.diff_review.span
     pl.dfile, pl.diff_note = 0, None
     pl.cur = 1                                            # park on `science` (the update-available row)
     return pl
