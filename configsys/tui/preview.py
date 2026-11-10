@@ -217,11 +217,18 @@ def _sample_plugins_state(ctx):
     pl.remote[plugins.dir_name('github:org/configsys-science')] = 'v0.5.0'   # newer -> outdated amber
     pl.remote[plugins.dir_name('github:new/configsys-fresh')] = None         # unreachable / unsynced
 
+    # the review: a .hu file in words (its raw diff one key away), and a file with no words — its diff
     from ..review import IN, Review, Section, File
-    pl.diff_review = Review([Section(IN, '{update} would bring in: v0.4.1 → v0.5.0', [File('science.hu', [
-        ('hunk', '@@ components @@'), ('meta', ' astropy:'),
-        ('add', '+   pipx: { name: astropy }'), ('del', '-   pip: { name: astropy }'),
-        ('ctx', '    suggests: astropy-dotfiles')])])], 'v0.4.1 → v0.5.0')
+    pl.diff_review = Review([Section(IN, '{update} would bring in: v0.4.1 → v0.5.0', [
+        File('science.hu', [('hunk', '@@ -3,2 +3,2 @@'), ('ctx', '   astropy: { install: ['),
+                            ('del', '-      { via: pip }'), ('add', '+      { via: pipx }')],
+             [('add', 'components.astropy.install: added via pipx'),
+              ('del', 'components.astropy.install: removed via pip'),
+              ('change', 'components.astropy.description changed')]),
+        File('README.md', [('meta', 'old mode 100644'), ('meta', 'new mode 100755'),
+                           ('hunk', '@@ -1 +1 @@'), ('del', '-science tools'),
+                           ('add', '+science tools, now via pipx'), ('ctx', ' (see science.hu)')])])],
+                            'v0.4.1 → v0.5.0')
     pl.diff_span = pl.diff_review.span
     pl.dfile, pl.diff_note = 0, None
     pl.cur = 1                                            # park on `science` (the update-available row)

@@ -144,6 +144,7 @@ TUI_ACTIONS = {
     ('plugins', 'lock'): 'plugin lock',
     ('plugins', 'picks-to-primary'): 'picks to-primary',
     ('plugins', 'push'): 'plugin push',
+    ('plugins', 'raw-diff'): 'plugin diff',             # plugin diff --raw
     ('plugins', 'remove'): 'plugin remove',
     ('plugins', 'set-ref'): 'plugin update',            # update --ref
     ('plugins', 'set-source'): 'plugin set-source',

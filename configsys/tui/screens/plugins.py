@@ -19,7 +19,7 @@ from .. import menu
 from ..modals import _input_box
 from ..paint import _fit, _page_rows, _panel, _put, _scrollbar_h, _scrollbar_v
 from ..panes import (
-    _plugin_cells, _plugin_code_elem, _PLUGIN_HEADERS, _plugin_remote_elem, _REVIEW_ELEM,
+    _DIFF_ELEM, _plugin_cells, _plugin_code_elem, _PLUGIN_HEADERS, _plugin_remote_elem, _REVIEW_ELEM,
     PluginScreen)
 from ..screen import suspended
 from . import table
@@ -45,7 +45,7 @@ class PluginsVM(ViewModel):
         self.diff_title = 'review'
         self.diff_has_files = False  # anything to show below the title
         self.diff_msg = ''         # shown when there is nothing (loading, an error, no plugin)
-        self.diff_header = ''      # a first line above the body ('' = none)
+        self.diff_header = ''      # the raw diff's [i/n] ↑ path +A -B line ('' in the summary view)
         self.diff_lines = []       # list[(elem, text)]: the review's lines
         self.diff_maxlen = 0
         # chrome
@@ -63,7 +63,8 @@ def review_act(km=None):
 
 def _nav_str():
     g = lambda a: menu._keymap().glyph('plugins', a)
-    return (f" {g('switch-pane')} focus · {g('down')}/{g('up')} · {g('left')}/{g('right')} scroll · "
+    return (f" {g('switch-pane')} focus · {g('raw-diff')} raw diff · {g('down')}/{g('up')} · "
+            f"{g('left')}/{g('right')} scroll · "
             f"{g('add')} add · {g('remove')} rm · {g('sync')}/{g('sync-all')} sync · "
             f"{g('bless')}/{g('unbless')} bless · {g('update')}/{g('update-all')} update · "
             f"{g('set-ref')} ref · {g('trust')} trust · {g('trust-all')} trust-all · "
@@ -159,17 +160,32 @@ class PluginsScreen(Screen):
     def _build_diff_vm(self, vm):
         pl = self.model
         row = pl.cur_row()
+        km = menu._keymap()
+        raw = getattr(pl, 'raw', False)
         if row is not None:
-            vm.diff_title = f'review · {row["name"]}' + (f' · {pl.diff_span}' if pl.diff_span else '')
+            vm.diff_title = (f'review · {row["name"]}' + (f' · {pl.diff_span}' if pl.diff_span else '')
+                             + f' · {km.glyph("plugins", "raw-diff")}: {"summary" if raw else "raw diff"}')
         rv = pl.diff_review
         if rv is None or not rv.sections:
-            vm.diff_msg = pl.diff_note or (f'{menu._keymap().glyph("plugins", "switch-pane")} here to '
+            vm.diff_msg = pl.diff_note or (f'{km.glyph("plugins", "switch-pane")} here to '
                                            'review what an update would change')
             return
         vm.diff_has_files = True
-        lines = review.render(rv.sections, review_act())
-        vm.diff_lines = [(_REVIEW_ELEM.get(k, 'info_dim'), t) for k, t in lines]
-        vm.diff_maxlen = max((len(t) for _k, t in lines), default=0)
+        files = rv.files()
+        if not raw or not files:                     # the words: every section, one scroll
+            lines = review.render(rv.sections, review_act(km))
+            vm.diff_lines = [(_REVIEW_ELEM.get(k, 'info_dim'), t) for k, t in lines]
+            vm.diff_maxlen = max((len(t) for _k, t in lines), default=0)
+            return
+        dfile = max(0, min(pl.dfile, len(files) - 1))   # the raw diff: a file at a time
+        vm.settle(dfile=dfile)
+        sec, f = files[dfile]
+        added = sum(1 for k, _t in f.lines if k == 'add')
+        removed = sum(1 for k, _t in f.lines if k == 'del')
+        vm.diff_header = (f'[{dfile + 1}/{len(files)}] {review.ARROW[sec.direction]} {f.path}   '
+                          f'+{added} -{removed}   ({km.glyph("plugins", "switch-pane")}: next file)')
+        vm.diff_lines = [(_DIFF_ELEM.get(k, 'info_dim'), t) for k, t in f.lines]
+        vm.diff_maxlen = max((len(t) for _k, t in f.lines), default=0)
 
     # -- draw -------------------------------------------------------------
 
@@ -232,12 +248,26 @@ class PluginsScreen(Screen):
         try:
             if pl.focus == 'diff' and pl.diff_key is None:
                 pl.load_diff()
-            if pact in ('switch-pane', 'switch-pane-back'):
+            if pact == 'switch-pane':
+                if pl.focus == 'table':
+                    pl.focus, pl.dfile = 'diff', 0
+                    pl.load_diff()
+                elif pl.raw and pl.dfile + 1 < len(pl.diff_files):   # the raw diff: the next file
+                    pl.dfile, pl.dtop, pl.dhscroll = pl.dfile + 1, 0, 0
+                else:
+                    pl.focus = 'table'
+            elif pact == 'switch-pane-back':
                 if pl.focus == 'table':
                     pl.focus = 'diff'
                     pl.load_diff()
+                    pl.dfile = max(0, len(pl.diff_files) - 1) if pl.raw else 0
+                elif pl.raw and pl.dfile > 0:
+                    pl.dfile, pl.dtop, pl.dhscroll = pl.dfile - 1, 0, 0
                 else:
                     pl.focus = 'table'
+            elif pact == 'raw-diff':                    # the review: words <-> the raw diff
+                pl.raw = not pl.raw
+                pl.dfile = pl.dtop = pl.dhscroll = 0
             elif pact in menu._NAV_ACTIONS:
                 if pl.focus == 'diff':                  # the diff scroll is clamped by the draw
                     pl.dtop = menu.ListNav.apply(pact, pl.dtop, 10 ** 6,

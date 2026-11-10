@@ -793,8 +793,9 @@ class PluginScreen:
     sync would download — fetched into an inert review cache) and ↑ what this copy has that its
     remote doesn't (what a push would share; edits made here). Loaded on a background thread as the
     cursor settles, cached per (plugin, base, target) — and, for the primary, per where it stands —
-    as a `review.Review`; hjkl scroll. Tab cycles focus table→diff→table; Shift-Tab reverses. A skin
-    over configsys.actions.plugin_* —
+    as a `review.Review`; shown as word summaries, or (`raw-diff`) as the raw unified diff a file at a
+    time; hjkl scroll. Tab cycles focus table→review→table (in the raw diff: through each file);
+    Shift-Tab reverses. A skin over configsys.actions.plugin_* —
     add/remove/sync/bless/update/trust/lock/set-ref/set-source — plus the primary's push / history /
     undo (primarygit).'''
 
@@ -809,6 +810,7 @@ class PluginScreen:
         self.dfile = 0                   # selected file within the loaded diff
         self.dtop = 0                    # vertical scroll within the diff file
         self.dhscroll = 0                # horizontal scroll within the diff
+        self.raw = False                 # the review as word summaries (False) or the raw diff, per file
         self.diff_key = None             # (name, kind, base, target[, primary state]) of the shown review
         self.diff_review = None          # the shown review.Review, or None while none is
         self.diff_note = ''              # what the pane says when there's no review to show

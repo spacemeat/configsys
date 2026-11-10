@@ -100,6 +100,9 @@ def test_an_unpushed_ref_bump_goes_out_and_nothing_comes_back_down(world):
     for s in rv.sections:                                                # and NOTHING takes it back
         assert not any('v0.1.12' in t for t in _diff_lines(s, 'add')), s.heading(None)
     assert up.commits and 'plugin update configsys-source --latest' in up.commits[0]
+    assert up.files[0].summary == [('change', 'configsys-source: ref v0.1.12 → v0.1.13')]   # in words
+    for s in rv.sections:
+        assert not any('v0.1.13 → v0.1.12' in t for f in s.files for _k, t in (f.summary or []))
     # the old review's two-way `HEAD..<remote>` diff read this same state backwards (the bug)
     two_way = _git(clone, 'diff', 'HEAD..origin/main')
     assert '+' in two_way and any(ln.startswith('+') and 'v0.1.12' in ln for ln in two_way.splitlines())
@@ -208,7 +211,7 @@ def test_render_names_each_action_its_own_way():
 
 # -- the two surfaces print the same sections ------------------------------------------------------
 
-def _pane(base, rv, size=(30, 110)):
+def _pane(base, rv, size=(30, 110), raw=False):
     '''The Plugins screen's review pane for the primary row, as text (BufferSurface).'''
     from _render_harness import RecordingPalette
     from configsys.tui.panes import PluginScreen
@@ -220,7 +223,7 @@ def _pane(base, rv, size=(30, 110)):
     pl.rows = plugins.status(ctx.paths.plugins_dir, [t['decl'] for t in pl.tree])
     pl.remote = {plugins.dir_name(r['source']): r['ref'] for r in pl.rows}
     pl.cur, pl.focus = 0, 'diff'
-    pl.diff_review, pl.diff_span = rv, rv.span
+    pl.diff_review, pl.diff_span, pl.raw = rv, rv.span, raw
     scr = PluginsScreen(ctx, pl)
     surf = BufferSurface(*size)
     scr.draw(surf, RecordingPalette(), scr.build_vm(ctx, size))
@@ -235,7 +238,11 @@ def test_the_tui_pane_shows_the_sections_with_their_keys(world):
     assert 'review · prim · this copy ⇄ main on its remote' in text
     assert '↓ nothing new from your other machines' in text
     assert '↑ push (P) would share: 1 change' in text                  # the key, from the keymap
-    assert 'plugin.hu' in text
+    assert '  plugin.hu' in text and 'configsys-source: ref v0.1.12 → v0.1.13' in text
+    assert 'v0.1.13 → v0.1.12' not in text and 'd: raw diff' in text
+    raw = '\n'.join(_pane(base, _review(base), (30, 220), raw=True))      # `d`: the raw diff
+    assert '[1/1] ↑ plugin.hu   +3 -1' in raw and 'd: summary' in raw
+    assert any(ln.startswith('│+') and 'v0.1.13' in ln for ln in raw.splitlines())
 
 
 def test_the_cli_prints_the_same_sections(world, capsys):
@@ -247,7 +254,7 @@ def test_the_cli_prints_the_same_sections(world, capsys):
     assert out.startswith('configsys: prim: this copy ⇄ main on its remote\n')
     assert '\n↓ nothing new from your other machines\n' in out
     assert '\n↑ `configsys plugin push` would share: 1 change\n' in out
-    assert '  plugin.hu\n' in out
+    assert '  plugin.hu\n    configsys-source: ref v0.1.12 → v0.1.13\n' in out
 
 
 def test_pretend_reads_the_primary_as_it_is_and_writes_nothing(world, capsys):
@@ -263,3 +270,20 @@ def test_pretend_reads_the_primary_as_it_is_and_writes_nothing(world, capsys):
     assert '↑ `configsys plugin push` would share: 1 change' in out
     after = {p: p.stat().st_mtime_ns for p in (clone / '.git').rglob('*') if p.is_file()}
     assert after == before
+
+
+def test_summaries_come_with_each_side(world):
+    base, clone, _bare, other, _src = world
+    _other_pushes(other, 'p.hu', '{ picks: { this-machine: [ btop ]  laptop: [ htop ] } }\n')
+    rv = _review(base)
+    assert rv.sections[0].files[0].summary == [('add', 'picks: laptop + htop')]
+    rv = _review(base, 'configsys-source', 'v0.1.13')
+    assert rv.sections[0].files[0].summary == [('add', 'components.htop.install: added via flatpak')]
+    (clone / 'notes.txt').write_text('hi\n')                            # not .hu: its diff instead
+    (clone / 'p.hu').write_text('{ picks: { this-machine: [ btop ] }  splash: plain }\n')
+    up = _one(_review(base, fetch=False), review.OUT)
+    by = {f.path: f for f in up.files}
+    assert by['p.hu'].summary == [('add', 'added splash: plain')] and by['notes.txt'].summary is None
+    lines = review.render([up], None)
+    assert ('add', '    added splash: plain') in lines and ('add', '    +hi') in lines
+    assert ('meta', 'diff --git a/p.hu b/p.hu') in review.render([up], None, raw=True)

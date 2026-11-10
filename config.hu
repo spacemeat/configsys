@@ -310,7 +310,8 @@ profiles: {
         }
 
         // Plugins screen. Focus-aware nav (down/up/left/right/top/bottom) + switch-pane (table ->
-        // each diff file -> table) come from `global`; these are its git/trust actions.
+        // the review -> table; in the raw diff, each file in turn) come from `global`; these are its
+        // git/trust actions.
         plugins: {
             add: a
             remove: x
@@ -329,6 +330,7 @@ profiles: {
             init-primary: n         // make a new primary plugin from this machine's local config (plugin init)
             set-source: O           // point a plugin at a new source / remote (plugin set-source)
             picks-to-primary: M     // move this box's local picks into your primary so they travel
+            raw-diff: d             // the review pane: word summaries <-> the raw unified diff, a file at a time
         }
 
         // Profiles screen (two panes). Nav is focus-aware from `global` (left pane: up/down the tree,

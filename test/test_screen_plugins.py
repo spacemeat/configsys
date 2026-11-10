@@ -201,3 +201,28 @@ def test_trust_all_lists_what_it_would_trust_and_cancel_trusts_nothing(ctx, monk
     answers.append(1)                                         # trust them all
     intent = scr.handle(trust_all, ctx, None, None)
     assert calls == [1] and intent.note.startswith('trusted 2')
+
+
+def test_the_review_reads_in_words_and_d_toggles_the_raw_diff(ctx):
+    scr = PluginsScreen(ctx, menu._sample_plugins_state(ctx))
+    pl = scr.model
+    pl.diff_key = ('configsys-science', 'synced', 'HEAD', 'v0.5.0')   # what load_diff keys it by: kept
+    km = menu._KEYMAP
+    key = lambda act: next(k for k in range(1, 400) if km.action_for('plugins', k) == act)  # noqa: E731
+    vm = scr.build_vm(ctx, (40, 160))
+    texts = [t for _e, t in vm.diff_lines]
+    assert texts[0] == '↓ update (u) would bring in: v0.4.1 → v0.5.0'          # the key from the keymap
+    assert '    components.astropy.install: added via pipx' in texts and not vm.diff_header
+    assert ('diff_add', '    +science tools, now via pipx') in vm.diff_lines   # no words for it: its diff
+    assert vm.diff_title.endswith('d: raw diff')
+    scr.handle(key('raw-diff'), ctx, None, None)
+    vm = scr.build_vm(ctx, (40, 160))
+    assert vm.diff_header.startswith('[1/2] ↓ science.hu   +1 -1')
+    assert ('diff_del', '-      { via: pip }') in vm.diff_lines and vm.diff_title.endswith('d: summary')
+    scr.handle(key('switch-pane'), ctx, None, None)                           # table -> the review
+    scr.handle(key('switch-pane'), ctx, None, None)                           # -> its next file
+    assert pl.focus == 'diff' and scr.build_vm(ctx, (40, 160)).diff_header.startswith('[2/2] ↓ README.md')
+    scr.handle(key('switch-pane'), ctx, None, None)
+    assert pl.focus == 'table'
+    scr.handle(key('raw-diff'), ctx, None, None)
+    assert not pl.raw and not scr.build_vm(ctx, (40, 160)).diff_header

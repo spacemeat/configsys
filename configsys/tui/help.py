@@ -140,17 +140,27 @@ _HELP = {
     },
     'plugins': {
         'desc': "Data/code plugins declared in your config. Top: the plugin tree. Bottom: the review "
-                "diff for the selected plugin, fetched as the cursor settles. Sync, bless, trust, lock "
-                "and update from here.",
+                "for the selected plugin, fetched as the cursor settles — ↓ what would come in, ↑ what "
+                "this copy has that its remote doesn't. Sync, bless, trust, lock and update from here.",
         'glossary': [
             ('columns', 'name · source · ref (pinned; — = its default branch) · remote-ref (upstream: '
                         'green = current, amber = update available, … = fetching, — = unknown; dimmed when '
                         'locked) · abi · code · provides'),
             ('provides', 'what the plugin ships, one code each (its manifest `provides:` until synced):'),
             *_PROVIDES_LEGEND,
-            ('diff', 'synced: your copy → the remote-ref (what {plugins:update} would pull in). Not synced: the ref → '
-                     'the remote-ref, or everything a sync would download — fetched into a review '
-                     'cache that is never loaded, so you can read it before you sync'),
+            ('↓ review', 'what would come IN: what {plugins:update} would bring in (your copy → the remote-ref); on '
+                         'your ★ primary, what your other machines pushed ({plugins:sync} takes it in, or '
+                         '{plugins:push} combines it when both sides changed). Not synced: the ref → the '
+                         'remote-ref, or everything a sync would download — fetched into a review cache that '
+                         'is never loaded, so you can read it before you sync'),
+            ('↑ review', 'what would go OUT, only when there is some: on your ★ primary, the changes '
+                         '{plugins:push} would share and edits not committed yet (push asks about those); on '
+                         'any other plugin, work made here — a sync keeps it, stopping rather than move past or '
+                         'overwrite it. Nothing an update or sync does takes your own changes back'),
+            ('{plugins:raw-diff} raw diff', 'each .hu file reads in words, by setting (`splash: plain → '
+                         'braille-bar`, `picks: laptop + ripgrep − btop`, `configsys-source: ref v0.1.12 → '
+                         'v0.1.13`); {plugins:raw-diff} shows the raw diff instead, a file at a time '
+                         '({global:switch-pane} next file), and back. A file with no words shows its diff'),
             ('↑ ↓ ●', 'on your ★ primary\'s remote-ref: ↑N changes not pushed yet, ↓N changes from your '
                       'other machines ({plugins:sync} syncs them in), ● edits not committed yet. Both ↑ and ↓ = the '
                       'two sides need combining, which {plugins:push} does'),

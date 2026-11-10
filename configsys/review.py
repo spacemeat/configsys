@@ -34,7 +34,7 @@ EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'   # git's well-known emp
 ACTIONS = {'push': ('push', 'push'), 'sync': ('sync', 'sync'), 'update': ('update', 'update'),
            'unlock': ('lock', 'unlock'), 'set_source': ('set-source', 'set-source')}
 
-_MOST_UNTRACKED = 256 * 1024                          # bytes of an untracked file read for its diff
+_MOST_READ = 256 * 1024                          # bytes of a working-tree file read for its diff
 
 
 @dataclass
@@ -97,10 +97,17 @@ def _show(repo, rev, path):
     return _text(r.out) if r.ok else None
 
 
-def _summary(repo, path, a, b, new_text=None):
+def _summary(repo, path, a, b, status, new_text=None):
     '''The word summary of `path` going from rev `a` to rev `b` (b None: `new_text`, the working
-    tree), or None when it has none (see File). Filled in by the .hu summarizer (hudiff).'''
-    return None
+    tree) — hudiff's, for a `.hu` file — or None when it has none (see File).'''
+    if not path.endswith('.hu'):
+        return None
+    old = _show(repo, a, path) if status != 'added' else None
+    new = (new_text if b is None else _show(repo, b, path)) if status != 'deleted' else None
+    if (status != 'added' and old is None) or (status != 'deleted' and new is None):
+        return None                                   # a side that couldn't be read (not UTF-8)
+    from .hudiff import summarize
+    return summarize(old, new)
 
 
 def _diff(repo, a, b=None):
@@ -118,14 +125,14 @@ def _diff(repo, a, b=None):
         new_text = None
         if b is None and status != 'deleted':
             new_text = _read(repo.root / f['path'])
-        out.append(File(f['path'], f['lines'], _summary(repo, f['path'], a, b, new_text), status))
+        out.append(File(f['path'], f['lines'], _summary(repo, f['path'], a, b, status, new_text), status))
     return out
 
 
 def _read(path):
     try:
         with open(path, 'rb') as fh:
-            return _text(fh.read(_MOST_UNTRACKED))
+            return _text(fh.read(_MOST_READ))
     except OSError:
         return None
 
@@ -142,7 +149,7 @@ def _untracked(repo):
         lines = [('meta', 'new file, not committed')]
         lines += ([('add', '+' + ln) for ln in text.splitlines()] if text is not None
                   else [('meta', 'Binary file (or not UTF-8)')])
-        out.append(File(path, lines, _summary(repo, path, None, None, text) if text is not None
+        out.append(File(path, lines, _summary(repo, path, None, None, 'added', text) if text is not None
                         else None, 'added'))
     return out
 
