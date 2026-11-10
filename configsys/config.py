@@ -382,8 +382,8 @@ class Config:
         return v if v in layers.SETTING_CHOICES['primary-verify'] else 'off'
 
     def primary_trust(self):
-        '''`primary-trust`: how your primary plugin's command-carrying data (glue, dotfiles, scripts,
-        vendor repos, keys) is trusted — 'identity' (default: it is yours; whatever syncs in runs),
+        '''`primary-trust`: how your primary plugin's code and command-carrying data (glue, dotfiles,
+        scripts, vendor repos, keys) are trusted — 'identity' (default: it is yours; whatever syncs in runs),
         'content' (like any plugin: re-trust after a sync changes it), 'signed' (identity while its
         newest commit has a good signature, else content). Top config ONLY (layers.TOP_CONFIG_ONLY).
         The trust check itself reads it from the file (plugins.primary_trust_mode), which needs no

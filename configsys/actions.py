@@ -1985,6 +1985,10 @@ def plugin_trust(ctx, ident):
     identity = plugins.plugin_identity(pdir)
     if identity is None:
         return False, f'could not read {disp}’s contents'
+    mode = plugins.primary_trust_mode(ctx.paths)
+    if key == plugins.primary_name(eff) and plugins.primary_trusts(pdir, mode):
+        what = plugins.trust_what(has_code, has_recipes)   # the same decision its loading makes
+        return True, f'{disp} is your primary — {plugins.trusted_as_yours(mode)}; its {what} already run'
     if _pretend(ctx):
         return False, f'[pretend] would trust {disp} @ {identity.split(":")[-1][:12]} — not saved'
     plugins.set_trust(ctx.paths.plugin_trust_file, key, identity)
@@ -1996,7 +2000,8 @@ def plugin_trust(ctx, ident):
 def _trust_rows(ctx):
     eff = plugins.effective_declared(ctx.paths.user_config_file, ctx.paths.plugins_dir)
     return plugins.status(ctx.paths.plugins_dir, eff, trust_file=ctx.paths.plugin_trust_file,
-                          lock_file=getattr(ctx.paths, 'plugin_lock_file', None))
+                          lock_file=getattr(ctx.paths, 'plugin_lock_file', None),
+                          primary_trust=plugins.primary_trust_mode(ctx.paths))
 
 
 def plugin_trust_pending(ctx):

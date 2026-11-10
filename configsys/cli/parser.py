@@ -691,7 +691,9 @@ def build_parser():
                                       'writes outside a package manager — downloads, builds, '
                                       'scripts, glue, dotfiles, package-repo setup, facet probes, '
                                       'keybindings. Until then only its plain package names are used. '
-                                      'Content that changes later needs trusting again. With no name '
+                                      'Content that changes later needs trusting again. Your primary '
+                                      'plugin follows the primary-trust setting instead (by default it '
+                                      'is trusted as yours, with nothing to approve). With no name '
                                       '(or --all), every plugin that needs it is listed with what '
                                       'it ships, and trusted once you say yes; off a terminal that '
                                       'takes --all --yes.')

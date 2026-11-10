@@ -600,7 +600,8 @@ def cmd_plugin(ctx, args):
     if sub == 'list':
         rows = plugins.status(ctx.paths.plugins_dir, eff,
                               trust_file=ctx.paths.plugin_trust_file,
-                              lock_file=ctx.paths.plugin_lock_file)
+                              lock_file=ctx.paths.plugin_lock_file,
+                              primary_trust=plugins.primary_trust_mode(ctx.paths))
         if not rows:
             print('configsys: no plugins declared')
             return 0
@@ -623,6 +624,8 @@ def cmd_plugin(ctx, args):
                 what = plugins.trust_what(r.get('has_code'), r.get('has_recipes'))
                 if cs == 'trusted':
                     state += f'  [{what} trusted]'
+                elif cs == 'yours':
+                    state += f'  [{what} {plugins.trusted_as_yours(r["primary_trust"])}]'
                 elif cs == 'untrusted':
                     state += f'  [ships {what} — untrusted; run: configsys plugin trust {r["name"]}]'
                 elif cs == 'changed':

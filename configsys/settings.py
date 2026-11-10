@@ -70,8 +70,8 @@ _ROWS = [
                  "its remote only when each has a good signature from a key you trust; 'off' (default). "
                  'Read only from your top config.')),
     Setting('primary-trust', 'scalar', 'machine', choices=('identity', 'content', 'signed'), top_only=True, getter='primary_trust',
-            desc=("Whether your primary plugin's commands, glue, dotfiles and keys run without `plugin "
-                 "trust`: 'identity' (default — it is yours, whatever syncs in is trusted), 'content' "
+            desc=("Whether your primary plugin's commands, glue, dotfiles, keys and code run without "
+                 "`plugin trust`: 'identity' (default — it is yours, whatever syncs in is trusted), 'content' "
                  "(re-trust after every sync that changes it, like any plugin), 'signed' (trusted while "
                  'its newest commit carries a good signature, else by content). Read only from your top '
                  'config.')),

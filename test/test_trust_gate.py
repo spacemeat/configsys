@@ -204,3 +204,81 @@ def test_an_approval_in_the_old_hash_format_still_matches_unchanged_content(tmp_
     assert old != plugins.plugin_identity(p) and plugins.approval_matches(old, p)
     (p / 'd.py').write_text('DRIVERS = []  # changed\n')
     assert not plugins.approval_matches(old, p)              # any change: re-approve
+
+
+# -- the primary's CODE follows `primary-trust:` too (decisions 2026-11-09 W2.1) ------------------
+
+CODE_PY = '''from configsys.plugins import Driver
+
+class Mine(Driver):
+    name = 'minepm'
+
+DRIVERS = [Mine]
+'''
+
+
+@pytest.fixture
+def _registry():
+    from configsys.drivers import _REGISTRY
+    snapshot = dict(_REGISTRY)
+    yield _REGISTRY
+    _REGISTRY.clear()
+    _REGISTRY.update(snapshot)
+
+
+def _code_home(tmp_path, *, primary, top_extra=''):
+    home, pdir = _home(tmp_path, '{ }\n', name='mine', primary=primary, top_extra=top_extra)
+    (pdir / 'plugin.hu').write_text('{ name: mine  requires-abi: 1  data: [ mine.hu ]  code: drv.py }\n')
+    (pdir / 'drv.py').write_text(CODE_PY)
+    return home, pdir
+
+
+@pytest.mark.parametrize('primary, top_extra, loads', [
+    (True, '', True),                                # identity (default): yours, code included
+    (True, 'primary-trust: content', False),         # content: like any plugin — wait for trust
+    (False, '', False),                              # a non-primary plugin: unchanged, needs trust
+])
+def test_the_primarys_code_follows_primary_trust_like_its_data(tmp_path, _registry, primary,
+                                                                top_extra, loads):
+    home, _pdir = _code_home(tmp_path, primary=primary, top_extra=top_extra)
+    ctx = _ctx(home)
+    ctx.ensure_plugin_code()
+    assert ('minepm' in _registry) is loads
+    assert bool(ctx.plugin_code_warnings) is not loads
+    # the same decision as its data: the command-carrying-data gate agrees with the code gate
+    assert plugins.command_source_trusted(ctx.paths, str(_pdir / 'mine.hu')) is loads
+
+
+def test_load_code_and_the_data_gate_share_one_primary_decision(tmp_path, monkeypatch):
+    home, pdir = _code_home(tmp_path, primary=True, top_extra='primary-trust: signed')
+    state = home / '.config' / 'configsys'
+    decls = plugins.effective_declared(state / 'configsys.hu', state / 'plugins')
+    for signed in (True, False):
+        monkeypatch.setattr(plugins, '_head_signed', lambda _p, s=signed: s)
+        loaded, _skipped = plugins.load_code(state / 'plugins', state / 'plugin-trust.hu', decls,
+                                             lambda c: None, primary_trust='signed')
+        assert bool(loaded) is signed
+        assert plugins.primary_trusts(pdir, 'signed') is signed
+
+
+def test_plugin_list_and_trust_say_the_primary_is_trusted_as_yours(tmp_path, capsys):
+    from configsys import actions
+    from configsys.app import main
+    home, _pdir = _code_home(tmp_path, primary=True)
+    assert main(['--home', str(home), '--os', 'pop', 'plugin', 'list']) == 0
+    out = capsys.readouterr().out
+    assert 'code trusted as yours (primary-trust: identity)' in out and 'untrusted' not in out
+    ctx = _ctx(home)
+    assert actions.plugin_trust_pending(ctx) == []           # nothing for `T` / `trust --all` to do
+    ok, note = actions.plugin_trust(ctx, 'mine')
+    assert ok and 'trusted as yours (primary-trust: identity)' in note
+    assert not (home / '.config' / 'configsys' / 'plugin-trust.hu').exists()   # nothing recorded
+    row = next(r for r in actions._trust_rows(ctx) if r['name'] == 'mine')
+    assert row['code_state'] == 'yours'
+
+
+def test_under_content_the_primary_is_listed_untrusted_like_any_plugin(tmp_path, capsys):
+    from configsys.app import main
+    home, _pdir = _code_home(tmp_path, primary=True, top_extra='primary-trust: content')
+    assert main(['--home', str(home), '--os', 'pop', 'plugin', 'list']) == 0
+    assert 'ships code — untrusted' in capsys.readouterr().out

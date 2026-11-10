@@ -310,7 +310,7 @@ git repo) that travels to every machine and may also carry your uniform machine 
 holds a `plugin.hu` manifest (its `name:`, `requires-abi:`, an optional `data:` list of its `.hu`
 files, and any `plugins:` it brings along), one or more `.hu` files with your `components:`,
 picks and settings, and your captured dotfiles and glue. Because it's yours, its commands, glue,
-dotfiles and keys run without `configsys plugin trust` (`primary-trust: identity`). To be more
+dotfiles, keys and code run without `configsys plugin trust` (`primary-trust: identity`). To be more
 cautious, set `primary-trust: content` (trust it again after each sync that changes it) or
 `signed` (trusted while its newest commit has a good signature) in your top config, and
 `primary-verify: signed` to take in only signed commits from its remote. Declare it in
@@ -816,8 +816,8 @@ $ ./configsys.sh plugin trust <name>     # approves its current content; after a
 lists every one waiting with what it ships and trusts them once you say yes — `--all --yes` off a
 terminal); `plugin untrust <name>` revokes it.
 
-Your primary plugin is yours, so by default its recipes, glue, dotfiles and key bindings run
-without `plugin trust` (code it ships still needs trust). Two settings tighten that — read only
+Your primary plugin is yours, so by default its recipes, glue, dotfiles, key bindings and code run
+without `plugin trust`. Two settings tighten that — read only
 from your top config, so a commit pushed to your primary can't change them:
 
 - `primary-trust: content` makes your primary wait for `plugin trust` after every sync that changes
@@ -876,7 +876,7 @@ their package names honest against a real container image as upstream repos roll
   install first, and a route change never strands an install silently — it shows as `switch`
   until you act.
 - **Trust by content.** Plugin code, and plugin data that downloads, builds or runs anything, runs
-  only after you approve its exact content — except your own primary plugin's data, which you trust
+  only after you approve its exact content — except your own primary plugin, which you trust
   as yours unless you set `primary-trust`.
 
 ## Development
@@ -980,7 +980,7 @@ edit that file, not this section -->
 - **parts** (`via: parts`) — A component that is just the union of other components (an aggregate): installing it installs its parts; it has no install of its own. *See also:* **component**, **via**.
 - **picks** (`picks:`) — What each machine installs: a component × machine matrix in your config (`picks: { <machine>: [ components ] }`). This machine's column is its install set. *See also:* **machine**, **profile**. *Not:* “active profiles”, “configs”.
 - **pin** (`pins:`) — A per-machine override at top precedence: a binding-pin forces a component's method (`pins: { yazi: tarball }`), a provider-pin forces which component satisfies a capability. *See also:* **candidate**, **provider**.
-- **plugin** — A git repo (hosted, or a local checkout) that adds components, OS blocks, profiles, drivers, dotfiles, shell glue or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Its code — and any data that downloads, builds or runs something, like build recipes, tarballs or shell glue — is used only after you trust it (your primary plugin's data follows `primary-trust`). *See also:* **layer**, **primary-plugin**, **trust**, **transitive-plugin**.
+- **plugin** — A git repo (hosted, or a local checkout) that adds components, OS blocks, profiles, drivers, dotfiles, shell glue or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Its code — and any data that downloads, builds or runs something, like build recipes, tarballs or shell glue — is used only after you trust it (your primary plugin follows `primary-trust`, code included). *See also:* **layer**, **primary-plugin**, **trust**, **transitive-plugin**.
 - **plugin-lock** (`configsys plugin lock`) — A machine-local hold on a plugin: sync leaves it as it is, and update, bless and trust refuse it, until `configsys plugin unlock`. Its synced copy, if any, keeps loading. *See also:* **plugin**, **trust**, **review-diff**.
 - **primary-plugin** (`primary: true`) — Your personal plugin: travels with you across machines and may also set machine settings that should be uniform. *See also:* **plugin**, **setting-nature**.
 - **profile** — A named, read-only list of components for BROWSING (`terminal`, `dev-tools`, `dam-tools`) — shipped by the repo or a plugin, or written in your own config as your own category. Profiles never install anything themselves; you pick from them. *See also:* **picks**, **subprofile**. *Not:* “install set”.

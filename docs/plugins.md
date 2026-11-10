@@ -248,7 +248,7 @@ configsys execute them.
   `plugin trust` accepts a data-only plugin that ships any of these (`plugins.ships_executable_data`),
   so the nudge can always be acted on.
 - **Code plugins** (a `code:` module) — not imported, and their drivers not registered, until
-  trusted. A `code:` or `data:` entry that resolves outside the plugin's checkout is never loaded
+  trusted (your primary's code follows `primary-trust`, like its data — below). A `code:` or `data:` entry that resolves outside the plugin's checkout is never loaded
   (it isn't covered by the content hash); `check` names it.
 
 Downloads can also be pinned to their bytes: a `sha256:` on a tarball, AppImage, font or
@@ -284,12 +284,15 @@ than a git commit, it works for plugins fetched by any transport. Approvals live
 `~/.config/configsys/plugin-trust.hu`, keyed by the plugin's directory name.
 
 Your primary plugin is yours, so by default whatever syncs into it is trusted (`primary-trust:
-identity`): its command-carrying data — glue, dotfiles, recipes, facet probes, keys — counts
-without a `plugin trust`. The `primary-trust` setting changes that: `content` treats it like any
-plugin (a sync that changes it needs `plugin trust` again), and `signed` trusts it while its newest
-commit carries a good signature (pair it with `primary-verify: signed`), else by content. The
-setting is read only from your top config, so a commit pushed to the primary can't grant itself
-trust.
+identity`): its command-carrying data — glue, dotfiles, recipes, facet probes, keys — and its
+`code:` module count without a `plugin trust`. (Trusting its code adds no reach: whoever can push to
+your primary can already run commands through its glue.) The `primary-trust` setting changes that,
+for its data and code alike: `content` treats it like any plugin (a sync that changes it needs
+`plugin trust` again), and `signed` trusts it while its newest commit carries a good signature
+(pair it with `primary-verify: signed`), else by content. While the setting trusts it, `plugin list`
+says `trusted as yours (primary-trust: identity)` (the Plugins screen's code column: `yours`), and
+`plugin trust` has nothing to record. The setting is read only from your top config, so a commit
+pushed to the primary can't grant itself trust.
 
 ### 6a. Review before you take it, and lock what alarms you
 

@@ -165,7 +165,8 @@ _HELP = {
             ('⊘ locked', '{plugins:lock} locks the plugin on this machine: no sync, update, bless or trust until {plugins:lock} '
                          'unlocks it. A synced copy keeps loading as it is — {plugins:remove} removes it'),
             ('abi', "ok, or ≠N: the plugin needs ABI N — an incompatible plugin is skipped, not loaded"),
-            ('code', 'trust for its Python code or command-carrying recipes: trusted · untrusted · '
+            ('code', 'trust for its Python code or command-carrying recipes: trusted · yours (your ★ '
+                     'primary, trusted as yours by primary-trust) · untrusted · '
                      'changed (content moved; trust again) · unsynced · — (nothing to trust). Until you '
                      'trust it, only its plain package-manager installs are offered — its downloads, '
                      'builds, scripts, glue and key bindings wait'),

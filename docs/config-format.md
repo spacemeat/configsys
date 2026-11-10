@@ -173,7 +173,7 @@ other value is likewise refused, warned about, and read as the default.
   configsys's commits follow that setting. See plugins.md §8.
 - **`primary-trust`** (`identity`, `content` or `signed`, machine; default `identity`): whether your
   primary plugin's command-carrying data (glue, dotfiles, scripts, vendor repos, downloads, `keys:`)
-  runs without `configsys plugin trust`. `identity` trusts whatever syncs into it (it is yours);
+  and its `code:` module run without `configsys plugin trust`. `identity` trusts whatever syncs into it (it is yours);
   `content` treats it like any plugin, so a sync that changes it needs `plugin trust` again;
   `signed` trusts it while its newest commit carries a good signature, else by content. Read only
   from your top config, so a commit pushed to the primary can't grant itself trust. See plugins.md §6.

@@ -820,7 +820,8 @@ class PluginScreen:
         self.tree = plugins.declared_tree(self.ctx.paths.user_config_file, self.ctx.paths.plugins_dir)
         self.rows = plugins.status(self.ctx.paths.plugins_dir, [t['decl'] for t in self.tree],
                                    trust_file=self.ctx.paths.plugin_trust_file,
-                                   lock_file=self.ctx.paths.plugin_lock_file)
+                                   lock_file=self.ctx.paths.plugin_lock_file,
+                                   primary_trust=plugins.primary_trust_mode(self.ctx.paths))
         self.cur = max(0, min(self.cur, len(self.rows) - 1))
         self._set_primary_state(primarygit.state(self.ctx))   # local counts now; the fetch refines them
         self._diff_cache = {}            # a sync/update may have moved what's on disk
@@ -994,7 +995,7 @@ def _plugin_remote_elem(row, remote, pstate=None):
 
 
 def _plugin_code_elem(row):
-    return {'trusted': 'installed', 'untrusted': 'untrusted', 'changed': 'untrusted',
+    return {'trusted': 'installed', 'yours': 'installed', 'untrusted': 'untrusted', 'changed': 'untrusted',
             'none': 'info_dim', 'unsynced': 'info_dim'}.get(row['code_state'], 'info_dim')
 
 

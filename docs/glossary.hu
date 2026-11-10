@@ -135,7 +135,7 @@
             see: [ plugin  primary-plugin ]
         }
         plugin: {
-            def: "A git repo (hosted, or a local checkout) that adds components, OS blocks, profiles, drivers, dotfiles, shell glue or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Its code — and any data that downloads, builds or runs something, like build recipes, tarballs or shell glue — is used only after you trust it (your primary plugin's data follows `primary-trust`)."
+            def: "A git repo (hosted, or a local checkout) that adds components, OS blocks, profiles, drivers, dotfiles, shell glue or splash screens; declared in `plugins:` and fetched with `configsys plugin sync`. A data plugin ships only `.hu` files; a code plugin also ships Python. Its code — and any data that downloads, builds or runs something, like build recipes, tarballs or shell glue — is used only after you trust it (your primary plugin follows `primary-trust`, code included)."
             see: [ layer  primary-plugin  trust  transitive-plugin ]
         }
         primary-plugin: {

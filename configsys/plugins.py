@@ -614,11 +614,25 @@ def command_source_trusted(paths, source):
     if name is None:
         return True                                  # core / user / include — trusted as the user
     pdir = Path(paths.plugins_dir) / name
-    if name == _primary_dir_name(paths):             # your primary: the `primary-trust` setting
-        mode = primary_trust_mode(paths)
-        if mode == 'identity' or (mode == 'signed' and _head_signed(pdir)):
-            return True
+    if name == _primary_dir_name(paths) and primary_trusts(pdir, primary_trust_mode(paths)):
+        return True                                  # your primary: the `primary-trust` setting
     return approval_matches(read_trust(paths.plugin_trust_file).get(name), pdir)
+
+
+def primary_trusts(pdir, mode):
+    '''Whether the `primary-trust` setting `mode` trusts your primary's checkout `pdir` right now,
+    with no `plugin trust` approval: 'identity' always (it is yours), 'signed' while its newest
+    commit carries a good signature; 'content' (or None — not your primary) never. The ONE decision
+    for the primary's command-carrying data (command_source_trusted), its `code:` module
+    (load_code) and what `plugin list` / the Plugins screen / `plugin trust` say about it (status's
+    'yours'), so they can't drift. Trusting its code adds no reach: a pusher to your primary can
+    already run commands through its glue.'''
+    return mode == 'identity' or (mode == 'signed' and _head_signed(pdir))
+
+
+def trusted_as_yours(mode):
+    '''The words for a primary `primary_trusts` trusts — `plugin list`, `plugin trust`, the TUI.'''
+    return f'trusted as yours (primary-trust: {mode})'
 
 
 _PRIMARY_CACHE = {}                                   # (config path, mtime) -> (primary dir name, mode)
@@ -759,18 +773,21 @@ def _scan_executable_data(pdir):
     return False
 
 
-def code_state(manifest, synced, approved, identity, *, trustable=None):
+def code_state(manifest, synced, approved, identity, *, trustable=None, yours=False):
     '''Classify a plugin's trust state for display/gating:
-    none (nothing to trust) | unsynced | trusted | untrusted (never approved) | changed (approved a
-    different identity — the content moved, must re-approve). `trustable` defaults to "ships code";
-    a plugin that ships command-carrying DATA (script/source/glue recipes) is also trustable — pass
-    trustable=True so it too surfaces as untrusted until approved (its recipes are gated on trust).'''
+    none (nothing to trust) | unsynced | trusted | yours (your primary, trusted by `primary-trust` —
+    `yours` = primary_trusts) | untrusted (never approved) | changed (approved a different identity —
+    the content moved, must re-approve). `trustable` defaults to "ships code"; a plugin that ships
+    command-carrying DATA (script/source/glue recipes) is also trustable — pass trustable=True so it
+    too surfaces as untrusted until approved (its recipes are gated on trust).'''
     if trustable is None:
         trustable = bool(manifest.get('code'))
     if not trustable:
         return 'none'
     if not synced or identity is None:
         return 'unsynced'
+    if yours:
+        return 'yours'
     if approved == identity:
         return 'trusted'
     return 'untrusted' if approved is None else 'changed'
@@ -877,13 +894,15 @@ def provisions(plugin_dir, manifest=None):
     return list(out)
 
 
-def status(plugins_dir, decls, *, trust_file=None, lock_file=None):
+def status(plugins_dir, decls, *, trust_file=None, lock_file=None, primary_trust=None):
     '''Per-declared-plugin status for `plugin list`: name, source, ref, synced, abi-ok,
     provides (the manifest's own `provides:`), `provisions` (what it actually ships — see
     provisions()), has_code, `locked` (date, or None), and `checksum` ('ok'/'mismatch'/None). When
-    `trust_file` is given, also resolves the on-disk content identity and its code-trust state.'''
+    `trust_file` is given, also resolves the on-disk content identity and its code-trust state —
+    the primary's by `primary_trust` (the top config's mode, primary_trust_mode) first.'''
     trust = read_trust(trust_file) if trust_file is not None else {}
     locks = read_locks(lock_file)
+    prim = primary_name(decls)
     rows = []
     for d in decls:
         key = dir_name(d['source'])
@@ -914,7 +933,10 @@ def status(plugins_dir, decls, *, trust_file=None, lock_file=None):
             'checksum': checksum,
             'code_state': code_state(manifest, synced,
                                      (identity if identity and approval_matches(trust.get(key), pdir)
-                                      else trust.get(key)), identity, trustable=trustable),
+                                      else trust.get(key)), identity, trustable=trustable,
+                                     yours=bool(key == prim and identity
+                                                and primary_trusts(pdir, primary_trust))),
+            'primary_trust': primary_trust if key == prim else None,
         })
     return rows
 
@@ -1514,9 +1536,11 @@ def _collect_reg_conflicts(out, kind, owners, builtins, builtin_note):
             out.append(f"conflict: {kind} '{name}' from plugin {keys[0]} {builtin_note}")
 
 
-def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
+def load_code(plugins_dir, trust_file, decls, register, conflicts=None, *, primary_trust=None):
     '''Import each declared plugin that is synced, ABI-compatible, ships code, passes its declared
-    sha256 AND is trusted at its CURRENT on-disk content, and register its `DRIVERS` (through
+    sha256 AND is trusted at its CURRENT on-disk content — or is your primary (primary_name) and
+    `primary_trust`, the top config's mode, trusts it exactly as it trusts its data
+    (primary_trusts) — and register its `DRIVERS` (through
     `register` — register_driver, injected to keep this testable and cycle-free) and `SPLASHES`
     (register_splash); its import may also call register_version_source / register_transport.
     Returns (loaded, skipped): loaded = [(dir_name, [driver / splash name, ...])]; skipped = [(dir_name, reason)] for a code plugin that
@@ -1529,6 +1553,7 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
     declaratively — driver-name conflicts, which can, are left to declared_conflicts.'''
     loaded, skipped = [], []
     src_owners, tr_owners, spl_owners = {}, {}, {}   # registered name/scheme -> [plugin keys]
+    prim = primary_name(decls)
     for d in decls:
         key = dir_name(d['source'])
         pdir = plugins_dir / key
@@ -1544,7 +1569,8 @@ def load_code(plugins_dir, trust_file, decls, register, conflicts=None):
             skipped.append((key, f'incompatible (needs plugin ABI {manifest.get("requires-abi")})'))
             continue
         approved = read_trust(trust_file).get(key)
-        if not approval_matches(approved, pdir):
+        yours = key == prim and primary_trusts(pdir, primary_trust)   # as its data is
+        if not yours and not approval_matches(approved, pdir):
             name = manifest.get('name', key)             # what `plugin trust` / `plugin list` call it
             skipped.append((key, f'untrusted code (run: configsys plugin trust {name})'
                                  if approved is None else

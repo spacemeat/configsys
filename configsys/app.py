@@ -336,7 +336,8 @@ class Context:
         self.paths.primary_glue_dir = gdir if (gdir is not None and gdir.exists()) else None
         code_conflicts = []
         _loaded, skipped = plugins.load_code(self.paths.plugins_dir, self.paths.plugin_trust_file,
-                                             decls, register_driver, conflicts=code_conflicts)
+                                             decls, register_driver, conflicts=code_conflicts,
+                                             primary_trust=plugins.primary_trust_mode(self.paths))
         self.plugin_code_warnings = [   # by the plugin's own name, as `plugin list` shows it
             f'plugin {plugins.read_manifest(self.paths.plugins_dir / key).get("name", key)}: {reason}'
             for key, reason in skipped]
