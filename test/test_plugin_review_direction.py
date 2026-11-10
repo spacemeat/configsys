@@ -279,14 +279,59 @@ def test_summaries_come_with_each_side(world):
     assert rv.sections[0].files[0].summary == [('add', 'picks: laptop + htop')]
     rv = _review(base, 'configsys-source', 'v0.1.13')
     assert rv.sections[0].files[0].summary == [('add', 'components.htop.install: added via flatpak')]
-    (clone / 'notes.txt').write_text('hi\n')                            # not .hu: its diff instead
+    (clone / 'notes.txt').write_text('hi\n')                            # not .hu: one plain line
     (clone / 'p.hu').write_text('{ picks: { this-machine: [ btop ] }  splash: plain }\n')
     up = _one(_review(base, fetch=False), review.OUT)
     by = {f.path: f for f in up.files}
     assert by['p.hu'].summary == [('add', 'added splash: plain')] and by['notes.txt'].summary is None
     lines = review.render([up], None)
-    assert ('add', '    added splash: plain') in lines and ('add', '    +hi') in lines
-    assert ('meta', 'diff --git a/p.hu b/p.hu') in review.render([up], None, raw=True)
+    assert ('add', '    added splash: plain') in lines and ('file', '  notes.txt: new file (1 line)') in lines
+    assert ('add', '    +hi') not in lines                                  # its diff: only in the raw view
+    raw = review.render([up], None, raw=True)
+    assert ('meta', 'diff --git a/p.hu b/p.hu') in raw and ('add', '+hi') in raw
+
+
+def _plain_repo(tmp_path):
+    '''A plugin repo whose v1 -> v2 touches only files with no words: a new script, a changed config,
+    a removed file, a changed binary (and one .hu change, in words).'''
+    src = tmp_path / 'plain'
+    (src / 'dotfiles' / 'x.cfs').mkdir(parents=True)
+    (src / 'bin').mkdir()
+    (src / 'plugin.hu').write_text('{ name: plain  requires-abi: 1  data: [ p.hu ] }\n')
+    (src / 'p.hu').write_text('{ splash: plain }\n')
+    (src / 'old.sh').write_text('echo old\n')
+    (src / 'dotfiles' / 'x.cfs' / 'config').write_text('a\nb\nc\n')
+    (src / 'bin' / 'tool').write_bytes(b'\x00\x01\x02 v1')
+    for cmd in (['init', '-q', '-b', 'main'], ['add', '-A'], ['commit', '-qm', 'one'], ['tag', 'v1']):
+        subprocess.run(['git', *cmd], cwd=src, check=True, capture_output=True)
+    (src / 'p.hu').write_text('{ splash: braille-bar }\n')
+    (src / 'old.sh').unlink()
+    (src / 'glue' / 'shell' / 'bash').mkdir(parents=True)
+    (src / 'glue' / 'shell' / 'bash' / 'foo.sh').write_text(''.join(f'alias f{i}=foo\n' for i in range(12)))
+    (src / 'dotfiles' / 'x.cfs' / 'config').write_text('a\nB\nc\nd\ne\n')
+    (src / 'bin' / 'tool').write_bytes(b'\x00\x01\x02 v2')
+    for cmd in (['add', '-A'], ['commit', '-qm', 'two'], ['tag', 'v2']):
+        subprocess.run(['git', *cmd], cwd=src, check=True, capture_output=True)
+    return src
+
+
+def test_a_file_with_no_words_is_one_plain_line_never_a_diff(tmp_path):
+    from configsys.runner import Runner
+    src = _plain_repo(tmp_path)
+    repo, b, t, err = plugins.review_fetch(Runner(pretend=False), tmp_path / 'cache', {'source': str(src)}, 'v1', 'v2')
+    rv = review.unsynced(repo, b, t, base_ref='v1', to='v2')
+    texts = [t for _k, t in review.render(rv.sections, None)]
+    assert texts == ['↓ not synced — update would download v2; what it changes from your declared v1:',
+                     '  bin/tool: binary file changed',
+                     '  dotfiles/x.cfs/config: changed (+3 −1 lines)',
+                     '  glue/shell/bash/foo.sh: new file (12 lines)',
+                     '  old.sh: removed',
+                     '  p.hu',
+                     '    splash: plain → braille-bar']
+    raw = review.render(rv.sections, None, raw=True)                   # `d` / --raw: the full diffs
+    assert ('add', '+alias f0=foo') in raw and ('del', '-echo old') in raw and ('add', '+B') in raw
+    assert review.in_a_line(review.File('x', [('meta', 'old mode 100644'), ('meta', 'new mode 100755')])) == \
+        'x: file mode changed'
 
 
 # -- where an action landed --------------------------------------------------------------------------

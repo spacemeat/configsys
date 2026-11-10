@@ -41,8 +41,9 @@ _MOST_READ = 256 * 1024                          # bytes of a working-tree file 
 class File:
     '''One file's change. `lines` is the unified diff ([(kind, text)], kinds add/del/hunk/meta/ctx);
     `summary` the plain-language lines for a `.hu` file ([(kind, text)], kinds add/del/change) — None
-    when there is none (not a `.hu` file, or one that doesn't read): show `lines` instead. An empty
-    summary means the data didn't change (only comments or layout).'''
+    when there is none (not a `.hu` file, or one that doesn't read): the summary view then says what
+    happened to it in one line (in_a_line), and only the raw view shows `lines`. An empty summary means
+    the data didn't change (only comments or layout).'''
     path: str
     lines: list
     summary: list = None
@@ -321,16 +322,42 @@ def outgoing(root, upstream):
 # -- rendering (the TUI pane and `configsys plugin diff` both print these) -------------------------
 
 _STATUS = {'added': '  (new file)', 'deleted': '  (deleted)'}
-_GIT_HEADERS = ('index ', '--- ', '+++ ', 'new file mode', 'deleted file mode')   # the file line says it
+
+
+def _lines(n):
+    return f'{n} line{"s" if n != 1 else ""}'
+
+
+def in_a_line(f):
+    '''A file with no word summary (not `.hu`, or one that doesn't read), in one plain line — never
+    its diff, which is the raw view's: `foo.sh: new file (12 lines)`, `config: changed (+3 −1
+    lines)`, `old.sh: removed`, `bin/tool: binary file changed`.'''
+    meta = [t for k, t in f.lines if k == 'meta']
+    added = sum(1 for k, _t in f.lines if k == 'add')
+    removed = sum(1 for k, _t in f.lines if k == 'del')
+    if any(t.startswith(('Binary files', 'Binary file')) for t in meta):
+        what = {'added': 'new binary file', 'deleted': 'binary file removed'}.get(f.status,
+                                                                                  'binary file changed')
+    elif f.status == 'added':
+        what = f'new file ({_lines(added)})'
+    elif f.status == 'deleted':
+        what = 'removed'
+    elif added or removed:
+        what = f'changed (+{added} −{removed} {"line" if added + removed == 1 else "lines"})'
+    elif any(t.startswith(('old mode', 'new mode')) for t in meta):
+        what = 'file mode changed'
+    else:
+        what = 'changed'
+    return f'{f.path}: {what}'
 
 
 def render(sections, act=None, *, raw=False, heading=True, commits=True, most_commits=20):
     '''Role-tagged lines [(kind, text)] for `sections`: each title (kind 'head-in' / 'head-out',
     its actions named by `act`, see Section.heading — left out with `heading` False), its note, its
-    commits (unless `commits` False), then each file with its word summary — or, `raw` (or a file with
-    no summary), its unified diff. Kinds: head-in, head-out, note, commit, file, add, del, change
-    (summaries), hunk, meta, ctx (diff lines). The push preview and its question print the ↑ section
-    this way too (primarygit).'''
+    commits (unless `commits` False), then each file with its word summary — a file with none in one
+    plain line (in_a_line), never a diff — or, `raw`, each file's unified diff. Kinds: head-in,
+    head-out, note, commit, file, add, del, change (summaries), hunk, meta, ctx (raw diff lines). The
+    push preview and its question print the ↑ section this way too (primarygit).'''
     out = []
     for s in sections:
         if heading:
@@ -346,11 +373,11 @@ def render(sections, act=None, *, raw=False, heading=True, commits=True, most_co
                 out.append(('meta', f'diff --git a/{f.path} b/{f.path}'))
                 out += list(f.lines)
                 continue
+            if f.summary is None:                     # no words for it: one plain line, no diff
+                out.append(('file', f'  {in_a_line(f)}'))
+                continue
             out.append(('file', f'  {f.path}{_STATUS.get(f.status, "")}'))
-            if f.summary is None:                     # no words for it: its diff, minus git's headers
-                out += [(k, f'    {t}') for k, t in f.lines
-                        if not (k == 'meta' and t.startswith(_GIT_HEADERS))]
-            elif not f.summary:
+            if not f.summary:
                 out.append(('note', '    only comments or layout changed'))
             else:
                 out += [(k, f'    {t}') for k, t in f.summary]

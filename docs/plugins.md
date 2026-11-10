@@ -324,8 +324,10 @@ changed `.hu` file reads in words, by setting: `splash: plain → braille-bar`, 
 ripgrep − btop` (an order-free list that was only reordered hasn't changed), `configsys-source: ref
 v0.1.12 → v0.1.13`, `added plugin configsys-foo @v1`, `components.htop.install: added via flatpak`,
 `components.htop.description changed`; a change to comments or layout alone says just that. Any
-other file, or a `.hu` file that doesn't read, shows its diff. `d` on the Plugins screen (`plugin diff
---raw`) shows the raw unified diff instead, a file at a time. Under `--pretend`, `plugin diff` fetches
+other file, or a `.hu` file that doesn't read, is one plain line, never a diff: `glue/shell/bash/foo.sh:
+new file (12 lines)`, `dotfiles/x.cfs/config: changed (+3 −1 lines)`, `old.sh: removed`, `bin/tool:
+binary file changed`. `d` on the Plugins screen (`plugin diff --raw`) shows the raw unified diffs
+instead, a file at a time. Under `--pretend`, `plugin diff` fetches
 nothing: your primary is read as of its last fetch; any other plugin only says what it would fetch.
 
 For an unsynced plugin the objects are fetched into an inert bare repository under

@@ -213,7 +213,8 @@ def test_the_review_reads_in_words_and_d_toggles_the_raw_diff(ctx):
     texts = [t for _e, t in vm.diff_lines]
     assert texts[0] == '↓ update (u) would bring in: v0.4.1 → v0.5.0'          # the key from the keymap
     assert '    components.astropy.install: added via pipx' in texts and not vm.diff_header
-    assert ('diff_add', '    +science tools, now via pipx') in vm.diff_lines   # no words for it: its diff
+    assert ('component', '  README.md: changed (+1 −1 lines)') in vm.diff_lines   # no words: one line
+    assert not any(t.startswith('    +') for t in texts)                       # …never its diff
     assert vm.diff_title.endswith('d: raw diff')
     scr.handle(key('raw-diff'), ctx, None, None)
     vm = scr.build_vm(ctx, (40, 160))

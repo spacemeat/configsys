@@ -194,7 +194,10 @@ def test_cli_lock_list_and_diff(tmp_path, capsys):
     capsys.readouterr()
     assert main(home + ['plugin', 'diff', 'sp', '--to', 'v2']) == 0
     out = capsys.readouterr().out
-    assert 'sp: v1 → v2' in out and 'would bring in: v1 → v2' in out and '+two' in out
+    assert 'sp: v1 → v2' in out and 'would bring in: v1 → v2' in out
+    assert '  routes.hu: changed (+1 −1 lines)' in out and '+two' not in out   # no words: one line
+    assert main(home + ['plugin', 'diff', 'sp', '--to', 'v2', '--raw']) == 0
+    assert '+two' in capsys.readouterr().out                                  # the diff: --raw
     assert main(home + ['plugin', 'lock', 'sp']) == 0
     assert main(home + ['plugin', 'list']) == 0
     out = capsys.readouterr().out

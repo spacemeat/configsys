@@ -160,7 +160,9 @@ _HELP = {
             ('{plugins:raw-diff} raw diff', 'each .hu file reads in words, by setting (`splash: plain → '
                          'braille-bar`, `picks: laptop + ripgrep − btop`, `configsys-source: ref v0.1.12 → '
                          'v0.1.13`); {plugins:raw-diff} shows the raw diff instead, a file at a time '
-                         '({global:switch-pane} next file), and back. A file with no words shows its diff'),
+                         '({global:switch-pane} next file), and back. Any other file is one plain line — '
+                         '`foo.sh: new file (12 lines)`, `config: changed (+3 −1 lines)`, `old.sh: removed`, '
+                         '`bin/tool: binary file changed` — its diff only in the raw view'),
             ('↑ ↓ ●', 'on your ★ primary\'s remote-ref: ↑N changes not pushed yet, ↓N changes from your '
                       'other machines ({plugins:sync} syncs them in), ● edits not committed yet. Both ↑ and ↓ = the '
                       'two sides need combining, which {plugins:push} does'),

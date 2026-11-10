@@ -16,7 +16,8 @@ comment, a re-wrapped list or a moved line is no change at all, and what is left
   `components.htop.install[native]: added name: htop-ng`.
 
 `summarize(old, new)` returns [(kind, text)] with kind 'add' | 'del' | 'change' — `[]` when the data is
-the same (comments or layout only), None when a side isn't a readable humon map (show the diff).
+the same (comments or layout only), None when a side isn't a readable humon map (the review then
+says what happened to the file in one line; its diff is in the raw view).
 '''
 
 from typing import NamedTuple
