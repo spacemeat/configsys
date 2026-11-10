@@ -25,9 +25,15 @@ System-scoped (needs root). Component fields (packages differ per OS block):
             when the distro already ships the package)
   apt-source { key, deb }  key url + deb line ($VERSION / $CODENAME expanded; apt only;
             added only when the distro doesn't carry the package, removed again if apt
-            can't load it, and on uninstall). The key is a per-source keyring (key-path,
-            default /etc/apt/keyrings/<driver>-<version>.asc) the deb line names with
-            signed-by=, never the global trusted.gpg.d
+            can't load it). The key is a per-source keyring (key-path, default
+            /etc/apt/keyrings/<driver>-<version>.asc) the deb line names with signed-by=,
+            never the global trusted.gpg.d. Like the apt driver's `source-*`/`pubkey-*`,
+            uninstall leaves both; `configsys refresh` offers to remove them once the
+            component is neither picked nor installed (vendor_source / source_cleanup).
+            One shape for every apt configsys knows: a one-line `.list` (apt 3 still reads
+            it), an armored `.asc` named by signed-by= (needs apt >= 1.4; the oldest in the
+            release registry is 2.2), /etc/apt/keyrings made with mkdir -p (only Debian 12 /
+            Ubuntu 22.04 ship it) — test_clang_driver pins that floor.
 '''
 
 import os
@@ -40,6 +46,12 @@ from ..driver import Driver
 from ..runner import Result
 
 _VER_RE = re.compile(r'\d+\.\d+(?:\.\d+)?')
+
+
+class _Unit:
+    '''The two attributes the source helpers read off a unit — for a route binding not resolved yet.'''
+    def __init__(self, comp, fields):
+        self.comp, self.fields = comp, fields
 _OPTIONS = re.compile(r'^\s*\[([^\]]*)\]\s*')      # a one-line source's leading `[opt=val ...]`
 
 
@@ -224,6 +236,23 @@ class AltDriver(Driver):
         return (src.get('key-path', f'/etc/apt/keyrings/{self.name}-{v}.asc'),
                 src.get('list', f'/etc/apt/sources.list.d/{self.name}-{v}.list'))
 
+    def vendor_source(self, comp, fields):
+        '''(key url, keyring, list file) of the vendor apt source a binding of this driver for `comp`
+        writes, or None (a `ppa:` binding — add-apt-repository owns that — or no source). What
+        `configsys refresh` maps back to its component (cli/refresh._owned_index_sources), so the
+        source is diagnosed, re-keyed and, once stale, offered for removal like an apt route's.'''
+        unit = _Unit(comp, fields or {})
+        src = None if unit.fields.get('ppa') else self._apt_source(unit)
+        if not src:
+            return None
+        key_path, list_path = self._source_paths(unit, src)
+        return src['key'], key_path, list_path
+
+    def source_cleanup(self, key_path):
+        '''The root shell that follows refresh's removal of one of our lists: its keyring (unless
+        another source names it), then an older configsys's global key (once nothing needs it).'''
+        return f'{self._drop_keyring(key_path)}\n{self._drop_legacy_key()}'
+
     def _drop_keyring(self, key_path):
         '''Remove a keyring of ours unless some source still names it (a route may share one).'''
         k = shlex.quote(key_path)
@@ -231,7 +260,9 @@ class AltDriver(Driver):
 
     def _drop_legacy_key(self):
         '''An older configsys put the vendor key in the GLOBAL trusted.gpg.d; take it out once no list
-        of ours still relies on it (one without signed-by).'''
+        of ours still relies on it (one without signed-by) — run as each list moves to signed-by
+        (install) and after refresh removes a stale list (source_cleanup), the two moments the
+        last list needing it can go. Uninstall leaves sources alone, so it doesn't run there.'''
         old = shlex.quote(f'{self.legacy_key_dir}/{self.name}.asc')
         lists = f'{shlex.quote(self.apt_lists_dir)}/{shlex.quote(self.name)}-*.list'
         return f'if [ -f {old} ] && ! grep -Ls signed-by {lists} | grep -q .; then rm -f {old}; fi'
@@ -281,13 +312,8 @@ class AltDriver(Driver):
             master = shlex.quote(self._master_bin(rc))
             lines.append(f'update-alternatives --remove {link} {master} || true')
         lines.append(self._pm_remove(pm, pkgs))
-        src = self._apt_source(rc) if pm == 'apt' and not rc.fields.get('ppa') else None
-        if src:
-            # take back the vendor source install added (no `apt-get update`: a stale list cache is
-            # harmless, and the next refresh drops it)
-            key_path, list_path = self._source_paths(rc, src)
-            lines += [f'rm -f {shlex.quote(list_path)}', self._drop_keyring(key_path),
-                      self._drop_legacy_key()]
+        # the vendor source + keyring stay, like the apt driver's: `configsys refresh` offers to
+        # remove them once this component is neither picked nor installed (vendor_source)
         return self.runner.run('\n'.join(lines), sudo=True, capture=False)
 
     def lock(self, rc):

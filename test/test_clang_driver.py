@@ -88,14 +88,54 @@ def test_uninstall_removes_alternative_then_package():
     assert 'apt-get remove -y clang-18' in cmd
 
 
-def test_uninstall_takes_back_the_vendor_source_and_its_keyring():
+def test_uninstall_leaves_the_vendor_source_and_keyring_like_apts_own():
+    # decisions 2026-11-09 W2.2: exactly like the apt driver's `source-*`/`pubkey-*` — uninstall
+    # leaves the list and keyring; `configsys refresh` offers to remove them once the component is
+    # neither picked nor installed (cli/refresh._reconcile_managed_sources, via vendor_source)
     r = Runner(pretend=True)
     Clang(r).uninstall(clang_unit('clang-19'))
     cmd = r.calls[0]
-    assert cmd.index('apt-get remove -y clang-19') < cmd.index('rm -f /etc/apt/sources.list.d/clang-19.list')
-    # the keyring only when no other source still names it
+    assert 'apt-get remove -y clang-19' in cmd
+    assert 'clang-19.list' not in cmd and 'keyrings' not in cmd and 'trusted.gpg.d' not in cmd
+
+
+def test_vendor_source_names_the_key_keyring_and_list_refresh_manages():
+    drv = Clang(Runner(pretend=True))
+    assert drv.vendor_source('clang-19', {}) == (
+        'https://apt.llvm.org/llvm-snapshot.gpg.key', '/etc/apt/keyrings/clang-19.asc',
+        '/etc/apt/sources.list.d/clang-19.list')
+    assert drv.vendor_source('clang-19', {'version': 20})[2] == '/etc/apt/sources.list.d/clang-20.list'
+    from configsys.drivers.gcc import Gcc
+    assert Gcc(Runner(pretend=True)).vendor_source('gcc-13', {'ppa': 'ubuntu-toolchain-r/test'}) is None
+    assert Gcc(Runner(pretend=True)).vendor_source('gcc-13', {}) is None     # no source at all
+    # the refresh removal: the keyring only when no other source still names it, then an older
+    # configsys's global key once no list of ours lacks signed-by
+    cleanup = drv.source_cleanup('/etc/apt/keyrings/clang-19.asc')
     assert ('grep -rqsF /etc/apt/keyrings/clang-19.asc /etc/apt/sources.list.d/ || '
-            'rm -f /etc/apt/keyrings/clang-19.asc') in cmd
+            'rm -f /etc/apt/keyrings/clang-19.asc') in cleanup
+    assert 'rm -f /etc/apt/trusted.gpg.d/clang.asc' in cleanup
+
+
+def test_the_source_it_writes_reads_on_every_apt_release_configsys_knows():
+    # A one-line `.list` (apt 3 still reads it — deb822 `.sources` is only the new default), an
+    # ARMORED `.asc` keyring named by `signed-by=` (an .asc there needs apt >= 1.4), and
+    # /etc/apt/keyrings made with mkdir -p (only Debian 12 / Ubuntu 22.04 ship it). Every apt in the
+    # release registry clears that floor — so one shape, no version branching.
+    import os
+    import re
+    from packaging.version import Version
+    from configsys import routes
+    cascade = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))[0]
+    apts = [Version(re.match(r'apt (\d+\.\d+(?:\.\d+)?)', str(rel.get('manager'))).group(1))
+            for blk in cascade.blocks.values() if isinstance(blk, dict)
+            for rel in (blk.get('releases') or {}).values()
+            if isinstance(rel, dict) and str(rel.get('manager', '')).startswith('apt ')]
+    assert apts and min(apts) >= Version('1.4')
+    cmd = '\n'.join(Clang(Runner(pretend=True))._repo_lines(clang_unit('clang-19')))
+    assert 'mkdir -p /etc/apt/keyrings' in cmd
+    assert cmd.index('mkdir -p /etc/apt/keyrings') < cmd.index('tee /etc/apt/keyrings/clang-19.asc')
+    assert "echo 'deb [signed-by=/etc/apt/keyrings/clang-19.asc] " in cmd
+    assert 'tee /etc/apt/sources.list.d/clang-19.list' in cmd
 
 
 def test_get_version_parses_compiler_output():

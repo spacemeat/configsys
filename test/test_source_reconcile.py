@@ -87,6 +87,45 @@ def test_reconcile_under_pretend_asks_nothing(capsys):
     assert n == 0 and 'would offer to remove' in capsys.readouterr().out
 
 
+CLANG_LIST = '/etc/apt/sources.list.d/clang-19.list'
+CLANG_KEY = '/etc/apt/keyrings/clang-19.asc'
+
+
+def _clang_ctx(runner=None):
+    '''A route with a `via: clang` binding: no source-path field — the driver's own apt.llvm.org
+    source (decisions 2026-11-09 W2.2: managed by refresh exactly like apt's vendor sources).'''
+    comps = {'clang-19': SimpleNamespace(bindings=[
+        SimpleNamespace(via='clang', details={'packages': ['clang-19']}),
+        SimpleNamespace(via='clang', details={'packages': ['clang19']})])}   # (a dnf binding: same)
+    return SimpleNamespace(routes=SimpleNamespace(components=comps), runner=runner)
+
+
+def test_a_gcc_clang_vendor_list_is_a_managed_source():
+    assert refresh._owned_index_sources(_clang_ctx()) == {CLANG_LIST: 'clang-19'}
+    assert app._orphaned_managed_sources(_clang_ctx(), wanted=set(), disk_files=[CLANG_LIST]) == \
+        [(CLANG_LIST, 'clang-19')]
+    assert app._orphaned_managed_sources(_clang_ctx(), wanted={'clang-19'}, disk_files=[CLANG_LIST]) == []
+    # a rotated apt.llvm.org key is re-fetchable into its own keyring, like a route's pubkey-*
+    assert refresh._source_key_fields(_clang_ctx(), 'clang-19', CLANG_LIST) == (
+        'https://apt.llvm.org/llvm-snapshot.gpg.key', CLANG_KEY)
+
+
+def test_removing_a_stale_clang_source_takes_its_keyring_too():
+    r = _Runner()
+    n = app._reconcile_managed_sources(_clang_ctx(r), 'apt', wanted=set(),
+                                       ask=lambda p: True, lister=lambda: [CLANG_LIST])
+    assert n == 1
+    assert r.calls[0] == f'sudo rm -f {CLANG_LIST}'
+    rest = '\n'.join(r.calls[1:])
+    assert f'grep -rqsF {CLANG_KEY} /etc/apt/sources.list.d/ || rm -f {CLANG_KEY}' in rest
+    assert 'trusted.gpg.d/clang.asc' in rest and rest.startswith('sudo ')
+    # an apt route's source still goes alone (its pubkey-path is left, as before)
+    r = _Runner()
+    app._reconcile_managed_sources(_ctx({'jenkins': JLIST}, r), 'apt', wanted=set(),
+                                   ask=lambda p: True, lister=lambda: [JLIST])
+    assert r.calls == [f'sudo rm -f {JLIST}']
+
+
 def test_an_installed_or_receipted_owner_is_never_stale(tmp_path, monkeypatch):
     import types
     from configsys import app

@@ -580,7 +580,9 @@ Driver-specific fields include:
   package: `ppa:` (Ubuntu only) or `apt-source: { key: <url>  deb: <line> }` (with optional
   `key-path:` and `list:`; `$VERSION` and `$CODENAME` are filled in). The key is its own keyring
   (default `/etc/apt/keyrings/<driver>-<version>.asc`) that only that source trusts — the deb line
-  gets `signed-by=` — and removing the toolchain takes the list and keyring back out.
+  gets `signed-by=`. Like an apt binding's `source-*`/`pubkey-*`, removing the toolchain leaves the
+  list and keyring; `configsys refresh` offers to remove both once the toolchain is neither picked
+  nor installed.
   `CONFIGSYS_PM` forces apt or dnf. **gcc-toolset**
   (EL) takes no fields: the toolset number comes from the component name.
 - **sdkman**: `name:` (the SDKMAN candidate, such as `java`), and optionally `version:`, an exact

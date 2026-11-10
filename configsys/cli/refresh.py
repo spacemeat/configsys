@@ -21,11 +21,33 @@ def _untrusted_binding(ctx, b):
     return cascade is not None and trustgate.gated(b, cascade) is not None
 
 
+def _vendor_sources(ctx):
+    '''{list file -> (component, key url, keyring, driver)} for every route binding whose driver writes
+    its own apt vendor source — gcc/clang's `apt-source:` / apt.llvm.org (AltDriver.vendor_source),
+    which carry no `source-path` field but are managed exactly like one. Untrusted layers excluded.'''
+    from ..drivers._alt import AltDriver
+    out = {}
+    try:
+        comps = ctx.routes.components
+    except Exception:
+        return out
+    for name, comp in comps.items():
+        for b in getattr(comp, 'bindings', []) or []:
+            drv = get_driver(getattr(b, 'via', None), getattr(ctx, 'runner', None), getattr(ctx, 'paths', None))
+            if not isinstance(drv, AltDriver) or _untrusted_binding(ctx, b):
+                continue
+            src = drv.vendor_source(name, getattr(b, 'details', {}) or {})
+            if src:
+                out[src[2]] = (name, src[0], src[1], drv)
+    return out
+
+
 def _owned_index_sources(ctx):
     '''{system source-file path -> owning component} for every route binding that writes a native
-    package source (apt `source-path`, dnf `/etc/yum.repos.d/<repo-id>.repo`). Lets the refresh
-    diagnosis say "this broken source is one configsys wrote, for component X" vs a foreign file.
-    A binding from an untrusted plugin layer doesn't count — its source reads foreign.'''
+    package source (apt `source-path`, dnf `/etc/yum.repos.d/<repo-id>.repo`, a gcc/clang vendor
+    list — _vendor_sources). Lets the refresh diagnosis say "this broken source is one configsys
+    wrote, for component X" vs a foreign file. A binding from an untrusted plugin layer doesn't
+    count — its source reads foreign.'''
     owned = {}
     try:
         comps = ctx.routes.components
@@ -42,6 +64,7 @@ def _owned_index_sources(ctx):
             rid = d.get('repo-id')
             if rid:
                 owned[f'/etc/yum.repos.d/{rid}.repo'] = name
+    owned.update({f: v[0] for f, v in _vendor_sources(ctx).items()})
     return owned
 
 
@@ -124,6 +147,9 @@ def _source_key_fields(ctx, component, src_path):
         rid = d.get('repo-id')
         if str(d.get('source-path') or '') == src_path or (rid and f'/etc/yum.repos.d/{rid}.repo' == src_path):
             return d.get('pubkey-url'), d.get('pubkey-path')
+    vendor = _vendor_sources(ctx).get(src_path)           # a gcc/clang list: its own keyring
+    if vendor and vendor[0] == component:
+        return vendor[1], vendor[2]
     return None, None
 
 
@@ -220,6 +246,7 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
             return bool(_ask(prompt, noninteractive='no'))
     import shlex
     removed = 0
+    vendor = _vendor_sources(ctx)                        # a gcc/clang list takes its keyring along
     print('\n── stale managed package sources (their component is neither picked nor installed here) ──')
     home = getattr(getattr(ctx, 'paths', None), 'home', None)
     if home is not None and Path(home) != Path.home():
@@ -232,6 +259,9 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
         if ask(f'  remove {f} — configsys wrote it for `{comp}`, which is neither picked nor installed '
                f'here? [y/N] '):
             ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
+            if f in vendor:
+                _comp, _url, keyring, drv = vendor[f]
+                ctx.runner.run(f'sudo sh -c {shlex.quote(drv.source_cleanup(keyring))}', capture=True)
             removed += 1
     return removed
 
