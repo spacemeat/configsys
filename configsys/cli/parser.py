@@ -58,12 +58,16 @@ environment:
   CONFIGSYS_APP_DIR, CONFIGSYS_SDK_DIR, CONFIGSYS_SRC_DIR
                                        app / SDK / source-tree dirs under that base (default apps,
                                        sdks, src); these five override the `dirs:` setting
-  CONFIGSYS_COLOR                      TUI color cap, same values as --color (NO_COLOR forces none;
-                                       an explicit --color / --nocolor wins over both)
+  CONFIGSYS_COLOR                      TUI color cap, same values as --color (an explicit --color /
+                                       --nocolor wins; it wins over NO_COLOR, which forces none)
   CONFIGSYS_EFFECTS                    TUI motion: full, reduced or none (--effects)
   CONFIGSYS_SPLASH                     always = show the startup splash even on a fast load;
                                        linger = also hold it until a key (--splash-linger)
   CONFIGSYS_NO_SPLASH                  set to anything to turn the startup splash off
+                                       (--splash-linger still shows it)
+
+A flag beats a variable, which beats a config setting, which beats the default; `auto` is no
+override (it defers to the next source).
   CONFIGSYS_GLUE_SHELLS                comma-separated shells to set up glue for (default: the
                                        installed ones)
   CONFIGSYS_PM                         apt or dnf: the package manager the gcc, clang and
@@ -135,8 +139,9 @@ def build_parser():
                    help='cap the TUI color depth (default auto: detect it). Lower values only clamp '
                         'down, 24bit forces direct RGB even without COLORTERM, 16 uses the theme\'s '
                         '`colors-basic` ANSI set and 8 only the base eight. An explicit --color wins '
-                        'over NO_COLOR (which otherwise forces none) and CONFIGSYS_COLOR (the same '
-                        'values)')
+                        'over CONFIGSYS_COLOR (the same values), which wins over NO_COLOR (which '
+                        'otherwise forces none); --color auto is no override, the same as leaving '
+                        'it off')
     p.add_argument('--nocolor', '--no-color', dest='nocolor', action='store_true',
                    help='monochrome TUI, the same as --color none: no colors or gradient, and only the '
                         'plain built-in startup progress bar; reverse video and bold still mark the '
@@ -149,8 +154,9 @@ def build_parser():
                    help='print the TUI color mode and motion level this terminal gets, and why, then '
                         'exit (honors --color, --nocolor and --effects)')
     p.add_argument('--splash-linger', action='store_true',
-                   help='always show the startup splash, even on a fast load, and keep it animating '
-                        'until you press a key; same as CONFIGSYS_SPLASH=linger')
+                   help='always show the startup splash, even on a fast load, `splash: off` or '
+                        'CONFIGSYS_NO_SPLASH, and keep it animating until you press a key; same as '
+                        'CONFIGSYS_SPLASH=linger')
     p.add_argument('-v', '--verbose', action='count', default=0,
                    help='print load detail to stderr: -v adds the layer stack, route overrides and '
                         "per-unit state; -vv adds each component's winning binding and why (errors and "

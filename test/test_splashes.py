@@ -207,6 +207,37 @@ def test_run_splash_linger_keeps_going_until_a_key(monkeypatch):
     assert n['frames'] >= 5                           # did NOT stop at 'done'; ran until the keypress
 
 
+def test_splash_on_off_follows_cli_env_config_default(monkeypatch, tmp_path):
+    # the one override rule, CLI > env > config > default: --splash-linger > CONFIGSYS_NO_SPLASH >
+    # CONFIGSYS_SPLASH=always|linger > the `splash:` setting (off) > shown when there's work
+    import types
+
+    from configsys.app import Context, build_parser
+    from configsys.tui.startup import _chosen_splash, _splash_forced, _splash_linger
+    for var in ('CONFIGSYS_EFFECTS', 'CONFIGSYS_COLOR', 'CONFIGSYS_COLOR_FLAG', 'NO_COLOR',
+                'CONFIGSYS_SPLASH', 'CONFIGSYS_NO_SPLASH'):
+        monkeypatch.delenv(var, raising=False)
+
+    def ctx(setting, env):
+        return types.SimpleNamespace(env=env, reporter=types.SimpleNamespace(level=0),
+                                     config=types.SimpleNamespace(splash=lambda: setting,
+                                                                  theme=lambda: {}))
+
+    assert _chosen_splash(ctx(None, {})) == (True, None)                       # default
+    assert _chosen_splash(ctx('off', {})) == (False, None)                     # config
+    c = ctx('off', {'CONFIGSYS_SPLASH': 'always'})                             # env > config
+    assert _chosen_splash(c) == (True, None) and _splash_forced(c)
+    assert _chosen_splash(ctx(None, {'CONFIGSYS_NO_SPLASH': '1'})) == (False, None)
+    assert _chosen_splash(ctx(None, {'CONFIGSYS_NO_SPLASH': '1',               # off beats force,
+                                     'CONFIGSYS_SPLASH': 'always'})) == (False, None)   # env vs env
+    # CLI > env: --splash-linger replaces both splash variables for the run (as --os does the OS pair)
+    monkeypatch.setenv('CONFIGSYS_NO_SPLASH', '1')
+    real = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'pop', '--pretend',
+                                              '--splash-linger', 'inspect']))
+    c = ctx('off', real.env)
+    assert _chosen_splash(c) == (True, None) and _splash_forced(c) and _splash_linger(c)
+
+
 def test_run_splash_survives_a_broken_provider(monkeypatch):
     import curses
 

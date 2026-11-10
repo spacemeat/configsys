@@ -34,23 +34,24 @@ def resolve_effects(ctx):
 def _chosen_splash(ctx):
     '''(enabled, name): whether the startup splash is ALLOWED (independent of the "is there work"
     timing gate) and which provider was chosen — the `splash:` machine setting's value, or None for
-    the built-in default. Off when: disabled via env, verbose logging (they want the text log), a
-    `splash: off` setting, or the legacy `theme: { splash: false }` opt-out. TTY is guaranteed by
-    cli.ops.cmd_tui. Whether a NAMED provider is actually registered is resolved at construction time.'''
-    import os
+    the built-in default. On/off follows the one override rule, CLI > env > config > default:
+    --splash-linger (Context drops CONFIGSYS_NO_SPLASH for the run) > CONFIGSYS_NO_SPLASH >
+    CONFIGSYS_SPLASH=always|linger (shows the built-in over a `splash: off`) > a `splash: off` setting
+    or the legacy `theme: { splash: false }` opt-out > on. Verbose logging is off regardless (they
+    want the text log). TTY is guaranteed by cli.ops.cmd_tui. Whether a NAMED provider is actually
+    registered is resolved at construction time.'''
     from .. import report
     from .theme import env_color_cap, env_effects, is_off
-    if os.environ.get('CONFIGSYS_NO_SPLASH'):
+    if ctx.env.get('CONFIGSYS_NO_SPLASH'):
         return False, None
     if ctx.reporter.level >= report.VERBOSE:
         return False, None
     v = ctx.config.splash()
-    if isinstance(v, str) and is_off(v):
-        return False, None
-    if v is None:                                    # legacy: theme.splash false still disables
-        s = (ctx.config.theme() or {}).get('splash')
-        if is_off(s):
+    if (isinstance(v, str) and is_off(v)) or \
+            (v is None and is_off((ctx.config.theme() or {}).get('splash'))):   # legacy theme opt-out
+        if not _splash_forced(ctx):                  # the env's always/linger beats the setting
             return False, None
+        v = None                                     # ... and shows the built-in
     if env_effects() == 'none' or env_color_cap() == 'none':   # minimal/mono: a progress bar is
         return True, None                                      # feedback, not eye-candy — keep it,
                                                                # but force the plain built-in (no
@@ -65,8 +66,8 @@ def _chosen_splash(ctx):
 
 def _splash_forced(ctx):
     '''`CONFIGSYS_SPLASH=always` (or `--splash-linger`) bypasses the "only when there's work" timing
-    gate — the splash shows even on a fast/warm run (to preview it, or just enjoy it). CONFIGSYS_NO_SPLASH
-    still wins.'''
+    gate — the splash shows even on a fast/warm run (to preview it, or just enjoy it) and over a
+    `splash: off` setting. An exported CONFIGSYS_NO_SPLASH still wins over the variable, not the flag.'''
     return ctx.env.get('CONFIGSYS_SPLASH', '').lower() in ('always', 'force', '1', 'linger', 'hold')
 
 

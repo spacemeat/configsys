@@ -25,6 +25,10 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
 - **No surprises.** The user should always know what is installed, what an operation *will* change
   before it runs (preview first), and what is deliberately left alone. Don't auto-do the clever
   thing silently — surface it and let them choose.
+- **One override order, everywhere: CLI flag > environment variable > config setting > default.**
+  A narrower, more deliberate override always beats a broader one (configsys's own variable beats a
+  generic one such as `NO_COLOR`), and `auto` means "no override", never a value that beats the
+  chain. A new knob follows it too (docs/config-format.md, "Environment").
 - **A safety/advisory feature must have uniform coverage, or not ship.** People calibrate on a
   warning that appears (reboot advisory, update count, "a release is available") and treat its
   absence as "nothing to report." So a check that works on some machines and silently goes dark on

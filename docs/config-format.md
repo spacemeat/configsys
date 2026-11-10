@@ -240,8 +240,9 @@ Notes:
 - **`splash:`** splashes other than the built-in come from code plugins (for example
   **configsys-splash-ocean**; see docs/plugins.md), which you must trust before they load; a name
   that isn't available falls back to the built-in with a note. `CONFIGSYS_NO_SPLASH` and
-  `--verbose` turn the splash off; `--effects none` and `--nocolor` swap any plugin splash for the
-  plain built-in bar.
+  `--verbose` turn the splash off, and `CONFIGSYS_SPLASH=always`/`linger` or `--splash-linger`
+  show the built-in over `splash: off`; `--effects none` and `--nocolor` swap any plugin splash for
+  the plain built-in bar.
 
 ## Where a machine-setting edit lands
 
@@ -1340,6 +1341,16 @@ and `check` reports the key as unrecognized.
 
 ## Environment
 
+Every knob that can be set more than one way follows ONE precedence rule: **a command-line flag >
+an environment variable > a config setting > the default** (detection, or the built-in value). A
+flag replaces its variables for that run (`--os` replaces `CONFIGSYS_OS` and `CONFIGSYS_OS_VERSION`;
+`--splash-linger` sets `CONFIGSYS_SPLASH` and drops `CONFIGSYS_NO_SPLASH`), and a variable beats the
+setting it shadows (`CONFIGSYS_EFFECTS` over `effects:`, `CONFIGSYS_*_DIR` over `dirs:`,
+`CONFIGSYS_FACET_<name>` over `facets:`). Of two variables for one knob, configsys's own beats the
+generic one (`CONFIGSYS_COLOR` over `NO_COLOR`, `CONFIGSYS_GITHUB_TOKEN` over `GITHUB_TOKEN`). An
+`auto` value (`--color auto`, `CONFIGSYS_COLOR=auto`) is not an override: it defers to the next
+source, the same as leaving it unset.
+
 - `CONFIGSYS_CONFIG` (or `--config`): the top config's path.
 - `CONFIGSYS_HOME` (or `--home`): the base for `~` paths and for the state directory
   (`<home>/.config/configsys`), to sandbox a run.
@@ -1355,12 +1366,14 @@ and `check` reports the key as unrecognized.
   (`alpine:3.24`), the same as `--os`, which replaces both variables. An unknown block is an error;
   with no version, version conditions such as `alpine >= 3.24` read false.
 - `CONFIGSYS_FACET_<name>`: a facet's value, overriding detection and your `facets:`.
-- `CONFIGSYS_COLOR`: caps the TUI color depth, with the same values as `--color`; `NO_COLOR`
-  (any non-empty value) forces monochrome over it. An explicit `--color` or `--nocolor` wins over
-  both.
+- `CONFIGSYS_COLOR`: caps the TUI color depth, with the same values as `--color` (which wins over
+  it); `NO_COLOR` (any non-empty value) forces monochrome when neither is set. There is no color
+  setting.
 - `CONFIGSYS_EFFECTS`: overrides `effects:` (`--effects` sets it).
 - `CONFIGSYS_NO_SPLASH`: no startup splash; `CONFIGSYS_SPLASH=always` shows it even on a fast
-  start, and `CONFIGSYS_SPLASH=linger` also holds it until you press a key (`--splash-linger`).
+  start or over `splash: off`, and `CONFIGSYS_SPLASH=linger` also holds it until you press a key
+  (`--splash-linger`, which also wins over `CONFIGSYS_NO_SPLASH`). If both variables are set,
+  `CONFIGSYS_NO_SPLASH` wins.
 - `CONFIGSYS_GLUE_SHELLS`: which shells glue treats as installed.
 - `CONFIGSYS_PM`: `apt` or `dnf`, the package manager the `gcc` and `clang` drivers use instead
   of the detected one.

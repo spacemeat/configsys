@@ -527,7 +527,9 @@ and why, then exit), `--splash-linger` (keep the startup splash up until you pre
 `-vv` (stream load detail to stderr), `-q` / `--silent` (print nothing while loading, not even
 errors; they still show on the TUI `!` page and in `inspect`'s issue list).
 
-Environment variables (a flag in parentheses sets the same thing for one run):
+Environment variables (a flag in parentheses sets the same thing for one run). One rule settles
+every overlap: a flag beats a variable, which beats a config setting, which beats the default —
+and an `auto` value (`--color auto`) is no override at all (docs/config-format.md, "Environment"):
 
 | variable | effect |
 | --- | --- |
@@ -540,10 +542,10 @@ Environment variables (a flag in parentheses sets the same thing for one run):
 | `CONFIGSYS_REPO` | the data directory holding the shipped `routes.hu` and `config.hu` (default: this clone) |
 | `CONFIGSYS_USERSCOPE_DIR`, `CONFIGSYS_SYSTEMSCOPE_DIR` | base directories for user- and system-scope installs (default `~`, `/opt`) |
 | `CONFIGSYS_APP_DIR`, `CONFIGSYS_SDK_DIR`, `CONFIGSYS_SRC_DIR` | app, SDK and source-tree directories under that base (default `apps`, `sdks`, `src`); these five win over the `dirs:` setting |
-| `CONFIGSYS_COLOR`, `NO_COLOR` | cap the TUI color depth, same values as `--color`; a non-empty `NO_COLOR` means monochrome and wins over `CONFIGSYS_COLOR`, while an explicit `--color` or `--nocolor` wins over both |
+| `CONFIGSYS_COLOR`, `NO_COLOR` | cap the TUI color depth, same values as `--color`; a non-empty `NO_COLOR` means monochrome unless `CONFIGSYS_COLOR` (configsys's own) says otherwise, and an explicit `--color` or `--nocolor` wins over both |
 | `CONFIGSYS_EFFECTS` | TUI motion: `full`, `reduced` or `none` (`--effects`) |
-| `CONFIGSYS_SPLASH` | `always` shows the startup splash even on a fast load; `linger` also keeps it up until you press a key (`--splash-linger`) |
-| `CONFIGSYS_NO_SPLASH` | set to anything to turn the startup splash off |
+| `CONFIGSYS_SPLASH` | `always` shows the startup splash even on a fast load or over `splash: off`; `linger` also keeps it up until you press a key (`--splash-linger`) |
+| `CONFIGSYS_NO_SPLASH` | set to anything to turn the startup splash off (`--splash-linger` still shows it) |
 | `CONFIGSYS_GLUE_SHELLS` | comma-separated shells to set up glue for, instead of detecting them |
 | `CONFIGSYS_PM` | `apt` or `dnf`: force the package manager the gcc, clang and gcc-toolset drivers use (default: this OS's own, else dnf if present, else apt) |
 | `CONFIGSYS_GITHUB_TOKEN` (or `GITHUB_TOKEN`) | a GitHub API token for release lookups, lifting the anonymous rate limit |

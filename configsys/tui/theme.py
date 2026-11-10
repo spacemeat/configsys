@@ -496,18 +496,25 @@ def rgb_to_basic8(r, g, b):
 
 def env_color_cap(env=None):
     '''Resolve a color-depth CAP from the environment — it only clamps the detected mode DOWN, never
-    up (you can't fake 24-bit on an 8-color tty). Precedence: an explicit --color / --nocolor
-    (`CONFIGSYS_COLOR_FLAG`, which _main sets; `auto` = detect) > `NO_COLOR` (any non-empty value,
-    per no-color.org: a default a per-run flag overrides) forcing monochrome > your `CONFIGSYS_COLOR`.
+    up (you can't fake 24-bit on an 8-color tty). Precedence is the one override rule, CLI > env >
+    config > default: an explicit --color / --nocolor (`CONFIGSYS_COLOR_FLAG`, which _main sets) >
+    configsys's own `CONFIGSYS_COLOR` > the generic `NO_COLOR` preference (any non-empty value, per
+    no-color.org) forcing monochrome > detect (there is no color-depth setting). `auto` at any level
+    is not an override — it defers to the next one, so `--color auto` is the same as no flag.
     Returns one of 'none'|'basic8'|'basic16'|'256'|'truecolor', or None for auto-detect. `basic8`
     forces the base 8 (no bright slots); `basic16` allows the bright ANSI colors 8..15.'''
     import os
     env = os.environ if env is None else env
-    v = (env.get('CONFIGSYS_COLOR_FLAG') or '').strip().lower()
-    if not v:
-        if (env.get('NO_COLOR') or '').strip():
-            return 'none'
-        v = (env.get('CONFIGSYS_COLOR') or '').strip().lower()
+    for var in ('CONFIGSYS_COLOR_FLAG', 'CONFIGSYS_COLOR'):
+        cap = _color_cap_value(env.get(var))
+        if cap is not None:
+            return cap
+    return 'none' if (env.get('NO_COLOR') or '').strip() else None
+
+
+def _color_cap_value(raw):
+    '''One --color / CONFIGSYS_COLOR value as a cap; None for auto, empty or unrecognized.'''
+    v = (raw or '').strip().lower()
     if v in ('none', 'no', 'off', '0', 'mono', 'nocolor'):
         return 'none'
     if v in ('8', '8color'):

@@ -120,7 +120,8 @@ class Context:
         if args.config:
             env['CONFIGSYS_CONFIG'] = args.config
         if getattr(args, 'splash_linger', False):
-            env['CONFIGSYS_SPLASH'] = 'linger'      # force + hold the splash until a keypress
+            env['CONFIGSYS_SPLASH'] = 'linger'      # force + hold the splash until a keypress —
+            env.pop('CONFIGSYS_NO_SPLASH', None)    # the flag beats the env (CLI > env > config)
         self.env = env
         self.paths = Paths(env)
         self.os_info = osdetect.detect(env)
@@ -941,8 +942,8 @@ def main(argv=None):
 
 def _color_flag_handoff(args):
     '''--nocolor / --color cap the TUI color depth via CONFIGSYS_COLOR_FLAG (tui.theme.env_color_cap
-    reads it), set before anything builds a Palette. An explicit flag wins over NO_COLOR and
-    CONFIGSYS_COLOR; `--color auto` means detect, whatever those say.'''
+    reads it), set before anything builds a Palette. An explicit flag wins over CONFIGSYS_COLOR and
+    NO_COLOR; `--color auto` is no override — the same as leaving the flag off.'''
     if getattr(args, 'nocolor', False):
         os.environ['CONFIGSYS_COLOR_FLAG'] = 'none'
     elif getattr(args, 'color', None):

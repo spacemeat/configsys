@@ -140,7 +140,7 @@ Notes:
 .IP \(bu 2
 \fB\fBdirs:\fR\fR keys are \fBuser\fR (the user-scope base, default \fB~\fR), \fBsystem\fR (the system-scope base, default \fB/opt\fR), and the category directories \fBapp\fR, \fBsdk\fR and \fBsrc\fR (defaults \fBapps\fR, \fBsdks\fR, \fBsrc\fR), which routes reference as \fB$CONFIGSYS_APP_DIR\fR, \fB$CONFIGSYS_SDK_DIR\fR and \fB$CONFIGSYS_SRC_DIR\fR. A relative category directory sits under the scope base; an absolute or \fB~\fR one is used as is. Precedence is built-in default < \fBdirs:\fR < environment variable (\fBCONFIGSYS_USERSCOPE_DIR\fR, \fBCONFIGSYS_SYSTEMSCOPE_DIR\fR, \fBCONFIGSYS_APP_DIR\fR, \fBCONFIGSYS_SDK_DIR\fR, \fBCONFIGSYS_SRC_DIR\fR), so \fBdirs:\fR is the durable setting and the variable a per-run override. The paths configsys needs before it can read your config (its state directory, your top config, the repo) are set only by environment variables.
 .IP \(bu 2
-\fB\fBsplash:\fR\fR splashes other than the built-in come from code plugins (for example \fBconfigsys-splash-ocean\fR; see docs/plugins.md), which you must trust before they load; a name that isn't available falls back to the built-in with a note. \fBCONFIGSYS_NO_SPLASH\fR and \fB--verbose\fR turn the splash off; \fB--effects none\fR and \fB--nocolor\fR swap any plugin splash for the plain built-in bar.
+\fB\fBsplash:\fR\fR splashes other than the built-in come from code plugins (for example \fBconfigsys-splash-ocean\fR; see docs/plugins.md), which you must trust before they load; a name that isn't available falls back to the built-in with a note. \fBCONFIGSYS_NO_SPLASH\fR and \fB--verbose\fR turn the splash off, and \fBCONFIGSYS_SPLASH=always\fR/\fBlinger\fR or \fB--splash-linger\fR show the built-in over \fBsplash: off\fR; \fB--effects none\fR and \fB--nocolor\fR swap any plugin splash for the plain built-in bar.
 .SH WHERE A MACHINE-SETTING EDIT LANDS
 .PP
 \fBconfigsys config set …\fR and the TUI \fBConfig\fR screen route each setting by its \fBnature\fR:
@@ -952,6 +952,8 @@ On a binding or a \fBdrivers:\fR entry, \fBprefer:\fR became \fBstanding: <integ
 .PP
 \fBlast-refresh:\fR is not a config key: configsys keeps the last refresh time in its state directory, and \fBcheck\fR reports the key as unrecognized.
 .SH ENVIRONMENT
+.PP
+Every knob that can be set more than one way follows ONE precedence rule: \fBa command-line flag > an environment variable > a config setting > the default\fR (detection, or the built-in value). A flag replaces its variables for that run (\fB--os\fR replaces \fBCONFIGSYS_OS\fR and \fBCONFIGSYS_OS_VERSION\fR; \fB--splash-linger\fR sets \fBCONFIGSYS_SPLASH\fR and drops \fBCONFIGSYS_NO_SPLASH\fR), and a variable beats the setting it shadows (\fBCONFIGSYS_EFFECTS\fR over \fBeffects:\fR, \fBCONFIGSYS_*_DIR\fR over \fBdirs:\fR, \fBCONFIGSYS_FACET_<name>\fR over \fBfacets:\fR). Of two variables for one knob, configsys's own beats the generic one (\fBCONFIGSYS_COLOR\fR over \fBNO_COLOR\fR, \fBCONFIGSYS_GITHUB_TOKEN\fR over \fBGITHUB_TOKEN\fR). An \fBauto\fR value (\fB--color auto\fR, \fBCONFIGSYS_COLOR=auto\fR) is not an override: it defers to the next source, the same as leaving it unset.
 .IP \(bu 2
 \fBCONFIGSYS_CONFIG\fR (or \fB--config\fR): the top config's path.
 .IP \(bu 2
@@ -969,11 +971,11 @@ On a binding or a \fBdrivers:\fR entry, \fBprefer:\fR became \fBstanding: <integ
 .IP \(bu 2
 \fBCONFIGSYS_FACET_<name>\fR: a facet's value, overriding detection and your \fBfacets:\fR.
 .IP \(bu 2
-\fBCONFIGSYS_COLOR\fR: caps the TUI color depth, with the same values as \fB--color\fR; \fBNO_COLOR\fR (any non-empty value) forces monochrome over it. An explicit \fB--color\fR or \fB--nocolor\fR wins over both.
+\fBCONFIGSYS_COLOR\fR: caps the TUI color depth, with the same values as \fB--color\fR (which wins over it); \fBNO_COLOR\fR (any non-empty value) forces monochrome when neither is set. There is no color setting.
 .IP \(bu 2
 \fBCONFIGSYS_EFFECTS\fR: overrides \fBeffects:\fR (\fB--effects\fR sets it).
 .IP \(bu 2
-\fBCONFIGSYS_NO_SPLASH\fR: no startup splash; \fBCONFIGSYS_SPLASH=always\fR shows it even on a fast start, and \fBCONFIGSYS_SPLASH=linger\fR also holds it until you press a key (\fB--splash-linger\fR).
+\fBCONFIGSYS_NO_SPLASH\fR: no startup splash; \fBCONFIGSYS_SPLASH=always\fR shows it even on a fast start or over \fBsplash: off\fR, and \fBCONFIGSYS_SPLASH=linger\fR also holds it until you press a key (\fB--splash-linger\fR, which also wins over \fBCONFIGSYS_NO_SPLASH\fR). If both variables are set, \fBCONFIGSYS_NO_SPLASH\fR wins.
 .IP \(bu 2
 \fBCONFIGSYS_GLUE_SHELLS\fR: which shells glue treats as installed.
 .IP \(bu 2

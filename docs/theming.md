@@ -174,9 +174,11 @@ configsys detects what your terminal can render; these let you override it.
 | `--effects full\|reduced\|none`, or the `effects:` setting | motion: `full` = gradient + your splash, `reduced` = no gradient and a calmer splash (at most 15 frames a second), `none` = no gradient and only the plain built-in progress bar. Unset, it picks `reduced` over SSH and `full` otherwise. The flag overrides the setting. |
 | `configsys --probe` | prints the resolved color mode and motion and why (including the TERM curses actually uses), then exits. Honors the flags above. |
 
-An explicit `--color` or `--nocolor` wins over `NO_COLOR`, which wins over `CONFIGSYS_COLOR`:
-`NO_COLOR=1 configsys --color 256` runs at 256 colors, and `--color auto` detects the depth
-whatever the variables say.
+These follow configsys's one override rule (flag > variable > setting > default; see
+[config-format.md](config-format.md#environment)): an explicit `--color` or `--nocolor` wins over
+`CONFIGSYS_COLOR`, which wins over the generic `NO_COLOR` — `NO_COLOR=1 configsys --color 256` and
+`NO_COLOR=1 CONFIGSYS_COLOR=256 configsys` both run at 256 colors. `auto` is not an override:
+`--color auto` is the same as leaving the flag off, so `NO_COLOR` still applies.
 
 **Direct color is preferred.** Most truecolor terminals still say `TERM=xterm-256color` and
 advertise 24-bit through `COLORTERM=truecolor`. When they do — or another sign says so (a TERM
@@ -250,7 +252,9 @@ them; a name that isn't available falls back to `braille-bar` with a note.
 
 - `--splash-linger` (or `CONFIGSYS_SPLASH=linger`) always shows the splash and keeps it animating
   until you press a key; `CONFIGSYS_SPLASH=always` always shows it.
-- `CONFIGSYS_NO_SPLASH`, `--verbose` and `splash: off` turn it off.
+- `CONFIGSYS_NO_SPLASH`, `--verbose` and `splash: off` turn it off. By the override rule (flag >
+  variable > setting) `--splash-linger` wins over `CONFIGSYS_NO_SPLASH`, and `CONFIGSYS_SPLASH`
+  over `splash: off` (showing the built-in); `--verbose` always turns it off.
 - `--effects none`, `--nocolor` and `NO_COLOR` keep only the plain built-in progress bar.
 
 See [config-format.md](config-format.md) for the `splash` and `effects` settings, and

@@ -21,13 +21,18 @@ def test_env_color_cap_clamps_down():
     assert env_color_cap({'CONFIGSYS_COLOR': '256'}) == '256'
     assert env_color_cap({'CONFIGSYS_COLOR': 'truecolor'}) == 'truecolor'
     assert env_color_cap({'CONFIGSYS_COLOR': '24bit'}) == 'truecolor'
-    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == 'none'   # NO_COLOR beats the env
-    # an explicit --color / --nocolor (CONFIGSYS_COLOR_FLAG, set by _main) beats both: NO_COLOR is a
-    # default a per-run flag overrides (no-color.org); `--color auto` means detect, NO_COLOR or not
+    # ONE precedence rule (CLI > env > config > default): an explicit --color / --nocolor
+    # (CONFIGSYS_COLOR_FLAG, set by _main) > configsys's own CONFIGSYS_COLOR > the generic NO_COLOR
+    # preference > detect. There is no color-depth config setting.
+    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': '256'}) == '256'   # the specific env wins
+    assert env_color_cap({'NO_COLOR': 'x', 'CONFIGSYS_COLOR': 'auto'}) == 'none'  # auto = defer to the chain
     assert env_color_cap({'NO_COLOR': '1', 'CONFIGSYS_COLOR_FLAG': '256'}) == '256'
-    assert env_color_cap({'NO_COLOR': '1', 'CONFIGSYS_COLOR_FLAG': 'auto'}) is None
     assert env_color_cap({'CONFIGSYS_COLOR': '256', 'CONFIGSYS_COLOR_FLAG': 'none'}) == 'none'
     assert env_color_cap({'CONFIGSYS_COLOR': '8', 'CONFIGSYS_COLOR_FLAG': '24bit'}) == 'truecolor'
+    # an explicit `--color auto` is NOT an override: the same as not passing it
+    assert env_color_cap({'NO_COLOR': '1', 'CONFIGSYS_COLOR_FLAG': 'auto'}) == 'none'
+    assert env_color_cap({'CONFIGSYS_COLOR': '16', 'CONFIGSYS_COLOR_FLAG': 'auto'}) == 'basic16'
+    assert env_color_cap({'CONFIGSYS_COLOR_FLAG': 'auto'}) is None
 
 
 def test_color_flags_hand_off_to_the_cap(monkeypatch):
@@ -35,8 +40,10 @@ def test_color_flags_hand_off_to_the_cap(monkeypatch):
     import os
     from configsys import app
     monkeypatch.setenv('NO_COLOR', '1')
+    monkeypatch.delenv('CONFIGSYS_COLOR', raising=False)
     monkeypatch.setenv('CONFIGSYS_COLOR_FLAG', '')                 # so monkeypatch restores it
-    for argv, want in ((['--color', '256'], '256'), (['--nocolor'], 'none'), (['--color', 'auto'], None)):
+    for argv, want in ((['--color', '256'], '256'), (['--nocolor'], 'none'),
+                       (['--color', 'auto'], 'none'), ([], 'none')):   # auto = no flag: NO_COLOR holds
         os.environ['CONFIGSYS_COLOR_FLAG'] = ''
         app._color_flag_handoff(app.build_parser().parse_args(argv + ['inspect']))
         assert env_color_cap() == want, argv
