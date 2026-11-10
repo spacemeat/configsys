@@ -75,6 +75,20 @@ def _commit_primary_action(ctx, snap, screen, act, note):
     return primarygit.commit(ctx, snap, f'{screen}: {label}' + (f' — {note}' if note else ''))
 
 
+def _after_primary_action(ctx, snap, note, cnotes):
+    '''The status note after an action that wrote into the primary: the action's own `note`, then —
+    when it was committed — where it landed (primarygit.landed: "recorded in your primary (x), not
+    pushed yet (P)", the same words every primary-writing action uses), then the commit's first note.'''
+    if snap is not None and snap.committed:
+        from .paint import _keymap
+        where = primarygit.landed(ctx, snap.name, tui=True, push_key=_keymap().glyph('plugins', 'push'))
+        if where:
+            note = f'{note} — {where}' if note else where
+    if cnotes:
+        note = (f'{note}  ·  ' if note else '') + cnotes[0]
+    return note
+
+
 class _TuiPushUI(primarygit.PushUI):
     '''`primarygit.push`'s questions as popups over the current screen. git never prompts here (no
     terminal): an SSH key that needs a passphrase fails with a note saying how to fix it.'''

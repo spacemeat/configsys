@@ -75,7 +75,7 @@ def test_push_publishes_configsys_commits(primary, capsys):
     base, clone, bare, other = primary
     assert main(base + ['picks', 'add', 'fzf']) == 0
     out = capsys.readouterr().out
-    assert 'not pushed yet; `configsys plugin push` shares it' in out          # ask: a hint, no prompt
+    assert 'recorded in your primary (prim) — 1 change not pushed yet; `configsys plugin push` shares it' in out
     assert 'fzf' not in _remote_file(bare)
     assert main(base + ['plugin', 'push']) == 0
     out = capsys.readouterr().out

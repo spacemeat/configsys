@@ -598,6 +598,33 @@ PUSH_POLICY = {
 }
 
 
+def landed(ctx, name=None, *, tui, push_key='P'):
+    '''Where a change configsys just committed to the primary went, in the one wording every
+    primary-writing action uses — "recorded in your primary (configsys-user), not pushed yet (P)" —
+    as `primary-push` has it (PUSH_POLICY): on the CLI after the command (`auto` pushes right after:
+    the push's own lines follow), in the TUI after the action (`auto` / `auto-on-quit` push when you
+    quit; `push_key` names the push key). `name` None: the primary's, from `state()`; '' when
+    there is none.'''
+    mode = push_mode(ctx)
+    rules = PUSH_POLICY.get(mode, PUSH_POLICY['ask'])
+    st = state(ctx) if name is None or (not tui and rules['after_cli'] == 'hint') else None
+    name = name or (st.name if st else None)
+    if not name:
+        return ''
+    where = f'recorded in your primary ({name})'
+    if tui:
+        return {'push': f'{where} — pushed when you quit',
+                'ask': f'{where}, not pushed yet ({push_key})'}.get(rules['quit'], where)
+    then = rules['after_cli']
+    if then == 'push':
+        return f'{where} — pushing it now (primary-push: {mode})'
+    if then == 'hint' and st and st.ahead:
+        also = ', or quitting the TUI does' if rules['quit'] == 'push' else ''
+        return (f'{where} — {_count(st.ahead)} not pushed yet; `configsys plugin push` shares '
+                f'{_them(st.ahead)}{also}.')
+    return f'{where}.'
+
+
 def _verify(ctx):
     '''`primary-verify: signed` on this machine?'''
     try:

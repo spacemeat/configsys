@@ -29,7 +29,7 @@ from .startup import (
     SPLASH_THRESHOLD, _InspectWorker, _chosen_splash, _splash_forced, _splash_linger,
     resolve_effects,
 )
-from .flows import _commit_primary_action, _quit_push, _reload, _seed_uninstall
+from .flows import _after_primary_action, _commit_primary_action, _quit_push, _reload, _seed_uninstall
 
 _KEYMAP = None       # the active tui.keyspec.Keymap (set in run(); paint._keymap() reads it)
 # the `!` page's `issues` keymap actions -> the _issue_flow kind each files
@@ -424,9 +424,8 @@ def run(ctx):
                     ctx._primary_push_mode = primarygit.push_mode(ctx)  # (a Config edit may change it)
                     if _reg.get('plugins') is not None:
                         _reg['plugins'].model.primary_state = ctx._primary_state
-                    if _cnotes:
-                        note = (f'{note}  ·  ' if note else '') + _cnotes[0]
-                        pending_notes.extend(_cnotes)
+                    note = _after_primary_action(ctx, _snap, note, _cnotes)   # + where it landed
+                    pending_notes.extend(_cnotes)
                 menu_dirty = menu_dirty or intent.dirty
                 if intent.goto is not None:
                     screen = _enter(intent.goto)          # the same entry work as a screen key

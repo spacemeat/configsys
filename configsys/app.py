@@ -985,7 +985,7 @@ def _main(argv):
                 print(f'configsys: {note}')
             if snap is not None and snap.committed:
                 if finished:
-                    _after_primary_commit(ctx)
+                    _after_primary_commit(ctx, snap.name)
                 else:
                     print(f'configsys: what it wrote is committed to {snap.name} as interrupted, not '
                           'pushed — `configsys plugin undo` takes it back, `plugin push` shares it.')

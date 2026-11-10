@@ -723,6 +723,14 @@ sends nothing.
 Quitting with `Q` (quit without confirming) pushes only under `auto-on-quit`; under `ask` or `auto` it
 leaves a note instead.
 
+Whatever writes into your primary says so, in the same words for every command and TUI action — so
+updating a plugin your primary declares (`u` on its row, or `plugin update`) isn't mistaken for a
+change to that plugin alone: *configsys-source updated to v0.1.13 — recorded in your primary
+(configsys-user), not pushed yet (P)*. What follows "recorded" is the `primary-push` setting's: under
+`ask`, not pushed yet (`P` / `configsys plugin push`; the CLI counts what is waiting); under `auto`,
+the CLI pushes right away and the TUI says it's pushed when you quit; under `auto-on-quit`, the same
+in the TUI, and the CLI adds that quitting the TUI pushes it; under `manual`, just where it went.
+
 **Creating one.** `configsys plugin init [name]` (default name `configsys-<user>`) builds a
 primary plugin in `~/.config/configsys/plugins/<name>/` from what you have locally:
 

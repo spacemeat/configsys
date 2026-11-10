@@ -287,3 +287,54 @@ def test_summaries_come_with_each_side(world):
     lines = review.render([up], None)
     assert ('add', '    added splash: plain') in lines and ('add', '    +hi') in lines
     assert ('meta', 'diff --git a/p.hu b/p.hu') in review.render([up], None, raw=True)
+
+
+# -- where an action landed --------------------------------------------------------------------------
+
+def test_update_says_it_landed_in_your_primary_not_pushed_yet(world, capsys):
+    base, _clone, _bare, _other, _src = world
+    capsys.readouterr()
+    _update_source(base)
+    out = capsys.readouterr().out
+    assert 'configsys: configsys-source updated to v0.1.13 (latest tag)\n' in out
+    assert ('configsys: recorded in your primary (prim) — 1 change not pushed yet; `configsys plugin push` '
+            'shares it.') in out
+
+
+@pytest.mark.parametrize('mode, cli, tui', [
+    ('ask', 'recorded in your primary (prim) — 2 changes not pushed yet; `configsys plugin push` shares them.',
+     'recorded in your primary (prim), not pushed yet (P)'),
+    ('auto', 'recorded in your primary (prim) — pushing it now (primary-push: auto)',
+     'recorded in your primary (prim) — pushed when you quit'),
+    ('auto-on-quit', 'recorded in your primary (prim) — 2 changes not pushed yet; `configsys plugin push` '
+                     'shares them, or quitting the TUI does.',
+     'recorded in your primary (prim) — pushed when you quit'),
+    ('manual', 'recorded in your primary (prim).', 'recorded in your primary (prim)'),
+])
+def test_one_wording_for_where_it_landed_by_push_mode(monkeypatch, mode, cli, tui):
+    from configsys import primarygit
+    monkeypatch.setattr(primarygit, 'push_mode', lambda ctx: mode)
+    monkeypatch.setattr(primarygit, 'state', lambda ctx: primarygit.PrimaryState('prim', 'main', ahead=2))
+    assert primarygit.landed(object(), 'prim', tui=False) == cli
+    assert primarygit.landed(object(), 'prim', tui=True, push_key='P') == tui
+
+
+def test_the_tui_note_after_u_says_where_it_landed(world, monkeypatch):
+    from contextlib import nullcontext
+    from configsys import primarygit
+    from configsys.tui import flows, menu
+    from configsys.tui.panes import PluginScreen
+    from configsys.tui.screens import plugins as pmod
+    base, _clone, _bare, _other, _src = world
+    ctx = _ctx(base)
+    monkeypatch.setattr(pmod, 'suspended', lambda _s: nullcontext())
+    monkeypatch.setattr(PluginScreen, '_start_remote', lambda self: None)   # no ls-remote thread
+    scr = pmod.PluginsScreen(ctx)
+    scr.model.cur = next(i for i, r in enumerate(scr.model.rows) if r['name'] == 'configsys-source')
+    u = next(k for k in range(32, 127) if menu._keymap().action_for('plugins', k) == 'update')
+    snap = primarygit.snapshot(ctx)                     # the router's per-key write journal
+    intent = scr.handle(u, ctx, None, None)
+    cnotes = flows._commit_primary_action(ctx, snap, 'plugins', 'update', intent.note)
+    note = flows._after_primary_action(ctx, snap, intent.note, cnotes)
+    assert note == ('configsys-source updated to v0.1.13 (latest tag) — recorded in your primary (prim), '
+                    'not pushed yet (P)')

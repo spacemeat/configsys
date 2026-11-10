@@ -658,7 +658,7 @@ def test_cli_plugin_remove_and_update_are_primary_aware(tmp_path, capsys, monkey
     # update --ref: re-pins in the PRIMARY's manifest (where addon is declared), not the top config
     assert main(home + ['plugin', 'update', 'addon', '--ref', 'v1']) == 0
     out = capsys.readouterr().out
-    assert 're-pinned' in out and 'in prim' in out
+    assert 'addon updated to v1' in out and 'recorded in your primary (prim)' in out
     assert 'ref: v1' in prim_manifest.read_text()
     assert 'addon' not in top.read_text()
 

@@ -1883,9 +1883,10 @@ def plugin_update(ctx, ident, ref=None, *, pin=False, latest=False):
         warn = (f' — warning: {plugins.dir_name(target["source"])} no longer matches its pinned '
                 f'sha256; quarantined until you re-pin (update --pin) or drop it')
     ctx.invalidate()
-    where = '' if str(cfg_file) == str(ctx.paths.user_config_file) else f' in {Path(cfg_file).parent.name}'
-    msg = (f're-pinned {target["source"]} @{ref}{latest_note}{where}' if ref
-           else f're-synced {target["source"]}{latest_note}')
+    # where the new ref was written is said once, by the commit that records it in your primary
+    # (primarygit.landed — "recorded in your primary (x), not pushed yet"), like every primary edit
+    name = plugins.dir_name(target['source'])
+    msg = f'{name} updated to {ref}{latest_note}' if ref else f'{name} re-synced{latest_note}'
     return True, msg + warn, results
 
 

@@ -671,11 +671,15 @@ def cmd_plugin(ctx, args):
     return 2
 
 
-def _after_primary_commit(ctx):
-    '''A CLI command just committed to the primary: under `primary-push: auto` push it (a failure is
-    one line, retried next time); under `ask` / `auto-on-quit` (which pushes only when you quit the
-    TUI) say it isn't pushed yet; under `manual` stay quiet (`primarygit.PUSH_POLICY`).'''
+def _after_primary_commit(ctx, name=None):
+    '''A CLI command just committed to the primary (`name`; None: read it from its state): say where
+    the change landed (primarygit.landed — under `ask` / `auto-on-quit`, which pushes only when you
+    quit the TUI, that it isn't pushed yet; under `manual` just where), then under `primary-push:
+    auto` push it (a failure is one line, retried next time) — `primarygit.PUSH_POLICY`.'''
     then = primarygit.PUSH_POLICY[primarygit.push_mode(ctx)]['after_cli']
+    line = primarygit.landed(ctx, name, tui=False)
+    if line:
+        print(f'configsys: {line}')
     if then == 'push':
         ok, lines = primarygit.push(ctx)               # no questions: your own edits stay out
         if lines:                                      # every line, not just the last: "kept the newer
@@ -683,8 +687,3 @@ def _after_primary_commit(ctx):
                 lines = lines[:-1] + ['not pushed automatically — ' + lines[-1]]
             for ln in lines:
                 print(f'configsys: {ln}')
-    elif then == 'hint':
-        st = primarygit.state(ctx)
-        if st and st.ahead:
-            print(f'configsys: saved to {st.name} — {primarygit.count_phrase(st.ahead)} not pushed '
-                  f'yet; `configsys plugin push` shares {primarygit.them_phrase(st.ahead)}.')
