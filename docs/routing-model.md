@@ -742,6 +742,10 @@ passes all of:
   rpm-ostree, flatpak, snap, brew — a driver class with `trusted_registry = True`) and sets none
   of that driver's `command_fields` nor a `version: { url: }`; everything else waits for
   `configsys plugin trust` (docs/plugins.md §6);
+- **not ruled out by a `component-names` `{}`** (`resolve.name_dropped`) — an entry saying the
+  driver this binding reaches (its via, or this OS's manager for `via: native`) packages nothing
+  for the component here (§10a). The merged patches ride on the context (`gated_context`), so the
+  derived gates see a drop too;
 - **`arch_ok`** — the cpu is among those a `cpu-names:`/cpu-keyed `asset:` declares (§7);
 - its **`when:`** holds.
 
@@ -856,7 +860,7 @@ add_component(name):
                                    route here is skipped (`part-skipped` notice); every part
                                    unroutable = an error; a part cycle = a `parts-cycle` error
     driver  = native ? OsCascade.native(block) : via
-    component-names drop        -> contributes nothing (§10a)
+    package = component-names rename (§10a) or the binding's name map   // a `{}` never gets here: §8a
     unit key "driver\name"      -> reuse if already built (dedup), else build it
     for cap in provides ∪ {name}: if cap ∉ inventory: inventory[cap] = this unit   // first = resident
     enqueue HARD edges:  component requires + drivers[via].requires
@@ -1056,17 +1060,22 @@ the common "docker is `docker` under xbps" case — driver-keyed, not tied to a 
     xbps: {                        // keyed by DRIVER
         docker-engine: docker      // override the package name under this driver
         r:             R
-        nmap:          {}          // `{}` (or null / ""): this driver has no package for it -> drop
+        nmap:          {}          // `{}` (or null / ""): this driver has no package for it here
     }
 } }
 ```
 
 It overlays across the whole layer stack, later wins per `(driver, component)`
-(`layers.merge_name_overrides`), and applies during resolution *after* the binding + driver are
-chosen (`resolve._name_override`): a string replaces the resolved package name; `{}` drops the unit
-as a silent no-op (not offered, never an error row — exactly like a `{}`-removed component), and
-like one it can't satisfy a HARD requirement (`_State._is_bindable`: a dropped provider isn't
-viable, so the requirer pulls another or errors). It is
+(`layers.merge_name_overrides`). A string replaces the resolved package name once the binding +
+driver are chosen (`resolve._name_override`). `{}` is **validity, not a drop**: a binding that
+reaches that driver for that component is not a candidate (`resolve.name_dropped`, one of §8a's
+filters), so the component's other methods are tried — nmap's brew binding, say — and with none
+left the pick is the ordinary "no binding for nmap in this context" error row (kind `no-candidate`,
+the message naming the entry), never a silent vanish. `where` marks the ruled-out method "not a
+candidate: `component-names: { xbps: { nmap: {} } }` in <layer> says xbps packages nothing for
+nmap here". A provider whose only method a `{}` rules out can't satisfy a HARD requirement (it has
+no selection, so `_State._is_bindable` says no and the requirer pulls another provider or errors);
+one with another valid method provides through it. It is
 **driver-keyed**, so it expresses cross-driver name facts (a plugin distro's package names) but
 deliberately does *not* address same-driver splits like Ubuntu-vs-Debian `perf` (both `apt`) —
 those remain `when:` splits. The configsys-void example plugin uses it to supply xbps names for core

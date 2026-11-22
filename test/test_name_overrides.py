@@ -1,6 +1,7 @@
 '''component-names — per-driver package-name patches for existing components. A higher layer
 (a plugin OS, or the user config) overrides the package a component maps to under a given driver,
-or drops it where that driver has no package — WITHOUT redefining the component wholesale. This
+or says that driver has no package for it (`{}` — that method is then not a candidate, so another
+is tried or the pick is an error row) — WITHOUT redefining the component wholesale. This
 is the substrate the Void plugin uses to supply xbps names for core components (docker->docker,
 r->R, nmap absent). Driver-keyed, so it does NOT touch same-driver splits (Ubuntu-vs-Debian perf).'''
 
@@ -40,19 +41,24 @@ def test_override_is_driver_scoped(tmp_path):
     assert _pkg(on_fedora.resolve_names(['btop']), 'dnf\\btop') == 'btop'
 
 
-def test_empty_map_drops_the_component(tmp_path):
-    # `{}` means the driver has no package for it here -> a silent no-op, like a removed component
+def test_a_drop_takes_that_method_out_of_the_candidates(tmp_path):
+    # `{}` says the driver has no package for the component here: that METHOD isn't a candidate
+    # (validity, like a false `when:`), so another method is tried — nmap falls through to brew
     r = _resolver(tmp_path, '{ component-names: { apt: { nmap: {} } } }')
     units = r.resolve_names(['ripgrep', 'nmap'])
     assert 'apt\\ripgrep' in units
-    assert 'apt\\nmap' not in units
+    assert 'apt\\nmap' not in units and 'brew\\nmap' in units
+    assert [c['via'] for c in r.candidates('nmap')] == ['brew']   # the picker sees the same set
 
 
-def test_drop_is_silent_not_an_error_row(tmp_path):
-    # resilient resolution treats a drop as not-offered, NOT an error (unlike an unroutable name)
-    r = _resolver(tmp_path, '{ component-names: { apt: { nmap: {} } } }')
-    units, errors = r.resolve_resilient(['nmap'])
-    assert 'nmap' not in errors and not units
+def test_a_drop_of_the_only_method_is_an_error_row_not_a_vanish(tmp_path):
+    # no candidate left -> the ordinary "no install method here" error row, naming the entry —
+    # never a silent no-op (review-2026-11-2 B5's rule: a pick never vanishes without a row)
+    r = _resolver(tmp_path, '{ component-names: { apt: { debhelper: {} } } }')
+    units, errors = r.resolve_resilient(['debhelper', 'ripgrep'])
+    assert 'apt\\ripgrep' in units and not any(k.endswith('\\debhelper') for k in units)
+    assert 'debhelper' in errors
+    assert 'component-names: { apt: { debhelper: {} } }' in errors['debhelper']
 
 
 def test_override_via_a_plugin_layer(tmp_path):
@@ -68,13 +74,15 @@ def test_override_lands_in_install_fields(tmp_path):
     assert rc.fields.get('name') == 'btop-custom'
 
 
-def test_where_names_the_drop_that_removed_it(tmp_path):
-    # `where` on a dropped component said only "nothing": name the `component-names` entry + layer
+def test_where_names_the_drop_that_ruled_a_method_out(tmp_path):
+    # `where` says why the apt method isn't a candidate: the `component-names` entry + its layer
     from configsys.app import Context, build_parser, where_report
     d = tmp_path / '.config' / 'configsys'
     d.mkdir(parents=True)
     (d / 'configsys.hu').write_text('{ component-names: { apt: { nmap: {} } } }')
     ctx = Context(build_parser().parse_args(['--home', str(tmp_path), '--os', 'ubuntu:24.04', 'inspect']))
-    tail = where_report(ctx, 'nmap')[-1]
-    assert 'nothing' in tail and 'component-names: { apt: { nmap: {} } }' in tail
-    assert '~/.config/configsys/configsys.hu' in tail
+    lines = where_report(ctx, 'nmap')
+    apt_line = next(ln for ln in lines if 'via native   when: not (opensuse_leap >= 16)' in ln)
+    assert 'not a candidate: `component-names: { apt: { nmap: {} } }`' in apt_line
+    assert 'in ~/.config/configsys/configsys.hu' in apt_line and 'apt packages nothing' in apt_line
+    assert any('brew\\nmap' in ln for ln in lines)

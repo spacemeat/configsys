@@ -928,17 +928,21 @@ it. `installer-shell-writes-allow` exempts named components.
 ## component-names
 
 A higher layer (typically a plugin) can patch the package name a component maps to under a given
-driver, or drop it where that driver has no package, without redefining the component:
+driver, or say that driver has no package for it, without redefining the component:
 
 ```hu
 component-names: {
-    xbps: { docker-engine: docker  r: R  nmap: {} }   // rename; {} = no package here (drop)
+    xbps: { docker-engine: docker  r: R  nmap: {} }   // rename; {} = no xbps package for it
 }
 ```
 
 It is keyed by driver and overlaid across the layer stack (later wins per driver and component): a
 string replaces the resolved package name; `{}` (or an empty value) means "not available through
-this driver", so the component isn't offered there. See docs/routing-model.md for the full rules.
+this driver" — a validity fact, like a false `when:`: that install method is not a candidate, so
+the component's other methods are tried (nmap's brew binding, say), and if none is left the pick is
+an ordinary "no install method here" error row naming the entry. `configsys where <component>`
+marks the ruled-out method and the layer that said so. See docs/routing-model.md §10a for the full
+rules.
 
 ## version-floors
 

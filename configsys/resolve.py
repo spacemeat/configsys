@@ -62,6 +62,26 @@ def _name_override(overrides, driver, component):
     return _NO_OVERRIDE, True
 
 
+def name_dropped(binding, component, context):
+    '''The driver a `component-names: { <driver>: { <component>: {} } }` entry says packages
+    nothing for `component` (a name) — when `binding` reaches that driver here (its own via, or for
+    `via: native` this OS's manager) — else None. A VALIDITY filter in _matching, like a false
+    `when:`: that method isn't a candidate, so another is tried, and with none left the pick is the
+    ordinary "no install method here" error row (never a silent vanish). The merged overrides ride
+    on the context (gated_context), like the disabled drivers and the driver gates.'''
+    overrides = getattr(context, 'name_overrides', None)
+    if not overrides or binding.via == 'parts':
+        return None
+    drv = getattr(context, 'native_driver', None) if binding.via == 'native' else binding.via
+    return drv if drv and _name_override(overrides, drv, component)[1] else None
+
+
+def name_drop_text(driver, component, where=''):
+    '''How `where` and an error row word a `component-names` `{}` — `where` = " in <layer>".'''
+    return (f'`component-names: {{ {driver}: {{ {component}: {{}} }} }}`{where} says {driver} '
+            f'packages nothing for {component} here')
+
+
 def pin_via_names():
     '''The set of `pins:` values that name an install METHOD (a via/driver) rather than a provider
     component — `native`, `parts`, and every registered driver. A flat-`pins:` value in this set is
@@ -163,7 +183,8 @@ def _matching(component, context, pins):
     '''(the CANDIDATE bindings in this context, the binding-pin or None). A binding-pin filters to
     that via first; then a binding is a candidate when its driver isn't disabled, it isn't `via:
     native` on a native-less OS, no driver gate (explicit or derived) closes it, the trust gate lets
-    it through (trustgate.gated), it covers this cpu (arch_ok) and its `when:` holds — every one a
+    it through (trustgate.gated), no `component-names` `{}` says its driver packages nothing for
+    this component (name_dropped), it covers this cpu (arch_ok) and its `when:` holds — every one a
     validity filter; not_candidate_reason words them in this order.'''
     bindings = component.bindings
     pin = binding_pin(pins, component.name)
@@ -182,6 +203,7 @@ def _matching(component, context, pins):
     return [b for b in bindings
             if disabled_driver(b, context) is None and not (no_native and b.via == 'native')
             and driver_gated(b, context) is None and trustgate.gated(b, context) is None
+            and name_dropped(b, component.name, context) is None
             and arch_ok(b.details, cpu) and b.pred.eval(context)], pin
 
 
@@ -224,12 +246,13 @@ def driver_gate_reason(binding, cascade, context):
     return f"the {drv} driver{via_note} isn't valid here (drivers: {drv} when: {text})"
 
 
-def not_candidate_reason(binding, cascade, context, pin=None):
+def not_candidate_reason(binding, cascade, context, pin=None, component=None, source_label=None):
     '''Why `binding` is NOT a candidate here, in _matching's own order — your binding-pin names
     another method, its driver is disabled, `via: native` on an OS with no package manager, a
-    driver gate (driver_gate_reason), this cpu missing from its `cpu-names:` / cpu-keyed `asset:`,
-    or its `when:` — or None when it is a candidate. The text `where` prints, so every method it
-    rules out says why.'''
+    driver gate (driver_gate_reason), a `component-names` `{}` for `component` (its name; with
+    `source_label(driver, component)` -> the entry's layer, for " in <layer>"), this cpu missing
+    from its `cpu-names:` / cpu-keyed `asset:`, or its `when:` — or None when it is a candidate.
+    The text `where` prints, so every method it rules out says why.'''
     if pin is not None and binding.via != pin:
         return f'you pinned via:{pin}'
     off = disabled_driver(binding, context)
@@ -241,6 +264,10 @@ def not_candidate_reason(binding, cascade, context, pin=None):
     gate = driver_gate_reason(binding, cascade, context)
     if gate:
         return gate
+    dropped = name_dropped(binding, component, context) if component else None
+    if dropped is not None:
+        label = source_label(dropped, component) if source_label else None
+        return name_drop_text(dropped, component, f' in {label}' if label else '')
     cpu = getattr(context, 'cpu', None)
     if not arch_ok(binding.details, cpu):
         cpus = cpu_names(binding.details) or _asset_cpus(binding.details) or ()
@@ -281,6 +308,10 @@ def gated_context(cascade, components, drivers, block, version=None, cpu=None, d
     if hit is not None and hit[0] is components and hit[1] is drivers and hit[2] is overrides:
         return hit[3]
     ctx = cascade.context(block, version, cpu, disabled or ())
+    # the merged `component-names` patches: a `{}` takes that (driver, component) method out of the
+    # candidates (name_dropped) — here, so the derived gates below see it too (a dropped curl closes
+    # every driver that requires curl, exactly as a curl with no method would)
+    ctx.name_overrides = overrides or {}
     explicit = frozenset(getattr(ctx, 'gated_drivers', ()) or ())
     derived = {}
     shared = None                      # the per-load indexes every scratch _State would rebuild
@@ -346,6 +377,22 @@ def _gate_note(component, context, pin):
         why = (getattr(context, 'derived_gates', None) or {}).get(drv)
         notes[b.via] = (f'the {drv} driver can\'t work here ({why})' if why is not None
                         else f'the {drv} driver isn\'t valid here')
+    return ''.join(f'; {v}: {n}' for v, n in notes.items())
+
+
+def _name_drop_note(component, context, pin):
+    '''" — <via>: `component-names: { … {} }` says …" for each of `component`'s bindings a name drop
+    took out here (the bindings otherwise valid) — so "no binding here" names the entry. Not a gate:
+    the error stays the ordinary 'no-candidate' kind.'''
+    cpu = getattr(context, 'cpu', None)
+    notes = {}
+    for b in component.bindings:
+        if (pin is not None and b.via != pin) or b.via in notes:
+            continue
+        drv = name_dropped(b, component.name, context)
+        if drv is not None and disabled_driver(b, context) is None and driver_gated(b, context) is None \
+                and trustgate.gated(b, context) is None and arch_ok(b.details, cpu) and b.pred.eval(context):
+            notes[b.via] = name_drop_text(drv, component.name)
     return ''.join(f'; {v}: {n}' for v, n in notes.items())
 
 
@@ -531,7 +578,8 @@ def _select(component, cascade, context, pins=None, preference=None, never_auto_
     if not matching:
         extra = f' (pinned to via:{pin!r})' if pin is not None else ''
         note = _gate_note(component, context, pin)
-        raise ResolveError(f'no binding for {component.name} in this context{extra}{note}',
+        drops = _name_drop_note(component, context, pin)
+        raise ResolveError(f'no binding for {component.name} in this context{extra}{note}{drops}',
                            'gated' if note else 'no-candidate')
     if len(matching) == 1:
         return matching[0], matching, 'only method here'
@@ -645,7 +693,8 @@ def unit_for_binding(component, binding, cascade, block, overrides=None):
     '''Build the Unit a SPECIFIC binding would produce — for per-method introspection (the
     `versions` view: what each install method offers), independent of which one wins. Mirrors the
     worklist's single-binding construction (driver + name-map/override + install fields); does NOT
-    close requires. Returns None for an aggregator (`parts`) or a component-names drop.'''
+    close requires. Returns None for an aggregator (`parts`) or a component-names drop (a binding
+    that is never a candidate here — name_dropped — so it has no unit to report).'''
     if binding.via == 'parts':
         return None
     drv = _driver(binding, cascade, block)
@@ -675,8 +724,9 @@ def resolve(names, cascade, components, drivers, block, version=None, cpu=None, 
     or ambiguous is an error. `pins` (per-machine) force a component's method
     (binding-pin) or a capability's provider (provider-pin), top of precedence.
     `overrides` (the merged `component-names` section) patches a component's package name
-    per driver, or drops it where the driver has no package (a plugin OS supplying its own
-    names for existing components without redefining them).
+    per driver, or (`{}`) says the driver has no package for it — that method is then not a
+    candidate (name_dropped) — so a plugin OS supplies its own names for existing components
+    without redefining them.
     Returns {unit_key: Unit}. Resolving a name yields a SET of keys — one for a normal
     component, several for a `via: parts` aggregator (which has no unit of its own).
     '''
@@ -915,11 +965,9 @@ class _State:
             return frozenset(keys)
 
         drv = _driver(binding, self.cascade, self.block)
-        override, drop = _name_override(self.overrides, drv, name)
-        if drop:
-            # this driver packages nothing for the component here -> drop it (a silent no-op,
-            # exactly like a `{}`-removed component): not offered, never an error row.
-            return frozenset()
+        # (a `component-names` `{}` never reaches here: name_dropped took that method out of the
+        # candidates, so selection chose another or raised the ordinary no-candidate error)
+        override = _name_override(self.overrides, drv, name)[0]
         key = f'{drv}\\{name}'
         if key in self.units:
             self.units[key].requested_as.add(root)
@@ -1050,17 +1098,14 @@ class _State:
                 and self._is_bindable(self.components[p])]
 
     def _is_bindable(self, comp):
-        '''Can `comp` provide something here: a binding selects AND its driver packages it (a
-        `component-names: { <drv>: { comp: {} } }` drop means "nothing here" — it can't satisfy a
-        HARD requirement, exactly like a `{}`-removed component; B15 / routing-07).'''
+        '''Can `comp` provide something here: a binding selects. A `component-names: { <drv>: {
+        comp: {} } }` drop is a validity filter (name_dropped), so a provider whose only method it
+        rules out has no selection and can't satisfy a HARD requirement (B15 / routing-07), while
+        one with another valid method still provides through that method.'''
         try:
-            binding = self._select_binding(comp)
+            self._select_binding(comp)
         except ResolveError:
             return False
-        if binding.via != 'parts' and self.overrides:
-            drv = _driver(binding, self.cascade, self.block)
-            if _name_override(self.overrides, drv, comp.name)[1]:
-                return False
         return True
 
     def _pick_provider(self, cap, cands, requiring, constraint=None):

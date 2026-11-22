@@ -251,6 +251,12 @@ def test_not_candidate_reason_covers_every_rule():
         _b('tarball', **{'cpu-names': {'x86_64': 'x86_64', 'aarch64': 'arm64'}}), None, cx)
     assert not_candidate_reason(_b('cargo', when=False), None, cx) == '`when:` is false here'
     assert not_candidate_reason(_b('cargo'), None, cx) is None
+    # a `component-names` `{}` for this (driver, component): validity, named with its layer
+    cx.name_overrides = {'cargo': {'tool': {}}}
+    assert not_candidate_reason(_b('cargo'), None, cx, component='tool',
+                                source_label=lambda d, c: 'my.hu') == (
+        '`component-names: { cargo: { tool: {} } }` in my.hu says cargo packages nothing for tool here')
+    assert not_candidate_reason(_b('cargo'), None, cx, component='other') is None
 
 
 def test_real_where_names_a_disabled_driver(tmp_path):

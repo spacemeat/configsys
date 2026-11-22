@@ -48,6 +48,17 @@ def test_resolve_at_carries_disabled_drivers_to_another_os(tmp_path):
     assert not any(k.startswith('dnf\\tool') for k in units)
 
 
+def test_select_and_resolve_at_honor_a_name_drop(tmp_path):
+    # a `component-names` `{}` is part of the policy: the dropped method is not a candidate for the
+    # picker / `where` (select) nor on another OS's coverage row (resolve_at)
+    r = _res(tmp_path, TOOL, extra='drivers: { flatpak: { requires: flatpak } }  '
+                                   'component-names: { apt: { tool: {} }  dnf: { tool: {} } }')
+    sel = r.select('tool')
+    assert sel.binding.via == 'flatpak' and {b.via for b in sel.candidates} == {'flatpak'}
+    units = r.resolve_at(['tool'], 'fedora', '43')
+    assert 'flatpak\\tool' in units and not any(k.startswith('dnf\\tool') for k in units)
+
+
 def test_coverage_uses_resolve_at(tmp_path, monkeypatch):
     r = _res(tmp_path, TOOL)
     seen = []

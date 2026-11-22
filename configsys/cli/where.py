@@ -54,20 +54,15 @@ def _source_label(comp, paths):
     return f'{where}   (overrides routes.hu)' if comp.shadows else f'{where}   (new; not in routes.hu)'
 
 
-def _drop_note(r, comp, selected, paths):
-    '''" — `component-names: { apt: { nmap: {} } }` in <layer> …" when the winning method's driver is
-    patched to package nothing for `comp` here (a `{}` drop: silently not offered), else ''.'''
-    if selected is None:
-        return ''
+def _drop_source_label(r, paths):
+    '''-> label(driver, component): the layer whose `component-names` `{}` rules a method out, as
+    `where` names layers — for resolve.not_candidate_reason.'''
     from .. import layers
-    from ..resolve import _driver, _name_override
-    drv = _driver(selected, r.cascade, r.block)
-    if not _name_override(r.overrides, drv, comp.name)[1]:
-        return ''
-    src = layers.name_override_source(getattr(r, 'layers', None) or [], drv, comp.name)
-    where = f' in {_layer_label(src, paths)}' if src else ''
-    return (f' — `component-names: {{ {drv}: {{ {comp.name}: {{}} }} }}`{where} says {drv} packages '
-            f'nothing for it here, so it is dropped (not offered, never an error)')
+
+    def label(drv, comp):
+        src = layers.name_override_source(getattr(r, 'layers', None) or [], drv, comp)
+        return _layer_label(src, paths) if src else None
+    return label
 
 
 def _os_version_conditions(comp, cx):
@@ -142,13 +137,15 @@ def where_report(ctx, name):
         except ResolveError:
             candidates = candidate_bindings(comp, r.cascade, cx, r.pins)  # valid but none / undecidable
         reps = via_representatives(candidates, r.cascade)      # per-via winners — the pin-reachable set
+        label = _drop_source_label(r, ctx.paths)
         out.append('  bindings')
         for b in comp.bindings:
             valid = b in candidates
             out.append(_fmt_binding(b, b is selected, reachable=(b in reps and b is not selected),
                                     shadowed=(valid and b not in reps),
                                     invalid=None if valid else not_candidate_reason(
-                                        b, r.cascade, cx, pin=pinned)))
+                                        b, r.cascade, cx, pin=pinned, component=name,
+                                        source_label=label)))
         if selected is not None and len(candidates) > 1:
             out.append(f'    default: via {selected.via}  (by {reason})')
 
@@ -170,7 +167,7 @@ def where_report(ctx, name):
         out.append(f'    ERROR: {e}')
         return out
     if not units:
-        out.append('    nothing' + _drop_note(r, comp, selected, ctx.paths))
+        out.append('    nothing')
         return out
     own = {k for k in units if k.split('\\', 1)[-1] == name}
     for key in sorted(units):

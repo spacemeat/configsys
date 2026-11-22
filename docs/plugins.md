@@ -92,7 +92,8 @@ layer may **define** things (the sections below); only your top config and your 
   defines itself; on one a lower layer already defined they are ignored, and `check` names each
   (`plugin-preference`). Your primary and your top config may set them anywhere.
 - **`component-names:`** — per-driver package-name patches for components it doesn't own
-  (`{ toybox: { ripgrep: rg  nmap: {} } }`: a string renames, `{}` means "not packaged here").
+  (`{ toybox: { ripgrep: rg  nmap: {} } }`: a string renames, `{}` means "not packaged here" — that
+  method isn't a candidate, so another is tried, else the pick is an error row).
 - **`profiles:`** — browse-only profiles. A profile with the same name as a lower layer's replaces
   it, unless its term list includes itself (`+<its own name>`), which amends the lower definition
   in place instead.

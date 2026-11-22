@@ -161,7 +161,7 @@ def report(ctx, name, *, min_version=None, refresh=False, now=None):
     methods, seen = [], {}
     for b in cands:
         unit = unit_for_binding(comp, b, r.cascade, r.block, r.overrides)
-        if unit is None:                          # parts aggregator / component-names drop
+        if unit is None:                          # parts aggregator (a component-names `{}` is no candidate)
             continue
         rc = to_resolved_component(unit)
         package = rc.name or comp.name

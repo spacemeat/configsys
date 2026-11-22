@@ -100,7 +100,9 @@ def test_examplos_component_names():
 
     assert pkg('ripgrep') == 'rg'                          # renamed under toybox
     assert 'toybox\\btop' in r.resolve_names(['btop'])     # unpatched native comp still routes
-    assert not r.resolve_names(['nmap'])                   # dropped ({}) -> not offered
+    # `{}`: toybox has no nmap, and no other method is valid on ExamplOS -> an error row naming it
+    units, errors = r.resolve_resilient(['nmap'])
+    assert not units and 'component-names: { toybox: { nmap: {} } }' in errors['nmap']
 
 
 # -- the whole plugin, dogfooded through the CLI --------------------------

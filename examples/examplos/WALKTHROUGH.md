@@ -259,13 +259,15 @@ changes. What we actually want is to *patch a name*, not adopt a component. That
     component-names: {
         toybox: {
             ripgrep: rg        // ExamplOS ships it under its binary name
-            nmap:    {}        // not packaged here -> just don't offer it
+            nmap:    {}        // not packaged here -> toybox isn't a method for it
         }
     }
 ```
 
 Keyed by **driver**. A string renames the package; `{}` (empty) means "toybox has no package for
-this," so the component is quietly dropped on ExamplOS — not an error, just not offered there.
+this" — a validity fact, like a false `when:`, so the toybox method is not a candidate for nmap.
+configsys then tries nmap's other methods; on ExamplOS none is valid (its brew binding needs glibc),
+so `nmap` reads as "no install method here" — an honest error row, never a silent disappearance.
 The base `ripgrep` and `nmap` components stay
 untouched and keep updating; we've only leaned a correction against them for our driver.
 
@@ -277,8 +279,10 @@ $ ./configsys.sh --os examplos where ripgrep
 
 $ ./configsys.sh --os examplos where nmap
   ...
+    - via native   when: not (opensuse_leap >= 16)  (not a candidate: `component-names: { toybox: { nmap: {} } }` in <plugin>/routes.hu says toybox packages nothing for nmap here)
+  ...
   on examplos (x86_64):
-    nothing                          # {} -> dropped, not an error
+    ERROR: no binding for nmap in this context; …; native: `component-names: { toybox: { nmap: {} } }` says …
 ```
 
 That edit changed the plugin's content, so after the sync `plugin list` asks you to re-approve

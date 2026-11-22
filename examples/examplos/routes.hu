@@ -18,11 +18,12 @@
     // Per-driver package-name patches for CORE components whose ExamplOS name differs from the
     // generic default — supplied WITHOUT redefining the component (that's what `component-names`
     // is for; see docs/routing-model.md §10a). A string renames; `{}` means toybox has no package
-    // for it, so it's simply not offered here.
+    // for it, so that method isn't a candidate here: another valid method is used instead, and with
+    // none left the component reads "no install method here" (an error row, never a silent drop).
     component-names: {
         toybox: {
             ripgrep: rg        // ExamplOS ships ripgrep under its binary name
-            nmap:    {}        // not packaged for ExamplOS -> dropped, not an error
+            nmap:    {}        // not packaged for ExamplOS -> not via toybox (nothing else is valid here)
         }
     }
 }

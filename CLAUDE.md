@@ -143,7 +143,9 @@ Its sections:
   special dotfiles field.
 
 Any layer may also patch without redefining a component: `component-names: { <driver>: { <comp>:
-<pkg> | {} } }` (per-driver package name, `{}` = none there; routing-model §10a) and
+<pkg> | {} } }` (per-driver package name; `{}` = that driver has none, a VALIDITY filter in
+`resolve._matching` — `name_dropped` — so another method is tried, else the ordinary no-candidate
+error row, never a silent vanish; routing-model §10a) and
 `version-floors:` (sets an existing `requires:` floor by layer precedence; never adds one;
 docs/config-format.md).
 

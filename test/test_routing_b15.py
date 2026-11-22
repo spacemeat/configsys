@@ -1,5 +1,6 @@
 '''review-2026-11-2 B15 — the routing correctness batch: disabled-drivers covers the native manager; a
-provider-pin on a capability that is also a component; a `{}` name-drop can't satisfy a hard require;
+provider-pin on a capability that is also a component; a `{}` name-drop rules that method out (so
+it can't satisfy a hard require through it);
 an unroutable bundle part is skipped with a notice; a soft pin whose method's requires fail is dropped;
 an ambiguity never closes a derived driver gate; version-floors act at both levels; Void musl on ARM.'''
 
@@ -49,8 +50,20 @@ def test_a_name_drop_does_not_satisfy_a_hard_require(tmp_path):
     r = _res(tmp_path, comps, extra='component-names: { apt: { libx: {} } }')
     units, errors = r.resolve_resilient(['tool'])
     assert 'tool' in errors and 'libx' in errors['tool']
-    units, errors = r.resolve_resilient(['libx'])           # a direct pick stays a silent no-op
-    assert not errors and not units
+    units, errors = r.resolve_resilient(['libx'])           # a direct pick: an error row, never a vanish
+    assert not units and 'libx' in errors and 'component-names' in errors['libx']
+
+
+def test_a_name_drop_leaves_the_providers_other_methods(tmp_path):
+    # the drop rules out ONE method (validity); a provider with another valid method still provides
+    comps = ('libx: { install: [ { via: native }  { via: flatpak  hub: flathub  app: org.x.Libx } ] }'
+             '  flatpak: { install: [ { via: native } ] }'
+             '  tool: { requires: libx  install: [ { via: native } ] }')
+    r = _res(tmp_path, comps, extra='drivers: { flatpak: { requires: flatpak } }  '
+                                    'component-names: { apt: { libx: {} } }')
+    units, errors = r.resolve_resilient(['tool'])
+    assert not errors, errors
+    assert 'flatpak\\libx' in units['apt\\tool'].deps and 'apt\\libx' not in units
 
 
 def test_an_unroutable_bundle_part_is_skipped_with_a_notice(tmp_path):

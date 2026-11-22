@@ -34,7 +34,7 @@ time.
   root; mutations run under sudo.
 - **Correct package names, without redefining components.** ExamplOS calls ripgrep `rg` and
   doesn't package `nmap`; `component-names:` patches those onto the core components (a rename, and
-  a `{}` drop) without owning the whole definition. See §10a of [docs/routing-model.md](../../docs/routing-model.md).
+  a `{}` that takes the toybox method out of nmap's candidates) without owning the whole definition. See §10a of [docs/routing-model.md](../../docs/routing-model.md).
 - **The trust gate.** Because `plugin.hu` has a `code:` key, the plugin runs with your privileges
   during installs — so its driver stays unloaded, and its own `via: toybox` binding is held back,
   until you approve its exact contents.
