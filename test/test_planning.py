@@ -91,3 +91,30 @@ def test_swap_remove_runs_before_its_paired_install():
     keys = [k for _op, k, _rc in expand_plan(plan, units)]
     assert keys.index('apt\\foo') < keys.index('tarball\\foo')   # swap-remove first
     assert keys.index('tarball\\foo') < keys.index('apt\\bar')   # ordinary remove last
+
+
+def test_a_suggested_companion_installs_after_what_suggested_it():
+    # docker-compose SUGGESTS docker-compose-standalone, which HARD-requires docker-compose: the
+    # suggests edge is a soft dep (folded in, never ordering it first), so the cycle breaks the right
+    # way — the plugin before the link to it (a real Pop run linked nothing, then installed it)
+    units = {
+        'apt\\docker-compose': u('apt\\docker-compose', deps={'script\\docker-compose-standalone'}),
+        'script\\docker-compose-standalone': u('script\\docker-compose-standalone',
+                                               deps={'apt\\docker-compose'}),
+    }
+    units['apt\\docker-compose'].soft_deps = {'script\\docker-compose-standalone'}
+    plan = [('install', 'apt\\docker-compose', units['apt\\docker-compose'])]
+    keys = [k for _op, k, _rc in expand_plan(plan, units)]
+    assert keys == ['apt\\docker-compose', 'script\\docker-compose-standalone']
+
+
+def test_a_suggested_glue_follows_its_tool_even_without_a_cycle():
+    units = {
+        'apt\\btop': u('apt\\btop', deps={'glue\\btop-glue'}),
+        'glue\\btop-glue': u('glue\\btop-glue', deps={'glue\\shell-glue'}),
+        'glue\\shell-glue': u('glue\\shell-glue'),
+    }
+    units['apt\\btop'].soft_deps = {'glue\\btop-glue'}
+    order = dependency_order(units)
+    assert order.index('apt\\btop') < order.index('glue\\btop-glue')
+    assert order.index('glue\\shell-glue') < order.index('glue\\btop-glue')   # hard edges still first

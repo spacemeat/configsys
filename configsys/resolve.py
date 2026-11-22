@@ -121,7 +121,9 @@ def cap_constraints(raw):
 class Unit:
     '''A resolved leaf: which driver installs it, the component name, and the concrete
     package identifier; its `key` is `driver\\component` (the unit key). `deps` are the unit keys
-    it depends on; `requested_as` are the roots that pulled it.'''
+    it depends on — `soft_deps` the subset it pulled in ONLY through `suggests:` (companions:
+    planning folds them in but orders them after this unit, never first); `requested_as` are the
+    roots that pulled it.'''
 
     def __init__(self, driver, component, package):
         self.driver = driver
@@ -130,6 +132,7 @@ class Unit:
         self.via = None         # the winning binding's `via:` (maps binding-level floors to the unit)
         self.binding = None     # the winning Binding itself (several may share a via: binding_of)
         self.deps = set()
+        self.soft_deps = set()
         self.requested_as = set()
         self.source = None      # the .hu file that DEFINED the component (layer-relative content roots)
         # install-execution fields (the driver reads these off the ResolvedComponent the
@@ -832,6 +835,7 @@ def _prune_failed(st, root_keys, errors=None, kinds=None):
                 kinds[name] = 'unmet-require'
     for u in st.units.values():
         u.deps = u.deps - gone                            # a dropped soft companion isn't a dep
+        u.soft_deps = u.soft_deps - gone
 
 
 def provider_standing(components):
@@ -1077,9 +1081,11 @@ class _State:
             requiring_key, requiring_name, cap, constraint, root, optional = self.queue.popleft()
             try:
                 got = self._satisfy(cap, constraint, root, requiring_name, requiring_key)
-                self.units[requiring_key].deps |= got
+                unit = self.units[requiring_key]
+                unit.deps |= got
                 if not optional:                 # HARD edges, for pruning a failed unit's dependents
                     self.hard_deps.setdefault(requiring_key, set()).update(got)
+                unit.soft_deps = unit.deps - self.hard_deps.get(requiring_key, set())
             except ResolveError as e:
                 if optional:
                     continue                     # a `suggests:` unmet here is simply not pulled

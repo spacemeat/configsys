@@ -19,6 +19,7 @@ class ResolvedComponent:
     fields: dict = field(default_factory=dict)  # driver-node install fields
     requested_as: set = field(default_factory=set)  # the requested (root) component names that pulled it in
     deps: set = field(default_factory=set)      # unit keys this unit requires first
+    soft_deps: set = field(default_factory=set)  # the subset pulled in only by `suggests:` — installed AFTER it
     source: str = ''                            # the .hu file that defined the component (content roots, diagnostics)
     native: str = ''                            # THIS machine's native package manager (apt/dnf/…), stamped by
                                                 # Context.prepare_units — what the resolver settled, not a host guess

@@ -1,7 +1,10 @@
 '''planning.py — order and expand an execution plan by dependencies.
 
-Units carry `deps` (keys of units that must be installed first). Given a staged
-plan, we:
+Units carry `deps` (keys of units they pull in) and `soft_deps` (the subset pulled in only by
+`suggests:` — a companion such as `<name>-glue`, which installs AFTER the unit that suggests it: a
+soft edge is folded in like any dep but orders the other way, so a companion that hard-requires its
+parent — docker-compose-standalone links the plugin docker-compose installs — never runs first).
+Given a staged plan, we:
   * expand install/upgrade/set-version ops to also install a unit's transitive deps (skipping
     any the live state says are already present), so prerequisites like apt\\flatpak
     come along automatically and show up in the confirm summary;
@@ -15,18 +18,24 @@ _INSTALLISH = ('install', 'upgrade', 'set-version')
 
 
 def dependency_order(units):
-    '''Unit keys in dependency-first (topological) order. Cycles are broken.'''
+    '''Unit keys in dependency-first (topological) order: a unit after its hard deps, and after
+    every unit that suggests it. Cycles are broken.'''
     order, done, active = [], set(), set()
+    before = {key: set() for key in units}
+    for key, rc in units.items():
+        soft = getattr(rc, 'soft_deps', set())
+        before[key] |= set(rc.deps) - soft
+        for dep in soft:
+            if dep in before:
+                before[dep].add(key)                 # the suggester comes first
 
     def visit(key):
         if key in done or key in active:
             return
         active.add(key)
-        rc = units.get(key)
-        if rc is not None:
-            for dep in sorted(rc.deps):
-                if dep in units:
-                    visit(dep)
+        for dep in sorted(before.get(key, ())):
+            if dep in units:
+                visit(dep)
         active.discard(key)
         done.add(key)
         order.append(key)

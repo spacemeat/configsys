@@ -22,6 +22,7 @@ def to_resolved_component(unit):
     )
     rc.requested_as = set(unit.requested_as)
     rc.deps = set(unit.deps)
+    rc.soft_deps = set(getattr(unit, 'soft_deps', ()))
     rc.binding = getattr(unit, 'binding', None)
     return rc
 
