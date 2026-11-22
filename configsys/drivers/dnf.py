@@ -203,14 +203,15 @@ class Dnf(NativePkgManager):
         rid = shlex.quote(repo_id)
         existed = self.runner.run(f'test -f {p}', capture=True).ok
         self.runner.run(
-            f'[ -f {p} ] || printf %s {shlex.quote(content)} | sudo tee {p} >/dev/null', capture=True)
+            f'[ -f {p} ] || printf %s {shlex.quote(content)} | {self.as_root} tee {p} >/dev/null',
+            capture=True)
         if existed:
             return None                          # already present (worked before) — don't re-validate
         res = self.runner.run(f"dnf -q --disablerepo='*' --enablerepo={rid} makecache",
                               sudo=True, capture=True)
         if res.ok:
             return None
-        self.runner.run(f'sudo rm -f {p}', capture=True)   # roll back OUR just-created repo
+        self.runner.run(f'{self.as_root} rm -f {p}', capture=True)   # roll back OUR just-created repo
         cat, rem = classify(res.output)
         tail = res.output.splitlines()[-1].strip() if res.output else 'dnf makecache failed'
         return Result.fail(f'vendor repo setup for {repo_id} failed: {tail} (repo rolled back)',

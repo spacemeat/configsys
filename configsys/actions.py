@@ -147,14 +147,14 @@ def installed_despite_failure(drv, rc, op, version, before=_UNPROBED):
     return got if (target and str(got) == str(target)) else None
 
 
-# Built-in drivers that don't run as root themselves but routinely sudo INSIDE their commands: a
-# script's declared install-cmd (`curl … | sudo bash`), a source recipe's `sudo make install`,
+# Built-in drivers that don't run as root themselves but routinely escalate INSIDE their commands: a
+# script's declared install-cmd (`curl … | sudo bash`), a source recipe's `$SUDO make install`,
 # makepkg (aur). Code-plugin drivers are treated the same (blender/kicad builds sudo internally).
 _INTERNAL_SUDO_DRIVERS = frozenset({'script', 'source', 'aur'})
 
 
 def _may_need_root(drv, rc):
-    '''Could this op need sudo? Its driver is privileged or runs this unit with sudo (system scope),
+    '''Could this op need root? Its driver is privileged or runs this unit as root (system scope),
     or it's a driver known to sudo inside its commands, or a plugin driver (unknown -> assume yes).
     Decides whether a batch authenticates up front; a false positive only costs one early prompt.'''
     if drv is None:
@@ -345,7 +345,7 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     classifies the result: an `advisory` result ("needs your input", e.g. dotfiles refusing to
     clobber) is explained not reported; a hard failure that nonetheless left the package present
     (apt's failed-Recommends case) is downgraded to installed-with-a-warning. Ctrl-C aborts the whole
-    batch. If any op may need root, sudo is authenticated ONCE up front (begin_sudo) and kept warm
+    batch. If any op may need root, sudo/doas is authenticated ONCE up front (begin_sudo) and kept warm
     for the whole batch, every streamed op reusing it — so a long run can go unattended after the
     first prompt; the keep-alive is released and the ledger saved at the end. Progress prints via
     `on_line`. Returns a RunResult. Presentation of the reboot advisory and the report
@@ -562,7 +562,7 @@ def run_plan(ctx, plan, *, ledger=None, version=None, on_line=print):
     finally:
         # whatever happened above — a driver bug, Ctrl-C, a failed write — the keep-alive is
         # released and what DID run is recorded (B10): a lock or receipt is never lost to a crash
-        ctx.runner.end_sudo()      # release the batch's sudo keep-alive (one prompt covered the run)
+        ctx.runner.end_sudo()      # release the batch's root keep-alive (one prompt covered the run)
         if ledger is not None and not pretend:      # a dry run records nothing (no locks, no receipts)
             ledger.save(ctx.paths)
         if not pretend:            # the unresolved-failures record (! page, `report`): this run's in, fixed ones out

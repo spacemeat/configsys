@@ -6,7 +6,8 @@ group DB (so it reads true immediately), though a re-login is needed for it to t
 the running session (install says so). The group must already exist, so order this after the
 package that creates it with `requires:`.
 
-Runs under sudo; `${SUDO_USER:-$USER}` targets the real user, not root.
+Runs as root (sudo or doas — privilege.py); `${SUDO_USER:-$USER}` (doas: `${DOAS_USER:-$USER}`)
+targets the real user, not root; as root, `$USER` itself.
 '''
 
 import grp
@@ -15,8 +16,7 @@ import pwd
 import shlex
 
 from ..driver import Driver
-
-_USER = '"${SUDO_USER:-$USER}"'   # the invoking user even under sudo
+from ..privilege import of as _escalator
 
 
 class Group(Driver):
@@ -28,6 +28,11 @@ class Group(Driver):
     @staticmethod
     def _group(rc):
         return rc.name   # fields['name'] (normalized by the resolver), else the component name
+
+    def _user(self):
+        '''The invoking user even under sudo/doas (each names them in its own variable).'''
+        var = _escalator(self.runner).user_var
+        return f'"${{{var}:-$USER}}"' if var else '"$USER"'
 
     # -- read -------------------------------------------------------------
 
@@ -66,12 +71,12 @@ class Group(Driver):
     def install(self, rc):
         g = shlex.quote(self._group(rc))
         msg = shlex.quote(f'configsys: added to group {self._group(rc)} — log out/in to take effect')
-        cmd = f"usermod -aG {g} {_USER} && printf '%s\\n' {msg} >&2"
+        cmd = f"usermod -aG {g} {self._user()} && printf '%s\\n' {msg} >&2"
         return self.runner.run(cmd, sudo=True, capture=False)
 
     def uninstall(self, rc):
         g = shlex.quote(self._group(rc))
-        return self.runner.run(f'gpasswd -d {_USER} {g}', sudo=True, capture=False)
+        return self.runner.run(f'gpasswd -d {self._user()} {g}', sudo=True, capture=False)
 
     def upgrade(self, rc):
         return self.install(rc)

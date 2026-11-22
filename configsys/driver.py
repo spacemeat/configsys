@@ -46,6 +46,8 @@ ABI-stable surface (stable within a given plugins.ABI_VERSION; docs/plugins.md �
                                   expected_sha256(rc, *keys), verify_download(rc, file_q, *keys),
                                   download_failure(rc, version) (the reason when there's no URL)
     install location/privilege  : scoped_dir(raw, rc), sudo(rc), scope(rc),
+                                  as_root (property: `sudo` / `doas` / '' as root — the word a
+                                  command string writes before ONE step that needs root),
                                   location_override(rc), display_path(p), home(),
                                   toolchain_bindirs() (managed rust/go bin dirs, for a build PATH)
     install markers             : MARKER_PREFIX, marker_path(dir, rc, kind='version'),
@@ -144,7 +146,7 @@ class Driver:
     # builds or downloads code, so its bindings from an untrusted layer wait for `plugin trust`.
     trusted_registry = False
     command_fields = frozenset()
-    privileged = False      # True if mutating ops need sudo
+    privileged = False      # True if mutating ops need root
     default_scope = 'user'  # this driver's scope when not overridden
     honors_scope = False    # True if user/system is selectable (flatpak, tarball, ...)
     # Optional per-inspect BATCH context: InstallState.inspect pre-computes a driver's enumerable
@@ -193,6 +195,15 @@ class Driver:
     def sudo(self, rc):
         '''System scope needs root for its mutations; user scope never does.'''
         return self._scope(rc) == 'system'
+
+    @property
+    def as_root(self):
+        '''The word a command string writes before ONE step that needs root — `sudo`, `doas`, or ''
+        when configsys already runs as root (the runner's escalator, privilege.py) — so the command
+        reads `f'{self.as_root} tee {path}'` on every system. A whole command runs as root with
+        `runner.run(cmd, sudo=True)` instead (one root shell); never write this inside one.'''
+        from .privilege import as_root
+        return as_root(self.runner)
 
     # -- version resolution (download-based drivers) ---------------------
 

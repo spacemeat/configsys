@@ -19,18 +19,21 @@ from configsys.runner import Result
 class FakeRunner:
     '''Records commands and returns canned Results: `responses` is [(needle, returncode, stdout)],
     the first needle found in the command wins; anything else succeeds with empty output. A
-    `sudo=True` call is recorded as `sudo <cmd>` (the real runner's readable form).'''
+    `sudo=True` call is recorded as `sudo <cmd>` (the real runner's readable form) — `doas <cmd>`, or
+    bare, with an `escalator=` (privilege.Doas(), AlreadyRoot()), which drivers' `as_root` reads too.'''
 
     pretend = False
 
-    def __init__(self, responses=None, default=(0, '')):
+    def __init__(self, responses=None, default=(0, ''), escalator=None):
         self.responses = responses or []
         self.default = default
         self.calls = []
+        self.escalator = escalator
 
     def run(self, cmd, *, sudo=False, capture=True, tui_active=None, cwd=None, env=None,
             presudo=False, timeout=None, **_future):
-        full = f'sudo {cmd}' if sudo else cmd
+        from configsys.privilege import of
+        full = f'{of(self).prefix}{cmd}' if sudo else cmd
         self.calls.append(full)
         for needle, code, out in self.responses:
             if needle in cmd:

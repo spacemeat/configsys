@@ -130,8 +130,9 @@ class Gem(ModuleDriver):
         g, v = shlex.quote(name), shlex.quote(version)
         others = (f"gem list -e {g} | sed -n 's/^{name.replace('.', '[.]')} (\\(.*\\))$/\\1/p' | "
                   f"tr ',' '\\n' | sed 's/^ *//' | grep -v '^default:' | grep -v -x -F {v}")
-        sudo = 'sudo ' if self.sudo(rc) else ''
+        # ONE shell, root at system scope: its uninstalls need no escalation of their own (under
+        # doas an inner `doas` as root may not even be permitted)
         return self.runner.run(
             f'gem install {self.scope_flag(rc)}-v {v} {g} && '
-            f'for o in $({others}); do {sudo}gem uninstall -x -v "$o" {g} || exit 1; done',
+            f'for o in $({others}); do gem uninstall -x -v "$o" {g} || exit 1; done',
             sudo=self.sudo(rc), capture=False)

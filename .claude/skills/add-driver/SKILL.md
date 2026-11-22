@@ -67,7 +67,7 @@ subclasses `Driver` only, §8):
 **Class attributes** — each is documented in the `driver.py` docstring, and two are mirrored in
 docs the inventory test compares against the code (as is the `installed_index` hook — Batching,
 below):
-- `privileged` (mutations need sudo) and `default_scope` (`user`/`system`).
+- `privileged` (mutations need root) and `default_scope` (`user`/`system`).
 - `honors_scope` — user/system selectable per binding → also listed in docs/config-format.md's
   `scope:` field bullet.
 - `targets_version = False` when `set_version` can't reach an arbitrary version (a route-fixed
@@ -103,10 +103,13 @@ below):
   `None`, which makes the core fall back to a probe PER UNIT and spawn a missing binary hundreds of
   times on worker threads during the splash (brew, 2026-10: 168 failed spawns, a choppy splash).
   A manager that exists but fails stays `None`.
-- **No `sudo` inside command strings** — pass `sudo=True` to `runner.run` (one auth, the tty
-  handling in docs/principles.md). If the driver's commands sudo internally anyway (makepkg, a
-  recipe's `sudo make install`), add it to `actions._INTERNAL_SUDO_DRIVERS` so a batch
-  authenticates up front.
+- **No literal `sudo` (or `doas`) inside command strings** — pass `sudo=True` to `runner.run`
+  (one root shell through the machine's escalator — sudo, doas, or none as root, privilege.py —
+  one auth, the tty handling in docs/principles.md). When only ONE step of an otherwise
+  unprivileged command needs root, write `self.as_root` before it (`f'{self.as_root} tee {p}'` →
+  `sudo tee` / `doas tee` / ` tee` as root), never inside a `sudo=True` command. If the driver's
+  commands escalate internally anyway (makepkg, a recipe's `$SUDO make install`), add it to
+  `actions._INTERNAL_SUDO_DRIVERS` so a batch authenticates up front.
 - **Shell-quote every interpolated value** (`shlex.quote`); a resolved version is network input
   (`_SAFE_VERSION_RE`).
 - Lock semantics: a native hold where the manager has one (apt-mark, versionlock, `brew pin`);
@@ -245,7 +248,7 @@ Everything in §2–3, plus:
 
 | symbol | add the driver when… |
 |---|---|
-| `actions._INTERNAL_SUDO_DRIVERS` | its commands sudo internally though it isn't `privileged` |
+| `actions._INTERNAL_SUDO_DRIVERS` | its commands escalate internally (`as_root`, `$SUDO`) though it isn't `privileged` |
 | `actions._NO_POST_CHECK` | "not detected" right after a good install is legitimate (config drivers) |
 | `ledger._NO_RECEIPT` | an install of it isn't an install METHOD of the component (no receipt) |
 | `stranded._SKIP_VIAS` | same — never a method a component can be stranded on |

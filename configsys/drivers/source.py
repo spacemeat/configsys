@@ -15,7 +15,8 @@ Route fields (on the binding):
   build:        (required) shell command(s) — a string or a list run in sequence — executed IN
                 the tree, with $PREFIX / $SRC / $VERSION / $ARCH / $SUDO substituted
                 (e.g. `./configure --prefix=$PREFIX && make -j && $SUDO make install`). $SUDO is
-                `sudo` at system scope and empty at user scope — a system-prefix recipe must use it
+                the escalator's word at system scope (`sudo`, `doas`, or empty as root —
+                privilege.py) and empty at user scope — a system-prefix recipe must use it
   repo:         git URL to clone  (git acquisition; `requires: git`), OR
   url: / version:+asset:          a source archive to download  (`requires: curl`) — reuses the
                 same url template / github discovery as the tarball driver
@@ -58,10 +59,14 @@ swaps it in (carrying only configsys's markers), so files deleted upstream or a 
 never survive; an adopted tree is extracted over in place (it is yours).
 '''
 
+import re
 import shlex
 
 from ..driver import Driver
 from ..runner import Result
+
+# a recipe's `$SUDO` (or `${SUDO}`), never the head of a longer name such as `$SUDO_USER`
+_SUDO_VAR = re.compile(r'\$(?:SUDO\b|\{SUDO\})')
 
 MARKER_PREFIX = Driver.MARKER_PREFIX
 
@@ -105,12 +110,12 @@ class Source(Driver):
         return 'HEAD'
 
     def _sub(self, text, version, src, prefix, rc=None):
-        sudo = 'sudo' if rc is not None and self._scope(rc) == 'system' else ''
+        sudo = self.as_root if rc is not None and self._scope(rc) == 'system' else ''
         # $ARCH is the binding's `cpu-names:` token, as in its download url (drivers-lang-31)
         arch = self.arch_token(rc) if rc is not None else self.arch()
-        return (str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
-                .replace('$VERSION', version or '').replace('$ARCH', arch)
-                .replace('$SUDO', sudo))
+        text = (str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
+                .replace('$VERSION', version or '').replace('$ARCH', arch))
+        return _SUDO_VAR.sub(lambda _m: sudo, text)     # never the head of `$SUDO_USER`
 
     @staticmethod
     def _build_steps(rc):
@@ -133,7 +138,8 @@ class Source(Driver):
         steps = self._build_steps(rc)
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
-        if self._scope(rc) == 'system' and not any('$SUDO' in str(s) or 'sudo ' in str(s) for s in steps):
+        if self._scope(rc) == 'system' and not any(_SUDO_VAR.search(str(s)) or 'sudo ' in str(s)
+                                                   or 'doas ' in str(s) for s in steps):
             return Result('', 1, advisory=True, stderr=(
                 f'{rc.comp}: a `scope: system` build installs into {self._prefix(rc)}, which needs root, '
                 f'but its recipe has no `$SUDO` on the install step (e.g. `$SUDO make install`) — add '
@@ -236,7 +242,8 @@ class Source(Driver):
 
         build = ' && '.join(self._sub(s, version, src, prefix, rc) for s in steps)
         path = self._build_path(rc, version, src, prefix)
-        mk_prefix = (f'{{ [ -d {shlex.quote(str(prefix))} ] || sudo mkdir -p {shlex.quote(str(prefix))}; }}'
+        mk_prefix = (f'{{ [ -d {shlex.quote(str(prefix))} ] || {self.as_root} mkdir -p '
+                     f'{shlex.quote(str(prefix))}; }}'
                      if self._scope(rc) == 'system' else f'mkdir -p {shlex.quote(str(prefix))}')
         cmd = (f'mkdir -p {shlex.quote(str(src.parent))} && {mk_prefix} && '
                f'{acquire} && '

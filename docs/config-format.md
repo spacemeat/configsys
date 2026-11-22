@@ -550,8 +550,10 @@ Driver-specific fields include:
 - **native-pkg-file**: `version:` plus `asset:` (CPU-keyed, or format-then-CPU-keyed such as
   `{ deb: { x86_64: … }  rpm: { x86_64: … } }`), or `url:`.
 - **source**: `build:` (required; a command or list, run in the tree as you with `$PREFIX`, `$SRC`,
-  `$VERSION`, `$ARCH` and `$SUDO` filled in — `$SUDO` is `sudo` at system scope and empty at user
-  scope, and a system-scope recipe without it is refused), `repo:` (a git URL) or `url:`/`version:`
+  `$VERSION`, `$ARCH` and `$SUDO` filled in — at system scope `$SUDO` is how this machine gets
+  root (`sudo`, `doas` where only doas is installed, or empty when configsys already runs as root),
+  at user scope it is empty, and a system-scope recipe without it is refused; `$SUDO_USER` and other
+  longer names are left alone), `repo:` (a git URL) or `url:`/`version:`
   (a source archive; `archive:` and `strip:`, default 1, as for tarball), `ref:`, `tag-prefix:`,
   `installDir:` (where the tree lands, default `$CONFIGSYS_SRC_DIR/<component>` under your home at
   either scope), `prefix:` (default `~/.local`,

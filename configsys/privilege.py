@@ -59,6 +59,7 @@ class Escalator:
     word = ''                  # what a command string writes before a step that needs root
     needs_auth = True          # False: nothing to authenticate (already root / no tool at all)
     missing = None             # why a privileged op can't run at all (NoEscalator), else None
+    user_var = None            # the variable the tool names the invoking user in, inside its shell
     AUTH = PROBE = ()
     upfront_note = ''          # begin_sudo's line when the one up-front prompt is coming
     each_step_note = None      # said once when authentication isn't remembered (EACH_STEP)
@@ -109,6 +110,7 @@ class Escalator:
 
 class Sudo(Escalator):
     name = word = 'sudo'
+    user_var = 'SUDO_USER'
     AUTH = ('sudo', '-v')
     PROBE = ('sudo', '-n', '-v')
     upfront_note = ('This run needs root: authenticating sudo once, up front — it stays cached for '
@@ -121,6 +123,7 @@ class Sudo(Escalator):
 
 class Doas(Escalator):
     name = word = 'doas'
+    user_var = 'DOAS_USER'
     AUTH = ('doas', 'true')
     PROBE = ('doas', '-n', 'true')
     upfront_note = ('This run needs root: authenticating doas once, up front — a `persist` rule keeps '

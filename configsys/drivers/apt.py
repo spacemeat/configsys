@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from ..driver import tier_by_name
 from ..failures import SIGNATURE, classify, retry_transient
 from ..layers import as_list
+from ..privilege import as_root
 from ..runner import Result
 from ._native import NativePkgManager
 
@@ -57,14 +58,14 @@ def drop_keyring_cmd(key_path, *, sources=APT_SOURCE_FILES, dirs=None):
 def _apt_update(runner):
     '''`apt-get update`, retrying a TRANSIENT stumble a few times with a short backoff — so a
     momentary hiccup never gets misread as a broken repo (see failures.retry_transient).'''
-    return retry_transient(lambda: runner.run('sudo apt-get update', capture=True),
+    return retry_transient(lambda: runner.run(f'{as_root(runner)} apt-get update', capture=True),
                            tries=_UPDATE_TRIES, backoff=_UPDATE_BACKOFF)
 
 
 def commit_source(runner, write_cmd, src_path, key_url=None, key_path=None, *, sudo=False,
                   drop_key=False):
     '''Write a vendor apt source (write_cmd writes it — if absent, or always — AND runs apt-get
-    update; `sudo` runs it as root, else it sudo's its own steps), then VALIDATE. On a signature
+    update; `sudo` runs it as root, else it escalates its own steps — `as_root`), then VALIDATE. On a signature
     failure with a key configured, re-fetch the key overwriting the stale one and retry once
     (rotation self-heal). If it STILL fails and we created the source THIS run, roll it back (rm) so
     a failed setup never leaves a poison pill that breaks every later apt op — BUT only after
@@ -90,14 +91,14 @@ def commit_source(runner, write_cmd, src_path, key_url=None, key_path=None, *, s
     cat, rem = classify(res.output)
     if cat == SIGNATURE and key_url and key_path:
         kp, ku = shlex.quote(key_path), shlex.quote(key_url)
-        runner.run(f'sudo curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
+        runner.run(f'{as_root(runner)} curl -fsSL {ku} -o {kp}', capture=True)   # overwrite (rotation)
         res = _apt_update(runner)
         if res.ok:
             return None
         cat, rem = classify(res.output)
     if not existed:
         # Disable OUR just-created source and re-run update: does apt recover without it?
-        runner.run(f'sudo rm -f {sp}', capture=True)
+        runner.run(f'{as_root(runner)} rm -f {sp}', capture=True)
         recheck = _apt_update(runner)
         if not recheck.ok:
             # STILL failing without our source -> the breakage is pre-existing and unrelated.
@@ -113,7 +114,7 @@ def commit_source(runner, write_cmd, src_path, key_url=None, key_path=None, *, s
         # apt recovered without our source -> ours WAS the culprit; keep it rolled back and report.
         drop = drop_keyring_cmd(key_path) if drop_key else None
         if drop:
-            runner.run(f'sudo sh -c {shlex.quote(drop)}', capture=True)
+            runner.run(f'{as_root(runner)} sh -c {shlex.quote(drop)}', capture=True)
     tail = (res.output.splitlines()[-1].strip() if res.output else 'apt-get update failed')
     return Result.fail(f'vendor repo setup for {src_path} failed: {tail}'
                        + ('' if existed else ' (source rolled back)'),
@@ -187,7 +188,8 @@ class Apt(NativePkgManager):
         return _apt_update(self.runner)
 
     def _commit_source(self, write_cmd, src_path, key_url=None, key_path=None):
-        '''commit_source for an apt binding's `source-url`/`source-line` (write_cmd sudo's itself).'''
+        '''commit_source for an apt binding's `source-url`/`source-line` (write_cmd escalates its own
+        steps).'''
         return commit_source(self.runner, write_cmd, src_path, key_url, key_path)
 
     def ensure_prereqs(self, rc):
@@ -235,7 +237,7 @@ class Apt(NativePkgManager):
         key_url, key_path = f.get('pubkey-url'), f.get('pubkey-path')
         if key_url and key_path:
             kp, ku = shlex.quote(key_path), shlex.quote(key_url)
-            r = self.runner.run(f'[ -f {kp} ] || sudo curl -fsSL {ku} -o {kp}',
+            r = self.runner.run(f'[ -f {kp} ] || {self.as_root} curl -fsSL {ku} -o {kp}',
                                 capture=False)
             if not r.ok:
                 return _step_failed(rc, f'fetching the signing key {key_url}', r)
@@ -244,8 +246,8 @@ class Apt(NativePkgManager):
         if src_url and src_path:
             sp, su = shlex.quote(src_path), shlex.quote(src_url)
             fail = self._commit_source(
-                f'if [ ! -f {sp} ]; then sudo curl -fsSL {su} -o {sp} '
-                f'&& sudo apt-get update; fi', src_path, key_url, key_path)
+                f'if [ ! -f {sp} ]; then {self.as_root} curl -fsSL {su} -o {sp} '
+                f'&& {self.as_root} apt-get update; fi', src_path, key_url, key_path)
             if fail is not None:
                 return fail
 
@@ -271,11 +273,12 @@ class Apt(NativePkgManager):
                 write = (
                     f'if [ ! -f {sp} ]{dupe_guard}; then '
                     f'CODENAME="$(. /etc/os-release; echo "${{UBUNTU_CODENAME:-${{DEBIAN_CODENAME:-$VERSION_CODENAME}}}}")"; '
-                    f'echo "{src_line}" | sudo tee {sp} >/dev/null && sudo apt-get update; fi')
+                    f'echo "{src_line}" | {self.as_root} tee {sp} >/dev/null '
+                    f'&& {self.as_root} apt-get update; fi')
             else:
                 sl = shlex.quote(src_line)
-                write = (f'if [ ! -f {sp} ]{dupe_guard}; then echo {sl} | sudo tee {sp} >/dev/null '
-                         f'&& sudo apt-get update; fi')
+                write = (f'if [ ! -f {sp} ]{dupe_guard}; then echo {sl} | {self.as_root} tee {sp} '
+                         f'>/dev/null && {self.as_root} apt-get update; fi')
             fail = self._commit_source(write, src_path, key_url, key_path)
             if fail is not None:
                 return fail

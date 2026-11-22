@@ -382,7 +382,7 @@ loader calls `register_driver` on each **before resolution**, so `via: <name>` r
 may also call `register_driver` itself for dynamic cases.) The `Driver` docstring is the
 authoritative contract; in summary:
 
-- **Class attributes:** `name`, `privileged` (mutations need sudo), `default_scope` (`user` or
+- **Class attributes:** `name`, `privileged` (mutations need root), `default_scope` (`user` or
   `system`), `honors_scope` (whether user/system is selectable per component), `targets_version`
   (whether `set_version` can install a requested version; `False` makes configsys refuse
   set-version), `holds_version`, `native_backed`, and `trusted_registry` + `command_fields` (§6) —
@@ -401,7 +401,9 @@ authoritative contract; in summary:
     `$ARCH` expands to for this unit, through its `cpu-names:`), `expected_sha256(rc, *keys)` and
     `verify_download(rc, file_q, *keys)` (the binding's `sha256:`, and a shell fragment to splice
     right after the download that fails the command on a mismatch — `''` when none is declared);
-  - *install location and privilege* — `scoped_dir(raw, rc)`, `sudo(rc)`, `scope(rc)`,
+  - *install location and privilege* — `scoped_dir(raw, rc)`, `sudo(rc)`, `as_root` (a property:
+    the word a command string writes before one step that needs root — `sudo`, `doas`, or `''` as
+    root; see Scope and privilege below), `scope(rc)`,
     `location_override(rc)` (the user's `locations:` path for this component, or `None` — a
     path-based driver should prefer it over its computed target), `display_path(p)`, `home()`
     (configsys's home, `--home` aware — never a bare `$HOME`), `toolchain_bindirs()` (the managed
@@ -416,7 +418,10 @@ authoritative contract; in summary:
     `installed_name(rc, driver=None)` (the binding's `installed-name:` for one manager, scalar or
     driver-keyed map — read the field through it, never by hand).
 - **Construction:** `__init__(self, runner, paths=None)`. `runner.run(cmd, *, sudo=False,
-  capture=True)` returns a `Result` (`.ok`, `.returncode`, `.stdout`) and honors `--pretend`.
+  capture=True)` returns a `Result` (`.ok`, `.returncode`, `.stdout`) and honors `--pretend`;
+  `sudo=True` runs the whole command in one root shell through whatever this machine escalates
+  with — `sudo bash -c`, `doas bash -c`, or plain `bash -c` when configsys already runs as root
+  (configsys/privilege.py).
   `paths` offers `.home`, `.env`, `.expand(path)`, and friends.
 - **What a driver reads — `ResolvedComponent`:** `.key` (`driver\comp`), `.driver`, `.comp`,
   `.via` (the winning binding's `via:`), `.name` (`fields['name']` or the component name),
@@ -451,7 +456,7 @@ Within one `ABI_VERSION` they keep their names, signatures and default behavior.
 
 | attribute | default | what the core does with it |
 |---|---|---|
-| `privileged` | `False` | `True` = mutations need root. `actions.run_plan` asks `privileged` or `sudo(rc)` to decide whether to authenticate sudo once up front for the whole batch. (A plugin driver is assumed to need root regardless, so for plugin code this only documents intent.) It does **not** add sudo to your commands: pass `sudo=` to `runner.run` yourself, usually `sudo=self.sudo(rc)`. |
+| `privileged` | `False` | `True` = mutations need root. `actions.run_plan` asks `privileged` or `sudo(rc)` to decide whether to authenticate root (sudo or doas) once up front for the whole batch. (A plugin driver is assumed to need root regardless, so for plugin code this only documents intent.) It does **not** escalate your commands: pass `sudo=` to `runner.run` yourself, usually `sudo=self.sudo(rc)`. |
 | `default_scope` | `'user'` | Your scope when the unit sets none: returned by `scope(rc)`, assumed by the default `get_installed`, and read by `sudo(rc)`. |
 | `honors_scope` | `False` | `True` = user/system is selectable per unit. The core then stamps the machine's `scope:` setting onto your units that lack a `scope` field (`apply_scope_default`), flags it in the issues list (the TUI `!` page, the end of `configsys inspect`) when the installed scope differs from the declared one, and lets `configsys fix-scope` call `reconcile_scope`. Override `get_installed` too, so the scope you report is where the unit really is. |
 | `holds_version` | `True` | `False` for a rolling manager that can neither hold a package nor install an older version (pacman, apk). The unit then never reads as locked, a `lock` op records no ledger hold, and the UI doesn't offer lock or set-version. Make `lock()` decline as well. |
@@ -463,8 +468,14 @@ Within one `ABI_VERSION` they keep their names, signatures and default behavior.
 **Scope and privilege**
 
 - **`sudo(rc) -> bool`** — default: `True` exactly when the unit's effective scope (its `scope` field,
-  else `default_scope`) is `system`. Called by `run_plan`'s up-front sudo check; your own ops use it
+  else `default_scope`) is `system`. Called by `run_plan`'s up-front root check; your own ops use it
   for `runner.run(…, sudo=…)`.
+- **`as_root -> str`** (a property) — the word a command string writes before ONE step that needs
+  root when the rest of the command must not run as root (a build that installs, a file written
+  into a root-owned dir): `sudo`, `doas`, or `''` when configsys already runs as root — the
+  runner's escalator, so the command works on a doas-only system too:
+  `f'make && {self.as_root} make install'`. Never write a literal `sudo`, and never put `as_root`
+  inside a command you run with `sudo=True` (it is root already; doas may not even permit root).
 - **`get_installed(rc) -> (version, scope)`**, or `(None, None)` when not installed — what inspection
   calls (instead of `get_version`) to learn where the unit actually is; `configsys location` uses it
   to show the real path. Default: `get_version(rc)` with `default_scope`. A scope-honoring driver

@@ -10,6 +10,7 @@ from pathlib import Path
 from ..drivers import get_driver
 from ..drivers.apt import drop_keyring_cmd
 from ..ledger import Ledger
+from ..privilege import as_root
 from .common import ask as _ask, print_reboot_advisory
 
 
@@ -186,7 +187,8 @@ def _offer_rekey(ctx, pm, output, owned, native_cmd, *, ask=None):
     for src, comp, key_url, key_path in _rekey_candidates(ctx, output, pm, owned):
         if not ask(f'\nRe-fetch the signing key for `{comp}` (rotated?) into {key_path} and retry? [y/N] '):
             continue
-        ctx.runner.run(f'sudo curl -fsSL {shlex.quote(key_url)} -o {shlex.quote(key_path)}', capture=True)
+        ctx.runner.run(f'{as_root(ctx.runner)} curl -fsSL {shlex.quote(key_url)} '
+                       f'-o {shlex.quote(key_path)}', capture=True)
         retry = ctx.runner.run(native_cmd, sudo=(pm != 'brew'), capture=True)
         if retry.ok:
             print(f'  re-keyed `{comp}` — the index refresh is clean now.')
@@ -259,14 +261,15 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
     for f, comp in orphans:
         if ask(f'  remove {f} — configsys wrote it for `{comp}`, which is neither picked nor installed '
                f'here? [y/N] '):
-            ctx.runner.run(f'sudo rm -f {shlex.quote(f)}', capture=True)
+            ctx.runner.run(f'{as_root(ctx.runner)} rm -f {shlex.quote(f)}', capture=True)
             # the key it named goes too, unless another source names it or a package owns it — one
             # rule for an apt route's pubkey-path and a gcc/clang keyring (apt.drop_keyring_cmd)
             _url, key_path = _source_key_fields(ctx, comp, f)
             after = [c for c in (drop_keyring_cmd(key_path),
                                  vendor[f][3].legacy_key_cleanup() if f in vendor else None) if c]
             if after:
-                ctx.runner.run(f'sudo sh -c {shlex.quote(chr(10).join(after))}', capture=True)
+                ctx.runner.run(f'{as_root(ctx.runner)} sh -c {shlex.quote(chr(10).join(after))}',
+                               capture=True)
             removed += 1
     return removed
 

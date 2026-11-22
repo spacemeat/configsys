@@ -41,7 +41,8 @@ def test_driver_public_contract_present():
 # the optional hooks frozen 2026-10-10 (no ABI bump: a new promise about existing members)
 FROZEN_ATTRS = ('targets_version', 'holds_version', 'native_backed', 'batch',
                 'trusted_registry', 'command_fields',      # (review-2026-11-2 A1)
-                'MARKER_PREFIX')                           # (drivers-lang-35: the path-driver kit)
+                'MARKER_PREFIX',                           # (drivers-lang-35: the path-driver kit)
+                'as_root')                                 # (the sudo/doas/root word, privilege.py)
 FROZEN_HOOKS = ('get_installed', 'reconcile_scope', 'installed_index', 'index_key', 'batch_index',
                 'batch_installed_index', 'batched_version', 'explicit_keys', 'origin_index',
                 'upgradable_index', 'update_dedup_key', 'held_keys', 'classify_index', 'upgrade_all',
@@ -192,3 +193,14 @@ def test_scope_and_the_internal_scope_agree():
     assert d.scope(rc) == d._scope(rc) == 'user' and d.sudo(rc) is False
     h = Honoring(Runner(pretend=True))
     assert h.scope(rc) == h._scope(rc) == 'system' and h.sudo(rc) is True
+
+
+def test_as_root_names_the_runners_escalator():
+    # a plugin's command string escalates one step through it: sudo, doas, or nothing as root
+    from configsys.privilege import AlreadyRoot, Doas, Sudo
+
+    class Bare(api.Driver):
+        name = 'bare-test'
+    assert isinstance(api.Driver.__dict__['as_root'], property)
+    for esc, word in ((Sudo(), 'sudo'), (Doas(), 'doas'), (AlreadyRoot(), '')):
+        assert Bare(Runner(pretend=True, escalator=esc)).as_root == word
