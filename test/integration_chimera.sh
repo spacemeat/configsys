@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Runs INSIDE the Chimera container (test/Containerfile.chimera) as root. Drives the chimera-apk
+# Runs INSIDE the Chimera container (test/Containerfile.chimera) as a wheel user escalating through
+# doas (Chimera has no sudo). Drives the chimera-apk
 # lifecycle through the real configsys entry point, in a --home sandbox, and asserts against apk
 # directly: the `user` repository enabled once before the first install (with a note), a main-repo
 # package (curl) and a user-repo one (bat) installed non-interactively, their versions read back,
@@ -14,6 +15,10 @@ ver() { apk list --installed "$1" 2>/dev/null | sed -n "s/^$1-\([0-9][^ ]*\) .*/
 
 . /etc/os-release
 say "target: $PRETTY_NAME (ID=$ID) — rolling"
+
+say "as $(id -un) (uid $(id -u)) — no sudo here, root goes through doas"
+if command -v sudo >/dev/null 2>&1; then fail "sudo present — this test is about a doas-only box"; fi
+[ "$(id -u)" -ne 0 ] || fail "running as root — the doas path isn't exercised"
 
 say "bootstrap (builds .venv, compiles humon)"
 bash configsys.sh inspect >/dev/null

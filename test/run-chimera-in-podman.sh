@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Build a throwaway Chimera Linux image and run the chimera-apk lifecycle inside it (as root, with a
-# pass-through sudo shim — Chimera ships doas, not sudo). Nothing touches the host.
+# Build a throwaway Chimera Linux image and run the chimera-apk lifecycle inside it, as an ordinary
+# user escalating through doas (Chimera ships no sudo). Nothing touches the host.
 #
 # Usage: bash test/run-chimera-in-podman.sh
 set -euo pipefail
