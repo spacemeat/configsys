@@ -1,5 +1,5 @@
 '''The suite's hermetic guard itself (test/conftest.py, review-2026-11-2 A17): no test reaches the
-developer's machine through configsys's runner, sudo, git config or an exported CONFIGSYS_* var.'''
+developer's machine through configsys's runner, sudo/doas, git config or an exported CONFIGSYS_* var.'''
 
 import os
 import subprocess
@@ -23,6 +23,16 @@ def test_the_marker_allows_real_commands_but_sudo_is_a_fake():
     r = subprocess.run(['sudo', '-n', 'true'], capture_output=True, text=True)
     assert r.returncode == 1 and 'disabled under the configsys test suite' in r.stderr
     Path(os.environ['CONFIGSYS_TEST_SUDO_LOG']).unlink()               # (else this test fails itself)
+
+
+@pytest.mark.real_runner
+def test_doas_is_a_fake_too():
+    # a doas-only box escalates through doas (privilege.Doas): the suite blocks it like sudo
+    r = subprocess.run(['doas', '-n', 'true'], capture_output=True, text=True)
+    assert r.returncode == 1 and 'doas: disabled under the configsys test suite' in r.stderr
+    log = Path(os.environ['CONFIGSYS_TEST_SUDO_LOG'])
+    assert log.read_text() == 'doas -n true\n'
+    log.unlink()                                                       # (else this test fails itself)
 
 
 def test_home_and_git_and_configsys_env_are_sandboxed():

@@ -4,9 +4,11 @@ Every shell-out goes through Runner.run so that:
   * --pretend/dry-run can print commands instead of executing them (safe on the
     host, and makes command construction assertable in tests),
   * the terminal can be released cleanly when shelling out from inside the curses
-    TUI (so sudo/apt can prompt and paint normally),
+    TUI (so sudo/doas/apt can prompt and paint normally),
   * tests can inject a recording/mock runner,
-  * every command runs outside an activated virtualenv (`child_env`).
+  * every command runs outside an activated virtualenv (`child_env`),
+  * a privileged op (`sudo=True`) gets root through ONE escalator — sudo, doas, or nothing as root
+    (privilege.py) — authenticated once per batch (begin_sudo / end_sudo / sudo_session).
 '''
 
 import collections
@@ -14,7 +16,6 @@ import fcntl
 import os
 import re
 import select
-import shutil
 import signal
 import subprocess
 import sys
@@ -22,6 +23,9 @@ import termios
 import threading
 import tty
 from contextlib import contextmanager
+
+from . import privilege
+from .privilege import EACH_STEP, WARM
 
 
 def _child_setctty():
@@ -396,41 +400,6 @@ def _run_captured_tty(argv, cwd, env, limit):
                 pass
 
 
-def _sudo_preauth():
-    '''Cache the sudo credential ONCE on the real terminal (one prompt if a password is needed),
-    so a subsequently-teed `sudo` op won't have to prompt mid-stream — which is what lets us
-    capture sudo-install output without the pty/password contention that used to wedge the
-    terminal. Returns True iff sudo is now usable non-interactively. Best-effort (never raises).'''
-    try:
-        subprocess.run(['sudo', '-v'])                    # inherits the tty; prompts once if needed
-        cp = subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return cp.returncode == 0
-    except Exception:                                     # noqa: BLE001
-        return False
-
-
-class _SudoKeepalive:
-    '''Refresh the cached sudo credential every 50s (well under the default 15-min timeout) until
-    stop(), so a long teed op (a big install / source build with spaced-out sudo calls) never has
-    the credential expire and re-prompt mid-stream. Daemon thread; best-effort.'''
-    def __init__(self):
-        self._stop = threading.Event()
-        self._t = threading.Thread(target=self._loop, daemon=True)
-        self._t.start()
-
-    def _loop(self):
-        while not self._stop.wait(50):
-            try:
-                subprocess.run(['sudo', '-n', '-v'], stdin=subprocess.DEVNULL,
-                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except Exception:                             # noqa: BLE001
-                return
-
-    def stop(self):
-        self._stop.set()
-
-
 # credentials in an http(s) URL — `https://TOKEN@host/…`, `https://user:pass@host/…` — masked in the
 # command log and `--pretend` echo (reportgen.scrub does the same for filed reports)
 _URL_CREDENTIALS = re.compile(r'(https?://)[^/\s@\'"]+@')
@@ -442,7 +411,7 @@ def redact_url_credentials(text):
 
 
 class Runner:
-    def __init__(self, pretend=False, echo=None, sandbox_home=None):
+    def __init__(self, pretend=False, echo=None, sandbox_home=None, escalator=None):
         self.pretend = pretend
         self._echo = echo
         # `--home DIR`: every child runs with HOME=DIR and no inherited XDG_*_HOME, so a module
@@ -452,62 +421,75 @@ class Runner:
         self.tui_active = False  # set by the app while the curses TUI owns the screen
         self.calls = []  # every full command string, in order (for tests/logs)
         self.tee_limit = 64 * 1024  # bytes of streamed output retained for failure reports
-        self._sudo_warm = False       # sudo credential pre-cached for this batch (real tty)
-        self._keepalive = None        # _SudoKeepalive refreshing it, for the batch's duration
+        # how a privileged op gets root: sudo, doas, or nothing to do as root (privilege.detect;
+        # a test injects one)
+        self.escalator = escalator or privilege.detect()
+        self._sudo_warm = False       # its credential pre-cached for this batch (real tty)
+        self._each_step = False       # authenticated, but not remembered: each step asks for itself
+        self._keepalive = None        # privilege.Keepalive refreshing it, for the batch's duration
 
     def echo(self, msg):
         if self._echo:
             self._echo(msg)
 
-    # -- sudo session: one prompt per batch, kept warm --------------------
+    # -- root session: one prompt per batch, kept warm --------------------
+    # (named for sudo, the first escalator; every method here works through self.escalator)
 
-    def _ensure_sudo(self):
-        '''Warm the sudo credential ONCE for this batch — one prompt on the real terminal if a
-        password is needed — and keep it refreshed, so every subsequent sudo op reuses the SAME
-        real-tty ticket without re-prompting. This is the fix for tty_tickets (per-tty credential
-        caching): pre-auth on the real tty + run sudo ops on that same tty. Returns True iff sudo is
-        usable non-interactively now. Best-effort; never raises.'''
+    def _ensure_sudo(self, on_line=None):
+        '''Warm the escalator's credential ONCE for this batch — one prompt on the real terminal if a
+        password is needed — and keep it refreshed where the tool can (sudo; doas can't), so every
+        later privileged op reuses the SAME real-tty credential without re-prompting. This is the fix
+        for sudo's tty_tickets (per-tty credential caching): pre-auth on the real tty + run privileged
+        ops on that same tty. Authenticated but not remembered (doas with no `persist` rule): say so
+        once (`on_line`, else stderr) and stop asking up front — each op's own prompt is then the
+        only one. Returns True iff it is usable non-interactively now. Best-effort; never raises.'''
         if self._sudo_warm:
             return True
-        if _sudo_preauth():
+        if self._each_step or not self.escalator.needs_auth:
+            return False
+        got = self.escalator.preauth()
+        if got == WARM:
             self._sudo_warm = True
             if self._keepalive is None:
-                self._keepalive = _SudoKeepalive()
+                self._keepalive = self.escalator.keepalive()     # None: nothing to refresh (doas)
             return True
+        if got == EACH_STEP:
+            self._each_step = True
+            note = self.escalator.each_step_note
+            if note:
+                (on_line or (lambda m: print(m, file=sys.stderr, flush=True)))(note)
         return False
 
     def begin_sudo(self, on_line=None):
-        '''Authenticate sudo UP FRONT for a batch that has root work — the one prompt comes at the
-        start (not at the first privileged op, possibly an hour in, after the user walked away) —
-        and keep it warm until end_sudo(). Not done in --pretend, as root, or without sudo.
-        Returns True iff sudo is warm.'''
+        '''Authenticate root UP FRONT (the escalator: sudo or doas) for a batch that has root work —
+        the one prompt comes at the start (not at the first privileged op, possibly an hour in, after
+        the user walked away) — and keep it warm until end_sudo(). Not done in --pretend or as root;
+        with neither sudo nor doas it only says so. Returns True iff the credential is warm.'''
         if self.pretend or self._sudo_warm:
             return self._sudo_warm
-        try:
-            if os.geteuid() == 0:
-                return False                    # already root: nothing to cache
-        except AttributeError:                  # non-POSIX
+        esc = self.escalator
+        if not esc.needs_auth:                  # already root: nothing to cache; no tool: say so
+            if on_line is not None and esc.upfront_note:
+                on_line(esc.upfront_note)
             return False
-        if shutil.which('sudo') is None:
+        if not esc.available():
             return False
-        if on_line is not None and subprocess.run(
-                ['sudo', '-n', '-v'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL).returncode != 0:
-            on_line('This run needs root: authenticating sudo once, up front — it stays cached '
-                    'for the whole run.')
-        return self._ensure_sudo()
+        if on_line is not None and not esc.authorized():
+            on_line(esc.upfront_note)
+        return self._ensure_sudo(on_line)
 
     def end_sudo(self):
-        '''Drop the keepalive + warm flag at the end of a batch, so sudo can lapse to its normal
-        timeout afterwards (we don't hold the machine authenticated indefinitely).'''
+        '''Drop the keepalive + warm flag at the end of a batch, so the credential can lapse to its
+        normal timeout afterwards (we don't hold the machine authenticated indefinitely).'''
         if self._keepalive is not None:
             self._keepalive.stop()
             self._keepalive = None
         self._sudo_warm = False
+        self._each_step = False
 
     @contextmanager
     def sudo_session(self):
-        '''Scope a batch of ops: sudo is pre-authed lazily on the first privileged op and kept warm,
+        '''Scope a batch of ops: root is pre-authed lazily on the first privileged op and kept warm,
         then released here. Wrap a multi-component install/upgrade so it prompts at most once.'''
         try:
             yield
@@ -520,34 +502,40 @@ class Runner:
         # work authenticates up front (begin_sudo) and then keeps every streamed op on the real tty.
         # `timeout` (seconds) bounds a CAPTURED probe (a glue generator): past it the child is killed
         # and the Result fails with rc 124, like timeout(1). A streamed op is never cut off.
-        full = f'sudo {cmd}' if sudo else cmd    # readable form for logs/tests
+        esc = self.escalator
+        full = f'{esc.prefix}{cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(redact_url_credentials(full))
 
         if self.pretend:
             self.echo(f'[pretend] {redact_url_credentials(full)}')
             return Result(full, 0, pretended=True)
+        if sudo and esc.missing:                # neither sudo nor doas: nothing can run it as root
+            from .failures import DEPENDENCY
+            return Result.fail(esc.missing, category=DEPENDENCY,
+                               remediation='install sudo or doas, or run configsys as root.')
 
-        # Run the WHOLE command under one shell — and, when privileged, under one
-        # root shell (`sudo bash -c '<cmd>'`). Prepending `sudo ` to a compound
-        # command would only elevate its first word and eat a leading `set -e`.
-        argv = ['sudo', 'bash', '-c', cmd] if sudo else ['bash', '-c', cmd]
+        # Run the WHOLE command under one shell — and, when privileged, under one root shell
+        # (`sudo bash -c '<cmd>'`, `doas bash -c …`, or plain bash as root): prepending the tool to
+        # a compound command would only elevate its first word and eat a leading `set -e`.
+        argv = esc.argv_for(cmd) if sudo else ['bash', '-c', cmd]
         if self.sandbox_home:
             env = sandboxed_env(env, self.sandbox_home)
         env = child_env(env)
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
             # Streamed op on a real terminal: mirror the output live AND keep a bounded tail for
-            # failure reports. A PRIVILEGED op (`sudo=True`), or any op in a batch holding a warm sudo
-            # credential, runs on the REAL tty (output through a pipe) so the batch's one cached
-            # credential applies; otherwise through its own pty. Any hiccup degrades to a plain
-            # inherited-stdio run — reporting must never break an install.
+            # failure reports. A PRIVILEGED op (`sudo=True`) that needs a credential, or any op in a
+            # batch holding a warm one, runs on the REAL tty (output through a pipe) so the batch's
+            # one cached credential applies; otherwise (as root, too) through its own pty. Any hiccup
+            # degrades to a plain inherited-stdio run — reporting must never break an install.
             if not capture and _can_tee():
-                if sudo:
+                if sudo and esc.needs_auth:
                     # Top-level privileged op: warm the credential ONCE for the batch, then run on the
                     # REAL tty (capturing stdout via a pipe) so the pre-authed ticket applies. A pty'd
                     # op (the tee path) would be a DIFFERENT tty and, under tty_tickets, re-prompt on
                     # every op. Falls back to plain streaming if pre-auth
-                    # fails (couldn't cache creds -> it may prompt per-op, but nothing wedges).
+                    # fails (couldn't cache creds -> it may prompt per-op, but nothing wedges) — and
+                    # so does doas with no `persist` rule, which asks on the terminal itself.
                     if self._ensure_sudo():
                         try:
                             rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
@@ -557,12 +545,14 @@ class Runner:
                         except Exception:       # noqa: BLE001 — degrade to plain streaming (pre-exec only)
                             pass
                 elif self._sudo_warm:
-                    # This batch holds a warm sudo credential (it has root work — see begin_sudo), so a
-                    # non-sudo op may still sudo INTERNALLY (a `curl … | sudo bash` installer, a build's
-                    # `sudo make install`, makepkg, a plugin build script). In its own pty that sudo
-                    # would be a new tty and re-prompt (tty_tickets) — per op, mid-run, fatal to an
-                    # unattended install. Keep it on the REAL tty instead, like a top-level sudo op, so
-                    # the batch's one credential covers it. Cost: no pty, so progress bars go plain.
+                    # This batch holds a warm credential (it has root work — see begin_sudo), so an
+                    # unprivileged op may still escalate INTERNALLY (a `curl … | sudo bash`
+                    # installer, a recipe's `$SUDO make install`, makepkg, a plugin build script). In
+                    # its own pty that sudo would be a new tty and re-prompt (tty_tickets) — per op,
+                    # mid-run, fatal to an unattended install. Keep it on the REAL tty instead, like a
+                    # top-level privileged op, so the batch's one credential covers it (doas keeps a
+                    # `persist` per calling process, so an inner doas may still ask — here, on the
+                    # real tty, it can). Cost: no pty, so progress bars go plain.
                     try:
                         rc, tail = _run_captured_tty(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)
@@ -571,8 +561,9 @@ class Runner:
                     except Exception:           # noqa: BLE001 — degrade to plain streaming (pre-exec only)
                         pass
                 else:
-                    # A non-sudo streamed op in a batch with no root work: tee through its own pty
-                    # (live colour/progress; an unexpected internal sudo prompts inside it).
+                    # An unprivileged streamed op in a batch with no root work, or any op as root:
+                    # tee through its own pty (live colour/progress; an unexpected internal sudo
+                    # prompts inside it).
                     try:
                         rc, tail = _run_teed(argv, cwd, env, self.tee_limit)
                         return Result(full, rc, captured=tail)
@@ -584,8 +575,9 @@ class Runner:
             # input — and the background inspection worker fires these while curses owns the terminal.
             # Inheriting stdin (the real tty) lets such a child reset the terminal's modes and drop
             # the TUI back into cooked/echo (keys echo, need Enter). Detach stdin so a probe child can
-            # NEVER touch the controlling terminal; a STREAMED (capture=False) op keeps the tty (sudo
-            # password, interactive build) and is fenced by terminal_released on the main thread.
+            # NEVER touch the controlling terminal; a STREAMED (capture=False) op keeps the tty (a
+            # sudo/doas password, interactive build) and is fenced by terminal_released on the main
+            # thread.
             try:
                 cp = subprocess.run(argv, capture_output=capture, text=True, cwd=cwd, env=env,
                                     stdin=(subprocess.DEVNULL if capture else None),

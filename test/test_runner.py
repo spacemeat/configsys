@@ -251,7 +251,7 @@ def test_teed_plain_stream_does_not_preauth(monkeypatch):
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: order.append('preauth') or True)
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: order.append('preauth') or R.WARM)
     monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'out'))[1])
     monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))
     res = R.Runner().run('echo hi', capture=False)
@@ -268,9 +268,9 @@ def test_sudo_op_preauths_then_captures_on_real_tty(monkeypatch):
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: (order.append('preauth'), True)[1])
-    monkeypatch.setattr(R, '_SudoKeepalive',
-                        lambda: types.SimpleNamespace(stop=lambda: order.append('stop')))
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: (order.append('preauth'), R.WARM)[1])
+    monkeypatch.setattr(R.privilege.Sudo, 'keepalive',
+                        lambda self: types.SimpleNamespace(stop=lambda: order.append('stop')))
     monkeypatch.setattr(R, '_run_captured_tty', lambda *a: (order.append('cap'), (0, 'apt output'))[1])
     monkeypatch.setattr(R, '_run_teed', lambda *a: order.append('tee'))          # must NOT fire for sudo
     monkeypatch.setattr(R.subprocess, 'run', lambda *a, **k: order.append('sub'))   # plain must NOT fire
@@ -290,8 +290,8 @@ def test_sudo_batch_preauths_once_across_ops(monkeypatch):
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: (order.append('preauth'), True)[1])
-    monkeypatch.setattr(R, '_SudoKeepalive', lambda: types.SimpleNamespace(stop=lambda: None))
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: (order.append('preauth'), R.WARM)[1])
+    monkeypatch.setattr(R.privilege.Sudo, 'keepalive', lambda self: types.SimpleNamespace(stop=lambda: None))
     monkeypatch.setattr(R, '_run_captured_tty', lambda *a: (0, 'out'))
     r = R.Runner()
     for pkg in ('a', 'b', 'c'):
@@ -307,7 +307,7 @@ def test_sudo_falls_back_to_plain_when_preauth_fails(monkeypatch):
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: (order.append('preauth'), False)[1])
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: (order.append('preauth'), R.privilege.DENIED)[1])
     monkeypatch.setattr(R, '_run_captured_tty', lambda *a: (order.append('cap'), (0, 'x'))[1])  # NOT fire
     monkeypatch.setattr(R, '_run_teed', lambda *a: order.append('tee'))                          # NOT fire
     monkeypatch.setattr(R.subprocess, 'run',
@@ -391,8 +391,8 @@ def test_warm_batch_keeps_nonsudo_ops_on_the_real_tty(monkeypatch):
     from configsys import runner as R
     order = []
     monkeypatch.setattr(R, '_can_tee', lambda: True)
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: True)
-    monkeypatch.setattr(R, '_SudoKeepalive', lambda: types.SimpleNamespace(stop=lambda: None))
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: R.WARM)
+    monkeypatch.setattr(R.privilege.Sudo, 'keepalive', lambda self: types.SimpleNamespace(stop=lambda: None))
     monkeypatch.setattr(R, '_run_captured_tty', lambda *a: (order.append('cap'), (0, 'out'))[1])
     monkeypatch.setattr(R, '_run_teed', lambda *a: (order.append('tee'), (0, 'out'))[1])
     r = R.Runner()
@@ -409,7 +409,7 @@ def test_warm_batch_keeps_nonsudo_ops_on_the_real_tty(monkeypatch):
 def test_begin_sudo_skips_pretend_and_root(monkeypatch):
     from configsys import runner as R
     calls = []
-    monkeypatch.setattr(R, '_sudo_preauth', lambda: calls.append('preauth') or True)
+    monkeypatch.setattr(R.privilege.Sudo, 'preauth', lambda self: calls.append('preauth') or R.WARM)
     assert R.Runner(pretend=True).begin_sudo() is False
     monkeypatch.setattr(R.os, 'geteuid', lambda: 0)
     assert R.Runner().begin_sudo() is False

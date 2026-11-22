@@ -563,8 +563,8 @@ def test_a_system_updates_only_apply_releases_the_sudo_keepalive(monkeypatch, tm
     class _Keepalive:
         def stop(self):
             pass
-    monkeypatch.setattr(runner_mod, '_sudo_preauth', lambda: True)
-    monkeypatch.setattr(runner_mod, '_SudoKeepalive', _Keepalive)
+    monkeypatch.setattr(runner_mod.privilege.Sudo, 'preauth', lambda self: runner_mod.WARM)
+    monkeypatch.setattr(runner_mod.privilege.Sudo, 'keepalive', lambda self: _Keepalive())
     r = Runner()
     _stub_managers(monkeypatch, {'apt': Result('apt-get upgrade -y', 0)}, runner=r, warm=True)
     outcomes, ran = _tui_run(monkeypatch, _bulk_ctx(tmp_path, r), ['apt'])

@@ -11,8 +11,8 @@ developer's machine through configsys or git.
 - git ignores the developer's global/system config (`GIT_CONFIG_GLOBAL=/dev/null`) and commits as a
   fixed identity, so a `commit.gpgsign` setup neither breaks the fixtures nor signs throwaway
   commits with a real key.
-- A fake `sudo` sits first on PATH: it exits 1 and logs its argv, and a test that reached it fails
-  — no password prompt mid-suite, no `apt-get update` as root.
+- A fake `sudo` and a fake `doas` sit first on PATH: each exits 1 and logs its argv, and a test that
+  reached one fails — no password prompt mid-suite, no `apt-get update` as root.
 - `Runner.run` refuses to execute (raises `RealRunnerError`) unless the runner is `--pretend` or
   the test is marked `@pytest.mark.real_runner` (it needs real git / `curl file://` / shells).
 - No network from the test process: a socket connect (or a DNS lookup) to anything but loopback
@@ -34,10 +34,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# written as both `sudo` and `doas` (privilege.py escalates through either)
 _FAKE_SUDO = '''#!/bin/sh
-# configsys test suite: sudo is disabled (test/conftest.py). Log the attempt and fail.
-printf '%s\\n' "$*" >> "$CONFIGSYS_TEST_SUDO_LOG"
-echo "sudo: disabled under the configsys test suite" >&2
+# configsys test suite: root escalation is disabled (test/conftest.py). Log the attempt and fail.
+printf '%s\\n' "${0##*/} $*" >> "$CONFIGSYS_TEST_SUDO_LOG"
+echo "${0##*/}: disabled under the configsys test suite" >&2
 exit 1
 '''
 
@@ -67,7 +68,7 @@ def _local(address):
 def pytest_configure(config):
     config.addinivalue_line(
         'markers', 'real_runner: the test executes real commands through configsys.runner.Runner '
-                   '(git, curl file://, shells) — never sudo')
+                   '(git, curl file://, shells) — never sudo or doas')
     config.addinivalue_line(
         'markers', 'network: the test may open network connections (off by default)')
 
@@ -75,9 +76,10 @@ def pytest_configure(config):
 @pytest.fixture(scope='session')
 def _fake_sudo_dir(tmp_path_factory):
     d = tmp_path_factory.mktemp('fakesudo')
-    sudo = d / 'sudo'
-    sudo.write_text(_FAKE_SUDO)
-    sudo.chmod(0o755)
+    for tool in ('sudo', 'doas'):
+        fake = d / tool
+        fake.write_text(_FAKE_SUDO)
+        fake.chmod(0o755)
     return d
 
 
@@ -137,7 +139,7 @@ def _hermetic(request, monkeypatch, tmp_path_factory, _fake_sudo_dir):
         monkeypatch.setattr(_versions, '_RETRY_DELAYS', tuple(0 for _ in _versions._RETRY_DELAYS))
     yield
     if sudo_log.exists():
-        pytest.fail(f'the test ran sudo (blocked by test/conftest.py): {sudo_log.read_text()!r}')
+        pytest.fail(f'the test ran sudo/doas (blocked by test/conftest.py): {sudo_log.read_text()!r}')
 
 
 @pytest.fixture
