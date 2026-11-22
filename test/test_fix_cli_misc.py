@@ -216,8 +216,8 @@ def test_os_advisories_tell_the_truth(tmp_path, capsys):
     main(['--home', str(tmp_path), '--os', 'chimera', '--pretend', 'inspect'])
     out = capsys.readouterr()
     text = out.out + out.err
-    assert 'practically NOTHING installs here' in text
-    assert 'musl tarballs, cargo' not in text
+    assert "Chimera's own apk" in text and 'chimera-repo-user' in text and 'dinit' in text
+    assert 'practically NOTHING installs here' not in text and 'musl tarballs, cargo' not in text
     main(['--home', str(tmp_path), '--os', 'kde_linux', '--pretend', 'inspect'])
     out = capsys.readouterr()
     text = (out.out + out.err).replace('\n', ' ')

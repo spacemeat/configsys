@@ -8,6 +8,7 @@ driver name still returns None here so InstallState degrades gracefully instead 
 
 from .appImage import AppImage
 from .apk import Apk
+from .chimera_apk import ChimeraApk
 from .xbps import Xbps
 from .apt import Apt
 from .aur import Aur
@@ -47,6 +48,7 @@ _REGISTRY = {
     Dnf.name: Dnf,
     Pacman.name: Pacman,
     Apk.name: Apk,
+    ChimeraApk.name: ChimeraApk,
     Xbps.name: Xbps,
     Zypper.name: Zypper,
     Aur.name: Aur,

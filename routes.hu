@@ -188,19 +188,24 @@
             } }
         // Chimera Linux (ID=chimera) — an independent musl distro (LLVM, BSD userland, dinit; rolling,
         // no VERSION_ID). It uses apk-tools v3 but NOT Alpine's package names (`-devel` not `-dev`,
-        // `python` not `python3`, …), so every `apk:` name in these routes would be wrong there: no
-        // `native:` until Chimera-named `via: apk  when: "chimera"` bindings are verified (a name
-        // sweep in the chimeralinux/chimera image). Until then PRACTICALLY NOTHING routes: chimera
-        // `provides:` nothing beyond linux's python3, and the portable methods' prerequisites are
-        // native-only here — tarball needs curl, flatpak/pipx/cargo need their tool (rust's rustup
-        // script needs curl too) — so only dotfiles/glue and a few self-contained `via: script`
-        // installers resolve. Under `linux`, not glibc_linux: glibc binaries decline.
-        chimera: { using: linux
-            advisory: "Chimera Linux detected — configsys does not route its apk packages yet (Chimera's
-                package names differ from Alpine's), and nothing beyond python3 is assumed present, so
-                practically NOTHING installs here: tarballs and `via: script` installers need curl,
-                Flatpak and pipx need their own distro packages — all unroutable. Only dotfiles/glue and
-                self-contained methods apply. Chimera-named apk routes are a planned follow-up." }
+        // `python-*` not `py3-*`, …), so its native manager is its OWN driver, `chimera-apk`: the
+        // `apk:` (Alpine) keys of a `name:` map never reach it, and Chimera's names come from the
+        // generated `component-names: { chimera-apk: … }` block below this section
+        // (tools/chimeranames.py, checked by the chimera-apk name sweep). The driver enables Chimera's
+        // `user` repository (most CLI tools) before its first install. With a native manager, curl /
+        // git / flatpak / pipx / cargo route as packages, so tarball, script, flatpak and module
+        // methods work through their requires. `provides:` nothing beyond linux's python3. Services
+        // can't be enabled: Chimera's init is dinit and the service driver knows systemd and runit
+        // only, so a `-service` component notes and skips (as on Alpine's OpenRC). Under `linux`,
+        // not glibc_linux: glibc binaries (AppImages, glibc tarballs, Homebrew) decline.
+        chimera: { using: linux  native: chimera-apk
+            advisory: "Chimera Linux detected — packages install through Chimera's own apk (the
+                chimera-apk driver, with Chimera's package names); configsys enables Chimera's `user`
+                repository (chimera-repo-user) before its first install. A `-service` component can't
+                enable anything here: Chimera's init is dinit, and configsys's service driver knows
+                systemd and runit only, so it notes and skips. configsys itself needs bash and python3
+                present (`apk add bash python`). Chimera routing is NEW and not validated on real
+                hardware — review plans before running them." }
 
         // Void Linux (xbps). Rolling — no version scale. Ships in TWO flavors differing only by C
         // library: `void` (glibc, under glibc_linux) and `void_musl` (under bare linux, like Alpine),
@@ -229,6 +234,135 @@
             } }
         opensuse_tumbleweed:  { using: opensuse }
     }
+
+    // Chimera Linux's package names (the chimera os block above: `native: chimera-apk`). GENERATED —
+    // don't hand-edit between the markers; regenerate with `.venv/bin/python tools/chimeranames.py
+    // --write` after adding or changing native bindings, or when Chimera's repos move (it reads the
+    // chimeralinux/chimera image's main + user index with podman). Listed are ONLY the components
+    // whose Chimera name differs from what their binding resolves to there (the `name:` map's
+    // `default:`, else the component name — its `apk:` key is Alpine's and never applies), and `{}`
+    // for those Chimera doesn't package (that method is then not a candidate; routing-model §10a).
+    // Each line's comment says what the binding would have installed. Human review of the renames
+    // (same software, not a name collision): tools/chimeranames-review.hu. This is routes.hu's only
+    // `component-names:` section.
+    // BEGIN chimera-apk component-names
+    component-names: {
+        chimera-apk: {
+            ant:               apache-ant               // was ant (Alpine's name)
+            asio:              {}                       // asio: not in Chimera
+            bridge-utils:      {}                       // bridge-utils: not in Chimera
+            bzip2:             bzip2-devel              // was bzip2 (Alpine's dev package bzip2-dev -> -devel)
+            cabal:             {}                       // cabal-install: not in Chimera
+            cairo:             cairo-devel              // was cairo (Alpine's dev package cairo-dev -> -devel)
+            composer:          {}                       // composer: not in Chimera
+            cython:            python-cython            // was cython (reviewed)
+            dig:               bind-progs               // was bind-utils (reviewed)
+            docker-engine:     {}                       // was docker.io: rejected in review
+            double-conversion: double-conversion-devel  // was double-conversion (Alpine's dev package double-conversion-dev -> -devel)
+            duf:               {}                       // duf: not in Chimera
+            elixir:            {}                       // elixir: not in Chimera
+            elvish:            {}                       // elvish: not in Chimera
+            emacs:             emacs-gtk3               // was emacs (reviewed)
+            expat:             libexpat-devel           // was expat (reviewed)
+            fish:              fish-shell               // was fish (Void's name)
+            fmt:               fmt-devel                // was fmt (Alpine's dev package fmt-dev -> -devel)
+            fontconfig-dev:    fontconfig-devel         // was fontconfig (Alpine's dev package fontconfig-dev -> -devel)
+            freealut-dev:      freealut-devel           // was freealut (a -dev component freealut-dev -> -devel)
+            fuse:              {}                       // was fuse: rejected in review
+            gflags:            gflags-devel             // was gflags (Alpine's dev package gflags-dev -> -devel)
+            gfortran:          gcc-fortran              // was gfortran (Void's name)
+            gh:                github-cli               // was gh (Alpine's name)
+            glmark2:           {}                       // glmark2: not in Chimera
+            glog:              glog-devel               // was glog (Alpine's dev package glog-dev -> -devel)
+            gnat:              {}                       // gnat: not in Chimera
+            gnuradio:          {}                       // gnuradio: not in Chimera
+            haskell:           {}                       // ghc: not in Chimera
+            httpie:            {}                       // httpie: not in Chimera
+            ioping:            {}                       // ioping: not in Chimera
+            iperf3:            iperf                    // was iperf3 (reviewed)
+            jdk:               openjdk21                // was jdk (Alpine's name)
+            jdk-17:            openjdk17                // was jdk-17 (Alpine's name)
+            jdk-25:            openjdk25                // was jdk-25 (Alpine's name)
+            kicad:             {}                       // kicad: not in Chimera
+            libaio:            libaio-devel             // was libaio (Alpine's dev package libaio-dev -> -devel)
+            libc++:            libcxx-devel             // was libc++ (Void's name)
+            libc++abi:         libcxxabi-devel          // was libc++abi (Void's name)
+            libcurl:           curl-devel               // was libcurl (Alpine's dev package curl-dev -> -devel)
+            libevent:          libevent-devel           // was libevent (Alpine's dev package libevent-dev -> -devel)
+            libfuse2:          {}                       // was libfuse2: rejected in review
+            libidn2:           libidn2-devel            // was libidn2 (Alpine's dev package libidn2-dev -> -devel)
+            libinput:          libinput-devel           // was libinput (Alpine's dev package libinput-dev -> -devel)
+            libjpeg:           libjpeg-turbo-devel      // was libjpeg-turbo (Alpine's dev package libjpeg-turbo-dev -> -devel)
+            liblz4:            lz4-devel                // was liblz4 (Alpine's dev package lz4-dev -> -devel)
+            libmagic:          file-devel               // was libmagic (Alpine's dev package file-dev -> -devel)
+            libmtp:            libmtp-devel             // was libmtp (Alpine's dev package libmtp-dev -> -devel)
+            libpcap:           libpcap-devel            // was libpcap (Alpine's dev package libpcap-dev -> -devel)
+            libpng:            libpng-devel             // was libpng (Alpine's dev package libpng-dev -> -devel)
+            libsodium:         libsodium-devel          // was libsodium (Alpine's dev package libsodium-dev -> -devel)
+            libssl:            openssl3-devel           // was libssl (reviewed)
+            libunwind:         libunwind-devel          // was libunwind (Alpine's dev package libunwind-dev -> -devel)
+            liburing:          liburing-devel           // was liburing (Alpine's dev package liburing-dev -> -devel)
+            libusb:            libusb-devel             // was libusb (Alpine's dev package libusb-dev -> -devel)
+            libvirt-clients:   libvirt                  // was libvirt-clients (Void's name)
+            libx11:            libx11-devel             // was libx11 (Alpine's dev package libx11-dev -> -devel)
+            libxcb:            libxcb-devel             // was libxcb (Alpine's dev package libxcb-dev -> -devel)
+            libxext:           libxext-devel            // was libxext (Alpine's dev package libxext-dev -> -devel)
+            libxfixes:         libxfixes-devel          // was libxfixes (Alpine's dev package libxfixes-dev -> -devel)
+            libxft:            libxft-devel             // was libxft (Alpine's dev package libxft-dev -> -devel)
+            libxinerama:       libxinerama-devel        // was libxinerama (Alpine's dev package libxinerama-dev -> -devel)
+            libxkbcommon:      libxkbcommon-devel       // was libxkbcommon (Alpine's dev package libxkbcommon-dev -> -devel)
+            libxss:            libxscrnsaver-devel      // was libxss (Alpine's dev package libxscrnsaver-dev -> -devel)
+            libxtst:           libxtst-devel            // was libxtst (Alpine's dev package libxtst-dev -> -devel)
+            libzstd:           zstd-devel               // was libzstd (Alpine's dev package zstd-dev -> -devel)
+            ltrace:            {}                       // ltrace: not in Chimera
+            lua:               lua5.4                   // was lua (Alpine's name)
+            make:              gmake                    // was make (reviewed)
+            mosquitto:         {}                       // mosquitto: not in Chimera
+            ncurses:           ncurses-devel            // was ncurses (Alpine's dev package ncurses-dev -> -devel)
+            netcat:            {}                       // netcat-openbsd: not in Chimera
+            nethogs:           {}                       // nethogs: not in Chimera
+            newsboat:          {}                       // newsboat: not in Chimera
+            numpy:             python-numpy             // was numpy (Alpine's name, py3- -> python-)
+            octave:            {}                       // octave: not in Chimera
+            openal-dev:        openal-soft-devel        // was openal (Alpine's dev package openal-soft-dev -> -devel)
+            openssh-server:    openssh                  // was openssh-server (Void's name)
+            openssl:           openssl3                 // was openssl (reviewed)
+            p7zip:             7zip                     // was p7zip (Alpine's name)
+            pango:             pango-devel              // was pango (Alpine's dev package pango-dev -> -devel)
+            pari:              {}                       // pari: not in Chimera
+            pass:              {}                       // pass: not in Chimera
+            patch:             {}                       // patch: not in Chimera
+            pixman:            pixman-devel             // was pixman (Alpine's dev package pixman-dev -> -devel)
+            pkg-config:        pkgconf                  // was pkg-config (Alpine's name)
+            po4a:              {}                       // po4a: not in Chimera
+            pulseaudio-utils:  libpulse-progs           // was pulseaudio-utils (reviewed)
+            pytest:            python-pytest            // was pytest (Alpine's name, py3- -> python-)
+            python3-dev:       python-devel             // was python3-dev (reviewed)
+            python3-pip:       python-pip               // was python3-pip (Alpine's name, py3- -> python-)
+            qjackctl:          {}                       // qjackctl: not in Chimera
+            r:                 {}                       // r: not in Chimera
+            radare2:           {}                       // radare2: not in Chimera
+            raku:              {}                       // rakudo: not in Chimera
+            sdl2-image:        sdl2_image-devel         // was sdl2-image (Alpine's dev package sdl2_image-dev -> -devel)
+            sdl2-ttf:          sdl2_ttf-devel           // was sdl2-ttf (Alpine's dev package sdl2_ttf-dev -> -devel)
+            snappy:            snappy-devel             // was snappy (Alpine's dev package snappy-dev -> -devel)
+            sqlite:            sqlite-devel             // was sqlite (Alpine's dev package sqlite-dev -> -devel)
+            sysbench:          {}                       // sysbench: not in Chimera
+            tinyxml2:          tinyxml2-devel           // was tinyxml2 (Alpine's dev package tinyxml2-dev -> -devel)
+            tshark:            wireshark                // was tshark (Void's name)
+            ttyd:              {}                       // ttyd: not in Chimera
+            wayland:           wayland-devel            // was wayland (Alpine's dev package wayland-dev -> -devel)
+            wget:              {}                       // wget: not in Chimera
+            wlroots:           wlroots0.20-devel        // was wlroots (reviewed)
+            wxpython:          {}                       // wxpython: not in Chimera
+            xcb-util:          xcb-util-devel           // was xcb-util (Alpine's dev package xcb-util-dev -> -devel)
+            xephyr:            xserver-xorg-xephyr      // was xephyr (reviewed)
+            xsel:              {}                       // xsel: not in Chimera
+            zlib:              zlib-ng-compat-devel     // was zlib (reviewed)
+            zork:              {}                       // frotz: not in Chimera
+        }
+    }
+    // END chimera-apk component-names
 
     // Driver config: dependencies inherent to a driver (its prerequisite tooling).
     drivers: {

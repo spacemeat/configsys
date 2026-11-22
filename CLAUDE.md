@@ -89,10 +89,10 @@ Its sections:
   glibc_linux -> linux; fedora/rhel -> redhat -> glibc_linux; arch, opensuse, void, fedora_atomic,
   kde_linux -> glibc_linux; the musl blocks alpine, chimera, void_musl -> linux directly — so a
   Void-wide gate is `void or void_musl`), the package manager each block declares `native:`
-  (apt/dnf/pacman/zypper/apk/xbps/brew — brew is fedora_atomic's native, elsewhere on glibc an
-  ordinary `via: brew`; the **native-less** kde_linux and chimera declare none, so `via: native`
-  isn't a candidate there), `scale-root:` version markers, `provides:` (the environment's baseline
-  capabilities: `linux` provides python3, `glibc_linux` glibc), and optional `detect:`
+  (apt/dnf/pacman/zypper/apk/chimera-apk/xbps/brew — brew is fedora_atomic's native, elsewhere on
+  glibc an ordinary `via: brew`; chimera-apk is Chimera's apk under its own names; the
+  **native-less** kde_linux declares none, so `via: native` isn't a candidate there),
+  `scale-root:` version markers, `provides:` (the environment's baseline capabilities: `linux` provides python3, `glibc_linux` glibc), and optional `detect:`
   (osdetect.py), `driver-preference:` and `advisory:`; the block owning a version line carries
   `releases:`, the release registry (maintenance data swept by `tools/osaudit.py`, linted by `check`
   as `os-release`; the resolver reads only a derivative release's `base:`, so `ubuntu >= 24.04`
@@ -271,14 +271,17 @@ helpers a subclass may call (`will_write`, `installed_name`), all in the FROZEN 
 `driver.py` docstring, pinned by test/test_abi_surface.py with the splash ABI; underscore members
 stay internal (docs/plugins.md §7a). An `installed_index` of None means "can't tell" (per-unit
 probes follow); a manager that isn't installed at all answers a true `{}`. Shared bases:
-`drivers/_native.NativePkgManager` (apt/dnf/pacman/zypper/apk/xbps), `drivers/_module.ModuleDriver`
+`drivers/_native.NativePkgManager` (apt/dnf/pacman/zypper/apk/xbps; chimera-apk subclasses apk),
+`drivers/_module.ModuleDriver`
 (the ten module installers: TOOL / CMDS / VERSION_SPEC / SCOPE_FLAGS / LIST_CMD as data, overriding
 only what is bespoke), `drivers/_alt.AltDriver` (gcc/clang alternatives, gcc-toolset). Every `rm
 -rf` / move-over of a component's own directory goes through `Driver.unsafe_dir_reason` /
 `replace_dir_refusal` (never a system tree, a shared dir or the home; a dir configsys didn't install
 needs `--force`; and never `rm` a path derived from `$HOME` — docs/principles.md). Each `via:` value
-names a Driver 1:1: the OS package managers apt, dnf, pacman, aur, zypper, apk, xbps, brew,
-rpm-ostree; tarball, native-pkg-file (an upstream release's .deb/.rpm installed with the OS package
+names a Driver 1:1: the OS package managers apt, dnf, pacman, aur, zypper, apk, chimera-apk
+(Chimera's apk-tools under Chimera's own names — its own via so they never collide with Alpine's;
+the names are routes.hu's generated `component-names: { chimera-apk: … }`, tools/chimeranames.py),
+xbps, brew, rpm-ostree; tarball, native-pkg-file (an upstream release's .deb/.rpm installed with the OS package
 tool — its own via, since it doesn't ride `apt upgrade`), flatpak, snap, appImage, font, script
 (declared commands), source (a declarative build; only in a tree it cloned or one you `install
 --adopt`ed, and `remove` deletes only a clean tree it created); the config drivers dotfiles (an

@@ -3,7 +3,7 @@
 One tool to bring a fresh OS install up to *your* setup — the same software, the same
 versions, the same dotfiles — whether the machine runs Debian/Ubuntu/Pop!\_OS/Mint/Zorin,
 Fedora/RHEL/Rocky/Alma/Oracle Linux/Amazon Linux, Arch/Manjaro/EndeavourOS/CachyOS, openSUSE,
-Alpine, Void (glibc or musl), or an immutable system like Bazzite/Fedora Atomic — over 30 distros
+Alpine, Chimera, Void (glibc or musl), or an immutable system like Bazzite/Fedora Atomic — over 30 distros
 in all, with more (Proxmox, …) available as plugins. Distro missing? `configsys request-os` asks
 for it.
 
@@ -25,8 +25,9 @@ need root go through **sudo**, or **doas** where that's all there is (Chimera Li
 directly when you are root.
 (`humon`, the config parser, compiles from source, so a minimal install also needs a C compiler
 and the Python headers — e.g. `xbps-install python3 python3-devel gcc` on Void, `apk add python3
-python3-dev build-base` on Alpine. `configsys.sh` names the right packages if the build fails,
-and on Debian/Ubuntu it installs the missing `python3.X-venv` package itself, with sudo or doas.)
+python3-dev build-base` on Alpine, `apk add bash python python-devel clang` on Chimera. `configsys.sh`
+names the right packages if the build fails, and on Debian/Ubuntu it installs the missing
+`python3.X-venv` package itself, with sudo or doas.)
 
 ```console
 $ git clone https://github.com/spacemeat/configsys ~/src/configsys
@@ -75,9 +76,10 @@ wherever your clone lives. (Set
   when: "<expr>"  …details }`. The `via:` names the install method; `when:` says where that
   method is *valid*.
 - **Driver** — the code behind a `via:`: it performs one install mechanism behind a uniform set
-  of operations (install, uninstall, upgrade, version, lock, …). configsys ships 35, and plugins
+  of operations (install, uninstall, upgrade, version, lock, …). configsys ships 36, and plugins
   can add more: system package managers
-  **apt, dnf, pacman, aur, zypper, apk, xbps, brew, rpm-ostree**; distribution drivers **flatpak,
+  **apt, dnf, pacman, aur, zypper, apk, chimera-apk** (Chimera Linux's apk, with its own package
+  names), **xbps, brew, rpm-ostree**; distribution drivers **flatpak,
   snap, appImage, tarball, native-pkg-file** (an upstream `.deb`/`.rpm` file), **source, font,
   script**; the config drivers **dotfiles** and **glue**; language-ecosystem installers
   **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman**; the **gcc /
@@ -165,8 +167,8 @@ Key ideas:
 - **`via: native`** resolves to this OS's package manager (apt, dnf, pacman, zypper, apk, xbps or
   brew) — one binding covers every distro. On KDE Linux, which has no system package manager,
   native bindings aren't candidates and a component falls through to Flatpak or another method.
-  Chimera Linux is recognized but its package names aren't mapped yet, so very little installs
-  there (configsys tells you so when it starts).
+  On Chimera Linux, native means Chimera's own apk (the `chimera-apk` driver) under Chimera's
+  package names — configsys enables its `user` repository before the first install.
 - **OS blocks inherit** via `using:`, forming a **lineage** (`pop_os! → ubuntu → debian →
   glibc_linux → linux`). configsys picks this machine's block from `/etc/os-release` (`ID=pop` →
   `pop_os!`). A binding with `when: "debian"` applies to the whole Debian family.

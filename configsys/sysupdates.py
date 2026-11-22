@@ -17,7 +17,7 @@ from .driver import UPDATE_TIERS
 from .drivers import get_driver
 
 # The cross-distro app managers we aggregate alongside the OS's native pm. Every native manager
-# (apt/dnf/pacman/zypper/apk/xbps/brew) implements upgradable_index/upgrade_all; rpm-ostree is omitted.
+# (apt/dnf/pacman/zypper/apk/chimera-apk/xbps/brew) implements upgradable_index/upgrade_all; rpm-ostree is omitted.
 _APP_MANAGERS = ('flatpak', 'snap')
 
 # TUI (P2): the synthetic Components group (its subgroups are the UPDATE_TIERS themselves).

@@ -721,8 +721,8 @@ of the same name field by field: it changes only the fields it sets.
 An `os:` block describes one distro:
 
 - **`using:`** its parent block (the lineage);
-- **`native:`** its package manager (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `xbps`, `brew`),
-  inherited when absent; a block whose lineage names none (KDE Linux, Chimera) has no package
+- **`native:`** its package manager (`apt`, `dnf`, `pacman`, `zypper`, `apk`, `chimera-apk`, `xbps`,
+  `brew`), inherited when absent; a block whose lineage names none (KDE Linux) has no package
   manager, so `via: native` bindings aren't candidates there;
 - **`scale-root: true`** marks a block that numbers its own releases, so versioned atoms on a parent
   don't misread its version;
@@ -1327,8 +1327,8 @@ The TUI reads the same merged map it dispatches on, so what it shows matches wha
 
 Each `via:` value names a driver:
 
-- the OS package managers: `apt`, `dnf`, `pacman`, `aur`, `zypper`, `apk`, `xbps`, `brew`,
-  `rpm-ostree`;
+- the OS package managers: `apt`, `dnf`, `pacman`, `aur`, `zypper`, `apk`, `chimera-apk` (Chimera
+  Linux's apk-tools, under Chimera's own package names), `xbps`, `brew`, `rpm-ostree`;
 - the distribution drivers: `flatpak`, `snap`, `appImage`, `tarball` (also bare executables and
   `.zip` archives), `native-pkg-file` (an upstream release's `.deb`/`.rpm`/pacman package installed
   with the OS package tool; distinct from repo `native`, since it doesn't ride system updates),

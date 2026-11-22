@@ -24,7 +24,8 @@ def _see(section):
 
 # The family of every built-in driver — the grouping README, docs/config-format.md and CLAUDE.md use.
 FAMILIES = {
-    'system':       {'apt', 'dnf', 'pacman', 'zypper', 'apk', 'xbps', 'brew', 'aur', 'rpm-ostree'},
+    'system':       {'apt', 'dnf', 'pacman', 'zypper', 'apk', 'chimera-apk', 'xbps', 'brew', 'aur',
+                     'rpm-ostree'},
     'distribution': {'flatpak', 'snap', 'appImage', 'tarball', 'native-pkg-file', 'source', 'font',
                      'script'},
     'config':       {'dotfiles', 'glue'},

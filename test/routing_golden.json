@@ -48510,6 +48510,32 @@
   }
  },
  "chimera@None": {
+  "adguardhome": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\adguardhome": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/adguardhome",
+     "name": "adguardhome",
+     "version": {
+      "asset": "AdGuardHome_linux_$ARCH.tar.gz",
+      "github": "AdguardTeam/AdGuardHome",
+      "strip-v": "true"
+     }
+    },
+    "name": "adguardhome"
+   }
+  },
   "aider-dotfiles": {
    "dotfiles\\aider-dotfiles": {
     "driver": "dotfiles",
@@ -48520,6 +48546,53 @@
      }
     },
     "name": "aider-dotfiles"
+   }
+  },
+  "alacritty": {
+   "cargo\\alacritty": {
+    "driver": "cargo",
+    "fields": {
+     "name": "alacritty",
+     "version": {
+      "crates": "alacritty"
+     }
+    },
+    "name": "alacritty"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\alacritty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/alacritty",
+      "src": "alacritty"
+     }
+    },
+    "name": "alacritty-dotfiles"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "alacritty-dotfiles": {
@@ -48550,6 +48623,33 @@
     "name": "shell-glue"
    }
   },
+  "ansible": {
+   "chimera-apk\\ansible": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ansible",
+     "repo-component": "universe"
+    },
+    "name": "ansible"
+   }
+  },
+  "ant": {
+   "chimera-apk\\ant": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "apache-ant",
+     "repo-component": "universe"
+    },
+    "name": "apache-ant"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   }
+  },
   "antigravity-glue": {
    "glue\\antigravity-glue": {
     "driver": "glue",
@@ -48566,6 +48666,46 @@
     "name": "shell-glue"
    }
   },
+  "apod": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\apod-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "apod"
+    },
+    "name": "apod-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\apod": {
+    "driver": "pipx",
+    "fields": {
+     "name": "termapod",
+     "version": {
+      "pypi": "termapod"
+     }
+    },
+    "name": "termapod"
+   }
+  },
   "apod-glue": {
    "glue\\apod-glue": {
     "driver": "glue",
@@ -48573,6 +48713,54 @@
      "glue": "apod"
     },
     "name": "apod-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "ardour": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ardour": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ardour.Ardour"
+    },
+    "name": "org.ardour.Ardour"
+   }
+  },
+  "arduino": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\arduino": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "cc.arduino.IDE2"
+    },
+    "name": "cc.arduino.IDE2"
+   },
+   "glue\\arduino-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "arduino"
+    },
+    "name": "arduino-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -48598,6 +48786,69 @@
     "name": "shell-glue"
    }
   },
+  "asciidoc": {
+   "chimera-apk\\asciidoc": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "asciidoc"
+    },
+    "name": "asciidoc"
+   }
+  },
+  "asciinema": {
+   "chimera-apk\\asciinema": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "asciinema",
+     "repo-component": "universe"
+    },
+    "name": "asciinema"
+   }
+  },
+  "atuin": {
+   "cargo\\atuin": {
+    "driver": "cargo",
+    "fields": {
+     "name": "atuin",
+     "version": {
+      "crates": "atuin"
+     }
+    },
+    "name": "atuin"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\atuin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "atuin"
+    },
+    "name": "atuin-glue"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "atuin-glue": {
    "glue\\atuin-glue": {
     "driver": "glue",
@@ -48614,6 +48865,41 @@
     "name": "shell-glue"
    }
   },
+  "audacity": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\audacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.audacityteam.Audacity"
+    },
+    "name": "org.audacityteam.Audacity"
+   }
+  },
+  "autoconf": {
+   "chimera-apk\\autoconf": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "autoconf"
+    },
+    "name": "autoconf"
+   }
+  },
+  "automake": {
+   "chimera-apk\\automake": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "automake"
+    },
+    "name": "automake"
+   }
+  },
   "awscli-dotfiles": {
    "dotfiles\\awscli-dotfiles": {
     "driver": "dotfiles",
@@ -48624,6 +48910,107 @@
      }
     },
     "name": "awscli-dotfiles"
+   }
+  },
+  "azure-cli": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\azure-cli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "azure-cli",
+     "version": {
+      "pypi": "azure-cli"
+     }
+    },
+    "name": "azure-cli"
+   }
+  },
+  "bass": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\fish": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fish-shell"
+    },
+    "name": "fish-shell"
+   },
+   "dotfiles\\fish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
+     }
+    },
+    "name": "fish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
+   }
+  },
+  "bat": {
+   "chimera-apk\\bat": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "bat",
+     "repo-component": "universe"
+    },
+    "name": "bat"
+   },
+   "glue\\bat-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "bat"
+    },
+    "name": "bat-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "bat-glue": {
@@ -48642,6 +49029,77 @@
     "name": "shell-glue"
    }
   },
+  "bazaar": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\bazaar": {
+    "driver": "pipx",
+    "fields": {
+     "name": "breezy"
+    },
+    "name": "breezy"
+   }
+  },
+  "bazelisk": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\bazelisk-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "bazelisk"
+    },
+    "name": "bazelisk-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\bazelisk": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "bazelisk",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/bazelisk",
+     "name": "bazelisk",
+     "url": "https://github.com/bazelbuild/bazelisk/releases/latest/download/bazelisk-linux-$ARCH",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bazelisk"
+   }
+  },
   "bazelisk-glue": {
    "glue\\bazelisk-glue": {
     "driver": "glue",
@@ -48658,6 +49116,52 @@
     "name": "shell-glue"
    }
   },
+  "bison": {
+   "chimera-apk\\bison": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "bison"
+    },
+    "name": "bison"
+   }
+  },
+  "bitwarden": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bitwarden": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.bitwarden.desktop"
+    },
+    "name": "com.bitwarden.desktop"
+   }
+  },
+  "blender": {
+   "chimera-apk\\blender": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "blender",
+     "repo-component": "universe"
+    },
+    "name": "blender"
+   },
+   "dotfiles\\blender-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/blender",
+      "src": "blender"
+     }
+    },
+    "name": "blender-dotfiles"
+   }
+  },
   "blender-dotfiles": {
    "dotfiles\\blender-dotfiles": {
     "driver": "dotfiles",
@@ -48670,6 +49174,62 @@
     "name": "blender-dotfiles"
    }
   },
+  "bluetui": {
+   "cargo\\bluetui": {
+    "driver": "cargo",
+    "fields": {
+     "name": "bluetui",
+     "version": {
+      "crates": "bluetui"
+     }
+    },
+    "name": "bluetui"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "bottom": {
+   "chimera-apk\\bottom": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "bottom"
+    },
+    "name": "bottom"
+   },
+   "dotfiles\\bottom-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/bottom",
+      "src": "bottom"
+     }
+    },
+    "name": "bottom-dotfiles"
+   }
+  },
   "bottom-dotfiles": {
    "dotfiles\\bottom-dotfiles": {
     "driver": "dotfiles",
@@ -48680,6 +49240,74 @@
      }
     },
     "name": "bottom-dotfiles"
+   }
+  },
+  "brave": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\brave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.brave.Browser"
+    },
+    "name": "com.brave.Browser"
+   }
+  },
+  "bruno": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\bruno": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.usebruno.Bruno"
+    },
+    "name": "com.usebruno.Bruno"
+   }
+  },
+  "btop": {
+   "chimera-apk\\btop": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "btop",
+     "repo-component": "universe"
+    },
+    "name": "btop"
+   },
+   "dotfiles\\btop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/btop",
+      "src": "btop"
+     }
+    },
+    "name": "btop-dotfiles"
+   },
+   "glue\\btop-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "btop"
+    },
+    "name": "btop-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "btop-dotfiles": {
@@ -48710,6 +49338,52 @@
     "name": "shell-glue"
    }
   },
+  "bun": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "glue\\bun-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "bun"
+    },
+    "name": "bun-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\bun": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/bun",
+     "name": "bun",
+     "url": "https://github.com/oven-sh/bun/releases/latest/download/bun-linux-$ARCH-musl.zip",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "bun"
+   }
+  },
   "bun-glue": {
    "glue\\bun-glue": {
     "driver": "glue",
@@ -48726,6 +49400,89 @@
     "name": "shell-glue"
    }
   },
+  "bundler": {
+   "chimera-apk\\ruby": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "ruby"
+     },
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\bundler": {
+    "driver": "gem",
+    "fields": {
+     "name": "bundler"
+    },
+    "name": "bundler"
+   },
+   "glue\\ruby-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "bzip2": {
+   "chimera-apk\\bzip2": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "bzip2-devel"
+    },
+    "name": "bzip2-devel"
+   }
+  },
+  "c-toolchain": {
+   "chimera-apk\\c-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "c3": {
+   "chimera-apk\\c-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\c3": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/c3",
+     "name": "c3",
+     "version": {
+      "asset": "c3-linux-static.tar.gz",
+      "github": "c3lang/c3c",
+      "strip-v": "true"
+     }
+    },
+    "name": "c3"
+   }
+  },
   "cabal-glue": {
    "glue\\cabal-glue": {
     "driver": "glue",
@@ -48740,6 +49497,154 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "cairo": {
+   "chimera-apk\\cairo": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "cairo-devel"
+    },
+    "name": "cairo-devel"
+   }
+  },
+  "caligula": {
+   "cargo\\caligula": {
+    "driver": "cargo",
+    "fields": {
+     "name": "caligula",
+     "version": {
+      "crates": "caligula"
+     }
+    },
+    "name": "caligula"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "carla": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\carla": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "studio.kx.carla"
+    },
+    "name": "studio.kx.carla"
+   }
+  },
+  "chafa": {
+   "chimera-apk\\chafa": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "chafa",
+     "repo-component": "universe"
+    },
+    "name": "chafa"
+   }
+  },
+  "chrome": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chrome": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.google.Chrome"
+    },
+    "name": "com.google.Chrome"
+   }
+  },
+  "chromium": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\chromium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.chromium.Chromium"
+    },
+    "name": "org.chromium.Chromium"
+   }
+  },
+  "clang": {
+   "chimera-apk\\clang": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "clang"
+    },
+    "name": "clang"
+   }
+  },
+  "claude-code": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\claude-code-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.claude/settings.json",
+      "src": "claude-settings.json"
+     }
+    },
+    "name": "claude-code-dotfiles"
+   },
+   "script\\claude-code": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://claude.ai/install.sh | bash",
+     "location": "~/.local/bin/claude",
+     "name": "claude-code",
+     "uninstall-cmd": "rm -f \"${HOME:?}/.local/bin/claude\" && rm -rf \"${HOME:?}/.local/share/claude\"",
+     "upgrade-cmd": "claude update",
+     "version-cmd": "claude --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "claude-code"
    }
   },
   "claude-code-dotfiles": {
@@ -48782,6 +49687,65 @@
     "name": "shell-glue"
    }
   },
+  "cmake": {
+   "chimera-apk\\cmake": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "cmake"
+    },
+    "name": "cmake"
+   }
+  },
+  "cmatrix": {
+   "chimera-apk\\cmatrix": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "cmatrix"
+    },
+    "name": "cmatrix"
+   }
+  },
+  "codex": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "dotfiles\\codex-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.codex/config.toml",
+      "src": "codex-config.toml"
+     }
+    },
+    "name": "codex-dotfiles"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\codex": {
+    "driver": "npm",
+    "fields": {
+     "name": "@openai/codex"
+    },
+    "name": "@openai/codex"
+   }
+  },
   "codex-dotfiles": {
    "dotfiles\\codex-dotfiles": {
     "driver": "dotfiles",
@@ -48810,6 +49774,39 @@
     "name": "shell-glue"
    }
   },
+  "conan": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\conan": {
+    "driver": "pipx",
+    "fields": {
+     "name": "conan",
+     "version": {
+      "pypi": "conan"
+     }
+    },
+    "name": "conan"
+   }
+  },
   "configsys-glue": {
    "glue\\configsys-glue": {
     "driver": "glue",
@@ -48824,6 +49821,48 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "coursier": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "glue\\coursier-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "coursier"
+    },
+    "name": "coursier-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\coursier": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && A=\"$(uname -m)\"; S=; ldd --version 2>&1 | grep -qi musl && S=-static; case \"$A\" in aarch64|arm64) F=cs-aarch64-pc-linux$S.gz ;; *) F=cs-x86_64-pc-linux$S.gz ;; esac; curl -fL \"https://github.com/coursier/coursier/releases/latest/download/$F\" | gzip -d > \"$HOME/.local/bin/cs\" && chmod +x \"$HOME/.local/bin/cs\"",
+     "location": "~/.local/bin/cs",
+     "name": "coursier",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/cs\"",
+     "version-cmd": "\"$HOME/.local/bin/cs\" version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "coursier"
    }
   },
   "coursier-glue": {
@@ -48842,6 +49881,67 @@
     "name": "shell-glue"
    }
   },
+  "cpp-toolchain": {
+   "chimera-apk\\c-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "chimera-apk\\cpp-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "cppcheck": {
+   "chimera-apk\\cppcheck": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "cppcheck",
+     "repo-component": "universe"
+    },
+    "name": "cppcheck"
+   }
+  },
+  "croc": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\croc": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "ARM64",
+      "x86_64": "64bit"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/croc",
+     "name": "croc",
+     "version": {
+      "asset": "croc_v*_Linux-$ARCH.tar.gz",
+      "github": "schollz/croc",
+      "strip-v": "true"
+     }
+    },
+    "name": "croc"
+   }
+  },
+  "curl": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   }
+  },
   "cvs-dotfiles": {
    "dotfiles\\cvs-dotfiles": {
     "driver": "dotfiles",
@@ -48852,6 +49952,46 @@
      }
     },
     "name": "cvs-dotfiles"
+   }
+  },
+  "cython": {
+   "chimera-apk\\c-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "chimera-apk\\cpp-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "chimera-apk\\cython": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "python-cython"
+    },
+    "name": "python-cython"
+   }
+  },
+  "darktable": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\darktable": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.darktable.Darktable"
+    },
+    "name": "org.darktable.Darktable"
    }
   },
   "dart-glue": {
@@ -48870,6 +50010,23 @@
     "name": "shell-glue"
    }
   },
+  "dbeaver": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\dbeaver": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.dbeaver.DBeaverCommunity"
+    },
+    "name": "io.dbeaver.DBeaverCommunity"
+   }
+  },
   "deno-glue": {
    "glue\\deno-glue": {
     "driver": "glue",
@@ -48884,6 +50041,191 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "detekt": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\detekt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "detekt"
+    },
+    "name": "detekt"
+   }
+  },
+  "dig": {
+   "chimera-apk\\dig": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "bind-progs"
+    },
+    "name": "bind-progs"
+   }
+  },
+  "digikam": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\digikam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.digikam"
+    },
+    "name": "org.kde.digikam"
+   }
+  },
+  "discord": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\discord": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.discordapp.Discord"
+    },
+    "name": "com.discordapp.Discord"
+   }
+  },
+  "discordo": {
+   "chimera-apk\\git": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "go-install\\discordo": {
+    "driver": "go-install",
+    "fields": {
+     "checkout": "true",
+     "name": "github.com/ayn2op/discordo"
+    },
+    "name": "github.com/ayn2op/discordo"
+   }
+  },
+  "dkjson": {
+   "chimera-apk\\luarocks": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "glue\\luarocks-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "luarocks"
+    },
+    "name": "luarocks-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "luarocks\\dkjson": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "dkjson"
+    },
+    "name": "dkjson"
    }
   },
   "dnspeep-glue": {
@@ -48902,6 +50244,99 @@
     "name": "shell-glue"
    }
   },
+  "docker-compose": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "dosfstools": {
+   "chimera-apk\\dosfstools": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "dosfstools"
+    },
+    "name": "dosfstools"
+   }
+  },
   "dotnet-glue": {
    "glue\\dotnet-glue": {
     "driver": "glue",
@@ -48916,6 +50351,243 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "double-conversion": {
+   "chimera-apk\\double-conversion": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "double-conversion-devel"
+    },
+    "name": "double-conversion-devel"
+   }
+  },
+  "doxygen": {
+   "chimera-apk\\doxygen": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "doxygen"
+    },
+    "name": "doxygen"
+   }
+  },
+  "dstat": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\dstat": {
+    "driver": "pipx",
+    "fields": {
+     "name": "dool"
+    },
+    "name": "dool"
+   }
+  },
+  "duf": {
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "go-install\\duf": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/muesli/duf"
+    },
+    "name": "github.com/muesli/duf"
+   }
+  },
+  "dune": {
+   "chimera-apk\\opam": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "glue\\opam-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "opam"
+    },
+    "name": "opam-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "opam\\dune": {
+    "driver": "opam",
+    "fields": {
+     "name": "dune"
+    },
+    "name": "dune"
+   }
+  },
+  "durdraw": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\durdraw": {
+    "driver": "pipx",
+    "fields": {
+     "name": "durdraw"
+    },
+    "name": "durdraw"
+   }
+  },
+  "dysk": {
+   "cargo\\dysk": {
+    "driver": "cargo",
+    "fields": {
+     "name": "dysk",
+     "version": {
+      "crates": "dysk"
+     }
+    },
+    "name": "dysk"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "edge": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\edge": {
+    "driver": "flatpak",
+    "fields": {
+     "cpu-names": {
+      "x86_64": "x86_64"
+     },
+     "hub": "flathub",
+     "name": "com.microsoft.Edge"
+    },
+    "name": "com.microsoft.Edge"
+   }
+  },
+  "elm": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\elm-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elm"
+    },
+    "name": "elm-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\elm": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "gz",
+     "binary": "elm",
+     "cpu-names": {
+      "aarch64": "arm",
+      "x86_64": "x64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/elm",
+     "name": "elm",
+     "version": {
+      "asset": "elm-*-linux-$ARCH.gz",
+      "github": "elm/compiler"
+     }
+    },
+    "name": "elm"
    }
   },
   "elm-glue": {
@@ -48934,6 +50606,46 @@
     "name": "shell-glue"
    }
   },
+  "elvish": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\elvish-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "elvish"
+    },
+    "name": "elvish-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\elvish": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/elvish",
+     "name": "elvish",
+     "url": "https://dl.elv.sh/linux-$ARCH/elvish-v$VERSION.tar.gz",
+     "version": {
+      "github": "elves/elvish",
+      "strip-v": "true"
+     }
+    },
+    "name": "elvish"
+   }
+  },
   "elvish-glue": {
    "glue\\elvish-glue": {
     "driver": "glue",
@@ -48950,6 +50662,26 @@
     "name": "shell-glue"
    }
   },
+  "emacs": {
+   "chimera-apk\\emacs": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "emacs-gtk3",
+     "repo-component": "universe"
+    },
+    "name": "emacs-gtk3"
+   },
+   "dotfiles\\emacs-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.emacs.d",
+      "src": "emacs.d"
+     }
+    },
+    "name": "emacs-dotfiles"
+   }
+  },
   "emacs-dotfiles": {
    "dotfiles\\emacs-dotfiles": {
     "driver": "dotfiles",
@@ -48960,6 +50692,34 @@
      }
     },
     "name": "emacs-dotfiles"
+   }
+  },
+  "espeak": {
+   "chimera-apk\\espeak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "espeak-ng",
+     "repo-component": "universe"
+    },
+    "name": "espeak-ng"
+   }
+  },
+  "ethtool": {
+   "chimera-apk\\ethtool": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ethtool"
+    },
+    "name": "ethtool"
+   }
+  },
+  "expat": {
+   "chimera-apk\\expat": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libexpat-devel"
+    },
+    "name": "libexpat-devel"
    }
   },
   "eza-dotfiles": {
@@ -48974,6 +50734,55 @@
     "name": "eza-dotfiles"
    }
   },
+  "faker": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\faker": {
+    "driver": "pipx",
+    "fields": {
+     "name": "Faker"
+    },
+    "name": "Faker"
+   }
+  },
+  "fastfetch": {
+   "chimera-apk\\fastfetch": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fastfetch"
+    },
+    "name": "fastfetch"
+   },
+   "dotfiles\\fastfetch-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/fastfetch",
+      "src": "fastfetch"
+     }
+    },
+    "name": "fastfetch-dotfiles"
+   }
+  },
   "fastfetch-dotfiles": {
    "dotfiles\\fastfetch-dotfiles": {
     "driver": "dotfiles",
@@ -48984,6 +50793,30 @@
      }
     },
     "name": "fastfetch-dotfiles"
+   }
+  },
+  "fd": {
+   "chimera-apk\\fd": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fd",
+     "repo-component": "universe"
+    },
+    "name": "fd"
+   },
+   "glue\\fd-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "fd"
+    },
+    "name": "fd-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "fd-glue": {
@@ -49002,6 +50835,149 @@
     "name": "shell-glue"
    }
   },
+  "fennel": {
+   "chimera-apk\\lua": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   },
+   "chimera-apk\\luarocks": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "glue\\luarocks-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "luarocks"
+    },
+    "name": "luarocks-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "luarocks\\fennel": {
+    "driver": "luarocks",
+    "fields": {
+     "name": "fennel"
+    },
+    "name": "fennel"
+   }
+  },
+  "fff": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\fff": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.local/bin\" && curl -fsSL https://raw.githubusercontent.com/dylanaraps/fff/master/fff -o \"$HOME/.local/bin/fff\" && chmod +x \"$HOME/.local/bin/fff\"",
+     "location": "~/.local/bin/fff",
+     "name": "fff",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/fff\"",
+     "version-cmd": "\"$HOME/.local/bin/fff\" -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "fff"
+   }
+  },
+  "ffmpeg": {
+   "chimera-apk\\ffmpeg": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ffmpeg",
+     "repo-component": "universe"
+    },
+    "name": "ffmpeg"
+   }
+  },
+  "figlet": {
+   "chimera-apk\\figlet": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "figlet",
+     "repo-component": "universe"
+    },
+    "name": "figlet"
+   }
+  },
+  "fio": {
+   "chimera-apk\\fio": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fio",
+     "repo-component": "universe"
+    },
+    "name": "fio"
+   }
+  },
+  "firefox": {
+   "chimera-apk\\firefox": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "firefox"
+    },
+    "name": "firefox"
+   }
+  },
+  "fish": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\fish": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fish-shell"
+    },
+    "name": "fish-shell"
+   },
+   "dotfiles\\fish-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/fish/config.fish",
+      "src": "config.fish"
+     }
+    },
+    "name": "fish-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\bass": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "mkdir -p \"$HOME/.config/fish/functions\" && for _f in bass.fish __bass.py; do curl -fsSL \"https://raw.githubusercontent.com/edc/bass/master/functions/$_f\" -o \"$HOME/.config/fish/functions/$_f\"; done",
+     "name": "bass",
+     "uninstall-cmd": "rm -f \"$HOME/.config/fish/functions/bass.fish\" \"$HOME/.config/fish/functions/__bass.py\"",
+     "version-cmd": "test -f \"$HOME/.config/fish/functions/bass.fish\" && echo installed",
+     "version-re": "(installed)"
+    },
+    "name": "bass"
+   }
+  },
   "fish-dotfiles": {
    "dotfiles\\fish-dotfiles": {
     "driver": "dotfiles",
@@ -49014,6 +50990,88 @@
     "name": "fish-dotfiles"
    }
   },
+  "flatpak": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   }
+  },
+  "flex": {
+   "chimera-apk\\flex": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flex"
+    },
+    "name": "flex"
+   }
+  },
+  "flowblade": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\flowblade": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.jliljebl.Flowblade"
+    },
+    "name": "io.github.jliljebl.Flowblade"
+   }
+  },
+  "fmt": {
+   "chimera-apk\\fmt": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fmt-devel"
+    },
+    "name": "fmt-devel"
+   }
+  },
+  "fontconfig": {
+   "chimera-apk\\fontconfig": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   }
+  },
+  "fontconfig-dev": {
+   "chimera-apk\\fontconfig-dev": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fontconfig-devel"
+    },
+    "name": "fontconfig-devel"
+   }
+  },
+  "foot": {
+   "chimera-apk\\foot": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "foot",
+     "repo-component": "universe"
+    },
+    "name": "foot"
+   },
+   "dotfiles\\foot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/foot",
+      "src": "foot"
+     }
+    },
+    "name": "foot-dotfiles"
+   }
+  },
   "foot-dotfiles": {
    "dotfiles\\foot-dotfiles": {
     "driver": "dotfiles",
@@ -49024,6 +51082,30 @@
      }
     },
     "name": "foot-dotfiles"
+   }
+  },
+  "fossil": {
+   "chimera-apk\\fossil": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fossil",
+     "repo-component": "universe"
+    },
+    "name": "fossil"
+   },
+   "glue\\fossil-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "fossil"
+    },
+    "name": "fossil-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "fossil-glue": {
@@ -49042,6 +51124,58 @@
     "name": "shell-glue"
    }
   },
+  "freealut-dev": {
+   "chimera-apk\\freealut-dev": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "freealut-devel"
+    },
+    "name": "freealut-devel"
+   }
+  },
+  "freecad": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\freecad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.freecad.FreeCAD"
+    },
+    "name": "org.freecad.FreeCAD"
+   }
+  },
+  "fresh": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\fresh": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/fresh",
+     "name": "fresh",
+     "version": {
+      "asset": "fresh-editor-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "sinelaw/fresh",
+      "strip-v": "true"
+     }
+    },
+    "name": "fresh"
+   }
+  },
   "fvwm2-dotfiles": {
    "dotfiles\\fvwm2-dotfiles": {
     "driver": "dotfiles",
@@ -49052,6 +51186,30 @@
      }
     },
     "name": "fvwm2-dotfiles"
+   }
+  },
+  "fzf": {
+   "chimera-apk\\fzf": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fzf",
+     "repo-component": "universe"
+    },
+    "name": "fzf"
+   },
+   "glue\\fzf-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "fzf"
+    },
+    "name": "fzf-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "fzf-glue": {
@@ -49070,6 +51228,41 @@
     "name": "shell-glue"
    }
   },
+  "gcloud": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\gcloud-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "gcloud"
+    },
+    "name": "gcloud-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\gcloud": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts --install-dir=\"$HOME\"",
+     "location": "~/google-cloud-sdk/bin",
+     "name": "gcloud",
+     "uninstall-cmd": "rm -rf \"$HOME/google-cloud-sdk\"",
+     "version-cmd": "\"$HOME/google-cloud-sdk/bin/gcloud\" version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "gcloud"
+   }
+  },
   "gcloud-glue": {
    "glue\\gcloud-glue": {
     "driver": "glue",
@@ -49086,6 +51279,23 @@
     "name": "shell-glue"
    }
   },
+  "gdb": {
+   "chimera-apk\\gdb": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gdb"
+    },
+    "name": "gdb"
+   },
+   "dotfiles\\gdb-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "dst": "~/.gdbinit",
+     "src": "gdbinit"
+    },
+    "name": "gdb-dotfiles"
+   }
+  },
   "gdb-dotfiles": {
    "dotfiles\\gdb-dotfiles": {
     "driver": "dotfiles",
@@ -49094,6 +51304,123 @@
      "src": "gdbinit"
     },
     "name": "gdb-dotfiles"
+   }
+  },
+  "geekbench": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\geekbench": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.geekbench.Geekbench6"
+    },
+    "name": "com.geekbench.Geekbench6"
+   }
+  },
+  "gettext": {
+   "chimera-apk\\gettext": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gettext"
+    },
+    "name": "gettext"
+   }
+  },
+  "gflags": {
+   "chimera-apk\\gflags": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gflags-devel"
+    },
+    "name": "gflags-devel"
+   }
+  },
+  "gfortran": {
+   "chimera-apk\\gfortran": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc-fortran"
+    },
+    "name": "gcc-fortran"
+   }
+  },
+  "gh": {
+   "chimera-apk\\gh": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "github-cli",
+     "repo-component": "universe"
+    },
+    "name": "github-cli"
+   }
+  },
+  "ghgrab": {
+   "cargo\\ghgrab": {
+    "driver": "cargo",
+    "fields": {
+     "name": "ghgrab",
+     "version": {
+      "crates": "ghgrab"
+     }
+    },
+    "name": "ghgrab"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "ghidra": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\ghidra": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.ghidra_sre.Ghidra"
+    },
+    "name": "org.ghidra_sre.Ghidra"
+   }
+  },
+  "ghostscript": {
+   "chimera-apk\\ghostscript": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ghostscript"
+    },
+    "name": "ghostscript"
    }
   },
   "ghostty-dotfiles": {
@@ -49124,6 +51451,42 @@
     "name": "shell-glue"
    }
   },
+  "gimp": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gimp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gimp.GIMP"
+    },
+    "name": "org.gimp.GIMP"
+   }
+  },
+  "git": {
+   "chimera-apk\\git": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
   "git-dotfiles": {
    "dotfiles\\git-dotfiles": {
     "driver": "dotfiles",
@@ -49134,6 +51497,72 @@
      }
     },
     "name": "git-dotfiles"
+   }
+  },
+  "git-lfs": {
+   "chimera-apk\\git": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "chimera-apk\\git-lfs": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git-lfs"
+    },
+    "name": "git-lfs"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   }
+  },
+  "glances": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\glances-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/glances",
+      "src": "glances"
+     }
+    },
+    "name": "glances-dotfiles"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\glances": {
+    "driver": "pipx",
+    "fields": {
+     "name": "glances"
+    },
+    "name": "glances"
    }
   },
   "glances-dotfiles": {
@@ -49164,6 +51593,53 @@
     "name": "shell-glue"
    }
   },
+  "glog": {
+   "chimera-apk\\glog": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "glog-devel"
+    },
+    "name": "glog-devel"
+   }
+  },
+  "gnucobol": {
+   "chimera-apk\\gnucobol": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gnucobol"
+    },
+    "name": "gnucobol"
+   }
+  },
+  "gnupg": {
+   "chimera-apk\\gnupg": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gnupg"
+    },
+    "name": "gnupg"
+   }
+  },
+  "gnuplot": {
+   "chimera-apk\\gnuplot": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gnuplot",
+     "repo-component": "universe"
+    },
+    "name": "gnuplot"
+   },
+   "dotfiles\\gnuplot-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gnuplot",
+      "src": "gnuplot"
+     }
+    },
+    "name": "gnuplot-dotfiles"
+   }
+  },
   "gnuplot-dotfiles": {
    "dotfiles\\gnuplot-dotfiles": {
     "driver": "dotfiles",
@@ -49192,6 +51668,29 @@
     "name": "shell-glue"
    }
   },
+  "go": {
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "go-glue": {
    "glue\\go-glue": {
     "driver": "glue",
@@ -49208,6 +51707,258 @@
     "name": "shell-glue"
    }
   },
+  "godl": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godl": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.fishies.godl"
+    },
+    "name": "dev.fishies.godl"
+   }
+  },
+  "godot": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.godotengine.Godot"
+    },
+    "name": "org.godotengine.Godot"
+   }
+  },
+  "godots": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\godots": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.MakovWait.Godots"
+    },
+    "name": "io.github.MakovWait.Godots"
+   }
+  },
+  "goimports": {
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "go-install\\goimports": {
+    "driver": "go-install",
+    "fields": {
+     "name": "golang.org/x/tools/cmd/goimports"
+    },
+    "name": "golang.org/x/tools/cmd/goimports"
+   }
+  },
+  "gping": {
+   "cargo\\gping": {
+    "driver": "cargo",
+    "fields": {
+     "name": "gping",
+     "version": {
+      "crates": "gping"
+     }
+    },
+    "name": "gping"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "graalvm": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\graalvm": {
+    "driver": "sdkman",
+    "fields": {
+     "latest-check": {
+      "github": "graalvm/graalvm-ce-builds",
+      "tag-re": "graal-([0-9][0-9.]*)"
+     },
+     "name": "java",
+     "version": "25.5.5.0+3-graalce"
+    },
+    "name": "java"
+   }
+  },
+  "gradle": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "dotfiles\\gradle-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gradle/gradle.properties",
+      "src": "gradle.properties"
+     }
+    },
+    "name": "gradle-dotfiles"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\gradle": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "gradle"
+    },
+    "name": "gradle"
+   }
+  },
   "gradle-dotfiles": {
    "dotfiles\\gradle-dotfiles": {
     "driver": "dotfiles",
@@ -49218,6 +51969,141 @@
      }
     },
     "name": "gradle-dotfiles"
+   }
+  },
+  "grex": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\grex": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/grex",
+     "name": "grex",
+     "version": {
+      "asset": "grex-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "pemistahl/grex",
+      "strip-v": "true"
+     }
+    },
+    "name": "grex"
+   }
+  },
+  "grim": {
+   "chimera-apk\\grim": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "grim",
+     "repo-component": "universe"
+    },
+    "name": "grim"
+   }
+  },
+  "groovy": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\groovy": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "groovy"
+    },
+    "name": "groovy"
+   }
+  },
+  "grpcurl": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\grpcurl-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "grpcurl"
+    },
+    "name": "grpcurl-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\grpcurl": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/grpcurl",
+     "name": "grpcurl",
+     "version": {
+      "asset": "grpcurl_*_linux_$ARCH.tar.gz",
+      "github": "fullstorydev/grpcurl",
+      "strip-v": "true"
+     }
+    },
+    "name": "grpcurl"
    }
   },
   "grpcurl-glue": {
@@ -49236,6 +52122,101 @@
     "name": "shell-glue"
    }
   },
+  "gthumb": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\gthumb": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gnome.gThumb"
+    },
+    "name": "org.gnome.gThumb"
+   }
+  },
+  "guile": {
+   "chimera-apk\\guile": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "guile",
+     "repo-component": "universe"
+    },
+    "name": "guile"
+   }
+  },
+  "gum": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\gum": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/gum",
+     "name": "gum",
+     "version": {
+      "asset": "gum_*_Linux_$ARCH.tar.gz",
+      "github": "charmbracelet/gum",
+      "strip-v": "true"
+     }
+    },
+    "name": "gum"
+   }
+  },
+  "headscale": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
+   }
+  },
   "headscale-glue": {
    "glue\\headscale-glue": {
     "driver": "glue",
@@ -49250,6 +52231,56 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "headscale-service": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\headscale-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "headscale"
+    },
+    "name": "headscale-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "service\\headscale-service": {
+    "driver": "service",
+    "fields": {
+     "name": "headscale-service",
+     "unit": "headscale"
+    },
+    "name": "headscale-service"
+   },
+   "tarball\\headscale": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "headscale",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/headscale",
+     "name": "headscale",
+     "version": {
+      "asset": "headscale_*_linux_$ARCH",
+      "github": "juanfont/headscale",
+      "strip-v": "true"
+     }
+    },
+    "name": "headscale"
    }
   },
   "helix-dotfiles": {
@@ -49316,6 +52347,58 @@
     "name": "helm-dotfiles"
    }
   },
+  "herdr": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\herdr-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/herdr",
+      "src": "herdr"
+     }
+    },
+    "name": "herdr-dotfiles"
+   },
+   "glue\\herdr-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "herdr"
+    },
+    "name": "herdr-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\herdr": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "herdr",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/herdr",
+     "name": "herdr",
+     "version": {
+      "asset": "herdr-linux-$ARCH",
+      "github": "herdrdev/herdr",
+      "strip-v": "true"
+     }
+    },
+    "name": "herdr"
+   }
+  },
   "herdr-dotfiles": {
    "dotfiles\\herdr-dotfiles": {
     "driver": "dotfiles",
@@ -49344,6 +52427,36 @@
     "name": "shell-glue"
    }
   },
+  "hey": {
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "go-install\\hey": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/rakyll/hey"
+    },
+    "name": "github.com/rakyll/hey"
+   }
+  },
   "homebrew-glue": {
    "glue\\homebrew-glue": {
     "driver": "glue",
@@ -49358,6 +52471,57 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "homebridge": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\homebridge": {
+    "driver": "npm",
+    "fields": {
+     "name": "homebridge"
+    },
+    "name": "homebridge"
+   }
+  },
+  "htop": {
+   "chimera-apk\\htop": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "htop",
+     "repo-component": "universe"
+    },
+    "name": "htop"
+   },
+   "dotfiles\\htop-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/htop",
+      "src": "htop"
+     }
+    },
+    "name": "htop-dotfiles"
    }
   },
   "htop-dotfiles": {
@@ -49384,6 +52548,60 @@
     "name": "httpie-dotfiles"
    }
   },
+  "hydrogen": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\hydrogen": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.hydrogenmusic.Hydrogen"
+    },
+    "name": "org.hydrogenmusic.Hydrogen"
+   }
+  },
+  "hyperfine": {
+   "cargo\\hyperfine": {
+    "driver": "cargo",
+    "fields": {
+     "name": "hyperfine",
+     "version": {
+      "crates": "hyperfine"
+     }
+    },
+    "name": "hyperfine"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "hyprland-dotfiles": {
    "dotfiles\\hyprland-dotfiles": {
     "driver": "dotfiles",
@@ -49408,6 +52626,212 @@
     "name": "i3-dotfiles"
    }
   },
+  "iftop": {
+   "chimera-apk\\iftop": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "iftop"
+    },
+    "name": "iftop"
+   }
+  },
+  "impala": {
+   "cargo\\impala": {
+    "driver": "cargo",
+    "fields": {
+     "name": "impala",
+     "version": {
+      "crates": "impala"
+     }
+    },
+    "name": "impala"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "inkscape": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\inkscape": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.inkscape.Inkscape"
+    },
+    "name": "org.inkscape.Inkscape"
+   }
+  },
+  "insomnia": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\insomnia": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "rest.insomnia.Insomnia"
+    },
+    "name": "rest.insomnia.Insomnia"
+   }
+  },
+  "iperf3": {
+   "chimera-apk\\iperf3": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "iperf"
+    },
+    "name": "iperf"
+   }
+  },
+  "iproute2": {
+   "chimera-apk\\iproute2": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "iproute2"
+    },
+    "name": "iproute2"
+   }
+  },
+  "java": {
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   }
+  },
+  "jbang": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jbang": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "jbang"
+    },
+    "name": "jbang"
+   }
+  },
+  "jdk": {
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   }
+  },
+  "jdk-17": {
+   "chimera-apk\\jdk-17": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk17"
+    },
+    "name": "openjdk17"
+   }
+  },
+  "jdk-21": {
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   }
+  },
+  "jdk-25": {
+   "chimera-apk\\jdk-25": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk25"
+    },
+    "name": "openjdk25"
+   }
+  },
   "jetbrains-toolbox-glue": {
    "glue\\jetbrains-toolbox-glue": {
     "driver": "glue",
@@ -49415,6 +52839,155 @@
      "glue": "jetbrains-toolbox"
     },
     "name": "jetbrains-toolbox-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "jmc": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jmc": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "jmc"
+    },
+    "name": "jmc"
+   }
+  },
+  "jmeter": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\jmeter": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "jmeter"
+    },
+    "name": "jmeter"
+   }
+  },
+  "jq": {
+   "chimera-apk\\jq": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "glue\\jq-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "jq"
+    },
+    "name": "jq-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -49438,6 +53011,46 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "jrnl": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\jrnl-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/jrnl",
+      "src": "jrnl"
+     }
+    },
+    "name": "jrnl-dotfiles"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\jrnl": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jrnl"
+    },
+    "name": "jrnl"
    }
   },
   "jrnl-dotfiles": {
@@ -49466,6 +53079,79 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "jupyterlab": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\jupyterlab": {
+    "driver": "pipx",
+    "fields": {
+     "name": "jupyterlab",
+     "version": {
+      "pypi": "jupyterlab"
+     }
+    },
+    "name": "jupyterlab"
+   }
+  },
+  "just": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\just-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "just"
+    },
+    "name": "just-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\just": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/just",
+     "name": "just",
+     "version": {
+      "asset": "just-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "casey/just",
+      "strip-v": "true"
+     }
+    },
+    "name": "just"
    }
   },
   "just-glue": {
@@ -49498,6 +53184,32 @@
     "name": "k3s"
    }
   },
+  "k6": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\k6": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/k6",
+     "name": "k6",
+     "strip": "1",
+     "version": {
+      "asset": "k6-v*-linux-$ARCH.tar.gz",
+      "github": "grafana/k6"
+     }
+    },
+    "name": "k6"
+   }
+  },
   "k9s-dotfiles": {
    "dotfiles\\k9s-dotfiles": {
     "driver": "dotfiles",
@@ -49526,6 +53238,23 @@
     "name": "shell-glue"
    }
   },
+  "kdenlive": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kdenlive": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kdenlive"
+    },
+    "name": "org.kde.kdenlive"
+   }
+  },
   "kew-dotfiles": {
    "dotfiles\\kew-dotfiles": {
     "driver": "dotfiles",
@@ -49536,6 +53265,33 @@
      }
     },
     "name": "kew-dotfiles"
+   }
+  },
+  "kicad": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\kicad-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kicad",
+      "src": "kicad"
+     }
+    },
+    "name": "kicad-dotfiles"
+   },
+   "flatpak\\kicad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kicad.KiCad"
+    },
+    "name": "org.kicad.KiCad"
    }
   },
   "kicad-dotfiles": {
@@ -49550,6 +53306,25 @@
     "name": "kicad-dotfiles"
    }
   },
+  "kitty": {
+   "chimera-apk\\kitty": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "kitty"
+    },
+    "name": "kitty"
+   },
+   "dotfiles\\kitty-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/kitty",
+      "src": "kitty"
+     }
+    },
+    "name": "kitty-dotfiles"
+   }
+  },
   "kitty-dotfiles": {
    "dotfiles\\kitty-dotfiles": {
     "driver": "dotfiles",
@@ -49560,6 +53335,74 @@
      }
     },
     "name": "kitty-dotfiles"
+   }
+  },
+  "kodi": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kodi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "tv.kodi.Kodi"
+    },
+    "name": "tv.kodi.Kodi"
+   }
+  },
+  "kotlin": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "glue\\kotlin-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "kotlin"
+    },
+    "name": "kotlin-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\kotlin": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/kotlin",
+     "name": "kotlin",
+     "url": "https://github.com/JetBrains/kotlin/releases/download/v$VERSION/kotlin-compiler-$VERSION.zip",
+     "version": {
+      "asset": "kotlin-compiler-*.zip",
+      "github": "JetBrains/kotlin",
+      "strip-v": "true"
+     }
+    },
+    "name": "kotlin"
    }
   },
   "kotlin-glue": {
@@ -49578,6 +53421,80 @@
     "name": "shell-glue"
    }
   },
+  "kphotoalbum": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\kphotoalbum": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.kphotoalbum"
+    },
+    "name": "org.kde.kphotoalbum"
+   }
+  },
+  "krita": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\krita": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.kde.krita"
+    },
+    "name": "org.kde.krita"
+   }
+  },
+  "kubectl": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\kubectl-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "kubectl"
+    },
+    "name": "kubectl-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\kubectl": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/kubectl",
+     "name": "kubectl",
+     "url": "https://dl.k8s.io/release/v$VERSION/bin/linux/$ARCH/kubectl",
+     "version": {
+      "url": "https://dl.k8s.io/release/stable.txt"
+     }
+    },
+    "name": "kubectl"
+   }
+  },
   "kubectl-glue": {
    "glue\\kubectl-glue": {
     "driver": "glue",
@@ -49592,6 +53509,56 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "lazydocker": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\lazydocker-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazydocker",
+      "src": "lazydocker"
+     }
+    },
+    "name": "lazydocker-dotfiles"
+   },
+   "glue\\lazydocker-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lazydocker"
+    },
+    "name": "lazydocker-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\lazydocker": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/lazydocker",
+     "name": "lazydocker",
+     "version": {
+      "asset": "lazydocker_*_Linux_$ARCH.tar.gz",
+      "github": "jesseduffield/lazydocker",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazydocker"
    }
   },
   "lazydocker-dotfiles": {
@@ -49622,6 +53589,56 @@
     "name": "shell-glue"
    }
   },
+  "lazygit": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\lazygit-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/lazygit/config.yml",
+      "src": "lazygit-config.yml"
+     }
+    },
+    "name": "lazygit-dotfiles"
+   },
+   "glue\\lazygit-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lazygit"
+    },
+    "name": "lazygit-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\lazygit": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/lazygit",
+     "name": "lazygit",
+     "version": {
+      "asset": "lazygit_*_Linux_$ARCH.tar.gz",
+      "github": "jesseduffield/lazygit",
+      "strip-v": "true"
+     }
+    },
+    "name": "lazygit"
+   }
+  },
   "lazygit-dotfiles": {
    "dotfiles\\lazygit-dotfiles": {
     "driver": "dotfiles",
@@ -49650,6 +53667,89 @@
     "name": "shell-glue"
    }
   },
+  "lazyrsync": {
+   "cargo\\lazyrsync": {
+    "driver": "cargo",
+    "fields": {
+     "name": "lazyrsync",
+     "version": {
+      "crates": "lazyrsync"
+     }
+    },
+    "name": "lazyrsync"
+   },
+   "chimera-apk\\rsync": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lazysql": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lazysql-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lazysql"
+    },
+    "name": "lazysql-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\lazysql": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/lazysql",
+     "name": "lazysql",
+     "url": "https://github.com/jorgerojas26/lazysql/releases/latest/download/lazysql_Linux_$ARCH.tar.gz",
+     "version": {
+      "static": "latest"
+     }
+    },
+    "name": "lazysql"
+   }
+  },
   "lazysql-glue": {
    "glue\\lazysql-glue": {
     "driver": "glue",
@@ -49664,6 +53764,77 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "leaf": {
+   "cargo\\leaf": {
+    "driver": "cargo",
+    "fields": {
+     "name": "leaf-markdown-viewer",
+     "version": {
+      "crates": "leaf-markdown-viewer"
+     }
+    },
+    "name": "leaf-markdown-viewer"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lean": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\lean-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "lean"
+    },
+    "name": "lean-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\lean": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y",
+     "name": "lean",
+     "uninstall-cmd": "\"$HOME/.elan/bin/elan\" self uninstall -y 2>/dev/null || rm -rf \"$HOME/.elan\"",
+     "version-cmd": "\"$HOME/.elan/bin/lean\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "lean"
    }
   },
   "lean-glue": {
@@ -49682,6 +53853,217 @@
     "name": "shell-glue"
    }
   },
+  "leiningen": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\leiningen": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "leiningen"
+    },
+    "name": "leiningen"
+   }
+  },
+  "libaio": {
+   "chimera-apk\\libaio": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libaio-devel"
+    },
+    "name": "libaio-devel"
+   }
+  },
+  "libc++": {
+   "chimera-apk\\libc++": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libcxx-devel"
+    },
+    "name": "libcxx-devel"
+   },
+   "chimera-apk\\libc++abi": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
+  "libc++abi": {
+   "chimera-apk\\libc++abi": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libcxxabi-devel"
+    },
+    "name": "libcxxabi-devel"
+   }
+  },
+  "libcurl": {
+   "chimera-apk\\libcurl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl-devel"
+    },
+    "name": "curl-devel"
+   }
+  },
+  "libevent": {
+   "chimera-apk\\libevent": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libevent-devel"
+    },
+    "name": "libevent-devel"
+   }
+  },
+  "libidn2": {
+   "chimera-apk\\libidn2": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libidn2-devel"
+    },
+    "name": "libidn2-devel"
+   }
+  },
+  "libinput": {
+   "chimera-apk\\libinput": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libinput-devel"
+    },
+    "name": "libinput-devel"
+   }
+  },
+  "libjpeg": {
+   "chimera-apk\\libjpeg": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libjpeg-turbo-devel"
+    },
+    "name": "libjpeg-turbo-devel"
+   }
+  },
+  "liblz4": {
+   "chimera-apk\\liblz4": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lz4-devel"
+    },
+    "name": "lz4-devel"
+   }
+  },
+  "libmagic": {
+   "chimera-apk\\libmagic": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "file-devel"
+    },
+    "name": "file-devel"
+   }
+  },
+  "libmtp": {
+   "chimera-apk\\libmtp": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libmtp-devel"
+    },
+    "name": "libmtp-devel"
+   }
+  },
+  "libpcap": {
+   "chimera-apk\\libpcap": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libpcap-devel"
+    },
+    "name": "libpcap-devel"
+   }
+  },
+  "libpng": {
+   "chimera-apk\\libpng": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libpng-devel"
+    },
+    "name": "libpng-devel"
+   }
+  },
+  "libreoffice": {
+   "chimera-apk\\libreoffice": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "libreoffice-core",
+      "dnf": "libreoffice-core"
+     },
+     "name": "libreoffice",
+     "repo-component": "universe"
+    },
+    "name": "libreoffice"
+   },
+   "dotfiles\\libreoffice-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/libreoffice",
+      "src": "libreoffice"
+     }
+    },
+    "name": "libreoffice-dotfiles"
+   }
+  },
   "libreoffice-dotfiles": {
    "dotfiles\\libreoffice-dotfiles": {
     "driver": "dotfiles",
@@ -49692,6 +54074,423 @@
      }
     },
     "name": "libreoffice-dotfiles"
+   }
+  },
+  "librewolf": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\librewolf": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.gitlab.librewolf-community"
+    },
+    "name": "io.gitlab.librewolf-community"
+   }
+  },
+  "libsodium": {
+   "chimera-apk\\libsodium": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libsodium-devel"
+    },
+    "name": "libsodium-devel"
+   }
+  },
+  "libssl": {
+   "chimera-apk\\libssl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openssl3-devel"
+    },
+    "name": "openssl3-devel"
+   }
+  },
+  "libstdc++": {
+   "chimera-apk\\libstdc++": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   }
+  },
+  "libtool": {
+   "chimera-apk\\libtool": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libtool"
+    },
+    "name": "libtool"
+   }
+  },
+  "libunwind": {
+   "chimera-apk\\libunwind": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libunwind-devel"
+    },
+    "name": "libunwind-devel"
+   }
+  },
+  "liburing": {
+   "chimera-apk\\liburing": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "liburing-devel"
+    },
+    "name": "liburing-devel"
+   }
+  },
+  "libusb": {
+   "chimera-apk\\libusb": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libusb-devel"
+    },
+    "name": "libusb-devel"
+   }
+  },
+  "libvirt": {
+   "chimera-apk\\libvirt": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-clients": {
+   "chimera-apk\\libvirt-clients": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   }
+  },
+  "libvirt-service": {
+   "chimera-apk\\libvirt": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "runit": [
+      "libvirtd",
+      "virtlockd",
+      "virtlogd"
+     ],
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
+  "libx11": {
+   "chimera-apk\\libx11": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libx11-devel"
+    },
+    "name": "libx11-devel"
+   }
+  },
+  "libxcb": {
+   "chimera-apk\\libxcb": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxcb-devel"
+    },
+    "name": "libxcb-devel"
+   }
+  },
+  "libxext": {
+   "chimera-apk\\libxext": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxext-devel"
+    },
+    "name": "libxext-devel"
+   }
+  },
+  "libxfixes": {
+   "chimera-apk\\libxfixes": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxfixes-devel"
+    },
+    "name": "libxfixes-devel"
+   }
+  },
+  "libxft": {
+   "chimera-apk\\libxft": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxft-devel"
+    },
+    "name": "libxft-devel"
+   }
+  },
+  "libxinerama": {
+   "chimera-apk\\libxinerama": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxinerama-devel"
+    },
+    "name": "libxinerama-devel"
+   }
+  },
+  "libxkbcommon": {
+   "chimera-apk\\libxkbcommon": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxkbcommon-devel"
+    },
+    "name": "libxkbcommon-devel"
+   }
+  },
+  "libxss": {
+   "chimera-apk\\libxss": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxscrnsaver-devel"
+    },
+    "name": "libxscrnsaver-devel"
+   }
+  },
+  "libxtst": {
+   "chimera-apk\\libxtst": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libxtst-devel"
+    },
+    "name": "libxtst-devel"
+   }
+  },
+  "libzstd": {
+   "chimera-apk\\libzstd": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zstd-devel"
+    },
+    "name": "zstd-devel"
+   }
+  },
+  "liquibase": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\liquibase": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "liquibase"
+    },
+    "name": "liquibase"
+   }
+  },
+  "lldb": {
+   "chimera-apk\\lldb": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lldb"
+    },
+    "name": "lldb"
+   }
+  },
+  "llm": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\llm": {
+    "driver": "pipx",
+    "fields": {
+     "name": "llm",
+     "version": {
+      "pypi": "llm"
+     }
+    },
+    "name": "llm"
+   }
+  },
+  "lm-sensors": {
+   "chimera-apk\\lm-sensors": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lm-sensors"
+    },
+    "name": "lm-sensors"
+   }
+  },
+  "lmms": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\lmms": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.lmms.LMMS"
+    },
+    "name": "io.lmms.LMMS"
+   }
+  },
+  "lolcat": {
+   "chimera-apk\\ruby": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "ruby"
+     },
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\lolcat": {
+    "driver": "gem",
+    "fields": {
+     "name": "lolcat"
+    },
+    "name": "lolcat"
+   },
+   "glue\\ruby-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "lsblk": {
+   "chimera-apk\\lsblk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "util-linux"
+    },
+    "name": "util-linux"
+   }
+  },
+  "lua": {
+   "chimera-apk\\lua": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lua5.4",
+     "repo-component": "universe"
+    },
+    "name": "lua5.4"
+   }
+  },
+  "luarocks": {
+   "chimera-apk\\luarocks": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "luarocks",
+     "repo-component": "universe"
+    },
+    "name": "luarocks"
+   },
+   "glue\\luarocks-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "luarocks"
+    },
+    "name": "luarocks-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "luarocks-glue": {
@@ -49710,6 +54509,34 @@
     "name": "shell-glue"
    }
   },
+  "lynx": {
+   "chimera-apk\\lynx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lynx",
+     "repo-component": "universe"
+    },
+    "name": "lynx"
+   }
+  },
+  "lz4": {
+   "chimera-apk\\lz4": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "lz4"
+    },
+    "name": "lz4"
+   }
+  },
+  "make": {
+   "chimera-apk\\make": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gmake"
+    },
+    "name": "gmake"
+   }
+  },
   "mangowm-dotfiles": {
    "dotfiles\\mangowm-dotfiles": {
     "driver": "dotfiles",
@@ -49720,6 +54547,32 @@
      }
     },
     "name": "mangowm-dotfiles"
+   }
+  },
+  "maven": {
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\maven": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "maven"
+    },
+    "name": "maven"
+   },
+   "dotfiles\\maven-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.m2/settings.xml",
+      "src": "maven-settings.xml"
+     }
+    },
+    "name": "maven-dotfiles"
    }
   },
   "maven-dotfiles": {
@@ -49746,6 +54599,36 @@
     "name": "maxima-dotfiles"
    }
   },
+  "mc": {
+   "chimera-apk\\mc": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mc",
+     "repo-component": "universe"
+    },
+    "name": "mc"
+   }
+  },
+  "mercurial": {
+   "chimera-apk\\mercurial": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mercurial",
+     "repo-component": "universe"
+    },
+    "name": "mercurial"
+   },
+   "dotfiles\\mercurial-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.hgrc",
+      "src": "hgrc"
+     }
+    },
+    "name": "mercurial-dotfiles"
+   }
+  },
   "mercurial-dotfiles": {
    "dotfiles\\mercurial-dotfiles": {
     "driver": "dotfiles",
@@ -49756,6 +54639,61 @@
      }
     },
     "name": "mercurial-dotfiles"
+   }
+  },
+  "meson": {
+   "chimera-apk\\meson": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "meson"
+    },
+    "name": "meson"
+   }
+  },
+  "micro": {
+   "chimera-apk\\micro": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "micro",
+     "repo-component": "universe"
+    },
+    "name": "micro"
+   },
+   "dotfiles\\micro-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "bindings": {
+      "dst": "$XDG_CONFIG_HOME/micro/bindings.json",
+      "src": "micro-bindings.json"
+     },
+     "colorschemes": {
+      "dst": "$XDG_CONFIG_HOME/micro/colorschemes",
+      "src": "micro-colorschemes"
+     },
+     "init": {
+      "dst": "$XDG_CONFIG_HOME/micro/init.lua",
+      "src": "micro-init.lua"
+     },
+     "settings": {
+      "dst": "$XDG_CONFIG_HOME/micro/settings.json",
+      "src": "micro-settings.json"
+     }
+    },
+    "name": "micro-dotfiles"
+   },
+   "glue\\micro-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "micro"
+    },
+    "name": "micro-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "micro-dotfiles": {
@@ -49798,6 +54736,69 @@
     "name": "shell-glue"
    }
   },
+  "micronaut": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\micronaut": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "micronaut"
+    },
+    "name": "micronaut"
+   }
+  },
   "miniforge-glue": {
    "glue\\miniforge-glue": {
     "driver": "glue",
@@ -49814,6 +54815,114 @@
     "name": "shell-glue"
    }
   },
+  "mitmproxy": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mitmproxy": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mitmproxy",
+     "version": {
+      "pypi": "mitmproxy"
+     }
+    },
+    "name": "mitmproxy"
+   }
+  },
+  "mononoki-nerd": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\fontconfig": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "fontconfig"
+    },
+    "name": "fontconfig"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "font\\mononoki-nerd": {
+    "driver": "font",
+    "fields": {
+     "name": "Mononoki",
+     "url": "https://github.com/ryanoasis/nerd-fonts/releases/download/$VERSION/Mononoki.zip",
+     "version": {
+      "asset": "Mononoki.zip",
+      "github": "ryanoasis/nerd-fonts"
+     }
+    },
+    "name": "Mononoki"
+   }
+  },
+  "mosh": {
+   "chimera-apk\\mosh": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mosh",
+     "repo-component": "universe"
+    },
+    "name": "mosh"
+   }
+  },
+  "mpc": {
+   "chimera-apk\\mpc": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mpc",
+     "repo-component": "universe"
+    },
+    "name": "mpc"
+   }
+  },
+  "mpd": {
+   "chimera-apk\\mpd": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mpd",
+     "repo-component": "universe"
+    },
+    "name": "mpd"
+   },
+   "dotfiles\\mpd-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/mpd",
+      "src": "mpd"
+     }
+    },
+    "name": "mpd-dotfiles"
+   }
+  },
   "mpd-dotfiles": {
    "dotfiles\\mpd-dotfiles": {
     "driver": "dotfiles",
@@ -49826,6 +54935,168 @@
     "name": "mpd-dotfiles"
    }
   },
+  "mpd-mpris": {
+   "chimera-apk\\go": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "go"
+    },
+    "name": "go"
+   },
+   "glue\\go-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "go"
+    },
+    "name": "go-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "go-install\\mpd-mpris": {
+    "driver": "go-install",
+    "fields": {
+     "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+    },
+    "name": "github.com/natsukagami/mpd-mpris/cmd/mpd-mpris"
+   }
+  },
+  "mtr": {
+   "chimera-apk\\mtr": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "mtr"
+    },
+    "name": "mtr"
+   }
+  },
+  "musescore": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\musescore": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.musescore.MuseScore"
+    },
+    "name": "org.musescore.MuseScore"
+   }
+  },
+  "mvnd": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\mvnd": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "mvnd"
+    },
+    "name": "mvnd"
+   }
+  },
+  "mycli": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\mycli-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.myclirc",
+      "src": "myclirc"
+     }
+    },
+    "name": "mycli-dotfiles"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\mycli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "mycli",
+     "version": {
+      "pypi": "mycli"
+     }
+    },
+    "name": "mycli"
+   }
+  },
   "mycli-dotfiles": {
    "dotfiles\\mycli-dotfiles": {
     "driver": "dotfiles",
@@ -49836,6 +55107,34 @@
      }
     },
     "name": "mycli-dotfiles"
+   }
+  },
+  "nasm": {
+   "chimera-apk\\nasm": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nasm"
+    },
+    "name": "nasm"
+   }
+  },
+  "ncdu": {
+   "chimera-apk\\ncdu": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ncdu",
+     "repo-component": "universe"
+    },
+    "name": "ncdu"
+   }
+  },
+  "ncurses": {
+   "chimera-apk\\ncurses": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ncurses-devel"
+    },
+    "name": "ncurses-devel"
    }
   },
   "neovim-dotfiles": {
@@ -49878,6 +55177,32 @@
     "name": "newsboat-dotfiles"
    }
   },
+  "nginx": {
+   "chimera-apk\\nginx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nginx"
+    },
+    "name": "nginx"
+   }
+  },
+  "nginx-service": {
+   "chimera-apk\\nginx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nginx"
+    },
+    "name": "nginx"
+   },
+   "service\\nginx-service": {
+    "driver": "service",
+    "fields": {
+     "name": "nginx-service",
+     "unit": "nginx"
+    },
+    "name": "nginx-service"
+   }
+  },
   "nim-glue": {
    "glue\\nim-glue": {
     "driver": "glue",
@@ -49894,6 +55219,15 @@
     "name": "shell-glue"
    }
   },
+  "ninja": {
+   "chimera-apk\\ninja": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ninja"
+    },
+    "name": "ninja"
+   }
+  },
   "niri-dotfiles": {
    "dotfiles\\niri-dotfiles": {
     "driver": "dotfiles",
@@ -49904,6 +55238,48 @@
      }
     },
     "name": "niri-dotfiles"
+   }
+  },
+  "nload": {
+   "chimera-apk\\nload": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nload"
+    },
+    "name": "nload"
+   }
+  },
+  "nmap": {
+   "chimera-apk\\nmap": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nmap"
+    },
+    "name": "nmap"
+   }
+  },
+  "node": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "node-glue": {
@@ -49922,6 +55298,15 @@
     "name": "shell-glue"
    }
   },
+  "numpy": {
+   "chimera-apk\\numpy": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "python-numpy"
+    },
+    "name": "python-numpy"
+   }
+  },
   "nushell-glue": {
    "glue\\nushell-glue": {
     "driver": "glue",
@@ -49936,6 +55321,86 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "objective-c": {
+   "chimera-apk\\objective-c": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc-objc"
+    },
+    "name": "gcc-objc"
+   }
+  },
+  "obs-studio": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obs-studio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.obsproject.Studio"
+    },
+    "name": "com.obsproject.Studio"
+   }
+  },
+  "obsidian": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\obsidian": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "md.obsidian.Obsidian"
+    },
+    "name": "md.obsidian.Obsidian"
+   }
+  },
+  "ocaml": {
+   "chimera-apk\\ocaml": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ocaml",
+     "repo-component": "universe"
+    },
+    "name": "ocaml"
+   }
+  },
+  "octave": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\octave-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.octaverc",
+      "src": "octaverc"
+     }
+    },
+    "name": "octave-dotfiles"
+   },
+   "flatpak\\octave": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.octave.Octave"
+    },
+    "name": "org.octave.Octave"
    }
   },
   "octave-dotfiles": {
@@ -49966,18 +55431,78 @@
     "name": "shell-glue"
    }
   },
-  "ollama": {
-   "script\\ollama": {
-    "driver": "script",
+  "olive": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
     "fields": {
-     "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
-     "location": "/usr/local/bin/ollama",
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\olive": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.olivevideoeditor.Olive"
+    },
+    "name": "org.olivevideoeditor.Olive"
+   }
+  },
+  "ollama": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\zstd": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
+   },
+   "tarball\\ollama": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/ollama",
      "name": "ollama",
-     "uninstall-cmd": "$SUDO systemctl stop ollama 2>/dev/null; $SUDO rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; $SUDO rm -rf /usr/share/ollama",
-     "version-cmd": "ollama --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+     "version": {
+      "asset": "ollama-linux-$ARCH.tar.zst",
+      "github": "ollama/ollama",
+      "strip-v": "true"
+     }
     },
     "name": "ollama"
+   }
+  },
+  "opam": {
+   "chimera-apk\\opam": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "opam",
+     "repo-component": "universe"
+    },
+    "name": "opam"
+   },
+   "glue\\opam-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "opam"
+    },
+    "name": "opam-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "opam-glue": {
@@ -49996,6 +55521,116 @@
     "name": "shell-glue"
    }
   },
+  "openal-dev": {
+   "chimera-apk\\openal-dev": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openal-soft-devel"
+    },
+    "name": "openal-soft-devel"
+   }
+  },
+  "openjdk": {
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   }
+  },
+  "openscad": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openscad": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openscad.OpenSCAD"
+    },
+    "name": "org.openscad.OpenSCAD"
+   }
+  },
+  "openshot": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\openshot": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.openshot.OpenShot"
+    },
+    "name": "org.openshot.OpenShot"
+   }
+  },
+  "openssh-server": {
+   "chimera-apk\\openssh-server": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openssh"
+    },
+    "name": "openssh"
+   }
+  },
+  "openssl": {
+   "chimera-apk\\openssl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openssl3"
+    },
+    "name": "openssl3"
+   }
+  },
+  "opentofu": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\opentofu-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "opentofu"
+    },
+    "name": "opentofu-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "tarball\\opentofu": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/opentofu",
+     "name": "opentofu",
+     "version": {
+      "asset": "tofu_*_linux_$ARCH.tar.gz",
+      "github": "opentofu/opentofu",
+      "strip-v": "true"
+     }
+    },
+    "name": "opentofu"
+   }
+  },
   "opentofu-glue": {
    "glue\\opentofu-glue": {
     "driver": "glue",
@@ -50012,6 +55647,156 @@
     "name": "shell-glue"
    }
   },
+  "opera": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\opera": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.opera.Opera"
+    },
+    "name": "com.opera.Opera"
+   }
+  },
+  "p7zip": {
+   "chimera-apk\\p7zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "7zip"
+    },
+    "name": "7zip"
+   }
+  },
+  "pango": {
+   "chimera-apk\\pango": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pango-devel"
+    },
+    "name": "pango-devel"
+   }
+  },
+  "paraview": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\paraview": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.paraview.ParaView"
+    },
+    "name": "org.paraview.ParaView"
+   }
+  },
+  "pastel": {
+   "cargo\\pastel": {
+    "driver": "cargo",
+    "fields": {
+     "name": "pastel",
+     "version": {
+      "crates": "pastel"
+     }
+    },
+    "name": "pastel"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "perf": {
+   "chimera-apk\\perf": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "perf"
+    },
+    "name": "perf"
+   }
+  },
+  "perl": {
+   "chimera-apk\\perl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "perl"
+    },
+    "name": "perl"
+   }
+  },
+  "pgcli": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\pgcli-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/pgcli/config",
+      "src": "pgcli-config"
+     }
+    },
+    "name": "pgcli-dotfiles"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\pgcli": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pgcli",
+     "version": {
+      "pypi": "pgcli"
+     }
+    },
+    "name": "pgcli"
+   }
+  },
   "pgcli-dotfiles": {
    "dotfiles\\pgcli-dotfiles": {
     "driver": "dotfiles",
@@ -50022,6 +55807,90 @@
      }
     },
     "name": "pgcli-dotfiles"
+   }
+  },
+  "php": {
+   "chimera-apk\\php": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "php",
+     "repo-component": "universe"
+    },
+    "name": "php"
+   }
+  },
+  "pipes": {
+   "chimera-apk\\git": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "chimera-apk\\make": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gmake"
+    },
+    "name": "gmake"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "script\\pipes": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "tmp=$(mktemp -d) && git clone --depth 1 https://github.com/pipeseroni/pipes.sh \"$tmp\" && make -C \"$tmp\" install PREFIX=\"$HOME/.local\" && rm -rf \"$tmp\"",
+     "location": "~/.local/bin/pipes.sh",
+     "name": "pipes",
+     "uninstall-cmd": "rm -f \"$HOME/.local/bin/pipes.sh\" \"$HOME/.local/share/man/man6/pipes.sh.6\"",
+     "version": {
+      "github": "pipeseroni/pipes.sh",
+      "strip-v": "true"
+     },
+     "version-cmd": "pipes.sh -v 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pipes"
+   }
+  },
+  "pipewire": {
+   "chimera-apk\\pipewire": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipewire"
+    },
+    "name": "pipewire"
+   }
+  },
+  "pipx": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "pipx-glue": {
@@ -50040,6 +55909,85 @@
     "name": "shell-glue"
    }
   },
+  "pixman": {
+   "chimera-apk\\pixman": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pixman-devel"
+    },
+    "name": "pixman-devel"
+   }
+  },
+  "pkg-config": {
+   "chimera-apk\\pkg-config": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pkgconf"
+    },
+    "name": "pkgconf"
+   }
+  },
+  "playerctl": {
+   "chimera-apk\\playerctl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "playerctl",
+     "repo-component": "universe"
+    },
+    "name": "playerctl"
+   }
+  },
+  "pnpm": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\pnpm": {
+    "driver": "npm",
+    "fields": {
+     "name": "pnpm"
+    },
+    "name": "pnpm"
+   }
+  },
+  "podman": {
+   "chimera-apk\\podman": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "podman",
+     "repo-component": "universe"
+    },
+    "name": "podman"
+   },
+   "dotfiles\\podman-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/containers",
+      "src": "containers"
+     }
+    },
+    "name": "podman-dotfiles"
+   }
+  },
   "podman-dotfiles": {
    "dotfiles\\podman-dotfiles": {
     "driver": "dotfiles",
@@ -50050,6 +55998,104 @@
      }
     },
     "name": "podman-dotfiles"
+   }
+  },
+  "postman": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\postman": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.getpostman.Postman"
+    },
+    "name": "com.getpostman.Postman"
+   }
+  },
+  "prettier": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\prettier": {
+    "driver": "npm",
+    "fields": {
+     "name": "prettier"
+    },
+    "name": "prettier"
+   }
+  },
+  "prometheus": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\prometheus": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/prometheus",
+     "name": "prometheus",
+     "version": {
+      "asset": "prometheus-*.linux-$ARCH.tar.gz",
+      "github": "prometheus/prometheus",
+      "strip-v": "true"
+     }
+    },
+    "name": "prometheus"
+   }
+  },
+  "protobuf": {
+   "chimera-apk\\protobuf": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "protobuf",
+     "repo-component": "universe"
+    },
+    "name": "protobuf"
+   },
+   "glue\\protobuf-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "protobuf"
+    },
+    "name": "protobuf-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
    }
   },
   "protobuf-glue": {
@@ -50068,6 +56114,116 @@
     "name": "shell-glue"
    }
   },
+  "protontricks": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protontricks": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.github.Matoking.protontricks"
+    },
+    "name": "com.github.Matoking.protontricks"
+   }
+  },
+  "protonup-qt": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\protonup-qt": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.davidotek.pupgui2"
+    },
+    "name": "net.davidotek.pupgui2"
+   }
+  },
+  "pulseaudio-utils": {
+   "chimera-apk\\pulseaudio-utils": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libpulse-progs"
+    },
+    "name": "libpulse-progs"
+   }
+  },
+  "puppet": {
+   "chimera-apk\\ruby": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "ruby"
+     },
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "gem\\puppet": {
+    "driver": "gem",
+    "fields": {
+     "name": "puppet"
+    },
+    "name": "puppet"
+   },
+   "glue\\ruby-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "pyenv": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\pyenv-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pyenv"
+    },
+    "name": "pyenv-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\pyenv": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -fsSL https://pyenv.run | bash",
+     "name": "pyenv",
+     "uninstall-cmd": "rm -rf \"$HOME/.pyenv\"",
+     "version-cmd": "\"$HOME/.pyenv/bin/pyenv\" --version 2>/dev/null",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "pyenv"
+   }
+  },
   "pyenv-glue": {
    "glue\\pyenv-glue": {
     "driver": "glue",
@@ -50075,6 +56231,47 @@
      "glue": "pyenv"
     },
     "name": "pyenv-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "pytest": {
+   "chimera-apk\\pytest": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "python-pytest"
+    },
+    "name": "python-pytest"
+   }
+  },
+  "python3-dev": {
+   "chimera-apk\\python3-dev": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "python-devel"
+    },
+    "name": "python-devel"
+   }
+  },
+  "python3-pip": {
+   "chimera-apk\\python3-pip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "python-pip"
+    },
+    "name": "python-pip"
+   },
+   "glue\\python3-pip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "python3-pip"
+    },
+    "name": "python3-pip-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50100,6 +56297,85 @@
     "name": "shell-glue"
    }
   },
+  "pywal16": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\pywal16": {
+    "driver": "pipx",
+    "fields": {
+     "name": "pywal16"
+    },
+    "name": "pywal16"
+   }
+  },
+  "qemu": {
+   "chimera-apk\\qemu": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "qemu"
+    },
+    "name": "qemu"
+   }
+  },
+  "qtile": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "dotfiles\\qtile-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/qtile",
+      "src": "qtile"
+     }
+    },
+    "name": "qtile-dotfiles"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\qtile": {
+    "driver": "pipx",
+    "fields": {
+     "name": "qtile"
+    },
+    "name": "qtile"
+   }
+  },
   "qtile-dotfiles": {
    "dotfiles\\qtile-dotfiles": {
     "driver": "dotfiles",
@@ -50110,6 +56386,90 @@
      }
     },
     "name": "qtile-dotfiles"
+   }
+  },
+  "quarkus": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\quarkus": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "quarkus"
+    },
+    "name": "quarkus"
+   }
+  },
+  "quicklisp": {
+   "chimera-apk\\sbcl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   },
+   "script\\quicklisp": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "f=$(mktemp) || exit 1; curl -fsSL https://beta.quicklisp.org/quicklisp.lisp -o \"$f\" && yes \"\" | sbcl --non-interactive --load \"$f\" --eval \"(quicklisp-quickstart:install)\" --eval \"(ql:add-to-init-file)\" --eval \"(quit)\"; rc=$?; rm -f \"$f\"; exit $rc",
+     "location": "~/quicklisp",
+     "name": "quicklisp",
+     "uninstall-cmd": "rm -rf \"$HOME/quicklisp\"",
+     "version-cmd": "test -d \"$HOME/quicklisp\" && echo present"
+    },
+    "name": "quicklisp"
    }
   },
   "r-dotfiles": {
@@ -50140,6 +56500,33 @@
     "name": "shell-glue"
    }
   },
+  "rawtherapee": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\rawtherapee-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/RawTherapee",
+      "src": "rawtherapee"
+     }
+    },
+    "name": "rawtherapee-dotfiles"
+   },
+   "flatpak\\rawtherapee": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.rawtherapee.RawTherapee"
+    },
+    "name": "com.rawtherapee.RawTherapee"
+   }
+  },
   "rawtherapee-dotfiles": {
    "dotfiles\\rawtherapee-dotfiles": {
     "driver": "dotfiles",
@@ -50152,6 +56539,39 @@
     "name": "rawtherapee-dotfiles"
    }
   },
+  "rclone": {
+   "chimera-apk\\rclone": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "rclone"
+    },
+    "name": "rclone"
+   }
+  },
+  "ripgrep": {
+   "chimera-apk\\ripgrep": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "ripgrep",
+     "repo-component": "universe"
+    },
+    "name": "ripgrep"
+   },
+   "glue\\ripgrep-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "ripgrep"
+    },
+    "name": "ripgrep-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "ripgrep-glue": {
    "glue\\ripgrep-glue": {
     "driver": "glue",
@@ -50159,6 +56579,74 @@
      "glue": "ripgrep"
     },
     "name": "ripgrep-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
+  "roc": {
+   "chimera-apk\\c-toolchain": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "gcc"
+    },
+    "name": "gcc"
+   },
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\roc": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/roc",
+     "name": "roc",
+     "version": {
+      "asset": "roc_nightly-linux_$ARCH-*.tar.gz",
+      "github": "roc-lang/nightlies",
+      "tag-re": "^nightly-([0-9]{4}-[0-9]{2}-[0-9]{2})-[0-9a-f]+$"
+     }
+    },
+    "name": "roc"
+   }
+  },
+  "rsync": {
+   "chimera-apk\\rsync": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "rsync"
+    },
+    "name": "rsync"
+   }
+  },
+  "ruby": {
+   "chimera-apk\\ruby": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "ruby"
+     },
+     "name": "ruby"
+    },
+    "name": "ruby"
+   },
+   "glue\\ruby-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "ruby"
+    },
+    "name": "ruby-glue"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50184,6 +56672,33 @@
     "name": "shell-glue"
    }
   },
+  "rust": {
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "rust-glue": {
    "glue\\rust-glue": {
     "driver": "glue",
@@ -50200,6 +56715,382 @@
     "name": "shell-glue"
    }
   },
+  "s-tui": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\s-tui": {
+    "driver": "pipx",
+    "fields": {
+     "name": "s-tui"
+    },
+    "name": "s-tui"
+   }
+  },
+  "salt": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\salt": {
+    "driver": "pipx",
+    "fields": {
+     "name": "salt",
+     "version": {
+      "pypi": "salt"
+     }
+    },
+    "name": "salt"
+   }
+  },
+  "sass": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\sass": {
+    "driver": "npm",
+    "fields": {
+     "name": "sass"
+    },
+    "name": "sass"
+   }
+  },
+  "sbcl": {
+   "chimera-apk\\sbcl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "sbcl",
+     "repo-component": "universe"
+    },
+    "name": "sbcl"
+   }
+  },
+  "sbt": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\sbt": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "sbt"
+    },
+    "name": "sbt"
+   }
+  },
+  "scala": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scala": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scala"
+    },
+    "name": "scala"
+   }
+  },
+  "scalacli": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\scalacli": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "scalacli"
+    },
+    "name": "scalacli"
+   }
+  },
+  "scratch": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scratch": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "edu.mit.Scratch"
+    },
+    "name": "edu.mit.Scratch"
+   }
+  },
+  "scribus": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\scribus": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.scribus.Scribus"
+    },
+    "name": "net.scribus.Scribus"
+   }
+  },
+  "sdkman": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   }
+  },
   "sdkman-glue": {
    "glue\\sdkman-glue": {
     "driver": "glue",
@@ -50214,6 +57105,101 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "sdl2-image": {
+   "chimera-apk\\sdl2-image": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "sdl2_image-devel",
+     "repo-component": "universe"
+    },
+    "name": "sdl2_image-devel"
+   }
+  },
+  "sdl2-ttf": {
+   "chimera-apk\\sdl2-ttf": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "sdl2_ttf-devel",
+     "repo-component": "universe"
+    },
+    "name": "sdl2_ttf-devel"
+   }
+  },
+  "sesh": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\tmux": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
+   },
+   "chimera-apk\\zoxide": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "dotfiles\\sesh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/sesh",
+      "src": "sesh"
+     }
+    },
+    "name": "sesh-dotfiles"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zoxide-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-glue"
+   },
+   "tarball\\sesh": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/sesh",
+     "name": "sesh",
+     "version": {
+      "asset": "sesh_Linux_$ARCH.tar.gz",
+      "github": "joshmedeski/sesh",
+      "strip-v": "true"
+     }
+    },
+    "name": "sesh"
    }
   },
   "sesh-dotfiles": {
@@ -50237,6 +57223,57 @@
     "name": "shell-glue"
    }
   },
+  "shotcut": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\shotcut": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.shotcut.Shotcut"
+    },
+    "name": "org.shotcut.Shotcut"
+   }
+  },
+  "shotwell": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\shotwell": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.gnome.Shotwell"
+    },
+    "name": "org.gnome.Shotwell"
+   }
+  },
+  "signal": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\signal": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.signal.Signal"
+    },
+    "name": "org.signal.Signal"
+   }
+  },
   "signal-cli-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50251,6 +57288,311 @@
      "glue": "signal-cli"
     },
     "name": "signal-cli-glue"
+   }
+  },
+  "slack": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\slack": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.slack.Slack"
+    },
+    "name": "com.slack.Slack"
+   }
+  },
+  "slurp": {
+   "chimera-apk\\slurp": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "slurp",
+     "repo-component": "universe"
+    },
+    "name": "slurp"
+   }
+  },
+  "snappy": {
+   "chimera-apk\\snappy": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "snappy-devel"
+    },
+    "name": "snappy-devel"
+   }
+  },
+  "socat": {
+   "chimera-apk\\socat": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "socat"
+    },
+    "name": "socat"
+   }
+  },
+  "sonic-pi": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sonic-pi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "net.sonic_pi.SonicPi"
+    },
+    "name": "net.sonic_pi.SonicPi"
+   }
+  },
+  "source-highlight": {
+   "chimera-apk\\source-highlight": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "source-highlight"
+    },
+    "name": "source-highlight"
+   }
+  },
+  "spotify": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\spotify": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.spotify.Client"
+    },
+    "name": "com.spotify.Client"
+   }
+  },
+  "springboot": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\springboot": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "springboot"
+    },
+    "name": "springboot"
+   }
+  },
+  "sqlite": {
+   "chimera-apk\\sqlite": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "sqlite-devel"
+    },
+    "name": "sqlite-devel"
+   }
+  },
+  "sqlitebrowser": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\sqlitebrowser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.sqlitebrowser.sqlitebrowser"
+    },
+    "name": "org.sqlitebrowser.sqlitebrowser"
+   }
+  },
+  "steam": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\steam": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.valvesoftware.Steam"
+    },
+    "name": "com.valvesoftware.Steam"
+   }
+  },
+  "stow": {
+   "chimera-apk\\stow": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "stow",
+     "repo-component": "universe"
+    },
+    "name": "stow"
+   }
+  },
+  "strace": {
+   "chimera-apk\\strace": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "strace"
+    },
+    "name": "strace"
+   }
+  },
+  "strawberry": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\strawberry": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.strawberrymusicplayer.strawberry"
+    },
+    "name": "org.strawberrymusicplayer.strawberry"
+   }
+  },
+  "stremio": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\stremio": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.stremio.Stremio"
+    },
+    "name": "com.stremio.Stremio"
+   }
+  },
+  "stress-ng": {
+   "chimera-apk\\stress-ng": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "stress-ng"
+    },
+    "name": "stress-ng"
+   }
+  },
+  "subversion": {
+   "chimera-apk\\subversion": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "subversion",
+     "repo-component": "universe"
+    },
+    "name": "subversion"
+   }
+  },
+  "superfile": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\superfile-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "superfile"
+    },
+    "name": "superfile-glue"
+   },
+   "tarball\\superfile": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/superfile",
+     "name": "superfile",
+     "version": {
+      "asset": "superfile-linux-*-$ARCH.tar.gz",
+      "github": "yorukot/superfile"
+     }
+    },
+    "name": "superfile"
    }
   },
   "superfile-glue": {
@@ -50281,6 +57623,100 @@
     "name": "sway-dotfiles"
    }
   },
+  "swaybg": {
+   "chimera-apk\\swaybg": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "swaybg",
+     "repo-component": "universe"
+    },
+    "name": "swaybg"
+   }
+  },
+  "swig": {
+   "chimera-apk\\swig": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "swig"
+    },
+    "name": "swig"
+   }
+  },
+  "syncthing": {
+   "chimera-apk\\syncthing": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "syncthing"
+    },
+    "name": "syncthing"
+   }
+  },
+  "tcl": {
+   "chimera-apk\\tcl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   }
+  },
+  "tcpdump": {
+   "chimera-apk\\tcpdump": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tcpdump"
+    },
+    "name": "tcpdump"
+   }
+  },
+  "television": {
+   "cargo\\television": {
+    "driver": "cargo",
+    "fields": {
+     "name": "television",
+     "version": {
+      "crates": "television"
+     }
+    },
+    "name": "television"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "dotfiles\\television-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/television",
+      "src": "television"
+     }
+    },
+    "name": "television-dotfiles"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "television-dotfiles": {
    "dotfiles\\television-dotfiles": {
     "driver": "dotfiles",
@@ -50293,6 +57729,69 @@
     "name": "television-dotfiles"
    }
   },
+  "tenacity": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tenacity": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.tenacityaudio.Tenacity"
+    },
+    "name": "org.tenacityaudio.Tenacity"
+   }
+  },
+  "tinyxml2": {
+   "chimera-apk\\tinyxml2": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tinyxml2-devel"
+    },
+    "name": "tinyxml2-devel"
+   }
+  },
+  "tk": {
+   "chimera-apk\\tcl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tcl",
+     "repo-component": "universe"
+    },
+    "name": "tcl"
+   },
+   "chimera-apk\\tk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tk",
+     "repo-component": "universe"
+    },
+    "name": "tk"
+   }
+  },
+  "tmux": {
+   "chimera-apk\\tmux": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tmux"
+    },
+    "name": "tmux"
+   },
+   "dotfiles\\tmux-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tmux",
+      "src": "tmux"
+     }
+    },
+    "name": "tmux-dotfiles"
+   }
+  },
   "tmux-dotfiles": {
    "dotfiles\\tmux-dotfiles": {
     "driver": "dotfiles",
@@ -50303,6 +57802,95 @@
      }
     },
     "name": "tmux-dotfiles"
+   }
+  },
+  "tor": {
+   "chimera-apk\\tor": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tor",
+     "repo-component": "universe"
+    },
+    "name": "tor"
+   }
+  },
+  "tor-browser": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\tor-browser": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.torproject.torbrowser-launcher"
+    },
+    "name": "org.torproject.torbrowser-launcher"
+   }
+  },
+  "traceroute": {
+   "chimera-apk\\traceroute": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "traceroute"
+    },
+    "name": "traceroute"
+   }
+  },
+  "tree": {
+   "chimera-apk\\tree": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "tree"
+    },
+    "name": "tree"
+   }
+  },
+  "tree-sitter-cli": {
+   "cargo\\tree-sitter-cli": {
+    "driver": "cargo",
+    "fields": {
+     "name": "tree-sitter-cli",
+     "version": {
+      "crates": "tree-sitter-cli"
+     }
+    },
+    "name": "tree-sitter-cli"
+   },
+   "chimera-apk\\rust": {
+    "driver": "chimera-apk",
+    "fields": {
+     "installed-name": {
+      "apt": "cargo"
+     },
+     "name": "cargo",
+     "repo-component": "universe"
+    },
+    "name": "cargo"
+   },
+   "glue\\rust-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "rust"
+    },
+    "name": "rust-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tree-sitter-cli-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tree-sitter-cli"
+    },
+    "name": "tree-sitter-cli-glue"
    }
   },
   "tree-sitter-cli-glue": {
@@ -50319,6 +57907,65 @@
      "glue": "tree-sitter-cli"
     },
     "name": "tree-sitter-cli-glue"
+   }
+  },
+  "tshark": {
+   "chimera-apk\\tshark": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "tuios": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\tuios-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/tuios",
+      "src": "tuios"
+     }
+    },
+    "name": "tuios-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\tuios-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "tuios"
+    },
+    "name": "tuios-glue"
+   },
+   "tarball\\tuios": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/tuios",
+     "name": "tuios",
+     "version": {
+      "asset": "tuios_*_Linux_$ARCH.tar.gz",
+      "github": "Gaurav-Gosain/tuios",
+      "strip-v": "true"
+     }
+    },
+    "name": "tuios"
    }
   },
   "tuios-dotfiles": {
@@ -50365,6 +58012,68 @@
     "name": "tuxedo-glue"
    }
   },
+  "typescript": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\typescript": {
+    "driver": "npm",
+    "fields": {
+     "name": "typescript"
+    },
+    "name": "typescript"
+   }
+  },
+  "unityhub": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\unityhub": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.unity.UnityHub"
+    },
+    "name": "com.unity.UnityHub"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\unityhub-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "unityhub"
+    },
+    "name": "unityhub-glue"
+   }
+  },
   "unityhub-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50379,6 +58088,52 @@
      "glue": "unityhub"
     },
     "name": "unityhub-glue"
+   }
+  },
+  "unzip": {
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   }
+  },
+  "uv": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\uv-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "uv"
+    },
+    "name": "uv-glue"
+   },
+   "pipx\\uv": {
+    "driver": "pipx",
+    "fields": {
+     "name": "uv"
+    },
+    "name": "uv"
    }
   },
   "uv-glue": {
@@ -50413,6 +58168,25 @@
     "name": "v-glue"
    }
   },
+  "valgrind": {
+   "chimera-apk\\valgrind": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "valgrind"
+    },
+    "name": "valgrind"
+   },
+   "dotfiles\\valgrind-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.valgrindrc",
+      "src": "valgrindrc"
+     }
+    },
+    "name": "valgrind-dotfiles"
+   }
+  },
   "valgrind-dotfiles": {
    "dotfiles\\valgrind-dotfiles": {
     "driver": "dotfiles",
@@ -50423,6 +58197,72 @@
      }
     },
     "name": "valgrind-dotfiles"
+   }
+  },
+  "vcpkg": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\git": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\vcpkg-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "vcpkg"
+    },
+    "name": "vcpkg-glue"
+   },
+   "script\\vcpkg": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "git clone https://github.com/microsoft/vcpkg \"$HOME/.vcpkg\" && \"$HOME/.vcpkg/bootstrap-vcpkg.sh\" -disableMetrics",
+     "location": "~/.vcpkg",
+     "name": "vcpkg",
+     "uninstall-cmd": "rm -rf \"$HOME/.vcpkg\"",
+     "version-cmd": "\"$HOME/.vcpkg/vcpkg\" version",
+     "version-re": "([0-9]{4}-[0-9]{2}-[0-9]{2})"
+    },
+    "name": "vcpkg"
    }
   },
   "vcpkg-glue": {
@@ -50441,6 +58281,68 @@
     "name": "vcpkg-glue"
    }
   },
+  "vegeta": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "tarball\\vegeta": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "arm64",
+      "x86_64": "amd64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/vegeta",
+     "name": "vegeta",
+     "version": {
+      "asset": "vegeta_*_linux_$ARCH.tar.gz",
+      "github": "tsenart/vegeta",
+      "strip-v": "true"
+     }
+    },
+    "name": "vegeta"
+   }
+  },
+  "virt-manager": {
+   "chimera-apk\\libvirt": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "libvirt"
+    },
+    "name": "libvirt"
+   },
+   "chimera-apk\\qemu": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "qemu"
+    },
+    "name": "qemu"
+   },
+   "chimera-apk\\virt-manager": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "virt-manager"
+    },
+    "name": "virt-manager"
+   },
+   "service\\libvirt-service": {
+    "driver": "service",
+    "fields": {
+     "name": "libvirt-service",
+     "runit": [
+      "libvirtd",
+      "virtlockd",
+      "virtlogd"
+     ],
+     "unit": "libvirtd"
+    },
+    "name": "libvirt-service"
+   }
+  },
   "vis-dotfiles": {
    "dotfiles\\vis-dotfiles": {
     "driver": "dotfiles",
@@ -50453,6 +58355,131 @@
     "name": "vis-dotfiles"
    }
   },
+  "visualvm": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\jdk": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "openjdk21"
+    },
+    "name": "openjdk21"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   },
+   "glue\\sdkman-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "sdkman"
+    },
+    "name": "sdkman-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\sdkman": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "curl -s https://get.sdkman.io | bash",
+     "location": "~/.sdkman",
+     "name": "sdkman",
+     "uninstall-cmd": "rm -rf \"$HOME/.sdkman\"",
+     "version-cmd": "source \"$HOME/.sdkman/bin/sdkman-init.sh\" && sdk version",
+     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
+    },
+    "name": "sdkman"
+   },
+   "sdkman\\visualvm": {
+    "driver": "sdkman",
+    "fields": {
+     "name": "visualvm"
+    },
+    "name": "visualvm"
+   }
+  },
+  "vivaldi": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\vivaldi": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vivaldi.Vivaldi"
+    },
+    "name": "com.vivaldi.Vivaldi"
+   }
+  },
+  "vlc": {
+   "chimera-apk\\vlc": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "vlc"
+    },
+    "name": "vlc"
+   }
+  },
+  "vnstat": {
+   "chimera-apk\\vnstat": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "vnstat"
+    },
+    "name": "vnstat"
+   }
+  },
+  "vscode": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\vscode-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.config/Code/User",
+      "src": "vscode-user"
+     }
+    },
+    "name": "vscode-dotfiles"
+   },
+   "flatpak\\vscode": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.visualstudio.code"
+    },
+    "name": "com.visualstudio.code"
+   }
+  },
   "vscode-dotfiles": {
    "dotfiles\\vscode-dotfiles": {
     "driver": "dotfiles",
@@ -50463,6 +58490,33 @@
      }
     },
     "name": "vscode-dotfiles"
+   }
+  },
+  "vscodium": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\vscodium-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.config/VSCodium/User",
+      "src": "vscodium-user"
+     }
+    },
+    "name": "vscodium-dotfiles"
+   },
+   "flatpak\\vscodium": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.vscodium.codium"
+    },
+    "name": "com.vscodium.codium"
    }
   },
   "vscodium-dotfiles": {
@@ -50493,6 +58547,65 @@
     "name": "vulkan-sdk-glue"
    }
   },
+  "wayland": {
+   "chimera-apk\\wayland": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wayland-devel"
+    },
+    "name": "wayland-devel"
+   }
+  },
+  "wayland-protocols": {
+   "chimera-apk\\wayland-protocols": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wayland-protocols"
+    },
+    "name": "wayland-protocols"
+   }
+  },
+  "websocat": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\websocat-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "websocat"
+    },
+    "name": "websocat-glue"
+   },
+   "tarball\\websocat": {
+    "driver": "tarball",
+    "fields": {
+     "archive": "none",
+     "binary": "websocat",
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/websocat",
+     "name": "websocat",
+     "version": {
+      "asset": "websocat.$ARCH-unknown-linux-musl",
+      "github": "vi/websocat"
+     }
+    },
+    "name": "websocat"
+   }
+  },
   "websocat-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50509,6 +58622,33 @@
     "name": "websocat-glue"
    }
   },
+  "wezterm": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "dotfiles\\wezterm-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/wezterm",
+      "src": "wezterm"
+     }
+    },
+    "name": "wezterm-dotfiles"
+   },
+   "flatpak\\wezterm": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "org.wezfurlong.wezterm"
+    },
+    "name": "org.wezfurlong.wezterm"
+   }
+  },
   "wezterm-dotfiles": {
    "dotfiles\\wezterm-dotfiles": {
     "driver": "dotfiles",
@@ -50519,6 +58659,160 @@
      }
     },
     "name": "wezterm-dotfiles"
+   }
+  },
+  "whois": {
+   "chimera-apk\\whois": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "whois"
+    },
+    "name": "whois"
+   }
+  },
+  "wireguard": {
+   "chimera-apk\\wireguard": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wireguard-tools"
+    },
+    "name": "wireguard-tools"
+   }
+  },
+  "wireshark": {
+   "chimera-apk\\wireshark": {
+    "driver": "chimera-apk",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wireshark-group": {
+   "chimera-apk\\wireshark": {
+    "driver": "chimera-apk",
+    "fields": {
+     "debconf": "wireshark-common wireshark-common/install-setuid boolean true",
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   },
+   "group\\wireshark-group": {
+    "driver": "group",
+    "fields": {
+     "name": "wireshark"
+    },
+    "name": "wireshark"
+   }
+  },
+  "wl-clipboard": {
+   "chimera-apk\\wl-clipboard": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wl-clipboard",
+     "repo-component": "universe"
+    },
+    "name": "wl-clipboard"
+   }
+  },
+  "wlroots": {
+   "chimera-apk\\wlroots": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wlroots0.20-devel"
+    },
+    "name": "wlroots0.20-devel"
+   }
+  },
+  "wmenu": {
+   "chimera-apk\\wmenu": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "wmenu",
+     "repo-component": "universe"
+    },
+    "name": "wmenu"
+   }
+  },
+  "wormhole": {
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\wormhole": {
+    "driver": "pipx",
+    "fields": {
+     "name": "magic-wormhole"
+    },
+    "name": "magic-wormhole"
+   }
+  },
+  "wxmaxima": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\wxmaxima": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "io.github.wxmaxima_developers.wxMaxima"
+    },
+    "name": "io.github.wxmaxima_developers.wxMaxima"
+   }
+  },
+  "xcb-util": {
+   "chimera-apk\\xcb-util": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "xcb-util-devel"
+    },
+    "name": "xcb-util-devel"
+   }
+  },
+  "xclip": {
+   "chimera-apk\\xclip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "xclip",
+     "repo-component": "universe"
+    },
+    "name": "xclip"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\xclip-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "xclip"
+    },
+    "name": "xclip-glue"
    }
   },
   "xclip-glue": {
@@ -50535,6 +58829,55 @@
      "glue": "xclip"
     },
     "name": "xclip-glue"
+   }
+  },
+  "xephyr": {
+   "chimera-apk\\xephyr": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "xserver-xorg-xephyr",
+     "repo-component": "universe"
+    },
+    "name": "xserver-xorg-xephyr"
+   }
+  },
+  "xh": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\xh-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "xh"
+    },
+    "name": "xh-glue"
+   },
+   "tarball\\xh": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/xh",
+     "name": "xh",
+     "version": {
+      "asset": "xh-*-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "ducaale/xh"
+     }
+    },
+    "name": "xh"
    }
   },
   "xh-glue": {
@@ -50565,6 +58908,105 @@
     "name": "xmonad-dotfiles"
    }
   },
+  "xnview-mp": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
+   "flatpak\\xnview-mp": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "com.xnview.XnViewMP"
+    },
+    "name": "com.xnview.XnViewMP"
+   }
+  },
+  "xz": {
+   "chimera-apk\\xz": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   }
+  },
+  "yarn": {
+   "chimera-apk\\node": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "nodejs",
+     "repo-component": "universe"
+    },
+    "name": "nodejs"
+   },
+   "glue\\node-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "node"
+    },
+    "name": "node-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "npm\\yarn": {
+    "driver": "npm",
+    "fields": {
+     "name": "yarn"
+    },
+    "name": "yarn"
+   }
+  },
+  "yazi": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\unzip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "unzip"
+    },
+    "name": "unzip"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\yazi-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "yazi"
+    },
+    "name": "yazi-glue"
+   },
+   "tarball\\yazi": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/yazi",
+     "name": "yazi",
+     "version": {
+      "asset": "yazi-$ARCH-unknown-linux-musl.zip",
+      "github": "sxyazi/yazi"
+     }
+    },
+    "name": "yazi"
+   }
+  },
   "yazi-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50581,7 +59023,61 @@
     "name": "yazi-glue"
    }
   },
+  "yq": {
+   "chimera-apk\\jq": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "jq"
+    },
+    "name": "jq"
+   },
+   "chimera-apk\\pipx": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "pipx"
+    },
+    "name": "pipx"
+   },
+   "glue\\jq-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "jq"
+    },
+    "name": "jq-glue"
+   },
+   "glue\\pipx-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "pipx"
+    },
+    "name": "pipx-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pipx\\yq": {
+    "driver": "pipx",
+    "fields": {
+     "name": "yq",
+     "version": {
+      "pypi": "yq"
+     }
+    },
+    "name": "yq"
+   }
+  },
   "zed": {
+   "chimera-apk\\flatpak": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "flatpak"
+    },
+    "name": "flatpak"
+   },
    "dotfiles\\zed-dotfiles": {
     "driver": "dotfiles",
     "fields": {
@@ -50591,6 +59087,14 @@
      }
     },
     "name": "zed-dotfiles"
+   },
+   "flatpak\\zed": {
+    "driver": "flatpak",
+    "fields": {
+     "hub": "flathub",
+     "name": "dev.zed.Zed"
+    },
+    "name": "dev.zed.Zed"
    },
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50605,18 +59109,6 @@
      "glue": "zed"
     },
     "name": "zed-glue"
-   },
-   "script\\zed": {
-    "driver": "script",
-    "fields": {
-     "install-cmd": "curl -f https://zed.dev/install.sh | sh",
-     "location": "~/.local/bin/zed",
-     "name": "zed",
-     "uninstall-cmd": "rm -rf \"$HOME/.local/zed.app\" \"$HOME/.local/bin/zed\"",
-     "version-cmd": "\"$HOME/.local/bin/zed\" --version",
-     "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
-    },
-    "name": "zed"
    }
   },
   "zed-dotfiles": {
@@ -50647,6 +59139,56 @@
     "name": "zed-glue"
    }
   },
+  "zellij": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dotfiles\\zellij-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "$XDG_CONFIG_HOME/zellij",
+      "src": "zellij"
+     }
+    },
+    "name": "zellij-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zellij-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zellij"
+    },
+    "name": "zellij-glue"
+   },
+   "tarball\\zellij": {
+    "driver": "tarball",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "installDir": "$CONFIGSYS_APP_DIR/zellij",
+     "name": "zellij",
+     "version": {
+      "asset": "zellij-$ARCH-unknown-linux-musl.tar.gz",
+      "github": "zellij-org/zellij",
+      "strip-v": "true"
+     }
+    },
+    "name": "zellij"
+   }
+  },
   "zellij-dotfiles": {
    "dotfiles\\zellij-dotfiles": {
     "driver": "dotfiles",
@@ -50675,6 +59217,49 @@
     "name": "zellij-glue"
    }
   },
+  "zig": {
+   "chimera-apk\\curl": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "chimera-apk\\xz": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "xz"
+    },
+    "name": "xz"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zig-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zig"
+    },
+    "name": "zig-glue"
+   },
+   "tarball\\zig": {
+    "driver": "tarball",
+    "fields": {
+     "installDir": "$CONFIGSYS_APP_DIR/zig",
+     "name": "zig",
+     "url": "https://ziglang.org/download/$VERSION/zig-$ARCH-linux-$VERSION.tar.xz",
+     "version": {
+      "regex": "\"([0-9]+[.][0-9]+[.][0-9]+)\": [{]",
+      "url": "https://ziglang.org/download/index.json"
+     }
+    },
+    "name": "zig"
+   }
+  },
   "zig-glue": {
    "glue\\shell-glue": {
     "driver": "glue",
@@ -50689,6 +59274,48 @@
      "glue": "zig"
     },
     "name": "zig-glue"
+   }
+  },
+  "zip": {
+   "chimera-apk\\zip": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zip"
+    },
+    "name": "zip"
+   }
+  },
+  "zlib": {
+   "chimera-apk\\zlib": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zlib-ng-compat-devel"
+    },
+    "name": "zlib-ng-compat-devel"
+   }
+  },
+  "zoxide": {
+   "chimera-apk\\zoxide": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zoxide",
+     "repo-component": "universe"
+    },
+    "name": "zoxide"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "glue\\zoxide-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "zoxide"
+    },
+    "name": "zoxide-glue"
    }
   },
   "zoxide-glue": {
@@ -50707,6 +59334,32 @@
     "name": "zoxide-glue"
    }
   },
+  "zsh": {
+   "chimera-apk\\zsh": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zsh"
+    },
+    "name": "zsh"
+   },
+   "dotfiles\\zsh-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.zshrc",
+      "src": "zshrc"
+     }
+    },
+    "name": "zsh-dotfiles"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   }
+  },
   "zsh-dotfiles": {
    "dotfiles\\zsh-dotfiles": {
     "driver": "dotfiles",
@@ -50717,6 +59370,15 @@
      }
     },
     "name": "zsh-dotfiles"
+   }
+  },
+  "zstd": {
+   "chimera-apk\\zstd": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "zstd"
+    },
+    "name": "zstd"
    }
   }
  },

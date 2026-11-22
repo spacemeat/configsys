@@ -267,8 +267,8 @@ def cmd_orphans(ctx, args):
     if base_hidden:
         print(f'({base_hidden} OS-base foreign package{"s" if base_hidden != 1 else ""} hidden '
               '[required/important/standard] — `--system` to show them)')
-    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/apk/xbps/brew, '
-          'flatpak, snap, pip/pipx/npm/cargo/gem/go-install/luarocks/opam); not scanned: '
+    print('scanned: batch-enumerable managers where present (apt/dnf/pacman/zypper/apk/chimera-apk/'
+          'xbps/brew, flatpak, snap, pip/pipx/npm/cargo/gem/go-install/luarocks/opam); not scanned: '
           'tarball/appImage/script/source installs (no batch enumeration) or arbitrary files.')
     return 0
 

@@ -51,7 +51,8 @@ Base OS families (atoms) and their native package manager:
 | alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here: a tarball's `requires: glibc` declines it, and the appImage and brew drivers aren't offered at all (derived / explicit driver gates). Needs a musl asset or native. (`pins: { glibc: gcompat }` opts a machine in to glibc tarballs + AppImages, best-effort — never brew) |
 | void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl (where, as on Alpine, appImage/brew aren't offered). Nonfree pkgs `requires: void-repo-nonfree`. No snap (snapd has no method here) |
 | atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable, no system pkg installs: `via: native` = `brew install` (the `brew:` key of a `name:` map names the formula; gate a native binding `not fedora_atomic` where brew has no usable formula — §3 "Homebrew"); `provides: flatpak` for GUI apps; no AppImage (no libfuse2 route) or snap — derived gates; `rpm-ostree` layering only as a user-added `standing: never-auto` binding (none ship — routing-model §6a) |
-| native-less   | `kde_linux` (glibc, immutable) · `chimera` (musl)   | —          | no `native:`, so `via: native` declines: only portable methods route. `kde_linux` `provides:` flatpak/curl/git/unzip/xz, so flatpak, brew (glibc; Homebrew itself via its install script), tarball, script and cargo route; no libfuse2 (AppImages aren't offered). `chimera` uses apk-tools but not Alpine's package names, and provides nothing beyond python3 — no curl, so no tarball/cargo; musl, so no brew/appImage — practically only dotfiles/glue and self-contained scripts route |
+| chimera       | `chimera`                                           | chimera-apk | **musl**, rolling. apk-tools v3 under Chimera's OWN names, so a binding's `apk:` key never reaches it: the name is its `default:` / the component name, patched by routes.hu's GENERATED `component-names: { chimera-apk: … }` section — after adding native bindings run `.venv/bin/python tools/chimeranames.py --write` (renames + `{}` for what Chimera doesn't package; review doubtful renames in `tools/chimeranames-review.hu`) and the chimera-apk name sweep. Most CLI tools are in Chimera's `user` repo (the driver enables it). No glibc: as on Alpine, no brew/appImage/glibc tarballs; `-service` components can't enable anything (dinit) |
+| native-less   | `kde_linux` (glibc, immutable)                      | —          | no `native:`, so `via: native` declines: only portable methods route. `kde_linux` `provides:` flatpak/curl/git/unzip/xz, so flatpak, brew (glibc; Homebrew itself via its install script), tarball, script and cargo route; no libfuse2 (AppImages aren't offered) |
 
 A "comprehensive row" = a `native` binding wherever the tool is in-repo + fallbacks covering the
 rest. Verify the final routing with the per-OS resolve check (below) — the target is *every* OS
@@ -283,7 +284,7 @@ and unbracketed, leave it out and mention it.
 .venv/bin/python -m configsys --home <scratch-home> --os pop check   # lint the merged config (0 errors)
 ```
 Use a fresh scratch `--home` (never your real home: it would merge your own config and plugins in).
-Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl/kde_linux) — all must
+Run `check` across a spread of OSes (pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl/kde_linux/chimera) — all must
 be **0 errors**, and warning count must not rise. Then confirm each new component resolves to the
 *expected* method per OS with a resolve sweep (adapt this):
 ```python
@@ -335,7 +336,8 @@ These need **podman** and are NOT part of pytest (slow, networked, container-onl
   catches renames/removals like redis→valkey): `bash test/run-name-sweep-in-podman.sh [manager]`.
   Host-side extractor is `tools/namesweep.py` (`--manager apt` lists names, `--json` the full map);
   false-positives go in `test/namesweep-allowlist.hu` with a one-line reason. Gates apt/dnf/pacman/
-  zypper/apk/xbps — `namesweep.MANAGERS` (xbps on void-glibc with the nonfree repo enabled; for musl
+  zypper/apk/chimera-apk/xbps — `namesweep.MANAGERS` (chimera-apk with Chimera's `user` repo enabled
+  — regenerate its names first, `tools/chimeranames.py --write`; xbps on void-glibc with the nonfree repo enabled; for musl
   names, the configsys-void plugin's `test/run-name-sweep.sh` sweeps both flavors). brew formulae
   aren't swept (`namesweep.UNSWEPT`): `tools/compaudit.py`'s brew probe checks them
   (update-component). **Run this after adding native bindings** — it's the cheap 80%-of-breakage
@@ -370,7 +372,10 @@ and need re-sync+re-trust to load.
 
 **OS package managers** (`via: native` resolves to the right one; name a manager directly only to
 pin it, or for a binding valid on just one, e.g. `{ via: apk  when: "alpine" }`): `apt` `dnf` `pacman`
-`zypper` `apk` `xbps` (and `brew`, fedora_atomic's native). Plus `aur` (Arch community; no `when:`
+`zypper` `apk` `chimera-apk` `xbps` (and `brew`, fedora_atomic's native). `chimera-apk` is Chimera
+Linux's apk under Chimera's OWN names: a binding's `apk:` name never reaches it; its names come from
+routes.hu's generated `component-names: { chimera-apk: … }` block (`tools/chimeranames.py --write`
+after adding native components). Plus `aur` (Arch community; no `when:`
 needed — the driver's own gate is Arch-only, see §2), `rpm-ostree` (atomic layering — rarely;
 prefer flatpak/brew there).
 
@@ -483,7 +488,7 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
   native binding — the manager READS state from it while `name` still installs the meta. Like
   `name:` it may be keyed by driver (`libreoffice`: `installed-name: { apt: libreoffice-core  dnf:
   libreoffice-core }`, so pacman/zypper/… still probe their own name); a scalar applies to every
-  manager (`Driver.installed_name`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/xbps
+  manager (`Driver.installed_name`). Honored by the repo package managers apt/dnf/pacman/zypper/apk/chimera-apk/xbps
   (as is `packages: [...]`, a set installed/removed together, detected via `installed-name:` else its
   first member) — NOT by `brew`.
 - **CPU (aarch64).** A download that names a cpu (`amd64`, `x86_64`, `x64`, `linux64`, `64bit`)

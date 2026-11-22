@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Name-existence sweep: verify every native package configsys maps to still EXISTS in its target
-# repos across apt/dnf/pacman/zypper/apk/xbps (catches renames/removals — redis→valkey, a dropped
+# repos across apt/dnf/pacman/zypper/apk/chimera-apk/xbps (catches renames/removals — redis→valkey, a dropped
 # package, a -dev suffix change). Read-only queries in throwaway containers; nothing is installed.
 # See docs/name-sweep-test.md.
 #

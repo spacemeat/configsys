@@ -67,9 +67,10 @@ network, no per-item subprocess.
    cross-slots, so an active clang-18 never resurfaces as an apt orphan.
 2. **Drivers scanned** — those of the active units ∪ every driver in the reverse index ∪
    `USER_FACING`; each whose `installed_index()` is non-empty. Today that means apt, dnf, pacman,
-   zypper, apk, xbps, brew, flatpak, snap, pip, pipx, npm, cargo, gem, go-install, luarocks, opam,
-   wherever present (apk enumerates with one `apk list --installed`, falling back to `apk info -v`
-   on apk-tools without `list`). An absent manager drops out either way: brew answers a true `{}`
+   zypper, apk, chimera-apk, xbps, brew, flatpak, snap, pip, pipx, npm, cargo, gem, go-install,
+   luarocks, opam, wherever present (apk and chimera-apk enumerate with one `apk list --installed`,
+   falling back to `apk info -v` on apk-tools without `list`; chimera-apk leaves the
+   `chimera-repo-user` package it adds out of the explicit set). An absent manager drops out either way: brew answers a true `{}`
    when Homebrew isn't installed (`Brew._listing`, command-not-found = nothing installed via brew),
    the others `None` ("couldn't tell"). Drivers with no `installed_index` — tarball, appImage,
    script, source, font, cabal, sdkman, pyenv, rpm-ostree, … — are not scanned; the native-backed

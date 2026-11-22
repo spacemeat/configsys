@@ -442,7 +442,7 @@ An \fBos:\fR block describes one distro:
 .IP \(bu 2
 \fB\fBusing:\fR\fR its parent block (the lineage);
 .IP \(bu 2
-\fB\fBnative:\fR\fR its package manager (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBxbps\fR, \fBbrew\fR), inherited when absent; a block whose lineage names none (KDE Linux, Chimera) has no package manager, so \fBvia: native\fR bindings aren't candidates there;
+\fB\fBnative:\fR\fR its package manager (\fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBzypper\fR, \fBapk\fR, \fBchimera-apk\fR, \fBxbps\fR, \fBbrew\fR), inherited when absent; a block whose lineage names none (KDE Linux) has no package manager, so \fBvia: native\fR bindings aren't candidates there;
 .IP \(bu 2
 \fB\fBscale-root: true\fR\fR marks a block that numbers its own releases, so versioned atoms on a parent don't misread its version;
 .IP \(bu 2
@@ -925,7 +925,7 @@ The \fB?\fR overlay lists the live bindings: the \fBglobal\fR actions first (dow
 .PP
 Each \fBvia:\fR value names a driver:
 .IP \(bu 2
-the OS package managers: \fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBaur\fR, \fBzypper\fR, \fBapk\fR, \fBxbps\fR, \fBbrew\fR, \fBrpm-ostree\fR;
+the OS package managers: \fBapt\fR, \fBdnf\fR, \fBpacman\fR, \fBaur\fR, \fBzypper\fR, \fBapk\fR, \fBchimera-apk\fR (Chimera Linux's apk-tools, under Chimera's own package names), \fBxbps\fR, \fBbrew\fR, \fBrpm-ostree\fR;
 .IP \(bu 2
 the distribution drivers: \fBflatpak\fR, \fBsnap\fR, \fBappImage\fR, \fBtarball\fR (also bare executables and \fB.zip\fR archives), \fBnative-pkg-file\fR (an upstream release's \fB.deb\fR/\fB.rpm\fR/pacman package installed with the OS package tool; distinct from repo \fBnative\fR, since it doesn't ride system updates), \fBsource\fR (build from a git checkout or source archive with declared \fBbuild:\fR commands), \fBfont\fR, and \fBscript\fR (declared install/version/uninstall commands);
 .IP \(bu 2

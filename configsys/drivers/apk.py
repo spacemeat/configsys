@@ -75,6 +75,7 @@ class Apk(NativePkgManager):
     trusted_registry = True
     command_fields = frozenset()
     holds_version = False          # rolling: no per-package hold; a branch carries one current version
+    DISTRO = 'Alpine'              # who is rolling, in the decline notes (chimera_apk.ChimeraApk: Chimera)
     INSTALL = 'apk add {pkgs}'
     REMOVE = 'apk del {pkgs}'
     UPGRADE = 'apk add --upgrade {pkgs}'
@@ -168,13 +169,15 @@ class Apk(NativePkgManager):
         # the repos), and there's no hold — so `apk add pkg=<old>` would fail to resolve and even a
         # resolvable pin wouldn't survive the next `apk upgrade`. Decline honestly.
         return Result('', 1, advisory=True, stderr=(
-            f'apk can\'t pin {rc.comp} to {version}: Alpine is rolling — apk carries one current '
-            f'version per branch, with no per-package hold. Use `configsys upgrade {rc.comp}`.'))
+            f'{self.name} can\'t pin {rc.comp} to {version}: {self.DISTRO} is rolling — apk carries one '
+            f'current version of each package, with no per-package hold. Use `configsys upgrade '
+            f'{rc.comp}`.'))
 
     def lock(self, rc):
         return Result('', 1, advisory=True, stderr=(
-            f'apk won\'t lock {rc.comp}: Alpine is rolling — apk has no per-package hold and '
-            f'`apk upgrade` moves everything together, so a hold can\'t be honored. Nothing was locked.'))
+            f'{self.name} won\'t lock {rc.comp}: {self.DISTRO} is rolling — apk has no per-package '
+            f'hold and `apk upgrade` moves everything together, so a hold can\'t be honored. Nothing '
+            f'was locked.'))
 
     def unlock(self, rc):
-        return Result(f'({rc.comp}: apk has no lock to release)', 0)
+        return Result(f'({rc.comp}: {self.name} has no lock to release)', 0)

@@ -282,7 +282,8 @@ def _reconcile_managed_sources(ctx, pm, wanted, *, ask=None, lister=None):
 # refresh is the full system upgrade, which `configsys refresh` asks before running and nothing
 # runs automatically. (Rolling alone doesn't decide it: Void and Tumbleweed sync safely.)
 _NATIVE_REFRESH = {'apt': 'apt-get update', 'dnf': 'dnf -q makecache',
-                   'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update', 'xbps': 'xbps-install -S',
+                   'zypper': 'zypper --non-interactive refresh', 'apk': 'apk update',
+                   'chimera-apk': 'apk update', 'xbps': 'xbps-install -S',
                    'brew': 'brew update'}
 
 

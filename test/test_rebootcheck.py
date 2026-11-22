@@ -121,6 +121,20 @@ def test_apk_lts_booted_beside_a_newer_edge_is_no_reboot():
     assert rebootcheck.reboot_pending(c2)[0] is True
 
 
+def test_chimera_series_is_the_package_not_the_uname_flavor():
+    # every Chimera kernel's release ends `-generic` (linux-lts 6.18.62 -> 6.18.62-0-generic), so the
+    # series is the PACKAGE (linux-lts / linux-stable) of the running MAJOR.MINOR
+    idx = ('linux-lts-6.18.62-r0 x86_64 {linux-lts}\nlinux-stable-7.3.3-r0 x86_64 {linux-stable}\n'
+           'linux-headers-7.0.12-r0 x86_64 {linux-headers}\nlinux-pam-1.7.2-r0 x86_64 {linux-pam}\n')
+    booted_lts = _ctx('chimera-apk', {'uname -r': (0, '6.18.60-0-generic\n'), 'apk list --installed': (0, idx)})
+    assert rebootcheck.reboot_pending(booted_lts)[0] is True          # lts 6.18.62 > running 6.18.60
+    current = _ctx('chimera-apk', {'uname -r': (0, '6.18.62-0-generic\n'), 'apk list --installed': (0, idx)})
+    assert rebootcheck.reboot_pending(current) == (False, '')         # a newer linux-stable isn't ours
+    only = 'linux-stable-7.4.1-r0 x86_64 {linux-stable}\n'               # the only kernel moved series
+    moved = _ctx('chimera-apk', {'uname -r': (0, '7.3.3-0-generic\n'), 'apk list --installed': (0, only)})
+    assert rebootcheck.reboot_pending(moved)[0] is True
+
+
 def test_xbps_another_series_without_the_meta_is_no_reboot():
     idx = ('ii linux6.6-6.6.30_1              The Linux kernel and modules (6.6 series)\n'
            'ii linux6.12-6.12.111_1           The Linux kernel and modules (6.12 series)\n')

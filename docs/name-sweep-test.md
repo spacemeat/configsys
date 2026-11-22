@@ -27,7 +27,8 @@ only that gap. It's the 20% that catches 80% of real breakage.
 ### 1. Extractor (`tools/namesweep.py`)
 
 Resolves every component in a representative context per manager (`namesweep.MANAGERS`: ubuntu
-26.10=apt, fedora 45=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, void=xbps; all on
+26.10=apt, fedora 45=dnf, arch=pacman, opensuse=zypper, alpine 3.24=apk, chimera=chimera-apk,
+void=xbps; all on
 `x86_64`) and collects the **native** package names each maps to (`_native_names`,
 `Resolver.resolve_names` per component, so its `requires:` closure's native units count too) —
 respecting `when:` (only what routes there) and `name:` (the real per-distro name). A
@@ -38,7 +39,7 @@ units that first wire a third-party repo or fetch a package file (`_NON_REPO_FIE
 whose names only exist after that setup. Units of a native-backed driver (gcc, clang, gcc-toolset)
 are keyed on their own driver, so this tool never sees their `packages:`; `osaudit sweep` adds
 them (below).
-Current volume: **~390–460 packages per manager** (~2,550 across the six).
+Current volume: **~390–460 packages per manager** (~2,550 across the six), ~200 for chimera-apk.
 
 ```
 $ python3 tools/namesweep.py                 # count per manager (apt 434 / dnf 424 / pacman 461 / zypper 388 / apk 408 / xbps 430)
@@ -80,6 +81,10 @@ read-only, nothing installed):
   `zypper -n --gpg-auto-import-keys ref`)
 - **apk** — `alpine:3.24`; `apk search -x "$p"`, requiring a `<name>-<version>` row (adds the
   `community` repo; `apk update`)
+- **chimera-apk** — `chimeralinux/chimera:latest`; the same `apk search -x "$p"` check (enables
+  Chimera's `user` repo — `apk add chimera-repo-user`, `apk update` — as the driver does). Chimera's
+  names are routes.hu's generated `component-names: { chimera-apk: … }` section
+  (`tools/chimeranames.py`), so a drift here usually means: regenerate it
 - **xbps** — `void-linux/void-glibc:latest`; `xbps-query -R "$p"` (enables `void-repo-nonfree`,
   which components there `requires:`; xbps names are the same on musl)
 
@@ -120,8 +125,8 @@ remove the entry.
 
 ## Scope, and what it has caught
 
-The default sweep gates on **every `MANAGERS` entry** — today the six families apt/dnf/pacman/
-zypper/apk/xbps. Its first runs caught, among others:
+The default sweep gates on **every `MANAGERS` entry** — today apt/dnf/pacman/zypper/apk/
+chimera-apk/xbps. Its first runs caught, among others:
 
 - **nim** and **lazygit** aren't in Fedora repos → gated / retargeted to the tarball.
 - **gcc-cpp** lacked apt/pacman names → gated redhat; **gst-libav** is `gstreamer1-plugin-libav` on

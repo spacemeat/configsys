@@ -52,6 +52,7 @@ if [ -z "$PY" ] || ! command -v "$PY" >/dev/null 2>&1 || ! _py_ok "$PY"; then
     if command -v dnf >/dev/null 2>&1; then hint="${as_root}dnf install python3.12   (EL 9: also python3.12-devel to build humon)"
     elif command -v apt-get >/dev/null 2>&1; then hint="${as_root}apt-get install python3"
     elif command -v zypper >/dev/null 2>&1; then hint="${as_root}zypper install python311"
+    elif grep -qs '^ID="\?chimera' /etc/os-release; then hint="${as_root}apk add python"   # Chimera's CPython 3
     fi
     echo "configsys: python >= 3.10 required (found: $found)." >&2
     echo "  install one — $hint — or point configsys at one: PYTHON=/path/to/python3.1x configsys …" >&2
@@ -126,6 +127,7 @@ if ! "$VPY" -E -c 'import humon, packaging' >/dev/null 2>&1; then
         elif command -v dnf >/dev/null 2>&1; then hint="${as_root}dnf install gcc python3-devel"
         elif command -v pacman >/dev/null 2>&1; then hint="${as_root}pacman -S gcc"
         elif command -v zypper >/dev/null 2>&1; then hint="${as_root}zypper install gcc python3-devel"
+        elif grep -qs '^ID="\?chimera' /etc/os-release; then hint="${as_root}apk add clang python-devel"   # Chimera: its own apk names
         elif command -v apk >/dev/null 2>&1; then hint="${as_root}apk add build-base python3-dev"
         elif command -v xbps-install >/dev/null 2>&1; then hint="${as_root}xbps-install gcc python3-devel"
         fi

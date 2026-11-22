@@ -1,0 +1,30 @@
+// chimeranames-review.hu — the human review of tools/chimeranames.py's Chimera renames (identity:
+// the SAME software, not a name collision). Checked against the chimeralinux/chimera image's main +
+// user index and, where it mattered, the package's own files (`apk fetch` + `apk manifest`). When in
+// doubt, reject: a `{}` is an honest "not here", a wrong rename installs the wrong thing.
+{
+    // The name configsys would install on Chimera — as-is, or found by a rule — is NOT this
+    // component's software -> `{}` instead.
+    reject: {
+        fuse:          "the component is FUSE 2 (jmtpfs needs it); Chimera's `fuse` is libfuse 3.x and it packages no libfuse2"
+        libfuse2:      "Chimera's `fuse` is libfuse 3.x — no libfuse2 (and AppImages, its consumer, don't run on musl anyway)"
+        docker-engine: "Chimera's `moby` is the daemon WITHOUT the `docker` CLI (docker-cli, a separate package), while every other distro's package bundles both — the `docker` parts bundle would install no `docker` command"
+    }
+
+    // Hand-verified Chimera names no rule finds (or where a rule finds the wrong one).
+    rename: {
+        cython:           python-cython          // Cython, Chimera's python- prefix
+        dig:              bind-progs             // holds /usr/bin/dig (`bind` is the server; Arch's name)
+        emacs:            emacs-gtk3             // GNU Emacs, GTK build (/usr/bin/emacs) — Debian/Arch's `emacs` is GTK too
+        expat:            libexpat-devel         // the Expat dev package (component = dev headers + libs)
+        iperf3:           iperf                  // Chimera's `iperf` IS iperf 3.x (/usr/bin/iperf3)
+        libssl:           openssl3-devel         // OpenSSL's dev package (component = dev headers + libs)
+        make:             gmake                  // GNU make; it ships /usr/bin/make as well as gmake
+        openssl:          openssl3               // the OpenSSL CLI (/usr/bin/openssl)
+        pulseaudio-utils: libpulse-progs         // holds pactl (`libpulse` is the library; Arch's name)
+        python3-dev:      python-devel           // CPython headers (Python.h); Arch's `python` is the interpreter
+        wlroots:          wlroots0.20-devel      // the dev package (component = dev headers + libs); `wlroots0.20` is the runtime
+        xephyr:           xserver-xorg-xephyr    // the Xephyr nested X server (/usr/bin/Xephyr)
+        zlib:             zlib-ng-compat-devel   // Chimera's system zlib is zlib-ng in compat mode (as Fedora 40+ / EL10)
+    }
+}

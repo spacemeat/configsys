@@ -216,12 +216,16 @@ def test_no_native_manager_blocks_route_around_native():
     assert 'tarball\\dnspeep' in units and not any(k.endswith('\\curl') for k in units)
 
 
-def test_chimera_is_musl_with_no_native_yet():
+def test_chimera_is_musl_with_its_own_apk_driver():
     r = Resolver(ROUTES, 'chimera', None, 'x86_64')
-    assert r.cascade.native('chimera') is None
+    assert r.cascade.native('chimera') == 'chimera-apk'           # NOT Alpine's `apk` (other names)
+    assert r.context().has_native
     assert 'glibc' not in r.cascade.provides('chimera')          # musl: glibc binaries decline
     with pytest.raises(ResolveError):
-        r.resolve_names(['ghostty'])                              # glibc AppImage + natives only
+        r.resolve_names(['ghostty'])                              # glibc AppImage + per-OS natives only
+    units = r.resolve_names(['btop'])                             # a plain `via: native` component
+    assert units['chimera-apk\\btop'].driver == 'chimera-apk'
+    assert not any(k.startswith('apk\\') for k in units)
 
 
 def test_the_static_grid_sees_derivative_bases_too(cascade):

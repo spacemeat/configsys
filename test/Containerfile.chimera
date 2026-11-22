@@ -1,0 +1,19 @@
+# Disposable Chimera Linux sandbox for the chimera-apk driver lifecycle (test/integration_chimera.sh).
+# configsys needs bash + python (Chimera's `python` is CPython 3); humon builds from source, so the
+# C compiler (clang) and python-devel come along. Chimera ships no sudo (its
+# privilege tool is doas), and the test runs as root, so a pass-through `sudo` shim stands in for
+# the runner's `sudo bash -c …` — the container has no other user to escalate from.
+FROM docker.io/chimeralinux/chimera:latest
+
+RUN apk update >/dev/null && apk add --no-interactive bash python python-devel clang >/dev/null
+
+RUN printf '%s\n' '#!/bin/sh' \
+      '# test shim: Chimera has no sudo and this container runs as root — drop the options, run the rest' \
+      'while [ $# -gt 0 ]; do case "$1" in --) shift; break ;; -*) shift ;; *) break ;; esac; done' \
+      '[ $# -eq 0 ] && exit 0' \
+      'exec "$@"' > /usr/local/bin/sudo && chmod 0755 /usr/local/bin/sudo
+
+COPY . /root/configsys
+WORKDIR /root/configsys
+
+CMD ["bash", "test/integration_chimera.sh"]

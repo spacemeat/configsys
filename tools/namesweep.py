@@ -45,6 +45,7 @@ MANAGERS = [
     ('pacman', 'arch', ''),
     ('zypper', 'opensuse', ''),
     ('apk', 'alpine', '3.24'),
+    ('chimera-apk', 'chimera', ''),
     ('xbps', 'void', ''),
 ]
 # Native managers deliberately not swept here, and what checks their names instead. Every native
@@ -108,6 +109,7 @@ _CHECK = {
     # metacharacters like gcc-c++, false-flagging an existing package; awk isn't in the image).
     'zypper': 'zypper -n se -x "$p" 2>/dev/null | grep -qF "| package"',
     'apk':    'apk search -x "$p" 2>/dev/null | grep -q "^$p-[0-9]"',
+    'chimera-apk': 'apk search -x "$p" 2>/dev/null | grep -q "^$p-[0-9]"',   # Chimera's apk-tools v3
     'xbps':   'xbps-query -R "$p" >/dev/null 2>&1',
 }
 
@@ -131,6 +133,12 @@ _VERIFIERS = {
     'apk': ('docker.io/library/alpine:{ver}', r'''
         ver=$(cut -d. -f1,2 /etc/alpine-release)
         echo "https://dl-cdn.alpinelinux.org/alpine/v$ver/community" >> /etc/apk/repositories
+        apk update >/dev/null 2>&1'''),
+    # Chimera (rolling; its own names — routes.hu's generated `component-names: { chimera-apk: … }`,
+    # tools/chimeranames.py). The `user` repo (most CLI tools) is enabled, as the driver does before
+    # its first install.
+    'chimera-apk': ('docker.io/chimeralinux/chimera:latest', r'''
+        apk add --no-interactive chimera-repo-user >/dev/null 2>&1
         apk update >/dev/null 2>&1'''),
     # Void (glibc; xbps names are libc-agnostic — the musl image carries the same names). The nonfree
     # repo is enabled because components that live there `requires: void-repo-nonfree`.
@@ -182,7 +190,7 @@ def _run_verifier(image, snippet, names, timeout=2400):
     return [ln for ln in lines if ln != DONE], proc.returncode
 
 
-# The green gate: all six package families. NOTE openSUSE ships some versioned names
+# The green gate: every MANAGERS family. NOTE openSUSE ships some versioned names
 # (python313-pip, ffmpeg-7, ...) that roll with Tumbleweed — the sweep will flag them when they
 # bump; just update the `name:` map (that's the sweep working, not a false alarm).
 _DEFAULT_MANAGERS = tuple(m for m, _b, _v in MANAGERS)

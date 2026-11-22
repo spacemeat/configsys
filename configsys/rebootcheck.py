@@ -4,7 +4,7 @@ Uses each family's NATIVE check (no needrestart dependency):
   * apt     — /run/reboot-required (a file update-notifier-common drops on kernel/libc/systemd/… bumps)
   * dnf     — `dnf needs-restarting -r` (exit 1 = reboot advised) / `-s` (services)
   * zypper  — `zypper needs-rebooting`  (exit 102 = reboot needed) / `zypper ps -sss` (services)
-  * pacman/apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel of the running one's
+  * pacman/apk/chimera-apk/xbps — no native flag: a kernel-vs-running heuristic (a newer kernel of the running one's
     series is installed). Conservative — compares only MAJOR.MINOR.PATCH so a distro suffix can't
     false-fire, and never against another flavor/series you may boot on purpose.
   * brew    — none, declared in _NO_REBOOT_CHECK (user-space; rpm-ostree reports its own reboots).
@@ -113,12 +113,18 @@ def _flavor(raw):
     return tail if tail.isalpha() else ''
 
 
+# `linux-<word>-<version>` packages on Chimera that are not a kernel series
+_CHIMERA_NOT_KERNELS = frozenset({'headers', 'pam', 'firmware', 'tools'})
+
+
 def _kernel_heuristic(ctx, pm):
     '''A newer kernel than the running one, of the SERIES it was booted from: a box that boots
     linux-lts on purpose with a newer `linux` also installed (or Alpine's linux-lts beside
     linux-edge) must not read "reboot advised" forever — a reboot wouldn't clear it. pacman: the
     `linux-<flavor>` package `uname -r` names (bare `linux` when it names none); apk: the
-    `linux-<flavor>-` package; xbps: the `linuxM.N` series package of the running MAJOR.MINOR, plus
+    `linux-<flavor>-` package; chimera-apk: every Chimera kernel's release ends `-generic`, so the
+    series is the PACKAGE (linux-lts / linux-stable) of the running MAJOR.MINOR, else the only kernel
+    installed; xbps: the `linuxM.N` series package of the running MAJOR.MINOR, plus
     the series the `linux` meta package now points at (an update that moved your default series is
     one a reboot picks up).'''
     run = _run(ctx, 'uname -r')
@@ -149,6 +155,16 @@ def _kernel_heuristic(ctx, pm):
                 meta = mm.group(1)
         wanted = {f'{running[0]}.{running[1]}'} | ({meta} if meta else set())
         vers = [v for mm, v in series.items() if mm in wanted]
+    elif pm == 'chimera-apk':
+        q = _run(ctx, 'apk list --installed')        # "linux-lts-6.18.62-r0 x86_64 {linux-lts} …"
+        kernels = {}
+        for ln in (q.stdout.splitlines() if (q and q.stdout) else []):
+            tok = ln.split()[0] if ln.split() else ''
+            m = re.match(r'linux-([a-z]+)-(\d.*)$', tok)
+            if m and m.group(1) not in _CHIMERA_NOT_KERNELS:
+                kernels[m.group(1)] = m.group(2)
+        same = [v for v in kernels.values() if (_kver(v) or ())[:2] == running[:2]]
+        vers = same or (list(kernels.values()) if len(kernels) == 1 else [])
     else:                                                # apk
         if not flavor:
             return (False, '')                           # every Alpine kernel names its flavor
@@ -172,7 +188,8 @@ def _kernel_heuristic(ctx, pm):
 # Every native manager declares exactly one of these (test_driver_inventory): its reboot-required
 # check, or why it has none.
 _REBOOT_CHECKS = {'apt': _apt_reboot, 'dnf': _dnf_reboot, 'zypper': _zypper_reboot,
-                  'pacman': _kernel_heuristic, 'apk': _kernel_heuristic, 'xbps': _kernel_heuristic}
+                  'pacman': _kernel_heuristic, 'apk': _kernel_heuristic,
+                  'chimera-apk': _kernel_heuristic, 'xbps': _kernel_heuristic}
 _NO_REBOOT_CHECK = {
     'brew': 'user-space formulae never need a reboot; on fedora_atomic (brew-native) the system '
             'image is rpm-ostree\'s, and its driver prints its own reboot notice',
