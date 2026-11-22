@@ -446,3 +446,34 @@ def test_a_non_utf8_byte_never_runs_a_streamed_op_twice(tmp_path, monkeypatch, c
                 capture=False)
     assert counter.read_text().count('start') == 1
     assert res.ok and 'progress' in res.captured
+
+
+@pytest.mark.real_runner
+def test_a_streamed_op_flushes_configsys_output_first(monkeypatch):
+    '''A child streams straight to the real stdout, so anything configsys printed before it must be
+    flushed FIRST — else a log piped to a file reads the child's lines above the step that ran them.'''
+    import sys
+    from configsys import runner as runner_mod
+    order = []
+
+    class Rec:
+        def __init__(self, inner):
+            self._inner = inner
+        def write(self, s):
+            return self._inner.write(s)
+        def flush(self):
+            order.append('flush')
+            return self._inner.flush()
+        def __getattr__(self, name):
+            return getattr(self._inner, name)
+
+    real_run = runner_mod.subprocess.run
+    def spy_run(*a, **kw):
+        order.append('spawn')
+        return real_run(*a, **kw)
+
+    monkeypatch.setattr(sys, 'stdout', Rec(sys.stdout))
+    monkeypatch.setattr(runner_mod, '_can_tee', lambda: False)
+    monkeypatch.setattr(runner_mod.subprocess, 'run', spy_run)
+    runner_mod.Runner().run('true', capture=False, tui_active=False)
+    assert 'spawn' in order and 'flush' in order[:order.index('spawn')], order

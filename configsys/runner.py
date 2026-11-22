@@ -527,6 +527,11 @@ class Runner:
         if self.sandbox_home:
             env = sandboxed_env(env, self.sandbox_home)
         env = child_env(env)
+        if not capture:
+            # a streamed child writes straight to OUR stdout/stderr fds: flush what configsys printed
+            # first, or a log piped to a file reads the child's lines above the step that ran them
+            sys.stdout.flush()
+            sys.stderr.flush()
         ta = self.tui_active if tui_active is None else tui_active
         with terminal_released(ta):
             # Streamed op on a real terminal: mirror the output live AND keep a bounded tail for
