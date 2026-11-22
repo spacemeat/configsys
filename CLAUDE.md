@@ -297,8 +297,11 @@ check — `rebootcheck._REBOOT_CHECKS` or `_NO_REBOOT_CHECK` {manager: why none}
 in core or by a trusted code plugin (playbook: `/add-driver`, enforced by
 test/test_driver_inventory.py; `register_driver`).
 
-Every command runs through `runner.Runner.run`, with an activated Python virtualenv dropped from its
-env (`runner.child_env` — else `python3` is the venv's, pip `--user` refuses and pipx's apps read
+Every command runs through `runner.Runner.run` (a privileged op escalates through ONE escalator,
+`privilege.detect()`'s Sudo / Doas / AlreadyRoot — or NoEscalator, which fails it; a single root
+step inside a command is `Driver.as_root` / `$SUDO`, never a literal `sudo`), with an activated
+Python virtualenv dropped from its env (`runner.child_env` — else `python3` is the venv's, pip
+`--user` refuses and pipx's apps read
 uninstalled); a streamed child that already started is never re-run when the relay fails
 (`runner.ChildStarted`). The brew driver finds `brew` off PATH in Homebrew's standard prefixes
 (`drivers/brew.brew_env`, appended — a same-batch `homebrew` install isn't on the process's PATH),
@@ -348,9 +351,9 @@ unpublished; the project runs clone-first.)
   `tools/reviewaudit.py coverage` lists files no area owns. The latest full run is
   `docs/review-2026-11-2/`.
 - Tests (`.venv/bin/python -m pytest test/…`) are HERMETIC by default (`test/conftest.py`
-  `_hermetic`): a temp `HOME`, `CONFIGSYS_*`/`XDG_*` scrubbed, git config isolated, a failing fake
-  `sudo` first on PATH, `Runner.run` refusing to execute unless the runner is `--pretend` or the
-  test is `@pytest.mark.real_runner`, and no network unless `@pytest.mark.network`. Shared doubles
+  `_hermetic`): a temp `HOME`, `CONFIGSYS_*`/`XDG_*` scrubbed, git config isolated, failing fake
+  `sudo` and `doas` first on PATH, `Runner.run` refusing to execute unless the runner is `--pretend`
+  or the test is `@pytest.mark.real_runner`, and no network unless `@pytest.mark.network`. Shared doubles
   (`FakeRunner`, `git`, `primary_remote`) live in `test/fakes.py`. Inventory tests fail until a new
   thing is wired in: `test_driver_inventory.py` (a driver), `test_pretend_sweep.py` `VERBS` /
   `test_tui_pretend_sweep.py` (a write path), `test_primary_journal.py` `WRITES` (a primary

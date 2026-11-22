@@ -20,11 +20,13 @@ $ ./configsys.sh inspect    # or run any subcommand non-interactively
 
 ## Quick start
 
-configsys needs **git** and **python3 ≥ 3.10**; it sets up everything else itself.
+configsys needs **git** and **python3 ≥ 3.10**; it sets up everything else itself. Steps that
+need root go through **sudo**, or **doas** where that's all there is (Chimera Linux), or run
+directly when you are root.
 (`humon`, the config parser, compiles from source, so a minimal install also needs a C compiler
 and the Python headers — e.g. `xbps-install python3 python3-devel gcc` on Void, `apk add python3
 python3-dev build-base` on Alpine. `configsys.sh` names the right packages if the build fails,
-and on Debian/Ubuntu it installs the missing `python3.X-venv` package itself, with sudo.)
+and on Debian/Ubuntu it installs the missing `python3.X-venv` package itself, with sudo or doas.)
 
 ```console
 $ git clone https://github.com/spacemeat/configsys ~/src/configsys
@@ -49,7 +51,9 @@ skip), and opens the TUI:
    `./configsys.sh picks add <name>` tracks it.)
 2. Press `1` for the **Components** screen. `I` stages everything missing or outdated (`i` stages
    one row); `X` shows the batch and runs it once you confirm. If anything needs root, configsys
-   asks for your sudo password once, up front, and the rest runs unattended. (From a shell:
+   asks for your password once, up front (sudo or doas), and the rest runs unattended. (doas
+   remembers it only with a `persist` rule in /etc/doas.conf, and only for about 5 minutes; without
+   one configsys says each step will ask, and never edits the file.) (From a shell:
    `./configsys.sh install --picks` shows the same plan and asks before running it.)
 
 > **Dry run:** put `--pretend` before the command — `./configsys.sh --pretend install btop` — to
@@ -206,7 +210,7 @@ Key ideas:
 - **`scope: user|system`** — install scope. Scope-honoring drivers (appImage, flatpak,
   tarball, source, font, npm, gem, luarocks) default to `user`; set it per-binding or
   machine-wide via `scope:` in your config. User scope lands under your home (e.g. `~/apps`),
-  system scope under `/opt` (with sudo); `dirs:` moves either base. Fixed-scope drivers
+  system scope under `/opt` (as root); `dirs:` moves either base. Fixed-scope drivers
   (apt/dnf/pacman = system, dotfiles/cargo/pipx = user) ignore it.
 
 Run `configsys where <name>` to see a component's bindings and which one resolves here.
@@ -484,7 +488,7 @@ them (so `configsys orphans` lists them); to make them this machine's picks, tra
 Profiles screen (`T`) or with `configsys picks add`.
 
 **`refresh`** re-queries the latest version of everything you've picked *and* refreshes the OS
-package index (`apt-get update`, `dnf makecache`, …; sudo may prompt). On Arch the only safe
+package index (`apt-get update`, `dnf makecache`, …; sudo or doas may prompt). On Arch the only safe
 refresh is a full `pacman -Syu`, so `refresh` asks before running it. Every install or upgrade
 batch — from the CLI or the TUI — also refreshes the index once up front when it includes a native
 install or upgrade (the `refresh-before-execute` setting: `auto`, `always` or `never`). If that
@@ -892,7 +896,7 @@ their package names honest against a real container image as upstream repos roll
 
 ```console
 $ .venv/bin/python -m pip install pytest   # once: the bootstrap installs only humon and packaging
-$ .venv/bin/python -m pytest test/         # the unit suite (hermetic: no network, no sudo, no real config)
+$ .venv/bin/python -m pytest test/         # the unit suite (hermetic: no network, no sudo/doas, no real config)
 $ bash test/run-in-podman.sh               # real apt lifecycle in a disposable container
 $ bash test/run-flatpak-in-podman.sh       # optional: real flatpak --user lifecycle (slow, networked)
 ```
@@ -919,7 +923,8 @@ $ CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q
 ```
 
 Every test is hermetic (`test/conftest.py`): it gets a fresh `HOME` with inherited `CONFIGSYS_*` and
-`XDG_*` variables dropped and your git config ignored; a fake `sudo` fails any test that reaches it;
+`XDG_*` variables dropped and your git config ignored; a fake `sudo` and `doas` fail any test that
+reaches them;
 configsys runs no real command unless the runner is `--pretend` or the test is marked
 `@pytest.mark.real_runner`; and a network connection to anything but loopback fails unless the test
 is marked `@pytest.mark.network`.
@@ -1004,7 +1009,7 @@ edit that file, not this section -->
 - **review-diff** (`configsys plugin diff`) — What would change, by direction, readable before you sync, update, trust or push: ↓ what would come in (a synced plugin's newest ref, what your other machines pushed to your primary, or an unsynced one's ref against the newest — or everything a sync would download) and ↑ what your copy has that its remote doesn't (what a push would share; edits made here, which no sync takes back). Each .hu change is said in words; --raw (TUI d) shows the unified diff. An unsynced plugin is fetched into a cache that is never loaded or run. *See also:* **plugin**, **plugin-lock**, **trust**.
 - **routing-status** — A component status about its install METHOD, shown instead of the version status: `switch` (stranded install), `unmet` (only a disabled driver could install it), `dangling` (no method on this OS). *See also:* **stranded**, **status**.
 - **scale-root** (`scale-root: true`) — Marks an OS block that numbers its own releases (Mint 21, Zorin 18), so a versioned parent atom like `ubuntu >= 24.04` doesn't misread its version. *See also:* **OS-block**.
-- **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user.
+- **scope** (`scope:`) — Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs root). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user.
 - **setting-nature** — Whether a machine setting is uniform (belongs in your primary plugin, same everywhere) or machine-local (belongs in this box's config). `configsys config move` carries one across. *See also:* **primary-plugin**.
 - **shell-glue** — The component that makes every installed shell load its `~/.config/<shell>/conf.d/` snippets — the substrate every `-glue` companion needs. *See also:* **glue**.
 - **shell-writes-guard** (`installer-shell-writes:`) — Protection against installers that edit your shell startup files: by default configsys reverts such edits and keeps the removed lines as inactive glue you can review. *See also:* **glue**.

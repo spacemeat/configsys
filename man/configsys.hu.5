@@ -87,7 +87,7 @@ A setting that takes one of a few words (\fBscope\fR, \fBrefresh-before-execute\
 .IP \(bu 2
 \fB\fBmachine\fR\fR (scalar, machine; default \fBthis-machine\fR): this box's machine name, i.e. which \fBpicks:\fR column is "this machine". \fBconfigsys machine use <name>\fR sets it. Read only from your top config. A name with no \fBpicks:\fR column installs nothing, and \fBcheck\fR warns.
 .IP \(bu 2
-\fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs sudo).
+\fB\fBscope\fR\fR (\fBuser\fR or \fBsystem\fR, machine; default \fBuser\fR): the install scope for scope-honoring drivers when a binding doesn't set one. \fBuser\fR installs under \fB~\fR, \fBsystem\fR under \fB/opt\fR (needs root: sudo, or doas where that's all there is).
 .IP \(bu 2
 \fB\fBdriver-preference\fR\fR (list, uniform; default \fB[ native, aur, flatpak, snap, native-pkg-file, appImage, brew, tarball, source, script ]\fR): the order that breaks ties between equally valid install methods (see "Choosing among methods"). A layer's list replaces the whole list. Your list needn't name every driver: the drivers it leaves out follow the ones it names, in the default order, so a list written before a new driver existed still ranks it. An OS block's own \fBdriver-preference:\fR (on this machine's block or a parent of it) ranks ahead of this setting on that OS. Drivers that no list names rank last and tie with each other, and a choice that comes down to such a tie is an error.
 .IP \(bu 2

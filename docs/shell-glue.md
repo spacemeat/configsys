@@ -120,7 +120,7 @@ settings edit that can move where things install or which method applies (`setti
 (a bash/zsh associative array, fish parallel lists, an elvish map / nushell record), so each call
 is a hash hit. A cache under 60 minutes old is read in ~1 ms, and only a cold/stale one spawns one
 `configsys location --all` — with `CONFIGSYS_NO_BOOTSTRAP=1`, so a shell start never repairs the
-launcher's venv (`configsys.sh` exits 75 instead of running pip or `sudo apt-get` behind a hidden
+launcher's venv (`configsys.sh` exits 75 instead of running pip or a root `apt-get` behind a hidden
 stderr); if that run fails, the stale cache is kept rather than an empty one. In bash/zsh/fish, `cs_cached <key> <tool> <cmd…>` caches slow init
 output (`pyenv init -`, `luarocks path`) under `~/.cache/configsys/glue-eval/<key>`, regenerated only
 when `<tool>`'s executable is newer than the cache. Glue authors: never spawn `configsys` per snippet —

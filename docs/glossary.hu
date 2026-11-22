@@ -208,7 +208,7 @@
         }
         scope: {
             short: "`scope:`"
-            def: "Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs sudo). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user."
+            def: "Where a user-space install lands: `user` (your home, e.g. `~/apps`) or `system` (`/opt`, needs root). Distro package managers are always system; Homebrew, in its user-owned prefix, is always user."
         }
         companion: {
             def: "A small helper component named after its parent — `<name>-dotfiles` (its config), `<name>-glue` (its shell setup), `<name>-service` (start its daemon), `<name>-group` (add you to its group)."

@@ -124,7 +124,7 @@ other value is likewise refused, warned about, and read as the default.
   top config. A name with no `picks:` column installs nothing, and `check` warns.
 - **`scope`** (`user` or `system`, machine; default `user`): the install scope for scope-honoring
   drivers when a binding doesn't set one. `user` installs under `~`, `system` under `/opt` (needs
-  sudo).
+  root: sudo, or doas where that's all there is).
 - **`driver-preference`** (list, uniform; default `[ native, aur, flatpak, snap, native-pkg-file,
   appImage, brew, tarball, source, script ]`): the order that breaks ties between equally valid install
   methods (see "Choosing among methods"). A layer's list replaces the whole list. Your list needn't

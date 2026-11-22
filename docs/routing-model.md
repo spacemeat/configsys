@@ -447,7 +447,7 @@ that with ONE block:
   **not** match an atomic box, so a binding meant for both must name both (`when: "fedora or
   fedora_atomic"`).
 - **`native: brew`.** Every plain `via: native` binding resolves to `brew install <name>` (the
-  name-map key is `brew`; `drivers/brew.Brew`, user-scope, never sudo). Homebrew's formula set
+  name-map key is `brew`; `drivers/brew.Brew`, user-scope, never root). Homebrew's formula set
   covers most CLI tools under their usual names, so most `via: native` CLI components route with no
   atomic-specific data. The `drivers: { brew: … }` block applies to these native-resolved bindings
   too (§9): they require `homebrew`, and pass brew's glibc gate. Where a component's only valid method is a broad `via: native` naming
@@ -473,7 +473,7 @@ the block changes. `--os`/`CONFIGSYS_OS` forcing bypasses the fold entirely. Fin
 (Bazzite vs Bluefin) is not modeled — nothing routes on it.
 
 **`via: rpm-ostree` is explicit layering only.** `drivers/rpm_ostree.RpmOstree` (system scope,
-sudo) exists, but no shipped component has an `rpm-ostree` binding, `rpm-ostree` is not in
+root) exists, but no shipped component has an `rpm-ostree` binding, `rpm-ostree` is not in
 `DEFAULT_DRIVER_PREFERENCE`, and it is never any block's `native:` (that would route *everything*
 through layering, which is reboot-gated and grows every future deployment). You layer something by
 writing the binding yourself in a higher layer (§10a); the name-map key is `rpm-ostree`. Because

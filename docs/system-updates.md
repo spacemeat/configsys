@@ -65,7 +65,7 @@ one map, test_driver_inventory):
 
 - `_NATIVE_REFRESH` (apt, dnf, zypper, apk, xbps, brew; in `cli/refresh.py`, re-exported as
   `app._NATIVE_REFRESH`) — an index-only refresh, safe before any install.
-  `cli.refresh.refresh_native_index` runs it (sudo, except brew; a transient stumble retried)
+  `cli.refresh.refresh_native_index` runs it (as root, except brew; a transient stumble retried)
   before `upgrade --system`, and before an ops batch per `refresh-before-execute`; `configsys
   refresh` runs it too. A TUI batch refreshes ONCE, up front — with System Updates staged, before
   the confirm (`maybe_refresh_before_plan(…, system=True)`, then `apply_bulk(refresh=False)` and
@@ -87,15 +87,15 @@ manager's query fails and it is dropped.
 
 | manager | upgradable | held | bulk (`upgrade_all`) | tiers |
 | --- | --- | --- | --- | --- |
-| apt | `apt list --upgradable` | `apt-mark showhold` | `apt-get upgrade --with-new-pkgs -y` (sudo, noninteractive env) | Priority |
-| dnf | `dnf -q check-update` (exit 100 = updates) | `dnf versionlock list` | `dnf upgrade -y` (sudo) | name |
-| pacman | `checkupdates` (exit 2 = none), else `pacman -Qu` (exit 1 = none) | — | `pacman -Syu --noconfirm` (sudo) | name |
-| zypper | `zypper --non-interactive -q list-updates` (`LC_ALL=C`) | `zypper locks` (`LC_ALL=C`) | `zypper --non-interactive update` (sudo) | name |
-| apk | `apk list --upgradable` | — | `apk upgrade` (sudo) | name |
-| xbps | `xbps-install -un` (`update` rows only) | `xbps-query -H` | `xbps-install -Suy` (sudo) | name |
-| brew | `brew outdated --formula --verbose` (Homebrew absent → exit 127 → `None`, dropped) | `brew list --pinned` | `brew upgrade` (never sudo) | name |
+| apt | `apt list --upgradable` | `apt-mark showhold` | `apt-get upgrade --with-new-pkgs -y` (root, noninteractive env) | Priority |
+| dnf | `dnf -q check-update` (exit 100 = updates) | `dnf versionlock list` | `dnf upgrade -y` (root) | name |
+| pacman | `checkupdates` (exit 2 = none), else `pacman -Qu` (exit 1 = none) | — | `pacman -Syu --noconfirm` (root) | name |
+| zypper | `zypper --non-interactive -q list-updates` (`LC_ALL=C`) | `zypper locks` (`LC_ALL=C`) | `zypper --non-interactive update` (root) | name |
+| apk | `apk list --upgradable` | — | `apk upgrade` (root) | name |
+| xbps | `xbps-install -un` (`update` rows only) | `xbps-query -H` | `xbps-install -Suy` (root) | name |
+| brew | `brew outdated --formula --verbose` (Homebrew absent → exit 127 → `None`, dropped) | `brew list --pinned` | `brew upgrade` (never root) | name |
 | flatpak | `flatpak remote-ls --updates`, both scopes | `flatpak mask`, both scopes | `flatpak update -y` | runtime/app |
-| snap | `snap refresh --list` | `held` in `snap list` Notes | `snap refresh` (sudo) | name |
+| snap | `snap refresh --list` | `held` in `snap list` Notes | `snap refresh` (root) | name |
 
 Notes on the choices:
 
@@ -182,8 +182,8 @@ manager's `upgradable_advisory()` and the native-manager query-failure note as
   warns and proceeds on the cached index; a no-op on pacman, see Refresh styles), gathers,
   previews the same grouped list, confirms (`--yes` skips; a non-TTY without `--yes` exits 1),
   then runs `upgrade_all` for each manager **that has at least one listed row** — through
-  `sysupdates.apply_bulk(refresh=False)`, the same apply step the TUI runs, inside one sudo
-  session — offers to file any failure (`_offer_report`; the failure is also recorded for the `!`
+  `sysupdates.apply_bulk(refresh=False)`, the same apply step the TUI runs, inside one root
+  session (sudo or doas) — offers to file any failure (`_offer_report`; the failure is also recorded for the `!`
   page and `configsys report`, except under `--pretend`), then prints the reboot advisory
   (`reboot-advice`; the native manager's `rebootcheck._REBOOT_CHECKS` entry — brew is in
   `_NO_REBOOT_CHECK`, user-space). Exit status is the first failing manager's return code (130

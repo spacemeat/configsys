@@ -8,7 +8,7 @@ over seven screens. Each screen follows one protocol (build a view model, paint 
 paints through a `Surface` so it can render without a terminal, and dispatches on keymap **actions**,
 not raw key codes. User-facing look and keys are covered in [theming.md](theming.md) and
 [config-format.md](config-format.md#theme-and-keys); splash code plugins in
-[plugins.md](plugins.md#7b-other-hooks). The cross-cutting rules (no surprises, sudo/TTY handling)
+[plugins.md](plugins.md#7b-other-hooks). The cross-cutting rules (no surprises, root escalation / TTY handling)
 are in [principles.md](principles.md).
 
 ## Module map
@@ -231,7 +231,8 @@ read-only (it stages nothing and says why).
 **Execute** (`flows._confirm_and_execute`): pull System Updates out of `ms.plan()`, then
 `actions.build_plan` — the one plan builder the CLI uses too (auto-tighten, the method-switch swap
 `plan_with_swaps`, only the missing dependencies, and the version-floor heads-ups). Under `suspended`
-and one `ctx.runner.sudo_session()`: with System Updates staged, refresh the index *before* the
+and one `ctx.runner.sudo_session()` (root, through sudo or doas — `privilege.py`; at most one
+prompt): with System Updates staged, refresh the index *before* the
 confirm (so the count you confirm is current); print the heads-ups and the plan; confirm (the CLI's
 `cli.common.ask`); run System Updates first (`sysupdates.apply_bulk` → each manager's `upgrade_all`),
 then `execute_plan` → `actions.run_plan` (the same loop the CLI uses; every failure saved for

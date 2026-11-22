@@ -114,9 +114,19 @@ break one only with a deliberate, recorded reason. (The routing spec proper is
   holes and no mutual-support deadlock.
 - **Build the path first, grow structure around it** (maze splash): the head follows a precomputed
   route = progress, so no runtime physics is needed to guarantee a solvable/animatable result.
-- **A pty is a different controlling terminal.** Under sudo `tty_tickets`, capturing through a pty
-  re-prompts every op; pre-auth on the *real* tty once per batch instead (sudo-tty fix). That holds
-  for sudo run *inside* a command too (a `| sudo bash` installer, `sudo make install`, makepkg, a
-  plugin build script): a batch that may need root authenticates **up front** (the one prompt comes
-  before the user walks away) and then keeps **every** streamed op on the real tty, so a long
-  install runs unattended after it.
+- **Root goes through one escalator, authenticated once, on the real terminal.** A root step runs
+  through whatever the machine has — directly when configsys already runs as root, else sudo, else
+  doas (Chimera ships only doas), else it fails saying configsys needs sudo or doas
+  (`privilege.detect`, once per runner). Nothing writes a literal `sudo` into a command: a whole
+  command is `runner.run(…, sudo=True)` (one root shell), a single step inside one is `as_root` /
+  `$SUDO`. **A pty is a different controlling terminal:** under sudo `tty_tickets`, capturing
+  through a pty re-prompts every op; pre-auth on the *real* tty once per batch instead (sudo-tty
+  fix). That holds for a root step run *inside* a command too (a `| sudo bash` installer,
+  `$SUDO make install`, makepkg, a plugin build script): a batch that may need root authenticates
+  **up front** (the one prompt comes before the user walks away) and then keeps **every** streamed
+  op on the real tty, so a long install runs unattended after it. doas can't be kept warm: its
+  `persist` rule remembers a password about 5 minutes from the prompt (using it doesn't extend
+  that), and per calling process — configsys's own root steps share the one prompt while it lasts,
+  but a doas inside a step's own shell may ask again. With no `persist` (or `nopass`) rule,
+  configsys says once that each privileged step will ask, and names the doas.conf line that makes
+  it one prompt (`permit persist :wheel`). configsys never edits doas.conf or sudoers.
