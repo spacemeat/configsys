@@ -5,7 +5,9 @@
 # directly: the `user` repository enabled once before the first install (with a note), a main-repo
 # package (curl) and a user-repo one (bat) installed non-interactively, their versions read back,
 # lock declined (Chimera is rolling — apk has no per-package hold), a later install that leaves
-# the enabled repo alone, then everything removed.
+# the enabled repo alone, then everything removed. Then docker (moby + docker-cli + the dinit service:
+# dinit isn't running in a container, so the service is enabled --offline for the next boot) in and
+# out again.
 set -euo pipefail
 
 say() { printf '\n=== %s ===\n' "$*"; }
@@ -58,4 +60,18 @@ say "remove bat + curl + fzf"
 cfs remove bat curl fzf </dev/null
 for p in bat curl fzf; do if has "$p"; then fail "$p still installed after remove"; fi; done
 
-printf '\nPASS: chimera-apk lifecycle (user repo once, curl + bat + fzf, versions, lock declined, remove)\n'
+say "docker: moby + docker-cli, dockerd enabled under dinit"
+out="$(cfs install docker </dev/null 2>&1)" || { printf '%s\n' "$out"; fail "docker install failed"; }
+printf '%s\n' "$out"
+has moby && has docker-cli || fail "moby/docker-cli not installed"
+command -v docker >/dev/null || fail "no docker command"
+[ -L /etc/dinit.d/boot.d/dockerd ] || fail "dockerd not enabled (no /etc/dinit.d/boot.d/dockerd link)"
+printf '%s\n' "$out" | grep -q "starts at the next boot" || fail "no note that dinit isn't running"
+cfs versions docker-service | tee /dev/stderr | grep -q enabled || fail "docker-service doesn't read enabled"
+
+say "remove docker: the dinit link goes, then the packages"
+cfs remove docker </dev/null
+[ ! -e /etc/dinit.d/boot.d/dockerd ] || fail "dockerd still enabled after remove"
+if has moby || has docker-cli; then fail "moby/docker-cli still installed after remove"; fi
+
+printf '\nPASS: chimera-apk lifecycle (user repo once, curl + bat + fzf, versions, lock declined, remove) + docker under dinit\n'

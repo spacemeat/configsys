@@ -585,9 +585,14 @@ section of routes.hu (§10a; `tools/chimeranames.py --write`, human-reviewed in
 component falls through to flatpak, a tarball, cargo, … or reads as unroutable). The chimera-apk
 name sweep (`namesweep.MANAGERS`) keeps the map honest. With a native manager, curl / git / flatpak
 / pipx / cargo route as packages, so the portable methods' prerequisites are met through their
-requires. It `provides:` nothing beyond `linux`'s python3. `-service` components resolve but can't
-enable anything (the service driver knows systemd and runit, not dinit — it notes and skips, as on
-Alpine's OpenRC). Its `advisory:` puts an `os-advisory` warning in the diagnostics.
+requires. It `provides:` nothing beyond `linux`'s python3. `-service` components enable dinit services
+(the service driver's `Dinit` init; a binding's `dinit:` names Chimera's service where it differs,
+as `runit:` does on Void). The system toolchain is clang + libc++: `c-toolchain` / `cpp-toolchain`
+route to `clang`, and `libstdc++` has no method there (`{}`; Chimera has no g++). A binding gated to
+Alpine or Void-musl usually admits chimera too (`alpine or chimera`, its names then from the
+generated section), except one whose `packages:` set or repo fields are that distro's own — Chimera
+gets its own `when: "chimera"` binding instead. Its `advisory:` puts an `os-advisory` warning in the
+diagnostics.
 
 ## 7. CPU arch
 

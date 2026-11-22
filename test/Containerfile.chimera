@@ -1,12 +1,13 @@
 # Disposable Chimera Linux sandbox for the chimera-apk driver lifecycle (test/integration_chimera.sh).
 # configsys needs bash + python (Chimera's `python` is CPython 3); humon builds from source, so the
-# C compiler (clang) and python-devel come along. Chimera ships no sudo — its privilege tool is doas —
+# C compiler (clang) and python-devel come along; dinit-chimera (a real install's init, absent from
+# the image) so the service driver's dinit branch is exercised. Chimera ships no sudo — its privilege tool is doas —
 # so the test runs as an ordinary wheel user that escalates through doas (privilege.Doas), the way a
 # real Chimera box does. A container can't type a password, so doas.conf here says `nopass`; on a
 # real machine `permit persist :wheel` gives one prompt per batch instead.
 FROM docker.io/chimeralinux/chimera:latest
 
-RUN apk update >/dev/null && apk add --no-interactive bash python python-devel clang opendoas shadow >/dev/null
+RUN apk update >/dev/null && apk add --no-interactive bash python python-devel clang opendoas shadow dinit-chimera >/dev/null
 
 RUN useradd -m -G wheel -s /bin/bash cfs \
  && printf 'permit nopass :wheel\n' > /etc/doas.conf && chmod 0400 /etc/doas.conf

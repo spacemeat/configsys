@@ -51,7 +51,7 @@ Base OS families (atoms) and their native package manager:
 | alpine        | `alpine`                                            | apk        | **musl** — glibc tarballs/appImages don't run here: a tarball's `requires: glibc` declines it, and the appImage and brew drivers aren't offered at all (derived / explicit driver gates). Needs a musl asset or native. (`pins: { glibc: gcompat }` opts a machine in to glibc tarballs + AppImages, best-effort — never brew) |
 | void          | `void` (glibc) + `void_musl`                        | xbps       | rolling, Arch-fresh. The flavors are **siblings** (different libc parents) — a Void-wide gate is `void or void_musl`; bare `void` misses musl (where, as on Alpine, appImage/brew aren't offered). Nonfree pkgs `requires: void-repo-nonfree`. No snap (snapd has no method here) |
 | atomic/brew   | `fedora_atomic` (Bazzite/uBlue)                     | brew       | immutable, no system pkg installs: `via: native` = `brew install` (the `brew:` key of a `name:` map names the formula; gate a native binding `not fedora_atomic` where brew has no usable formula — §3 "Homebrew"); `provides: flatpak` for GUI apps; no AppImage (no libfuse2 route) or snap — derived gates; `rpm-ostree` layering only as a user-added `standing: never-auto` binding (none ship — routing-model §6a) |
-| chimera       | `chimera`                                           | chimera-apk | **musl**, rolling. apk-tools v3 under Chimera's OWN names, so a binding's `apk:` key never reaches it: the name is its `default:` / the component name, patched by routes.hu's GENERATED `component-names: { chimera-apk: … }` section — after adding native bindings run `.venv/bin/python tools/chimeranames.py --write` (renames + `{}` for what Chimera doesn't package; review doubtful renames in `tools/chimeranames-review.hu`) and the chimera-apk name sweep. Most CLI tools are in Chimera's `user` repo (the driver enables it). No glibc: as on Alpine, no brew/appImage/glibc tarballs; `-service` components can't enable anything (dinit) |
+| chimera       | `chimera`                                           | chimera-apk | **musl**, rolling. apk-tools v3 under Chimera's OWN names, so a binding's `apk:` key never reaches it: the name is its `default:` / the component name, patched by routes.hu's GENERATED `component-names: { chimera-apk: … }` section — after adding native bindings run `.venv/bin/python tools/chimeranames.py --write` (renames + `{}` for what Chimera doesn't package; review doubtful renames in `tools/chimeranames-review.hu`) and the chimera-apk name sweep. Most CLI tools are in Chimera's `user` repo (the driver enables it). No glibc: as on Alpine, no brew/appImage/glibc tarballs. Extend an `alpine` / `void_musl` gate with `or chimera` (never a binding whose `packages:` set or repo fields are Alpine's/Void's own — give Chimera its own `when: "chimera"` binding). Toolchain = clang + libc++ (no g++). Services run under dinit |
 | native-less   | `kde_linux` (glibc, immutable)                      | —          | no `native:`, so `via: native` declines: only portable methods route. `kde_linux` `provides:` flatpak/curl/git/unzip/xz, so flatpak, brew (glibc; Homebrew itself via its install script), tarball, script and cargo route; no libfuse2 (AppImages aren't offered) |
 
 A "comprehensive row" = a `native` binding wherever the tool is in-repo + fallbacks covering the
@@ -421,8 +421,8 @@ SDKMAN id like `21.0.13.0+9-tem` — installs and reads that version's own dir),
 CPython: the `python3.X` components' version-scoped method). Toolchains themselves: `gcc`
 `gcc-toolset` `clang`.
 
-**Post-install primitives:** `service` (`<name>-service` components — systemd `unit:`, or runit
-`runit:` on Void; `start: false` enables without starting), `group` (usermod — `<name>-group`,
+**Post-install primitives:** `service` (`<name>-service` components — systemd `unit:`, runit
+`runit:` on Void, dinit `dinit:` on Chimera; `start: false` enables without starting), `group` (usermod — `<name>-group`,
 opt-in, `requires:` the group the pkg creates).
 
 **Config:** `dotfiles` (`<name>-dotfiles`; named specs `config: { src: dst: }` or a top-level
@@ -480,6 +480,10 @@ Three distinct things (the live reference is `docs/config-format.md` — "Choosi
   under runit when Void's service dir is `/etc/sv/X`; if it differs add `runit: <name>` (a list, or
   a glob like `"postgresql[0-9]*"` for versioned dirs) — check with `xbps-query -R -f <pkg> | grep
   /etc/sv/`.
+- **Services on Chimera use dinit.** The service is a file in `/usr/lib/dinit.d` (a `<pkg>-dinit`
+  subpackage apk adds with the package); if its name differs from the unit add `dinit: <name>` (a
+  list, or a glob) — check by installing the package in the chimera image and listing
+  `/usr/lib/dinit.d` (Docker's is `dockerd`; libvirt runs modular daemons, `virtqemud` & co.).
 - **Name drift.** `name:` maps per distro; the name-sweep catches renames/removals — run it.
 - **Binary ≠ package name.** Note the real binary in the description (`btm`, `spf`, `nvim`, `hx`).
 - **Metapackage installed via its parts.** If a component installs an apt METAPACKAGE that a system
