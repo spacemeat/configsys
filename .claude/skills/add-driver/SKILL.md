@@ -282,7 +282,7 @@ plugin driver may need root. Changes need `configsys plugin sync` + `plugin trus
 
 ```
 .venv/bin/python -m pytest test/test_driver_inventory.py test/test_<module>_driver.py test/test_abi_surface.py -q
-for o in pop fedora arch alpine opensuse rhel fedora_atomic void void_musl kde_linux; do
+for o in pop fedora arch alpine opensuse rhel fedora_atomic void void_musl kde_linux chimera; do
   .venv/bin/python -m configsys --home <scratch> --os $o check | tail -1; done      # 0 errors, warnings not up
 CONFIGSYS_REGEN_GOLDEN=1 .venv/bin/python -m pytest test/test_golden.py -q        # then diff vs HEAD (add-component §8)
 .venv/bin/python tools/docaudit.py glossary --write && .venv/bin/python tools/gen_manpages.py

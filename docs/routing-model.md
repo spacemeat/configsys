@@ -156,7 +156,7 @@ down the lineage (`OsCascade.native` walks `using` to the nearest `native:`). Ex
     arch:        { using: glibc_linux  native: pacman }
     alpine:      { using: linux  native: apk }           // musl: under linux, not glibc_linux
     kde_linux:   { using: glibc_linux  provides: [ flatpak  curl  git  unzip  xz ]  scale-root: true }
-    chimera:     { using: linux }
+    chimera:     { using: linux  native: chimera-apk }   // apk-tools v3 under Chimera's own names
 } }
 ```
 
@@ -173,8 +173,7 @@ The package name defaults to the component's own name; override per driver where
 ```
 
 **Native-less OS blocks.** An OS block whose lineage declares no `native:` has no system package
-manager — `kde_linux` (image-based, pacman removed) and `chimera` (apk-tools v3, but not Alpine's
-package names, so no `native:` until Chimera-named bindings are verified). `OsCascade.context` sets
+manager — `kde_linux` (image-based, pacman removed) is the one today. `OsCascade.context` sets
 `Context.has_native = False` there, and `resolve._matching` drops every `via: native` binding — it
 is simply not a candidate, like a false `when:` — so components fall through to flatpak, tarballs,
 cargo, pipx, …, and distro-package-only components decline honestly (unroutable, not an error
@@ -424,9 +423,10 @@ routable and installable — but is no longer swept. `check` lints the table's s
 
 ## 6a. Image-based and package-manager-less OS blocks
 
-Most OS blocks assume a mutable system package manager behind `via: native`. Two kinds of
-environment break that assumption, and both are modeled as **OS-layer data** — a block's `native:`
-and `provides:` — rather than new resolver semantics. The selection machinery (§8/§8a) runs
+Most OS blocks assume a mutable system package manager behind `via: native`, under the package
+names the bindings' `name:` maps carry. Two kinds of environment break the first assumption and one
+the second (`chimera`, last below); all are modeled as **OS-layer data** — a block's `native:` and
+`provides:`, plus a driver-keyed `component-names:` patch — rather than new resolver semantics. The selection machinery (§8/§8a) runs
 unchanged; what changes is which bindings are candidates and which capabilities come free.
 
 ### Fedora Atomic / uBlue — `fedora_atomic`
@@ -535,7 +535,7 @@ makes every brew binding a non-candidate, so nothing changes there. On `fedora_a
 carrying both `{ via: native }` and `{ via: brew }` picks `native` by driver-preference; both reach
 the brew driver.
 
-### No system package manager — `kde_linux`, `chimera`
+### No system package manager — `kde_linux`
 
 A block whose lineage declares no `native:` (`OsCascade.native` returns None) has no system package
 manager (introduced in §3). `OsCascade.context` sets `predicate.Context.has_native = False`, and
@@ -562,20 +562,32 @@ an error about a missing driver. With no `native:` there is also no native index
   (YYYYMMDDHHMM); `scale-root: true` keeps any parent's versioned atom from misreading it.
   Its `advisory:` puts an `os-advisory` warning in the diagnostics (alpha, no system package
   manager, Flatpak + userland methods only).
-- **`chimera`** (Chimera Linux: musl, LLVM, BSD userland, rolling): `{ using: linux }` — under bare
-  `linux`, so glibc-requiring bindings (`requires: glibc`) decline as on Alpine. It has apk-tools v3
-  but not Alpine's package names (`-devel` not `-dev`, `python` not `python3`), so every `apk:`
-  name in the routes would be wrong there; it gets **no `native:` until Chimera-named
-  `via: apk  when: "chimera"` bindings are verified** (a name sweep in the chimeralinux image).
-  It declares no `provides:` beyond `linux`'s, so as shipped even the non-native methods are
-  mostly unmet (tarballs need `curl`, flatpak apps need `flatpak`, and those have only native
-  routes) and most components decline. Its `advisory:` puts an `os-advisory` warning in the
-  diagnostics.
 
 Writing a native-less block: omit `native:`, list in `provides:` exactly the tools the image
 ships (each entry is a promise that satisfies a driver requirement for free — overclaiming
 produces installs that fail at run time), and add a `native:` only once that manager's package
-names are verified for the distro (the `name-sweep`).
+names are verified for the distro (the `name-sweep`) — under the distro's OWN names, like `chimera`
+below.
+
+### A known manager under its own names — `chimera`
+
+**`chimera`** (Chimera Linux: musl, LLVM, BSD userland, dinit, rolling) is `{ using: linux  native:
+chimera-apk }` — under bare `linux`, so glibc-requiring bindings (`requires: glibc`) decline as on
+Alpine. It installs with apk-tools v3 but NOT Alpine's package names (`-devel` not `-dev`,
+`python-*` not `py3-*`), so inheriting `apk` would install Alpine's names. Its own driver,
+`chimera-apk` (an `Apk` subclass: Chimera's `user` repository enabled once before the first install,
+`--no-interactive` mutations — Chimera's apk config asks Y/n), keys its names apart: a binding's
+`apk:` name never reaches it (`resolve._package` reads the `chimera-apk:` key, then `default:`, then
+the component name), and Chimera's names live in ONE generated `component-names: { chimera-apk: … }`
+section of routes.hu (§10a; `tools/chimeranames.py --write`, human-reviewed in
+`tools/chimeranames-review.hu`) — a rename where Chimera's name differs (including a dev library's
+`-devel`), `{}` where Chimera packages nothing (that native method is then not a candidate, so the
+component falls through to flatpak, a tarball, cargo, … or reads as unroutable). The chimera-apk
+name sweep (`namesweep.MANAGERS`) keeps the map honest. With a native manager, curl / git / flatpak
+/ pipx / cargo route as packages, so the portable methods' prerequisites are met through their
+requires. It `provides:` nothing beyond `linux`'s python3. `-service` components resolve but can't
+enable anything (the service driver knows systemd and runit, not dinit — it notes and skips, as on
+Alpine's OpenRC). Its `advisory:` puts an `os-advisory` warning in the diagnostics.
 
 ## 7. CPU arch
 

@@ -30,9 +30,9 @@ correct. Once a block you add here has a registry, `/update-os` maintains it.
   `linux → glibc_linux → {debian, redhat, arch, opensuse, fedora_atomic, kde_linux, void}` and
   `linux → {alpine, chimera, void_musl}` (musl). A bare atom in a `when:` matches a block AND all its descendants (inheritance by identity).
 - **`native: <mgr>`** — the OS package manager `via: native` resolves to: `apt`/`dnf`/`pacman`/
-  `zypper`/`apk`/`xbps`/`brew`. **Declare it only where it CHANGES** from the parent; a pure rebrand inherits
+  `zypper`/`apk`/`chimera-apk`/`xbps`/`brew`. **Declare it only where it CHANGES** from the parent; a pure rebrand inherits
   it. (Debian declares `apt`; Pop/Mint/Kali just `using` a parent and inherit it.) A block may also
-  have NO native manager at all (`kde_linux`, `chimera`) — see *Native-less blocks* below.
+  have NO native manager at all (`kde_linux`) — see *Native-less blocks* below.
 - **`scale-root: true`** — this block OWNS a version-numbering line. **The load-bearing decision.**
   A distro whose version numbers are *identical* to its parent's borrows the parent's scale (NO
   scale-root — Pop 22.04 IS Ubuntu 22.04). A distro with its OWN numbering (Mint 21 ≠ Ubuntu 22.04,
@@ -70,13 +70,19 @@ gate. If the new OS is musl, do NOT put it under `glibc_linux`.
 An environment whose package manager configsys can't use declares no `native:` (and hangs off a
 parent that has none — `glibc_linux` or `linux`), so every `via: native` binding declines there and
 only portable methods route (flatpak, brew on glibc, musl/glibc tarballs, scripts, cargo, …) — and
-only where their prerequisites are met (`provides:`, or a portable route to them). Two shapes today:
+only where their prerequisites are met (`provides:`, or a portable route to them). One today:
 `kde_linux` (immutable, no package manager for users; `provides:` the tools its image ships, so
-tarball/source prerequisites are met) and `chimera` (musl; apk-tools v3 but NOT Alpine's package
-names, so the `apk:` names in routes would be wrong — no `native:` until Chimera-named
-`via: apk  when: "chimera"` bindings are verified by a name sweep; it provides no curl, so tarball
-and cargo can't work there and practically only dotfiles/glue and self-contained scripts route).
-Prefer this to inheriting a manager whose names don't fit.
+tarball/source prerequisites are met). Prefer this to inheriting a manager whose names don't fit —
+until the manager can be used under the distro's OWN names.
+
+**A known manager under other names** — `chimera` is the worked example. Chimera uses apk-tools v3
+but not Alpine's package names (`-devel` not `-dev`, `python-*` not `py3-*`), so inheriting `apk`
+would install Alpine's names; it was native-less until it got its own driver, `chimera-apk` (an
+`Apk` subclass — the `/add-driver` playbook §4), so the names are keyed apart: a binding's `apk:`
+names never reach it, and Chimera's live in ONE generated `component-names: { chimera-apk: … }`
+block in routes.hu (`tools/chimeranames.py --write`: resolve every component there, check each name
+in the distro image's index, try the house renaming rules, `{}` what isn't packaged; human review
+in `tools/chimeranames-review.hu`), swept by the chimera-apk name sweep.
 
 ## Runtime detection — how a machine maps to your block (osdetect.py)
 
@@ -161,7 +167,7 @@ fedora: { using: redhat  scale-root: true
 
 ## Steps
 
-1. **Identify the lineage + libc.** Which family (apt/dnf/pacman/zypper/apk/xbps/brew)? glibc or musl?
+1. **Identify the lineage + libc.** Which family (apt/dnf/pacman/zypper/apk/chimera-apk/xbps/brew)? glibc or musl?
    Read `/etc/os-release` (`ID`, `ID_LIKE`, `VERSION_ID`, `VARIANT_ID`) on a real image or from docs.
    Find the closest existing block to `using`.
 2. **Decide `scale-root`.** Does it number releases with its OWN scheme, or share the parent's exact
@@ -176,9 +182,10 @@ fedora: { using: redhat  scale-root: true
 5. **Native package names.** `via: native` defaults to the component name; if this manager names
    packages differently, existing components may need `name: { <mgr>: … }` maps — the name-sweep
    (below) catches these. A brand-new manager also needs a driver — the **`/add-driver`** playbook
-   (`.claude/skills/add-driver/SKILL.md`, §4 for a native manager) — but the seven listed above
+   (`.claude/skills/add-driver/SKILL.md`, §4 for a native manager) — but the eight listed above
    already exist. If the OS's manager exists but its package names don't match the existing maps,
-   go native-less (above) rather than inheriting broken names.
+   never inherit broken names: give it its own driver keyed apart plus a generated name map (the
+   `chimera-apk` pattern, *A known manager under other names* above), or go native-less meanwhile.
 6. **Validate:**
    - `.venv/bin/python -m configsys --home <scratch-home> --os <block> check` → 0 errors; also run the existing spread
      (add-component SKILL.md §7: pop/fedora/arch/alpine/opensuse/rhel/fedora_atomic/void/void_musl)
