@@ -401,7 +401,9 @@ formula (`<name>@<ver>`). When to add one and when not: §3.
   method there). Driver-wide `standing: never-auto`, and not offered where snapd has no method
   (openSUSE, Void, Alpine, atomic, …) — the derived gate.
 - `script` — declarative installer: `install-cmd`, `version-cmd`, `version-re`, `latest-cmd`,
-  `uninstall-cmd`, `upgrade-cmd`, `set-version-cmd`, `location`.
+  `uninstall-cmd`, `upgrade-cmd`, `set-version-cmd`, `location`. A root step is `$SUDO <cmd>` (sudo,
+  doas, or nothing as root), never a literal `sudo` — an ungated script binding runs on doas-only
+  boxes too (test_privilege_drivers guards routes.hu); the same goes for a source recipe.
 - `font` — a downloadable font archive into the fonts dir + `fc-cache` (`url:`/`version:`, `scope:`;
   the driver requires fontconfig, unzip and curl).
 - `source` — build from a git checkout/archive (`repo:`/`url:`, `build:`, `tag-prefix:`; recipes live

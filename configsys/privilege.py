@@ -20,6 +20,7 @@ writes before ONE step that needs root — `as_root(runner)`, `Driver.as_root`, 
 '''
 
 import os
+import re
 import shutil
 import subprocess
 import threading
@@ -182,6 +183,21 @@ def of(runner):
     '''`runner`'s escalator. A stand-in runner without one (a test double) reads as sudo — the form
     such doubles record for a `sudo=True` op.'''
     return getattr(runner, 'escalator', None) or _SUDO
+
+
+# a command's `$SUDO` (or `${SUDO}`) — never the head of a longer name such as `$SUDO_USER`
+_SUDO_VAR = re.compile(r'\$(?:SUDO\b|\{SUDO\})')
+
+
+def fill_sudo(text, word):
+    '''`text` with each `$SUDO` replaced by `word` — the escalator's (`as_root`), or '' where the step
+    needs no root — as a source recipe and a script binding write a root step.'''
+    return _SUDO_VAR.sub(lambda _m: word, str(text))
+
+
+def names_sudo(text):
+    '''Whether `text` writes a `$SUDO` root step.'''
+    return bool(_SUDO_VAR.search(str(text)))
 
 
 def and_may_prompt(runner, lead, where=''):

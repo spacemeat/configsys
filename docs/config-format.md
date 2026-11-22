@@ -560,7 +560,9 @@ Driver-specific fields include:
   or `/usr/local` at system scope), `build-path:` (extra PATH entries for the build),
   `uninstall-cmd:`, `location:` (the path to display).
 - **script**: `install-cmd:` (required), `version-cmd:` + `version-re:`, `latest-cmd:`,
-  `uninstall-cmd:`, `upgrade-cmd:`, `set-version-cmd:`, `location:`.
+  `uninstall-cmd:`, `upgrade-cmd:`, `set-version-cmd:`, `location:`. The commands run as you; a
+  step that needs root writes `$SUDO` before it (`$SUDO rm -f /usr/local/bin/helm`), filled in as
+  for a source recipe — `sudo`, `doas`, or empty when configsys already runs as root.
 - **brew**: `name:` (the formula). On Fedora Atomic, where brew is the native package manager, a
   `via: native` binding's `name:` map takes a `brew:` key.
 - **rpm-ostree**: `apply-live: true` also applies the layered package to the running system,

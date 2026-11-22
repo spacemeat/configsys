@@ -159,3 +159,36 @@ def test_doas_refusals_classify_as_auth():
     assert cat == AUTH and 'doas' in rem
     cat, _ = classify('doas: a password is required')
     assert cat == AUTH
+
+
+# -- a script binding's `$SUDO` ---------------------------------------------------------------------
+
+@pytest.mark.parametrize('esc', [Sudo(), Doas(), AlreadyRoot()])
+def test_a_script_commands_sudo_names_the_escalator(esc):
+    from configsys.drivers.script import Script
+    r = Runner(pretend=True, escalator=esc)
+    rc = _rc('script', 'snap-link', **{'install-cmd': 'test -e /snap || $SUDO ln -s /a /snap',
+                                       'uninstall-cmd': 'echo "${SUDO_USER:-x}"; ${SUDO} rm -f /snap'})
+    drv = Script(r)
+    drv.install(rc)
+    drv.uninstall(rc)
+    word = esc.word
+    assert r.calls[0].endswith(f'test -e /snap || {word} ln -s /a /snap')
+    assert r.calls[1].endswith(f'echo "${{SUDO_USER:-x}}"; {word} rm -f /snap')
+
+
+def test_no_ungated_script_route_writes_a_literal_sudo():
+    # a script binding with no OS gate runs wherever its component does — a doas-only box too — so
+    # a root step in it is `$SUDO`, never a literal sudo (the OS-gated ones ride distros that ship sudo)
+    import os
+    from configsys import routes
+    loaded = routes.load(os.path.join(os.path.dirname(__file__), '..', 'routes.hu'))
+    bad = []
+    for comp in loaded.components.values():
+        for b in comp.bindings:
+            if b.via != 'script' or b.when:
+                continue
+            for field in ('install-cmd', 'uninstall-cmd', 'upgrade-cmd', 'set-version-cmd'):
+                if 'sudo ' in str(b.details.get(field) or ''):
+                    bad.append((comp.name, field))
+    assert not bad, bad

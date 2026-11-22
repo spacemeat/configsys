@@ -42342,10 +42342,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -45586,10 +45586,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -49297,7 +49297,7 @@
      "install-cmd": "curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash",
      "location": "/usr/local/bin/helm",
      "name": "helm",
-     "uninstall-cmd": "sudo rm -f /usr/local/bin/helm",
+     "uninstall-cmd": "$SUDO rm -f /usr/local/bin/helm",
      "version-cmd": "helm version --short",
      "version-re": "(v?[0-9]+\\.[0-9]+\\.[0-9]+)"
     },
@@ -49973,7 +49973,7 @@
      "install-cmd": "curl -fsSL https://ollama.com/install.sh | sh",
      "location": "/usr/local/bin/ollama",
      "name": "ollama",
-     "uninstall-cmd": "sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama",
+     "uninstall-cmd": "$SUDO systemctl stop ollama 2>/dev/null; $SUDO rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; $SUDO rm -rf /usr/share/ollama",
      "version-cmd": "ollama --version",
      "version-re": "([0-9]+\\.[0-9]+\\.[0-9]+)"
     },
@@ -62272,10 +62272,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -65792,10 +65792,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -79188,10 +79188,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -82536,10 +82536,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -89794,10 +89794,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -96233,10 +96233,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -99329,10 +99329,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -106663,10 +106663,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -113102,10 +113102,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -116198,10 +116198,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -130152,10 +130152,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -133187,10 +133187,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -147142,10 +147142,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -150177,10 +150177,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -232163,10 +232163,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -238764,10 +238764,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -242023,10 +242023,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -257170,10 +257170,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -260906,10 +260906,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -276159,10 +276159,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -280053,10 +280053,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -295233,10 +295233,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -298926,10 +298926,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -306865,10 +306865,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -313466,10 +313466,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -316725,10 +316725,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -324061,10 +324061,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -330500,10 +330500,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -333596,10 +333596,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -340644,10 +340644,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -346853,10 +346853,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -349920,10 +349920,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -356849,10 +356849,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -363050,10 +363050,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },
@@ -366309,10 +366309,10 @@
    "script\\snapd-snap-link": {
     "driver": "script",
     "fields": {
-     "install-cmd": "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap",
+     "install-cmd": "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap",
      "location": "/snap",
      "name": "snapd-snap-link",
-     "uninstall-cmd": "test -L /snap && sudo rm -f /snap || true",
+     "uninstall-cmd": "test -L /snap && $SUDO rm -f /snap || true",
      "version-cmd": "test -e /snap && echo present",
      "version-re": "(present)"
     },

@@ -20,7 +20,9 @@ so the black box is explicit in the route rather than hidden in driver code:
   set-version-cmd (optional) command with $VERSION substituted; absent => pinning unsupported
   location        (optional) human-readable install path for display
 
-Runs userland (no sudo — a script needing root bakes it into its own command). Commands
+Runs userland: a step that needs root writes `$SUDO` before it (`$SUDO rm -f /usr/local/bin/x`,
+`curl … | $SUDO bash`) — how this machine gets root: `sudo`, `doas`, or nothing when configsys
+already runs as root (privilege.py; `$SUDO_USER` and other longer names are left alone). Commands
 run through the runner's `bash -c`, so pipes and `source` work. NOTE: piping a remote
 script to a shell is a trust decision; it lives in your own config — pin URLs/checksums in
 the command as you see fit. No native version lock — lock intent lives in the ledger.
@@ -29,6 +31,7 @@ the command as you see fit. No native version lock — lock intent lives in the 
 import re
 
 from ..driver import Driver
+from ..privilege import fill_sudo
 from ..runner import Result
 
 
@@ -36,14 +39,14 @@ class Script(Driver):
     name = 'script'
     privileged = False
 
-    @staticmethod
-    def _cmd(rc, key):
+    def _cmd(self, rc, key):
         '''The route's command for `key`, run with ~/.local/bin on PATH: official installers (Claude
         Code's, uv's, …) put their binary there, but a fresh login only has it on PATH if the dir
         existed at login — so a bare `claude --version` probe failed and a just-installed tool read
-        "not installed". (A route can still use absolute paths; this just makes the bare name work.)'''
+        "not installed". (A route can still use absolute paths; this just makes the bare name work.)
+        Its `$SUDO` is the escalator's word (`as_root`).'''
         cmd = rc.fields.get(key)
-        return f'PATH="$HOME/.local/bin:$PATH"; {cmd}' if cmd else cmd
+        return f'PATH="$HOME/.local/bin:$PATH"; {fill_sudo(cmd, self.as_root)}' if cmd else cmd
 
     # -- read -------------------------------------------------------------
 

@@ -2482,10 +2482,10 @@
         snapd-snap-link: { attrs: [ headless FOSS copyleft ] description: "The /snap symlink classic-confinement snaps need (snapd stores snaps under /var/lib/snapd/snap)."
             requires: snapd
             install: [ { via: script
-              install-cmd:   "test -e /snap || sudo ln -s /var/lib/snapd/snap /snap"   // Ubuntu already has /snap -> no-op; Fedora/Arch need the link
+              install-cmd:   "test -e /snap || $SUDO ln -s /var/lib/snapd/snap /snap"   // Ubuntu already has /snap -> no-op; Fedora/Arch need the link
               version-cmd:   "test -e /snap && echo present"
               version-re:    "(present)"
-              uninstall-cmd: "test -L /snap && sudo rm -f /snap || true"
+              uninstall-cmd: "test -L /snap && $SUDO rm -f /snap || true"
               location:      "/snap" } ]
         }
 
@@ -3506,7 +3506,7 @@
                   install-cmd:   'curl -fsSL https://ollama.com/install.sh | sh'
                   version-cmd:   'ollama --version'
                   version-re:    '([0-9]+\.[0-9]+\.[0-9]+)'
-                  uninstall-cmd: 'sudo systemctl stop ollama 2>/dev/null; sudo rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; sudo rm -rf /usr/share/ollama'
+                  uninstall-cmd: '$SUDO systemctl stop ollama 2>/dev/null; $SUDO rm -f /usr/local/bin/ollama /etc/systemd/system/ollama.service; $SUDO rm -rf /usr/share/ollama'
                   location:      '/usr/local/bin/ollama' }
                 { via: tarball  cpu-names: { x86_64: amd64  aarch64: arm64 }  installDir: "$CONFIGSYS_APP_DIR/ollama"  requires: zstd  version: { github: ollama/ollama  strip-v: true  asset: "ollama-linux-$ARCH.tar.zst" } }  { via: brew  name: ollama } ]   // upstream tarball (zstd; bin/ + lib/) — a no-daemon userland alt to the install script
         }
@@ -3593,7 +3593,7 @@
                   install-cmd:   'curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash'
                   version-cmd:   'helm version --short'
                   version-re:    '(v?[0-9]+\.[0-9]+\.[0-9]+)'
-                  uninstall-cmd: 'sudo rm -f /usr/local/bin/helm'
+                  uninstall-cmd: '$SUDO rm -f /usr/local/bin/helm'
                   location:      '/usr/local/bin/helm' }
                 { via: snap  name: helm  classic: true }  { via: brew  name: helm } ]   // community (Snapcrafters) snap (never-auto)
         }

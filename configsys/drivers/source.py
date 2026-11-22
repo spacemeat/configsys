@@ -59,14 +59,11 @@ swaps it in (carrying only configsys's markers), so files deleted upstream or a 
 never survive; an adopted tree is extracted over in place (it is yours).
 '''
 
-import re
 import shlex
 
 from ..driver import Driver
+from ..privilege import fill_sudo, names_sudo
 from ..runner import Result
-
-# a recipe's `$SUDO` (or `${SUDO}`), never the head of a longer name such as `$SUDO_USER`
-_SUDO_VAR = re.compile(r'\$(?:SUDO\b|\{SUDO\})')
 
 MARKER_PREFIX = Driver.MARKER_PREFIX
 
@@ -113,9 +110,8 @@ class Source(Driver):
         sudo = self.as_root if rc is not None and self._scope(rc) == 'system' else ''
         # $ARCH is the binding's `cpu-names:` token, as in its download url (drivers-lang-31)
         arch = self.arch_token(rc) if rc is not None else self.arch()
-        text = (str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
-                .replace('$VERSION', version or '').replace('$ARCH', arch))
-        return _SUDO_VAR.sub(lambda _m: sudo, text)     # never the head of `$SUDO_USER`
+        return fill_sudo(str(text).replace('$PREFIX', str(prefix)).replace('$SRC', str(src))
+                         .replace('$VERSION', version or '').replace('$ARCH', arch), sudo)
 
     @staticmethod
     def _build_steps(rc):
@@ -138,7 +134,7 @@ class Source(Driver):
         steps = self._build_steps(rc)
         if not steps:
             return Result.fail(f'{rc.comp}: source binding has no `build:` command')
-        if self._scope(rc) == 'system' and not any(_SUDO_VAR.search(str(s)) or 'sudo ' in str(s)
+        if self._scope(rc) == 'system' and not any(names_sudo(s) or 'sudo ' in str(s)
                                                    or 'doas ' in str(s) for s in steps):
             return Result('', 1, advisory=True, stderr=(
                 f'{rc.comp}: a `scope: system` build installs into {self._prefix(rc)}, which needs root, '
