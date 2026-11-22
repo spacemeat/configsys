@@ -5,6 +5,7 @@ lock via apt-mark hold/unhold. Mutating ops run under sudo and stream their outp
 (capture=False) so the user sees apt's progress and sudo can prompt.
 '''
 
+import re
 import shlex
 from concurrent.futures import ThreadPoolExecutor
 
@@ -28,6 +29,21 @@ _UPDATE_BACKOFF = 1.5
 # question); NEEDRESTART_MODE=a stops Ubuntu's post-apt `needrestart` hook from prompting about which
 # services to restart / a newer kernel. Prepended to every mutating apt-get invocation.
 _APT_ENV = 'DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a'
+
+_COMPONENT = re.compile(r'^[a-z0-9][a-z0-9-]*$')
+
+
+def enable_component_cmd(comp):
+    '''Root shell enabling an archive component (`repo-component: universe`) — skipped when an
+    enabled source already lists it (a one-line `deb …` entry or a deb822 `Components:` field), since
+    add-apt-repository re-refreshes every list even then: noise, and a lock fight with packagekitd /
+    unattended-upgrades on a desktop.'''
+    add = f'add-apt-repository -y {shlex.quote(comp)}'
+    if not _COMPONENT.match(comp):
+        return add
+    listed = (f"grep -rqsE '^(deb[[:space:]].*[[:space:]]{comp}([[:space:]]|$)"
+              f"|Components:.*[[:space:]]{comp}([[:space:]]|$))' {' '.join(APT_SOURCE_FILES)}")
+    return f'{listed} || {add}'
 
 
 APT_SOURCE_FILES = ('/etc/apt/sources.list', '/etc/apt/sources.list.d/')
@@ -220,9 +236,8 @@ class Apt(NativePkgManager):
                 return _step_failed(rc, f'enabling the {arch} architecture', r)
 
         for comp in self._as_list(f.get('repo-component')):
-            c = shlex.quote(comp)
-            # add-apt-repository is idempotent and refreshes apt lists itself.
-            r = self.runner.run(f'add-apt-repository -y {c}', sudo=True, capture=False)
+            # add-apt-repository is idempotent and refreshes apt lists itself; skipped when listed
+            r = self.runner.run(enable_component_cmd(str(comp)), sudo=True, capture=False)
             if not r.ok:
                 return _step_failed(rc, f'adding the {comp} archive component', r)
 

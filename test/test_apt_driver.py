@@ -5,7 +5,7 @@ import pytest
 from configsys.componentObj import ResolvedComponent
 from configsys.drivers import get_driver, is_supported
 import configsys.drivers.apt as apt_mod
-from configsys.drivers.apt import Apt
+from configsys.drivers.apt import Apt, enable_component_cmd
 from configsys.routes import Resolver
 from configsys.runner import Result, Runner
 
@@ -174,7 +174,7 @@ def test_repo_component_enabled_before_install():
     r = Runner(pretend=True)
     Apt(r).install(comp)
     assert r.calls == [
-        'sudo add-apt-repository -y universe',
+        f'sudo {enable_component_cmd("universe")}',
         'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop',
     ]
 
@@ -185,10 +185,30 @@ def test_repo_component_list():
     r = Runner(pretend=True)
     Apt(r).install(comp)
     assert r.calls[:2] == [
-        'sudo add-apt-repository -y universe',
-        'sudo add-apt-repository -y multiverse',
+        f'sudo {enable_component_cmd("universe")}',
+        f'sudo {enable_component_cmd("multiverse")}',
     ]
     assert r.calls[-1] == 'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y x'
+
+
+def test_an_already_listed_component_skips_add_apt_repository(tmp_path):
+    # a Pop run: universe already in system.sources, yet add-apt-repository re-refreshed every list
+    # and fought packagekitd for the lock. The guard greps the enabled sources first.
+    import subprocess
+    lists = tmp_path / 'sources.list.d'
+    lists.mkdir()
+    (lists / 'system.sources').write_text('Types: deb\nURIs: http://apt.pop-os.org/ubuntu\n'
+                                          'Suites: jammy\nComponents: main restricted universe multiverse\n')
+    (tmp_path / 'sources.list').write_text('# deb http://x jammy universe-extra\n'
+                                           'deb http://ppa.example jammy main\n')
+    def runs_add(comp):
+        cmd = enable_component_cmd(comp).replace('/etc/apt/sources.list.d/', str(lists) + '/')
+        cmd = cmd.replace('/etc/apt/sources.list', str(tmp_path / 'sources.list'))
+        cmd = cmd.replace('add-apt-repository -y', 'echo ADD')
+        return 'ADD' in subprocess.run(['sh', '-c', cmd], capture_output=True, text=True).stdout
+    assert not runs_add('universe') and not runs_add('multiverse') and not runs_add('main')
+    assert runs_add('restricted-extra') and runs_add('non-free')
+    assert enable_component_cmd('weird name!') == "add-apt-repository -y 'weird name!'"
 
 
 def test_universe_route_carries_repo_component():
@@ -198,7 +218,7 @@ def test_universe_route_carries_repo_component():
     r = Runner(pretend=True)
     Apt(r).install(unit)
     assert r.calls == [
-        'sudo add-apt-repository -y universe',
+        f'sudo {enable_component_cmd("universe")}',
         'sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get install -y btop',
     ]
 
