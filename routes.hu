@@ -2438,6 +2438,7 @@
         // binary into ~/.docker/cli-plugins/, sha256-checked. It needs no engine of its own (it talks
         // to whatever daemon the CLI points at, podman's socket included), so no requires: docker.
         docker-compose: { attrs: [ CLI plugin FOSS permissive ] description: "Docker Compose — define and run multi-container apps from a compose.yaml (`docker compose`)."
+            suggests: docker-compose-standalone   // the hyphenated `docker-compose`, for scripts — where the package doesn't ship one
             install: [ { via: native  when: "ubuntu >= 22.04"  name: docker-compose-v2  repo-component: universe }   // Ubuntu's v2 package (its `docker-compose` is the Python v1)
                        { via: native  when: "(debian >= 13) or kali or pikaos" }   // Debian's `docker-compose` is v2 from trixie (bookworm's is v1)
                        { via: native  when: "fedora or arch or opensuse or alpine or void or void_musl"  name: { apk: docker-cli-compose  default: docker-compose } }
@@ -2450,6 +2451,19 @@
                          uninstall-cmd:   'rm -f "${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose"'
                          location:        "~/.docker/cli-plugins" }
                        { via: brew  name: docker-compose  standing: never-auto } ] }   // brew's build lands outside the cli-plugins dirs: `docker compose` needs cliPluginsExtraDirs in ~/.docker/config.json first (only `docker-compose` works) — pinnable, never the default
+        // The old `docker-compose` command, which scripts still call. Debian 13, Arch, Alpine and Void
+        // ship one; Ubuntu, Fedora, openSUSE and the cli-plugins install don't — and an alias can't
+        // help a script. The Compose binary runs standalone under that name, so this links
+        // ~/.local/bin/docker-compose to the installed plugin (a no-op where a docker-compose is
+        // already on PATH); uninstall removes only that link.
+        docker-compose-standalone: { attrs: [ CLI FOSS permissive ] description: "The hyphenated `docker-compose` command, for scripts that still call it (a link to the Compose plugin)."
+            requires: docker-compose
+            install: [ { via: script
+                         install-cmd:   'command -v docker-compose >/dev/null 2>&1 && exit 0; for p in "${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x "$p/docker-compose" ]; then l="$HOME/.local/bin/docker-compose"; if [ -L "$l" ] && [ ! -e "$l" ]; then rm -f "$l"; fi; mkdir -p "$HOME/.local/bin" && ln -s "$p/docker-compose" "$l"; exit; fi; done; echo "no Compose plugin in the docker cli-plugins dirs" >&2; exit 1'
+                         version-cmd:   'docker-compose version --short'
+                         version-re:    '([0-9][0-9.]*)'
+                         uninstall-cmd: 'l="$HOME/.local/bin/docker-compose"; if [ -L "$l" ]; then case "$(readlink "$l")" in */cli-plugins/docker-compose) rm -f "$l" ;; esac; fi'
+                         location:      "~/.local/bin" } ] }
 
         // --- snapd: the daemon behind `via: snap`. The snap DRIVER `requires` the two setup
         // components below (see drivers:), so pinning a snap on a non-Ubuntu distro installs snapd,

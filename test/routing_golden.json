@@ -1981,6 +1981,39 @@
      "name": "docker-cli-compose"
     },
     "name": "docker-cli-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apk\\docker-compose": {
+    "driver": "apk",
+    "fields": {
+     "name": "docker-cli-compose"
+    },
+    "name": "docker-cli-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -15979,6 +16012,60 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -35308,6 +35395,39 @@
      "name": "docker-compose"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "pacman\\docker-compose": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -53964,6 +54084,60 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -71758,6 +71932,39 @@
      "name": "docker-compose"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -88604,6 +88811,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -105439,6 +105680,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -121962,6 +122237,39 @@
      "name": "docker-compose"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\docker-compose": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -138920,6 +139228,39 @@
      "name": "docker-compose"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\docker-compose": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -156934,6 +157275,90 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
+  "docker-compose-standalone": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    },
    "script\\homebrew": {
     "driver": "script",
@@ -179435,6 +179860,53 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "doppler": {
@@ -197052,6 +197524,39 @@
    }
   },
   "docker-compose": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
+   "zypper\\docker-compose": {
+    "driver": "zypper",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
+  "docker-compose-standalone": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
    "zypper\\docker-compose": {
     "driver": "zypper",
     "fields": {
@@ -213821,6 +214326,39 @@
    }
   },
   "docker-compose": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
+   "zypper\\docker-compose": {
+    "driver": "zypper",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
+  "docker-compose-standalone": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
    "zypper\\docker-compose": {
     "driver": "zypper",
     "fields": {
@@ -230606,6 +231144,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -248046,6 +248618,60 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "doppler": {
@@ -267174,6 +267800,60 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "doppler": {
@@ -286412,6 +287092,60 @@
      "version-re": "([0-9][0-9.]*)"
     },
     "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "doppler": {
@@ -305104,6 +305838,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -322310,6 +323078,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -338979,6 +339781,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -355150,6 +355986,40 @@
      "repo-component": "universe"
     },
     "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   }
+  },
+  "docker-compose-standalone": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   },
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
    }
   },
   "docker-engine": {
@@ -371265,6 +372135,39 @@
    }
   },
   "docker-compose": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
+   "xbps\\docker-compose": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
+  "docker-compose-standalone": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
    "xbps\\docker-compose": {
     "driver": "xbps",
     "fields": {
@@ -386147,6 +387050,39 @@
    }
   },
   "docker-compose": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
+   "xbps\\docker-compose": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
+  "docker-compose-standalone": {
+   "script\\docker-compose-standalone": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "command -v docker-compose >/dev/null 2>&1 && exit 0; for p in \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\" /usr/local/lib/docker/cli-plugins /usr/local/libexec/docker/cli-plugins /usr/lib/docker/cli-plugins /usr/libexec/docker/cli-plugins; do if [ -x \"$p/docker-compose\" ]; then l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ] && [ ! -e \"$l\" ]; then rm -f \"$l\"; fi; mkdir -p \"$HOME/.local/bin\" && ln -s \"$p/docker-compose\" \"$l\"; exit; fi; done; echo \"no Compose plugin in the docker cli-plugins dirs\" >&2; exit 1",
+     "location": "~/.local/bin",
+     "name": "docker-compose-standalone",
+     "uninstall-cmd": "l=\"$HOME/.local/bin/docker-compose\"; if [ -L \"$l\" ]; then case \"$(readlink \"$l\")\" in */cli-plugins/docker-compose) rm -f \"$l\" ;; esac; fi",
+     "version-cmd": "docker-compose version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose-standalone"
+   },
    "xbps\\docker-compose": {
     "driver": "xbps",
     "fields": {
