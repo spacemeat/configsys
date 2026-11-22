@@ -149,3 +149,21 @@ def test_the_bootstrap_installs_the_bounded_deps_from_pyproject(tmp_path):
     assert want and all(re.search(r'[<>=]=?\s*\d', d) for d in want)          # every dep is bounded
     assert f'-m pip install -q {" ".join(want)}' in vlog.read_text().splitlines()
     assert vlog.read_text().splitlines()[-1] == '-E -m configsys inspect'
+
+
+@pytest.mark.parametrize('tools, word', [(('doas',), 'doas '), (('sudo', 'doas'), 'sudo ')])
+def test_a_fix_hint_names_the_machines_escalator(tmp_path, tools, word):
+    # Chimera ships only doas: the command a hint names must be one you can run (privilege.py's order)
+    bindir, log = tmp_path / 'bin', tmp_path / 'log'
+    bindir.mkdir()
+    _stub(bindir / 'python3', '3.9', log)
+    for tool in ('dnf', *tools):                       # only located (`command -v`), never run
+        (bindir / tool).write_text('#!/bin/sh\nexit 1\n')
+        (bindir / tool).chmod(0o755)
+    repo = tmp_path / 'repo'
+    repo.mkdir()
+    (repo / 'configsys.sh').write_text((REPO / 'configsys.sh').read_text())
+    r = subprocess.run(['/bin/bash', str(repo / 'configsys.sh'), '--help'], cwd=tmp_path,
+                       env={'HOME': str(tmp_path), 'PATH': f'{bindir}:{_tools(tmp_path)}'},
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 1 and f'{word}dnf install python3.12' in r.stderr

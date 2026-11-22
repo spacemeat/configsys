@@ -277,8 +277,8 @@ def build_parser():
                                           'not changed)',
                         description='Find installs whose actual scope differs from the scope your '
                                     'config declares for them (the `scope` setting, or a binding\'s '
-                                    'own `scope:`) — user (under your home) or system (/opt, with '
-                                    'sudo) — list each move, and after you confirm, reinstall each at '
+                                    'own `scope:`) — user (under your home) or system (/opt, as '
+                                    'root) — list each move, and after you confirm, reinstall each at '
                                     'the declared scope and remove the old one. Your config is never '
                                     'changed. Only drivers that can install either way are '
                                     'considered.')
@@ -1012,13 +1012,13 @@ def build_parser():
                                'may be stale.')
 
     sub.add_parser('refresh', help="re-check upstream versions for this machine's picks and refresh the "
-                                   "package index of this OS's package manager (sudo may prompt). On "
-                                   'Arch, where only a full upgrade is safe, it asks before running '
-                                   '`pacman -Syu` instead',
+                                   "package index of this OS's package manager (sudo or doas may "
+                                   'prompt). On Arch, where only a full upgrade is safe, it asks '
+                                   'before running `pacman -Syu` instead',
                    description="Re-check upstream versions for this machine's picks and their "
                                "dependencies, re-probe facets, and refresh this OS's package index "
-                               '(apt-get update and the like; sudo may prompt). Fixed version pins '
-                               'that name a `latest-check:` are compared against upstream (advice '
+                               '(apt-get update and the like; sudo or doas may prompt). Fixed '
+                               'version pins that name a `latest-check:` are compared against upstream (advice '
                                'only). If the index refresh fails, configsys explains why and can '
                                're-fetch a rotated signing key for a source it manages; it also '
                                'offers to remove sources it added for components you no longer use. '

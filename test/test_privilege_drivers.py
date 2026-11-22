@@ -120,3 +120,42 @@ def test_group_targets_the_invoking_user_under_each_escalator():
         grp.uninstall(rc)
         assert f'usermod -aG docker {user}' in r.calls[0]
         assert f'gpasswd -d {user} docker' in r.calls[1]
+
+
+# -- what configsys tells you names the escalator in use -------------------------------------------
+
+def test_a_may_prompt_note_names_the_tool_or_says_nothing_as_root():
+    from configsys.privilege import and_may_prompt
+    lead = 'this can take a moment'
+    assert and_may_prompt(Runner(pretend=True, escalator=Sudo()), lead) == f'{lead}; sudo may prompt'
+    assert and_may_prompt(Runner(pretend=True, escalator=Doas()), lead) == f'{lead}; doas may prompt'
+    assert and_may_prompt(Runner(pretend=True, escalator=AlreadyRoot()), lead) == lead
+    assert (and_may_prompt(Runner(pretend=True, escalator=Doas()), 'This takes a moment', ' below')
+            == 'This takes a moment; doas may prompt below')
+
+
+def test_the_refresh_banner_names_the_escalator(monkeypatch, capsys):
+    from types import SimpleNamespace
+    from configsys.cli import refresh
+    from configsys.runner import Result
+    monkeypatch.setattr('builtins.input', lambda *a: pytest.fail('a pretend refresh asked'))
+    for esc, want in ((Doas(), '(this can take a moment; doas may prompt)'),
+                      (AlreadyRoot(), '(this can take a moment)…')):
+        native = SimpleNamespace(native=lambda _b: 'pacman')
+        ctx = SimpleNamespace(
+            load_pipeline=lambda: (None, [], {}, None, {}),
+            routes=SimpleNamespace(cascade=native, components={}),
+            os_info=SimpleNamespace(block='x'), paths=None, config=None,
+            runner=SimpleNamespace(pretend=True, escalator=esc, run=lambda *a, **k: Result('x', 0)))
+        refresh.cmd_refresh(ctx)
+        assert want in capsys.readouterr().out.splitlines()[0]
+
+
+def test_doas_refusals_classify_as_auth():
+    from configsys.failures import AUTH, classify
+    cat, rem = classify('doas: Operation not permitted')
+    assert cat == AUTH and 'doas.conf' in rem and 'permit persist :wheel' in rem
+    cat, rem = classify('doas: Authentication failed')
+    assert cat == AUTH and 'doas' in rem
+    cat, _ = classify('doas: a password is required')
+    assert cat == AUTH

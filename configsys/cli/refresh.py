@@ -10,7 +10,7 @@ from pathlib import Path
 from ..drivers import get_driver
 from ..drivers.apt import drop_keyring_cmd
 from ..ledger import Ledger
-from ..privilege import as_root
+from ..privilege import and_may_prompt, as_root
 from .common import ask as _ask, print_reboot_advisory
 
 
@@ -404,7 +404,7 @@ def cmd_refresh(ctx, args=None):
     if hasattr(ctx, 'invalidate'):
         ctx.invalidate()                              # the next read sees the refreshed state
     print('configsys refresh — re-querying version sources and the package index '
-          '(this can take a moment; sudo may prompt)…', flush=True)
+          f'({and_may_prompt(ctx.runner, "this can take a moment")})…', flush=True)
     _cfg, _req, units, _ledger, _states = ctx.load_pipeline()
     print('\nRefreshing discovered versions...')
 

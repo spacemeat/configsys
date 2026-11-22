@@ -56,7 +56,7 @@ USER_CONFIG_TEMPLATE = '''{
 
     // Default install scope for the drivers that can install either way (appImage, flatpak,
     // tarball, font, source, npm, gem, luarocks): user (~, the default when unset) or system
-    // (/opt, needs sudo).
+    // (/opt, needs root).
     // scope: system
 
     // Pins — the light way to reroute without redefining a component (`configsys pin set`):

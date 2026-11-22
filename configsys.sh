@@ -27,6 +27,14 @@ if _venv_ok; then
     exec "$VPY" -E -m configsys "$@"
 fi
 
+# how a step runs as root, in configsys/privilege.py's order: directly as root, else sudo, else doas
+# (Chimera Linux ships only doas) — for the one install below and the hints that name a command
+if [ "${EUID:-1}" = 0 ]; then as_root=""
+elif command -v sudo >/dev/null 2>&1; then as_root="sudo "
+elif command -v doas >/dev/null 2>&1; then as_root="doas "
+else as_root="sudo "
+fi
+
 # 1. python3 >= 3.10. $PYTHON if you set it; else the first of python3, python3.14 … python3.10 that
 # is new enough (EL 9 and Amazon Linux 2023 ship python3 = 3.9 beside a newer python3.1x).
 _py_ok() { "$1" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; }
@@ -41,9 +49,9 @@ fi
 if [ -z "$PY" ] || ! command -v "$PY" >/dev/null 2>&1 || ! _py_ok "$PY"; then
     found="$( { command -v python3 >/dev/null 2>&1 && python3 -V 2>&1; } || echo 'no python3')"
     hint="install python >= 3.10"
-    if command -v dnf >/dev/null 2>&1; then hint="sudo dnf install python3.12   (EL 9: also python3.12-devel to build humon)"
-    elif command -v apt-get >/dev/null 2>&1; then hint="sudo apt-get install python3"
-    elif command -v zypper >/dev/null 2>&1; then hint="sudo zypper install python311"
+    if command -v dnf >/dev/null 2>&1; then hint="${as_root}dnf install python3.12   (EL 9: also python3.12-devel to build humon)"
+    elif command -v apt-get >/dev/null 2>&1; then hint="${as_root}apt-get install python3"
+    elif command -v zypper >/dev/null 2>&1; then hint="${as_root}zypper install python311"
     fi
     echo "configsys: python >= 3.10 required (found: $found)." >&2
     echo "  install one — $hint — or point configsys at one: PYTHON=/path/to/python3.1x configsys …" >&2
@@ -55,7 +63,7 @@ fi
 # .venv/bin/python behind with no pip. So: require ensurepip up front, and judge an existing venv
 # by whether its pip WORKS (not whether bin/python exists), rebuilding a half-made one.
 # a shell START (the glue preludes refreshing their location cache) never repairs: no venv rebuild,
-# no pip compile, no `sudo apt-get` behind a hidden stderr while a terminal opens — the prelude keeps
+# no pip compile, no root `apt-get` behind a hidden stderr while a terminal opens — the prelude keeps
 # its cached values, and the next `configsys` you run yourself repairs it visibly (A15)
 if [ -n "${CONFIGSYS_NO_BOOTSTRAP:-}" ]; then
     exit 75
@@ -71,8 +79,8 @@ if ! "$VPY" -m pip --version >/dev/null 2>&1; then
     if ! "$PY" -c 'import ensurepip' >/dev/null 2>&1; then
         pyver="$("$PY" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
         if command -v apt-get >/dev/null 2>&1; then
-            echo "configsys: python venv support missing — installing python${pyver}-venv (sudo)..." >&2
-            sudo apt-get install -y "python${pyver}-venv"
+            echo "configsys: python venv support missing — installing python${pyver}-venv${as_root:+ (${as_root% })}..." >&2
+            ${as_root}apt-get install -y "python${pyver}-venv"
         else
             echo "configsys: python's venv/ensurepip module is missing — install your distro's" \
                  "python venv package and retry." >&2
@@ -114,12 +122,12 @@ if ! "$VPY" -E -c 'import humon, packaging' >/dev/null 2>&1; then
         # humon ships as SOURCE only (a C extension), so pip compiles it: that needs a C compiler and
         # the Python headers, which minimal installs/containers lack. Name the fix for this distro.
         hint="a C compiler and the Python development headers"
-        if command -v apt-get >/dev/null 2>&1; then hint="sudo apt-get install build-essential python3-dev"
-        elif command -v dnf >/dev/null 2>&1; then hint="sudo dnf install gcc python3-devel"
-        elif command -v pacman >/dev/null 2>&1; then hint="sudo pacman -S gcc"
-        elif command -v zypper >/dev/null 2>&1; then hint="sudo zypper install gcc python3-devel"
-        elif command -v apk >/dev/null 2>&1; then hint="sudo apk add build-base python3-dev"
-        elif command -v xbps-install >/dev/null 2>&1; then hint="sudo xbps-install gcc python3-devel"
+        if command -v apt-get >/dev/null 2>&1; then hint="${as_root}apt-get install build-essential python3-dev"
+        elif command -v dnf >/dev/null 2>&1; then hint="${as_root}dnf install gcc python3-devel"
+        elif command -v pacman >/dev/null 2>&1; then hint="${as_root}pacman -S gcc"
+        elif command -v zypper >/dev/null 2>&1; then hint="${as_root}zypper install gcc python3-devel"
+        elif command -v apk >/dev/null 2>&1; then hint="${as_root}apk add build-base python3-dev"
+        elif command -v xbps-install >/dev/null 2>&1; then hint="${as_root}xbps-install gcc python3-devel"
         fi
         echo "configsys: building humon failed — it compiles from source; install: $hint" >&2
         exit 1

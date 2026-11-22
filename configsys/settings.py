@@ -37,7 +37,7 @@ class Setting:
 
 _ROWS = [
     Setting('scope', 'scalar', 'machine', choices=('user', 'system'), layout=True, getter='default_scope',
-            desc='Default install scope: user (~, the default when unset) or system (/opt, needs sudo).'),
+            desc='Default install scope: user (~, the default when unset) or system (/opt, needs root).'),
     Setting('driver-preference', 'list', 'uniform', routing=True, layout=True, getter='driver_preference',
             desc=('Order ties between equally-valid install methods break in (unlisted drivers follow, in'
                  ' the default order).')),

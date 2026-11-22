@@ -9,7 +9,7 @@
     // flatpak, tarball, font, source, npm, gem, luarocks, and plugin build drivers like
     // blender-build/kicad-build). Left UNSET, each uses its user-space default (~/apps, --user).
     // Set it in ~/.config/configsys/configsys.hu (or `configsys config set scope system`) ONLY to
-    // deliberately push those installs system-wide under /opt, with sudo (e.g. an admin
+    // deliberately push those installs system-wide under /opt, as root (e.g. an admin
     // provisioning for all users on one box):
     //     scope: system
     // (Fixed-scope drivers — apt/dnf/pacman = system, dotfiles/cargo = user — ignore this.)

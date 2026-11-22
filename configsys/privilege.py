@@ -184,6 +184,13 @@ def of(runner):
     return getattr(runner, 'escalator', None) or _SUDO
 
 
+def and_may_prompt(runner, lead, where=''):
+    '''`lead; sudo may prompt<where>` (`doas may prompt` under doas), or `lead` alone when nothing
+    will ask (already root) — a note before steps that may need a password.'''
+    hint = of(runner).may_prompt
+    return f'{lead}; {hint}{where}' if hint else lead
+
+
 def as_root(runner):
     '''The word a command string writes before ONE step that needs root, for `runner`: `sudo`,
     `doas`, or '' when configsys already runs as root — `f'{as_root(runner)} tee {path}'`. A whole

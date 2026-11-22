@@ -449,9 +449,10 @@ class ComponentsScreen(Screen):
                 intent.note = f'view: {nxt}'
         elif act == 'refresh':
             with suspended(stdscr):
+                from ...privilege import and_may_prompt
+                note = and_may_prompt(ctx.runner, 'This takes a moment', ' below')
                 print('Refreshing the package view — re-querying version sources and running the\n'
-                      'package-manager index update. This takes a moment; sudo may prompt below.\n',
-                      flush=True)
+                      f'package-manager index update. {note}.\n', flush=True)
                 from ...cli import refresh as cli_refresh
                 cli_refresh.cmd_refresh(ctx)
                 try:

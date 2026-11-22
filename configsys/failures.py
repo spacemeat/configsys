@@ -66,9 +66,13 @@ _RULES = [
     (re.compile(r'(?-i:Not Found)|No such file or directory.*http|does not have a Release file', re.I),
      NOT_FOUND,
      "an upstream URL is gone (moved or removed) — the component's route likely needs updating."),
+    # doas with no doas.conf rule for you: re-running can't help (before the generic denial below)
+    (re.compile(r'doas: Operation not permitted'), AUTH,
+     "doas refused: /etc/doas.conf has no rule permitting you — add one (e.g. `permit persist "
+     ":wheel`; configsys never edits doas.conf)."),
     (re.compile(r'Permission denied|are you root|must be (?:run as |)root|sudo:.*(?:password|required)|'
-                r'\bEACCES\b', re.I), AUTH,
-     "a privileged step was denied — re-run so the sudo prompt can be answered."),
+                r'doas:.*(?:password|Authentication)|\bEACCES\b', re.I), AUTH,
+     "a privileged step was denied — re-run so the sudo or doas password prompt can be answered."),
     (re.compile(r'Unable to locate package|[Nn]o such package|Package [^ ]+ (?:not|isn.t) '
                 r'(?:found|available)|target not found|No package [^ ]+ available', re.I), DEPENDENCY,
      "the package name didn't resolve in this OS's repos — likely a per-distro name drift "

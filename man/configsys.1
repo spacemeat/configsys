@@ -76,7 +76,7 @@ Hold components at their installed version. A name is a component; profile:<name
 Release the version hold on components. A name is a component; profile:<name> expands to that profile's components (members with no install method here are skipped with a notice, while a name you give yourself that cannot install here is an error). The component can then be upgraded again.
 .TP
 \fBfix-scope\fR
-Find installs whose actual scope differs from the scope your config declares for them (the \fBscope\fR setting, or a binding's own \fBscope:\fR) — user (under your home) or system (/opt, with sudo) — list each move, and after you confirm, reinstall each at the declared scope and remove the old one. Your config is never changed. Only drivers that can install either way are considered.
+Find installs whose actual scope differs from the scope your config declares for them (the \fBscope\fR setting, or a binding's own \fBscope:\fR) — user (under your home) or system (/opt, as root) — list each move, and after you confirm, reinstall each at the declared scope and remove the old one. Your config is never changed. Only drivers that can install either way are considered.
 .TP
 \fBset-version\fR
 Install a specific version of a component through its install method here, and its missing dependencies. Refused up front when that method installs only the version its route names (tarball, AppImage, font, native-pkg-file, aur, rpm-ostree, the gcc / clang alternatives, gcc-toolset, glue, dotfiles, service, group); \fBconfigsys versions <name>\fR shows what each method offers. A locked component is released, moved and held again at the new version.
@@ -196,7 +196,7 @@ Subcommands: \fBinstall\fR, \fBstatus\fR.
 List System Updates: everything this OS's package manager, flatpak and snap report upgradable that is not one of your components, grouped by manager and tier (kernel, core, standard, apps), with held packages marked. Read-only: \fBconfigsys upgrade --system\fR applies them. Run \fBconfigsys refresh\fR first if the package index may be stale.
 .TP
 \fBrefresh\fR
-Re-check upstream versions for this machine's picks and their dependencies, re-probe facets, and refresh this OS's package index (apt-get update and the like; sudo may prompt). Fixed version pins that name a \fBlatest-check:\fR are compared against upstream (advice only). If the index refresh fails, configsys explains why and can re-fetch a rotated signing key for a source it manages; it also offers to remove sources it added for components you no longer use. On Arch, where only a full upgrade is safe, it asks before running \fBpacman -Syu\fR instead. Exits 1 when the index refresh fails.
+Re-check upstream versions for this machine's picks and their dependencies, re-probe facets, and refresh this OS's package index (apt-get update and the like; sudo or doas may prompt). Fixed version pins that name a \fBlatest-check:\fR are compared against upstream (advice only). If the index refresh fails, configsys explains why and can re-fetch a rotated signing key for a source it manages; it also offers to remove sources it added for components you no longer use. On Arch, where only a full upgrade is safe, it asks before running \fBpacman -Syu\fR instead. Exits 1 when the index refresh fails.
 .TP
 \fBshow\fR
 Print a shipped base file — routes (routes.hu: the components and OS blocks) or config (config.hu: the shipped profiles and default keybindings) — or with --path just where it is. With no name, list them.

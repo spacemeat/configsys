@@ -61,7 +61,7 @@ _HELP = {
                        'primary plugin\'s ↑N to push / ↓N to sync (no ↑ when primary-push is auto or '
                        'auto-on-quit) · ⟳ N system updates (a spinner while it checks) · ⚠ N issues '
                        '({global:issues} to view)'),
-            ('scope', 'user (~, no sudo) vs system (/opt, needs sudo). Highlighted when you chose a '
+            ('scope', 'user (~, no root) vs system (/opt, needs root). Highlighted when you chose a '
                       'scope other than the method\'s default'),
             ('[L]', 'beside an installed version: the version is locked'),
             ('?', 'in the version columns: unknown — the driver comes from a plugin you haven\'t trusted'),
