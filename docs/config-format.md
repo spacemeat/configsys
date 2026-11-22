@@ -601,8 +601,9 @@ Driver-specific fields include:
   SDKMAN version identifier (`21.0.12+1.1-tem`). A binding with a `version:` installs and reads
   only that version, so several components can share one candidate, and upgrading it installs the
   identifier the route names rather than moving SDKMAN's default.
-- **service**: `unit:`, `start: false`, `runit:` (the runit service name or names, where they
-  differ). **group**: `name:` (the group).
+- **service**: `unit:`, `start: false`, `runit:` and `dinit:` (the runit or dinit service name or
+  names, where they differ from the unit; a glob such as `"postgresql[0-9]*"` picks the highest
+  match). **group**: `name:` (the group).
 - **dotfiles** and **glue**: see their sections.
 
 See docs/routing-model.md for the complete binding model.
@@ -1338,7 +1339,7 @@ Each `via:` value names a driver:
 - the language toolchains and their module or version installers: `cargo`, `pip`, `pipx`, `npm`,
   `gem`, `go-install`, `opam`, `luarocks`, `cabal`, `pyenv`, `sdkman`, `gcc`, `gcc-toolset`,
   `clang`;
-- the post-install primitives: `service` (enable a systemd or runit service) and `group` (add you
+- the post-install primitives: `service` (enable a systemd, runit or dinit service) and `group` (add you
   to a group).
 
 Two `via:` values are special: `native` (this OS's package manager) and `parts` (a pure aggregator).

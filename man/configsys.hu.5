@@ -368,7 +368,7 @@ Driver-specific fields include:
 .IP \(bu 2
 \fBsdkman\fR: \fBname:\fR (the SDKMAN candidate, such as \fBjava\fR), and optionally \fBversion:\fR, an exact SDKMAN version identifier (\fB21.0.12+1.1-tem\fR). A binding with a \fBversion:\fR installs and reads only that version, so several components can share one candidate, and upgrading it installs the identifier the route names rather than moving SDKMAN's default.
 .IP \(bu 2
-\fBservice\fR: \fBunit:\fR, \fBstart: false\fR, \fBrunit:\fR (the runit service name or names, where they differ). \fBgroup\fR: \fBname:\fR (the group).
+\fBservice\fR: \fBunit:\fR, \fBstart: false\fR, \fBrunit:\fR and \fBdinit:\fR (the runit or dinit service name or names, where they differ from the unit; a glob such as \fB"postgresql[0-9]*"\fR picks the highest match). \fBgroup\fR: \fBname:\fR (the group).
 .IP \(bu 2
 \fBdotfiles\fR and \fBglue\fR: see their sections.
 .PP
@@ -933,7 +933,7 @@ the config drivers: \fBdotfiles\fR and \fBglue\fR;
 .IP \(bu 2
 the language toolchains and their module or version installers: \fBcargo\fR, \fBpip\fR, \fBpipx\fR, \fBnpm\fR, \fBgem\fR, \fBgo-install\fR, \fBopam\fR, \fBluarocks\fR, \fBcabal\fR, \fBpyenv\fR, \fBsdkman\fR, \fBgcc\fR, \fBgcc-toolset\fR, \fBclang\fR;
 .IP \(bu 2
-the post-install primitives: \fBservice\fR (enable a systemd or runit service) and \fBgroup\fR (add you to a group).
+the post-install primitives: \fBservice\fR (enable a systemd, runit or dinit service) and \fBgroup\fR (add you to a group).
 .PP
 Two \fBvia:\fR values are special: \fBnative\fR (this OS's package manager) and \fBparts\fR (a pure aggregator). Plugins may add drivers.
 .SH RETIRED KEYS

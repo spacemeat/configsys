@@ -83,7 +83,7 @@ wherever your clone lives. (Set
   snap, appImage, tarball, native-pkg-file** (an upstream `.deb`/`.rpm` file), **source, font,
   script**; the config drivers **dotfiles** and **glue**; language-ecosystem installers
   **cargo, pip, pipx, npm, gem, opam, luarocks, cabal, go-install, pyenv, sdkman**; the **gcc /
-  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd or runit) and
+  gcc-toolset / clang** toolchains; and post-install primitives **service** (systemd, runit or dinit) and
   **group** (usermod). `via: native` picks the right system manager per OS; `via: parts`
   aggregates.
 - **Unit** — a resolved component + driver pair, keyed `driver\comp` (`apt\btop`,

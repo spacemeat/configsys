@@ -6,7 +6,7 @@ these pin its shape.'''
 import pytest
 
 from configsys.componentObj import ResolvedComponent
-from configsys.drivers.service import Service
+from configsys.drivers.service import Runit, Service
 from configsys.runner import Result
 
 
@@ -24,14 +24,14 @@ def rc(**f):
 
 
 def test_runit_names_default_override_and_socket():
-    d = Service(R())
-    assert d._runit(rc(unit='nginx')) == ['nginx']
-    assert d._runit(rc(unit='docker.service')) == ['docker']
-    assert d._runit(rc(unit='mariadb', runit='mysqld')) == ['mysqld']
-    assert d._runit(rc(unit='libvirtd', runit=['libvirtd', 'virtlogd'])) == ['libvirtd', 'virtlogd']
-    assert d._runit(rc(unit='snapd.socket')) == []                    # systemd-only
+    d = Runit()
+    assert d.names(rc(unit='nginx')) == ['nginx']
+    assert d.names(rc(unit='docker.service')) == ['docker']
+    assert d.names(rc(unit='mariadb', runit='mysqld')) == ['mysqld']
+    assert d.names(rc(unit='libvirtd', runit=['libvirtd', 'virtlogd'])) == ['libvirtd', 'virtlogd']
+    assert d.names(rc(unit='snapd.socket')) == []                    # systemd-only
     with pytest.raises(ValueError):
-        d._runit(rc(unit='x', runit='a;rm -rf /'))                    # never reaches a shell
+        d.names(rc(unit='x', runit='a;rm -rf /'))                    # never reaches a shell
 
 
 def test_install_prefers_systemd_then_links_runit_service():

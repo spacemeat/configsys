@@ -44,7 +44,7 @@ def test_service_enable_and_disable_commands():
     svc.uninstall(rc)
     assert r.calls[0].startswith('sudo ')
     assert 'systemctl enable --now docker' in r.calls[0]
-    assert 'no systemd or runit here' in r.calls[0]              # graceful degrade branch
+    assert 'no systemd, runit or dinit here' in r.calls[0]              # graceful degrade branch
     assert 'systemctl disable --now docker' in r.calls[1]
 
 
@@ -58,7 +58,8 @@ def test_service_get_version_reflects_is_enabled():
     rc = _rc('service', 'docker-service', unit='docker')
     assert Service(Fake(0)).get_version(rc) == 'enabled'
     assert Service(Fake(1)).get_version(rc) is None
-    assert Service(Runner(pretend=True)).location(rc) == 'systemd unit: docker / runit: /etc/sv/docker'
+    assert Service(Runner(pretend=True)).location(rc) == ('systemd unit: docker / runit: /etc/sv/docker'
+                                                            ' / dinit service: docker')
 
 
 # -- group ---------------------------------------------------------------
@@ -125,7 +126,8 @@ def test_service_messages_are_quoted_tokens():
     Service(r).install(_rc('service', 'cups', unit='cups.socket'))
     (cmd,) = r.calls
     assert "printf '%s\\n' 'configsys: cups.socket is a systemd-only unit; runit has no counterpart'" in cmd
-    assert "printf '%s\\n' 'configsys: no systemd or runit here; skipped cups.socket'" in cmd
+    assert "printf '%s\\n' 'configsys: cups.socket is a systemd-only unit; dinit has no counterpart'" in cmd
+    assert "printf '%s\\n' 'configsys: no systemd, runit or dinit here; skipped cups.socket'" in cmd
     assert 'echo "configsys: cups' not in cmd
 
 

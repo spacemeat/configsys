@@ -291,7 +291,7 @@ docs/shell-glue.md), both placing links only through
 `drivers/_linked.link`/`unlink`, which move whatever they displace to `.pre-configsys[.N]` and never
 overwrite; the language toolchains and their module/version installers cargo, pip, pipx, npm, gem,
 opam, luarocks, cabal, go-install, pyenv, sdkman, gcc, gcc-toolset, clang; and the post-install
-primitives service (systemd or runit) and group (usermod) — except `via: native` (resolves to the
+primitives service (systemd, runit or dinit — one `Init` class each) and group (usermod) — except `via: native` (resolves to the
 OS's package-manager driver) and `via: parts` (a pure aggregator, no driver of its own). Each native
 manager (an `os:` block's `native:`) is also declared in exactly one map of each pair, never exempted
 by name: its refresh style — `cli.refresh._NATIVE_REFRESH` (index-only, so also run before a batch
