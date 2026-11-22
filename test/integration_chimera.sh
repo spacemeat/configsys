@@ -69,9 +69,12 @@ command -v docker >/dev/null || fail "no docker command"
 printf '%s\n' "$out" | grep -q "starts at the next boot" || fail "no note that dinit isn't running"
 cfs versions docker-service | tee /dev/stderr | grep -q enabled || fail "docker-service doesn't read enabled"
 
-say "remove docker: the dinit link goes, then the packages"
+say "remove docker: the dinit link goes, then moby; docker-cli (a dependency) stays until removed itself"
 cfs remove docker </dev/null
 [ ! -e /etc/dinit.d/boot.d/dockerd ] || fail "dockerd still enabled after remove"
-if has moby || has docker-cli; then fail "moby/docker-cli still installed after remove"; fi
+if has moby; then fail "moby still installed after remove"; fi
+has docker-cli || fail "docker-cli went with docker — a dependency is never removed for you"
+cfs remove docker-cli </dev/null
+if has docker-cli; then fail "docker-cli still installed after remove"; fi
 
 printf '\nPASS: chimera-apk lifecycle (user repo once, curl + bat + fzf, versions, lock declined, remove) + docker under dinit\n'

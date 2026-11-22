@@ -1975,6 +1975,15 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apk\\docker-cli": {
+    "driver": "apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   }
+  },
   "docker-compose": {
    "apk\\docker-compose": {
     "driver": "apk",
@@ -15999,6 +16008,69 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -35407,6 +35479,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "pacman\\curl": {
+    "driver": "pacman",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "pacman\\git": {
+    "driver": "pacman",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "pacman\\docker-compose": {
     "driver": "pacman",
@@ -50306,16 +50441,19 @@
    }
   },
   "docker": {
+   "chimera-apk\\docker-cli": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "chimera-apk\\docker-engine": {
     "driver": "chimera-apk",
     "fields": {
-     "name": "docker-engine",
-     "packages": [
-      "moby",
-      "docker-cli"
-     ]
+     "name": "moby"
     },
-    "name": "docker-engine"
+    "name": "moby"
    },
    "service\\docker-service": {
     "driver": "service",
@@ -50325,6 +50463,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "chimera-apk\\docker-cli": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
    }
   },
   "docker-compose": {
@@ -50370,29 +50517,35 @@
    }
   },
   "docker-engine": {
+   "chimera-apk\\docker-cli": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "chimera-apk\\docker-engine": {
     "driver": "chimera-apk",
     "fields": {
-     "name": "docker-engine",
-     "packages": [
-      "moby",
-      "docker-cli"
-     ]
+     "name": "moby"
     },
-    "name": "docker-engine"
+    "name": "moby"
    }
   },
   "docker-group": {
+   "chimera-apk\\docker-cli": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "chimera-apk\\docker-engine": {
     "driver": "chimera-apk",
     "fields": {
-     "name": "docker-engine",
-     "packages": [
-      "moby",
-      "docker-cli"
-     ]
+     "name": "moby"
     },
-    "name": "docker-engine"
+    "name": "moby"
    },
    "group\\docker-group": {
     "driver": "group",
@@ -50403,16 +50556,19 @@
    }
   },
   "docker-service": {
+   "chimera-apk\\docker-cli": {
+    "driver": "chimera-apk",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "chimera-apk\\docker-engine": {
     "driver": "chimera-apk",
     "fields": {
-     "name": "docker-engine",
-     "packages": [
-      "moby",
-      "docker-cli"
-     ]
+     "name": "moby"
     },
-    "name": "docker-engine"
+    "name": "moby"
    },
    "service\\docker-service": {
     "driver": "service",
@@ -63611,6 +63767,69 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -81480,11 +81699,17 @@
    }
   },
   "docker": {
+   "apt\\docker-cli": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
-     "name": "docker.io",
-     "repo-component": "universe"
+     "name": "docker.io"
     },
     "name": "docker.io"
    },
@@ -81496,6 +81721,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "apt\\docker-cli": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
    }
   },
   "docker-compose": {
@@ -81541,21 +81775,33 @@
    }
   },
   "docker-engine": {
+   "apt\\docker-cli": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
-     "name": "docker.io",
-     "repo-component": "universe"
+     "name": "docker.io"
     },
     "name": "docker.io"
    }
   },
   "docker-group": {
+   "apt\\docker-cli": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
-     "name": "docker.io",
-     "repo-component": "universe"
+     "name": "docker.io"
     },
     "name": "docker.io"
    },
@@ -81568,11 +81814,17 @@
    }
   },
   "docker-service": {
+   "apt\\docker-cli": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   },
    "apt\\docker-engine": {
     "driver": "apt",
     "fields": {
-     "name": "docker.io",
-     "repo-component": "universe"
+     "name": "docker.io"
     },
     "name": "docker.io"
    },
@@ -98390,6 +98642,69 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -115277,6 +115592,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "apt\\docker-compose": {
     "driver": "apt",
@@ -131849,6 +132227,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "dnf\\docker-cli": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
    }
   },
   "docker-compose": {
@@ -148856,6 +149243,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "dnf\\docker-cli": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
    }
   },
   "docker-compose": {
@@ -166883,6 +167279,45 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -189491,6 +189926,45 @@
     "name": "shell-glue"
    }
   },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "script\\docker-compose": {
     "driver": "script",
@@ -207176,6 +207650,69 @@
     "name": "docker"
    }
   },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   },
+   "zypper\\curl": {
+    "driver": "zypper",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "zypper\\git": {
+    "driver": "zypper",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   }
+  },
   "docker-compose": {
    "script\\docker-compose-standalone": {
     "driver": "script",
@@ -223992,6 +224529,69 @@
      "repo-component": "universe"
     },
     "name": "docker"
+   }
+  },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   },
+   "zypper\\curl": {
+    "driver": "zypper",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "zypper\\git": {
+    "driver": "zypper",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
    }
   },
   "docker-compose": {
@@ -240819,6 +241419,69 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -258288,6 +258951,69 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -277484,6 +278210,69 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "docker-compose": {
@@ -296792,6 +297581,69 @@
     "name": "shell-glue"
    }
   },
+  "docker-cli": {
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "dnf\\git": {
+    "driver": "dnf",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -315573,6 +316425,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "apt\\docker-compose": {
     "driver": "apt",
@@ -332829,6 +333744,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "apt\\docker-compose": {
     "driver": "apt",
@@ -349548,6 +350526,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "apt\\docker-compose": {
     "driver": "apt",
@@ -365769,6 +366810,69 @@
     "name": "docker-service"
    }
   },
+  "docker-cli": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "apt\\git": {
+    "driver": "apt",
+    "fields": {
+     "name": "git"
+    },
+    "name": "git"
+   },
+   "brew\\docker-cli": {
+    "driver": "brew",
+    "fields": {
+     "name": "docker"
+    },
+    "name": "docker"
+   },
+   "dotfiles\\git-dotfiles": {
+    "driver": "dotfiles",
+    "fields": {
+     "config": {
+      "dst": "~/.gitconfig",
+      "src": "gitconfig"
+     }
+    },
+    "name": "git-dotfiles"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
+   }
+  },
   "docker-compose": {
    "apt\\docker-compose": {
     "driver": "apt",
@@ -381941,6 +383045,15 @@
     "name": "docker"
    }
   },
+  "docker-cli": {
+   "xbps\\docker-cli": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
+   }
+  },
   "docker-compose": {
    "script\\docker-compose-standalone": {
     "driver": "script",
@@ -396870,6 +397983,15 @@
      "repo-component": "universe"
     },
     "name": "docker"
+   }
+  },
+  "docker-cli": {
+   "xbps\\docker-cli": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-cli"
+    },
+    "name": "docker-cli"
    }
   },
   "docker-compose": {

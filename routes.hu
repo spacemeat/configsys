@@ -2699,7 +2699,18 @@
         docker-engine: { attrs: [ daemon FOSS permissive ] description: "Docker Engine — the container runtime daemon."
             install: [ { via: native  when: "not (rhel or fedora_atomic)"  repo-component: universe  name: { xbps: docker dnf: moby-engine  pacman: docker  zypper: docker  apk: docker  default: docker.io } }
                        { via: native  when: "amzn"  name: docker }   // none on EL (moby-engine is Fedora-only; podman is EL's engine) or fedora_atomic (no daemon from brew)
-                       { via: native  when: "chimera"  packages: [ moby, docker-cli ] } ]   // Chimera splits the daemon (moby, + moby-dinit) from the `docker` CLI
+                       // these split the daemon from the `docker` CLI (Debian 13's docker.io only RECOMMENDS docker-cli), so the engine requires it by name
+                       { via: native  when: "(debian >= 13) or kali"  name: docker.io  requires: docker-cli }
+                       { via: native  when: "chimera"  name: moby  requires: docker-cli } ]   // + moby-dinit, which apk adds with dinit
+        }
+        // The `docker` CLI alone — to drive a remote daemon (DOCKER_HOST / a context) or Podman's
+        // Docker-compatible socket without running dockerd here. Native where the distro packages the
+        // CLI on its own (Ubuntu's `docker-cli` is only a virtual name for the whole docker.io; Arch,
+        // openSUSE and Amazon Linux bundle it into the engine), else Homebrew's `docker` formula,
+        // which is the CLI only. docker-engine requires it where the two are split.
+        docker-cli: { attrs: [ CLI FOSS permissive ] description: "Docker CLI — the `docker` client alone, for a remote daemon or Podman's Docker-compatible socket."
+            install: [ { via: native  when: "(debian >= 13) or kali or fedora or alpine or chimera or void or void_musl or fedora_atomic"  name: { brew: docker  default: docker-cli } }
+                       { via: brew  name: docker } ]
         }
         docker-service: { description: "Enable and start the Docker daemon (systemd / runit / dinit)."
             requires: docker-engine
