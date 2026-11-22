@@ -1,6 +1,6 @@
 '''privilege.py — how configsys runs a step as root: through sudo, through doas, or directly.
 
-The runner holds ONE escalator, chosen when it is built (`detect()`, first match wins):
+The runner holds ONE escalator, chosen the first time it needs one (`detect()`, first match wins):
 
   AlreadyRoot  euid 0 — nothing to wrap, nothing to ask.
   Sudo         `sudo` on PATH — authenticate with `sudo -v`, probe with `sudo -n -v`; a keep-alive

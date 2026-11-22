@@ -223,8 +223,14 @@ def test_doas_each_step_runs_plain_so_doas_can_prompt(monkeypatch):
     assert order == ['preauth', 'doas', 'doas']               # one note, then doas asks per op itself
 
 
-def test_runner_detects_its_escalator_at_construction(monkeypatch):
+def test_runner_detects_its_escalator_once_on_first_use(monkeypatch):
     monkeypatch.setattr(privilege.os, 'geteuid', lambda: 0)
-    assert type(R.Runner(pretend=True).escalator) is AlreadyRoot
+    r = R.Runner(pretend=True)
+    assert type(r.escalator) is AlreadyRoot
     monkeypatch.setattr(privilege.os, 'geteuid', lambda: 1000)
+    assert type(r.escalator) is AlreadyRoot                   # chosen once per runner
     assert type(R.Runner(pretend=True).escalator) is Sudo     # conftest's fake sudo is on PATH
+    asked = []
+    monkeypatch.setattr(privilege, 'detect', lambda: asked.append(1) or Sudo())
+    R.Runner(pretend=True).run('echo hi')                     # an unprivileged op never looks
+    assert asked == []

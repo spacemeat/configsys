@@ -421,12 +421,18 @@ class Runner:
         self.tui_active = False  # set by the app while the curses TUI owns the screen
         self.calls = []  # every full command string, in order (for tests/logs)
         self.tee_limit = 64 * 1024  # bytes of streamed output retained for failure reports
-        # how a privileged op gets root: sudo, doas, or nothing to do as root (privilege.detect;
-        # a test injects one)
-        self.escalator = escalator or privilege.detect()
+        self._escalator = escalator   # (a test injects one; else detected on first use)
         self._sudo_warm = False       # its credential pre-cached for this batch (real tty)
         self._each_step = False       # authenticated, but not remembered: each step asks for itself
         self._keepalive = None        # privilege.Keepalive refreshing it, for the batch's duration
+
+    @property
+    def escalator(self):
+        '''How a privileged op gets root — sudo, doas, or nothing to do as root (privilege.detect) —
+        chosen once, the first time anything needs it (most runners never escalate).'''
+        if self._escalator is None:
+            self._escalator = privilege.detect()
+        return self._escalator
 
     def echo(self, msg):
         if self._echo:
@@ -502,7 +508,7 @@ class Runner:
         # work authenticates up front (begin_sudo) and then keeps every streamed op on the real tty.
         # `timeout` (seconds) bounds a CAPTURED probe (a glue generator): past it the child is killed
         # and the Result fails with rc 124, like timeout(1). A streamed op is never cut off.
-        esc = self.escalator
+        esc = self.escalator if sudo else None
         full = f'{esc.prefix}{cmd}' if sudo else cmd    # readable form for logs/tests
         self.calls.append(redact_url_credentials(full))
 

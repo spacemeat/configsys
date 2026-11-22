@@ -224,8 +224,9 @@ def _confirm_and_execute(stdscr, pal, ms, ctx, ledger):
     from ..actions import build_plan
     plan, units, advisories = build_plan(ctx, raw, units, states=ms.states) if raw else ([], units, [])
 
-    # ONE sudo session for the whole screen visit: run_plan releases its own keep-alive, but the
-    # refresh before the confirm, a cancel, and a System-Updates-only apply never reach it
+    # ONE root session (sudo or doas, privilege.py) for the whole screen visit: run_plan releases its
+    # own keep-alive, but the refresh before the confirm, a cancel, and a System-Updates-only apply
+    # never reach it
     with suspended(stdscr), ctx.runner.sudo_session():
         # ONE index refresh for the whole batch (see maybe_refresh_before_plan). With System Updates
         # staged it runs BEFORE the confirm: the bulk upgrade takes whatever the REFRESHED index
