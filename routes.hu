@@ -2432,6 +2432,24 @@
             requires: docker-engine
             install: [ { via: group  name: docker } ]
         }
+        // Compose v2+ is a Docker CLI PLUGIN (`docker compose`), found only in a cli-plugins dir — so
+        // where no distro packages it (Debian 12, whose `docker-compose` is the retired Python v1;
+        // EL; Amazon Linux; atomic) the default is Docker's own documented install: upstream's static
+        // binary into ~/.docker/cli-plugins/, sha256-checked. It needs no engine of its own (it talks
+        // to whatever daemon the CLI points at, podman's socket included), so no requires: docker.
+        docker-compose: { attrs: [ CLI plugin FOSS permissive ] description: "Docker Compose — define and run multi-container apps from a compose.yaml (`docker compose`)."
+            install: [ { via: native  when: "ubuntu >= 22.04"  name: docker-compose-v2  repo-component: universe }   // Ubuntu's v2 package (its `docker-compose` is the Python v1)
+                       { via: native  when: "(debian >= 13) or kali or pikaos" }   // Debian's `docker-compose` is v2 from trixie (bookworm's is v1)
+                       { via: native  when: "fedora or arch or opensuse or alpine or void or void_musl"  name: { apk: docker-cli-compose  default: docker-compose } }
+                       { via: script  requires: curl  cpu-names: { x86_64: x86_64  aarch64: aarch64 }
+                         install-cmd:     'set -e; a=$(uname -m); d=$(mktemp -d); trap "rm -rf \"$d\"" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o "$d/docker-compose-linux-$a" "$u"; curl -fsSL -o "$d/sum" "$u.sha256"; (cd "$d" && sha256sum -c --quiet sum); p="${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins"; mkdir -p "$p"; install -m 755 "$d/docker-compose-linux-$a" "$p/docker-compose"'
+                         set-version-cmd: 'set -e; a=$(uname -m); d=$(mktemp -d); trap "rm -rf \"$d\"" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o "$d/docker-compose-linux-$a" "$u"; curl -fsSL -o "$d/sum" "$u.sha256"; (cd "$d" && sha256sum -c --quiet sum); p="${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins"; mkdir -p "$p"; install -m 755 "$d/docker-compose-linux-$a" "$p/docker-compose"'
+                         version-cmd:     '"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose" version --short'
+                         version-re:      '([0-9][0-9.]*)'
+                         version:         { github: docker/compose  strip-v: true }
+                         uninstall-cmd:   'rm -f "${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose"'
+                         location:        "~/.docker/cli-plugins" }
+                       { via: brew  name: docker-compose  standing: never-auto } ] }   // brew's build lands outside the cli-plugins dirs: `docker compose` needs cliPluginsExtraDirs in ~/.docker/config.json first (only `docker-compose` works) — pinnable, never the default
 
         // --- snapd: the daemon behind `via: snap`. The snap DRIVER `requires` the two setup
         // components below (see drivers:), so pinning a snap on a non-Ubuntu distro installs snapd,

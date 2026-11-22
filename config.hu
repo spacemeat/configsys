@@ -71,7 +71,7 @@ profiles: {
     games: [ zork ]   // mostly filled in by plugins (configsys-source adds xpilot)
 
     virtual-machines: [ qemu  virt-manager  virtualbox  libvirt  libvirt-service  libvirt-clients ]
-    containers: [ docker  docker-engine  docker-service  docker-group  lazydocker  podman  xephyr ]
+    containers: [ docker  docker-engine  docker-service  docker-group  docker-compose  lazydocker  podman  xephyr ]
     k8s: [ kubectl  helm  k9s  k3s ]
 
     db-clients: [ pgcli  mycli  dbeaver  sqlitebrowser  lazysql  dbx ]

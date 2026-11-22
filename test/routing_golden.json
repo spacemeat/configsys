@@ -1974,6 +1974,15 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apk\\docker-compose": {
+    "driver": "apk",
+    "fields": {
+     "name": "docker-cli-compose"
+    },
+    "name": "docker-cli-compose"
+   }
+  },
   "docker-engine": {
    "apk\\docker-engine": {
     "driver": "apk",
@@ -15940,6 +15949,36 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-compose": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
    }
   },
   "docker-engine": {
@@ -35262,6 +35301,15 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "pacman\\docker-compose": {
+    "driver": "pacman",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
   "docker-engine": {
    "pacman\\docker-engine": {
     "driver": "pacman",
@@ -53888,6 +53936,36 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\curl": {
+    "driver": "apt",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -71673,6 +71751,15 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -88509,6 +88596,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -105334,6 +105431,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -121846,6 +121953,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-compose": {
+   "dnf\\docker-compose": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
    }
   },
   "docker-engine": {
@@ -138795,6 +138911,15 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-compose": {
+   "dnf\\docker-compose": {
+    "driver": "dnf",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
    }
   },
   "docker-engine": {
@@ -156765,6 +156890,66 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-compose": {
+   "brew\\curl": {
+    "driver": "brew",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "glue\\homebrew-glue": {
+    "driver": "glue",
+    "fields": {
+     "glue": "homebrew"
+    },
+    "name": "homebrew-glue"
+   },
+   "glue\\shell-glue": {
+    "driver": "glue",
+    "fields": {
+     "loader": "all"
+    },
+    "name": "shell-glue"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   },
+   "script\\homebrew": {
+    "driver": "script",
+    "fields": {
+     "install-cmd": "sudo -v && NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+     "location": "/home/linuxbrew/.linuxbrew",
+     "name": "homebrew",
+     "uninstall-cmd": "NONINTERACTIVE=1 /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)\"",
+     "upgrade-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" update; break; }; done",
+     "version": {
+      "github": "Homebrew/brew"
+     },
+     "version-cmd": "for b in \"$(command -v brew)\" /home/linuxbrew/.linuxbrew/bin/brew \"$HOME/.linuxbrew/bin/brew\"; do [ -x \"$b\" ] && { \"$b\" --version; break; }; done",
+     "version-re": "Homebrew ([0-9][0-9.]*)"
+    },
+    "name": "homebrew"
    }
   },
   "doppler": {
@@ -179229,6 +179414,29 @@
     "name": "shell-glue"
    }
   },
+  "docker-compose": {
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   }
+  },
   "doppler": {
    "brew\\doppler": {
     "driver": "brew",
@@ -196843,6 +197051,15 @@
     "name": "docker"
    }
   },
+  "docker-compose": {
+   "zypper\\docker-compose": {
+    "driver": "zypper",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
   "docker-engine": {
    "zypper\\docker-engine": {
     "driver": "zypper",
@@ -213601,6 +213818,15 @@
      "repo-component": "universe"
     },
     "name": "docker"
+   }
+  },
+  "docker-compose": {
+   "zypper\\docker-compose": {
+    "driver": "zypper",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
    }
   },
   "docker-engine": {
@@ -230370,6 +230596,16 @@
      "unit": "docker"
     },
     "name": "docker-service"
+   }
+  },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
    }
   },
   "docker-engine": {
@@ -247780,6 +248016,36 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-compose": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
    }
   },
   "doppler": {
@@ -266878,6 +267144,36 @@
      "loader": "all"
     },
     "name": "shell-glue"
+   }
+  },
+  "docker-compose": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
    }
   },
   "doppler": {
@@ -286088,6 +286384,36 @@
     "name": "shell-glue"
    }
   },
+  "docker-compose": {
+   "dnf\\curl": {
+    "driver": "dnf",
+    "fields": {
+     "name": "curl"
+    },
+    "name": "curl"
+   },
+   "script\\docker-compose": {
+    "driver": "script",
+    "fields": {
+     "cpu-names": {
+      "aarch64": "aarch64",
+      "x86_64": "x86_64"
+     },
+     "install-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "location": "~/.docker/cli-plugins",
+     "name": "docker-compose",
+     "set-version-cmd": "set -e; a=$(uname -m); d=$(mktemp -d); trap \"rm -rf \\\"$d\\\"\" EXIT; u=https://github.com/docker/compose/releases/download/v$VERSION/docker-compose-linux-$a; curl -fsSL -o \"$d/docker-compose-linux-$a\" \"$u\"; curl -fsSL -o \"$d/sum\" \"$u.sha256\"; (cd \"$d\" && sha256sum -c --quiet sum); p=\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins\"; mkdir -p \"$p\"; install -m 755 \"$d/docker-compose-linux-$a\" \"$p/docker-compose\"",
+     "uninstall-cmd": "rm -f \"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\"",
+     "version": {
+      "github": "docker/compose",
+      "strip-v": "true"
+     },
+     "version-cmd": "\"${DOCKER_CONFIG:-$HOME/.docker}/cli-plugins/docker-compose\" version --short",
+     "version-re": "([0-9][0-9.]*)"
+    },
+    "name": "docker-compose"
+   }
+  },
   "doppler": {
    "dnf\\curl": {
     "driver": "dnf",
@@ -304770,6 +305096,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -321966,6 +322302,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -338625,6 +338971,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -354786,6 +355142,16 @@
     "name": "docker-service"
    }
   },
+  "docker-compose": {
+   "apt\\docker-compose": {
+    "driver": "apt",
+    "fields": {
+     "name": "docker-compose-v2",
+     "repo-component": "universe"
+    },
+    "name": "docker-compose-v2"
+   }
+  },
   "docker-engine": {
    "apt\\docker-engine": {
     "driver": "apt",
@@ -370898,6 +371264,15 @@
     "name": "docker"
    }
   },
+  "docker-compose": {
+   "xbps\\docker-compose": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
+   }
+  },
   "docker-engine": {
    "xbps\\docker-engine": {
     "driver": "xbps",
@@ -385769,6 +386144,15 @@
      "repo-component": "universe"
     },
     "name": "docker"
+   }
+  },
+  "docker-compose": {
+   "xbps\\docker-compose": {
+    "driver": "xbps",
+    "fields": {
+     "name": "docker-compose"
+    },
+    "name": "docker-compose"
    }
   },
   "docker-engine": {
